@@ -1,137 +1,157 @@
 <!DOCTYPE html>
 <html lang="de">
-<head>
-  <meta charset="UTF-8" />
-  <title>Mantis Projekt</title>
-  <link rel="shortcut icon" href="{{request.static_url('mantis:static/pyramid-16x16.png')}}" />
-  <link href="{{request.static_url('mantis:static/tailwind.min.css')}}" rel="stylesheet"/>
-  <link href="{{request.static_url('mantis:static/theme.css')}}" rel="stylesheet"/>
-  <style>
-    .white-Section {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: calc(100vh - 100px);
-      background: white;
-      z-index: -1;
-      transition: transform 0.5s ease-in-out;
-    }
-    .green-Section {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: calc(100vh - 100px);
-      background: green;
-      z-index: -1;
-      transition: transform 0.5s ease-in-out;
-    }
-    
-  </style>
-</head>
-<body>
-  <!--!Navigation Bar fully green -->
-  <nav class="flex items-center justify-between px-4 bg-green-900">
-    <div class="flex items-center">
-      <img src="{{request.static_url('mantis:static/images/logo.png')}}" alt="Logo" class="h-24 mr-20 -mb-1" />
-      <ul class="flex items-center">
-        <li>
-          <a href="/" class="mr-4 font-bold text-white hover:text-green-600">
-            Home
-          </a>
-        </li>
-        <li>
-          <a href="/faq" class="mr-4 font-bold text-white hover:text-green-700">
-            FAQ
-          </a>
-        </li>
-        <li>
-          <a href="/impressum" class="mr-4 font-bold text-white hover:text-green-400">
-            Impressum
-          </a>
-        </li>
-      </ul>
-    </div>
-    <button class="px-4 py-2 mr-4 text-white bg-green-800 rounded-full hover:bg-green-700">
-      Button
-    </button>
-  </nav>
-  <!--!Navigation Bar fully green -->
+  <head>
+    <meta charset="UTF-8" />
+    <title>Mantis Projekt</title>
+    <link
+      rel="shortcut icon"
+      href="{{ request.static_url('mantis:static/pyramid-16x16.png') }}"
+    />
+    <link
+      href="{{ request.static_url('mantis:static/tailwind.min.css') }}"
+      rel="stylesheet"
+    />
+    <link
+      href="{{ request.static_url('mantis:static/theme.css') }}"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
 
-  <!--!Content Start-->
-  <!-- Green Top Section -->
-  <div class="bg-green-900">
-    <div class="container flex items-center justify-between px-4 py-8 mx-auto">
-      <div class="w-1/2">
-        <img src="{{request.static_url('mantis:static/images/topBar.jpg')}}" alt="Image" class="w-full mb-8 -ml-8 rounded-lg shadow-xl -m-auto" />
-      </div>
-      <div class="w-1/2 text-white">
-        <h1 class="mb-10 text-6xl font-bold">MANTIS!</h1>
-        <p class="mb-6 text-lg">Placeholder text goes here.</p>
-        <button class="px-8 py-4 mr-4 font-extrabold text-white bg-green-800 rounded-full text-1xl hover:bg-green-700">
-          Button
-        </button>
-      </div>
-    </div>
-  </div>
-  <!-- Main Content on the left-->
-  <div class="container px-4 py-8 mx-auto">
-    <div class="grid grid-cols-3 gap-8">
-      <div class="col-span-1">
-        <h2 class="mb-4 text-2xl font-extrabold">Heading 1</h2>
-        <!-- Green divider under heading -->
-        <div class="w-20 h-1 mb-8 bg-green-600"></div>
-        <p class="text-gray-700">Placeholder text goes here.</p>
-        <!-- Green divider under text -->
-        <div class="w-20 h-1 mt-8 bg-green-600"></div>
-      </div>
-      <!-- Right Column -->
-      <div class="col-span-2">
-        <h2 class="mb-4 text-2xl font-extrabold">Heading 2</h2>
-        <!-- Green divider under heading -->
-      </div>
-      <div>
-        {% block content %}
 
-        {% endblock content %}
+    <!--! Navbar Start -->
+    <nav class="flex items-center justify-between px-4 bg-green-900">
+      <div class="flex items-center">
+        <img
+          src="{{ request.static_url('mantis:static/images/logo.png') }}"
+          alt="Logo"
+          class="h-24 mr-20 -mb-1"
+        />
+        <ul class="flex items-center">
+          <li>
+            <a href="/" class="mr-4 font-bold text-white hover:text-green-600">
+              Home
+            </a>
+          </li>
+          <li>
+            <a
+              href="/faq"
+              class="mr-4 font-bold text-white hover:text-green-700"
+            >
+              FAQ
+            </a>
+          </li>
+          <li>
+            <a
+              href="/impressum"
+              class="mr-4 font-bold text-white hover:text-green-400"
+            >
+              Impressum
+            </a>
+          </li>
+        </ul>
       </div>
-      </div>
-    </div>
-  </div>
-  <!--!Content End-->
+      <button
+        class="px-4 py-2 mr-4 text-white bg-green-800 rounded-full hover:bg-green-700"
+      >
+        Button
+      </button>
+    </nav>
+    <!--! Navbar End -->
 
 
 
+    <!--!Green Content Start-->
+    <div class="bg-green-900">
+      <div
+        class="container flex items-center justify-between px-4 py-8 mx-auto"
+      >
+        <div class="w-1/2">
+          <img
+            src="{{ request.static_url('mantis:static/images/topBar.jpg') }}"
+            alt="Image"
+            class="w-full mb-8 -ml-8 rounded-lg shadow-xl -m-auto"
+          />
+        </div>
 
-  <!--!Start Footer -->
-  <footer class="py-8 bg-gray-200">
-    <div class="container px-4 mx-auto">
-      <p class="text-sm text-center text-gray-700">
-        &copy; 2022 P22. All rights reserved.
-      </p>
-      <!--Todo DarkMode button sun moon-->
-      <div class="flex justify-center">
-        <button
-          class="flex items-center justify-center w-10 h-10 text-gray-800 bg-gray-200 rounded-full hover:bg-gray-300">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-            stroke="currentColor" class="w-6 h-6">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
-          </svg>
-        </button>
-        <div class="flex justify-center w-10 h-10">
-          <button class="flex items-center justify-center text-gray-800 bg-gray-200 rounded-full hover:bg-gray-300">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-              stroke="currentColor" class="w-6 h-6">
-              <path stroke-linecap="round" stroke-linejoin="round"
-                d="M12 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
-            </svg>
+        <div class="w-1/2 text-white">
+          <h1 class="mb-10 text-6xl font-bold">Mantis - Mitmachprojekt</h1>
+          <p class="mb-6 text-lg">Gottesanbeterin gesucht!.</p>
+          <button
+            class="px-8 py-4 mr-4 font-extrabold text-white bg-green-800 rounded-full text-1xl hover:bg-green-700"
+          >
+            Melden
           </button>
         </div>
       </div>
-  </footer>
-  <!--!End Footer-->
-  
-</body>
+    </div>
+    <!--! Green Content Stop-->
+
+
+
+    <!--! Whhite Content Start-->
+    <div class="flex flex-row">
+      <div class="basis-1/4">01</div>
+
+      <div class="basis-1/2">{% block content %} {% endblock content %}</div>
+
+      <div class="basis-1/4">03</div>
+    </div>
+    <!--! White Content End-->
+
+
+
+    <!--! Start Footer -->
+    <footer class="py-8 bg-gray-200">
+      <div class="container px-4 mx-auto">
+        <p class="text-sm text-center text-gray-700">
+          &copy; 2022 P22. All rights reserved.
+        </p>
+        <!--Todo DarkMode button sun moon-->
+        <div class="flex justify-center">
+          <button
+            class="flex items-center justify-center w-10 h-10 text-gray-800 bg-gray-200 rounded-full hover:bg-gray-300"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+              class="w-6 h-6"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"
+              />
+            </svg>
+          </button>
+          <div class="flex justify-center w-10 h-10">
+            <button
+              class="flex items-center justify-center text-gray-800 bg-gray-200 rounded-full hover:bg-gray-300"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+                stroke="currentColor"
+                class="w-6 h-6"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M12 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </footer>
+    <!--! End Footer-->
+
+    
+  </body>
 </html>
