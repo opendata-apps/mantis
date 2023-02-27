@@ -16,48 +16,126 @@
       rel="stylesheet"
     />
   </head>
+  <body class="antialiased">
+    <div class="bg-gray-100 border-b">
+      <!-- Navbar Start -->
+      <nav class="sticky top-0 bg-green-900">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex justify-between h-16">
+            <!-- Logo -->
+            <div class="flex-shrink-0 flex items-center">
+              <a href="/">
+                <img
+                  src="{{
+                    request.static_url('mantis:static/images/logo.png')
+                  }}"
+                  alt="Logo"
+                  class="h-12"
+                />
+              </a>
+            </div>
 
-  <!-- Navbar Start -->
-  <body class="">
-    <!--! Navbar Start -->
-    <div
-      class="sticky top-0 z-20 flex items-center justify-between w-full px-8 bg-green-900"
-    >
-      <div class="flex items-center">
-        <img
-          src="{{ request.static_url('mantis:static/images/logo.png') }}"
-          alt="Logo"
-          class="h-24 mr-20 -mb-1"
-        />
-        <ul class="flex items-center">
-          <li>
-            <a href="/" class="mr-4 font-bold text-white hover:text-green-600"
-              >Home</a
-            >
-          </li>
-          <li>
-            <a
-              href="/faq"
-              class="mr-4 font-bold text-white hover:text-green-600"
-              >FAQ</a
-            >
-          </li>
-          <li>
-            <a
-              href="/impressum"
-              class="mr-4 font-bold text-white hover:text-green-600"
-              >Impressum</a
-            >
-          </li>
-        </ul>
-      </div>
-      <button
-        class="px-4 py-2 mr-4 text-white bg-green-800 rounded-full hover:bg-green-700"
-      >
-        Button
-      </button>
+            <!-- Links -->
+            <div class="hidden sm:flex sm:items-center">
+              <ul class="flex space-x-4">
+                <li>
+                  <a href="/" class="text-white font-bold hover:text-green-600"
+                    >Home</a
+                  >
+                </li>
+                <li>
+                  <a
+                    href="/faq"
+                    class="text-white font-bold hover:text-green-600"
+                    >FAQ</a
+                  >
+                </li>
+                <li>
+                  <a
+                    href="/impressum"
+                    class="text-white font-bold hover:text-green-600"
+                    >Impressum</a
+                  >
+                </li>
+              </ul>
+            </div>
+
+            <!-- Hamburger -->
+            <div class="flex items-center sm:hidden">
+              <button id="navbar-toggle">
+                <svg
+                  class="w-6 h-6 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 6h16M4 12h16M4 18h16"
+                  ></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div class="sm:hidden" id="mobile-menu">
+          <ul class="flex flex-col items-center justify-center h-screen w-full">
+            <li class="py-4">
+              <a
+                href="/"
+                class="text-white font-bold hover:text-green-600"
+                onclick="closeMobileMenu()"
+                >Home</a
+              >
+            </li>
+            <li class="py-4">
+              <a
+                href="/faq"
+                class="text-white font-bold hover:text-green-600"
+                onclick="closeMobileMenu()"
+                >FAQ</a
+              >
+            </li>
+            <li class="py-4">
+              <a
+                href="/impressum"
+                class="text-white font-bold hover:text-green-600"
+                onclick="closeMobileMenu()"
+                >Impressum</a
+              >
+            </li>
+          </ul>
+        </div>
+      </nav>
+      <!-- Navbar End -->
+
+      <script>
+        const navbarToggle = document.getElementById("navbar-toggle");
+        const mobileMenu = document.getElementById("mobile-menu");
+
+        navbarToggle.addEventListener("click", () => {
+          mobileMenu.classList.toggle("hidden");
+        });
+
+        // Add event listeners to close mobile menu after item is clicked
+        const mobileLinks = document.querySelectorAll("#mobile-menu a");
+
+        mobileLinks.forEach((link) => {
+          link.addEventListener("click", () => {
+            mobileMenu.classList.add("hidden");
+          });
+        });
+
+        function closeMobileMenu() {
+          mobileMenu.classList.add("hidden");
+        }
+      </script>
     </div>
-    <!--! Navbar End -->
 
     <!--!Green Content Start-->
     <div class="grid grid-cols-1 md:grid-cols-2 bg-green-900 p-10">
@@ -70,23 +148,21 @@
         />
       </div>
 
-      <div class="pl-10">
-        <div class="w-full text-white lg:w-1/2">
-          <h1 class="mb-10 text-6xl font-bold">
-            {% block title %} {% endblock title %}
-          </h1>
-          <p class="mb-6 text-lg">{% block text %} {% endblock text %}</p>
-          <!--todo add pages where no report button should appear-->
-          {% if request.path == '/' %}
-          <a href="/newitem">
-            <button
-              class="transition duration-500 ease-in-out bg-green-800 hover:bg-green-700 transform hover:-translate-y-1 hover:scale-110 px-8 py-4 mr-4 font-extrabold text-white rounded-full text-1xl"
-            >
-              Melden
-            </button>
-          </a>
-          {% endif %}
-        </div>
+      <div class="p-10 w-full text-white">
+        <h1 class="mb-10 text-6xl font-bold">
+          {% block title %} {% endblock title %}
+        </h1>
+        <p class="mb-6 text-lg">{% block text %} {% endblock text %}</p>
+        <!--todo add pages where no report button should appear-->
+        {% if request.path == '/' %}
+        <a href="/newitem">
+          <button
+            class="transition duration-500 ease-in-out bg-green-800 hover:bg-green-700 px-8 py-4 mr-4 font-extrabold text-white rounded-md text-1xl"
+          >
+            Melden
+          </button>
+        </a>
+        {% endif %}
       </div>
     </div>
     <!--! Green Content Stop-->
