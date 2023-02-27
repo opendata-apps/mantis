@@ -15,7 +15,24 @@
       href="{{ request.static_url('mantis:static/theme.css') }}"
       rel="stylesheet"
     />
-    <style></style>
+    <style>
+            /* Add these styles */
+            nav {
+              position: fixed;
+              top: 0;
+              left: 0;
+              width: 100%;
+              z-index: 999;
+            }
+            main {
+              padding-top: 80px; /* adjust as needed */
+            }
+            footer {
+              position: relative;
+              z-index: 1;
+            }
+          </style>
+    </style>
   </head>
 
   <!--! Navbar Start -->
@@ -59,7 +76,7 @@
     <!--! Navbar End -->
 
     <!--!Green Content Start-->
-    <main class="flex-1 bg-gray-100 bg-mantisBG">
+    <main class="flex-1 bg-gray-100">
       <section class="bg-green-900">
         <div
           class="container flex items-center justify-between px-4 py-8 mx-auto"
