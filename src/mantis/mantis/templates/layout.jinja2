@@ -15,6 +15,7 @@
       href="{{ request.static_url('mantis:static/theme.css') }}"
       rel="stylesheet"
     />
+    <style></style>
   </head>
 
   <!--! Navbar Start -->
@@ -58,7 +59,7 @@
     <!--! Navbar End -->
 
     <!--!Green Content Start-->
-    <main class="flex-1 bg-gray-100">
+    <main class="flex-1 bg-gray-100 bg-mantisBG">
       <section class="bg-green-900">
         <div
           class="container flex items-center justify-between px-4 py-8 mx-auto"
@@ -77,9 +78,9 @@
             <p class="mb-6 text-lg">{% block text %} {% endblock text %}</p>
             <!--todo add pages where no report button should appear-->
             {% if request.path == '/' %}
-            <a href="/report">
+            <a href="/newitem">
               <button
-                class="px-8 py-4 mr-4 font-extrabold text-white bg-green-800 rounded-full text-1xl hover:bg-green-700"
+                class="transition duration-500 ease-in-out bg-green-800 hover:bg-green-700 transform hover:-translate-y-1 hover:scale-110 px-8 py-4 mr-4 font-extrabold text-white rounded-full text-1xl"
               >
                 Melden
               </button>
@@ -91,56 +92,118 @@
       <!--! Green Content Stop-->
 
       <!--! Whhite Content Start-->
-      <div class="container px-4 py-8 mx-auto">
-        <div class="basis-1/4"></div>
+      <div class="flex flex-wrap">
+        <div class="flex-auto">{% block left%} {%endblock%}</div>
 
-        <div class="basis-1/2">{% block content %} {% endblock content %}</div>
+        <div class="flex-auto">{% block content %} {% endblock content %}</div>
 
-        <div class="basis-1/4"></div>
+        <div class="flex-auto">{% block right%} {%endblock%}</div>
       </div>
       <!--! White Content End-->
     </main>
     <!--! Start Footer -->
-    <footer class="flex flex-col items-center py-8 bg-gray-200">
-      <div class="container flex flex-col items-center px-4 mx-auto">
-        <p class="text-sm text-center text-gray-700">
-          &copy; 2022 P22. All rights reserved.
-        </p>
-        <!--? DarkMode button sun moon-->
-        <div class="flex items-center justify-center mt-4">
-          <button
-            class="flex items-center justify-center w-10 h-10 text-gray-800 bg-gray-200 rounded-full hover:bg-gray-300"
-          >
-            <svg
-              class="w-4 h-4"
-              fill="none"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path d="M12 4v16m8-8H4"></path>
-            </svg>
-          </button>
-          <!--? Admin Center Icon-->
-          <div>
-            <a href="/admin">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke-width="1.5"
-                stroke="currentColor"
-                class="w-6 h-6"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"
-                />
-              </svg>
-            </a>
+    <!--https://tailwindcomponents.com/component/footer-5-->
+    <footer class="relative bg-gray-200 pt-8 pb-6">
+      <div class="container mx-auto px-4">
+        <div class="flex flex-wrap text-left lg:text-left">
+          <div class="w-full lg:w-6/12 px-4">
+            <h4 class="text-3xl fonat-semibold text-blueGray-700">
+              Naturkunde Museum Potsdam
+            </h4>
+            <h5 class="text-lg mt-0 mb-2 text-blueGray-600">
+              Wir sind ein Museum für Naturkunde und Naturgeschichte in Potsdam.
+              Wir zeigen die Vielfalt der Natur und ihre Geschichte.
+            </h5>
+          </div>
+          <div class="w-full lg:w-6/12 px-4">
+            <div class="flex flex-wrap items-top mb-6">
+              <div class="w-full lg:w-4/12 px-4 ml-auto">
+                <span
+                  class="block uppercase text-blueGray-500 text-sm font-semibold mb-2"
+                  >Useful Links</span
+                >
+                <ul class="list-unstyled">
+                  <li>
+                    <a
+                      class="text-blueGray-600 hover:text-blueGray-800 font-semibold block pb-2 text-sm"
+                      href="/#"
+                      >About Us</a
+                    >
+                  </li>
+                  <li>
+                    <a
+                      class="text-blueGray-600 hover:text-blueGray-800 font-semibold block pb-2 text-sm"
+                      href="/admin"
+                      >Admin</a
+                    >
+                  </li>
+                  <li>
+                    <a
+                      class="text-blueGray-600 hover:text-blueGray-800 font-semibold block pb-2 text-sm"
+                      href="/#"
+                      >GitLab</a
+                    >
+                  </li>
+                  <li>
+                    <a
+                      class="text-blueGray-600 hover:text-blueGray-800 font-semibold block pb-2 text-sm"
+                      href="/#"
+                      >...</a
+                    >
+                  </li>
+                </ul>
+              </div>
+              <div class="w-full lg:w-4/12 px-4">
+                <span
+                  class="block uppercase text-blueGray-500 text-sm font-semibold mb-2"
+                  >Other Resources</span
+                >
+                <ul class="list-unstyled">
+                  <li>
+                    <a
+                      class="text-blueGray-600 hover:text-blueGray-800 font-semibold block pb-2 text-sm"
+                      href="/#"
+                      >MIT License</a
+                    >
+                  </li>
+                  <li>
+                    <a
+                      class="text-blueGray-600 hover:text-blueGray-800 font-semibold block pb-2 text-sm"
+                      href="/#"
+                      >Terms &amp; Conditions</a
+                    >
+                  </li>
+                  <li>
+                    <a
+                      class="text-blueGray-600 hover:text-blueGray-800 font-semibold block pb-2 text-sm"
+                      href="/#"
+                      >Privacy Policy</a
+                    >
+                  </li>
+                  <li>
+                    <a
+                      class="text-blueGray-600 hover:text-blueGray-800 font-semibold block pb-2 text-sm"
+                      href="/#"
+                      >Contact Us</a
+                    >
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        <hr class="my-6 border-blueGray-300" />
+        <div
+          class="flex flex-wrap items-center md:justify-between justify-center"
+        >
+          <div class="w-full md:w-4/12 px-4 mx-auto text-center">
+            <div class="text-sm text-blueGray-500 font-semibold py-1">
+              Copyright © <span id="get-current-year">2023</span
+              ><a class="text-blueGray-500 hover:text-gray-800" target="_blank">
+                Ich bin schön
+              </a>
+              <a class="text-blueGray-500 hover:text-blueGray-800">Bananen</a>.
+            </div>
           </div>
         </div>
       </div>
