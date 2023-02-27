@@ -16,124 +16,127 @@
       rel="stylesheet"
     />
   </head>
+
   <body class="antialiased">
-    <div class="bg-gray-100 border-b">
+    <div>
       <!-- Navbar Start -->
-      <nav class="sticky top-0 bg-green-900">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="flex justify-between h-16">
-            <!-- Logo -->
-            <div class="flex-shrink-0 flex items-center">
-              <a href="/">
-                <img
-                  src="{{
-                    request.static_url('mantis:static/images/logo.png')
-                  }}"
-                  alt="Logo"
-                  class="h-12"
-                />
-              </a>
-            </div>
-
-            <!-- Links -->
-            <div class="hidden sm:flex sm:items-center">
-              <ul class="flex space-x-4">
-                <li>
-                  <a href="/" class="text-white font-bold hover:text-green-600"
-                    >Home</a
-                  >
-                </li>
-                <li>
-                  <a
-                    href="/faq"
-                    class="text-white font-bold hover:text-green-600"
-                    >FAQ</a
-                  >
-                </li>
-                <li>
-                  <a
-                    href="/impressum"
-                    class="text-white font-bold hover:text-green-600"
-                    >Impressum</a
-                  >
-                </li>
-              </ul>
-            </div>
-
-            <!-- Hamburger -->
-            <div class="flex items-center sm:hidden">
-              <button id="navbar-toggle">
-                <svg
-                  class="w-6 h-6 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
+      <nav
+        class="px-2 sm:px-4 py-2.5 dark:bg-gray-900 fixed w-full z-20 top-0 left-0 border-b border-gray-200 dark:border-gray-600"
+      >
+        <div
+          class="container flex flex-wrap items-center justify-between mx-auto"
+        >
+          <a href="#" class="flex items-center">
+            <img
+              src="{{ request.static_url('mantis:static/images/logo.png') }}"
+              class="h-6 mr-3 sm:h-9"
+              alt="Mantis Projekt Logo"
+            />
+            <span
+              class="self-center text-xl font-extrabold whitespace-nowrap dark:text-white"
+              >Mantis Projekt</span
+            >
+          </a>
+          <div class="flex md:order-2">
+            <button
+              type="button"
+              class="text-white bg-green-800 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-3 md:mr-0 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+            >
+              Melden!
+            </button>
+            <button
+              data-collapse-toggle="navbar-sticky"
+              type="button"
+              class="inline-flex items-center p-2 text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
+              aria-controls="navbar-sticky"
+              aria-expanded="false"
+            >
+              <span class="sr-only">Open main menu</span>
+              <svg
+                class="w-6 h-6"
+                aria-hidden="true"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+                  clip-rule="evenodd"
+                ></path>
+              </svg>
+            </button>
+          </div>
+          <div
+            class="items-center justify-between hidden w-full md:flex md:w-auto md:order-1"
+            id="navbar-sticky"
+          >
+            <div style="text-align: right"></div>
+            <ul
+              class="bg-green-900 flex flex-col p-4 mt-4 border border-gray-100 rounded-lg bg-gray-50 md:flex-row md:space-x-8 md:mt-0 md:text-sm md:font-medium md:border-0 md:bg-green"
+            >
+              <li>
+                <a
+                  href="#"
+                  class="block py-2 pl-3 pr-4 text-white font-extrabold rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-green-700 md:p-0 md:dark:hover:text-white dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
+                  >FAQ</a
                 >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M4 6h16M4 12h16M4 18h16"
-                  ></path>
-                </svg>
-              </button>
-            </div>
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="block py-2 pl-3 pr-4 text-white font-extrabold rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-green-700 md:p-0 md:dark:hover:text-white dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
+                  >Kontakt</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="block py-2 pl-3 pr-4 text-white font-extrabold rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-green-700 md:p-0 md:dark:hover:text-white dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
+                  >Impressum</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="block py-2 pl-3 pr-4 text-white font-extrabold rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-green-700 md:p-0 md:dark:hover:text-white dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
+                  >Datenschutz</a
+                >
+              </li>
+            </ul>
           </div>
         </div>
-
-        <!-- Mobile Menu -->
-        <div class="sm:hidden" id="mobile-menu">
-          <ul class="flex flex-col items-center justify-center h-screen w-full">
-            <li class="py-4">
-              <a
-                href="/"
-                class="text-white font-bold hover:text-green-600"
-                onclick="closeMobileMenu()"
-                >Home</a
-              >
-            </li>
-            <li class="py-4">
-              <a
-                href="/faq"
-                class="text-white font-bold hover:text-green-600"
-                onclick="closeMobileMenu()"
-                >FAQ</a
-              >
-            </li>
-            <li class="py-4">
-              <a
-                href="/impressum"
-                class="text-white font-bold hover:text-green-600"
-                onclick="closeMobileMenu()"
-                >Impressum</a
-              >
-            </li>
-          </ul>
-        </div>
       </nav>
+
       <!-- Navbar End -->
 
       <script>
-        const navbarToggle = document.getElementById("navbar-toggle");
-        const mobileMenu = document.getElementById("mobile-menu");
+        const navbarToggler = document.querySelector("[data-collapse-toggle]");
 
-        navbarToggle.addEventListener("click", () => {
-          mobileMenu.classList.toggle("hidden");
+        navbarToggler.addEventListener("click", function () {
+          const target = document.getElementById(
+            this.getAttribute("aria-controls")
+          );
+          target.classList.toggle("hidden");
+          target.classList.toggle("flex");
+          this.setAttribute(
+            "aria-expanded",
+            this.getAttribute("aria-expanded") === "false" ? "true" : "false"
+          );
         });
 
-        // Add event listeners to close mobile menu after item is clicked
-        const mobileLinks = document.querySelectorAll("#mobile-menu a");
+        const links = document.querySelectorAll("#navbar-sticky a");
 
-        mobileLinks.forEach((link) => {
-          link.addEventListener("click", () => {
-            mobileMenu.classList.add("hidden");
+        links.forEach((link) => {
+          link.addEventListener("click", function () {
+            const target = document.getElementById(
+              navbarToggler.getAttribute("aria-controls")
+            );
+            target.classList.add("hidden");
+            target.classList.remove("flex");
+            navbarToggler.setAttribute("aria-expanded", "false");
           });
         });
-
-        function closeMobileMenu() {
-          mobileMenu.classList.add("hidden");
-        }
       </script>
     </div>
 
