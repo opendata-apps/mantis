@@ -1,24 +1,27 @@
 {% extends "layout.jinja2" %}
 
+{% block title %}Home{% endblock title %}
+{% block text %}Consequat ea duis officia elit nostrud Lorem elit quis ex esse nostrud deserunt elit. Laboris{%endblock
+text%}
+
 {% block content %}
-  <!--! Content Start-->
-  <!-- Main Content on the left-->
-  <div class="container px-4 py-8 mx-auto">
-    <div class="grid grid-cols-2 gap-8">
-      <div class="col-span-1">
-        <h2 class="mb-4 text-2xl font-extrabold">Heading 1</h2>
-        <!-- Green divider under heading -->
-        <div class="w-20 h-1 mb-8 bg-green-600"></div>
-        <p class="text-gray-700">Placeholder text goes here.</p>
-        <!-- Green divider under text -->
-        <div class="w-20 h-1 mt-8 bg-green-600"></div>
-      </div>
-      <!-- Right Column -->
-      <div class="col-span-2">
-        <h2 class="mb-4 text-2xl font-extrabold">Heading 2</h2>
-        <!-- Green divider under heading -->
-      </div>
+<!--! Content Start-->
+<div class="container px-4 py-8 mx-auto">
+  <div class="basis-1/4">01</div>
+
+  <div class="basis-1/2">
+    <div class="content">
+      <h1>
+        <span class="font-semi-bold">Pyramid</span>
+        <span class="smaller">Starter project</span>
+      </h1>
+      <p class="lead">
+        Welcome to <span class="font-normal">{{ project }}</span>, a&nbsp;Pyramid application
+        generated&nbsp;by<br /><span class="font-normal">Cookiecutter</span>.
+      </p>
     </div>
   </div>
-{% endblock content %}
 
+  <div class="basis-1/4">03</div>
+  {% endblock content %}
+</div>

@@ -16,10 +16,10 @@
       rel="stylesheet"
     />
   </head>
-  <body>
 
+  <!--! Navbar Start -->
 
-    <!--! Navbar Start -->
+  <body class="flex flex-col min-h-screen">
     <nav class="flex items-center justify-between px-4 bg-green-900">
       <div class="flex items-center">
         <img
@@ -29,25 +29,23 @@
         />
         <ul class="flex items-center">
           <li>
-            <a href="/" class="mr-4 font-bold text-white hover:text-green-600">
-              Home
-            </a>
+            <a href="/" class="mr-4 font-bold text-white hover:text-green-600"
+              >Home</a
+            >
           </li>
           <li>
             <a
               href="/faq"
               class="mr-4 font-bold text-white hover:text-green-700"
+              >FAQ</a
             >
-              FAQ
-            </a>
           </li>
           <li>
             <a
               href="/impressum"
               class="mr-4 font-bold text-white hover:text-green-400"
+              >Impressum</a
             >
-              Impressum
-            </a>
           </li>
         </ul>
       </div>
@@ -59,78 +57,70 @@
     </nav>
     <!--! Navbar End -->
 
-
-
     <!--!Green Content Start-->
-    <div class="bg-green-900">
-      <div
-        class="container flex items-center justify-between px-4 py-8 mx-auto"
-      >
-        <div class="w-1/2">
-          <img
-            src="{{ request.static_url('mantis:static/images/topBar.jpg') }}"
-            alt="Image"
-            class="w-full mb-8 -ml-8 rounded-lg shadow-xl -m-auto"
-          />
+    <main class="flex-1 bg-gray-100">
+      <section class="bg-green-900">
+        <div
+          class="container flex items-center justify-between px-4 py-8 mx-auto"
+        >
+          <div class="w-full lg:w-1/2">
+            <img
+              src="{{ request.static_url('mantis:static/images/topBar.jpg') }}"
+              alt="Image"
+              class="w-full mb-8 -ml-8 rounded-lg shadow-xl"
+            />
+          </div>
+          <div class="w-full text-white lg:w-1/2">
+            <h1 class="mb-10 text-6xl font-bold">
+              {% block title %} {% endblock title %}
+            </h1>
+            <p class="mb-6 text-lg">{% block text %} {% endblock text %}</p>
+            <button
+              class="px-8 py-4 mr-4 font-extrabold text-white bg-green-800 rounded-full text-1xl hover:bg-green-700"
+            >
+              Melden
+            </button>
+          </div>
         </div>
+      </section>
+      <!--! Green Content Stop-->
 
-        <div class="w-1/2 text-white">
-          <h1 class="mb-10 text-6xl font-bold">Mantis - Mitmachprojekt</h1>
-          <p class="mb-6 text-lg">Gottesanbeterin gesucht!.</p>
-          <button
-            class="px-8 py-4 mr-4 font-extrabold text-white bg-green-800 rounded-full text-1xl hover:bg-green-700"
-          >
-            Melden
-          </button>
-        </div>
+      <!--! Whhite Content Start-->
+      <div class="container px-4 py-8 mx-auto">
+        <div class="basis-1/4">01</div>
+
+        <div class="basis-1/2">{% block content %} {% endblock content %}</div>
+
+        <div class="basis-1/4">03</div>
       </div>
-    </div>
-    <!--! Green Content Stop-->
-
-
-
-    <!--! Whhite Content Start-->
-    <div class="flex flex-row">
-      <div class="basis-1/4">01</div>
-
-      <div class="basis-1/2">{% block content %} {% endblock content %}</div>
-
-      <div class="basis-1/4">03</div>
-    </div>
-    <!--! White Content End-->
-
-
-
+      <!--! White Content End-->
+    </main>
     <!--! Start Footer -->
-    <footer class="py-8 bg-gray-200">
-      <div class="container px-4 mx-auto">
+    <footer class="flex flex-col items-center py-8 bg-gray-200">
+      <div class="container flex flex-col items-center px-4 mx-auto">
         <p class="text-sm text-center text-gray-700">
           &copy; 2022 P22. All rights reserved.
         </p>
-        <!--Todo DarkMode button sun moon-->
-        <div class="flex justify-center">
+        <!--? DarkMode button sun moon-->
+        <div class="flex items-center justify-center mt-4">
           <button
             class="flex items-center justify-center w-10 h-10 text-gray-800 bg-gray-200 rounded-full hover:bg-gray-300"
           >
             <svg
-              xmlns="http://www.w3.org/2000/svg"
+              class="w-4 h-4"
               fill="none"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
               viewBox="0 0 24 24"
-              stroke-width="1.5"
               stroke="currentColor"
-              class="w-6 h-6"
             >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"
-              />
+              <path d="M12 4v16m8-8H4"></path>
             </svg>
           </button>
-          <div class="flex justify-center w-10 h-10">
-            <button
-              class="flex items-center justify-center text-gray-800 bg-gray-200 rounded-full hover:bg-gray-300"
-            >
+          <!--? Admin Center Icon-->
+          <div>
+            <a href="/admin">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -142,16 +132,13 @@
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
-                  d="M12 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z"
+                  d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"
                 />
               </svg>
-            </button>
+            </a>
           </div>
         </div>
       </div>
     </footer>
-    <!--! End Footer-->
-
-    
   </body>
 </html>
