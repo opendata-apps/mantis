@@ -12,14 +12,17 @@
 
 {% block content %} <!-- Inhalt im weißen Feld -->
   <div class="content flex-auto flex-row columns-2"> 
-    <div class="left-3">
-      <button class="border-y border-t border-black m-1 text-left w-64 text-black rounded-b-lg py-1 px-1 font-bold hover:bg-green-700 hover:text-white duration-300"> <a href="adminSubsites/submissions.jinja2"> Einsendungen verwalten > </a> </button> <br>
-      <button class="border-y border-t border-black m-1 text-left w-64 text-black rounded-b-lg py-1 px-1 font-bold hover:bg-green-700 hover:text-white duration-300"> <a href="adminSubsites/statistics.jinja2"> Auswertungen > </a> </button> <br> 
-      <button class="border-y border-t border-black m-1 text-left w-64 text-black rounded-b-lg py-1 px-1 font-bold hover:bg-green-700 hover:text-white duration-300"> <a href="adminSubsites/userAdministration.jinja2"> Benutzerverwaltung > </a> </button> <br>
-      <button class="border-y border-t border-black m-1 text-left w-64 text-black rounded-b-lg py-1 px-1 font-bold hover:bg-green-700 hover:text-white duration-300"> <a href="adminSubsites/log.jinja2"> <a href="adminSubsites/log.jinja2"> Letzte Änderungen > </a> </button> <br>
+    <div class="">
+      <button class="border-y border-t border-black m-1 text-left w-64 text-black rounded-b-lg py-1 px-1 font-bold hover:bg-green-700 hover:text-white duration-300"> <a href="adminSubsites/submissions"> Einsendungen verwalten > </a> </button> <br>
+      <button class="border-y border-t border-black m-1 text-left w-64 text-black rounded-b-lg py-1 px-1 font-bold hover:bg-green-700 hover:text-white duration-300"> <a href="adminSubsites/statistics"> Auswertungen > </a> </button> <br> 
+      <button class="border-y border-t border-black m-1 text-left w-64 text-black rounded-b-lg py-1 px-1 font-bold hover:bg-green-700 hover:text-white duration-300"> <a href="adminSubsites/userAdministration"> Benutzerverwaltung > </a> </button> <br>
+      <button class="border-y border-t border-black m-1 text-left w-64 text-black rounded-b-lg py-1 px-1 font-bold hover:bg-green-700 hover:text-white duration-300"> <a href="adminSubsites/log"> Letzte Änderungen > </a> </button> <br>
     </div>
 
     <div>
+    {% block subcontent %}
+  
+    {% endblock %}
     </div>
 
   </div>
