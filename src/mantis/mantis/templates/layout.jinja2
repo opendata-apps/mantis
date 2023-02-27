@@ -75,11 +75,16 @@
               {% block title %} {% endblock title %}
             </h1>
             <p class="mb-6 text-lg">{% block text %} {% endblock text %}</p>
-            <button
-              class="px-8 py-4 mr-4 font-extrabold text-white bg-green-800 rounded-full text-1xl hover:bg-green-700"
-            >
-              Melden
-            </button>
+            <!--todo add pages where no report button should appear-->
+            {% if request.path == '/' %}
+            <a href="/report">
+              <button
+                class="px-8 py-4 mr-4 font-extrabold text-white bg-green-800 rounded-full text-1xl hover:bg-green-700"
+              >
+                Melden
+              </button>
+            </a>
+            {% endif %}
           </div>
         </div>
       </section>
@@ -87,11 +92,11 @@
 
       <!--! Whhite Content Start-->
       <div class="container px-4 py-8 mx-auto">
-        <div class="basis-1/4">01</div>
+        <div class="basis-1/4"></div>
 
         <div class="basis-1/2">{% block content %} {% endblock content %}</div>
 
-        <div class="basis-1/4">03</div>
+        <div class="basis-1/4"></div>
       </div>
       <!--! White Content End-->
     </main>

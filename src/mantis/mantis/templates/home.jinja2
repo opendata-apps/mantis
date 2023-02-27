@@ -6,22 +6,18 @@ text%}
 
 {% block content %}
 <!--! Content Start-->
-<div class="container px-4 py-8 mx-auto">
-  <div class="basis-1/4">01</div>
-
-  <div class="basis-1/2">
-    <div class="content">
-      <h1>
-        <span class="font-semi-bold">Pyramid</span>
-        <span class="smaller">Starter project</span>
-      </h1>
-      <p class="lead">
-        Welcome to <span class="font-normal">{{ project }}</span>, a&nbsp;Pyramid application
-        generated&nbsp;by<br /><span class="font-normal">Cookiecutter</span>.
-      </p>
-    </div>
+<section class="container grid gap-8 px-4 py-8 mx-auto lg:grid-cols-3">
+  <div class="flex flex-col justify-between lg:col-span-1">
+    <h2 class="mb-4 text-2xl font-extrabold">Gottesanbeterin1</h2>
+    <hr class="w-20 h-1 mb-8 bg-green-600" />
+    <p class="text-gray-700">Lorem ipsum dolor sit amet</p>
+    <hr class="w-20 h-1 mt-8 bg-green-600" />
   </div>
-
-  <div class="basis-1/4">03</div>
-  {% endblock content %}
-</div>
+  <div class="flex flex-col justify-between lg:col-span-2">
+    <h2 class="mb-4 text-2xl font-extrabold">Gottesanbeterin2</h2>
+    <p class="text-gray-700">
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+    </p>
+  </div>
+</section>
+{% endblock content %}
