@@ -15,30 +15,13 @@
       href="{{ request.static_url('mantis:static/theme.css') }}"
       rel="stylesheet"
     />
-    <style>
-            /* Add these styles */
-            nav {
-              position: fixed;
-              top: 0;
-              left: 0;
-              width: 100%;
-              z-index: 999;
-            }
-            main {
-              padding-top: 80px; /* adjust as needed */
-            }
-            footer {
-              position: relative;
-              z-index: 1;
-            }
-          </style>
-    </style>
   </head>
 
-  <!--! Navbar Start -->
-
+  <!-- Navbar Start -->
   <body class="flex flex-col min-h-screen">
-    <nav class="flex items-center justify-between px-4 bg-green-900">
+    <nav
+      class="fixed top-0 z-50 flex items-center justify-between w-full px-8 bg-green-900"
+    >
       <div class="flex items-center">
         <img
           src="{{ request.static_url('mantis:static/images/logo.png') }}"
@@ -75,48 +58,52 @@
     </nav>
     <!--! Navbar End -->
 
-    <!--!Green Content Start-->
-    <main class="flex-1 bg-gray-100">
-      <section class="bg-green-900">
-        <div
-          class="container flex items-center justify-between px-4 py-8 mx-auto"
-        >
-          <div class="w-full lg:w-1/2">
-            <img
-              src="{{ request.static_url('mantis:static/images/topBar.jpg') }}"
-              alt="Image"
-              class="w-full mb-8 -ml-8 rounded-lg shadow-xl"
-            />
-          </div>
-          <div class="w-full text-white lg:w-1/2">
-            <h1 class="mb-10 text-6xl font-bold">
-              {% block title %} {% endblock title %}
-            </h1>
-            <p class="mb-6 text-lg">{% block text %} {% endblock text %}</p>
-            <!--todo add pages where no report button should appear-->
-            {% if request.path == '/' %}
-            <a href="/newitem">
-              <button
-                class="transition duration-500 ease-in-out bg-green-800 hover:bg-green-700 transform hover:-translate-y-1 hover:scale-110 px-8 py-4 mr-4 font-extrabold text-white rounded-full text-1xl"
-              >
-                Melden
-              </button>
-            </a>
-            {% endif %}
-          </div>
-        </div>
-      </section>
-      <!--! Green Content Stop-->
-
-      <!--! Whhite Content Start-->
-      <div class="flex flex-wrap">
-        <div class="flex-auto">{% block left%} {%endblock%}</div>
-
-        <div class="flex-auto">{% block content %} {% endblock content %}</div>
-
-        <div class="flex-auto">{% block right%} {%endblock%}</div>
+<!--!Green Content Start-->
+<main class="flex-1 relative">
+  <section class="fixed top-0 z-0 bg-green-900 w-full">
+    <div
+      class="container flex items-center justify-between px-4 py-16 mx-auto"
+    >
+      <div class="w-full lg:w-1/2">
+        <img
+          src="{{ request.static_url('mantis:static/images/topBar.jpg') }}"
+          alt="Image"
+          class="w-full mb-0 -ml-32 rounded-lg shadow-xl"
+        />
       </div>
-      <!--! White Content End-->
+      <div class="w-full text-white lg:w-1/2">
+        <h1 class="mb-10 text-6xl font-bold">
+          {% block title %} {% endblock title %}
+        </h1>
+        <p class="mb-6 text-lg">{% block text %} {% endblock text %}</p>
+        <!--todo add pages where no report button should appear-->
+        {% if request.path == '/' %}
+        <a href="/newitem">
+          <button
+            class="transition duration-500 ease-in-out bg-green-800 hover:bg-green-700 transform hover:-translate-y-1 hover:scale-110 px-8 py-4 mr-4 font-extrabold text-white rounded-full text-1xl"
+          >
+            Melden
+          </button>
+        </a>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+  <!--! Green Content Stop-->
+
+  <!--! White Content Start-->
+  <div class="container relative mt-64">
+    <div class="flex flex-wrap">
+      <div class="flex-auto">{% block left%} {%endblock%}</div>
+
+      <div class="flex-auto">{% block content %} {% endblock content %}</div>
+
+      <div class="flex-auto">{% block right%} {%endblock%}</div>
+    </div>
+  </div>
+  <!--! White Content End-->
+</main>
+
     </main>
     <!--! Start Footer -->
     <!--https://tailwindcomponents.com/component/footer-5-->

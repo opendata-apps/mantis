@@ -18,6 +18,3 @@
   z-index: -1;
   transition: transform 0.5s ease-in-out;
 }
-main {
-  background-image: {{ request.static_url('mantis:static/images/mantisbg.png') }};
-}
