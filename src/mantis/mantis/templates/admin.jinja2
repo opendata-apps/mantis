@@ -10,20 +10,20 @@
   Klicken sie dazu auf die unten aufgeführten Optionen! <br>
 {%endblock text %}
 
-{% block content %} <!-- Inhalt im weißen Feld -->
-  <div class="content flex-auto flex-row columns-2"> 
+{% block left %} <!-- Inhalt im weißen Feld -->
+  <div class="content flex-auto flex-row columns-2 m-6"> 
     <div class="">
-      <button class="border-y border-t border-black m-1 text-left w-64 text-black rounded-b-lg py-1 px-1 font-bold hover:bg-green-700 hover:text-white duration-300"> <a href="adminSubsites/submissions"> Einsendungen verwalten > </a> </button> <br>
-      <button class="border-y border-t border-black m-1 text-left w-64 text-black rounded-b-lg py-1 px-1 font-bold hover:bg-green-700 hover:text-white duration-300"> <a href="adminSubsites/statistics"> Auswertungen > </a> </button> <br> 
-      <button class="border-y border-t border-black m-1 text-left w-64 text-black rounded-b-lg py-1 px-1 font-bold hover:bg-green-700 hover:text-white duration-300"> <a href="adminSubsites/userAdministration"> Benutzerverwaltung > </a> </button> <br>
-      <button class="border-y border-t border-black m-1 text-left w-64 text-black rounded-b-lg py-1 px-1 font-bold hover:bg-green-700 hover:text-white duration-300"> <a href="adminSubsites/log"> Letzte Änderungen > </a> </button> <br>
+      <button class="border-y border-t border-black m-1 text-left w-64 text-black rounded-b-lg py-1 px-1 font-bold hover:bg-green-700 hover:text-white duration-300" onclick="window.location.href='/adminSubsites/submissions';"> Einsendungen verwalten </button> <br>
+      <button class="border-y border-t border-black m-1 text-left w-64 text-black rounded-b-lg py-1 px-1 font-bold hover:bg-green-700 hover:text-white duration-300" onclick="window.location.href='/adminSubsites/statistics';"> Auswertungen </button> <br> 
+      <button class="border-y border-t border-black m-1 text-left w-64 text-black rounded-b-lg py-1 px-1 font-bold hover:bg-green-700 hover:text-white duration-300" onclick="window.location.href='/adminSubsites/userAdministration';"> Benutzerverwaltung </button> <br>
+      <button class="border-y border-t border-black m-1 text-left w-64 text-black rounded-b-lg py-1 px-1 font-bold hover:bg-green-700 hover:text-white duration-300" onclick="window.location.href='/adminSubsites/log';"> Letzte Änderungen > </button> <br>
     </div>
 
     <div>
     {% block subcontent %}
-  
+
     {% endblock %}
     </div>
 
   </div>
-{% endblock content %}
+{% endblock %}
