@@ -1,7 +1,7 @@
 {% extends "layout.jinja2" %}
 
 {% block title %} <!-- Titel der Seite -->
-  Admin- Center
+  <a class="hover:bg-green-700 rounded-lg p-2 duration-300"href="/admin"> Admin- Center </a>
 {% endblock title %}
 
 {% block text %}  <!-- Kommentar unter der Überschrift -->
@@ -13,10 +13,10 @@
 {% block left %} <!-- Inhalt im weißen Feld -->
   <div class="content flex-auto flex-row columns-2 m-6"> 
     <div class="">
-      <button class="border-y border-t border-black m-1 text-left w-64 text-black rounded-b-lg py-1 px-1 font-bold hover:bg-green-700 hover:text-white duration-300" onclick="window.location.href='/adminSubsites/submissions';"> Einsendungen verwalten </button> <br>
-      <button class="border-y border-t border-black m-1 text-left w-64 text-black rounded-b-lg py-1 px-1 font-bold hover:bg-green-700 hover:text-white duration-300" onclick="window.location.href='/adminSubsites/statistics';"> Auswertungen </button> <br> 
-      <button class="border-y border-t border-black m-1 text-left w-64 text-black rounded-b-lg py-1 px-1 font-bold hover:bg-green-700 hover:text-white duration-300" onclick="window.location.href='/adminSubsites/userAdministration';"> Benutzerverwaltung </button> <br>
-      <button class="border-y border-t border-black m-1 text-left w-64 text-black rounded-b-lg py-1 px-1 font-bold hover:bg-green-700 hover:text-white duration-300" onclick="window.location.href='/adminSubsites/log';"> Letzte Änderungen > </button> <br>
+      <button class="border-y border-t border-black m-1 text-left w-64 text-black rounded-b-lg py-1 px-1 font-bold hover:bg-green-700 hover:text-white duration-300" onclick="window.location.href='/adminSubsites/submissions';"> Einsendungen verwalten <p class="font-mono font-bold text-right text-2xl"> > </p> </button> <br>
+      <button class="border-y border-t border-black m-1 text-left w-64 text-black rounded-b-lg py-1 px-1 font-bold hover:bg-green-700 hover:text-white duration-300" onclick="window.location.href='/adminSubsites/statistics';"> Auswertungen <p class="font-mono font-bold text-right text-2xl"> > </p> </button> <br> 
+      <button class="border-y border-t border-black m-1 text-left w-64 text-black rounded-b-lg py-1 px-1 font-bold hover:bg-green-700 hover:text-white duration-300" onclick="window.location.href='/adminSubsites/userAdministration';"> Benutzerverwaltung  <p class="font-mono font-bold text-right text-2xl"> > </p> </button>  <br>
+      <button class="border-y border-t border-black m-1 text-left w-64 text-black rounded-b-lg py-1 px-1 font-bold hover:bg-green-700 hover:text-white duration-300" onclick="window.location.href='/adminSubsites/log';"> Letzte Änderungen <p class="font-mono font-bold text-right text-2xl"> > </p> </button> <br>
     </div>
 
     <div>
