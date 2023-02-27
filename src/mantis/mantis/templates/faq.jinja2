@@ -2,29 +2,32 @@
 
 {% block title %}FAQ{% endblock title %}
 
-{% block text %}Hier sehen Sie häufig gestellte Fragen und Antworten{%endblock text%}
+{% block text %}
+<p>Hier finden Sie häufig gestellte Fragen und Antworten.</p> 
+<p>Klicken Sie für die jeweilige Antwort auf den jeweiligen Pfeil.</p> 
+{%endblock text%}
 
 {% block content %}
-<div class="flex justify-center my-8">
-  <div class="w-full md:w-1/2 lg:w-1/3">
+<div class="flex justify-center my-10">
+  <div class="w-full md:w-1/2 lg:w-1/2">
     <label class="relative block">
-      <span class="sr-only">Search</span>
+      <span class="sr-only">Suche</span>
       <span class="absolute inset-y-10 left-10 flex items-center pl-2">
         <svg class="h-5 w-5 fill-slate-300" viewBox="0 0 20 20"><!-- ... --></svg>
       </span>
-      <input class="placeholder:italic placeholder:text-slate-300 block bg-white w-full border border-slate-200 rounded-md py-2 pl-9 pr-3 shadow-sm focus:outline-none focus:border-sky-400 focus:ring-sky-400 focus:ring-1 sm:text-sm" placeholder="Suche" type="text" name="suche"/>
+      <input class="placeholder:italic placeholder:text-slate-300 block bg-white w-full border border-slate-200 rounded-md py-2 pl-9 pr-3 shadow-sm focus:outline-none focus:border-sky-400 focus:ring-sky-400 focus:ring-1 sm:text-sm" placeholder="  Suche" type="text" name="suche"/>
     </label>
   </div>
 </div>
 
-<div class="container mx-auto px-4 py-8">
-    <div class="flex flex-wrap -mx-2">
-        <div class="w-full md:w-1/2 lg:w-1/3 px-2 mb-4">
-            <details class="open:bg-white dark:open:bg-slate-900 open:ring-1 open:ring-black/5 dark:open:ring-white/10 open:shadow-lg p-6 rounded-lg" close>
-                <summary class="text-sm leading-6 text-slate-900 dark:text-white font-semibold select-none">
+<div class="container mx-auto px-4 py-2">
+    <div class="flex flex-wrap">
+        <div class="px-2 mb-4">
+            <details class="open:bg-white dark:open:bg-slate-900 open:ring-1 open:ring-black/5 dark:open:ring-white/10 open:shadow-lg p-6 rounded-lg" open>
+                <summary class="text-3xl font-bold text-green-700 text-sm leading-10 text-slate-900 dark:text-white font-semibold select-none">
                   Wie kann ich Mitmachen?
                 </summary>
-                <div class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-400">
+                <div class="text-2xl leading-10 mt-3 text-sm leading-6 text-slate-600 dark:text-slate-400">
                     <p>Mitmachen können Kinder, Jugendliche oder Erwachsene, die Interesse haben, sich mit Wissenschaftlern 
                     und Wissenschaftlerinnen sowie ehrenamtlichen Entomologen an diesem aktuellen Forschungsprojekt zu beteiligen. 
                     Die Einsendung eines Fotos mit Fundort, Funddatum und Namen sowie Kontaktdaten des Fotografen reichen als 
@@ -36,10 +39,10 @@
                 </div>
             </details>
             <details class="open:bg-white dark:open:bg-slate-900 open:ring-1 open:ring-black/5 dark:open:ring-white/10 open:shadow-lg p-6 rounded-lg" close>
-                <summary class="text-sm leading-6 text-slate-900 dark:text-white font-semibold select-none">
+                <summary class="text-3xl font-bold text-green-700 text-sm leading-10 text-slate-900 dark:text-white font-semibold select-none">
                Wie erkenne ich eine Gottesanbeterin?
              </summary>
-                <div class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-400">
+                <div class="text-2xl leading-10 mt-3 text-sm leading-6 text-slate-600 dark:text-slate-400">
                     <p>Die Europäische Gottesanbeterin (Mantis religiosa) ist die einzige Art in der Insektenordnung der Fangschrecken 
                     in Deutschland. Man kann sie eigentlich nicht mit anderen Insekten verwechseln. Sie sind grün bis bräunlich gefärbt. 
                     Gottesanbeterinnen besitzen einen sehr wendigen dreieckigen Kopf. Das auffälligste Merkmal sind aber die Vorderbeine, 
@@ -52,10 +55,10 @@
                 </div>
             </details>
             <details class="open:bg-white dark:open:bg-slate-900 open:ring-1 open:ring-black/5 dark:open:ring-white/10 open:shadow-lg p-6 rounded-lg" close>
-                <summary class="text-sm leading-6 text-slate-900 dark:text-white font-semibold select-none">
+                <summary class="text-3xl font-bold text-green-700 text-sm leading-10 text-slate-900 dark:text-white font-semibold select-none">
                Wonach soll ich schauen?
              </summary>
-                <div class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-400">
+                <div class="text-2xl leading-10 mt-3 text-sm leading-6 text-slate-600 dark:text-slate-400">
                     <p>Jegliche Nachweise der gut getarnten Lauerjägerin im Jahresverlauf sind für die Wissenschaft interresant. Neben Nymphen 
                     und erwachsenen Tieren sind die Eigelege (Ootheken) ein wichtiger Hinweis auf die Fortpflanzung (Reproduktion) der Art im 
                     Gebiet. Die Ootheken sind bis zu 4,5 Zentimeter lange, ein Zentimeter breite und 1 Zentimeter hohe Eipakete. Die Eier werden 
@@ -63,10 +66,10 @@
                 </div>
             </details>
             <details class="open:bg-white dark:open:bg-slate-900 open:ring-1 open:ring-black/5 dark:open:ring-white/10 open:shadow-lg p-6 rounded-lg" close>
-                <summary class="text-sm leading-6 text-slate-900 dark:text-white font-semibold select-none">
+                <summary class="text-3xl font-bold text-green-700 text-sm leading-10 text-slate-900 dark:text-white font-semibold select-none">
                Wann soll ich suchen?
              </summary>
-                <div class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-400">
+                <div class="text-2xl leading-10 mt-3 text-sm leading-6 text-slate-600 dark:text-slate-400">
                     <p>Für eine gezielte Suche nach erwachsenen Gottesanbeterinnen sind die Monate August und September am besten geeignet. Ootheken 
                     können das ganze Jahr gefunden werden. Sie sind sehr resistent und auch nach dem Schlupf noch einige Jahre vorhanden. 
                     Die Nymphen schlüpfen zwischen Mai und Juni. Die winzigen wenige Millimeter großen Schlüpflinge zu finden, ist wenig erfolgsversprechend.
@@ -75,10 +78,10 @@
                 </div>
             </details>
             <details class="open:bg-white dark:open:bg-slate-900 open:ring-1 open:ring-black/5 dark:open:ring-white/10 open:shadow-lg p-6 rounded-lg" close>
-                <summary class="text-sm leading-6 text-slate-900 dark:text-white font-semibold select-none">
+                <summary class="text-3xl font-bold text-green-700 text-sm leading-10 text-slate-900 dark:text-white font-semibold select-none">
                Wo soll ich suchen?
              </summary>
-                <div class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-400">
+                <div class="text-2xl leading-10 mt-3 text-sm leading-6 text-slate-600 dark:text-slate-400">
                     <p>Die Europäische Gottesanbeterin ist eine Wärme und Sonne liebende Art. Sie kommt in gut besonntem Trockenrasenoffenland mit geringem Strauchbewuchs 
                     vor. Sie lebt im hohen Gras, an Stauden aber auch auf dem Boden. In Berlin und Brandenburg wurde die Art z.B. auf Brachen, an stillgelegten Bahntrassen,
                     auf Truppenübungsplätzen und auf alten Tagebauflächen nachgewiesen. Die Nymphen kommen im gleichen Habitat vor und führen dieselbe Lebensweise wie 
@@ -88,10 +91,10 @@
                 </div>
             </details>
             <details class="open:bg-white dark:open:bg-slate-900 open:ring-1 open:ring-black/5 dark:open:ring-white/10 open:shadow-lg p-6 rounded-lg" close>
-                <summary class="text-sm leading-6 text-slate-900 dark:text-white font-semibold select-none">
+                <summary class="text-3xl font-bold text-green-700 text-sm leading-10 text-slate-900 dark:text-white font-semibold select-none">
                Was passiert mit meinen Daten?
              </summary>
-                <div class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-400">
+                <div class="text-2xl leading-10 mt-3 text-sm leading-6 text-slate-600 dark:text-slate-400">
                     <p>Im Naturkundemuseum Potsdam werden die Meldungen in einer Datenbank erfasst. Gemeinsam mit den Mantidenfreunden Berlin-Brandenburg 
                     werden anschließend Verbreitungskarten erstellt. Anhand der Karten kann die Ausbreitung der Art über die Jahre hinweg nachverfolgt werden.</p>
                 </div>
