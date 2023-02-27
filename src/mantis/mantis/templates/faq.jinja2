@@ -8,19 +8,37 @@
 {%endblock text%}
 
 {% block content %}
-<div class="flex justify-center my-10">
-  <div class="w-full md:w-1/2 lg:w-1/2">
-    <label class="relative block">
-      <span class="sr-only">Suche</span>
-      <span class="absolute inset-y-10 left-10 flex items-center pl-2">
-        <svg class="h-5 w-5 fill-slate-300" viewBox="0 0 20 20"><!-- ... --></svg>
-      </span>
-      <input class="placeholder:italic placeholder:text-slate-300 block bg-white w-full border border-slate-200 rounded-md py-2 pl-9 pr-3 shadow-sm focus:outline-none focus:border-sky-400 focus:ring-sky-400 focus:ring-1 sm:text-sm" placeholder="  Suche" type="text" name="suche"/>
-    </label>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+  $(document).ready(function() {
+    $('button[type="button"]').click(function() {
+      var searchTerm = $('input[name="search"]').val().toLowerCase();
+      $('details').each(function() {
+        var text = $(this).text().toLowerCase();
+        if (text.indexOf(searchTerm) > -1) {
+          $(this).show();
+        } else {
+          $(this).hide();
+        }
+      });
+    });
+  });
+</script>
+
+<div class="container mx-auto px-4 py-8">
+ <div class="flex justify-center">
+    <form action="#" method="get" class="w-full md:w-1/2 lg:w-1/2 ">
+      <div class="flex items-center border-b border-b-2 border-green-700 py-2">
+        <input class="appearance-none bg-transparent border-none w-full text-gray-700 mr-3 py-1 px-2 leading-tight focus:outline-none" type="text" name="search" placeholder="Suche" aria-label="Suche">
+        <button class="flex-shrink-0 bg-green-700 hover:bg-green-700 border-green-700 hover:border-green-700 text-sm border-4 text-white py-1 px-2 rounded" type="button">
+          Suchen
+        </button>
+      </div>
+    </form>
   </div>
 </div>
-
-<div class="container mx-auto px-4 py-2">
+  <div class="container mx-auto px-4 py-2">
     <div class="flex flex-wrap">
         <div class="px-2 mb-4">
             <details class="open:bg-white dark:open:bg-slate-900 open:ring-1 open:ring-black/5 dark:open:ring-white/10 open:shadow-lg p-6 rounded-lg" open>
