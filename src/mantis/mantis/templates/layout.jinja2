@@ -18,9 +18,10 @@
   </head>
 
   <!-- Navbar Start -->
-  <body class="flex flex-col min-h-screen">
-    <nav
-      class="fixed top-0 z-50 flex items-center justify-between w-full px-8 bg-green-900"
+  <body class="">
+    <!--! Navbar Start -->
+    <div
+      class="sticky top-0 z-20 flex items-center justify-between w-full px-8 bg-green-900"
     >
       <div class="flex items-center">
         <img
@@ -37,14 +38,14 @@
           <li>
             <a
               href="/faq"
-              class="mr-4 font-bold text-white hover:text-green-700"
+              class="mr-4 font-bold text-white hover:text-green-600"
               >FAQ</a
             >
           </li>
           <li>
             <a
               href="/impressum"
-              class="mr-4 font-bold text-white hover:text-green-400"
+              class="mr-4 font-bold text-white hover:text-green-600"
               >Impressum</a
             >
           </li>
@@ -55,44 +56,42 @@
       >
         Button
       </button>
-    </nav>
+    </div>
     <!--! Navbar End -->
 
-<!--!Green Content Start-->
-<main class="flex-1 relative">
-  <section class="fixed top-0 z-0 bg-green-900 w-full">
-    <div
-      class="container flex items-center justify-between px-4 py-16 mx-auto"
-    >
-      <div class="w-full lg:w-1/2">
+    <!--!Green Content Start-->
+    <div class="grid grid-cols-1 md:grid-cols-2 bg-green-900 p-10">
+      <div class="block md:flex items-center h-full">
+        <!--responsive Picture-->
         <img
           src="{{ request.static_url('mantis:static/images/topBar.jpg') }}"
           alt="Image"
-          class="w-full mb-0 -ml-32 rounded-lg shadow-xl"
+          class="object-center rounded-lg"
         />
       </div>
-      <div class="w-full text-white lg:w-1/2">
-        <h1 class="mb-10 text-6xl font-bold">
-          {% block title %} {% endblock title %}
-        </h1>
-        <p class="mb-6 text-lg">{% block text %} {% endblock text %}</p>
-        <!--todo add pages where no report button should appear-->
-        {% if request.path == '/' %}
-        <a href="/newitem">
-          <button
-            class="transition duration-500 ease-in-out bg-green-800 hover:bg-green-700 transform hover:-translate-y-1 hover:scale-110 px-8 py-4 mr-4 font-extrabold text-white rounded-full text-1xl"
-          >
-            Melden
-          </button>
-        </a>
-        {% endif %}
+
+      <div class="pl-10">
+        <div class="w-full text-white lg:w-1/2">
+          <h1 class="mb-10 text-6xl font-bold">
+            {% block title %} {% endblock title %}
+          </h1>
+          <p class="mb-6 text-lg">{% block text %} {% endblock text %}</p>
+          <!--todo add pages where no report button should appear-->
+          {% if request.path == '/' %}
+          <a href="/newitem">
+            <button
+              class="transition duration-500 ease-in-out bg-green-800 hover:bg-green-700 transform hover:-translate-y-1 hover:scale-110 px-8 py-4 mr-4 font-extrabold text-white rounded-full text-1xl"
+            >
+              Melden
+            </button>
+          </a>
+          {% endif %}
+        </div>
       </div>
     </div>
-  </section>
-  <!--! Green Content Stop-->
+    <!--! Green Content Stop-->
 
-  <!--! White Content Start-->
-  <div class="container relative mt-64">
+    <!--! Whhite Content Start-->
     <div class="flex flex-wrap">
       <div class="flex-auto">{% block left%} {%endblock%}</div>
 
@@ -100,11 +99,8 @@
 
       <div class="flex-auto">{% block right%} {%endblock%}</div>
     </div>
-  </div>
-  <!--! White Content End-->
-</main>
+    <!--! White Content End-->
 
-    </main>
     <!--! Start Footer -->
     <!--https://tailwindcomponents.com/component/footer-5-->
     <footer class="relative bg-gray-200 pt-8 pb-6">
@@ -151,8 +147,8 @@
                   <li>
                     <a
                       class="text-blueGray-600 hover:text-blueGray-800 font-semibold block pb-2 text-sm"
-                      href="/#"
-                      >...</a
+                      href="/reportanissue"
+                      >Report an Issue</a
                     >
                   </li>
                 </ul>
