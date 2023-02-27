@@ -1,8 +1,30 @@
 {% extends "layout.jinja2" %}
 
-{% block content %}
-<div class="content">
-  <h1><span class="font-semi-bold">Pyramid</span> <span class="smaller">Starter project</span></h1>
-  <p class="lead">Welcome to <span class="font-normal">{{project}}</span>, a&nbsp;Pyramid application generated&nbsp;by<br><span class="font-normal">Cookiecutter</span>.</p>
-</div>
+{% block title %} <!-- Titel der Seite -->
+  Admin- Center
+{% endblock title %}
+
+{% block text %}  <!-- Kommentar unter der Überschrift -->
+  Willkomen im Admin-Center! <br>
+  Hier können sie die Datenbank und alle Meldungen verwalten. <br>
+  Klicken sie dazu auf die unten aufgeführten Optionen! <br>
+{%endblock text %}
+
+{% block content %} <!-- Inhalt im weißen Feld -->
+  <div class="content flex-auto flex-row columns-2"> 
+    <div class="left-3">
+      <p class=""> 
+        <button class="text-left w-64 bg-green-800 text-white rounded py-1 px-1 font-bold hover:bg-green-700"> <a href="adminSubsites/submissions.jinja2"> Einsendungen verwalten > </a> </button> <br>
+      </p>
+
+      <button class="text-left w-64 bg-green-800 text-white rounded py-1 px-1 font-bold hover:bg-green-700"> <a href="adminSubsites/statistics.jinja2"> Auswertungen > </a> </button> <br> 
+      <button class="text-left w-64 bg-green-800 text-white rounded py-1 px-1 font-bold hover:bg-green-700"> <a href="adminSubsites/userAdministration.jinja2"> Benutzerverwaltung > </a> </button> <br>
+      <button class="text-left w-64 bg-green-800 text-white rounded py-1 px-1 font-bold hover:bg-green-700"> <a href="adminSubsites/userAdministration.jinja2"> <a href="adminSubsites/log.jinja2"> Letzte Änderungen > </a> </button> <br>
+    </div>
+
+    <div>
+
+    </div>
+
+  </div>
 {% endblock content %}
