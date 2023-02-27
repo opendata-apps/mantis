@@ -1,6 +1,103 @@
 {% extends "layout.jinja2" %}
 
+{% block title %}FAQ{% endblock title %}
+
+{% block text %}Hier sehen Sie häufig gestellte Fragen und Antworten{%endblock text%}
+
 {% block content %}
-<div class="content">
-<p>todo FAQ</p>
+<div class="flex justify-center my-8">
+  <div class="w-full md:w-1/2 lg:w-1/3">
+    <label class="relative block">
+      <span class="sr-only">Search</span>
+      <span class="absolute inset-y-10 left-10 flex items-center pl-2">
+        <svg class="h-5 w-5 fill-slate-300" viewBox="0 0 20 20"><!-- ... --></svg>
+      </span>
+      <input class="placeholder:italic placeholder:text-slate-300 block bg-white w-full border border-slate-200 rounded-md py-2 pl-9 pr-3 shadow-sm focus:outline-none focus:border-sky-400 focus:ring-sky-400 focus:ring-1 sm:text-sm" placeholder="Suche" type="text" name="suche"/>
+    </label>
+  </div>
+</div>
+
+<div class="container mx-auto px-4 py-8">
+    <div class="flex flex-wrap -mx-2">
+        <div class="w-full md:w-1/2 lg:w-1/3 px-2 mb-4">
+            <details class="open:bg-white dark:open:bg-slate-900 open:ring-1 open:ring-black/5 dark:open:ring-white/10 open:shadow-lg p-6 rounded-lg" close>
+                <summary class="text-sm leading-6 text-slate-900 dark:text-white font-semibold select-none">
+                  Wie kann ich Mitmachen?
+                </summary>
+                <div class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-400">
+                    <p>Mitmachen können Kinder, Jugendliche oder Erwachsene, die Interesse haben, sich mit Wissenschaftlern 
+                    und Wissenschaftlerinnen sowie ehrenamtlichen Entomologen an diesem aktuellen Forschungsprojekt zu beteiligen. 
+                    Die Einsendung eines Fotos mit Fundort, Funddatum und Namen sowie Kontaktdaten des Fotografen reichen als 
+                    Nachweis aus. Der Fokus des Projektes liegt auf Nachweisen der Gottesanbeterin in Berlin und Brandenburg. 
+                    Weitere Funde aus Deutschland können auch gemeldet werden. Diese werden in der bundesweiten Erfassung der Art 
+                    berücksichtigt. Damit keine Informationen verloren gehen, können Sie auch Hinweise aus der Lokalpresse melden. 
+                    Am besten ist eine Kopie des Artikels mit Angabe der Ausgabe und der Zeitung. Schauen Sie bitte auch in Ihrem 
+                    Fotoarchiv nach. Dort könnten möglicherweise Fotos des interessanten Tieres verborgen sein.</p>
+                </div>
+            </details>
+            <details class="open:bg-white dark:open:bg-slate-900 open:ring-1 open:ring-black/5 dark:open:ring-white/10 open:shadow-lg p-6 rounded-lg" close>
+                <summary class="text-sm leading-6 text-slate-900 dark:text-white font-semibold select-none">
+               Wie erkenne ich eine Gottesanbeterin?
+             </summary>
+                <div class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-400">
+                    <p>Die Europäische Gottesanbeterin (Mantis religiosa) ist die einzige Art in der Insektenordnung der Fangschrecken 
+                    in Deutschland. Man kann sie eigentlich nicht mit anderen Insekten verwechseln. Sie sind grün bis bräunlich gefärbt. 
+                    Gottesanbeterinnen besitzen einen sehr wendigen dreieckigen Kopf. Das auffälligste Merkmal sind aber die Vorderbeine, 
+                    die zu kräftigen bedornten Fangbeinen umgebildet sind. Mit ihnen fängt die Gottesanbeterin ihre Beute, die vorwiegend 
+                    aus Insekten und Spinnentieren besteht. Die Beine werden zwar auch zum Laufen und Klettern benutzt, werden aber in Ruhe- 
+                    und Lauerstellung unter das verlängerte Halsschild angelegt. Diese typische Haltung gab den Tieren den Namen Gottesanbeterinnen. 
+                    Die Weibchen sind etwa 7 Zentimeter groß. Die Männchen sind mit 5 bis 6 Zentimetern Körperlänge deutlich kleiner und 
+                    wesentlich schlanker als die Weibchen. Die Nymphen, also die jungen Gottesanbeterinnen, sehen wie Miniaturausgaben der 
+                    erwachsenen Tiere aus. Jedoch sind die Flügel erst komplett ausgebildet, wenn die Mantis religiosa erwachsen sind.</p>
+                </div>
+            </details>
+            <details class="open:bg-white dark:open:bg-slate-900 open:ring-1 open:ring-black/5 dark:open:ring-white/10 open:shadow-lg p-6 rounded-lg" close>
+                <summary class="text-sm leading-6 text-slate-900 dark:text-white font-semibold select-none">
+               Wonach soll ich schauen?
+             </summary>
+                <div class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-400">
+                    <p>Jegliche Nachweise der gut getarnten Lauerjägerin im Jahresverlauf sind für die Wissenschaft interresant. Neben Nymphen 
+                    und erwachsenen Tieren sind die Eigelege (Ootheken) ein wichtiger Hinweis auf die Fortpflanzung (Reproduktion) der Art im 
+                    Gebiet. Die Ootheken sind bis zu 4,5 Zentimeter lange, ein Zentimeter breite und 1 Zentimeter hohe Eipakete. Die Eier werden 
+                    in einem hellbeigen bis hellbraunen bauschaumähnlichen aushärtenden Sekret eingebettet.</p>
+                </div>
+            </details>
+            <details class="open:bg-white dark:open:bg-slate-900 open:ring-1 open:ring-black/5 dark:open:ring-white/10 open:shadow-lg p-6 rounded-lg" close>
+                <summary class="text-sm leading-6 text-slate-900 dark:text-white font-semibold select-none">
+               Wann soll ich suchen?
+             </summary>
+                <div class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-400">
+                    <p>Für eine gezielte Suche nach erwachsenen Gottesanbeterinnen sind die Monate August und September am besten geeignet. Ootheken 
+                    können das ganze Jahr gefunden werden. Sie sind sehr resistent und auch nach dem Schlupf noch einige Jahre vorhanden. 
+                    Die Nymphen schlüpfen zwischen Mai und Juni. Die winzigen wenige Millimeter großen Schlüpflinge zu finden, ist wenig erfolgsversprechend.
+                    In warmen Jahren sind die Larven jedoch Mitte Juli schon recht groß. Im August sind die Tiere dann ausgewachsen und leben bis in den 
+                    Herbst hinein. Sie legen ihre Ootheken und sterben mit dem ersten Frost. Im Frühsommer schlüpft dann eine neue Generation von Gottesanbeterinnen.</p>
+                </div>
+            </details>
+            <details class="open:bg-white dark:open:bg-slate-900 open:ring-1 open:ring-black/5 dark:open:ring-white/10 open:shadow-lg p-6 rounded-lg" close>
+                <summary class="text-sm leading-6 text-slate-900 dark:text-white font-semibold select-none">
+               Wo soll ich suchen?
+             </summary>
+                <div class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-400">
+                    <p>Die Europäische Gottesanbeterin ist eine Wärme und Sonne liebende Art. Sie kommt in gut besonntem Trockenrasenoffenland mit geringem Strauchbewuchs 
+                    vor. Sie lebt im hohen Gras, an Stauden aber auch auf dem Boden. In Berlin und Brandenburg wurde die Art z.B. auf Brachen, an stillgelegten Bahntrassen,
+                    auf Truppenübungsplätzen und auf alten Tagebauflächen nachgewiesen. Die Nymphen kommen im gleichen Habitat vor und führen dieselbe Lebensweise wie 
+                    ihre Eltern. In geschlossenen Wäldern kommt sie bei uns nicht vor. Bei der Ablage der Ootheken scheint es lokale Unterschiede zu geben. Es scheint, 
+                    als ob die Tiere in Berlin ihre Eigelege vorzugsweise unter Steinen und an Bahnschienen anbringen, wohingegen Tiere aus natürlichen Grasfluren ihre 
+                    Gelege in den unteren Bereichen an krautigen Pflanzen ablegen.</p>
+                </div>
+            </details>
+            <details class="open:bg-white dark:open:bg-slate-900 open:ring-1 open:ring-black/5 dark:open:ring-white/10 open:shadow-lg p-6 rounded-lg" close>
+                <summary class="text-sm leading-6 text-slate-900 dark:text-white font-semibold select-none">
+               Was passiert mit meinen Daten?
+             </summary>
+                <div class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-400">
+                    <p>Im Naturkundemuseum Potsdam werden die Meldungen in einer Datenbank erfasst. Gemeinsam mit den Mantidenfreunden Berlin-Brandenburg 
+                    werden anschließend Verbreitungskarten erstellt. Anhand der Karten kann die Ausbreitung der Art über die Jahre hinweg nachverfolgt werden.</p>
+                </div>
+            </details>
+        </div>
+    </div>
+</div>
+
 {% endblock content %}
