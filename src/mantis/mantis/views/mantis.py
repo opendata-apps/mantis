@@ -13,6 +13,10 @@ from .. import models
 @view_config(route_name='newItem', renderer='mantis:templates/newItem.jinja2')
 @view_config(route_name='admin', renderer='mantis:templates/admin.jinja2')
 @view_config(route_name='home', renderer='mantis:templates/home.jinja2')
+@view_config(route_name='einsendungen', renderer='mantis:templates/adminSubsites/submissions.jinja2')
+@view_config(route_name='auswertungen', renderer='mantis:templates/adminSubsites/statistics.jinja2')
+@view_config(route_name='benutzerverwaltung', renderer='mantis:templates/adminSubsites/userAdministration.jinja2')
+@view_config(route_name='letzteAenderungen', renderer='mantis:templates/adminSubsites/log.jinja2')
 def my_view(request):
     # try:
     #     query = request.dbsession.query(models.MyModel)

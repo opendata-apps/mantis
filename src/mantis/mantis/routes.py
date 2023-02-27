@@ -8,3 +8,7 @@ def includeme(config):
     config.add_route('newItem', '/newitem')
     config.add_route('admin', '/admin')
     config.add_route('mantis', '/mantis')
+    config.add_route('einsendungen', '/adminSubsites/submissions')
+    config.add_route('auswertungen', '/adminSubsites/statistics')
+    config.add_route('benutzerverwaltung', '/adminSubsites/userAdministration')
+    config.add_route('letzteAenderungen', '/adminSubsites/log')
