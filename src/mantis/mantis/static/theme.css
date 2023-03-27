@@ -18,3 +18,21 @@
   z-index: -1;
   transition: transform 0.5s ease-in-out;
 }
+@media (max-width: 767px) {
+  .navbar-toggler-icon {
+    visibility: hidden;
+  }
+}
+.container:before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background-color: transparent;
+}
+
+nav.expanded .container:before {
+  background-color: green;
+}
