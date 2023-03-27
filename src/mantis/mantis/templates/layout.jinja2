@@ -27,7 +27,7 @@
         <div
           class="container px-4 py-3 mx-auto flex justify-between items-center"
         >
-          <a href="#" class="flex items-center text-white font-extrabold">
+          <a href="/" class="flex items-center text-white font-extrabold">
             <img
               src="{{ request.static_url('mantis:static/images/logo.png') }}"
               alt="Mantis Projekt Logo"
@@ -37,7 +37,7 @@
           </a>
           <div class="md:hidden flex items-center">
             <a
-              href="#"
+              href="/melden"
               class="inline-block bg-green-500 hover:bg-green-600 py-2 px-4 text-white font-medium rounded-md transition duration-300 ease-in-out transform hover:-translate-y-1 hover:scale-110"
             >
               Melden!
@@ -80,7 +80,7 @@
                 Impressum
               </a>
               <a
-                href="#"
+                href="/newitem"
                 class="inline-block bg-green-500 hover:bg-green-600 py-2 px-4 text-white font-medium rounded-md transition duration-300 ease-in-out transform hover:-translate-y-1 hover:scale-110"
               >
                 Melden!
@@ -137,14 +137,14 @@
       </script>
     </div>
 
-    <!--!Green Content Start-->
+    <!-- Green Content Start -->
     <div class="pt-20 grid grid-cols-1 md:grid-cols-2 bg-green-900 p-10">
       <div class="block md:flex items-center h-full">
         <!--responsive Picture-->
         <img
           src="{{ request.static_url('mantis:static/images/topBar.jpg') }}"
           alt="Image"
-          class="object-center rounded-lg"
+          class="object-center rounded-lg w-full md:w-1/2 mx-auto"
         />
       </div>
 
@@ -153,7 +153,7 @@
           {% block title %} {% endblock title %}
         </h1>
         <p class="mb-6 text-lg">{% block text %} {% endblock text %}</p>
-        <!--todo add pages where no report button should appear-->
+        <!-- Add pages where no report button should appear -->
         {% if request.path == '/' %}
         <a href="/newitem">
           <button
@@ -165,15 +165,11 @@
         {% endif %}
       </div>
     </div>
-    <!--! Green Content Stop-->
+    <!-- Green Content Stop -->
 
     <!--! Whhite Content Start-->
     <div class="flex flex-wrap">
-      <div class="flex-auto">{% block left%} {%endblock%}</div>
-
       <div class="flex-auto">{% block content %} {% endblock content %}</div>
-
-      <div class="flex-auto">{% block right%} {%endblock%}</div>
     </div>
     <!--! White Content End-->
 
