@@ -2,3 +2,5 @@ altes-lager
 build
 \.mantis
 \.vscode
+src/mantis/.gitignore
+node_modules/
