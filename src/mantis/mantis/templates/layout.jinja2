@@ -8,10 +8,13 @@
       rel="shortcut icon"
       href="{{ request.static_url('mantis:static/pyramid-16x16.png') }}"
     />
+    <!-- Tailwind CSS
     <link
       href="{{ request.static_url('mantis:static/tailwind.min.css') }}"
       rel="stylesheet"
     />
+    -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <link
       href="{{ request.static_url('mantis:static/theme.css') }}"
       rel="stylesheet"
@@ -21,9 +24,7 @@
   <body class="antialiased">
     <div>
       <!-- Navbar Start https://flowbite.com/docs/components/navbar/-->
-      <nav
-        class="fixed z-50 top-0 left-0 w-full bg-green-800 bg-opacity-90 blur-md"
-      >
+      <nav class="fixed z-50 top-0 left-0 w-full bg-green-800 bg-opacity-90">
         <div
           class="container px-4 py-3 mx-auto flex justify-between items-center"
         >
@@ -138,33 +139,35 @@
     </div>
 
     <!-- Green Content Start -->
-    <div class="pt-20 grid grid-cols-1 md:grid-cols-2 bg-green-900 p-10">
-      <div class="block md:flex items-center h-full">
-        <!--responsive Picture-->
-        <img
-          src="{{ request.static_url('mantis:static/images/topBar.jpg') }}"
-          alt="Image"
-          class="object-center rounded-lg w-full md:w-1/2 mx-auto"
-        />
-      </div>
-
-      <div class="p-10 w-full text-white">
-        <h1 class="mb-10 text-5xl font-bold title">
-          {% block title %} {% endblock title %}
-        </h1>
-        <p class="mb-6 text-lg">{% block text %} {% endblock text %}</p>
-        <!-- Add pages where no report button should appear -->
-        {% if request.path == '/' %}
-        <a href="/newitem">
-          <button
-            class="transition duration-500 ease-in-out bg-green-800 hover:bg-green-700 px-8 py-4 mr-4 font-extrabold text-white rounded-md text-1xl"
-          >
-            Melden
-          </button>
-        </a>
-        {% endif %}
+    <div class="bg-green-900">
+      <div class="container mx-auto py-20 px-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+          <div>
+            <img
+              src="{{ request.static_url('mantis:static/images/topBar.jpg') }}"
+              alt="Image"
+              class="object-center rounded-lg shadow-md w-full"
+            />
+          </div>
+          <div class="text-white">
+            <h1 class="text-4xl md:text-6xl font-bold mb-6">
+              {% block title %} {% endblock title %}
+            </h1>
+            <p class="text-lg mb-8">{% block text %} {% endblock text %}</p>
+            {% if request.path == '/' %}
+            <a href="/newitem">
+              <button
+                class="px-8 py-4 bg-green-800 hover:bg-green-700 text-white font-bold text-lg rounded-md transition duration-500 ease-in-out"
+              >
+                Melden
+              </button>
+            </a>
+            {% endif %}
+          </div>
+        </div>
       </div>
     </div>
+
     <!-- Green Content Stop -->
 
     <!--! Whhite Content Start-->

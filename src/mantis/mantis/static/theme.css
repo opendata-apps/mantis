@@ -27,7 +27,7 @@
 }
 
 @media (max-width: 768px) {
-  .text-5xl {
-    font-size: 3.5rem !important;
+  .text-6xl {
+    font-size: 3rem !important;
   }
 }
