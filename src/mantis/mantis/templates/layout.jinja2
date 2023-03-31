@@ -14,7 +14,9 @@
       rel="stylesheet"
     />
     -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="{{
+        request.static_url('mantis:static/tailwind.js')
+      }}"></script>
     <link
       href="{{ request.static_url('mantis:static/theme.css') }}"
       rel="stylesheet"
