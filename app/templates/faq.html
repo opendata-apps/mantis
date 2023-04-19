@@ -1,0 +1,165 @@
+{% extends "layout.html" %} {% block title %}FAQ{% endblock title %} {% block
+text %}
+<p>Hier finden Sie häufig gestellte Fragen und Antworten.</p>
+<p>Klicken Sie für die jeweilige Antwort auf den jeweiligen Pfeil.</p>
+{%endblock text%} {% block content %}
+<!--ToDo-->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+  $(document).ready(function () {
+    $('button[type="button"]').click(function () {
+      var searchTerm = $('input[name="search"]').val().toLowerCase();
+      $("details").each(function () {
+        var text = $(this).text().toLowerCase();
+        if (text.indexOf(searchTerm) > -1) {
+          $(this).show();
+        } else {
+          $(this).hide();
+        }
+      });
+    });
+  });
+</script>
+
+<div class="container mx-auto px-4 py-8">
+  <div class="flex justify-center">
+    <form action="#" method="get" class="w-full md:w-1/2 lg:w-1/2">
+      <div class="flex items-center border-b border-b-2 border-green-700 py-2">
+        <input
+          class="appearance-none bg-transparent border-none w-full text-gray-700 mr-3 py-1 px-2 leading-tight focus:outline-none"
+          type="text"
+          name="search"
+          placeholder="Suche"
+          aria-label="Suche"
+        />
+        <button
+          class="flex-shrink-0 bg-green-700 hover:bg-green-700 border-green-700 hover:border-green-700 text-sm border-4 text-white py-1 px-2 rounded"
+          type="button"
+        >
+          Suchen
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+<div class="container mx-auto px-4 py-2">
+  <div class="flex flex-wrap">
+    <div class="px-2 mb-4">
+      <details
+        class="open:bg-white open:ring-1 open:ring-black/5 open:shadow-lg p-6 rounded-lg"
+        close
+      >
+        <summary class="text-3xl font-bold text-green-700">
+          Wie kann ich Mitmachen?
+        </summary>
+        <div class="text-2xl leading-10 mt-3 text-sm leading-6 text-slate-600">
+          <p>
+            Das Forschungsprojekt bietet Interessierten jeden Alters die
+            Möglichkeit, sich an der Suche nach der Gottesanbeterin in Berlin
+            und Brandenburg zu beteiligen. Es genügt ein Foto mit Fundort,
+            Funddatum und Kontaktdaten des Fotografen. Funde aus anderen Teilen
+            Deutschlands können ebenfalls gemeldet werden. Hinweise aus der
+            Lokalpresse sowie Fotos aus dem eigenen Archiv sind willkommen.
+          </p>
+        </div>
+      </details>
+      <details
+        class="open:bg-white open:ring-1 open:ring-black/5 open:shadow-lg p-6 rounded-lg"
+        close
+      >
+        <summary class="text-3xl font-bold text-green-700">
+          Wie erkenne ich eine Gottesanbeterin?
+        </summary>
+        <div class="text-2xl leading-10 mt-3 text-sm leading-6 text-slate-600">
+          <p>
+            Die Europäische Gottesanbeterin ist die einzige Fangschreckenart in
+            Deutschland. Sie sind grün bis braun gefärbt, haben einen
+            dreieckigen Kopf und kräftige, bedornte Fangbeine, mit denen sie
+            ihre Beute fangen. In Ruhestellung werden die Beine unter das
+            Halsschild angelegt, wodurch sie den Namen Gottesanbeterin erhalten
+            haben. Weibchen sind größer als Männchen und Nymphen sehen aus wie
+            Miniaturausgaben der Erwachsenen. Flügel sind erst bei erwachsenen
+            Tieren vollständig ausgebildet.
+          </p>
+        </div>
+      </details>
+      <details
+        class="open:bg-white open:ring-1 open:ring-black/5 open:shadow-lg p-6 rounded-lg"
+        close
+      >
+        <summary class="text-3xl font-bold text-green-700">
+          Wonach soll ich schauen?
+        </summary>
+        <div class="text-2xl leading-10 mt-3 text-sm leading-6 text-slate-600">
+          <p>
+            Für die Wissenschaft sind alle Nachweise der gut getarnten
+            Gottesanbeterin im Jahresverlauf interessant, einschließlich
+            Eigelegen (Ootheken), die auf die Fortpflanzung im Gebiet hinweisen.
+            Ootheken sind bis zu 4,5 cm lang, 1 cm breit und 1 cm hoch und
+            enthalten in einem bauschaumähnlichen Sekret eingebettete Eier.
+          </p>
+        </div>
+      </details>
+      <details
+        class="open:bg-white open:ring-1 open:ring-black/5 open:shadow-lg p-6 rounded-lg"
+        close
+      >
+        <summary class="text-3xl font-bold text-green-700">
+          Wann soll ich suchen?
+        </summary>
+        <div class="text-2xl leading-10 mt-3 text-sm leading-6 text-slate-600">
+          <p>
+            Die Monate August und September sind am besten geeignet, um gezielt
+            erwachsene Gottesanbeterinnen zu suchen. Ootheken können das ganze
+            Jahr über gefunden werden und sind sehr widerstandsfähig. Die
+            Nymphen schlüpfen zwischen Mai und Juni, jedoch ist es schwierig,
+            die wenige Millimeter großen Schlüpflinge zu finden. Im August sind
+            die Tiere ausgewachsen und leben bis in den Herbst hinein. Im
+            Frühsommer schlüpft eine neue Generation von Gottesanbeterinnen.
+          </p>
+        </div>
+      </details>
+      <details
+        class="open:bg-white open:ring-1 open:ring-black/5 open:shadow-lg p-6 rounded-lg"
+        close
+      >
+        <summary class="text-3xl font-bold text-green-700">
+          Wo soll ich suchen?
+        </summary>
+        <div class="text-2xl leading-10 mt-3 text-sm leading-6 text-slate-600">
+          <p>
+            Die Europäische Gottesanbeterin bevorzugt sonnige und warme
+            Lebensräume mit wenig Strauchbewuchs, wie z.B.
+            Trockenrasenoffenland. Sie lebt im hohen Gras, an Stauden und auf
+            dem Boden, aber nicht in geschlossenen Wäldern. Die Art wurde in
+            Berlin und Brandenburg auf Brachen, stillgelegten Bahntrassen,
+            Truppenübungsplätzen und alten Tagebauflächen nachgewiesen. Die
+            Nymphen haben das gleiche Verhalten wie ihre Eltern. Die Ablage der
+            Ootheken scheint lokal unterschiedlich zu sein, wobei die Tiere in
+            Berlin bevorzugt ihre Eigelege unter Steinen und an Bahnschienen
+            anbringen. Tiere aus natürlichen Grasfluren legen ihre Gelege eher
+            in den unteren Bereichen an krautigen Pflanzen ab.
+          </p>
+        </div>
+      </details>
+      <details
+        class="open:bg-white open:ring-1 open:ring-black/5 open:shadow-lg p-6 rounded-lg"
+        close
+      >
+        <summary class="text-3xl font-bold text-green-700">
+          Was passiert mit meinen Daten?
+        </summary>
+        <div class="text-2xl leading-10 mt-3 text-sm leading-6 text-slate-600">
+          <p>
+            Das Naturkundemuseum Potsdam erfasst Meldungen zur Europäischen
+            Gottesanbeterin in einer Datenbank und erstellt gemeinsam mit den
+            Mantidenfreunden Berlin-Brandenburg Verbreitungskarten, um die
+            Ausbreitung der Art über die Jahre hinweg nachverfolgen zu können.
+          </p>
+        </div>
+      </details>
+    </div>
+  </div>
+</div>
+
+{% endblock content %}

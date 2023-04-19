@@ -1,0 +1,204 @@
+{% extends "layout.html" %} {% block title %}Gottesanbeterin{% endblock title %}
+{% block content %}
+<!-- Hero section with images and information about the mantis religiose project -->
+<section class="bg-white py-16">
+  <div
+    class="container mx-auto flex flex-col md:flex-row items-center justify-center gap-8 px-4"
+  >
+    <div class="md:w-1/2">
+      <img
+        src="http://via.placeholder.com/540x360"
+        alt="Mantis Religiose"
+        class="rounded-lg shadow-md mb-8"
+      />
+    </div>
+    <div class="md:w-1/2">
+      <h1 class="text-4xl font-bold text-green-900 leading-tight mb-4">
+        Gottesanbeterin-Funde Melden
+      </h1>
+      <p class="text-green-900 text-lg mb-8">
+        Helfen Sie uns, mehr über diese faszinierenden Insekten herauszufinden
+        und ihre Verbreitung in Brandenburg zu kartieren.
+      </p>
+      <a
+        href="#how-to-report"
+        class="py-2 px-4 rounded-md bg-green-900 text-white font-bold hover:bg-green-700 transition duration-300"
+      >
+        Wie melde ich meine Funde?
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- About section -->
+<section id="About" class="py-16 relative">
+  <div class="container mx-auto px-4">
+    <h2 class="text-3xl font-bold leading-tight text-center mb-8">
+      Über das Mantis Religiose Projekt
+    </h2>
+    <div class="grid md:grid-cols-2 gap-8">
+      <div>
+        <h3 class="text-2xl font-bold mb-4">Was ist eine Gottesanbeterin?</h3>
+        <p class="text-gray-700 mb-8">
+          Die Gottesanbeterin ist ein insektenähnliches Raubtier, das sich durch
+          seine auffällige Körperhaltung und seinen Fangarmen auszeichnet. Es
+          gibt verschiedene Arten in Deutschland, die in ihrer Größe und Farbe
+          variieren.
+        </p>
+        <a href="#mantis-info" class="text-green-900 font-bold hover:underline"
+          >Weitere Informationen</a
+        >
+      </div>
+      <div>
+        <h3 class="text-2xl font-bold mb-4">
+          Was machen wir mit den Meldungen?
+        </h3>
+        <p class="text-gray-700 mb-8">
+          Alle gemeldeten Funde werden in einer Karte erfasst, um die
+          Verbreitung der Gottesanbeterin in Brandenburg zu dokumentieren und zu
+          erforschen.
+        </p>
+        <a href="#project-info" class="text-green-900 font-bold hover:underline"
+          >Mehr über das Projekt erfahren</a
+        >
+      </div>
+    </div>
+  </div>
+  <div class="absolute w-full top-0">
+    <div class="mx-auto w-32 h-1 bg-green-500"></div>
+  </div>
+</section>
+
+<!-- Animated counter section -->
+<section class="py-16 bg-gray-100">
+  <div class="container mx-auto px-4">
+    <div class="relative bg-green-800 rounded-lg shadow-lg py-12 px-8">
+      <h2 class="text-3xl font-bold leading-tight text-white text-center mb-8">
+        Wir haben bereits <br />
+        <span class="text-6xl font-extrabold text-white counter">0</span> <br />
+        Meldungen erhalten
+      </h2>
+      <p class="text-white text-lg text-center mb-8">
+        Helfen Sie uns, diese Zahl zu erhöhen!
+      </p>
+    </div>
+  </div>
+  <script>
+    const counter = document.querySelector(".counter");
+    let count = 0;
+    setInterval(() => {
+      if (count < 420) {
+        count++;
+        counter.innerText = count;
+      }
+    }, 1);
+  </script>
+</section>
+
+<!-- How to report section -->
+<section id="how-to-report" class="pb-20 bg-gray-100">
+  <div class="container px-4 mx-auto">
+    <h2 class="mb-10 text-3xl font-bold text-center md:text-4xl">
+      Wie melde ich meine Gottesanbeterin-Funde?
+    </h2>
+    <div class="grid md:grid-cols-2 gap-8">
+      <div class="animate-fade-in">
+        <div
+          class="duration-500 transform bg-white rounded-lg shadow-md hover:-translate-y-1 hover:shadow-lg hover:bg-green-100"
+        >
+          <img
+            src="http://via.placeholder.com/540x360"
+            alt="Meldung"
+            class="rounded-t-lg mx-auto"
+          />
+          <div class="px-6 py-4">
+            <h3 class="text-xl font-semibold text-gray-800 mb-3 text-center">
+              Meldung abgeben
+            </h3>
+            <p class="text-gray-600 text-center">
+              Um eine Meldung abzugeben, benötigen Sie ein Foto der
+              Gottesanbeterin, den Fundort und das Datum des Fundes. Bitte
+              senden Sie diese Informationen per E-Mail an unsere Adresse:
+              mantisproject@brandenburg.de
+            </p>
+            <a href="#" class="text-green-900 font-bold mt-4 hover:underline">
+              Weiterlesen
+            </a>
+          </div>
+        </div>
+      </div>
+      <div class="animate-fade-in">
+        <div
+          class="duration-500 transform bg-white rounded-lg shadow-md hover:-translate-y-1 hover:shadow-lg hover:bg-green-100"
+        >
+          <img
+            src="http://via.placeholder.com/540x360"
+            alt="Gottesanbeterin"
+            class="rounded-t-lg mx-auto"
+          />
+          <div class="px-6 py-4">
+            <h3 class="text-xl font-semibold text-gray-800 mb-3 text-center">
+              Weitere Informationen
+            </h3>
+            <p class="text-gray-600 text-center">
+              Wenn Sie uns weitere Informationen zu Ihrem Fund mitteilen
+              möchten, wie z.B. die Art der Gottesanbeterin oder besondere
+              Beobachtungen, können Sie diese auch gerne in Ihrer E-Mail
+              angeben.
+            </p>
+            <a href="#" class="text-green-900 font-bold mt-4 hover:underline">
+              Weiterlesen
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- More information section -->
+<section id="mantis-info" class="py-16 relative">
+  <div class="container mx-auto px-4">
+    <h2 class="text-3xl font-bold leading-tight text-center mb-8">
+      Weitere Informationen über die Gottesanbeterin
+    </h2>
+    <p class="text-lg text-center mb-8">
+      Erfahren Sie mehr über die verschiedenen Arten der Gottesanbeterin in
+      Deutschland und ihre Lebensweise.
+    </p>
+    <div class="flex justify-center">
+      <a
+        href="#"
+        class="py-2 px-4 rounded-md bg-green-900 text-white font-bold hover:bg-green-700 transition duration-300"
+        >Zu den Informationen</a
+      >
+    </div>
+  </div>
+  <div class="absolute w-full top-0">
+    <div class="mx-auto w-32 h-1 bg-green-500"></div>
+  </div>
+  <div class="absolute w-full bottom-0">
+    <div class="mx-auto w-32 h-1 bg-green-500"></div>
+  </div>
+</section>
+
+<!-- Project information section -->
+<section id="project-info" class="bg-gray-100 py-16">
+  <div class="container mx-auto px-4">
+    <h2 class="text-3xl font-bold leading-tight text-center mb-8">
+      Mehr über das Mantis Religiose Projekt
+    </h2>
+    <p class="text-gray-700 text-lg mb-8">
+      Erfahren Sie mehr über unser Projekt zur Erforschung der Verbreitung der
+      Gottesanbeterin in Brandenburg und wie Sie uns unterstützen können.
+    </p>
+    <div class="flex justify-center">
+      <a
+        href="#"
+        class="py-2 px-4 rounded-md bg-green-900 text-white font-bold hover:bg-green-700 transition duration-300"
+        >Zum Projekt</a
+      >
+    </div>
+  </div>
+</section>
+{% endblock content %}
