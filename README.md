@@ -50,7 +50,7 @@ pip install -r requirements.txt
 # Create a PostgreSQL database
 sudo -u postgres psql
 CREATE DATABASE mantis_tracker;
-CREATE USER mantis_user WITH PASSWORD 'password';
+CREATE USER mantis_user WITH PASSWORD 'mantis';
 GRANT ALL PRIVILEGES ON DATABASE mantis_tracker TO mantis_user;
 \q
 
