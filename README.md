@@ -32,8 +32,7 @@ Mantis Report is a web application that allows users to report sightings of the 
 ![Tailwind CSS](https://img.shields.io/badge/-Tailwind%20CSS-000000?style=flat&logo=tailwind-css)
 ![JavaScript](https://img.shields.io/badge/-JavaScript-000000?style=flat&logo=javascript)
 
-
-## Development Setup/Installation
+## Development Setup/Installation 
 
 ```bash
 # Clone the repository
