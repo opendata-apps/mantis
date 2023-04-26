@@ -19,7 +19,7 @@ Mantis Report is a web application that allows users to report sightings of the 
 - Jinja2
 - Python
 - Flask
-- PostgreSQL
+- PostgreSQL(Version 14)
 - Tailwind CSS
 - JavaScript
 
@@ -47,7 +47,7 @@ source venv/bin/activate
 # Install the dependencies
 pip install -r requirements.txt
 
-# Create a PostgreSQL database
+# Create a PostgreSQL database (Verion 14)
 sudo -u postgres psql
 CREATE DATABASE mantis_tracker;
 CREATE USER mantis_user WITH PASSWORD 'mantis';
