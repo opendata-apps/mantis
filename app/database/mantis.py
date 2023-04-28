@@ -1,4 +1,6 @@
 from app import db
+from ..database import Base
+
 
 class Mantis(db.Model):
     id = db.Column(db.Integer, primary_key=True)

@@ -54,6 +54,9 @@ coverage.xml
 .pytest_cache/
 cover/
 
+# Java Script
+package-lock.json
+
 # Translations
 *.mo
 *.pot

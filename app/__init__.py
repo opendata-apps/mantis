@@ -7,7 +7,7 @@ app.config.from_object(Config)
 
 db = SQLAlchemy(app)
 
-from app import routes, models
+from app import routes, database
 
 from flask_migrate import Migrate
 migrate = Migrate(app, db)
