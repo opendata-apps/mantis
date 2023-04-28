@@ -1,8 +1,8 @@
-from flask import render_template, request, redirect, url_for
+from flask import render_template, request
 from app import app, db
 from app.database.models import Mantis
-#from app.models import Mantis
 import json
+# from app.models import Mantis
 
 
 @app.route('/')

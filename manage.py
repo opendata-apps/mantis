@@ -1,4 +1,4 @@
-from app import app, db
+from app import app
 from flask_migrate import MigrateCommand, Manager
 
 manager = Manager(app)
