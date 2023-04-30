@@ -5,6 +5,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Mantis Projekt</title>
+  <style>
+    .sticky-nav {
+      background-color: rgb(0, 59, 40) !important;
+      z-index: 9999 !important;
+    }
+  </style>
   <!--Production-->
   <link rel="stylesheet" href="{{ url_for('static', filename='build/theme.css') }}" />
 
@@ -12,151 +18,185 @@
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 </head>
 
-<body class="antialiased">
+<body class="antialiased bg-gray-100">
+  <!-- Background Image div Start -->
   <div>
-    <!-- Navbar Start https://flowbite.com/docs/components/navbar/-->
-    <!-- Navbar Start -->
-    <nav class="fixed top-0 left-0 w-full bg-center bg-no-repeat bg-cover bg-opacity-90"
-      style="background-image: url('https://i.ibb.co/hVMdXw2/mantis-Eat.jpg');">
-      <div class="container flex items-center justify-between px-4 py-3 mx-auto"> <a href="/"
-          class="flex items-center font-extrabold text-white"> <img
-            src="{{ url_for('static', filename='images/logo.png') }}" alt="Mantis Projekt Logo"
-            class="h-6 mr-2 sm:h-9" /> <span class="text-xl">Mantis Projekt</span> </a>
-        <div class="flex items-center md:hidden"> <a href="/report"
-            class="inline-block px-4 py-2 font-medium text-white transition duration-300 ease-in-out transform bg-green-500 rounded-md hover:bg-green-600 hover:-translate-y-1 hover:scale-110">Melden!</a>
-          <button class="ml-10 mobile-menu-button"> <svg class="w-6 h-6 text-white" fill="currentColor"
-              viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-              <path fill-rule="evenodd" clip-rule="evenodd"
-                d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z">
-              </path>
-            </svg> </button> </div>
-        <div class="hidden md:block">
-          <div class="items-center hidden md:block"> <a href="/faq"
-              class="mr-5 text-sm font-medium text-white hover:text-green-300 md:text-base">FAQ</a> <a href="#"
-              class="mr-5 text-sm font-medium text-white hover:text-green-300 md:text-base">Kontakt</a> <a href="#"
-              class="mr-5 text-sm font-medium text-white hover:text-green-300 md:text-base">Impressum</a> <a
-              href="/newitem"
+    <!-- Green shadow div Start -->
+    <!-- Green shadow div End -->
+    <!-- Navbar and Content Wrapper Start -->
+    <div class="relative bg-fixed bg-center bg-no-repeat bg-cover"
+  style="background-image: url('https://gcdnb.pbrd.co/images/77kK8LYqhYJ3.jpg?o=1');">
+      <!-- Navbar Start -->
+      <nav id="navbar" class="fixed top-0 left-0 w-full transition-all duration-500 ease-in-out">
+        <div class="container flex items-center justify-between px-4 py-3 mx-auto">
+          <a href="#" class="flex items-center font-extrabold text-white">
+            <img src="https://via.placeholder.com/150" alt="Mantis Projekt Logo" class="h-6 mr-2 sm:h-9" />
+            <span class="text-xl">Mantis Projekt</span>
+          </a>
+          <div class="items-center hidden md:flex">
+            <a href="#" class="mr-5 text-sm font-medium text-white hover:text-green-300 md:text-base">FAQ</a>
+            <a href="#" class="mr-5 text-sm font-medium text-white hover:text-green-300 md:text-base">Kontakt</a>
+            <a href="#" class="mr-5 text-sm font-medium text-white hover:text-green-300 md:text-base">Impressum</a>
+            <a href="#"
               class="inline-block px-4 py-2 font-medium text-white transition duration-300 ease-in-out transform bg-green-500 rounded-md hover:bg-green-600 hover:-translate-y-1 hover:scale-110">Melden!</a>
           </div>
-        </div>
-      </div>
-      <div class="hidden mobile-menu md:hidden">
-        <div class="flex flex-col items-center justify-center w-full"> <a href="/faq"
-            class="my-3 text-sm font-medium text-white hover:text-green-300 md:text-base">FAQ</a> <a href="#"
-            class="my-3 text-sm font-medium text-white hover:text-green-300 md:text-base">Kontakt</a> <a href="#"
-            class="my-3 text-sm font-medium text-white hover:text-green-300 md:text-base">Impressum</a> </div>
-      </div>
-    </nav> <!-- Navbar End -->
-    <script> const mobileMenuButton = document.querySelector(".mobile-menu-button"); const mobileMenu = document.querySelector(".mobile-menu"); mobileMenuButton.addEventListener("click", function () { if (mobileMenu.classList.contains("hidden")) { mobileMenu.classList.remove("hidden"); } else { mobileMenu.classList.add("hidden"); } }); window.addEventListener("scroll", function () { const navbar = document.querySelector("nav"); if (window.scrollY > 0) { navbar.classList.add("shadow-lg"); } else { navbar.classList.remove("shadow-lg"); } }); </script> <!-- Green Content Start --
-
-<!-- Green Content Start -->
-<div style="background-image: radial-gradient(circle, rgba(6, 78, 59, 0.5), rgba(6, 78, 59, 0.5)), url('https://i.ibb.co/WHsckGJ/mantis-Eqat.jpg'); background-size: cover; background-position: center;">
-  <div class="container px-4 py-20 mx-auto">
-    <div class="grid items-center grid-cols-1 gap-8 md:grid-cols-2">
-      <div>
-        <img src="{{ url_for('static', filename='images/topBar.jpg')}}" alt="Image"
-          class="object-center w-full rounded-lg shadow-md" />
-      </div>
-      <div class="text-white">
-        <h1 class="mb-6 text-4xl font-bold md:text-6xl">
-          {% block title %} {% endblock title %}
-        </h1>
-        <p class="mb-8 text-lg">{% block text %} {% endblock text %}</p>
-        {% if request.path == '/' %}
-        <a href="report">
-          <button
-            class="px-8 py-4 text-lg font-bold text-white transition duration-500 ease-in-out bg-green-800 rounded-md hover:bg-green-700">
-            Melden
-          </button>
-        </a>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-</div>
-<!-- Green Content Stop -->
-
-    <!--! Whhite Content Start-->
-    <div class="flex flex-wrap">
-      <div class="flex-auto">{% block content %} {% endblock content %}</div>
-    </div>
-    <!--! White Content End-->
-
-    <!--! Start Footer -->
-    <!--https://tailwindcomponents.com/component/footer-5-->
-    <footer class="relative pt-8 pb-6 bg-gray-200 footer">
-      <div class="container px-4 mx-auto">
-        <div class="flex flex-wrap text-left lg:text-left">
-          <div class="w-full px-4 lg:w-6/12">
-            <h4 class="text-3xl fonat-semibold text-blueGray-700">
-              Naturkunde Museum Potsdam
-            </h4>
-            <h5 class="mt-0 mb-2 text-lg text-blueGray-600">
-              Wir sind ein Museum für Naturkunde und Naturgeschichte in Potsdam.
-              Wir zeigen die Vielfalt der Natur und ihre Geschichte.
-            </h5>
+          <div class="flex items-center md:hidden">
+            <button class="ml-10 mobile-menu-button">
+              <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" clip-rule="evenodd"
+                  d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" />
+              </svg>
+            </button>
           </div>
-          <div class="w-full px-4 lg:w-6/12">
-            <div class="flex flex-wrap mb-6 items-top">
-              <div class="w-full px-4 ml-auto lg:w-4/12">
-                <span class="block mb-2 text-sm font-semibold uppercase text-blueGray-500">Useful Links</span>
-                <ul class="list-unstyled">
-                  <li>
-                    <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800"
-                      href="/#">About Us</a>
-                  </li>
-                  <li>
-                    <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800"
-                      href="/admin">Admin</a>
-                  </li>
-                  <li>
-                    <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800"
-                      href="/#">GitLab</a>
-                  </li>
-                  <li>
-                    <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800"
-                      href="/reportanissue">Report an Issue</a>
-                  </li>
-                </ul>
-              </div>
-              <div class="w-full px-4 lg:w-4/12">
-                <span class="block mb-2 text-sm font-semibold uppercase text-blueGray-500">Other Resources</span>
-                <ul class="list-unstyled">
-                  <li>
-                    <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800" href="/#">MIT
-                      License</a>
-                  </li>
-                  <li>
-                    <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800"
-                      href="/#">Terms &amp; Conditions</a>
-                  </li>
-                  <li>
-                    <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800"
-                      href="/#">Privacy Policy</a>
-                  </li>
-                  <li>
-                    <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800"
-                      href="/#">Contact Us</a>
-                  </li>
-                </ul>
-              </div>
+        </div>
+        <div class="hidden mobile-menu md:hidden">
+          <div class="flex flex-col items-center justify-center w-full">
+            <a href="#" class="my-3 text-sm font-medium text-white hover:text-green-300 md:text-base">FAQ</a>
+            <a href="#" class="my-3 text-sm font-medium text-white hover:text-green-300 md:text-base">Kontakt</a>
+            <a href="#" class="my-3 text-sm font-medium text-white hover:text-green-300 md:text-base">Impressum</a>
+          </div>
+        </div>
+      </nav>
+      <!-- Navbar End -->
+      <!-- Content Start -->
+      <div class="z-0 flex-wrap items-end w-full pb-1">
+        <div class="container px-4 pt-16 pb-5 mx-auto">
+          <div class="grid items-center grid-cols-1 gap-8 md:grid-cols-2">
+            <div class="mx-auto mt-20 lg:mt-5 md:w-2/3 lg:w-1/2">
+              <img src="{{ url_for('static', filename='images/topBar.jpg')}}" alt="Image"
+                class="object-center w-full rounded-lg shadow-md" />
             </div>
-          </div>
-        </div>
-        <hr class="my-6 border-blueGray-300" />
-        <div class="flex flex-wrap items-center justify-center md:justify-between">
-          <div class="w-full px-4 mx-auto text-center md:w-4/12">
-            <div class="py-1 text-sm font-semibold text-blueGray-500">
-              Copyright © <span id="get-current-year">2023</span><a class="text-blueGray-500 hover:text-gray-800"
-                target="_blank">
-                P22
+            <div class="text-white">
+              <h1 class="mb-6 text-4xl font-bold md:text-6xl">
+                {% block title %} {% endblock title %}
+              </h1>
+              <p class="mb-8 text-lg">{% block text %} {% endblock text %}</p>
+              {% if request.path == '/' %}
+              <a href="report">
+                <button
+                  class="px-8 py-4 text-lg font-bold text-white transition duration-500 ease-in-out bg-green-800 rounded-md hover:bg-green-700">
+                  Melden
+                </button>
               </a>
-              <a class="text-blueGray-500 hover:text-blueGray-800">ZITAU</a>.
+              {% endif %}
             </div>
           </div>
         </div>
       </div>
-    </footer>
+      <!-- Content End -->
+    </div>
+    <!-- Navbar and Content Wrapper End -->
+    <!-- Navbar and Content Wrapper End -->
+  </div>
+  <!-- Background Image div End -->
+
+  <script>
+    const mobileMenuButton = document.querySelector(".mobile-menu-button");
+    const mobileMenu = document.querySelector(".mobile-menu");
+
+    mobileMenuButton.addEventListener("click", function () {
+      if (mobileMenu.classList.contains("hidden")) {
+        mobileMenu.classList.remove("hidden");
+      } else {
+        mobileMenu.classList.add("hidden");
+      }
+    });
+
+    window.addEventListener("scroll", function () {
+      const navbar = document.querySelector("nav");
+      if (window.scrollY > 0) {
+        navbar.classList.add("shadow-lg");
+        navbar.classList.add("sticky-nav");
+      } else {
+        navbar.classList.remove("shadow-lg");
+        navbar.classList.remove("sticky-nav");
+      }
+    });
+  </script>
+
+
+  <!--! White Content Start-->
+  <div class="flex flex-wrap mt-0">
+    <div class="flex-auto">{% block content %} {% endblock content %}</div>
+  </div>
+  <!--! White Content End-->
+
+  <!--! Start Footer -->
+  <!--https://tailwindcomponents.com/component/footer-5-->
+  <footer class="relative pt-8 pb-6 bg-gray-200 footer">
+    <div class="container px-4 mx-auto">
+      <div class="flex flex-wrap text-left lg:text-left">
+        <div class="w-full px-4 lg:w-6/12">
+          <h4 class="text-3xl fonat-semibold text-blueGray-700">
+            Naturkunde Museum Potsdam
+          </h4>
+          <h5 class="mt-0 mb-2 text-lg text-blueGray-600">
+            Wir sind ein Museum für Naturkunde und Naturgeschichte in Potsdam.
+            Wir zeigen die Vielfalt der Natur und ihre Geschichte.
+          </h5>
+        </div>
+        <div class="w-full px-4 lg:w-6/12">
+          <div class="flex flex-wrap mb-6 items-top">
+            <div class="w-full px-4 ml-auto lg:w-4/12">
+              <span class="block mb-2 text-sm font-semibold uppercase text-blueGray-500">Useful Links</span>
+              <ul class="list-unstyled">
+                <li>
+                  <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800" href="/#">About
+                    Us</a>
+                </li>
+                <li>
+                  <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800"
+                    href="/admin">Admin</a>
+                </li>
+                <li>
+                  <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800"
+                    href="/#">GitLab</a>
+                </li>
+                <li>
+                  <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800"
+                    href="/reportanissue">Report an Issue</a>
+                </li>
+              </ul>
+            </div>
+            <div class="w-full px-4 lg:w-4/12">
+              <span class="block mb-2 text-sm font-semibold uppercase text-blueGray-500">Other Resources</span>
+              <ul class="list-unstyled">
+                <li>
+                  <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800" href="/#">MIT
+                    License</a>
+                </li>
+                <li>
+                  <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800" href="/#">Terms
+                    &amp; Conditions</a>
+                </li>
+                <li>
+                  <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800"
+                    href="/#">Privacy Policy</a>
+                </li>
+                <li>
+                  <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800"
+                    href="/#">Contact Us</a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <hr class="my-6 border-blueGray-300" />
+      <div class="flex flex-wrap items-center justify-center md:justify-between">
+        <div class="w-full px-4 mx-auto text-center md:w-4/12">
+          <div class="py-1 text-sm font-semibold text-blueGray-500">
+            Copyright © <span id="get-current-year">2023</span><a class="text-blueGray-500 hover:text-gray-800"
+              target="_blank">
+              P22
+            </a>
+            <a class="text-blueGray-500 hover:text-blueGray-800">ZITAU</a>.
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
 </body>
 
 </html>
