@@ -11,7 +11,6 @@
       z-index: 9999 !important;
     }
   </style>
-  <!--Production-->
   <link rel="stylesheet" href="{{ url_for('static', filename='build/theme.css') }}" />
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
@@ -21,23 +20,25 @@
 <body class="antialiased bg-gray-100">
   <!-- Background Image div Start -->
   <div>
-    <!-- Green shadow div Start -->
-    <!-- Green shadow div End -->
     <!-- Navbar and Content Wrapper Start -->
     <div class="relative bg-fixed bg-center bg-no-repeat bg-cover"
-  style="background-image: url('https://gcdnb.pbrd.co/images/77kK8LYqhYJ3.jpg?o=1');">
+      style="background-image: url('{{ url_for('static', filename='images/mantisEat.jpg') }}');">
       <!-- Navbar Start -->
       <nav id="navbar" class="fixed top-0 left-0 w-full transition-all duration-500 ease-in-out">
         <div class="container flex items-center justify-between px-4 py-3 mx-auto">
-          <a href="#" class="flex items-center font-extrabold text-white">
-            <img src="https://via.placeholder.com/150" alt="Mantis Projekt Logo" class="h-6 mr-2 sm:h-9" />
+          <a href="/" class="flex items-center font-extrabold text-white">
+            <img
+              src="{{ url_for('static', filename='images/logo.png') }}"
+              alt="Mantis Projekt Logo"
+              class="h-6 mr-2 sm:h-9"
+            />
             <span class="text-xl">Mantis Projekt</span>
           </a>
           <div class="items-center hidden md:flex">
-            <a href="#" class="mr-5 text-sm font-medium text-white hover:text-green-300 md:text-base">FAQ</a>
-            <a href="#" class="mr-5 text-sm font-medium text-white hover:text-green-300 md:text-base">Kontakt</a>
-            <a href="#" class="mr-5 text-sm font-medium text-white hover:text-green-300 md:text-base">Impressum</a>
-            <a href="#"
+            <a href="/faq" class="mr-5 text-sm font-medium text-white hover:text-green-300 md:text-base">FAQ</a>
+            <a href="/contact" class="mr-5 text-sm font-medium text-white hover:text-green-300 md:text-base">Kontakt</a>
+            <a href="/impressum" class="mr-5 text-sm font-medium text-white hover:text-green-300 md:text-base">Impressum</a>
+            <a href="/report"
               class="inline-block px-4 py-2 font-medium text-white transition duration-300 ease-in-out transform bg-green-500 rounded-md hover:bg-green-600 hover:-translate-y-1 hover:scale-110">Melden!</a>
           </div>
           <div class="flex items-center md:hidden">
@@ -52,15 +53,15 @@
         </div>
         <div class="hidden mobile-menu md:hidden">
           <div class="flex flex-col items-center justify-center w-full">
-            <a href="#" class="my-3 text-sm font-medium text-white hover:text-green-300 md:text-base">FAQ</a>
-            <a href="#" class="my-3 text-sm font-medium text-white hover:text-green-300 md:text-base">Kontakt</a>
-            <a href="#" class="my-3 text-sm font-medium text-white hover:text-green-300 md:text-base">Impressum</a>
+            <a href="/faq" class="my-3 text-sm font-medium text-white hover:text-green-300 md:text-base">FAQ</a>
+            <a href="/contact" class="my-3 text-sm font-medium text-white hover:text-green-300 md:text-base">Kontakt</a>
+            <a href="/impressum" class="my-3 text-sm font-medium text-white hover:text-green-300 md:text-base">Impressum</a>
           </div>
         </div>
       </nav>
       <!-- Navbar End -->
       <!-- Content Start -->
-      <div class="z-0 flex-wrap items-end w-full pb-1">
+      <div class="z-0 flex-wrap items-end w-full pb-1 ">
         <div class="container px-4 pt-16 pb-5 mx-auto">
           <div class="grid items-center grid-cols-1 gap-8 md:grid-cols-2">
             <div class="mx-auto mt-20 lg:mt-5 md:w-2/3 lg:w-1/2">
