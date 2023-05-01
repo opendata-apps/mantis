@@ -91,29 +91,41 @@
     <!-- Navbar and Content Wrapper End -->
   </div>
   <!-- Background Image div End -->
-
   <script>
     const mobileMenuButton = document.querySelector(".mobile-menu-button");
-    const mobileMenu = document.querySelector(".mobile-menu");
+const mobileMenu = document.querySelector(".mobile-menu");
+const navbar = document.querySelector("nav");
 
-    mobileMenuButton.addEventListener("click", function () {
-      if (mobileMenu.classList.contains("hidden")) {
-        mobileMenu.classList.remove("hidden");
-      } else {
-        mobileMenu.classList.add("hidden");
-      }
-    });
+mobileMenuButton.addEventListener("click", function () {
+  if (mobileMenu.classList.contains("hidden")) {
+    mobileMenu.classList.remove("hidden");
+    navbar.classList.add("shadow-lg");
+    navbar.classList.add("sticky-nav");
+  } else {
+    mobileMenu.classList.add("hidden");
+    if (window.scrollY === 0) {
+      navbar.classList.remove("shadow-lg");
+      navbar.classList.remove("sticky-nav");
+    }
+  }
+});
 
-    window.addEventListener("scroll", function () {
-      const navbar = document.querySelector("nav");
-      if (window.scrollY > 0) {
-        navbar.classList.add("shadow-lg");
-        navbar.classList.add("sticky-nav");
-      } else {
-        navbar.classList.remove("shadow-lg");
-        navbar.classList.remove("sticky-nav");
-      }
-    });
+window.addEventListener("scroll", function () {
+  if (window.scrollY > 0 && !mobileMenu.classList.contains("hidden")) {
+    navbar.classList.add("shadow-lg");
+    navbar.classList.add("sticky-nav");
+  } else if (window.scrollY === 0 && !mobileMenu.classList.contains("hidden")) {
+    navbar.classList.remove("shadow-lg");
+    navbar.classList.add("sticky-nav");
+  } else if (window.scrollY === 0 && mobileMenu.classList.contains("hidden")) {
+    navbar.classList.remove("shadow-lg");
+    navbar.classList.remove("sticky-nav");
+  } else {
+    navbar.classList.add("shadow-lg");
+    navbar.classList.add("sticky-nav");
+  }
+});
+
   </script>
 
 
