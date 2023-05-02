@@ -1,21 +1,24 @@
-from flask import render_template, request
-from app import app, db
+from flask import render_template, request, Blueprint, send_from_directory
+from app import db
 from app.database.models import Mantis
 import json
 # from app.models import Mantis
 
 
-@app.route('/')
+# Blueprints
+main = Blueprint('main', __name__)
+
+@main.route('/')
 def index():
     return render_template('home.html')
 
 
-@app.route('/static/build/theme.css')
+@main.route('/static/build/theme.css')
 def styles():
-    return app.send_static_file('build/theme.css')
+    return send_from_directory('static/build', 'theme.css')
 
 
-@app.route('/report', methods=['GET', 'POST'])
+@main.route('/report', methods=['GET', 'POST'])
 def report():
     if request.method == 'POST':
         # get form data and save to database
@@ -29,7 +32,7 @@ def report():
     return render_template('report.html')
 
 
-@app.route('/map')
+@main.route('/map')
 def show_map():
     # Fetch the reports data from the database
     reports = Mantis.query.all()
@@ -42,47 +45,47 @@ def show_map():
     return render_template('map.html', reportsJson=reportsJson)
 
 
-@app.route('/statistics')
+@main.route('/statistics')
 def statistics():
     mantis_count = Mantis.query.count()
     return render_template('statistics.html', mantis_count=mantis_count)
 
 
-@app.route('/faq')
+@main.route('/faq')
 def faq():
     return render_template('faq.html')
 
 
-@app.route('/impressum')
+@main.route('/impressum')
 def impressum():
     return render_template('impressum.html')
 
 
-@app.route('/about')
+@main.route('/about')
 def about():
     return render_template('about.html')
 
 
-@app.route('/reportanissue')
+@main.route('/reportanissue')
 def report_an_issue():
     return render_template('report_an_issue.html')
 
 
-@app.route('/newitem')
+@main.route('/newitem')
 def new_item():
     return render_template('new_item.html')
 
 
-@app.route('/admin')
+@main.route('/admin')
 def admin():
     return render_template('admin.html')
 
 
-@app.route('/admin/log')
+@main.route('/admin/log')
 def admin_subsites_log():
     return render_template('adminSubsites/log.html')
 
 
-@app.route('/mantis')
+@main.route('/mantis')
 def mantis():
     return render_template('mantis.html')
