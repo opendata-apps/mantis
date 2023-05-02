@@ -1,27 +1,20 @@
-# Mantis
+# 🦗 Mantis Tracker 🦗
 
-A Project from the Naturkunde Museum Potsdam to track the Mantis Religiosa in Brandenburg.
+![Header Banner](https://i.ibb.co/fxgcjgC/image-2023-05-02-210757973.png)
 
-Mantis Report is a web application that allows users to report sightings of the Mantis Religiosa in Brandenburg and display them on an interactive map.
+An interactive web application to track Mantis Religiosa sightings in Brandenburg, presented by the Naturkunde Museum Potsdam.
 
-## Features
+Mantis Tracker allows users to report Mantis Religiosa sightings and view them on an interactive map, along with insightful statistics and helpful FAQs.
 
-- Information about the mantis
-- good looking UI
-- Report mantis sightings with a form
-- View all mantis sightings on an interactive map
-- View statistics and FAQs
+## 🌟 Features
 
-## Technologies
+- 📚 Learn about the Mantis Religiosa
+- 🎨 Beautiful UI
+- 📝 Report mantis sightings with an easy-to-use form
+- 🗺️ View all mantis sightings on an interactive map
+- 📊 View insightful statistics and FAQs
 
-- HTML
-- CSS
-- Jinja2
-- Python
-- Flask
-- PostgreSQL
-- Tailwind CSS
-- JavaScript
+## 🛠️ Technologies
 
 ![HTML](https://img.shields.io/badge/-HTML-000000?style=flat&logo=HTML5)
 ![CSS](https://img.shields.io/badge/-CSS-000000?style=flat&logo=CSS3&logoColor=1572B6)
@@ -32,8 +25,7 @@ Mantis Report is a web application that allows users to report sightings of the 
 ![Tailwind CSS](https://img.shields.io/badge/-Tailwind%20CSS-000000?style=flat&logo=tailwind-css)
 ![JavaScript](https://img.shields.io/badge/-JavaScript-000000?style=flat&logo=javascript)
 
-
-## Development Setup/Installation
+## 💻 Development Setup/Installation
 
 ```bash
 # Clone the repository
@@ -64,17 +56,12 @@ flask db upgrade
 npx tailwindcss -i app/static/css/theme.css -o app/static/build/theme.css --watch
 
 # Run the development server
+python run.py or
 flask run (with --debug for debug mode with reload) 
 
 # Open http://localhost:5000 in your browser
- 
-
-
-
 ```
 
+## 📝 License
 
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
