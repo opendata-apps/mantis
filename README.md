@@ -64,7 +64,7 @@ flask db upgrade
 npx tailwindcss -i app/static/css/theme.css -o app/static/build/theme.css --watch
 
 # Run the development server
-flask run
+flask run (with --debug for debug mode with reload) 
 
 # Open http://localhost:5000 in your browser
  
