@@ -2,7 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-
 .sticky-nav {
   background-color: rgb(0, 59, 40) !important;
   z-index: 9999 !important;
