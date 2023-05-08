@@ -25,43 +25,59 @@ Mantis Tracker allows users to report Mantis Religiosa sightings and view them o
 ![Tailwind CSS](https://img.shields.io/badge/-Tailwind%20CSS-000000?style=flat&logo=tailwind-css)
 ![JavaScript](https://img.shields.io/badge/-JavaScript-000000?style=flat&logo=javascript)
 
-## 💻 Development Setup/Installation
+# 💻 Development Setup/Installation
 
+### Clone the repository
 ```bash
-# Clone the repository
 git clone https://gitlab.com/opendata-apps/mantis.git
 cd mantis_flask
+```
 
-# Create a virtual environment and activate it
+
+### Create a virtual environment and activate it
+```bash
 python -m venv venv
 source venv/bin/activate
+```
 
-# Install the dependencies
+### Install the dependencies
+```bash
 pip install -r requirements.txt
+```
 
-# Create a PostgreSQL database
+### Create a PostgreSQL database
+```bash
 sudo -u postgres psql
 CREATE DATABASE mantis_tracker;
 CREATE USER mantis_user WITH PASSWORD 'mantis';
 GRANT ALL PRIVILEGES ON DATABASE mantis_tracker TO mantis_user;
 \q
-
-# If database structure changed 
-flask db migrate -m "your comment"
-
-# Create the database tables
-flask db upgrade
-
-# Run the CSS watcher
-npx tailwindcss -i app/static/css/theme.css -o app/static/build/theme.css --watch
-
-# Run the development server
-python run.py or
-flask run (with --debug for debug mode with reload) 
-
-# Open http://localhost:5000 in your browser
 ```
 
-## 📝 License
+### If database structure changed
+```bash 
+flask db migrate -m "your comment"
+```
+
+### Create the database tables
+```bash
+flask db upgrade
+```
+
+### Run the CSS watcher
+```bash
+npx tailwindcss -i app/static/css/theme.css -o app/static/build/theme.css --watch
+```
+
+### Run the development server
+```bash
+python run.py or
+flask run (with --debug for debug mode with reload)
+``` 
+
+
+### Open http://localhost:5000 in your browser
+
+# 📝 License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
