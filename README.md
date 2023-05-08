@@ -30,13 +30,13 @@ Mantis Tracker allows users to report Mantis Religiosa sightings and view them o
 ### Clone the repository
 ```bash
 git clone https://gitlab.com/opendata-apps/mantis.git
-cd mantis_flask
+cd mantis
 ```
 
 
 ### Create a virtual environment and activate it
 ```bash
-python -m venv venv
+python -m venv .venv (oder anderer Name mit . wie .mantis)
 source venv/bin/activate
 ```
 
@@ -48,14 +48,14 @@ pip install -r requirements.txt
 ### Create a PostgreSQL database
 Verwenden sie das Programm psql für ihr Betriebssystem.
 ```bash
-sudo -u postgres psql
+psql -U postgres
 CREATE DATABASE mantis_tracker;
 CREATE USER mantis_user WITH PASSWORD 'mantis';
 GRANT ALL PRIVILEGES ON DATABASE mantis_tracker TO mantis_user;
 \q
 ```
 
-### If database structure changed
+### ONLY If database structure changed 
 ```bash 
 flask db migrate -m "your comment"
 ```
@@ -77,8 +77,7 @@ npx tailwindcss -i app/static/css/theme.css -o app/static/build/theme.css --watc
 
 ### Run the development server
 ```bash
-python run.py or
-flask run (with --debug for debug mode with reload)
+python run.py
 ``` 
 
 
