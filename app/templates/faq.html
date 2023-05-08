@@ -3,45 +3,7 @@ text %}
 <p>Hier finden Sie häufig gestellte Fragen und Antworten.</p>
 <p>Klicken Sie für die jeweilige Antwort auf den jeweiligen Pfeil.</p>
 {%endblock text%} {% block content %}
-<!--ToDo-->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-  $(document).ready(function () {
-    $('button[type="button"]').click(function () {
-      var searchTerm = $('input[name="search"]').val().toLowerCase();
-      $("details").each(function () {
-        var text = $(this).text().toLowerCase();
-        if (text.indexOf(searchTerm) > -1) {
-          $(this).show();
-        } else {
-          $(this).hide();
-        }
-      });
-    });
-  });
-</script>
 
-<div class="container mx-auto px-4 py-8">
-  <div class="flex justify-center">
-    <form action="#" method="get" class="w-full md:w-1/2 lg:w-1/2">
-      <div class="flex items-center border-b border-b-2 border-green-700 py-2">
-        <input
-          class="appearance-none bg-transparent border-none w-full text-gray-700 mr-3 py-1 px-2 leading-tight focus:outline-none"
-          type="text"
-          name="search"
-          placeholder="Suche"
-          aria-label="Suche"
-        />
-        <button
-          class="flex-shrink-0 bg-green-700 hover:bg-green-700 border-green-700 hover:border-green-700 text-sm border-4 text-white py-1 px-2 rounded"
-          type="button"
-        >
-          Suchen
-        </button>
-      </div>
-    </form>
-  </div>
-</div>
 <div class="container mx-auto px-4 py-2">
   <div class="flex flex-wrap">
     <div class="px-2 mb-4">
