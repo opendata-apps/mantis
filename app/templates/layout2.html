@@ -49,7 +49,7 @@
           {% if request.path == '/' %}
           <a href="/newitem">
             <button
-              class="transition duration-500 ease-in-out bg-green-800 hover:bg-green-700 transform hover:-translate-y-1 hover:scale-110 px-8 py-4 mr-4 font-extrabold text-white rounded-full text-1xl">
+              class="px-8 py-4 mr-4 font-extrabold text-white transition duration-500 ease-in-out transform bg-green-800 rounded-full hover:bg-green-700 hover:-translate-y-1 hover:scale-110 text-1xl">
               Melden
             </button>
           </a>
@@ -97,57 +97,57 @@
       </div>
     </div>
   </footer>
-  <footer class="relative bg-blueGray-200 pt-8 pb-6">
-    <div class="container mx-auto px-4">
+  <footer class="relative pt-8 pb-6 bg-blueGray-200">
+    <div class="container px-4 mx-auto">
       <div class="flex flex-wrap text-left lg:text-left">
-        <div class="w-full lg:w-6/12 px-4">
+        <div class="w-full px-4 lg:w-6/12">
           <h4 class="text-3xl fonat-semibold text-blueGray-700">Naturkunde Museum Potsdam</h4>
-          <h5 class="text-lg mt-0 mb-2 text-blueGray-600">
+          <h5 class="mt-0 mb-2 text-lg text-blueGray-600">
             Wir sind ein Museum für Naturkunde und Naturgeschichte in Potsdam. Wir zeigen die Vielfalt der Natur und
             ihre Geschichte.
           </h5>
         </div>
-        <div class="w-full lg:w-6/12 px-4">
-          <div class="flex flex-wrap items-top mb-6">
-            <div class="w-full lg:w-4/12 px-4 ml-auto">
-              <span class="block uppercase text-blueGray-500 text-sm font-semibold mb-2">Useful Links</span>
+        <div class="w-full px-4 lg:w-6/12">
+          <div class="flex flex-wrap mb-6 items-top">
+            <div class="w-full px-4 ml-auto lg:w-4/12">
+              <span class="block mb-2 text-sm font-semibold uppercase text-blueGray-500">Useful Links</span>
               <ul class="list-unstyled">
                 <li>
-                  <a class="text-blueGray-600 hover:text-blueGray-800 font-semibold block pb-2 text-sm" href="/#">About
+                  <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800" href="/#">About
                     Us</a>
                 </li>
                 <li>
-                  <a class="text-blueGray-600 hover:text-blueGray-800 font-semibold block pb-2 text-sm"
+                  <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800"
                     href="/#">...</a>
                 </li>
                 <li>
-                  <a class="text-blueGray-600 hover:text-blueGray-800 font-semibold block pb-2 text-sm"
+                  <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800"
                     href="/#">GitLab</a>
                 </li>
                 <li>
-                  <a class="text-blueGray-600 hover:text-blueGray-800 font-semibold block pb-2 text-sm"
+                  <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800"
                     href="/#">...</a>
                 </li>
               </ul>
             </div>
-            <div class="w-full lg:w-4/12 px-4">
-              <span class="block uppercase text-blueGray-500 text-sm font-semibold mb-2">Other Resources</span>
+            <div class="w-full px-4 lg:w-4/12">
+              <span class="block mb-2 text-sm font-semibold uppercase text-blueGray-500">Other Resources</span>
               <ul class="list-unstyled">
                 <li>
-                  <a class="text-blueGray-600 hover:text-blueGray-800 font-semibold block pb-2 text-sm"
+                  <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800"
                     href="https://github.com/creativetimofficial/notus-js/blob/main/LICENSE.md?ref=njs-profile">MIT
                     License</a>
                 </li>
                 <li>
-                  <a class="text-blueGray-600 hover:text-blueGray-800 font-semibold block pb-2 text-sm"
+                  <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800"
                     href="https://creative-tim.com/terms?ref=njs-profile">Terms &amp; Conditions</a>
                 </li>
                 <li>
-                  <a class="text-blueGray-600 hover:text-blueGray-800 font-semibold block pb-2 text-sm"
+                  <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800"
                     href="https://creative-tim.com/privacy?ref=njs-profile">Privacy Policy</a>
                 </li>
                 <li>
-                  <a class="text-blueGray-600 hover:text-blueGray-800 font-semibold block pb-2 text-sm"
+                  <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800"
                     href="https://creative-tim.com/contact-us?ref=njs-profile">Contact Us</a>
                 </li>
               </ul>
@@ -156,9 +156,9 @@
         </div>
       </div>
       <hr class="my-6 border-blueGray-300">
-      <div class="flex flex-wrap items-center md:justify-between justify-center">
-        <div class="w-full md:w-4/12 px-4 mx-auto text-center">
-          <div class="text-sm text-blueGray-500 font-semibold py-1">
+      <div class="flex flex-wrap items-center justify-center md:justify-between">
+        <div class="w-full px-4 mx-auto text-center md:w-4/12">
+          <div class="py-1 text-sm font-semibold text-blueGray-500">
             Copyright © <span id="get-current-year">2021</span><a href="https://www.creative-tim.com/product/notus-js"
               class="text-blueGray-500 hover:text-gray-800" target="_blank"> Notus JS by
               <a href="https://www.creative-tim.com?ref=njs-profile"

@@ -1,16 +1,11 @@
 {% extends "layout.html" %} {% block title %}Gottesanbeterin{% endblock title %}
 {% block content %}
+
 <!-- Hero section with images and information about the mantis religiose project -->
-<section class="py-16 bg-white">
-  <div
-    class="container flex flex-col items-center justify-center gap-8 px-4 mx-auto md:flex-row"
-  >
+<section class="py-16">
+  <div class="container flex flex-col items-center justify-center gap-8 px-4 mx-auto md:flex-row">
     <div class="md:w-1/2">
-      <img
-        src="http://via.placeholder.com/540x360"
-        alt="Mantis Religiose"
-        class="mb-8 rounded-lg shadow-md"
-      />
+      <img src="http://via.placeholder.com/540x360" alt="Mantis Religiose" class="mb-8 rounded-lg shadow-md" />
     </div>
     <div class="md:w-1/2">
       <h1 class="mb-4 text-4xl font-bold leading-tight text-green-900">
@@ -20,15 +15,14 @@
         Helfen Sie uns, mehr über diese faszinierenden Insekten herauszufinden
         und ihre Verbreitung in Brandenburg zu kartieren.
       </p>
-      <a
-        href="#how-to-report"
-        class="px-4 py-2 font-bold text-white transition duration-300 bg-green-900 rounded-md hover:bg-green-700"
-      >
+      <a href="#how-to-report"
+        class="px-4 py-2 font-bold text-white transition duration-300 bg-green-900 rounded-md hover:bg-green-700">
         Wie melde ich meine Funde?
       </a>
     </div>
   </div>
 </section>
+
 
 <!-- About section -->
 <section id="About" class="relative py-16">
@@ -45,9 +39,7 @@
           gibt verschiedene Arten in Deutschland, die in ihrer Größe und Farbe
           variieren.
         </p>
-        <a href="#mantis-info" class="font-bold text-green-900 hover:underline"
-          >Weitere Informationen</a
-        >
+        <a href="#mantis-info" class="font-bold text-green-900 hover:underline">Weitere Informationen</a>
       </div>
       <div>
         <h3 class="mb-4 text-2xl font-bold">
@@ -58,9 +50,7 @@
           Verbreitung der Gottesanbeterin in Brandenburg zu dokumentieren und zu
           erforschen.
         </p>
-        <a href="#project-info" class="font-bold text-green-900 hover:underline"
-          >Mehr über das Projekt erfahren</a
-        >
+        <a href="#project-info" class="font-bold text-green-900 hover:underline">Mehr über das Projekt erfahren</a>
       </div>
     </div>
   </div>
@@ -69,34 +59,8 @@
   </div>
 </section>
 
-<!-- Animated counter section -->
-<section class="py-16 bg-gray-100">
-  <div class="container px-4 mx-auto">
-    <div class="relative px-8 py-12 bg-green-800 rounded-lg shadow-lg">
-      <h2 class="mb-8 text-3xl font-bold leading-tight text-center text-white">
-        Wir haben bereits <br />
-        <span class="text-6xl font-extrabold text-white counter">0</span> <br />
-        Meldungen erhalten
-      </h2>
-      <p class="mb-8 text-lg text-center text-white">
-        Helfen Sie uns, diese Zahl zu erhöhen!
-      </p>
-    </div>
-  </div>
-  <script>
-    const counter = document.querySelector(".counter");
-    let count = 0;
-    setInterval(() => {
-      if (count < 420) {
-        count++;
-        counter.innerText = count;
-      }
-    }, 1);
-  </script>
-</section>
-
 <!-- How to report section -->
-<section id="how-to-report" class="pb-20 bg-gray-100">
+<section id="how-to-report" class="pb-20">
   <div class="container px-4 mx-auto">
     <h2 class="mb-10 text-3xl font-bold text-center md:text-4xl">
       Wie melde ich meine Gottesanbeterin-Funde?
@@ -104,13 +68,8 @@
     <div class="grid gap-8 md:grid-cols-2">
       <div class="animate-fade-in">
         <div
-          class="duration-500 transform bg-white rounded-lg shadow-md hover:-translate-y-1 hover:shadow-lg hover:bg-green-100"
-        >
-          <img
-            src="http://via.placeholder.com/540x360"
-            alt="Meldung"
-            class="mx-auto rounded-t-lg"
-          />
+          class="duration-500 transform bg-white rounded-lg shadow-md hover:-translate-y-1 hover:shadow-lg hover:bg-green-100">
+          <img src="http://via.placeholder.com/540x360" alt="Meldung" class="mx-auto rounded-t-lg" />
           <div class="px-6 py-4">
             <h3 class="mb-3 text-xl font-semibold text-center text-gray-800">
               Meldung abgeben
@@ -129,13 +88,8 @@
       </div>
       <div class="animate-fade-in">
         <div
-          class="duration-500 transform bg-white rounded-lg shadow-md hover:-translate-y-1 hover:shadow-lg hover:bg-green-100"
-        >
-          <img
-            src="http://via.placeholder.com/540x360"
-            alt="Gottesanbeterin"
-            class="mx-auto rounded-t-lg"
-          />
+          class="duration-500 transform bg-white rounded-lg shadow-md hover:-translate-y-1 hover:shadow-lg hover:bg-green-100">
+          <img src="http://via.placeholder.com/540x360" alt="Gottesanbeterin" class="mx-auto rounded-t-lg" />
           <div class="px-6 py-4">
             <h3 class="mb-3 text-xl font-semibold text-center text-gray-800">
               Weitere Informationen
@@ -156,6 +110,40 @@
   </div>
 </section>
 
+<!-- Animated counter section -->
+<section class="py-16 ">
+  <div class="container px-4 mx-auto">
+    <div class="relative px-8 py-12 bg-green-800 rounded-lg shadow-lg">
+      <h2 class="mb-8 text-3xl font-bold leading-tight text-center text-white">
+        Wir haben bereits <br />
+        <span class="text-6xl font-extrabold text-white counter">0</span> <br />
+        Meldungen erhalten
+      </h2>
+      <p class="mb-8 text-lg text-center text-white">
+        Helfen Sie uns, diese Zahl zu erhöhen!
+      </p>
+    </div>
+  </div>
+  <script>
+    const counter = document.querySelector(".counter");
+    let count = 0;
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        setInterval(() => {
+          if (count < 420) {
+            count++;
+            counter.innerText = count;
+          }
+        }, 1);
+        observer.disconnect();
+      }
+    });
+    observer.observe(counter);
+  </script>
+</section>
+
+
+
 <!-- More information section -->
 <section id="mantis-info" class="relative py-16">
   <div class="container px-4 mx-auto">
@@ -167,11 +155,9 @@
       Deutschland und ihre Lebensweise.
     </p>
     <div class="flex justify-center">
-      <a
-        href="#"
-        class="px-4 py-2 font-bold text-white transition duration-300 bg-green-900 rounded-md hover:bg-green-700"
-        >Zu den Informationen</a
-      >
+      <a href="#"
+        class="px-4 py-2 font-bold text-white transition duration-300 bg-green-900 rounded-md hover:bg-green-700">Zu den
+        Informationen</a>
     </div>
   </div>
   <div class="absolute top-0 w-full">
@@ -183,7 +169,7 @@
 </section>
 
 <!-- Project information section -->
-<section id="project-info" class="py-16 bg-gray-100">
+<section id="project-info" class="py-16 ">
   <div class="container px-4 mx-auto">
     <h2 class="mb-8 text-3xl font-bold leading-tight text-center">
       Mehr über das Mantis Religiose Projekt
@@ -193,11 +179,9 @@
       Gottesanbeterin in Brandenburg und wie Sie uns unterstützen können.
     </p>
     <div class="flex justify-center">
-      <a
-        href="#"
-        class="px-4 py-2 font-bold text-white transition duration-300 bg-green-900 rounded-md hover:bg-green-700"
-        >Zum Projekt</a
-      >
+      <a href="#"
+        class="px-4 py-2 font-bold text-white transition duration-300 bg-green-900 rounded-md hover:bg-green-700">Zum
+        Projekt</a>
     </div>
   </div>
 </section>

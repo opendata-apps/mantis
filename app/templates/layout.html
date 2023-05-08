@@ -5,8 +5,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Mantis Projekt</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='build/theme.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='build/theme.css') }}" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 </head>
@@ -21,24 +21,27 @@
       <nav id="navbar" class="fixed top-0 left-0 w-full transition-all duration-500 ease-in-out">
         <div class="container flex items-center justify-between px-4 py-3 mx-auto">
           <a href="/" class="flex items-center font-extrabold text-white">
-            <img
-              src="{{ url_for('static', filename='images/logo.png') }}"
-              alt="Mantis Projekt Logo"
-              class="h-6 mr-2 sm:h-9"
-            />
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Mantis Projekt Logo"
+              class="h-6 mr-2 sm:h-9" />
             <span class="text-xl">Mantis Projekt</span>
           </a>
           <div class="items-center hidden md:flex">
             <a href="/" class="mr-5 text-sm font-medium text-white hover:text-green-300 md:text-base">Start</a>
             <a href="/projekt" class="mr-5 text-sm font-medium text-white hover:text-green-300 md:text-base">Projekt</a>
             <a href="/report" class="mr-5 text-sm font-medium text-white hover:text-green-300 md:text-base">Melden</a>
-            <a href="/auswertungen" class="mr-5 text-sm font-medium text-white hover:text-green-300 md:text-base">Auswertungen</a>
+            <a href="/auswertungen"
+              class="mr-5 text-sm font-medium text-white hover:text-green-300 md:text-base">Auswertungen</a>
             <div class="relative inline-block text-left">
-              <button id="dropdown-btn" class="inline-flex justify-center font-medium text-white rounded-md focus:outline-none hover:text-green-300" aria-haspopup="true" aria-expanded="false">
+              <button id="dropdown-btn"
+                class="inline-flex justify-center font-medium text-white rounded-md focus:outline-none hover:text-green-300"
+                aria-haspopup="true" aria-expanded="false">
                 Mehr...
                 <!-- Heroicon name: solid/chevron-down -->
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 ml-2 -mr-1">
-                  <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
+                  class="w-5 h-5 ml-2 -mr-1">
+                  <path fill-rule="evenodd"
+                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                    clip-rule="evenodd" />
                 </svg>
               </button>
               <!--
@@ -51,34 +54,38 @@
                   From: ""
                   To: ""
               -->
-              <div id="dropdown-menu" class="absolute right-0 hidden w-56 mt-2 origin-top-right bg-white border border-gray-200 rounded-md shadow-lg">
+              <div id="dropdown-menu"
+                class="absolute right-0 hidden w-56 mt-2 origin-top-right bg-white border border-gray-200 rounded-md shadow-lg">
                 <div class="py-1 text-gray-700">
                   <a href="/faq" class="block px-4 py-2 text-sm leading-5 hover:bg-gray-100">FAQ</a>
                   <a href="/impressum" class="block px-4 py-2 text-sm leading-5 hover:bg-gray-100">Impressum</a>
                   <a href="/" class="block px-4 py-2 text-sm leading-5 hover:bg-gray-100">Über Uns</a>
                   <a href="/" class="block px-4 py-2 text-sm leading-5 hover:bg-gray-100">Administrator</a>
                   <a href="/" class="block px-4 py-2 text-sm leading-5 hover:bg-gray-100">GitLab</a>
-                  <a href="/reportanissue" class="block px-4 py-2 text-sm leading-5 hover:bg-gray-100">Problem melden</a>
+                  <a href="/reportanissue" class="block px-4 py-2 text-sm leading-5 hover:bg-gray-100">Problem
+                    melden</a>
                   <a href="/" class="block px-4 py-2 text-sm leading-5 hover:bg-gray-100">Lizenz</a>
-                  <a href="/" class="block px-4 py-2 text-sm leading-5 hover:bg-gray-100">Allgemeine Geschäftsbedingungen</a>
+                  <a href="/" class="block px-4 py-2 text-sm leading-5 hover:bg-gray-100">Allgemeine
+                    Geschäftsbedingungen</a>
                   <a href="/" class="block px-4 py-2 text-sm leading-5 hover:bg-gray-100">Datenschutz</a>
                   <a href="/" class="block px-4 py-2 text-sm leading-5 hover:bg-gray-100">Kontakt</a>
                 </div>
               </div>
             </div>
           </div>
-          
+
           <script>
-            const dropdownBtn = document.getElementById('dropdown-btn');
-            const dropdownMenu = document.getElementById('dropdown-menu');
-            
-            dropdownBtn.addEventListener('click', () => {
-              const expanded = dropdownBtn.getAttribute('aria-expanded') === 'true';
-              dropdownBtn.setAttribute('aria-expanded', !expanded);
-              dropdownMenu.classList.toggle('hidden');
+            const dropdownBtn = document.getElementById("dropdown-btn");
+            const dropdownMenu = document.getElementById("dropdown-menu");
+
+            dropdownBtn.addEventListener("click", () => {
+              const expanded =
+                dropdownBtn.getAttribute("aria-expanded") === "true";
+              dropdownBtn.setAttribute("aria-expanded", !expanded);
+              dropdownMenu.classList.toggle("hidden");
             });
           </script>
-          
+
           <div class="flex items-center md:hidden">
             <button class="ml-10 mobile-menu-button">
               <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20"
@@ -94,45 +101,44 @@
             <a href="/" class="w-full py-4 font-medium text-center text-white hover:bg-green-300">Start</a>
             <a href="/projekt" class="w-full py-4 font-medium text-center text-white hover:bg-green-300">Projekt</a>
             <a href="/melden" class="w-full py-4 font-medium text-center text-white hover:bg-green-300">Melden</a>
-            <a href="/auswertungen" class="w-full py-4 font-medium text-center text-white hover:bg-green-300">Auswertungen</a>
+            <a href="/auswertungen"
+              class="w-full py-4 font-medium text-center text-white hover:bg-green-300">Auswertungen</a>
             <a href="/faq" class="w-full py-4 font-medium text-center text-white hover:bg-green-300">FAQ</a>
-            <a href="/impressum" class="w-full py-4 font-medium text-center text-white hover:bg-green-300">Impressum</a>
-            <a href="/impressum" class="w-full py-4 font-medium text-center text-white hover:bg-green-300">Über Uns</a>
-            <a href="/impressum" class="w-full py-4 font-medium text-center text-white hover:bg-green-300">Administrator</a>
-            <a href="/impressum" class="w-full py-4 font-medium text-center text-white hover:bg-green-300">GitLab</a>
-            <a href="/reportanissue" class="w-full py-4 font-medium text-center text-white hover:bg-green-300">Problem melden</a>
-            <a href="/impressum" class="w-full py-4 font-medium text-center text-white hover:bg-green-300">Lizenz</a>
-            <a href="/impressum" class="w-full py-4 font-medium text-center text-white hover:bg-green-300">Allgemeine Geschäftsbedingungen</a>
-            <a href="/impressum" class="w-full py-4 font-medium text-center text-white hover:bg-green-300">Datenschutz</a>
-            <a href="/impressum" class="w-full py-4 font-medium text-center text-white hover:bg-green-300">Kontakt</a>
           </div>
         </div>
       </nav>
       <!-- Navbar End -->
       <!-- Content Start -->
-      <div class="z-0 flex-wrap items-end w-full pb-1">
-        <div class="container px-4 pt-16 pb-5 mx-auto">
-          <div class="grid items-center grid-cols-1 gap-8 animate-fade-in md:grid-cols-2">
-            <div class="mx-auto mt-20 lg:mt-5 md:w-2/3 lg:w-1/2">
-              <img src="{{ url_for('static', filename='images/topBar.jpg')}}" alt="Image" class="object-center w-full transition duration-300 ease-in-out transform rounded-lg shadow-md hover:scale-110" />
-            </div>
-            <div class="text-white">
-              <h1 class="mb-6 text-4xl font-bold md:text-6xl">
-                {% block title %} {% endblock title %}
-              </h1>
-              <p class="mb-8 text-lg">{% block text %} {% endblock text %}</p>
-              {% if request.path == '/' %}
-              <a href="report">
-                <button class="px-8 py-4 text-lg font-bold text-white transition duration-500 ease-in-out transform bg-green-800 rounded-md hover:bg-green-700 active:bg-green-900 focus:outline-none focus:shadow-outline hover:scale-105">
-                  Melden
-                </button>
-              </a>
-              {% endif %}
-            </div>
+      <div class="z-0 flex-wrap items-center justify-center w-full pb-1" style="position: relative;">
+        <div class="absolute inset-0 flex items-center justify-center overflow-hidden">
+          <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"
+            style="width: 200%; height: 200%; filter: blur(5px);">
+            <path fill="rgba(255, 255, 255, 0.3)"
+              d="M22.4,-29.7C35,-21.7,55.4,-23.1,59.3,-17.7C63.2,-12.2,50.8,0.1,44.6,13C38.3,25.9,38.4,39.4,32,53.2C25.6,66.9,12.8,81.1,2.3,77.9C-8.2,74.8,-16.5,54.4,-27,41.9C-37.5,29.5,-50.3,25,-53.8,16.8C-57.4,8.7,-51.7,-3.1,-48.3,-16.3C-44.9,-29.5,-43.8,-44.1,-36.1,-53.8C-28.4,-63.4,-14.2,-68.1,-4.7,-61.7C4.9,-55.3,9.8,-37.8,22.4,-29.7Z"
+              transform="translate(100 100)" />
+          </svg>
+        </div>
+        <div class="container relative px-4 pt-16 pb-5 mx-auto">
+          <div class="flex flex-col items-center justify-center">
+            <h1 class="mb-6 text-4xl font-bold text-center text-white md:text-6xl">
+              {% block title %} {% endblock title %}
+            </h1>
+            <p class="mb-8 text-lg text-center text-white">{% block text %} {% endblock text %}</p>
+            {% if request.path == '/' %}
+            <a href="report">
+              <button
+                class="px-8 py-4 text-lg font-bold text-white transition duration-500 ease-in-out transform bg-green-800 rounded-md hover:bg-green-700 active:bg-green-900 focus:outline-none focus:shadow-outline hover:scale-105">
+                Melden
+              </button>
+            </a>
+            {% endif %}
           </div>
         </div>
       </div>
       <!-- Content End -->
+
+
+
     </div>
     <!-- Navbar and Content Wrapper End -->
     <!-- Navbar and Content Wrapper End -->
@@ -140,46 +146,48 @@
   <!-- Background Image div End -->
   <script>
     const mobileMenuButton = document.querySelector(".mobile-menu-button");
-const mobileMenu = document.querySelector(".mobile-menu");
-const navbar = document.querySelector("nav");
+    const mobileMenu = document.querySelector(".mobile-menu");
+    const navbar = document.querySelector("nav");
 
-mobileMenuButton.addEventListener("click", function () {
-  if (mobileMenu.classList.contains("hidden")) {
-    mobileMenu.classList.remove("hidden");
-    navbar.classList.add("shadow-lg");
-    navbar.classList.add("sticky-nav");
-  } else {
-    mobileMenu.classList.add("hidden");
-    if (window.scrollY === 0) {
-      navbar.classList.remove("shadow-lg");
-      navbar.classList.remove("sticky-nav");
-    }
-  }
-});
+    mobileMenuButton.addEventListener("click", function () {
+      if (mobileMenu.classList.contains("hidden")) {
+        mobileMenu.classList.remove("hidden");
+        navbar.classList.add("shadow-lg");
+        navbar.classList.add("sticky-nav");
+      } else {
+        mobileMenu.classList.add("hidden");
+        if (window.scrollY === 0) {
+          navbar.classList.remove("shadow-lg");
+          navbar.classList.remove("sticky-nav");
+        }
+      }
+    });
 
-window.addEventListener("scroll", function () {
-  if (window.scrollY > 0 && !mobileMenu.classList.contains("hidden")) {
-    navbar.classList.add("shadow-lg");
-    navbar.classList.add("sticky-nav");
-  } else if (window.scrollY === 0 && !mobileMenu.classList.contains("hidden")) {
-    navbar.classList.remove("shadow-lg");
-    navbar.classList.add("sticky-nav");
-  } else if (window.scrollY === 0 && mobileMenu.classList.contains("hidden")) {
-    navbar.classList.remove("shadow-lg");
-    navbar.classList.remove("sticky-nav");
-  } else {
-    navbar.classList.add("shadow-lg");
-    navbar.classList.add("sticky-nav");
-  }
-});
-
-
-
+    window.addEventListener("scroll", function () {
+      if (window.scrollY > 0 && !mobileMenu.classList.contains("hidden")) {
+        navbar.classList.add("shadow-lg");
+        navbar.classList.add("sticky-nav");
+      } else if (
+        window.scrollY === 0 &&
+        !mobileMenu.classList.contains("hidden")
+      ) {
+        navbar.classList.remove("shadow-lg");
+        navbar.classList.add("sticky-nav");
+      } else if (
+        window.scrollY === 0 &&
+        mobileMenu.classList.contains("hidden")
+      ) {
+        navbar.classList.remove("shadow-lg");
+        navbar.classList.remove("sticky-nav");
+      } else {
+        navbar.classList.add("shadow-lg");
+        navbar.classList.add("sticky-nav");
+      }
+    });
   </script>
 
-
   <!--! White Content Start-->
-  <div class="flex flex-wrap mt-0">
+  <div class="flex flex-wrap mt-0 bg-gray-100">
     <div class="flex-auto">{% block content %} {% endblock content %}</div>
   </div>
   <!--! White Content End-->
@@ -204,7 +212,7 @@ window.addEventListener("scroll", function () {
               <span class="block mb-2 text-sm font-semibold uppercase text-blueGray-500">Useful Links</span>
               <ul class="list-unstyled">
                 <li>
-                  <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800" href="/#">Über 
+                  <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800" href="/#">Über
                     Uns</a>
                 </li>
                 <li>

@@ -1,6 +1,6 @@
 {% extends "layout.html" %} {% block title %}
 <!-- Titel der Seite -->
-<a class="hover:bg-green-700 rounded-lg p-2 duration-300" href="/admin">
+<a class="p-2 duration-300 rounded-lg hover:bg-green-700" href="/admin">
   Admin- Center
 </a>
 
@@ -11,38 +11,34 @@ Hier können sie die Datenbank und alle Meldungen verwalten. <br />
 Klicken sie dazu auf die unten aufgeführten Optionen! <br />
 {%endblock text %} {% block left %}
 <!-- Inhalt im weißen Feld -->
-<div class="content flex-auto flex-row columns-2 m-6">
+<div class="flex-row flex-auto m-6 content columns-2">
   <div class="">
     <button
-      class="border-y border-t border-black m-1 text-left w-64 text-black rounded-b-lg py-1 px-1 font-bold hover:bg-green-700 hover:text-white duration-300"
-      onclick="window.location.href='/adminSubsites/submissions';"
-    >
+      class="w-64 px-1 py-1 m-1 font-bold text-left text-black duration-300 border-t border-black rounded-b-lg border-y hover:bg-green-700 hover:text-white"
+      onclick="window.location.href='/adminSubsites/submissions';">
       Einsendungen verwalten
-      <p class="font-mono font-bold text-right text-2xl">></p>
+      <p class="font-mono text-2xl font-bold text-right">></p>
     </button>
     <br />
     <button
-      class="border-y border-t border-black m-1 text-left w-64 text-black rounded-b-lg py-1 px-1 font-bold hover:bg-green-700 hover:text-white duration-300"
-      onclick="window.location.href='/adminSubsites/statistics';"
-    >
+      class="w-64 px-1 py-1 m-1 font-bold text-left text-black duration-300 border-t border-black rounded-b-lg border-y hover:bg-green-700 hover:text-white"
+      onclick="window.location.href='/adminSubsites/statistics';">
       Auswertungen
-      <p class="font-mono font-bold text-right text-2xl">></p>
+      <p class="font-mono text-2xl font-bold text-right">></p>
     </button>
     <br />
     <button
-      class="border-y border-t border-black m-1 text-left w-64 text-black rounded-b-lg py-1 px-1 font-bold hover:bg-green-700 hover:text-white duration-300"
-      onclick="window.location.href='/adminSubsites/userAdministration';"
-    >
+      class="w-64 px-1 py-1 m-1 font-bold text-left text-black duration-300 border-t border-black rounded-b-lg border-y hover:bg-green-700 hover:text-white"
+      onclick="window.location.href='/adminSubsites/userAdministration';">
       Benutzerverwaltung
-      <p class="font-mono font-bold text-right text-2xl">></p>
+      <p class="font-mono text-2xl font-bold text-right">></p>
     </button>
     <br />
     <button
-      class="border-y border-t border-black m-1 text-left w-64 text-black rounded-b-lg py-1 px-1 font-bold hover:bg-green-700 hover:text-white duration-300"
-      onclick="window.location.href='/adminSubsites/log';"
-    >
+      class="w-64 px-1 py-1 m-1 font-bold text-left text-black duration-300 border-t border-black rounded-b-lg border-y hover:bg-green-700 hover:text-white"
+      onclick="window.location.href='/adminSubsites/log';">
       Letzte Änderungen
-      <p class="font-mono font-bold text-right text-2xl">></p>
+      <p class="font-mono text-2xl font-bold text-right">></p>
     </button>
     <br />
   </div>
