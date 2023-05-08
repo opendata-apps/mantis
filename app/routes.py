@@ -17,6 +17,13 @@ def index():
 def styles():
     return send_from_directory('static/build', 'theme.css')
 
+@main.route('/projekt')
+def projekt():
+    return render_template('projekt.html')
+
+@main.route('/auswertungen')
+def auswertungen():
+    return render_template('auswertungen.html')
 
 @main.route('/report', methods=['GET', 'POST'])
 def report():
@@ -68,7 +75,7 @@ def about():
 
 @main.route('/reportanissue')
 def report_an_issue():
-    return render_template('report_an_issue.html')
+    return render_template('reportAnIssue.html')
 
 
 @main.route('/newitem')

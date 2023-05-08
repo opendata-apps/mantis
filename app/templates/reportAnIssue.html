@@ -9,7 +9,7 @@ Willkomen bei der Problemmeldung! <br />
 Hier können sie Probleme melden. <br />
 Füllen sie dazu das unten aufgeführte Formular mit möglichst genauen Angaben
 aus: <br />
-{%endblock text %} {% block left %}
+{%endblock text %} {% block content %}
 <div class="max-w-md mx-auto my-8">
   <form class="bg-white p-6 rounded-lg">
     <div class="mb-4">
@@ -45,17 +45,4 @@ aus: <br />
   </form>
 </div>
 
-{% endblock %} {% block content %}
-<div class="mt-24">
-  <p class="font-mono font-bold text-xl text-left">
-    <--- Bitte tragen sie in das Feld "Betreff" das Thema des Problems ein.
-  </p>
-  <br />
-  <br />
-  <p class="font-mono font-bold text-xl text-left">
-    <--- Bitte tragen sie in das Feld "Problembeschreibung" eine gute und
-    möglichst genaue <br />
-    &nbsp&nbsp&nbsp&nbsp&nbspaber kurze Beschreibung des Problems ein.
-  </p>
-</div>
-{% endblock %}
+{% endblock content %} 

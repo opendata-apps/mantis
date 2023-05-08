@@ -30,9 +30,9 @@
           </a>
           <div class="items-center hidden md:flex">
             <a href="/" class="mr-5 text-sm font-medium text-white hover:text-green-300 md:text-base">Start</a>
-            <a href="projekt" class="mr-5 text-sm font-medium text-white hover:text-green-300 md:text-base">Projekt</a>
-            <a href="report" class="mr-5 text-sm font-medium text-white hover:text-green-300 md:text-base">Melden</a>
-            <a href="auswertungen" class="mr-5 text-sm font-medium text-white hover:text-green-300 md:text-base">Auswertungen</a>
+            <a href="/projekt" class="mr-5 text-sm font-medium text-white hover:text-green-300 md:text-base">Projekt</a>
+            <a href="/report" class="mr-5 text-sm font-medium text-white hover:text-green-300 md:text-base">Melden</a>
+            <a href="/auswertungen" class="mr-5 text-sm font-medium text-white hover:text-green-300 md:text-base">Auswertungen</a>
             <div class="relative inline-block text-left">
               <button id="dropdown-btn" class="inline-flex justify-center font-medium text-white rounded-md focus:outline-none hover:text-green-300" aria-haspopup="true" aria-expanded="false">
                 Mehr...
@@ -53,16 +53,16 @@
               -->
               <div id="dropdown-menu" class="absolute right-0 hidden w-56 mt-2 origin-top-right bg-white border border-gray-200 rounded-md shadow-lg">
                 <div class="py-1 text-gray-700">
-                  <a href="faq" class="block px-4 py-2 text-sm leading-5 hover:bg-gray-100">FAQ</a>
-                  <a href="impressum" class="block px-4 py-2 text-sm leading-5 hover:bg-gray-100">Impressum</a>
-                  <a href="faq" class="block px-4 py-2 text-sm leading-5 hover:bg-gray-100">Über Uns</a>
-                  <a href="impressum" class="block px-4 py-2 text-sm leading-5 hover:bg-gray-100">Administrator</a>
-                  <a href="faq" class="block px-4 py-2 text-sm leading-5 hover:bg-gray-100">GitLab</a>
-                  <a href="impressum" class="block px-4 py-2 text-sm leading-5 hover:bg-gray-100">Problem melden</a>
-                  <a href="faq" class="block px-4 py-2 text-sm leading-5 hover:bg-gray-100">Lizenz</a>
-                  <a href="impressum" class="block px-4 py-2 text-sm leading-5 hover:bg-gray-100">Allgemeine Geschäftsbedingungen</a>
-                  <a href="faq" class="block px-4 py-2 text-sm leading-5 hover:bg-gray-100">Datenschutz</a>
-                  <a href="impressum" class="block px-4 py-2 text-sm leading-5 hover:bg-gray-100">Kontakt</a>
+                  <a href="/faq" class="block px-4 py-2 text-sm leading-5 hover:bg-gray-100">FAQ</a>
+                  <a href="/impressum" class="block px-4 py-2 text-sm leading-5 hover:bg-gray-100">Impressum</a>
+                  <a href="/" class="block px-4 py-2 text-sm leading-5 hover:bg-gray-100">Über Uns</a>
+                  <a href="/" class="block px-4 py-2 text-sm leading-5 hover:bg-gray-100">Administrator</a>
+                  <a href="/" class="block px-4 py-2 text-sm leading-5 hover:bg-gray-100">GitLab</a>
+                  <a href="/reportanissue" class="block px-4 py-2 text-sm leading-5 hover:bg-gray-100">Problem melden</a>
+                  <a href="/" class="block px-4 py-2 text-sm leading-5 hover:bg-gray-100">Lizenz</a>
+                  <a href="/" class="block px-4 py-2 text-sm leading-5 hover:bg-gray-100">Allgemeine Geschäftsbedingungen</a>
+                  <a href="/" class="block px-4 py-2 text-sm leading-5 hover:bg-gray-100">Datenschutz</a>
+                  <a href="/" class="block px-4 py-2 text-sm leading-5 hover:bg-gray-100">Kontakt</a>
                 </div>
               </div>
             </div>
@@ -91,12 +91,20 @@
         </div>
         <div class="hidden mobile-menu md:hidden">
           <div class="flex flex-col items-center justify-center w-full">
-            <a href="#start" class="w-full py-4 font-medium text-center text-white hover:bg-green-300">Start</a>
-            <a href="#projekt" class="w-full py-4 font-medium text-center text-white hover:bg-green-300">Projekt</a>
-            <a href="#melden" class="w-full py-4 font-medium text-center text-white hover:bg-green-300">Melden</a>
-            <a href="#auswertungen" class="w-full py-4 font-medium text-center text-white hover:bg-green-300">Auswertungen</a>
-            <a href="#dropdown1" class="w-full py-4 font-medium text-center text-white hover:bg-green-300">Dropdown 1</a>
-            <a href="#dropdown2" class="w-full py-4 font-medium text-center text-white hover:bg-green-300">Dropdown 2</a>
+            <a href="/" class="w-full py-4 font-medium text-center text-white hover:bg-green-300">Start</a>
+            <a href="/projekt" class="w-full py-4 font-medium text-center text-white hover:bg-green-300">Projekt</a>
+            <a href="/melden" class="w-full py-4 font-medium text-center text-white hover:bg-green-300">Melden</a>
+            <a href="/auswertungen" class="w-full py-4 font-medium text-center text-white hover:bg-green-300">Auswertungen</a>
+            <a href="/faq" class="w-full py-4 font-medium text-center text-white hover:bg-green-300">FAQ</a>
+            <a href="/impressum" class="w-full py-4 font-medium text-center text-white hover:bg-green-300">Impressum</a>
+            <a href="/impressum" class="w-full py-4 font-medium text-center text-white hover:bg-green-300">Über Uns</a>
+            <a href="/impressum" class="w-full py-4 font-medium text-center text-white hover:bg-green-300">Administrator</a>
+            <a href="/impressum" class="w-full py-4 font-medium text-center text-white hover:bg-green-300">GitLab</a>
+            <a href="/reportanissue" class="w-full py-4 font-medium text-center text-white hover:bg-green-300">Problem melden</a>
+            <a href="/impressum" class="w-full py-4 font-medium text-center text-white hover:bg-green-300">Lizenz</a>
+            <a href="/impressum" class="w-full py-4 font-medium text-center text-white hover:bg-green-300">Allgemeine Geschäftsbedingungen</a>
+            <a href="/impressum" class="w-full py-4 font-medium text-center text-white hover:bg-green-300">Datenschutz</a>
+            <a href="/impressum" class="w-full py-4 font-medium text-center text-white hover:bg-green-300">Kontakt</a>
           </div>
         </div>
       </nav>
@@ -196,12 +204,12 @@ window.addEventListener("scroll", function () {
               <span class="block mb-2 text-sm font-semibold uppercase text-blueGray-500">Useful Links</span>
               <ul class="list-unstyled">
                 <li>
-                  <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800" href="/#">About
-                    Us</a>
+                  <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800" href="/#">Über 
+                    Uns</a>
                 </li>
                 <li>
                   <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800"
-                    href="/admin">Admin</a>
+                    href="/admin">Administrator</a>
                 </li>
                 <li>
                   <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800"
@@ -209,7 +217,7 @@ window.addEventListener("scroll", function () {
                 </li>
                 <li>
                   <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800"
-                    href="/reportanissue">Report an Issue</a>
+                    href="/reportanissue">Problem melden</a>
                 </li>
               </ul>
             </div>
@@ -217,20 +225,20 @@ window.addEventListener("scroll", function () {
               <span class="block mb-2 text-sm font-semibold uppercase text-blueGray-500">Other Resources</span>
               <ul class="list-unstyled">
                 <li>
-                  <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800" href="/#">MIT
-                    License</a>
+                  <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800" href="/#">
+                    Lizenz</a>
                 </li>
                 <li>
-                  <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800" href="/#">Terms
-                    &amp; Conditions</a>
-                </li>
-                <li>
-                  <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800"
-                    href="/#">Privacy Policy</a>
+                  <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800" href="/#">
+                    Allgemeine Geschäftsbedingungen</a>
                 </li>
                 <li>
                   <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800"
-                    href="/#">Contact Us</a>
+                    href="/#">Datenschutz</a>
+                </li>
+                <li>
+                  <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800"
+                    href="/#">Kontakt</a>
                 </li>
               </ul>
             </div>
