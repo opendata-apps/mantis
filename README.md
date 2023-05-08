@@ -46,6 +46,7 @@ pip install -r requirements.txt
 ```
 
 ### Create a PostgreSQL database
+Verwenden sie das Programm psql für ihr Betriebssystem.
 ```bash
 sudo -u postgres psql
 CREATE DATABASE mantis_tracker;
@@ -65,6 +66,11 @@ flask db upgrade
 ```
 
 ### Run the CSS watcher
+
+```bash
+npm --proxy http://fire.lvnbb.de:80 install tailwindcss
+```
+
 ```bash
 npx tailwindcss -i app/static/css/theme.css -o app/static/build/theme.css --watch
 ```
