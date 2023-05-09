@@ -1,10 +1,10 @@
 # 🗃️ Mantis Tracker - Database Schema
 
-The Mantis Tracker application uses the following database tables to store information about mantis sightings and related data.
+Mantis Tracker is an application that allows users to report and view mantis sightings on an interactive map. To store the data related to mantis sightings, the application uses a database that contains several tables.
 
 ## 🌍 TblFundorte
 
-TblFundorte stores information about the locations where mantis sightings have occurred.
+The TblFundorte table stores information about the locations where mantis sightings have occurred. This information includes the postal code, city, street, country, district, and location description of the sighting. Each location is given a unique identifier (id) and its longitude and latitude are also recorded.
 
 | Column       | Type         | Description                           |
 | ------------ | ------------ | ------------------------------------- |
@@ -21,7 +21,7 @@ TblFundorte stores information about the locations where mantis sightings have o
 
 ## 📝 TblMeldungen
 
-TblMeldungen stores information about individual mantis sightings.
+The TblMeldungen table stores information about individual mantis sightings. This information includes the date of the sighting, the date the sighting was reported, and the date the sighting was processed. The number of mantises sighted, the source of the sighting, the category of the sighting, and any additional notes are also recorded. Each sighting is given a unique identifier (id) and is linked to the TblFundorte table through a foreign key (fo_zuordung).
 
 | Column       | Type        | Description                         |
 | ------------ | ----------- | ----------------------------------- |
@@ -37,7 +37,7 @@ TblMeldungen stores information about individual mantis sightings.
 
 ## 📝 TblMeldungUser
 
-TblMeldungUser links mantis sightings to the users who reported them.
+The TblMeldungUser table links mantis sightings to the users who reported them. Each row in this table represents a connection between a mantis sighting and a user. Each connection is given a unique identifier (id) and is linked to the TblMeldungen and TblUsers tables through foreign keys (id_meldung and id_user, respectively).
 
 | Column     | Type    | Description                 |
 | ---------- | ------- | --------------------------- |
@@ -47,7 +47,7 @@ TblMeldungUser links mantis sightings to the users who reported them.
 
 ## 🦗 TblTiere
 
-TblTiere stores information about the different species of mantis.
+The TblTiere table stores information about the different species of mantis. Each species is given a unique identifier (id) and a species code (art).
 
 | Column | Type    | Description |
 | ------ | ------- | ----------- |
@@ -56,7 +56,7 @@ TblTiere stores information about the different species of mantis.
 
 ## 🗺️ TblFundortBeschreibung
 
-TblFundortBeschreibung stores descriptions of the locations where mantis sightings have occurred.
+The TblFundortBeschreibung table stores descriptions of the locations where mantis sightings have occurred. Each location description is given a unique identifier (id) and a description of the location.
 
 | Column       | Type       | Description             |
 | ------------ | ---------- | ----------------------- |
@@ -65,7 +65,9 @@ TblFundortBeschreibung stores descriptions of the locations where mantis sightin
 
 ## 🧑‍💼 TblUsers
 
-TblUsers stores information about users who report mantis sightings.
+The TblUsers table stores information about the users who report mantis sightings. Each user is given a unique identifier (id) and a user ID (user_id), user name (user_name), user role (user_rolle), and user contact information (user_kontakt) are recorded.
+
+By using these tables, the Mantis Tracker application can store and retrieve information about mantis sightings and the users who report them, making it possible to visualize this data on a map and analyze it in various ways.
 
 | Column       | Type       | Description              |
 | ------------ | ---------- | ------------------------ |

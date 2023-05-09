@@ -26,4 +26,3 @@
 - 🖤 **gray-800** `#1F2937` (text)
 - 🌫️ **gray-100** `#F3F4F6` (background elements)
 
-Style your Mantis Tracker project with these modern and cool colors to create an engaging user interface. Don't forget to update your `tailwind.config.js` file to include this color palette!
