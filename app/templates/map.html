@@ -2,23 +2,30 @@
 
 <div id="mapid" style="height: 500px"></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js"></script>
 <script>
-  const map = L.map('mapid').setView([52.4521, 13.1907], 9);
+  var map = L.map("mapid").setView([52.4, 13.2], 9);
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
+    maxZoom: 18,
   }).addTo(map);
-  
-  let marker, lat, lng;
-  
-  function onMapClick(e) {
-    if (marker) map.removeLayer(marker);
-    marker = L.marker(e.latlng).addTo(map);
-    marker.bindPopup(`Latitude: ${lat = e.latlng.lat}<br>Longitude: ${lng = e.latlng.lng}`).openPopup();
+
+  var reports = JSON.parse('{{ reportsJson | safe }}');
+
+  for (var i = 0; i < reports.length; i++) {
+    var report = reports[i];
+
+    var marker = L.marker([report.latitude, report.longitude]).addTo(map);
+
+    marker.bindPopup(
+      '<img src="' +
+      report.photo_url +
+      '" width="200px"><br><small>Reported by Bananen'
+      +
+      "</small>"
+    );
   }
-  
-  map.on('click', onMapClick);
 </script>
 
 {% endblock content %}
