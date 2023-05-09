@@ -9,7 +9,7 @@
 Willkomen im Admin-Center! <br />
 Hier können sie die Datenbank und alle Meldungen verwalten. <br />
 Klicken sie dazu auf die unten aufgeführten Optionen! <br />
-{%endblock text %} {% block left %}
+{%endblock text %} {% block content %}
 <!-- Inhalt im weißen Feld -->
 <div class="flex-row flex-auto m-6 content columns-2">
   <div class="">
@@ -43,6 +43,6 @@ Klicken sie dazu auf die unten aufgeführten Optionen! <br />
     <br />
   </div>
 
-  <div>{% block subcontent %} {% endblock %}</div>
+  <div>{% block subcontent %} {% endblock subcontent %}</div>
 </div>
-{% endblock %}
+{% endblock content %}

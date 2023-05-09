@@ -78,9 +78,34 @@ def impressum():
     return render_template('impressum.html')
 
 
-@main.route('/about')
-def about():
-    return render_template('about.html')
+@main.route('/aboutUs')
+def aboutUs():
+    return render_template('aboutUs.html')
+
+
+@main.route('/gitLab')
+def gitLab():
+    return render_template('gitLab.html')
+
+
+@main.route('/lizenz')
+def lizenz():
+    return render_template('lizenz.html')
+
+
+@main.route('/kontakt')
+def kontakt():
+    return render_template('kontakt.html')
+
+
+@main.route('/datenschutz')
+def datenschutz():
+    return render_template('datenschutz.html')
+
+
+@main.route('/agb')
+def agb():
+    return render_template('agb.html')
 
 
 @main.route('/reportanissue')
