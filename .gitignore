@@ -25,6 +25,7 @@ var/
 wheels/
 migrations/
 ./migrations
+\.mantis
 share/python-wheels/
 *.egg-info/
 .installed.cfg
