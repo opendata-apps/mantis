@@ -1,4 +1,10 @@
 from ..database import Base
-from ..database.tiere import TblTiere
+from ..database.fundmeldungen import TblMeldungen
+from ..database.fundortbeschreibung import TblFundortBeschreibung
 from ..database.fundorte import TblFundorte
-from ..database.mantis import Mantis
+from ..database.meldung_user import TblMeldungUser
+from ..database.plzort import TblPlzOrt
+from ..database.users import TblUsers
+
+
+

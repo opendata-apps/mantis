@@ -1,8 +1,8 @@
 from flask import render_template, request, Blueprint, send_from_directory
 from app import db
-from app.database.models import Mantis
+#from app.database.models import Mantis
 import json
-# from app.models import Mantis
+import app.database.models
 
 
 # Blueprints
