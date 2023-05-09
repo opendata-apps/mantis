@@ -1,12 +1,13 @@
 from flask import render_template, request, Blueprint, send_from_directory
 from app import db
-#from app.database.models import Mantis
+# from app.database.models import Mantis
 import json
 import app.database.models
 
 
 # Blueprints
 main = Blueprint('main', __name__)
+
 
 @main.route('/')
 def index():
@@ -17,13 +18,18 @@ def index():
 def styles():
     return send_from_directory('static/build', 'theme.css')
 
+
 @main.route('/projekt')
 def projekt():
     return render_template('projekt.html')
 
+
 @main.route('/auswertungen')
 def auswertungen():
     return render_template('auswertungen.html')
+
+# todo: new database
+
 
 @main.route('/report', methods=['GET', 'POST'])
 def report():
@@ -38,6 +44,8 @@ def report():
         db.session.commit()
     return render_template('report.html')
 
+# todo: new database
+
 
 @main.route('/map')
 def show_map():
@@ -50,6 +58,8 @@ def show_map():
 
     # Render the template with the serialized data
     return render_template('map.html', reportsJson=reportsJson)
+
+# todo: new database
 
 
 @main.route('/statistics')

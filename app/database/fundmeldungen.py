@@ -1,19 +1,21 @@
 from app import db
 from ..database import Base
 
+
 class TblMeldungen(db.Model):
     __tablename__ = "meldungen"
-    
+
     id = db.Column(db.Integer, primary_key=True)
     dat_fund = db.Column(db.Date, nullable=False)
     dat_meld = db.Column(db.Date, nullable=False)
     dat_bear = db.Column(db.Date, nullable=True)
     anzahl = db.Column(db.Integer, nullable=True)
-    fo_zuordung = db.Column(db.Integer,  db.ForeignKey("fundorte.id"), nullable=True)
+    fo_zuordung = db.Column(
+        db.Integer,  db.ForeignKey("fundorte.id"), nullable=True)
     fo_quelle = db.Column(db.String(1), nullable=False)
-    fo_kategorie= db.Column(db.String(1), nullable=False)
+    fo_kategorie = db.Column(db.String(1), nullable=False)
     anmerkung = db.Column(db.String(500), nullable=True)
-    
+
     def __repr__(self):
         return f'<Report {self.id}>'
 

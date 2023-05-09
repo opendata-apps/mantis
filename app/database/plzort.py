@@ -2,9 +2,10 @@ from app import db
 from alembic import op
 from ..database import Base
 
+
 class TblPlzOrt(db.Model):
     __tablename__ = "plzort"
-    
+
     osm_id = db.Column(db.Integer, primary_key=True)
     ags = db.Column(db.Integer, nullable=True)
     ort = db.Column(db.String(100), nullable=False)
