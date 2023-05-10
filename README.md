@@ -65,6 +65,12 @@ flask db migrate -m "your comment"
 flask db upgrade
 ```
 
+### Import Data
+```bash
+\copy plzort(plz, ort, bundesland, landkreis) FROM 'C:\home\mantis\app\database\ww-german-postal-codes.csv' WITH (FORMAT csv, DELIMITER ',', HEADER true, ENCODING 'utf-8')
+```
+
+
 ### Run the CSS watcher
 
 ```bash
