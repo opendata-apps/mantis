@@ -9,7 +9,7 @@ class TblPlzOrt(db.Model):
     osm_id = db.Column(db.Integer, primary_key=True)
     ags = db.Column(db.Integer, nullable=True)
     ort = db.Column(db.String(100), nullable=False)
-    plz = db.Column(db.Integer, nullable=False)
+    plz = db.Column(db.String(5), nullable=False)
     landkreis = db.Column(db.String(100), nullable=True)
     bundesland = db.Column(db.String(45), nullable=True)
 

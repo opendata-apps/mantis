@@ -7,14 +7,14 @@ class TblFundorte (db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     plz = db.Column(db.Integer, nullable=False)
-    ort = db.Column(db.Integer, nullable=False)
-    strasse = db.Column(db.String(50), nullable=False)
+    ort = db.Column(db.String, nullable=False)
+    strasse = db.Column(db.String(100), nullable=False)
     land = db.Column(db.String(50), nullable=False)
-    kreis = db.Column(db.Integer, nullable=False)
+    kreis = db.Column(db.String, nullable=False)
     beschreibung = db.Column(db.Integer, db.ForeignKey(
         "beschreibung.id"), nullable=False)
-    longitude = db.Column(db.VARCHAR(15), nullable=False)
-    latitude = db.Column(db.VARCHAR(15), nullable=False)
+    longitude = db.Column(db.VARCHAR(25), nullable=False)
+    latitude = db.Column(db.VARCHAR(25), nullable=False)
     ablage = db.Column(db.VARCHAR(255), nullable=False)
 
     def __repr__(self):

@@ -1,3 +1,4 @@
+from datetime import date
 import os
 import pandas as pd
 from sqlalchemy import create_engine
@@ -9,150 +10,118 @@ import math
 from datetime import datetime
 import random
 from datetime import timedelta
+import random as rand
 
+default_date = datetime.date(datetime(1900, 1, 1))
+# replace with your database credentials (username, password, address)
+DATABASE_URL = 'postgresql://postgres:postgres@localhost/mantis_tracker'
 
-def parse_date(date_value, formats):
-    if isinstance(date_value, datetime):
-        return date_value.date()
-
-    if isinstance(date_value, float) or date_value == "???" or date_value == "nachgehakt" or date_value == "01.09,2021" or date_value == "NaT" or date_value == "nat":
-        return None
-
-    for fmt in formats:
-        try:
-            return datetime.strptime(str(date_value), fmt).date()
-        except ValueError:
-            pass
-
-    return None
-
-
-date_formats = [
-    '%Y-%m-%d %H:%M:%S',
-    '%d.%m.%Y',
-]
-
-
-def get_osm_id(session, plz, ort):
-    plzort = session.query(TblPlzOrt).filter_by(plz=plz, ort=ort).first()
-    if plzort:
-        return plzort.osm_id
-    return None
-
-
-def process_fundorte_longitude(row):
-    longitude = row['Länge Ost']
-    return process_nan(longitude)
-
-
-def process_fundorte_latitude(row):
-    latitude = row['Breite Nord']
-    return process_nan(latitude)
-
-
-def process_anzahl(value):
-    if pd.isna(value):
-        return 0
-
-    if isinstance(value, str):
-        try:
-            int_value = int("".join(filter(str.isdigit, value)))
-        except ValueError:
-            int_value = 0
-        return int_value
-    elif isinstance(value, (int, float)):
-        return int(value)
-    else:
-        return 0
-
-
-def truncate_string(value, max_length):
-    if value is not None:
-        return str(value)[:max_length]
-    return value
-
-
-# Modify process_nan to use the given default value for non-numeric types
-def process_nan(value, default_value=None):
-    if isinstance(value, float) and math.isnan(value):
-        return default_value
-    return value
-
-
-database_uri = "postgresql://postgres:postgres@localhost/mantis_tracker"
-engine = create_engine(database_uri)
-
+engine = create_engine(DATABASE_URL)
 Session = sessionmaker(bind=engine)
 session = Session()
 
-path_to_excel_file = "app\database\Mantis_DB_2021_Meldungen_20220812_ZIT.xlsx"
 
-df = pd.read_excel(path_to_excel_file)
+def parse_date(date_value, default_date=None):
+    if isinstance(date_value, str):
+        try:
+            return datetime.strptime(date_value, "%d.%m.%Y").date()
+        except ValueError:
+            return default_date
+    elif isinstance(date_value, datetime):
+        return date_value.date()
+    else:
+        return default_date
+
+
+file_path = 'app\database\Mantis_DB_2021_Meldungen_20220812_ZIT.xlsx'
+sheet_name = 'Meldungen 2021'  # Modify this to match sheet name in your excel file
+
+df = pd.read_excel(file_path, sheet_name=sheet_name)
+session.commit()
 
 for index, row in df.iterrows():
-    try:
-        meldung = TblMeldungen(
-            dat_fund=parse_date(row['Funddatum'], date_formats),
-            dat_meld=parse_date(row['Meldedatum'], date_formats),
-            dat_bear=parse_date(row['Meldedatum'], date_formats),
-            anzahl=process_anzahl(row['Gesamtzahl an Tieren (Spalte M+N+O)']),
-            fo_quelle=row['Fundquelle'],
-            fo_kategorie="M",
-            anmerkung=row['Bemerkungen']
-        )
+    dat_fund = parse_date(row['Funddatum'])
+    dat_meld = parse_date(row['Meldedatum'])
+    dat_bear = parse_date(row['Erstbearbeitung am'])
 
-        fundort_beschreibung = TblFundortBeschreibung(
-            beschreibung=row['Habitats-/Fundbemerkung']
-        )
+    # Replace 'NaT' values with None
+    if pd.isnull(dat_meld):
+        dat_meld = default_date
+    if pd.isnull(dat_bear):
+        dat_bear = default_date
+    if pd.isnull(dat_fund):
+        dat_fund = default_date
 
-        osm_id = get_osm_id(session, row['PLZ laut google'], row['Fundort_1 '])
-        if osm_id is None:
-            print(
-                f"Error processing row {index}: No osm_id found for plz {row['PLZ laut google']} and ort {row['Fundort_1 ']}. Skipping.")
-            continue
+    fo_quelle = row['Fundquelle']
+    if not isinstance(fo_quelle, str) or len(fo_quelle) != 1:
+        fo_quelle = '?'
 
-        fundorte = TblFundorte(
-            plz=row['PLZ laut google'],
-            ort=osm_id,
-            strasse=row['Fundort_2'],
-            land=row['Land'],
-            kreis=row['Kreis'],
-            beschreibung=row['Habitats-/Fundbemerkung'],
-            longitude=process_fundorte_longitude(row),
-            latitude=process_fundorte_latitude(row),
-            ablage=row['Ordner (hier befindet sich die E-Mail und das Foto chronologisch nach Meldedatum)']
-        )
+    fo_kategorie = row['Fundort_1 ']
+    if not isinstance(fo_kategorie, str) or len(fo_kategorie) != 1:
+        fo_kategorie = '?'
 
+    anzahl = row['Gesamtzahl an Tieren (Spalte M+N+O)']
+    if pd.isna(anzahl):
+        anzahl = None
+
+    meldung = TblMeldungen(
+        dat_fund=dat_fund,
+        dat_meld=dat_meld,
+        dat_bear=dat_bear,
+        anzahl=anzahl,
+        fo_zuordung=None,  # I couldn't find which column is related to fo_zuordung
+        fo_quelle=fo_quelle,
+        fo_kategorie=fo_kategorie,
+        anmerkung=row['Bemerkungen']
+    )
+
+    session.add(meldung)
+    session.commit()
+
+    plz = str(row['PLZ laut google'])[2:]
+    plz_ort_row = session.query(TblPlzOrt).filter_by(plz=plz).first()
+
+    if plz_ort_row:
+        kreis = plz_ort_row.landkreis
+    else:
+        kreis = row['Kreis']
+try:
+    fundort = TblFundorte(
+        plz=plz,
+        ort=row['Fundort_1 '][:50],
+        strasse=row['Fundort_2'],
+        land=row['Land'][50:],
+        kreis=kreis[50:],
+        # I couldn't find which column is related to beschreibung
+        beschreibung="2",
+        longitude=row['Länge Ost'],
+        latitude=row['Breite Nord'],
+        ablage="?"
+    )
+
+    session.add(fundort)
+    session.commit()
+except ValueError:
+    print("ValueError")
+    pass
+
+    user = session.query(TblUsers).filter_by(user_name=row['Melder']).first()
+    if not user:
         user = TblUsers(
-            user_id=row['Finder'],
-            user_name=row['Finder'],
-            user_rolle="R",
-            user_kontakt=row['Melder Adresse (für Rückfragen)']
+            user_id=rand.randint(1, 100000),
+            user_name=row['Melder'],
+            user_rolle='?',  # I couldn't find which column is related to user_rolle
+            user_kontakt=row['Melder Adresse (für Rückfragen)'],
         )
 
-        session.add(meldung)
-        session.add(fundort_beschreibung)
-        session.flush()  # Get the newly created IDs
-
-        fundorte.beschreibung = fundort_beschreibung.id
-
-        session.add(fundorte)
         session.add(user)
-        session.flush()  # Get the newly created IDs
-
-        meldung_user = TblMeldungUser(
-            id_meldung=meldung.id,
-            id_user=user.id
-        )
-
-        session.add(meldung_user)
         session.commit()
-    except Exception as e:
-        print(f"Error processing row {index}: {e}")
-        session.rollback()
-        continue
 
-# Close the session
-session.close()
+    melduser = TblMeldungUser(
+        id_meldung=meldung.id,
+        id_user=user.id
+    )
 
-print("Data imported successfully!")
+    session.add(melduser)
+    session.commit()
+    print("Done")
