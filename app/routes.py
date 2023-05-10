@@ -93,10 +93,6 @@ def lizenz():
     return render_template('lizenz.html')
 
 
-@main.route('/kontakt')
-def kontakt():
-    return render_template('kontakt.html')
-
 
 @main.route('/datenschutz')
 def datenschutz():
