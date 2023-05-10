@@ -2,7 +2,7 @@ from flask import render_template, request, Blueprint, send_from_directory
 from app import db
 # from app.database.models import Mantis
 import json
-import app.database.models
+from app.database.models import TblMeldungen, TblFundortBeschreibung, TblFundorte, TblMeldungUser, TblPlzOrt, TblUsers
 
 
 # Blueprints
@@ -37,34 +37,34 @@ def report():
         # get form data and save to database
         latitude = request.form['latitude']
         longitude = request.form['longitude']
-        photo_url = request.form['photo_url']
-        mantis = Mantis(latitude=latitude, longitude=longitude,
-                        photo_url=photo_url)
-        db.session.add(mantis)
+        fundort = TblFundorte(latitude=latitude, longitude=longitude)
+        db.session.add(fundort)
+        db.session.flush()  # Flush to get the id of the newly added fundort
+        meldung = TblMeldungen(fo_zuordung=fundort.id,
+                               fo_quelle='U', fo_kategorie='A')
+        db.session.add(meldung)
         db.session.commit()
     return render_template('report.html')
-
-# todo: new database
 
 
 @main.route('/map')
 def show_map():
     # Fetch the reports data from the database
-    reports = Mantis.query.all()
+    reports = TblMeldungen.query.join(
+        TblFundorte, TblMeldungen.fo_zuordung == TblFundorte.id).all()
 
     # Serialize the reports data as a JSON object
-    reportsJson = json.dumps([report.to_dict() for report in reports])
+    reportsJson = json.dumps(
+        [{'latitude': report.latitude, 'longitude': report.longitude} for report in reports])
     print(reportsJson)
 
     # Render the template with the serialized data
     return render_template('map.html', reportsJson=reportsJson)
 
-# todo: new database
-
 
 @main.route('/statistics')
 def statistics():
-    mantis_count = Mantis.query.count()
+    mantis_count = TblMeldungen.query.count()
     return render_template('statistics.html', mantis_count=mantis_count)
 
 
@@ -91,7 +91,6 @@ def gitLab():
 @main.route('/lizenz')
 def lizenz():
     return render_template('lizenz.html')
-
 
 
 @main.route('/datenschutz')
