@@ -3,7 +3,7 @@ from app import db
 # from app.database.models import Mantis
 import json
 from app.database.models import TblMeldungen, TblFundortBeschreibung, TblFundorte, TblMeldungUser, TblPlzOrt, TblUsers
-
+from datetime import datetime
 
 # Blueprints
 main = Blueprint('main', __name__)
@@ -35,13 +35,26 @@ def auswertungen():
 def report():
     if request.method == 'POST':
         # get form data and save to database
-        latitude = request.form['latitude']
+        plz = int(request.form['plz'])
+        ort = int(request.form['ort'])
+        strasse = request.form['strasse']
+        land = request.form['land']
+        kreis = int(request.form['kreis'])
+        beschreibung = int(request.form['beschreibung'])
         longitude = request.form['longitude']
-        fundort = TblFundorte(latitude=latitude, longitude=longitude)
+        latitude = request.form['latitude']
+        anzahl = int(request.form['anzahl'])
+        anmerkung = request.form['anmerkung']
+        dat_fund = datetime.strptime(request.form['dat_fund'], '%Y-%m-%d')
+
+        fundort = TblFundorte(plz=plz, ort=ort, strasse=strasse, land=land, kreis=kreis, beschreibung=beschreibung,
+                              longitude=longitude, latitude=latitude)
         db.session.add(fundort)
         db.session.flush()  # Flush to get the id of the newly added fundort
-        meldung = TblMeldungen(fo_zuordung=fundort.id,
-                               fo_quelle='U', fo_kategorie='A')
+
+        dat_meld = datetime.now()
+        meldung = TblMeldungen(dat_fund=dat_fund, dat_meld=dat_meld, anzahl=anzahl, anmerkung=anmerkung,
+                               fo_zuordung=fundort.id, fo_quelle='U', fo_kategorie='A')
         db.session.add(meldung)
         db.session.commit()
     return render_template('report.html')

@@ -3,29 +3,178 @@
   <div class="p-8 bg-white rounded-lg shadow-md">
     <h1 class="mb-4 text-2xl font-semibold">Report a Mantis</h1>
 
+    <!-- Stepper -->
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center">
+        <div class="flex items-center justify-center w-8 h-8 font-semibold text-white bg-green-900 rounded-full">
+          <span id="step-number">1</span>
+        </div>
+        <div id="step-progress" class="w-24 h-1 bg-green-200 rounded-full"></div>
+      </div>
+      <div id="step-label" class="text-gray-600">Mantis</div>
+    </div>
+
     <form method="POST">
-      <div class="mb-4">
-        <label class="block mb-2 font-semibold text-gray-700" for="latitude">Latitude:</label>
-        <input class="w-full px-3 py-2 border rounded-lg form-input focus:outline-none focus:shadow-outline" type="text"
-          name="latitude" id="latitude" required />
+      <div id="mantis" class="tab-content">
+        <div class="mb-4">
+          <label class="block mb-2 font-semibold text-gray-700" for="anzahl">Number of mantises sighted:</label>
+          <input class="w-full px-3 py-2 border rounded-lg form-input focus:outline-none focus:shadow-outline"
+            type="number" name="anzahl" id="anzahl" required />
+        </div>
+
+        <div class="mb-4">
+          <label class="block mb-2 font-semibold text-gray-700" for="anmerkung">Additional notes about the
+            sighting:</label>
+          <textarea class="w-full px-3 py-2 border rounded-lg form-input focus:outline-none focus:shadow-outline"
+            name="anmerkung" id="anmerkung" rows="4"></textarea>
+        </div>
+
+        <div class="mb-4">
+          <label class="block mb-2 font-semibold text-gray-700" for="dat_fund">Date of the sighting:</label>
+          <input class="w-full px-3 py-2 border rounded-lg form-input focus:outline-none focus:shadow-outline"
+            type="date" name="dat_fund" id="dat_fund" required />
+        </div>
       </div>
 
-      <div class="mb-4">
-        <label class="block mb-2 font-semibold text-gray-700" for="longitude">Longitude:</label>
-        <input class="w-full px-3 py-2 border rounded-lg form-input focus:outline-none focus:shadow-outline" type="text"
-          name="longitude" id="longitude" required />
+      <div id="location" class="tab-content" style="display:none;">
+        <!-- Location fields go here -->
+        <div class="mb-4">
+          <label class="block mb-2 font-semibold text-gray-700" for="plz">Postal code:</label>
+          <input class="w-full px-3 py-2 border rounded-lg form-input focus:outline-none focus:shadow-outline"
+            type="number" name="plz" id="plz" required />
+        </div>
+
+        <div class="mb-4">
+          <label class="block mb-2 font-semibold text-gray-700" for="ort">City:</label>
+          <input class="w-full px-3 py-2 border rounded-lg form-input focus:outline-none focus:shadow-outline"
+            type="text" name="ort" id="ort" required />
+        </div>
+
+        <div class="mb-4">
+          <label class="block mb-2 font-semibold text-gray-700" for="strasse">Street:</label>
+          <input class="w-full px-3 py-2 border rounded-lg form-input focus:outline-none focus:shadow-outline"
+            type="text" name="strasse" id="strasse" required />
+        </div>
+
+        <div class="mb-4">
+          <label class="block mb-2 font-semibold text-gray-700" for="land">Country:</label>
+          <input class="w-full px-3 py-2 border rounded-lg form-input focus:outline-none focus:shadow-outline"
+            type="text" name="land" id="land" required />
+        </div>
+
+        <div class="mb-4">
+          <label class="block mb-2 font-semibold text-gray-700" for="kreis">District:</label>
+          <input class="w-full px-3 py-2 border rounded-lg form-input focus:outline-none focus:shadow-outline"
+            type="number" name="kreis" id="kreis" required />
+        </div>
+
+        <div class="mb-4">
+          <label class="block mb-2 font-semibold text-gray-700" for="beschreibung">Description of location:</label>
+          <input class="w-full px-3 py-2 border rounded-lg form-input focus:outline-none focus:shadow-outline"
+            type="number" name="beschreibung" id="beschreibung" required />
+        </div>
+
+        <div class="mb-4">
+          <label class="block mb-2 font-semibold text-gray-700" for="longitude">Longitude:</label>
+          <input class="w-full px-3 py-2 border rounded-lg form-input focus:outline-none focus:shadow-outline"
+            type="text" name="longitude" id="longitude" required />
+        </div>
+
+        <div class="mb-4">
+          <label class="block mb-2 font-semibold text-gray-700" for="latitude">Latitude:</label>
+          <input class="w-full px-3 py-2 border rounded-lg form-input focus:outline-none focus:shadow-outline"
+            type="text" name="latitude" id="latitude" required />
+        </div>
       </div>
 
-      <div class="mb-4">
-        <label class="block mb-2 font-semibold text-gray-700" for="photo_url">Photo URL:</label>
-        <input class="w-full px-3 py-2 border rounded-lg form-input focus:outline-none focus:shadow-outline" type="text"
-          name="photo_url" id="photo_url" required />
+      <div id="user" class="tab-content" style="display:none;">
+        <!-- User fields go here -->
+        <div class="mb-4">
+          <label class="block mb-2 font-semibold text-gray-700" for="user_id">User ID:</label>
+          <input class="w-full px-3 py-2 border rounded-lg form-input focus:outline-none focus:shadow-outline"
+            type="text" name="user_id" id="user_id" required />
+        </div>
+
+        <div class="mb-4">
+          <label class="block mb-2 font-semibold text-gray-700" for="user_name">User name:</label>
+          <input class="w-full px-3 py-2 border rounded-lg form-input focus:outline-none focus:shadow-outline"
+            type="text" name="user_name" id="user_name" required />
+        </div>
+
+        <div class="mb-4">
+          <label class="block mb-2 font-semibold text-gray-700" for="user_rolle">User role:</label>
+          <input class="w-full px-3 py-2 border rounded-lg form-input focus:outline-none focus:shadow-outline"
+            type="text" name="user_rolle" id="user_rolle" required />
+        </div>
+
+        <div class="mb-4">
+          <label class="block mb-2 font-semibold text-gray-700" for="user_kontakt">User contact information:</label>
+          <input class="w-full px-3 py-2 border rounded-lg form-input focus:outline-none focus:shadow-outline"
+            type="text" name="user_kontakt" id="user_kontakt" />
+        </div>
       </div>
 
-      <button class="px-4 py-2 font-semibold text-white bg-green-900 rounded-lg hover:bg-green-700" type="submit">
-        Submit
-      </button>
+      <div class="flex justify-between">
+        <button id="prevBtn" class="px-4 py-2 font-semibold text-white bg-gray-400 rounded-lg hover:bg-gray-300"
+          type="button" onclick="prevStep()" style="display:none;">
+          Previous
+        </button>
+        <button id="nextBtn" class="px-4 py-2 font-semibold text-white bg-green-900 rounded-lg hover:bg-green-700"
+          type="button" onclick="nextStep()">
+          Next
+        </button>
+        <button id="submitBtn" class="px-4 py-2 font-semibold text-white bg-green-900 rounded-lg hover:bg-green-700"
+          type="submit" style="display:none;">
+          Submit
+      </div>
     </form>
   </div>
 </div>
+
+<script>
+  const steps = ['mantis', 'location', 'user'];
+  let currentStep = 0;
+
+  function showStep(step) {
+    // Hide all steps
+    for (const stepName of steps) {
+      document.getElementById(stepName).style.display = 'none';
+    }
+
+    // Show the current step
+    document.getElementById(steps[step]).style.display = 'block';
+
+    // Update stepper
+    document.getElementById('step-number').textContent = step + 1;
+    document.getElementById('step-progress').style.width = `${(step / (steps.length - 1)) * 100}%`;
+    document.getElementById('step-label').textContent = steps[step].charAt(0).toUpperCase() + steps[step].slice(1);
+  }
+
+  function prevStep() {
+    if (currentStep > 0) {
+      currentStep--;
+      showStep(currentStep);
+    }
+
+    if (currentStep === 0) {
+      document.getElementById('prevBtn').style.display = 'none';
+    }
+  }
+
+  function nextStep() {
+    if (currentStep < steps.length - 1) {
+      currentStep++;
+      showStep(currentStep);
+    }
+
+    if (currentStep > 0) {
+      document.getElementById('prevBtn').style.display = 'block';
+    }
+  }
+
+
+  // Show the first step by default
+  showStep(currentStep);
+</script>
+
 {% endblock content %}
