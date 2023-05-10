@@ -74,7 +74,7 @@ flask db upgrade
 ### Run the CSS watcher
 
 ```bash
-npm --proxy http://fire.lvnbb.de:80 install tailwindcss
+npm --proxy <your-proxy> install tailwindcss
 ```
 
 ```bash
@@ -86,6 +86,10 @@ npx tailwindcss -i app/static/css/theme.css -o app/static/build/theme.css --watc
 python run.py
 ``` 
 
+### Run production server
+```bash
+gunicorn run:app
+```
 
 ### Open http://localhost:5000 in your browser
 
