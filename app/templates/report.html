@@ -1,107 +1,228 @@
 {% extends "layout.html" %} {% block content %}
 
 <body>
-  <form action="" method="POST" enctype="multipart/form-data">
-    <!-- Nutzereingabe Step Start-->
-    {{ form.hidden_tag() }}
-    {{ form.picture.label }} {{ form.picture }}
-    {{ form.gender.label }} {{ form.gender }}
-    {{ form.picture_description.label }} {{ form.picture_description }}
-    <!-- Nutzereingabe Step End-->
+  <div class="flex items-center my-16 bg-gray-100">
+    <div class="flex-1 max-w-4xl p-6 mx-auto bg-white rounded-lg shadow-xl">
+      <form action="" method="POST" enctype="multipart/form-data" id="mainForm">
+        <!-- Nutzereingabe Step Start-->
+        <div id="step1" class="step">
+          {{ form.hidden_tag() }}
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div>
+              {{ form.picture.label(class="block text-sm font-semibold text-gray-600") }}
+              {{ form.picture(class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
+              focus:ring-green-500") }}
+            </div>
+            <div>
+              {{ form.gender.label(class="block text-sm font-semibold text-gray-600") }}
+              {{ form.gender(class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
+              focus:ring-green-500") }}
+            </div>
+          </div>
+          <div>
+            {{ form.picture_description.label(class="block mt-4 text-sm font-semibold text-gray-600") }}
+            {{ form.picture_description(class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none
+            focus:ring-1 focus:ring-green-500") }}
+          </div>
+          <div class="flex justify-end">
+            <button type="button" id="step1Next"
+              class="px-6 py-2 mt-4 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none">
+              Next
+            </button>
+          </div>
+        </div>
+        <!-- Nutzereingabe Step End-->
 
-    <!-- Fundort Step Start-->
-    {{ form.coordinates.label }} {{ form.coordinates }}
-    {{ form.zip_code.label }} {{ form.zip_code(id="zip_code") }}
-    {{ form.city.label }} {{ form.city(id="city") }}
-    {{ form.street.label }} {{ form.street }}
-    {{ form.country.label }} {{ form.country(id="country") }}
-    {{ form.district.label }} {{ form.district(id="district") }}
-    {{ form.location_description.label }} {{ form.location_description }}
-    <!-- Fundort Step End-->
+        <!-- Fundort Step Start-->
+        <div id="step2" class="hidden step">
+          <div class="grid grid-cols-1 gap-4 mt-4 md:grid-cols-2">
+            <div>
+              {{ form.longitude.label(class="block text-sm font-semibold text-gray-600") }}
+              {{ form.longitude(class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
+              focus:ring-green-500") }}
+            </div>
+            <div>
+              {{ form.latitude.label(class="block text-sm font-semibold text-gray-600") }}
+              {{ form.latitude(class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
+              focus:ring-green-500") }}
+            </div>
+            <div>
+              {{ form.zip_code.label(class="block text-sm font-semibold text-gray-600") }}
+              {{ form.zip_code(id="zip_code", class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none
+              focus:ring-1 focus:ring-green-500") }}
+            </div>
+            <div>
+              {{ form.city.label(class="block text-sm font-semibold text-gray-600") }}
+              {{ form.city(id="city", class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
+              focus:ring-green-500") }}
+            </div>
+            <div>
+              {{ form.street.label(class="block text-sm font-semibold text-gray-600") }}
+              {{ form.street(class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
+              focus:ring-green-500") }}
+            </div>
+            <div>
+              {{ form.country.label(class="block text-sm font-semibold text-gray-600") }}
+              {{ form.country(id="country", class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none
+              focus:ring-1 focus:ring-green-500") }}
+            </div>
+            <div>
+              {{ form.district.label(class="block text-sm font-semibold text-gray-600") }}
+              {{ form.district(id="district", class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none
+              focus:ring-1 focus:ring-green-500") }}
+            </div>
+          </div>
+          <div>
+            {{ form.location_description.label(class="block mt-4 text-sm font-semibold text-gray-600") }}
+            {{ form.location_description(class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none
+            focus:ring-1 focus:ring-green-500") }}
+          </div>
+          <div class="flex justify-between">
+            <button type="button" id="step2Prev"
+              class="px-6 py-2 mt-4 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none">
+              Prev
+            </button>
+            <button type="button" id="step2Next"
+              class="px-6 py-2 mt-4 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none">
+              Next
+            </button>
+          </div>
+        </div>
+        <!-- Fundort Step End-->
 
-    <!-- Melderinfo Step Start-->
-    {{ form.first_name.label }} {{ form.first_name }}
-    {{ form.last_name.label }} {{ form.last_name }}
-    {{ form.sighting_date.label }} {{ form.sighting_date }}
-    {{ form.contact.label }} {{ form.contact }}
-    {{ form.feedback.label }} {{ form.feedback }}
+        <!-- Melderinfo Step Start-->
+        <div id="step3" class="hidden step">
+          <div class="grid grid-cols-1 gap-4 mt-4 md:grid-cols-2">
+            <div>
+              {{ form.first_name.label(class="block text-sm font-semibold text-gray-600") }}
+              {{ form.first_name(class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
+              focus:ring-green-500") }}
+            </div>
+            <div>
+              {{ form.last_name.label(class="block text-sm font-semibold text-gray-600") }}
+              {{ form.last_name(class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
+              focus:ring-green-500") }}
+            </div>
+            <div>
+              {{ form.sighting_date.label(class="block text-sm font-semibold text-gray-600") }}
+              {{ form.sighting_date(class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
+              focus:ring-green-500") }}
+            </div>
+            <div>
+              {{ form.contact.label(class="block text-sm font-semibold text-gray-600") }}
+              {{ form.contact(class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
+              focus:ring-green-500") }}
+            </div>
+          </div>
+          <div>
+            {{ form.feedback.label(class="block mt-4 text-sm font-semibold text-gray-600") }}
+            {{ form.feedback(class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
+            focus:ring-green-500") }}
+          </div>
+          <!-- (Existing form elements go here) -->
+        </div>
+        <div class="flex justify-between">
+          <button type="button" id="step3Prev"
+            class="px-6 py-2 mt-4 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none">
+            Prev
+          </button>
+          <button type="submit"
+            class="px-6 py-2 mt-4 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none">
+            Submit
+          </button>
+        </div>
+    </div>
     <!-- Melderinfo Step End-->
+    </form>
 
-    <!-- Übersicht Start-->
-    {{ form.submit }}
-    <!-- Übersicht End-->
-  </form>
-  <script>
-    function autoCompleteData(inputField, zipCode, city, district, country) {
-      var inputs = ['zip_code', 'city', 'district', 'country'];
+    <script>
+      const steps = document.querySelectorAll('.step');
+      const step1Next = document.getElementById('step1Next');
+      const step2Prev = document.getElementById('step2Prev');
+      const step2Next = document.getElementById('step2Next');
+      const step3Prev = document.getElementById('step3Prev');
 
-      for (const id of inputs) {
-        if (inputField.id === id) continue;
-        let fieldValue = null;
-
-        switch (id) {
-          case 'zip_code':
-            fieldValue = zipCode;
-            break;
-          case 'city':
-            fieldValue = city;
-            break;
-          case 'district':
-            fieldValue = district;
-            break;
-          case 'country':
-            fieldValue = country;
-            break;
-        }
-
-        document.getElementById(id).value = fieldValue || '';
+      function showStep(index) {
+        steps.forEach((step, i) => {
+          step.classList.toggle('hidden', i !== index);
+        });
       }
-    }
 
-    function getAutoCompleteData(inputField) {
-      var query = inputField.value;
-      if (query) {
-        fetch('/autocomplete?q=' + query)
-          .then(response => response.json())
-          .then(data => {
-            if (data.length > 0) {
-              var firstResult = data[0];
-              autoCompleteData(inputField, firstResult.plz, firstResult.ort, firstResult.landkreis, firstResult.bundesland);
+      step1Next.addEventListener('click', () => showStep(1));
+      step2Prev.addEventListener('click', () => showStep(0));
+      step2Next.addEventListener('click', () => showStep(2));
+      step3Prev.addEventListener('click', () => showStep(1));
+
+      function autoCompleteData(inputField, zipCode, city, district, country) {
+        var inputs = ['zip_code', 'city', 'district', 'country'];
+
+        for (const id of inputs) {
+          if (inputField.id === id) continue;
+          let fieldValue = null;
+
+          switch (id) {
+            case 'zip_code':
+              fieldValue = zipCode;
+              break;
+            case 'city':
+              fieldValue = city;
+              break;
+            case 'district':
+              fieldValue = district;
+              break;
+            case 'country':
+              fieldValue = country;
+              break;
+          }
+
+          document.getElementById(id).value = fieldValue || '';
+        }
+      }
+
+      function getAutoCompleteData(inputField) {
+        var query = inputField.value;
+        if (query) {
+          fetch('/autocomplete?q=' + query)
+            .then(response => response.json())
+            .then(data => {
+              if (data.length > 0) {
+                var firstResult = data[0];
+                autoCompleteData(inputField, firstResult.plz, firstResult.ort, firstResult.landkreis, firstResult.bundesland);
+              }
+            });
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', function () {
+        var zipCodeInput = document.getElementById('zip_code');
+
+        function addEvents(inputField) {
+          inputField.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter' || event.key === 'Tab') {
+              if (inputField.value.length >= 4) {
+                getAutoCompleteData(inputField);
+              }
             }
           });
-      }
-    }
-
-    document.addEventListener('DOMContentLoaded', function () {
-      var zipCodeInput = document.getElementById('zip_code');
-
-      function addEvents(inputField) {
-        inputField.addEventListener('keydown', function (event) {
-          if (event.key === 'Enter' || event.key === 'Tab') {
-            if (inputField.value.length >= 4) {
+          inputField.addEventListener('blur', function () {
+            if (inputField.value.length >= 5) {
               getAutoCompleteData(inputField);
             }
-          }
-        });
-        inputField.addEventListener('blur', function () {
-          if (inputField.value.length >= 5) {
-            getAutoCompleteData(inputField);
-          }
-        });
-        //if input field is empty, clear all other fields related to it
-        inputField.addEventListener('input', function () {
-          if (inputField.value === '') {
-            autoCompleteData(inputField, '', '', '', '');
-          }
-        });
-      }
+          });
+          //if input field is empty, clear all other fields related to it
+          inputField.addEventListener('input', function () {
+            if (inputField.value === '') {
+              autoCompleteData(inputField, '', '', '', '');
+            }
+          });
+        }
 
-      addEvents(zipCodeInput);
-    });
-  </script>
-
-
+        addEvents(zipCodeInput);
+      });
+    </script>
+    <!-- (Existing JavaScript code) -->
+  </div>
+  </div>
 </body>
-
 
 {% endblock content %}

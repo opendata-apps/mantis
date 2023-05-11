@@ -17,7 +17,8 @@ class MantisSightingForm(FlaskForm):
     gender = StringField("Geschlecht")
     picture_description = StringField("Bildbeschreibung")
 
-    coordinates = StringField("Koordinaten")
+    longitude = StringField("Längengrad")
+    latitude = StringField("Breitengrad")
     zip_code = IntegerField("PLZ")
     city = StringField("Ort")
     street = StringField("Straße")
