@@ -2,33 +2,34 @@ from app.database.models import TblMeldungen, TblFundortBeschreibung, TblFundort
 from flask_wtf import FlaskForm
 from wtforms import StringField, IntegerField, DateField, TextAreaField, SelectField
 from wtforms.validators import DataRequired, Length, Optional
+from flask import Flask, render_template, request, jsonify
+from flask_sqlalchemy import SQLAlchemy
+from flask_wtf import FlaskForm
+from wtforms import StringField, IntegerField, DateField, FileField, SubmitField, BooleanField
+from wtforms.validators import DataRequired
+from werkzeug.utils import secure_filename
+import os
 
 
-def plz_choices():
-    plz_list = TblPlzOrt.query.all()
-    return [(plz.osm_id, plz.plz) for plz in plz_list]
+# Create the form using WTForms
+class MantisSightingForm(FlaskForm):
+    picture = FileField("Bild", validators=[DataRequired()])
+    gender = StringField("Geschlecht")
+    picture_description = StringField("Bildbeschreibung")
 
+    coordinates = StringField("Koordinaten")
+    zip_code = IntegerField("PLZ")
+    city = StringField("Ort")
+    street = StringField("Straße")
+    country = StringField("Land")
+    district = StringField("Kreis")
+    location_description = StringField("Fundort Beschreibung")
 
-class ReportMantisReligiosaForm(FlaskForm):
-    dat_fund = DateField("Date of finding", validators=[DataRequired()])
-    anzahl = IntegerField("Number of mantis", validators=[Optional()])
-    plz = StringField("Postal Code", validators=[
-                      DataRequired(), Length(max=5)])
-    ort = StringField("City", validators=[DataRequired()])
-    strasse = StringField("Street", validators=[
-                          DataRequired(), Length(max=100)])
-    land = StringField("Country", validators=[DataRequired(), Length(max=50)])
-    kreis = StringField("District", validators=[DataRequired()])
-    beschreibung = SelectField("Description", choices=plz_choices())
-    longitude = StringField("Longitude", validators=[
-                            DataRequired(), Length(max=25)])
-    latitude = StringField("Latitude", validators=[
-                           DataRequired(), Length(max=25)])
-    ablage = StringField("Ablage", validators=[
-                         DataRequired(), Length(max=255)])
-    anmerkung = TextAreaField(
-        "Notes", validators=[Optional(), Length(max=500)])
-    user_name = StringField("User Name", validators=[
-                            DataRequired(), Length(max=45)])
-    user_kontakt = StringField("User Contact", validators=[
-                               Optional(), Length(max=45)])
+    first_name = StringField("Vorname", validators=[DataRequired()])
+    last_name = StringField("Name", validators=[DataRequired()])
+    sighting_date = DateField("Funddatum")
+    contact = StringField("Kontakt (Email/Telefonnummer)",
+                          validators=[DataRequired()])
+    feedback = BooleanField("Soll Rückmeldung bei Bearbeitung kommen?")
+
+    submit = SubmitField("Absenden")

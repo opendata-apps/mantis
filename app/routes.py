@@ -1,9 +1,11 @@
-from flask import render_template, request, Blueprint, send_from_directory
+from flask import jsonify, render_template, request, Blueprint, send_from_directory
 from app import db
 # from app.database.models import Mantis
 import json
 from app.database.models import TblMeldungen, TblFundortBeschreibung, TblFundorte, TblMeldungUser, TblPlzOrt, TblUsers
 from datetime import datetime
+from app.forms import MantisSightingForm
+from sqlalchemy import or_
 
 # Blueprints
 main = Blueprint('main', __name__)
@@ -31,9 +33,38 @@ def auswertungen():
 # todo: new database
 
 
+# Flask application and routes
 @main.route('/report', methods=['GET', 'POST'])
 def report():
-    return render_template('report.html')
+    form = MantisSightingForm()
+    if form.validate_on_submit():
+        # Save form data to the database
+        pass  # Implement the logic to save the data
+    return render_template('report.html', form=form)
+
+
+@main.route('/autocomplete', methods=['GET'])
+def autocomplete():
+    query = request.args.get('q')
+    results = db.session.query(TblPlzOrt).filter(
+        or_(
+            TblPlzOrt.plz.startswith(query),
+            TblPlzOrt.ort.startswith(query),
+            TblPlzOrt.landkreis.startswith(query),
+            TblPlzOrt.bundesland.startswith(query)
+        )
+    ).limit(10).all()
+
+    suggestions = []
+    for result in results:
+        suggestions.append({
+            'plz': result.plz,
+            'ort': result.ort,
+            'landkreis': result.landkreis,
+            'bundesland': result.bundesland
+        })
+
+    return jsonify(suggestions)
 
 
 @main.route('/map')
