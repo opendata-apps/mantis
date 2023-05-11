@@ -13,12 +13,6 @@
 - 🟨 **yellow-600** `#FBBF24` (accent colors, icons)
 - 🔆 **yellow-700** `#F59E0B` (warning messages, badges)
 
-### 📘 Accent color: Blue shades (interactivity and map elements)
-
-- 🔵 **blue-500** `#3B82F6` (interactive map elements, links)
-- 🟦 **blue-600** `#2563EB` (map markers, buttons)
-- 📘 **blue-700** `#1D4ED8` (focused map elements, borders)
-
 ### 🌫️ Neutral colors: Gray shades (text and background elements)
 
 - 🌚 **gray-600** `#6B7280` (text)
@@ -26,3 +20,9 @@
 - 🖤 **gray-800** `#1F2937` (text)
 - 🌫️ **gray-100** `#F3F4F6` (background elements)
 
+
+### 📘 Accent color: Blue shades (interactivity and map elements)
+
+- 🔵 **blue-500** `#3B82F6` (interactive map elements, links)
+- 🟦 **blue-600** `#2563EB` (map markers, buttons)
+- 📘 **blue-700** `#1D4ED8` (focused map elements, borders)
