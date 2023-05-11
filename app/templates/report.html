@@ -1,205 +1,107 @@
 {% extends "layout.html" %} {% block content %}
-<div class="max-w-lg mx-auto mt-8">
-  <div class="p-8 bg-white rounded-lg shadow-md">
-    <h1 class="mb-4 text-2xl font-semibold">Report a Mantis</h1>
 
-    <!-- Stepper -->
-    <div class="flex items-center justify-between mb-4">
-      <div class="flex items-center">
-        <div class="flex items-center justify-center w-8 h-8 font-semibold text-white bg-green-900 rounded-full">
-          <span id="step-number">1</span>
-        </div>
-        <div id="step-progress" class="w-24 h-1 bg-green-200 rounded-full"></div>
-      </div>
-      <div id="step-label" class="text-gray-600">Mantis</div>
-    </div>
+<body>
+  <form action="" method="POST" enctype="multipart/form-data">
+    <!-- Nutzereingabe Step Start-->
+    {{ form.hidden_tag() }}
+    {{ form.picture.label }} {{ form.picture }}
+    {{ form.gender.label }} {{ form.gender }}
+    {{ form.picture_description.label }} {{ form.picture_description }}
+    <!-- Nutzereingabe Step End-->
 
-    <form method="POST">
-      <div id="mantis" class="tab-content">
-        <div class="mb-4">
-          <label class="block mb-2 font-semibold text-gray-700" for="anzahl">Number of mantises sighted:</label>
-          <input class="w-full px-3 py-2 border rounded-lg form-input focus:outline-none focus:shadow-outline"
-            type="number" name="anzahl" id="anzahl" required />
-        </div>
+    <!-- Fundort Step Start-->
+    {{ form.coordinates.label }} {{ form.coordinates }}
+    {{ form.zip_code.label }} {{ form.zip_code(id="zip_code") }}
+    {{ form.city.label }} {{ form.city(id="city") }}
+    {{ form.street.label }} {{ form.street }}
+    {{ form.country.label }} {{ form.country(id="country") }}
+    {{ form.district.label }} {{ form.district(id="district") }}
+    {{ form.location_description.label }} {{ form.location_description }}
+    <!-- Fundort Step End-->
 
-        <div class="mb-4">
-          <label class="block mb-2 font-semibold text-gray-700" for="anmerkung">Additional notes about the
-            sighting:</label>
-          <textarea class="w-full px-3 py-2 border rounded-lg form-input focus:outline-none focus:shadow-outline"
-            name="anmerkung" id="anmerkung" rows="4"></textarea>
-        </div>
+    <!-- Melderinfo Step Start-->
+    {{ form.first_name.label }} {{ form.first_name }}
+    {{ form.last_name.label }} {{ form.last_name }}
+    {{ form.sighting_date.label }} {{ form.sighting_date }}
+    {{ form.contact.label }} {{ form.contact }}
+    {{ form.feedback.label }} {{ form.feedback }}
+    <!-- Melderinfo Step End-->
 
-        <div class="mb-4">
-          <label class="block mb-2 font-semibold text-gray-700" for="dat_fund">Date of the sighting:</label>
-          <input class="w-full px-3 py-2 border rounded-lg form-input focus:outline-none focus:shadow-outline"
-            type="date" name="dat_fund" id="dat_fund" required />
-        </div>
-      </div>
+    <!-- Übersicht Start-->
+    {{ form.submit }}
+    <!-- Übersicht End-->
+  </form>
+  <script>
+    function autoCompleteData(inputField, zipCode, city, district, country) {
+      var inputs = ['zip_code', 'city', 'district', 'country'];
 
-      <div id="location" class="tab-content" style="display:none;">
-        <!-- Location fields go here -->
-        <div class="mb-4">
-          <label class="block mb-2 font-semibold text-gray-700" for="plz">Postal code:</label>
-          <input class="w-full px-3 py-2 border rounded-lg form-input focus:outline-none focus:shadow-outline"
-            type="number" name="plz" id="plz" required />
-        </div>
+      for (const id of inputs) {
+        if (inputField.id === id) continue;
+        let fieldValue = null;
 
-        <div class="mb-4">
-          <label class="block mb-2 font-semibold text-gray-700" for="ort">City:</label>
-          <input class="w-full px-3 py-2 border rounded-lg form-input focus:outline-none focus:shadow-outline"
-            type="text" name="ort" id="ort" required />
-        </div>
+        switch (id) {
+          case 'zip_code':
+            fieldValue = zipCode;
+            break;
+          case 'city':
+            fieldValue = city;
+            break;
+          case 'district':
+            fieldValue = district;
+            break;
+          case 'country':
+            fieldValue = country;
+            break;
+        }
 
-        <div class="mb-4">
-          <label class="block mb-2 font-semibold text-gray-700" for="strasse">Street:</label>
-          <input class="w-full px-3 py-2 border rounded-lg form-input focus:outline-none focus:shadow-outline"
-            type="text" name="strasse" id="strasse" required />
-        </div>
-
-        <div class="mb-4">
-          <label class="block mb-2 font-semibold text-gray-700" for="land">Country:</label>
-          <input class="w-full px-3 py-2 border rounded-lg form-input focus:outline-none focus:shadow-outline"
-            type="text" name="land" id="land" required />
-        </div>
-
-        <div class="mb-4">
-          <label class="block mb-2 font-semibold text-gray-700" for="kreis">District:</label>
-          <input class="w-full px-3 py-2 border rounded-lg form-input focus:outline-none focus:shadow-outline"
-            type="number" name="kreis" id="kreis" required />
-        </div>
-
-        <div class="mb-4">
-          <label class="block mb-2 font-semibold text-gray-700" for="beschreibung">Description of location:</label>
-          <input class="w-full px-3 py-2 border rounded-lg form-input focus:outline-none focus:shadow-outline"
-            type="number" name="beschreibung" id="beschreibung" required />
-        </div>
-
-        <div class="mb-4">
-          <label class="block mb-2 font-semibold text-gray-700" for="longitude">Longitude:</label>
-          <input class="w-full px-3 py-2 border rounded-lg form-input focus:outline-none focus:shadow-outline"
-            type="text" name="longitude" id="longitude" required />
-        </div>
-
-        <div class="mb-4">
-          <label class="block mb-2 font-semibold text-gray-700" for="latitude">Latitude:</label>
-          <input class="w-full px-3 py-2 border rounded-lg form-input focus:outline-none focus:shadow-outline"
-            type="text" name="latitude" id="latitude" required />
-        </div>
-      </div>
-
-      <div id="user" class="tab-content" style="display:none;">
-        <!-- User fields go here -->
-        <div class="mb-4">
-          <label class="block mb-2 font-semibold text-gray-700" for="user_id">User ID:</label>
-          <input class="w-full px-3 py-2 border rounded-lg form-input focus:outline-none focus:shadow-outline"
-            type="text" name="user_id" id="user_id" required />
-        </div>
-
-        <div class="mb-4">
-          <label class="block mb-2 font-semibold text-gray-700" for="user_name">User name:</label>
-          <input class="w-full px-3 py-2 border rounded-lg form-input focus:outline-none focus:shadow-outline"
-            type="text" name="user_name" id="user_name" required />
-        </div>
-
-        <div class="mb-4">
-          <label class="block mb-2 font-semibold text-gray-700" for="user_rolle">User role:</label>
-          <input class="w-full px-3 py-2 border rounded-lg form-input focus:outline-none focus:shadow-outline"
-            type="text" name="user_rolle" id="user_rolle" required />
-        </div>
-
-        <div class="mb-4">
-          <label class="block mb-2 font-semibold text-gray-700" for="user_kontakt">User contact information:</label>
-          <input class="w-full px-3 py-2 border rounded-lg form-input focus:outline-none focus:shadow-outline"
-            type="text" name="user_kontakt" id="user_kontakt" />
-        </div>
-      </div>
-
-      <div class="flex justify-between">
-        <button id="prevBtn" class="px-4 py-2 font-semibold text-white bg-gray-400 rounded-lg hover:bg-gray-300"
-          type="button" onclick="prevStep()" style="display:none;">
-          Previous
-        </button>
-        <button id="nextBtn" class="mb-4 px-4 py-2 font-semibold text-white bg-green-900 rounded-lg hover:bg-green-700"
-          type="button" onclick="nextStep()">
-          Next
-        </button>
-        <button id="submitBtn" class="px-4 py-2 font-semibold text-white bg-green-900 rounded-lg hover:bg-green-700"
-          type="submit" style="display:none;">
-          Submit
-      </div>
-    </form>
-    <div class="mb-4">
-      <div id="mapid" style="height: 500px"></div>
-    </div>
-  </div>
-</div>
-<script>
-  const map = L.map('mapid').setView([52.4521, 13.1907], 9);
-
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
-  }).addTo(map);
-
-  let marker, lat, lng;
-
-  function onMapClick(e) {
-    lat = e.latlng.lat;
-    lng = e.latlng.lng;
-
-    if (marker) {
-      marker.setLatLng(e.latlng);
-    } else {
-      marker = L.marker(e.latlng).addTo(map);
+        document.getElementById(id).value = fieldValue || '';
+      }
     }
 
-    document.getElementById('latitude').value = lat;
-    document.getElementById('longitude').value = lng;
-  }
-
-  map.on('click', onMapClick);
-
-  const steps = ['mantis', 'location', 'user'];
-  let currentStep = 0;
-
-  function showStep(step) {
-    // Hide all steps
-    for (const stepName of steps) {
-      document.getElementById(stepName).style.display = 'none';
+    function getAutoCompleteData(inputField) {
+      var query = inputField.value;
+      if (query) {
+        fetch('/autocomplete?q=' + query)
+          .then(response => response.json())
+          .then(data => {
+            if (data.length > 0) {
+              var firstResult = data[0];
+              autoCompleteData(inputField, firstResult.plz, firstResult.ort, firstResult.landkreis, firstResult.bundesland);
+            }
+          });
+      }
     }
 
-    // Show the current step
-    document.getElementById(steps[step]).style.display = 'block';
+    document.addEventListener('DOMContentLoaded', function () {
+      var zipCodeInput = document.getElementById('zip_code');
 
-    // Update stepper
-    document.getElementById('step-number').textContent = step + 1;
-    document.getElementById('step-progress').style.width = `${(step / (steps.length - 1)) * 100}%`;
-    document.getElementById('step-label').textContent = steps[step].charAt(0).toUpperCase() + steps[step].slice(1);
-  }
+      function addEvents(inputField) {
+        inputField.addEventListener('keydown', function (event) {
+          if (event.key === 'Enter' || event.key === 'Tab') {
+            if (inputField.value.length >= 4) {
+              getAutoCompleteData(inputField);
+            }
+          }
+        });
+        inputField.addEventListener('blur', function () {
+          if (inputField.value.length >= 5) {
+            getAutoCompleteData(inputField);
+          }
+        });
+        //if input field is empty, clear all other fields related to it
+        inputField.addEventListener('input', function () {
+          if (inputField.value === '') {
+            autoCompleteData(inputField, '', '', '', '');
+          }
+        });
+      }
 
-  function prevStep() {
-    if (currentStep > 0) {
-      currentStep--;
-      showStep(currentStep);
-    }
+      addEvents(zipCodeInput);
+    });
+  </script>
 
-    if (currentStep === 0) {
-      document.getElementById('prevBtn').style.display = 'none';
-    }
-  }
 
-  function nextStep() {
-    if (currentStep < steps.length - 1) {
-      currentStep++;
-      showStep(currentStep);
-    }
+</body>
 
-    if (currentStep > 0) {
-      document.getElementById('prevBtn').style.display = 'block';
-    }
-  }
-
-  // Show the first step by default
-  showStep(currentStep);
-</script>
 
 {% endblock content %}
