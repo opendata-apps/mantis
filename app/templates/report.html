@@ -2,11 +2,14 @@
 
 <body>
   <form action="" method="POST" enctype="multipart/form-data">
+    <!-- Nutzereingabe Step Start-->
     {{ form.hidden_tag() }}
     {{ form.picture.label }} {{ form.picture }}
     {{ form.gender.label }} {{ form.gender }}
     {{ form.picture_description.label }} {{ form.picture_description }}
+    <!-- Nutzereingabe Step End-->
 
+    <!-- Fundort Step Start-->
     {{ form.coordinates.label }} {{ form.coordinates }}
     {{ form.zip_code.label }} {{ form.zip_code(id="zip_code") }}
     {{ form.city.label }} {{ form.city(id="city") }}
@@ -14,14 +17,19 @@
     {{ form.country.label }} {{ form.country(id="country") }}
     {{ form.district.label }} {{ form.district(id="district") }}
     {{ form.location_description.label }} {{ form.location_description }}
+    <!-- Fundort Step End-->
 
+    <!-- Melderinfo Step Start-->
     {{ form.first_name.label }} {{ form.first_name }}
     {{ form.last_name.label }} {{ form.last_name }}
     {{ form.sighting_date.label }} {{ form.sighting_date }}
     {{ form.contact.label }} {{ form.contact }}
     {{ form.feedback.label }} {{ form.feedback }}
+    <!-- Melderinfo Step End-->
 
+    <!-- Übersicht Start-->
     {{ form.submit }}
+    <!-- Übersicht End-->
   </form>
   <script>
     function autoCompleteData(inputField, zipCode, city, district, country) {
