@@ -21,3 +21,5 @@ WTForms==3.0.1
 pytest==7.3.1
 pytest-coverage==0.0
 pytest-flask==1.2.0
+selenium==4.9.1
+webdriver-manager==3.8.6
