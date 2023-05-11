@@ -119,7 +119,7 @@
           type="button" onclick="prevStep()" style="display:none;">
           Previous
         </button>
-        <button id="nextBtn" class="px-4 py-2 font-semibold text-white bg-green-900 rounded-lg hover:bg-green-700"
+        <button id="nextBtn" class="mb-4 px-4 py-2 font-semibold text-white bg-green-900 rounded-lg hover:bg-green-700"
           type="button" onclick="nextStep()">
           Next
         </button>
@@ -128,10 +128,36 @@
           Submit
       </div>
     </form>
+    <div class="mb-4">
+      <div id="mapid" style="height: 500px"></div>
+    </div>
   </div>
 </div>
-
 <script>
+  const map = L.map('mapid').setView([52.4521, 13.1907], 9);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
+  }).addTo(map);
+
+  let marker, lat, lng;
+
+  function onMapClick(e) {
+    lat = e.latlng.lat;
+    lng = e.latlng.lng;
+
+    if (marker) {
+      marker.setLatLng(e.latlng);
+    } else {
+      marker = L.marker(e.latlng).addTo(map);
+    }
+
+    document.getElementById('latitude').value = lat;
+    document.getElementById('longitude').value = lng;
+  }
+
+  map.on('click', onMapClick);
+
   const steps = ['mantis', 'location', 'user'];
   let currentStep = 0;
 
@@ -171,7 +197,6 @@
       document.getElementById('prevBtn').style.display = 'block';
     }
   }
-
 
   // Show the first step by default
   showStep(currentStep);
