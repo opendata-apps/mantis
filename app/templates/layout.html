@@ -35,18 +35,6 @@
             <a href="#links" class="mr-5 text-sm font-medium text-white hover:text-green-300 md:text-base">Mehr...</a>
           </div>
 
-          <script>
-            const dropdownBtn = document.getElementById("dropdown-btn");
-            const dropdownMenu = document.getElementById("dropdown-menu");
-
-            dropdownBtn.addEventListener("click", () => {
-              const expanded =
-                dropdownBtn.getAttribute("aria-expanded") === "true";
-              dropdownBtn.setAttribute("aria-expanded", !expanded);
-              dropdownMenu.classList.toggle("hidden");
-            });
-          </script>
-
           <div class="flex items-center md:hidden">
             <button class="ml-10 mobile-menu-button">
               <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20"
@@ -189,7 +177,8 @@
                   <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800"
                     href="/gitLab">Quellcode</a>
                 <li>
-                  <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800 tooltip" title="Häufig gestellte Fragen" href="/faq">
+                  <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800 tooltip"
+                    title="Häufig gestellte Fragen" href="/faq">
                     FAQ</a>
                 </li>
                 </li>
@@ -208,7 +197,8 @@
                     Lizenz</a>
                 </li>
                 <li>
-                  <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800 tooltip" title="Allgemeine Geschäftsbedingung" href="/agb">
+                  <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800 tooltip"
+                    title="Allgemeine Geschäftsbedingung" href="/agb">
                     AGB</a>
                 </li>
                 <li>
