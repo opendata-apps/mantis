@@ -119,109 +119,109 @@
             {{ form.feedback(class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
             focus:ring-green-500") }}
           </div>
-          <!-- (Existing form elements go here) -->
+          <div class="flex justify-between">
+            <button type="button" id="step3Prev"
+              class="px-6 py-2 mt-4 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none">
+              Prev
+            </button>
+            <button type="submit"
+              class="px-6 py-2 mt-4 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none">
+              Submit
+            </button>
+          </div>
         </div>
-        <div class="flex justify-between">
-          <button type="button" id="step3Prev"
-            class="px-6 py-2 mt-4 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none">
-            Prev
-          </button>
-          <button type="submit"
-            class="px-6 py-2 mt-4 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none">
-            Submit
-          </button>
-        </div>
-    </div>
-    <!-- Melderinfo Step End-->
-    </form>
+        <!-- Melderinfo Step End-->
+      </form>
 
-    <script>
-      const steps = document.querySelectorAll('.step');
-      const step1Next = document.getElementById('step1Next');
-      const step2Prev = document.getElementById('step2Prev');
-      const step2Next = document.getElementById('step2Next');
-      const step3Prev = document.getElementById('step3Prev');
 
-      function showStep(index) {
-        steps.forEach((step, i) => {
-          step.classList.toggle('hidden', i !== index);
-        });
-      }
 
-      step1Next.addEventListener('click', () => showStep(1));
-      step2Prev.addEventListener('click', () => showStep(0));
-      step2Next.addEventListener('click', () => showStep(2));
-      step3Prev.addEventListener('click', () => showStep(1));
+      <script>
+        const steps = document.querySelectorAll('.step');
+        const step1Next = document.getElementById('step1Next');
+        const step2Prev = document.getElementById('step2Prev');
+        const step2Next = document.getElementById('step2Next');
+        const step3Prev = document.getElementById('step3Prev');
 
-      function autoCompleteData(inputField, zipCode, city, district, country) {
-        var inputs = ['zip_code', 'city', 'district', 'country'];
-
-        for (const id of inputs) {
-          if (inputField.id === id) continue;
-          let fieldValue = null;
-
-          switch (id) {
-            case 'zip_code':
-              fieldValue = zipCode;
-              break;
-            case 'city':
-              fieldValue = city;
-              break;
-            case 'district':
-              fieldValue = district;
-              break;
-            case 'country':
-              fieldValue = country;
-              break;
-          }
-
-          document.getElementById(id).value = fieldValue || '';
+        function showStep(index) {
+          steps.forEach((step, i) => {
+            step.classList.toggle('hidden', i !== index);
+          });
         }
-      }
 
-      function getAutoCompleteData(inputField) {
-        var query = inputField.value;
-        if (query) {
-          fetch('/autocomplete?q=' + query)
-            .then(response => response.json())
-            .then(data => {
-              if (data.length > 0) {
-                var firstResult = data[0];
-                autoCompleteData(inputField, firstResult.plz, firstResult.ort, firstResult.landkreis, firstResult.bundesland);
+        step1Next.addEventListener('click', () => showStep(1));
+        step2Prev.addEventListener('click', () => showStep(0));
+        step2Next.addEventListener('click', () => showStep(2));
+        step3Prev.addEventListener('click', () => showStep(1));
+
+        function autoCompleteData(inputField, zipCode, city, district, country) {
+          var inputs = ['zip_code', 'city', 'district', 'country'];
+
+          for (const id of inputs) {
+            if (inputField.id === id) continue;
+            let fieldValue = null;
+
+            switch (id) {
+              case 'zip_code':
+                fieldValue = zipCode;
+                break;
+              case 'city':
+                fieldValue = city;
+                break;
+              case 'district':
+                fieldValue = district;
+                break;
+              case 'country':
+                fieldValue = country;
+                break;
+            }
+
+            document.getElementById(id).value = fieldValue || '';
+          }
+        }
+
+        function getAutoCompleteData(inputField) {
+          var query = inputField.value;
+          if (query) {
+            fetch('/autocomplete?q=' + query)
+              .then(response => response.json())
+              .then(data => {
+                if (data.length > 0) {
+                  var firstResult = data[0];
+                  autoCompleteData(inputField, firstResult.plz, firstResult.ort, firstResult.landkreis, firstResult.bundesland);
+                }
+              });
+          }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+          var zipCodeInput = document.getElementById('zip_code');
+
+          function addEvents(inputField) {
+            inputField.addEventListener('keydown', function (event) {
+              if (event.key === 'Enter' || event.key === 'Tab') {
+                if (inputField.value.length >= 4) {
+                  getAutoCompleteData(inputField);
+                }
               }
             });
-        }
-      }
-
-      document.addEventListener('DOMContentLoaded', function () {
-        var zipCodeInput = document.getElementById('zip_code');
-
-        function addEvents(inputField) {
-          inputField.addEventListener('keydown', function (event) {
-            if (event.key === 'Enter' || event.key === 'Tab') {
-              if (inputField.value.length >= 4) {
+            inputField.addEventListener('blur', function () {
+              if (inputField.value.length >= 5) {
                 getAutoCompleteData(inputField);
               }
-            }
-          });
-          inputField.addEventListener('blur', function () {
-            if (inputField.value.length >= 5) {
-              getAutoCompleteData(inputField);
-            }
-          });
-          //if input field is empty, clear all other fields related to it
-          inputField.addEventListener('input', function () {
-            if (inputField.value === '') {
-              autoCompleteData(inputField, '', '', '', '');
-            }
-          });
-        }
+            });
+            //if input field is empty, clear all other fields related to it
+            inputField.addEventListener('input', function () {
+              if (inputField.value === '') {
+                autoCompleteData(inputField, '', '', '', '');
+              }
+            });
+          }
 
-        addEvents(zipCodeInput);
-      });
-    </script>
-    <!-- (Existing JavaScript code) -->
-  </div>
+          addEvents(zipCodeInput);
+        });
+      </script>
+      <!-- (Existing JavaScript code) -->
+    </div>
   </div>
 </body>
 
