@@ -13,7 +13,7 @@
 
 <body class="antialiased bg-gray-100">
   <!-- Background Image div Start -->
-  <div>
+  <div class="topContainer">
     <!-- Navbar and Content Wrapper Start -->
     <div class="relative bg-fixed bg-center bg-no-repeat bg-cover"
       style="background-image: url('{{ url_for('static', filename='images/mantisEat.jpg') }}');">
@@ -58,7 +58,7 @@
       </nav>
       <!-- Navbar End -->
       <!-- Content Start -->
-      <div class="z-0 flex-wrap items-center justify-center w-full pb-1" style="position: relative;">
+      <div class="z-10 flex-wrap items-center justify-center w-full pb-1" style="position: relative;">
         <div class="absolute inset-0 flex items-center justify-center overflow-hidden">
           <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"
             style="width: 200%; height: 200%; filter: blur(5px);">
@@ -89,6 +89,8 @@
 
 
     </div>
+    <div id="overlay"></div>
+
     <!-- Navbar and Content Wrapper End -->
     <!-- Navbar and Content Wrapper End -->
   </div>
@@ -136,7 +138,7 @@
   </script>
 
   <!--! White Content Start-->
-  <div class="flex flex-wrap mt-0 bg-gray-100">
+  <div class="z-10 flex flex-wrap mt-0 bg-gray-100">
     <div class="flex-auto">{% block content %} {% endblock content %}</div>
   </div>
   <!--! White Content End-->
