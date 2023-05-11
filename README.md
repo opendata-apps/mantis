@@ -27,51 +27,60 @@ Mantis Tracker allows users to report Mantis Religiosa sightings and view them o
 
 # 💻 Development Setup/Installation
 
-### Clone the repository
+### Step 1: 📁 Clone the repository
+
 ```bash
 git clone https://gitlab.com/opendata-apps/mantis.git
 cd mantis
 ```
 
+### Step 2: 🌐 Create a virtual environment and activate it
 
-### Create a virtual environment and activate it
 ```bash
-python -m venv .venv (oder anderer Name mit . wie .mantis)
-source venv/bin/activate
+python -m venv .venv (or another name with . like .mantis)
+source .venv/bin/activate    # For Windows: .venv\Scripts\activate
 ```
 
-### Install the dependencies
+### Step 3: 📦 Install the dependencies
+
 ```bash
 pip install -r requirements.txt
 ```
 
-### Create a PostgreSQL database
-Verwenden sie das Programm psql für ihr Betriebssystem.
+### Step 4: 🗄️ Create a PostgreSQL database
+
+Verwenden sie das Programm `psql` für ihr Betriebssystem.
+
 ```bash
 psql -U postgres
+```
+
+```sql
 CREATE DATABASE mantis_tracker;
 CREATE USER mantis_user WITH PASSWORD 'mantis';
 GRANT ALL PRIVILEGES ON DATABASE mantis_tracker TO mantis_user;
 \q
 ```
 
-### ONLY If database structure changed 
-```bash 
+### Step 5: 🔄 ONLY If database structure changed
+
+```bash
 flask db migrate -m "your comment"
 ```
 
-### Create the database tables
+### Step 6: 🏗️ Create the database tables
+
 ```bash
 flask db upgrade
 ```
 
-### Import Data
+### Step 7: 📈 Import Data
+
 ```bash
 \copy plzort(plz, ort, bundesland, landkreis) FROM 'C:\home\mantis\app\database\ww-german-postal-codes.csv' WITH (FORMAT csv, DELIMITER ',', HEADER true, ENCODING 'utf-8')
 ```
 
-
-### Run the CSS watcher
+### Step 8: 🎨 Run the CSS watcher
 
 ```bash
 npm --proxy <your-proxy> install tailwindcss
@@ -81,17 +90,19 @@ npm --proxy <your-proxy> install tailwindcss
 npx tailwindcss -i app/static/css/theme.css -o app/static/build/theme.css --watch
 ```
 
-### Run the development server
+### Step 9: 🚀 Run the development server
+
 ```bash
 python run.py
-``` 
-
-### Run production server
-```bash
-gunicorn run:app
 ```
 
-### Open http://localhost:5000 in your browser
+### Step 10: 🏢 Run production server
+
+```bash
+gunicorn run:app    # For Windows: waitress-serve --listen=*:8000 run:app
+```
+
+### Step 11: 🌐 Open http://localhost:5000 in your browser
 
 # 📝 License
 
