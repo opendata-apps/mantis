@@ -2,7 +2,7 @@
 {% block content %}
 
 <!-- Hero section with images and information about the mantis religiose project -->
-<section class="py-16">
+<!--<section class="relative py-16">
   <div class="container flex flex-col items-center justify-center gap-8 px-4 mx-auto md:flex-row">
     <div class="md:w-1/2">
       <img src="{{ url_for('static', filename='images/berger08.webp') }}" alt="Mantis Religiose" class="mb-8 rounded-lg shadow-md" />
@@ -22,20 +22,19 @@
     </div>
   </div>
   <div class="w-32 h-1 mx-auto bg-green-500"></div>
-</section>
+</section>-->
 
 
 <!-- How to report section -->
-<section id="how-to-report" class="pb-20">
+<section id="how-to-report" class="relative py-16">
   <div class="container px-4 mx-auto">
     <h2 class="mb-10 text-3xl font-bold text-center md:text-4xl">
       Wie melde ich meine Gottesanbeterin-Funde?
     </h2>
     <div class="grid gap-8 md:grid-cols-2">
       <div class="animate-fade-in">
-        <div
-          class="duration-500 transform bg-white rounded-lg shadow-md hover:-translate-y-1 hover:shadow-lg hover:bg-green-100">
-          <img src="{{ url_for('static', filename='images/berger09.webp') }}" alt="Meldung" class="mx-auto rounded-t-lg" />
+        <div class="duration-500 transform bg-white rounded-lg shadow-md hover:-translate-y-1 hover:shadow-lg">
+          <img src="{{ url_for('static', filename='images/berger09.webp') }}" alt="Meldung" class="mx-auto py-8 rounded-lg"/>
           <div class="px-6 py-4">
             <h3 class="mb-3 text-xl font-semibold text-center text-gray-800">
               Meldung abgeben
@@ -54,8 +53,8 @@
       </div>
       <div class="animate-fade-in">
         <div
-          class="duration-500 transform bg-white rounded-lg shadow-md hover:-translate-y-1 hover:shadow-lg hover:bg-green-100">
-          <img src="{{ url_for('static', filename='images/berger02.webp') }}" alt="Gottesanbeterin" class="mx-auto rounded-t-lg" />
+          class="duration-500 transform bg-white rounded-lg shadow-md hover:-translate-y-1 hover:shadow-lg">
+          <img src="{{ url_for('static', filename='images/berger02.webp') }}" alt="Gottesanbeterin" class="mx-auto py-8" />
           <div class="px-6 py-4">
             <h3 class="mb-3 text-xl font-semibold text-center text-gray-800">
               Weitere Informationen
