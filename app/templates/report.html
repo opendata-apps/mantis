@@ -275,7 +275,43 @@
           const charCount = inputField.value.length;
           charCountElement.textContent = `(${charCount}/500)`;
         });
-        // Character Counter for Picture Description -->
+        // Character Counter for Picture Description
+
+        // Step 1 Validation
+        function validateStep1() {
+          const picture = document.querySelector('#picture').value;
+          const gender = document.querySelector('#gender').value;
+          const pictureDescription = document.querySelector('#picture_description').value;
+
+          // Überprüfen Sie, ob alle Pflichtfelder ausgefüllt sind
+          if (picture && gender && pictureDescription) {
+            return true;
+          } else {
+            return false;
+          }
+        }
+
+        // Binden Sie die Überprüfungsfunktion an den nächsten Schritt
+        step1Next.disabled = true; // Schaltfläche standardmäßig deaktivieren
+        const picture = document.querySelector('#picture');
+        const gender = document.querySelector('#gender');
+        const pictureDescription = document.querySelector('#picture_description');
+        const step1Fields = [picture, gender, pictureDescription];
+
+        step1Fields.forEach((field) => {
+          field.addEventListener('keyup', () => {
+            if (validateStep1()) {
+              step1Next.disabled = false;
+            } else {
+              step1Next.disabled = true;
+            }
+          });
+        });
+
+        step1Next.addEventListener('click', () => {
+          showStep(1);
+        });
+              // Step 1 Validation
       </script>
     </div>
   </div>
