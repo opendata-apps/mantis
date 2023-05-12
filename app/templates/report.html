@@ -299,10 +299,9 @@
         function validateStep1() {
           const picture = document.querySelector('#picture').value;
           const gender = document.querySelector('#gender').value;
-          const pictureDescription = document.querySelector('#picture_description').value;
-
+          
           // Überprüfen Sie, ob alle Pflichtfelder ausgefüllt sind
-          if (picture && gender && pictureDescription) {
+          if (picture && gender) {
             return true;
           } else {
             // Wenn mindestens ein Feld leer ist, geben Sie eine Fehlermeldung aus
