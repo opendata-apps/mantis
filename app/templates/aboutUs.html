@@ -1,5 +1,48 @@
-{% extends "layout.html" %} {% block content %}
-<h1 class="mb-4 text-2xl font-semibold">Über Uns</h1>
 
+{% extends "layout.html" %} {% block title %}
+<a class="p-2 duration-300 rounded-lg hover:bg-green-700" href="/aboutUs">
+    Über Uns
+  </a>
 
+{% endblock title %}
+
+{% block text %}
+<!-- Kommentar unter der Überschrift -->
+ Bla Bla<br />
+ Bla Bla<br />
+ Bla Bla<br />
+{%endblock text %}
+
+{% block content %}
+<!-- About section -->
+<section id="About" class="relative py-16">
+    <div class="container px-4 mx-auto">
+      <h2 class="mb-8 text-3xl font-bold leading-tight text-center">
+        Über das Mantis Religiose Projekt
+      </h2>
+      <div class="grid gap-8 md:grid-cols-2">
+        <div>
+          <h3 class="mb-4 text-2xl font-bold">Was ist eine Gottesanbeterin?</h3>
+          <p class="mb-8 text-gray-700">
+            Die Gottesanbeterin ist ein insektenähnliches Raubtier, das sich durch
+            seine auffällige Körperhaltung und seinen Fangarmen auszeichnet. Es
+            gibt verschiedene Arten in Deutschland, die in ihrer Größe und Farbe
+            variieren.
+          </p>
+          <a href="#mantis-info" class="font-bold text-green-900 hover:underline">Weitere Informationen</a>
+        </div>
+        <div>
+          <h3 class="mb-4 text-2xl font-bold">
+            Was machen wir mit den Meldungen?
+          </h3>
+          <p class="mb-8 text-gray-700">
+            Alle gemeldeten Funde werden in einer Karte erfasst, um die
+            Verbreitung der Gottesanbeterin in Brandenburg zu dokumentieren und zu
+            erforschen.
+          </p>
+          <a href="#project-info" class="font-bold text-green-900 hover:underline">Mehr über das Projekt erfahren</a>
+        </div>
+      </div>
+    </div>
+  </section>
 {% endblock content %}
