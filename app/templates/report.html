@@ -214,7 +214,6 @@
           });
         }
 
-        step1Next.addEventListener('click', () => showStep(1));
         step2Prev.addEventListener('click', () => showStep(0));
         step2Next.addEventListener('click', () => showStep(2));
         step3Prev.addEventListener('click', () => showStep(1));
@@ -306,31 +305,19 @@
           if (picture && gender && pictureDescription) {
             return true;
           } else {
+            // Wenn mindestens ein Feld leer ist, geben Sie eine Fehlermeldung aus
+            alert('Bitte füllen Sie alle Pflichtfelder aus.     ###Muss noch verschönert werden###');
             return false;
           }
         }
 
-        // Binden Sie die Überprüfungsfunktion an den nächsten Schritt
-        step1Next.disabled = true; // Schaltfläche standardmäßig deaktivieren
-        const picture = document.querySelector('#picture');
-        const gender = document.querySelector('#gender');
-        const pictureDescription = document.querySelector('#picture_description');
-        const step1Fields = [picture, gender, pictureDescription];
-
-        step1Fields.forEach((field) => {
-          field.addEventListener('keyup', () => {
-            if (validateStep1()) {
-              step1Next.disabled = false;
-            } else {
-              step1Next.disabled = true;
-            }
-          });
-        });
-
+        // Ändern Sie den Event-Listener, um die Pflichtfeldüberprüfung durchzuführen
         step1Next.addEventListener('click', () => {
-          showStep(1);
+          if (validateStep1()) {
+            showStep(1);
+          }
         });
-              // Step 1 Validation
+        // Step 1 Validation
       </script>
     </div>
   </div>
