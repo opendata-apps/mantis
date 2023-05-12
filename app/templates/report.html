@@ -141,6 +141,39 @@
 
 
       <script>
+        function saveFormDataToLocalStorage() {
+          const form = document.getElementById('mainForm');
+          const formData = new FormData(form);
+
+          for (const [key, value] of formData.entries()) {
+            localStorage.setItem(key, value);
+          }
+        }
+
+        function loadFormDataFromLocalStorage() {
+          const form = document.getElementById('mainForm');
+
+          for (const input of form.elements) {
+            if (input.name && input.type !== 'file') {
+              const value = localStorage.getItem(input.name);
+              if (value) {
+                try {
+                  input.value = value;
+                } catch (e) {
+                  console.error('Error setting input value:', e);
+                }
+              }
+            }
+          }
+        }
+
+
+        // Call this function when the page loads to load saved form data.
+        document.addEventListener('DOMContentLoaded', loadFormDataFromLocalStorage);
+
+        // Call this function to save form data to local storage when any input changes.
+        document.getElementById('mainForm').addEventListener('input', saveFormDataToLocalStorage);
+
         document.addEventListener('DOMContentLoaded', function () {
           const pictureInput = document.querySelector('#picture');
 
@@ -154,7 +187,6 @@
               const lng = EXIF.getTag(this, 'GPSLongitude');
               const latRef = EXIF.getTag(this, 'GPSLatitudeRef');
               const lngRef = EXIF.getTag(this, 'GPSLongitudeRef');
-              const dateTimeOriginal = EXIF.getTag(this, 'DateTimeOriginal');
 
               if (lat && lng && latRef && lngRef) {
                 // Convert coordinates to decimal
@@ -164,13 +196,6 @@
                 // Set the values to the form fields
                 document.querySelector('#latitude').value = latitude;
                 document.querySelector('#longitude').value = longitude;
-
-                if (dateTimeOriginal) {
-                  const formattedDate = formatDateTime(dateTimeOriginal);
-                  document.querySelector('#sighting_date').value = formattedDate;
-                  console.log(formattedDate);
-                }
-
                 console.log('Latitude: ' + latitude + ' Longitude: ' + longitude);
               } else {
                 // Handle the case when GPS data is not available in the image
@@ -190,17 +215,6 @@
 
           return decimal;
         }
-
-        // Converts the DateTimeOriginal field to a properly formatted date string
-        function formatDateTime(dateTime) {
-          const date = new Date(dateTime.replace(' ', 'T'));
-          const year = date.getFullYear();
-          const month = (date.getMonth() + 1).toString().padStart(2, '0');
-          const day = date.getDate().toString().padStart(2, '0');
-
-          return `${year}-${month}-${day}`;
-        }
-
 
         const steps = document.querySelectorAll('.step');
         const step1Next = document.getElementById('step1Next');
