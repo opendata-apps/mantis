@@ -1,6 +1,7 @@
 \.mantis
 \.flantis
 \.1flantis
+\.migrations
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -25,7 +26,6 @@ var/
 wheels/
 migrations/
 ./migrations
-\.mantis
 share/python-wheels/
 *.egg-info/
 .installed.cfg
