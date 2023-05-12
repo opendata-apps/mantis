@@ -138,3 +138,7 @@ def admin_subsites_log():
 @main.route('/mantis')
 def mantis():
     return render_template('mantis.html')
+
+@main.route('/info')
+def info():
+    return render_template('info.html')
