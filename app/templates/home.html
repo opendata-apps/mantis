@@ -129,14 +129,26 @@
   <script>
     const counter = document.querySelector(".counter");
     let count = 0;
+    let step = 5; // Schrittgröße: 5
+    const maxStep = 50; // Maximale Schrittgröße: 50
+    const threshold = Math.ceil({{ post_count }} / 2); // Schwellenwert: halbe Anzahl der Meldungen
     const observer = new IntersectionObserver((entries) => {
       if (entries[0].isIntersecting) {
         setInterval(() => {
-          if (count < 420) {
-            count++;
+          if (count < threshold) { // Zähle in größeren Schritten, wenn die Schwellenwert noch nicht erreicht wurde
+            count += step;
+            counter.innerText = count;
+          } else { // Wenn der Zähler sich dem Schwellenwert nähert, ändere Schrittgröße zu kleineren Werten
+            if (count + step >= {{ post_count }}) { // Wenn die nächste Schrittgröße den Endwert überschreitet, setze sie auf eins fest
+              step = 1;
+            } else if (step < maxStep) { // Schrittgröße langsam erhöhen, aber nicht den maximalen Wert überschreiten
+              step++;
+            }
+            count += step; // Füge Schrittgröße hinzu
+            count = Math.min(count, {{ post_count }}); // Begrenze den Zähler, um zu verhindern, dass er den Endwert überschreitet
             counter.innerText = count;
           }
-        }, 1);
+        }, 100);
         observer.disconnect();
       }
     });

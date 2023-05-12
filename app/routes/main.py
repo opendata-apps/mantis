@@ -6,6 +6,8 @@ from app.database.models import TblMeldungen, TblFundortBeschreibung, TblFundort
 from datetime import datetime
 from app.forms import MantisSightingForm
 from sqlalchemy import or_
+from flask_sqlalchemy import SQLAlchemy
+
 
 # Blueprints
 main = Blueprint('main', __name__)
@@ -13,7 +15,8 @@ main = Blueprint('main', __name__)
 
 @main.route('/')
 def index():
-    return render_template('home.html')
+    post_count = db.session.query(TblMeldungen ).count()
+    return render_template('home.html', post_count=post_count)
 
 
 @main.route('/static/build/theme.css')

@@ -11,6 +11,8 @@ from werkzeug.utils import secure_filename
 from flask_wtf.file import FileAllowed, FileRequired
 from flask_wtf import FlaskForm
 from wtforms import FileField
+from wtforms import Form, StringField
+from wtforms.validators import InputRequired, NumberRange
 import os
 
 
@@ -35,8 +37,8 @@ class MantisSightingForm(FlaskForm):
     picture_description = StringField(
         "Bildbeschreibung", validators=[Length(max=500)])
 
-    longitude = StringField("Längengrad")
-    latitude = StringField("Breitengrad")
+    longitude = StringField('Längengrad', validators=[InputRequired(), NumberRange(min=-180.0, max=180.0)])
+    latitude = StringField('Breitengrad', validators=[InputRequired(), NumberRange(min=-90.0, max=90.0)])
     zip_code = IntegerField("PLZ")
     city = StringField("Ort")
     street = StringField("Straße")
