@@ -1,5 +1,58 @@
-{% extends "layout.html" %} {% block content %}
-<h1 class="mb-4 text-2xl font-semibold">Projekt</h1>
+{% extends "layout.html" %} 
+{% block title %}Projektbeschreibung{% endblock title %}
 
+{% block content %}
+
+<!--Projektbeschreibung section -->
+<section id="Projektbeschreibung" class="relative py-16">
+
+    <div class="w-full md:w-3/4 lg:w-2/3 xl:w-1/2 mx-auto mb-10 transform">
+        <div class="duration-500 transform bg-white rounded-lg shadow-md hover:-translate-y-1 hover:shadow-lg py-10 px-10">
+            <div class="rounded-lg overflow-hidden bg-white shadow-md duration-500 transform mx-4 md:mx-10 my-4">
+                <img src="{{ url_for('static', filename='images/berger03.webp') }}" alt="Gottesanbeterin" class="w-full h-auto">
+            </div>
+            <div class="mx-4 md:mx-10 py-6">
+                <h3 class="text-xl font-semibold text-center text-gray-800 mb-2">
+                     Wie funktioniert das Mitmachprojekt?
+                </h3>
+                <p class="text-center text-gray-600">
+                    Im Jahr 2017 initiierten das Naturkundemuseum Potsdam und die Mantidenfreunde Berlin-Brandenburg das Mitmachprojekt "Gottesanbeterin gesucht!". Bürgerinnen und Bürger sind dazu aufgerufen, Funde der Gottesanbeterin zu melden. Über 40 Mal wurde die Gottesanbeterin in Brandenburg bereits gesichtet. Jeden Monat kommen neue Funde hinzu. Werden auch Sie zum Insektenforscher und helfen Sie dabei, die Verbreitung der Gottesanbeterin zu dokumentieren!
+                </p>
+            </div>
+        </div>
+    </div>
+      
+    <div class="w-full md:w-3/4 lg:w-2/3 xl:w-1/2 mx-auto mb-10 transform">
+        <div class="duration-500 transform bg-white rounded-lg shadow-md hover:-translate-y-1 hover:shadow-lg py-10 px-10">
+            <div class="rounded-lg overflow-hidden bg-white shadow-md duration-500 transform mx-4 md:mx-10 my-4">
+                <img src="{{ url_for('static', filename='images/berger06.webp') }}" alt="Gottesanbeterin" class="w-full h-auto">
+            </div>
+            <div class="mx-4 md:mx-10 py-6">
+                <h3 class="text-xl font-semibold text-center text-gray-800 mb-2">
+                    So können Sie mitmachen
+                </h3>
+                <p class="text-center text-gray-600">
+                    Machen Sie ein Foto von der Gottesanbeterin, notieren Sie den Fundort und das Datum und senden Sie uns alle Daten zusammen mit Ihrer Adresse. Werden Sie zum Insektenforscher und helfen Sie uns, die Verbreitung der Gottesanbeterin zu erfassen!
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="w-full md:w-3/4 lg:w-2/3 xl:w-1/2 mx-auto mb-10 transform">
+        <div class="duration-500 transform bg-white rounded-lg shadow-md hover:-translate-y-1 hover:shadow-lg py-10 px-10">
+            <div class="rounded-lg overflow-hidden bg-white shadow-md duration-500 transform mx-4 md:mx-10 my-4">
+                <img src="{{ url_for('static', filename='images/berger10.webp') }}" alt="Gottesanbeterin" class="w-full h-auto">
+            </div>
+            <div class="mx-4 md:mx-10 py-6">
+                <h3 class="text-xl font-semibold text-center text-gray-800 mb-2">
+                    Was passiert mit den Daten?
+                </h3>
+                <p class="text-center text-gray-600">
+                    Jeder Fund wird in einer Datenbank erfasst. Am Ende eines jeden Jahres wird eine Verbreitungskarte der Gottesanbeterin erstellt und auf der Homepage des Naturkundemuseums Potsdam veröffentlicht. Von Jahr zu Jahr können wir so gemeinsam die Ausbreitung der Gottesanbeterin nachverfolgen
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
 
 {% endblock content %}
