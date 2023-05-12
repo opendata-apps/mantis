@@ -1,4 +1,8 @@
-{% extends "layout.html" %} {% block content %}
+{% extends "layout.html" %}
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
+{% endblock %}
+{% block content %}
 
 <body>
   <div class="flex items-center my-16 bg-gray-100">
@@ -21,8 +25,9 @@
           </div>
           <div>
             {{ form.picture_description.label(class="block mt-4 text-sm font-semibold text-gray-600") }}
-            {{ form.picture_description(class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none
+            {{ form.picture_description(placeholder="Geben Sie hier Ihre Bildbeschreibung ein", class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none
             focus:ring-1 focus:ring-green-500") }}
+            <span id="charCount" class="text-xs text-right text-gray-500"></span>
           </div>
           <div class="flex justify-end">
             <button type="button" id="step1Next"
@@ -136,6 +141,48 @@
 
 
       <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          const pictureInput = document.querySelector('#picture');
+
+          pictureInput.addEventListener('change', function (event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            EXIF.getData(file, function () {
+              // Read metadata from the image
+              const lat = EXIF.getTag(this, 'GPSLatitude');
+              const lng = EXIF.getTag(this, 'GPSLongitude');
+              const latRef = EXIF.getTag(this, 'GPSLatitudeRef');
+              const lngRef = EXIF.getTag(this, 'GPSLongitudeRef');
+
+              if (lat && lng && latRef && lngRef) {
+                // Convert coordinates to decimal
+                const latitude = toDecimal(lat, latRef);
+                const longitude = toDecimal(lng, lngRef);
+
+                // Set the values to the form fields
+                document.querySelector('#latitude').value = latitude;
+                document.querySelector('#longitude').value = longitude;
+                console.log('Latitude: ' + latitude + ' Longitude: ' + longitude);
+              } else {
+                // Handle the case when GPS data is not available in the image
+                console.log('No GPS data found in the file');
+              }
+            });
+          });
+        });
+
+        function toDecimal(coord, ref) {
+          const [degrees, minutes, seconds] = coord;
+          let decimal = degrees + minutes / 60 + seconds / (60 * 60);
+
+          if (ref === 'S' || ref === 'W') {
+            decimal = -decimal;
+          }
+
+          return decimal;
+        }
+
         const steps = document.querySelectorAll('.step');
         const step1Next = document.getElementById('step1Next');
         const step2Prev = document.getElementById('step2Prev');
@@ -219,8 +266,17 @@
 
           addEvents(zipCodeInput);
         });
+
+        // Character Counter for Picture Description
+        const inputField = document.querySelector("#{{ form.picture_description.id }}");
+        const charCountElement = document.querySelector("#charCount");
+    
+        inputField.addEventListener("input", () => {
+          const charCount = inputField.value.length;
+          charCountElement.textContent = `(${charCount}/500)`;
+        });
+        // Character Counter for Picture Description -->
       </script>
-      <!-- (Existing JavaScript code) -->
     </div>
   </div>
 </body>
