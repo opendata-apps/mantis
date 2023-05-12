@@ -103,10 +103,6 @@ def aboutUs():
     return render_template('aboutUs.html')
 
 
-@main.route('/gitLab')
-def gitLab():
-    return render_template('gitLab.html')
-
 
 @main.route('/lizenz')
 def lizenz():
@@ -122,10 +118,6 @@ def datenschutz():
 def agb():
     return render_template('agb.html')
 
-
-@main.route('/reportanissue')
-def report_an_issue():
-    return render_template('reportAnIssue.html')
 
 
 @main.route('/newitem')
