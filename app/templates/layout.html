@@ -59,18 +59,20 @@
       </nav>
       <!-- Navbar End -->
       <!-- Content Start -->
-      <div class="relative bg-fixed bg-center bg-no-repeat bg-cover" style="background-image: url('{{ url_for('static', filename='images/mantisEat.jpg') }}');">
+      <div class="relative bg-fixed bg-center bg-no-repeat bg-cover"
+        style="background-image: url('{{ url_for('static', filename='images/mantisEat.jpg') }}');">
         <div class="z-10 flex-wrap items-center justify-center w-full pb-1" style="position: relative;">
           <div class="absolute inset-0 flex items-center justify-center overflow-hidden"></div>
           <div class="container relative px-4 pt-16 pb-5 mx-auto">
             <div class="flex flex-col items-center justify-center">
               <div class="flex flex-wrap items-center justify-between w-full">
                 <h1 class="mb-6 text-4xl font-bold text-center text-white md:text-6xl lg:text-left">
-                  {% block title %}Gottesanbeterin{% endblock title %}
+                  {% block title %}{% endblock title %}
                 </h1>
                 {% if request.path == '/' %}
                 <a href="report">
-                  <button class="px-2 py-1 mt-4 text-lg font-bold text-white transition duration-500 ease-in-out transform bg-green-800 rounded-md hover:bg-green-700 active:bg-green-900 focus:outline-none focus:shadow-outline hover:scale-105 sm:px-4 sm:py-2 md:px-8 md:py-4">
+                  <button
+                    class="px-2 py-1 mt-4 text-lg font-bold text-white transition duration-500 ease-in-out transform bg-green-800 rounded-md hover:bg-green-700 active:bg-green-900 focus:outline-none focus:shadow-outline hover:scale-105 sm:px-4 sm:py-2 md:px-8 md:py-4">
                     Melden
                   </button>
                 </a>
@@ -80,140 +82,136 @@
             </div>
           </div>
         </div>
-      <!-- Content End -->
+        <!-- Content End -->
+      </div>
+      <div id="overlay"></div>
+
+      <!-- Navbar and Content Wrapper End -->
+      <!-- Navbar and Content Wrapper End -->
     </div>
-    <div id="overlay"></div>
+    <!-- Background Image div End -->
+    <script>
+      const mobileMenuButton = document.querySelector(".mobile-menu-button");
+      const mobileMenu = document.querySelector(".mobile-menu");
+      const navbar = document.querySelector("nav");
 
-    <!-- Navbar and Content Wrapper End -->
-    <!-- Navbar and Content Wrapper End -->
-  </div>
-  <!-- Background Image div End -->
-  <script>
-    const mobileMenuButton = document.querySelector(".mobile-menu-button");
-    const mobileMenu = document.querySelector(".mobile-menu");
-    const navbar = document.querySelector("nav");
+      mobileMenuButton.addEventListener("click", function () {
+        if (mobileMenu.classList.contains("hidden")) {
+          mobileMenu.classList.remove("hidden");
+          navbar.classList.add("shadow-lg");
+          navbar.classList.add("sticky-nav");
+        } else {
+          mobileMenu.classList.add("hidden");
+          if (window.scrollY === 0) {
+            navbar.classList.remove("shadow-lg");
+            navbar.classList.remove("sticky-nav");
+          }
+        }
+      });
 
-    mobileMenuButton.addEventListener("click", function () {
-      if (mobileMenu.classList.contains("hidden")) {
-        mobileMenu.classList.remove("hidden");
-        navbar.classList.add("shadow-lg");
-        navbar.classList.add("sticky-nav");
-      } else {
-        mobileMenu.classList.add("hidden");
-        if (window.scrollY === 0) {
+      window.addEventListener("scroll", function () {
+        if (window.scrollY > 0 && !mobileMenu.classList.contains("hidden")) {
+          navbar.classList.add("shadow-lg");
+          navbar.classList.add("sticky-nav");
+        } else if (
+          window.scrollY === 0 &&
+          !mobileMenu.classList.contains("hidden")
+        ) {
+          navbar.classList.remove("shadow-lg");
+          navbar.classList.add("sticky-nav");
+        } else if (
+          window.scrollY === 0 &&
+          mobileMenu.classList.contains("hidden")
+        ) {
           navbar.classList.remove("shadow-lg");
           navbar.classList.remove("sticky-nav");
+        } else {
+          navbar.classList.add("shadow-lg");
+          navbar.classList.add("sticky-nav");
         }
-      }
-    });
+      });
+    </script>
 
-    window.addEventListener("scroll", function () {
-      if (window.scrollY > 0 && !mobileMenu.classList.contains("hidden")) {
-        navbar.classList.add("shadow-lg");
-        navbar.classList.add("sticky-nav");
-      } else if (
-        window.scrollY === 0 &&
-        !mobileMenu.classList.contains("hidden")
-      ) {
-        navbar.classList.remove("shadow-lg");
-        navbar.classList.add("sticky-nav");
-      } else if (
-        window.scrollY === 0 &&
-        mobileMenu.classList.contains("hidden")
-      ) {
-        navbar.classList.remove("shadow-lg");
-        navbar.classList.remove("sticky-nav");
-      } else {
-        navbar.classList.add("shadow-lg");
-        navbar.classList.add("sticky-nav");
-      }
-    });
-  </script>
-
-  <!--! White Content Start-->
-  <div class="z-10 flex flex-wrap mt-0 bg-gray-100">
-    <div class="flex-auto">{% block content %} {% endblock content %}</div>
-  </div>
-  <!--! White Content End-->
-
-  <!--! Start Footer -->
-  <!--https://tailwindcomponents.com/component/footer-5-->
-  <footer id="links" class="relative pt-8 pb-6 bg-gray-200 footer">
-    <div class="container px-4 mx-auto">
-      <div class="flex flex-wrap text-left lg:text-left">
-        <div class="w-full px-4 lg:w-6/12">
-          <h4 class="text-3xl fonat-semibold text-blueGray-700">
-            Naturkunde Museum Potsdam
-          </h4>
-          <h5 class="mt-0 mb-2 text-lg text-blueGray-600">
-            Wir sind ein Museum für Naturkunde und Naturgeschichte in Potsdam.
-            Wir zeigen die Vielfalt der Natur und ihre Geschichte.
-          </h5>
-        </div>
-        <div class="w-full px-4 lg:w-6/12">
-          <div class="flex flex-wrap mb-6 items-top">
-            <div class="w-full px-4 ml-auto lg:w-4/12">
-              <span class="block mb-2 text-sm font-semibold uppercase text-blueGray-500"><u>Weitere Infos</u></span>
-              <ul class="list-unstyled">
-                <li>
-                  <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800"
-                    href="/aboutUs">Über
-                    Uns</a>
-                </li>
-                <li>
-                  <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800"
-                    href="https://readthedocs.org/">Dokumentation</a>
-                </li>
-                <li>
-                  <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800"
-                    href="https://gitlab.com/opendata-apps/mantis">Quellcode (GitLab)</a>
-                <li>
-                  <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800 tooltip"
-                    title="Häufig gestellte Fragen" href="/faq">
-                    FAQ</a>
-                </li>
-                </li>
-              </ul>
-            </div>
-            <div class="w-full px-4 lg:w-4/12">
-              <span class="block mb-2 text-sm font-semibold uppercase text-blueGray-500"><u>Rechtliches</u></span>
-              <ul class="list-unstyled">
-                <li>
-                  <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800"
-                    href="/impressum">
-                    Impressum</a>
-                </li>
-                <li>
-                  <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800" href="/lizenz">
-                    Lizenz</a>
-                </li>
-                <li>
-                  <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800 tooltip"
-                    title="Allgemeine Geschäftsbedingung" href="/agb">
-                    AGB</a>
-                </li>
-                <li>
-                  <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800"
-                    href="/datenschutz">Datenschutz</a>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-      <hr class="my-6 border-blueGray-300" />
-      <div class="flex flex-wrap items-center justify-center md:justify-between">
-        <div class="w-full px-4 mx-auto text-center md:w-4/12">
-          <div class="py-1 text-sm font-semibold text-blueGray-500">
-            <span id="get-current-year"></span><a class="text-blueGray-500 hover:text-gray-800" target="_blank">
-              Naturkundemuseum Potsdam/P22 - 2023 - (License MIT)
-            </a>
-            <a class="text-blueGray-500 hover:text-blueGray-800"></a>
-          </div>
-        </div>
-      </div>
+    <!--! White Content Start-->
+    <div class="z-10 flex flex-wrap mt-0 bg-gray-100">
+      <div class="flex-auto">{% block content %} {% endblock content %}</div>
     </div>
-  </footer>
+    <!--! White Content End-->
+
+    <!--! Start Footer -->
+    <!--https://tailwindcomponents.com/component/footer-5-->
+    <footer id="links" class="relative pt-8 pb-6 bg-gray-200 footer">
+      <div class="container px-4 mx-auto">
+        <div class="flex flex-wrap text-left lg:text-left">
+          <div class="w-full px-4 lg:w-6/12">
+            <h4 class="text-3xl fonat-semibold text-blueGray-700">
+              Naturkunde Museum Potsdam
+            </h4>
+            <h5 class="mt-0 mb-2 text-lg text-blueGray-600">
+              Wir sind ein Museum für Naturkunde und Naturgeschichte in Potsdam.
+              Wir zeigen die Vielfalt der Natur und ihre Geschichte.
+            </h5>
+          </div>
+          <div class="w-full px-4 lg:w-6/12">
+            <div class="flex flex-wrap mb-6 items-top">
+              <div class="w-full px-4 ml-auto lg:w-4/12">
+                <span class="block mb-2 text-sm font-semibold uppercase text-blueGray-500"><u>Weitere Infos</u></span>
+                <ul class="list-unstyled">
+                  <li>
+                    <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800"
+                      href="/aboutUs">Über
+                      Uns</a>
+                  </li>
+                  <li>
+                    <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800"
+                      href="https://readthedocs.org/">Dokumentation</a>
+                  </li>
+                  <li>
+                    <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800"
+                      href="https://gitlab.com/opendata-apps/mantis">Quellcode (GitLab)</a>
+                  <li>
+                    <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800 tooltip"
+                      title="Häufig gestellte Fragen" href="/faq">
+                      FAQ</a>
+                  </li>
+                  </li>
+                </ul>
+              </div>
+              <div class="w-full px-4 lg:w-4/12">
+                <span class="block mb-2 text-sm font-semibold uppercase text-blueGray-500"><u>Rechtliches</u></span>
+                <ul class="list-unstyled">
+                  <li>
+                    <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800"
+                      href="/impressum">
+                      Impressum</a>
+                  </li>
+                  <li>
+                    <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800"
+                      href="/lizenz">
+                      Lizenz</a>
+                  </li>
+                  <li>
+                    <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800"
+                      href="/datenschutz">Datenschutz</a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        <hr class="my-6 border-blueGray-300" />
+        <div class="flex flex-wrap items-center justify-center md:justify-between">
+          <div class="w-full px-4 mx-auto text-center md:w-4/12">
+            <div class="py-1 text-sm font-semibold text-blueGray-500">
+              <span id="get-current-year"></span><a class="text-blueGray-500 hover:text-gray-800" target="_blank">
+                Naturkundemuseum Potsdam/P22 - 2023 - (License MIT)
+              </a>
+              <a class="text-blueGray-500 hover:text-blueGray-800"></a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
 </body>
 
 </html>

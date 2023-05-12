@@ -14,7 +14,11 @@ def create_app(config_class=Config):
     db.init_app(app)
     migrate.init_app(app, db)
 
-    from app.routes import main
+    from app.routes.main import main
+    from app.routes.admin import admin
+    from app.routes.data import data
     app.register_blueprint(main)
+    app.register_blueprint(admin)
+    app.register_blueprint(data)
 
     return app
