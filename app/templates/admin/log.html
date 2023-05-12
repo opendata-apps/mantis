@@ -1,6 +1,33 @@
-{% extends "admin.html" %} {% block text %}
+{% extends "layout.html" %} 
+{% block title %}
+<!-- Titel der Seite -->
+<a class="p-2 duration-300 rounded-lg hover:bg-green-700" href="/admin">
+  Admin- Center
+</a>
+{% endblock title %} 
+{% block text %}
 <!-- Kommentar unter der Überschrift -->
-<p class="text-2xl font-bold">Letzte Änderungen</p>
-Hier haben sie einen Überblick über die letzten <br />
-Änderungen die getätigt wurden. {%endblock text %} {% block subcontent %} {%
-endblock %}
+Willkomen im Admin-Center! <br />
+Hier können sie die Datenbank und alle Meldungen verwalten. <br />
+Klicken sie dazu auf die unten aufgeführten Optionen! <br />
+{%endblock text %} 
+{% block content %}
+<!-- Inhalt im weißen Feld -->
+<div class="grid grid-cols-5 grid-rows-6 gap-4 m-3">
+  <div class="border-4 rounded-md border-gray-200 col-span-3 row-span-6 bg-gray-200 hover:shadow-xl duration-500"> 
+    Übersicht über die letzten Änderungen <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br>
+  </div>
+  <div class="border-4 rounded-md border-gray-200 col-span-2 row-span-2 bg-gray-200 hover:shadow-xl duration-500"> 
+    Filter auswählen und anwenden.
+  </div>
+  <div class="border-4 rounded-md border-gray-200 col-span-2 row-span-2 bg-gray-200 hover:shadow-xl duration-500"> 
+    Optionen wie Export Selected, Export All, Bearbeiten, etc. 
+  </div>
+  <button class="rounded-md bg-green-900 hover:shadow-xl hover:bg-green-700 duration-500 text-white font-bold" onclick="window.location.href = '/admin/userAdministration';"> 
+    Benutzerverwaltung anzeigen 
+  </button>
+  <button class="rounded-md bg-green-900 hover:shadow-xl hover:bg-green-700 duration-500 text-white font-bold" onclick="window.location.href = '/admin';"> 
+    Meldungen anzeigen
+  </button>
+</div>
+{% endblock content %}

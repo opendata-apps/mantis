@@ -47,17 +47,23 @@
             </button>
           </div>
         </div>
-        <div class="hidden mobile-menu md:hidden bg-green-700 w-2/3 rounded-lg">
+        <div class="hidden bg-green-700 rounded-lg mobile-menu md:hidden">
           <div class="flex flex-col items-center justify-end">
-            <a href="/" class="w-full py-4 font-medium text-center text-white hover:bg-green-500 transition rounded-lg bg-opacity-50">Start</a>
-            <a href="/info" class="w-full py-4 font-medium text-center text-white hover:bg-green-500 transition rounded-lg bg-opacity-50">Infos</a>
-            <a href="/projekt" class="w-full py-4 font-medium text-center text-white hover:bg-green-500 transition rounded-lg bg-opacity-50">Projekt</a>
-            <a href="/report" class="w-full py-4 font-medium text-center text-white hover:bg-green-500 transition rounded-lg bg-opacity-50">Melden</a>
-            <a href="/auswertungen" class="w-full py-4 font-medium text-center text-white hover:bg-green-500 transition rounded-lg bg-opacity-50">Auswertungen</a>
-            <a href="#links" class="w-full py-4 font-medium text-center text-white hover:bg-green-500 transition rounded-lg bg-opacity-50">Mehr...</a>
+            <a href="/"
+              class="w-full py-4 font-medium text-center text-white transition bg-opacity-50 rounded-lg hover:bg-green-500">Start</a>
+            <a href="/info"
+              class="w-full py-4 font-medium text-center text-white transition bg-opacity-50 rounded-lg hover:bg-green-500">Infos</a>
+            <a href="/projekt"
+              class="w-full py-4 font-medium text-center text-white transition bg-opacity-50 rounded-lg hover:bg-green-500">Projekt</a>
+            <a href="/report"
+              class="w-full py-4 font-medium text-center text-white transition bg-opacity-50 rounded-lg hover:bg-green-500">Melden</a>
+            <a href="/auswertungen"
+              class="w-full py-4 font-medium text-center text-white transition bg-opacity-50 rounded-lg hover:bg-green-500">Auswertungen</a>
+            <a href="#links"
+              class="w-full py-4 font-medium text-center text-white transition bg-opacity-50 rounded-lg hover:bg-green-500">Mehr...</a>
           </div>
-        </div>        
-        
+        </div>
+
       </nav>
       <!-- Navbar End -->
       <!-- Content Start -->
@@ -135,7 +141,7 @@
     </script>
 
     <!--! White Content Start-->
-    <div class="z-10 flex flex-wrap mt-0 bg-gray-100">
+    <div class="z-10 flex flex-wrap mt-0 bg-gray-100" id="content-container">
       <div class="flex-auto">{% block content %} {% endblock content %}</div>
     </div>
     <!--! White Content End-->
@@ -214,6 +220,31 @@
         </div>
       </div>
     </footer>
+    <script>
+      function adjustFooterPosition() {
+        const contentContainer = document.getElementById("content-container");
+        const footer = document.querySelector(".footer");
+        const windowHeight = window.innerHeight;
+
+        const contentRect = contentContainer.getBoundingClientRect();
+        const footerRect = footer.getBoundingClientRect();
+
+        const contentHeight = contentRect.height;
+        const footerHeight = footerRect.height;
+        const totalHeight = contentHeight + footerHeight;
+
+        if (totalHeight < windowHeight) {
+          const minHeight = windowHeight - footerHeight;
+          contentContainer.style.minHeight = minHeight + "px";
+        } else {
+          contentContainer.style.minHeight = "auto";
+        }
+      }
+
+      window.addEventListener("DOMContentLoaded", adjustFooterPosition);
+      window.addEventListener("resize", adjustFooterPosition);
+
+    </script>
 </body>
 
 </html>
