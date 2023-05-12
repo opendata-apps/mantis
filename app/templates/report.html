@@ -25,8 +25,8 @@
           </div>
           <div>
             {{ form.picture_description.label(class="block mt-4 text-sm font-semibold text-gray-600") }}
-            {{ form.picture_description(placeholder="Geben Sie hier Ihre Bildbeschreibung ein", class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none
-            focus:ring-1 focus:ring-green-500") }}
+            {{ form.picture_description(placeholder="Geben Sie hier Ihre Bildbeschreibung ein", class="w-full p-2 mt-1
+            bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
             <span id="charCount" class="text-xs text-right text-gray-500"></span>
           </div>
           <div class="flex justify-end">
@@ -154,6 +154,7 @@
               const lng = EXIF.getTag(this, 'GPSLongitude');
               const latRef = EXIF.getTag(this, 'GPSLatitudeRef');
               const lngRef = EXIF.getTag(this, 'GPSLongitudeRef');
+              const dateTimeOriginal = EXIF.getTag(this, 'DateTimeOriginal');
 
               if (lat && lng && latRef && lngRef) {
                 // Convert coordinates to decimal
@@ -163,6 +164,13 @@
                 // Set the values to the form fields
                 document.querySelector('#latitude').value = latitude;
                 document.querySelector('#longitude').value = longitude;
+
+                if (dateTimeOriginal) {
+                  const formattedDate = formatDateTime(dateTimeOriginal);
+                  document.querySelector('#sighting_date').value = formattedDate;
+                  console.log(formattedDate);
+                }
+
                 console.log('Latitude: ' + latitude + ' Longitude: ' + longitude);
               } else {
                 // Handle the case when GPS data is not available in the image
@@ -182,6 +190,17 @@
 
           return decimal;
         }
+
+        // Converts the DateTimeOriginal field to a properly formatted date string
+        function formatDateTime(dateTime) {
+          const date = new Date(dateTime.replace(' ', 'T'));
+          const year = date.getFullYear();
+          const month = (date.getMonth() + 1).toString().padStart(2, '0');
+          const day = date.getDate().toString().padStart(2, '0');
+
+          return `${year}-${month}-${day}`;
+        }
+
 
         const steps = document.querySelectorAll('.step');
         const step1Next = document.getElementById('step1Next');
