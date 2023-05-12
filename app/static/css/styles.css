@@ -22,3 +22,15 @@
   background-color: rgba(0, 0, 0, 0.5);
   z-index: 2;
 }
+
+@media (max-width: 768px) {
+  .navbar a {
+    font-size: 1.2em !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .text-6xl {
+    font-size: 3rem !important;
+  }
+}
