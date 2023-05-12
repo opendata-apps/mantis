@@ -54,8 +54,3 @@ def lizenz():
 @main.route('/datenschutz')
 def datenschutz():
     return render_template('datenschutz.html')
-
-
-@main.route('/info')
-def info():
-    return render_template('info.html')
