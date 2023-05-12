@@ -141,6 +141,39 @@
 
 
       <script>
+        function saveFormDataToLocalStorage() {
+          const form = document.getElementById('mainForm');
+          const formData = new FormData(form);
+
+          for (const [key, value] of formData.entries()) {
+            localStorage.setItem(key, value);
+          }
+        }
+
+        function loadFormDataFromLocalStorage() {
+          const form = document.getElementById('mainForm');
+
+          for (const input of form.elements) {
+            if (input.name && input.type !== 'file') {
+              const value = localStorage.getItem(input.name);
+              if (value) {
+                try {
+                  input.value = value;
+                } catch (e) {
+                  console.error('Error setting input value:', e);
+                }
+              }
+            }
+          }
+        }
+
+
+        // Call this function when the page loads to load saved form data.
+        document.addEventListener('DOMContentLoaded', loadFormDataFromLocalStorage);
+
+        // Call this function to save form data to local storage when any input changes.
+        document.getElementById('mainForm').addEventListener('input', saveFormDataToLocalStorage);
+
         document.addEventListener('DOMContentLoaded', function () {
           const pictureInput = document.querySelector('#picture');
 
