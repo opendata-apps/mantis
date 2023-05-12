@@ -60,28 +60,27 @@
       </nav>
       <!-- Navbar End -->
       <!-- Content Start -->
-      <div class="z-10 flex-wrap items-center justify-center w-full pb-1" style="position: relative;">
-        <div class="absolute inset-0 flex items-center justify-center overflow-hidden">
-        </div>
-        <div class="container relative px-4 pt-16 pb-5 mx-auto">
-          <div class="flex flex-col items-center justify-center">
-            <div class="flex items-center justify-between w-full">
-              <h1 class="mb-6 text-4xl font-bold text-center text-white md:text-6xl">
-                {% block title %} {% endblock title %}
-              </h1>
-              {% if request.path == '/' %}
-              <a href="report">
-                <button
-                  class="px-2 py-1 text-lg font-bold text-white transition duration-500 ease-in-out transform bg-green-800 rounded-md hover:bg-green-700 active:bg-green-900 focus:outline-none focus:shadow-outline hover:scale-105 sm:px-4 sm:py-2 md:px-8 md:py-4">
-                  Melden
-                </button>
-              </a>
-              {% endif %}
+      <div class="relative bg-fixed bg-center bg-no-repeat bg-cover" style="background-image: url('{{ url_for('static', filename='images/mantisEat.jpg') }}');">
+        <div class="z-10 flex-wrap items-center justify-center w-full pb-1" style="position: relative;">
+          <div class="absolute inset-0 flex items-center justify-center overflow-hidden"></div>
+          <div class="container relative px-4 pt-16 pb-5 mx-auto">
+            <div class="flex flex-col items-center justify-center">
+              <div class="flex flex-wrap items-center justify-between w-full">
+                <h1 class="mb-6 text-4xl font-bold text-center text-white md:text-6xl lg:text-left">
+                  {% block title %}Gottesanbeterin{% endblock title %}
+                </h1>
+                {% if request.path == '/' %}
+                <a href="report">
+                  <button class="px-2 py-1 mt-4 text-lg font-bold text-white transition duration-500 ease-in-out transform bg-green-800 rounded-md hover:bg-green-700 active:bg-green-900 focus:outline-none focus:shadow-outline hover:scale-105 sm:px-4 sm:py-2 md:px-8 md:py-4">
+                    Melden
+                  </button>
+                </a>
+                {% endif %}
+              </div>
+              <p class="mb-8 text-lg text-center text-white">{% block text %}{% endblock text %}</p>
             </div>
-            <p class="mb-8 text-lg text-center text-white">{% block text %} {% endblock text %}</p>
           </div>
         </div>
-      </div>
       <!-- Content End -->
     </div>
     <div id="overlay"></div>
