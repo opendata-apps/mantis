@@ -8,6 +8,9 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, IntegerField, DateField, FileField, SubmitField, BooleanField
 from wtforms.validators import DataRequired
 from werkzeug.utils import secure_filename
+from flask_wtf.file import FileAllowed, FileRequired
+from flask_wtf import FlaskForm
+from wtforms import FileField
 import os
 
 
@@ -20,10 +23,12 @@ class MantisSightingForm(FlaskForm):
                         ('nymphen', 'Nymphen'), 
                         ('ootheken', 'Ootheken')]
     
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+    
     #? Ende Deklaration
     
-    picture = FileField("Bild", validators=[DataRequired()])
-    gender = SelectField("Entwicklungsstadium", choices=GENDER_CHOICES)
+    picture = FileField("Bild", validators=[FileRequired(), FileAllowed(ALLOWED_EXTENSIONS, 'Nur Bilder sind zulässig!')])
+    gender = SelectField("Entwicklungsstadium", choices=GENDER_CHOICES , default='' , validators=[DataRequired()])
     picture_description = StringField("Bildbeschreibung", validators=[Length(max=500)])
 
     longitude = StringField("Längengrad")
@@ -38,8 +43,7 @@ class MantisSightingForm(FlaskForm):
     first_name = StringField("Vorname", validators=[DataRequired()])
     last_name = StringField("Name", validators=[DataRequired()])
     sighting_date = DateField("Funddatum")
-    contact = StringField("Kontakt (Email/Telefonnummer)",
-                          validators=[DataRequired()])
+    contact = StringField("Kontakt (Email/Telefonnummer)", validators=[DataRequired()])
     feedback = BooleanField("Soll Rückmeldung bei Bearbeitung kommen?")
 
     submit = SubmitField("Absenden")

@@ -311,16 +311,28 @@
 
         // Step 1 Validation
         function validateStep1() {
-          const picture = document.querySelector('#picture').value;
-          const gender = document.querySelector('#gender').value;
-          
-          // Überprüfen Sie, ob alle Pflichtfelder ausgefüllt sind
-          if (picture && gender) {
-            return true;
-          } else {
-            // Wenn mindestens ein Feld leer ist, geben Sie eine Fehlermeldung aus
-            alert('Bitte füllen Sie alle Pflichtfelder aus.     ###Muss noch verschönert werden###');
+          const picture = document.querySelector('#picture').files[0];
+          const allowedTypes = ['png', 'jpg', 'jpeg', 'gif'];
+          const allowedSize = 5 * 1024 * 1024;
+          const fileName = picture ? picture.name.toLowerCase() : '';
+
+          // Überprüfen, ob das Bildfeld ausgefüllt wurde und eine gültige Datei ausgewählt wurde
+          if (!picture) {
+            alert('Bitte wählen Sie ein Bild aus.');
             return false;
+          } else if (!allowedTypes.includes(fileName.split('.').pop()) || picture.size > allowedSize) {
+            alert('Bitte geben Sie eine gültige Bilddatei ein, die kleiner als 5 MB ist und eine der folgenden Erweiterungen hat: PNG, JPG, JPEG oder GIF.')
+            return false;
+          } else {
+            const gender = document.querySelector('#gender').value;
+
+            // Überprüfen, ob das Geschlecht ausgefüllt wurde
+            if (!gender) {
+              alert('Bitte geben Sie Ihr Geschlecht an.');
+              return false;
+            }
+
+            return true;
           }
         }
 
