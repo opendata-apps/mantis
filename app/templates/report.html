@@ -311,6 +311,16 @@
         // Character Counter for Picture Description
 
         // Step 1 Validation
+        const GENDER_CHOICES = [
+          ['', 'Bitte auswählen'],
+          ['männchen', 'Männchen'],
+          ['weibchen', 'Weibchen'],
+          ['nymphen', 'Nymphen'],
+          ['ootheken', 'Ootheken']
+        ];
+
+        const ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif'];
+
         function validateStep1() {
           const picture = document.querySelector('#picture').files[0];
           const allowedTypes = ['png', 'jpg', 'jpeg', 'gif'];
@@ -327,16 +337,15 @@
           } else {
             const gender = document.querySelector('#gender').value;
 
-            // Überprüfen, ob das Geschlecht ausgefüllt wurde
-            if (!gender) {
-              alert('Bitte geben Sie Ihr Geschlecht an.');
+            // Überprüfen, ob das Geschlecht ausgefüllt wurde und ob es ein gültiger Wert ist
+            if (gender === '') {
+              alert('Bitte wählen Sie ein Entwicklungsstadium aus.');
               return false;
             }
 
             return true;
           }
         }
-
         // Ändern Sie den Event-Listener, um die Pflichtfeldüberprüfung durchzuführen
         step1Next.addEventListener('click', () => {
           if (validateStep1()) {
