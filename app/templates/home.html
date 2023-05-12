@@ -129,7 +129,7 @@
   <script>
     const counter = document.querySelector(".counter");
     let count = 0;
-    let step = 5; // Schrittgröße: 5
+    let step = 3; // Schrittgröße: 5
     const maxStep = 50; // Maximale Schrittgröße: 50
     const threshold = Math.ceil({{ post_count }} / 2); // Schwellenwert: halbe Anzahl der Meldungen
     const observer = new IntersectionObserver((entries) => {
@@ -148,7 +148,7 @@
             count = Math.min(count, {{ post_count }}); // Begrenze den Zähler, um zu verhindern, dass er den Endwert überschreitet
             counter.innerText = count;
           }
-        }, 100);
+        }, 10);
         observer.disconnect();
       }
     });
