@@ -68,8 +68,8 @@
               focus:ring-green-500") }}
             </div>
             <div>
-              {{ form.country.label(class="block text-sm font-semibold text-gray-600") }}
-              {{ form.country(id="country", class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none
+              {{ form.state.label(class="block text-sm font-semibold text-gray-600") }}
+              {{ form.state(id="state", class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none
               focus:ring-1 focus:ring-green-500") }}
             </div>
             <div>
@@ -142,6 +142,26 @@
 
 
       <script>
+
+        function getAddressFromCoordinates(latitude, longitude) {
+          const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`;
+
+          fetch(nominatimUrl)
+            .then(response => response.json())
+            .then(data => {
+              const address = data.address;
+              document.querySelector("#zip_code").value = address.postcode || "";
+              document.querySelector("#city").value = address.city || "";
+              document.querySelector("#street").value = `${address.road || ""} ${address.house_number || ""}`.trim();
+              document.querySelector("#state").value = address.state || "";
+              document.querySelector("#district").value = address.suburb || "";
+              console.log("Address data:", address);
+            })
+            .catch(error => {
+              console.error("Error fetching address data:", error);
+            });
+        }
+
         function saveFormDataToLocalStorage() {
           const form = document.getElementById('mainForm');
           const formData = new FormData(form);
@@ -198,6 +218,8 @@
                 document.querySelector('#latitude').value = latitude;
                 document.querySelector('#longitude').value = longitude;
                 console.log('Latitude: ' + latitude + ' Longitude: ' + longitude);
+
+                getAddressFromCoordinates(latitude, longitude);
               } else {
                 // Handle the case when GPS data is not available in the image
                 console.log('No GPS data found in the file');
@@ -233,8 +255,8 @@
         step2Next.addEventListener('click', () => showStep(2));
         step3Prev.addEventListener('click', () => showStep(1));
 
-        function autoCompleteData(inputField, zipCode, city, district, country) {
-          var inputs = ['zip_code', 'city', 'district', 'country'];
+        function autoCompleteData(inputField, zipCode, city, district, state) {
+          var inputs = ['zip_code', 'city', 'district', 'state'];
 
           for (const id of inputs) {
             if (inputField.id === id) continue;
@@ -250,8 +272,8 @@
               case 'district':
                 fieldValue = district;
                 break;
-              case 'country':
-                fieldValue = country;
+              case 'state':
+                fieldValue = state;
                 break;
             }
 
@@ -353,6 +375,7 @@
           }
         });
         // Step 1 Validation
+
 
       </script>
     </div>

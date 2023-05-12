@@ -40,7 +40,7 @@ class MantisSightingForm(FlaskForm):
     zip_code = IntegerField("PLZ")
     city = StringField("Ort")
     street = StringField("Straße")
-    country = StringField("Land")
+    state = StringField("Bundesland")
     district = StringField("Kreis")
     location_description = StringField("Fundort Beschreibung")
 
