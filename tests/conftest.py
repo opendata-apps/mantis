@@ -1,13 +1,14 @@
-#import pytest
-#from app import create_app
+# import pytest
+# from app import create_app
 
-#@pytest.fixture
-#def app():
+# @pytest.fixture
+# def app():
 #    app = create_app()
 #    return app
 
 import pytest
 from app import create_app
+
 
 @pytest.fixture()
 def app():
