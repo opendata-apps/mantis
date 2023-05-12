@@ -38,13 +38,6 @@ def faq():
 def impressum():
     return render_template('impressum.html')
 
-# TODO: Remove this route its Projekt
-
-
-@main.route('/aboutUs')
-def aboutUs():
-    return render_template('aboutUs.html')
-
 
 @main.route('/lizenz')
 def lizenz():
