@@ -18,7 +18,8 @@ import os
 class MantisSightingForm(FlaskForm):
     #? Start Deklaration 
     #? der Auswahlmöglichkeiten einiger Formeingaben
-    GENDER_CHOICES = [  ('männchen', 'Männchen'), 
+    GENDER_CHOICES = [  ('', 'Bitte auswählen'),
+                        ('männchen', 'Männchen'), 
                         ('weibchen', 'Weibchen'), 
                         ('nymphen', 'Nymphen'), 
                         ('ootheken', 'Ootheken')]
@@ -28,7 +29,7 @@ class MantisSightingForm(FlaskForm):
     #? Ende Deklaration
     
     picture = FileField("Bild", validators=[FileRequired(), FileAllowed(ALLOWED_EXTENSIONS, 'Nur Bilder sind zulässig!')])
-    gender = SelectField("Entwicklungsstadium", choices=GENDER_CHOICES , default='' , validators=[DataRequired()])
+    gender = SelectField("Entwicklungsstadium", choices=GENDER_CHOICES , default="Bitte auswählen" , validators=[DataRequired()])
     picture_description = StringField("Bildbeschreibung", validators=[Length(max=500)])
 
     longitude = StringField("Längengrad")
