@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
   <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  {% block head %} {% endblock head %}
 </head>
 
 <body class="antialiased bg-gray-100">
@@ -61,12 +62,6 @@
       <!-- Content Start -->
       <div class="z-10 flex-wrap items-center justify-center w-full pb-1" style="position: relative;">
         <div class="absolute inset-0 flex items-center justify-center overflow-hidden">
-          <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"
-            style="width: 200%; height: 200%; filter: blur(5px);">
-            <path fill="rgba(255, 255, 255, 0.3)"
-              d="M22.4,-29.7C35,-21.7,55.4,-23.1,59.3,-17.7C63.2,-12.2,50.8,0.1,44.6,13C38.3,25.9,38.4,39.4,32,53.2C25.6,66.9,12.8,81.1,2.3,77.9C-8.2,74.8,-16.5,54.4,-27,41.9C-37.5,29.5,-50.3,25,-53.8,16.8C-57.4,8.7,-51.7,-3.1,-48.3,-16.3C-44.9,-29.5,-43.8,-44.1,-36.1,-53.8C-28.4,-63.4,-14.2,-68.1,-4.7,-61.7C4.9,-55.3,9.8,-37.8,22.4,-29.7Z"
-              transform="translate(100 100)" />
-          </svg>
         </div>
         <div class="container relative px-4 pt-16 pb-5 mx-auto">
           <div class="flex flex-col items-center justify-center">
@@ -77,7 +72,7 @@
               {% if request.path == '/' %}
               <a href="report">
                 <button
-                  class="px-2 py-1 text-lg font-bold text-white transition transform duration-500 ease-in-out bg-green-800 rounded-md hover:bg-green-700 active:bg-green-900 focus:outline-none focus:shadow-outline hover:scale-105 sm:px-4 sm:py-2 md:px-8 md:py-4">
+                  class="px-2 py-1 text-lg font-bold text-white transition duration-500 ease-in-out transform bg-green-800 rounded-md hover:bg-green-700 active:bg-green-900 focus:outline-none focus:shadow-outline hover:scale-105 sm:px-4 sm:py-2 md:px-8 md:py-4">
                   Melden
                 </button>
               </a>
@@ -88,14 +83,6 @@
         </div>
       </div>
       <!-- Content End -->
-
-
-
-
-
-
-
-
     </div>
     <div id="overlay"></div>
 
