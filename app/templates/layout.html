@@ -29,6 +29,7 @@
           </a>
           <div class="items-center hidden md:flex">
             <a href="/" class="mr-5 text-sm font-medium text-white hover:text-green-300 md:text-base">Start</a>
+            <a href="/info" class="mr-5 text-sm font-medium text-white hover:text-green-300 md:text-base">Infos</a>
             <a href="/projekt" class="mr-5 text-sm font-medium text-white hover:text-green-300 md:text-base">Projekt</a>
             <a href="/report" class="mr-5 text-sm font-medium text-white hover:text-green-300 md:text-base">Melden</a>
             <a href="/auswertungen"
@@ -46,16 +47,17 @@
             </button>
           </div>
         </div>
-        <div class="hidden mobile-menu md:hidden">
-          <div class="flex flex-col items-center justify-center w-full">
-            <a href="/" class="w-full py-4 font-medium text-center text-white hover:bg-green-300">Start</a>
-            <a href="/projekt" class="w-full py-4 font-medium text-center text-white hover:bg-green-300">Projekt</a>
-            <a href="/report" class="w-full py-4 font-medium text-center text-white hover:bg-green-300">Melden</a>
-            <a href="/auswertungen"
-              class="w-full py-4 font-medium text-center text-white hover:bg-green-300">Auswertungen</a>
-            <a href="#links" class="w-full py-4 font-medium text-center text-white hover:bg-green-300">Mehr...</a>
+        <div class="hidden mobile-menu md:hidden bg-green-700 w-2/3 rounded-lg">
+          <div class="flex flex-col items-center justify-end">
+            <a href="/" class="w-full py-4 font-medium text-center text-white hover:bg-green-500 transition rounded-lg bg-opacity-50">Start</a>
+            <a href="/info" class="w-full py-4 font-medium text-center text-white hover:bg-green-500 transition rounded-lg bg-opacity-50">Infos</a>
+            <a href="/projekt" class="w-full py-4 font-medium text-center text-white hover:bg-green-500 transition rounded-lg bg-opacity-50">Projekt</a>
+            <a href="/report" class="w-full py-4 font-medium text-center text-white hover:bg-green-500 transition rounded-lg bg-opacity-50">Melden</a>
+            <a href="/auswertungen" class="w-full py-4 font-medium text-center text-white hover:bg-green-500 transition rounded-lg bg-opacity-50">Auswertungen</a>
+            <a href="#links" class="w-full py-4 font-medium text-center text-white hover:bg-green-500 transition rounded-lg bg-opacity-50">Mehr...</a>
           </div>
-        </div>
+        </div>        
+        
       </nav>
       <!-- Navbar End -->
       <!-- Content Start -->
@@ -212,34 +214,6 @@
         </div>
       </div>
     </footer>
-    <script>
-      function adjustFooterPosition() {
-        const footer = document.querySelector('.footer');
-        const content = document.querySelector('.z-10.flex.flex-wrap.mt-0.bg-gray-100');
-        const body = document.body;
-
-        const footerHeight = footer.clientHeight;
-        const contentHeight = content.clientHeight;
-        const bodyHeight = body.clientHeight;
-
-        const remainingHeight = bodyHeight - contentHeight - footerHeight;
-
-        if (remainingHeight > 0) {
-          content.style.minHeight = `${contentHeight + remainingHeight}px`;
-        }
-      }
-
-      // Adjust the footer position when the DOM is loaded
-      document.addEventListener('DOMContentLoaded', () => {
-        adjustFooterPosition();
-      });
-
-      // Adjust the footer position when the window is resized
-      window.addEventListener('resize', () => {
-        adjustFooterPosition();
-      });
-
-    </script>
 </body>
 
 </html>
