@@ -13,9 +13,18 @@ import os
 
 # Create the form using WTForms
 class MantisSightingForm(FlaskForm):
+    #? Start Deklaration 
+    #? der Auswahlmöglichkeiten einiger Formeingaben
+    GENDER_CHOICES = [  ('männchen', 'Männchen'), 
+                        ('weibchen', 'Weibchen'), 
+                        ('nymphen', 'Nymphen'), 
+                        ('ootheken', 'Ootheken')]
+    
+    #? Ende Deklaration
+    
     picture = FileField("Bild", validators=[DataRequired()])
-    gender = StringField("Geschlecht")
-    picture_description = StringField("Bildbeschreibung")
+    gender = SelectField("Entwicklungsstadium", choices=GENDER_CHOICES)
+    picture_description = StringField("Bildbeschreibung", validators=[Length(max=500)])
 
     longitude = StringField("Längengrad")
     latitude = StringField("Breitengrad")
