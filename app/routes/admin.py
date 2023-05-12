@@ -15,7 +15,10 @@ admin = Blueprint('admin', __name__)
 def admin_index():
     return render_template('admin/adminPanel.html')
 
-
 @admin.route('/admin/log')
 def admin_subsites_log():
-    return render_template('adminSubsites/log.html')
+    return render_template('admin/log.html')
+
+@admin.route('/admin/userAdministration')
+def admin_subsites_users():
+    return render_template('admin/userAdministration.html')
