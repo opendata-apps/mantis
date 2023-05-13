@@ -12,8 +12,8 @@ class TblMeldungen(db.Model):
     anzahl = db.Column(db.Integer, nullable=True)
     fo_zuordung = db.Column(
         db.Integer,  db.ForeignKey("fundorte.id"), nullable=True)
-    fo_quelle = db.Column(db.String(1), nullable=False)
-    fo_kategorie = db.Column(db.String(1), nullable=False)
+    fo_quelle = db.Column(db.String(1), nullable=True)
+    fo_kategorie = db.Column(db.String(1), nullable=True)
     anmerkung = db.Column(db.String(500), nullable=True)
 
     def __repr__(self):
