@@ -10,7 +10,7 @@ class TblMeldungen(db.Model):
     dat_meld = db.Column(db.Date, nullable=False)
     dat_bear = db.Column(db.Date, nullable=True)
     anzahl = db.Column(db.Integer, nullable=True)
-    fo_zuordung = db.Column(
+    fo_zuordnung = db.Column(
         db.Integer,  db.ForeignKey("fundorte.id"), nullable=True)
     fo_quelle = db.Column(db.String(1), nullable=True)
     fo_kategorie = db.Column(db.String(1), nullable=True)

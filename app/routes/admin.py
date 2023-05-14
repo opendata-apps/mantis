@@ -22,3 +22,10 @@ def admin_subsites_log():
 @admin.route('/admin/userAdministration')
 def admin_subsites_users():
     return render_template('admin/userAdministration.html')
+
+@admin.route('/admin/export/db2csv')
+def admin_export_csv():
+
+    reports = TblMeldungen.query.join(
+        TblFundorte, TblMeldungen.fo_zuordung == TblFundorte.id).all()
+    return render_template('admin/userAdministration.html')
