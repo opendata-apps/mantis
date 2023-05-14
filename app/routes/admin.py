@@ -27,5 +27,5 @@ def admin_subsites_users():
 def admin_export_csv():
 
     reports = TblMeldungen.query.join(
-        TblFundorte, TblMeldungen.fo_zuordung == TblFundorte.id).all()
+        TblFundorte, TblMeldungen.fo_zuordnung == TblFundorte.id).all()
     return render_template('admin/userAdministration.html')
