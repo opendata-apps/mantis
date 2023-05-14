@@ -12,6 +12,7 @@
 -- flask db migrate -m "Initialisierung aller Relationen"
 -- flask db upgrade
 -- nun der Import aller Demodaten
+-- Vorzugsweise in Einzelschritten
 
 \c mantis_tracker;
 begin;
@@ -23,7 +24,7 @@ insert into melduser select id, id , 1 from meldungen;
 \i /home/ram/disk/pp11/mantis/tests/demodata/fill-melduser.sql
 \i /home/ram/disk/pp11/mantis/tests/demodata/fill-zuordnung.sql
 
---\copy plzort(plz, ort, bundesland, landkreis) FROM  WITH (FORMAT csv, DELIMITER ',', HEADER true, ENCODING 'utf-8')
+\copy plzort(plz, ort, bundesland, landkreis) FROM  WITH (FORMAT csv, DELIMITER ',', HEADER true, ENCODING 'utf-8')
 
 --
 -- Alle Daten zusamenführen (CSV-Export)
