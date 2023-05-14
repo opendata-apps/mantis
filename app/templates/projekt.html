@@ -5,70 +5,53 @@
 
 <!--Projektbeschreibung section -->
 <section id="Projektbeschreibung" class="relative pt-16">
-  <div class="flex justify-center space-x-4">
+  <div class="grid grid-cols-1 gap-6 px-2 md:grid-cols-2 md:px-4 lg:grid-cols-3 xl:px-8">
 
-
-
-    <div class="w-full mx-auto mb-10 transform md:w-3/4 lg:w-2/3 xl:w-1/2">
-      <div
-        class="px-10 py-10 duration-500 transform bg-white rounded-lg shadow-md hover:-translate-y-1 hover:shadow-lg card">
-        <div class="mx-4 my-4 overflow-hidden duration-500 transform bg-white rounded-lg shadow-md md:mx-10">
-          <img src="{{ url_for('static', filename='images/berger06.webp') }}" alt="Gottesanbeterin"
-            class="w-full h-auto">
-        </div>
-        <div class="py-6 mx-4 md:mx-10">
-          <h3 class="mb-2 text-xl font-semibold text-center text-gray-800">
-            So können Sie mitmachen
-          </h3>
-          <p class="text-center text-gray-600">
-            Machen Sie ein Foto von der Gottesanbeterin, notieren Sie den Fundort und das Datum und senden Sie uns alle
-            Daten zusammen mit Ihrer Adresse. Werden Sie zum Insektenforscher und helfen Sie uns, die Verbreitung der
-            Gottesanbeterin zu erfassen!
-          </p>
-        </div>
+    <div class="mx-auto transform bg-white rounded-lg shadow-md hover:-translate-y-1 hover:shadow-lg card">
+      <img src="{{ url_for('static', filename='images/berger06.webp') }}" alt="Gottesanbeterin"
+        class="w-full h-auto rounded-t-lg">
+      <div class="px-4 py-6">
+        <h3 class="mb-2 text-xl font-semibold text-center text-gray-800">
+          So können Sie mitmachen
+        </h3>
+        <p class="text-center text-gray-600">
+          Machen Sie ein Foto von der Gottesanbeterin, notieren Sie den Fundort und das Datum und senden Sie uns alle
+          Daten zusammen mit Ihrer Adresse. Werden Sie zum Insektenforscher und helfen Sie uns, die Verbreitung der
+          Gottesanbeterin zu erfassen!
+        </p>
       </div>
     </div>
 
-    <div class="w-full mx-auto mb-10 transform md:w-3/4 lg:w-2/3 xl:w-1/2">
-      <div
-        class="px-10 py-10 duration-500 transform bg-white rounded-lg shadow-md hover:-translate-y-1 hover:shadow-lg card">
-        <div class="mx-4 my-4 overflow-hidden duration-500 transform bg-white rounded-lg shadow-md md:mx-10">
-          <img src="{{ url_for('static', filename='images/berger03.webp') }}" alt="Gottesanbeterin"
-            class="w-full h-auto">
-        </div>
-        <div class="py-6 mx-4 md:mx-10">
-          <h3 class="mb-2 text-xl font-semibold text-center text-gray-800">
-            Wie funktioniert das Mitmachprojekt?
-          </h3>
-          <p class="text-center text-gray-600">
-            Im Jahr 2017 initiierten das Naturkundemuseum Potsdam und die Mantidenfreunde Berlin-Brandenburg das
-            Mitmachprojekt "Gottesanbeterin gesucht!". Bürgerinnen und Bürger sind dazu aufgerufen, Funde der
-            Gottesanbeterin zu melden. Über 40 Mal wurde die Gottesanbeterin in Brandenburg bereits gesichtet. Jeden
-            Monat
-            kommen neue Funde hinzu. Werden auch Sie zum Insektenforscher und helfen Sie dabei, die Verbreitung der
-            Gottesanbeterin zu dokumentieren!
-          </p>
-        </div>
+    <div class="mx-auto transform bg-white rounded-lg shadow-md hover:-translate-y-1 hover:shadow-lg card">
+      <img src="{{ url_for('static', filename='images/berger03.webp') }}" alt="Gottesanbeterin"
+        class="w-full h-auto rounded-t-lg">
+      <div class="px-4 py-6">
+        <h3 class="mb-2 text-xl font-semibold text-center text-gray-800">
+          Wie funktioniert das Mitmachprojekt?
+        </h3>
+        <p class="text-center text-gray-600">
+          Im Jahr 2017 initiierten das Naturkundemuseum Potsdam und die Mantidenfreunde Berlin-Brandenburg das
+          Mitmachprojekt "Gottesanbeterin gesucht!". Bürgerinnen und Bürger sind dazu aufgerufen, Funde der
+          Gottesanbeterin zu melden. Über 40 Mal wurde die Gottesanbeterin in Brandenburg bereits gesichtet. Jeden
+          Monat
+          kommen neue Funde hinzu. Werden auch Sie zum Insektenforscher und helfen Sie dabei, die Verbreitung der
+          Gottesanbeterin zu dokumentieren!
+        </p>
       </div>
     </div>
 
-    <div class="w-full mx-auto transform md:w-3/4 lg:w-2/3 xl:w-1/2">
-      <div
-        class="px-10 py-10 duration-500 transform bg-white rounded-lg shadow-md hover:-translate-y-1 hover:shadow-lg card">
-        <div class="mx-4 my-4 overflow-hidden duration-500 transform bg-white rounded-lg shadow-md md:mx-10">
-          <img src="{{ url_for('static', filename='images/berger10.webp') }}" alt="Gottesanbeterin"
-            class="w-full h-auto">
-        </div>
-        <div class="py-6 mx-4 md:mx-10">
-          <h3 class="mb-2 text-xl font-semibold text-center text-gray-800">
-            Was passiert mit den Daten?
-          </h3>
-          <p class="text-center text-gray-600">
-            Jeder Fund wird in einer Datenbank erfasst. Am Ende eines jeden Jahres wird eine Verbreitungskarte der
-            Gottesanbeterin erstellt und auf der Homepage des Naturkundemuseums Potsdam veröffentlicht. Von Jahr zu Jahr
-            können wir so gemeinsam die Ausbreitung der Gottesanbeterin nachverfolgen
-          </p>
-        </div>
+    <div class="mx-auto transform bg-white rounded-lg shadow-md hover:-translate-y-1 hover:shadow-lg card">
+      <img src="{{ url_for('static', filename='images/berger10.webp') }}" alt="Gottesanbeterin"
+        class="w-full h-auto rounded-t-lg">
+      <div class="px-4 py-6">
+        <h3 class="mb-2 text-xl font-semibold text-center text-gray-800">
+          Was passiert mit den Daten?
+        </h3>
+        <p class="text-center text-gray-600">
+          Jeder Fund wird in einer Datenbank erfasst. Am Ende eines jeden Jahres wird eine Verbreitungskarte der
+          Gottesanbeterin erstellt und auf der Homepage des Naturkundemuseums Potsdam veröffentlicht. Von Jahr zu Jahr
+          können wir so gemeinsam die Ausbreitung der Gottesanbeterin nachverfolgen
+        </p>
       </div>
     </div>
   </div>
@@ -94,17 +77,17 @@
       <div id="accordion-collapse-body-1" class="hidden" aria-labelledby="accordion-collapse-heading-1">
         <div class="p-5 border border-b-0 border-gray-200 shadow-md">
           <p class="mb-2 text-gray-600 ">
-	    Die Kenntnis über die das Vorkommen und die Verbreitung
-	    von Arten (Pflanzen, Tiere, Pilze) ist für den Erhalt und den Schutz
-	    biologischer Vielfalt von großer Bedeutung. Aufgrund der intensiven
-	    Landnutzung und den aktuellen klimatischen Entwicklungen stellt der
-	    Erhalt von Lebensräumen und Arten die Gesellschaft vor große
-	    Herausforderungen. Beim Erkenntnisgewinn über die biologische
-	    Vielfalt werden vermehrt Bürger und Gesellschaft einbezogen. Die
-	    Ausbreitung der Europäischen Gottesanbeterin, die am
-	    Naturkundemuseum Potsdam als Bürgerwissenschaftsprojekt umgesetzt
-	    wird, erfasst über dieses Meldeportal alle gemeldeten Sichtungen.
-	  </p>
+            Die Kenntnis über die das Vorkommen und die Verbreitung
+            von Arten (Pflanzen, Tiere, Pilze) ist für den Erhalt und den Schutz
+            biologischer Vielfalt von großer Bedeutung. Aufgrund der intensiven
+            Landnutzung und den aktuellen klimatischen Entwicklungen stellt der
+            Erhalt von Lebensräumen und Arten die Gesellschaft vor große
+            Herausforderungen. Beim Erkenntnisgewinn über die biologische
+            Vielfalt werden vermehrt Bürger und Gesellschaft einbezogen. Die
+            Ausbreitung der Europäischen Gottesanbeterin, die am
+            Naturkundemuseum Potsdam als Bürgerwissenschaftsprojekt umgesetzt
+            wird, erfasst über dieses Meldeportal alle gemeldeten Sichtungen.
+          </p>
         </div>
       </div>
       <h2 id="accordion-collapse-heading-2">
@@ -124,11 +107,12 @@
       <div id="accordion-collapse-body-2" class="hidden" aria-labelledby="accordion-collapse-heading-2">
         <div class="p-5 border border-b-0 border-gray-200 shadow-md">
           <p class="mb-2 text-gray-600 ">
-	    Die Entwicklung der Anwendung ist Teil der Ausbildung von Fachinformatiker-Lehrlingen für den Brandenburgischen
-	    IT-Dienstleister (ZIT-BB). Zum Team gehören (in alpabeticher Reihenfolge):</p>
-	  <p class="mb-2 text-gray-600 ">
-	    Jacob, Janneck, Jeremy, Lennard, Leon, Luca, Lukas, Martin, Max, Peter, Tanja, William
-	  </p>
+            Die Entwicklung der Anwendung ist Teil der Ausbildung von Fachinformatiker-Lehrlingen für den
+            Brandenburgischen
+            IT-Dienstleister (ZIT-BB). Zum Team gehören (in alpabeticher Reihenfolge):</p>
+          <p class="mb-2 text-gray-600 ">
+            Jacob, Janneck, Jeremy, Lennard, Leon, Luca, Lukas, Martin, Max, Peter, Tanja, William
+          </p>
         </div>
       </div>
       <h2 id="accordion-collapse-heading-3">
@@ -168,32 +152,30 @@
       <div id="accordion-collapse-body-3" class="hidden" aria-labelledby="accordion-collapse-heading-3">
         <div class="p-5 border border-t-0 border-gray-200 shadow-md ">
           <p class="mb-2 text-gray-600 ">
-	    Bis zu Deinem ersten Fund einer Gottesanberterin, die Du
-	    hier melden kannst, könnten andere Citizen-Science-Projekte
-	    von Interesse sein.
-	    
+            Bis zu Deinem ersten Fund einer Gottesanberterin, die Du
+            hier melden kannst, könnten andere Citizen-Science-Projekte
+            von Interesse sein.
+
           <p class="mb-2 text-gray-600 ">Auswahl</p>
           <ul class="pl-5 text-gray-600 list-disc ">
             <li>
-	      <a href="https://mueckenatlas.com" rel="nofollow"
-		 class="text-blue-600 hover:underline">Mückenatlas</a>
-	    </li>
+              <a href="https://mueckenatlas.com" rel="nofollow" class="text-blue-600 hover:underline">Mückenatlas</a>
+            </li>
             <li>
-	      <a href="https://www.plastic-pirates.eu/de"
-		 class="text-blue-600 hover:underline">Plastic Pirates – Go Europe!</a>
-	    </li>
+              <a href="https://www.plastic-pirates.eu/de" class="text-blue-600 hover:underline">Plastic Pirates – Go
+                Europe!</a>
+            </li>
             <li>
-	      <a href="https://sensebox.de/" rel="nofollow"
-		 class="text-blue-600 hover:underline">senseBox</a>
-	    </li>
+              <a href="https://sensebox.de/" rel="nofollow" class="text-blue-600 hover:underline">senseBox</a>
+            </li>
             <li>
-	      <a href="http://www.verlustdernacht.de/" rel="nofollow"
-		 class="text-blue-600 hover:underline">Verlust der Nacht</a>
-	    </li>
+              <a href="http://www.verlustdernacht.de/" rel="nofollow" class="text-blue-600 hover:underline">Verlust der
+                Nacht</a>
+            </li>
             <li>
-	      <a href="https://planktonid.geomar.de/de" rel="nofollow"
-		 class="text-blue-600 hover:underline">Plankton-ID</a>
-	    </li>
+              <a href="https://planktonid.geomar.de/de" rel="nofollow"
+                class="text-blue-600 hover:underline">Plankton-ID</a>
+            </li>
           </ul>
         </div>
       </div>

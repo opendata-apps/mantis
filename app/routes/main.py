@@ -15,7 +15,8 @@ main = Blueprint('main', __name__)
 
 @main.route('/')
 def index():
-    post_count = db.session.query(TblMeldungen ).count()
+    post_count = db.session.query(TblMeldungen).count()
+    print(post_count)
     return render_template('home.html', post_count=post_count)
 
 

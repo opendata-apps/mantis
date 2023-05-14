@@ -9,9 +9,11 @@
     </h2>
     <div class="grid gap-8 md:grid-cols-2">
       <div class="animate-fade-in">
-        <div class="duration-500 transform bg-white rounded-lg shadow-md hover:-translate-y-1 hover:shadow-lg py-10 px-10">
-          <div class="rounded-lg overflow-hidden bg-white shadow-md duration-500 transform">
-            <img src="{{ url_for('static', filename='images/berger09.webp') }}" alt="Meldung" class="w-full object-cover">
+        <div
+          class="px-10 py-10 duration-500 transform bg-white rounded-lg shadow-md hover:-translate-y-1 hover:shadow-lg">
+          <div class="overflow-hidden duration-500 transform bg-white rounded-lg shadow-md">
+            <img src="{{ url_for('static', filename='images/berger09.webp') }}" alt="Meldung"
+              class="object-cover w-full">
           </div>
           <div class="px-6 py-4">
             <h3 class="my-auto text-xl font-semibold text-center text-gray-800">
@@ -27,9 +29,11 @@
         </div>
       </div>
       <div class="animate-fade-in">
-        <div class="duration-500 transform bg-white rounded-lg shadow-md hover:-translate-y-1 hover:shadow-lg py-10 px-10">
-          <div class="rounded-lg overflow-hidden bg-white shadow-md duration-500 transform">
-            <img src="{{ url_for('static', filename='images/berger02.webp') }}" alt="Gottesanbeterin" class="w-full object-cover">
+        <div
+          class="px-10 py-10 duration-500 transform bg-white rounded-lg shadow-md hover:-translate-y-1 hover:shadow-lg">
+          <div class="overflow-hidden duration-500 transform bg-white rounded-lg shadow-md">
+            <img src="{{ url_for('static', filename='images/berger02.webp') }}" alt="Gottesanbeterin"
+              class="object-cover w-full">
           </div>
           <div class="px-6 py-4">
             <h3 class="my-auto text-xl font-semibold text-center text-gray-800">
@@ -68,10 +72,18 @@
     let count = 0;
     const observer = new IntersectionObserver((entries) => {
       if (entries[0].isIntersecting) {
-        setInterval(() => {
-          if (count < 420) {
-            count++;
+        const postCount = parseInt('{{ post_count }}'); // Retrieve the post_count from the server-side variable
+        const increment = Math.ceil(postCount / '{{ post_count }}'); // Calculate the increment value based on post_count
+
+        const intervalId = setInterval(() => {
+          if (count < postCount) {
+            count += increment;
+            if (count > postCount) {
+              count = postCount;
+            }
             counter.innerText = count;
+          } else {
+            clearInterval(intervalId);
           }
         }, 1);
         observer.disconnect();

@@ -6,8 +6,8 @@
 {% block content %}
 
 <body>
-  <div class="flex items-center my-16 bg-gray-100">
-    <div class="flex-1 max-w-4xl p-6 mx-auto bg-white rounded-lg shadow-xl">
+  <div class="flex items-center min-h-screen bg-gray-100">
+    <div class="w-full max-w-4xl p-6 mx-auto bg-white rounded-lg shadow-xl">
       <form action="" method="POST" enctype="multipart/form-data" id="mainForm">
         <!-- Nutzereingabe Step Start-->
         <div id="step1" class="step">
@@ -15,24 +15,21 @@
           <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
               {{ form.picture.label(class="block text-sm font-semibold text-gray-600") }}
-              {{ form.picture(class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
-              focus:ring-green-500") }}
+              {{ form.picture(class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
             </div>
             <div>
               {{ form.gender.label(class="block text-sm font-semibold text-gray-600") }}
-              {{ form.gender(class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
-              focus:ring-green-500") }}
+              {{ form.gender(class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
             </div>
           </div>
-          <div>
-            {{ form.picture_description.label(class="block mt-4 text-sm font-semibold text-gray-600") }}
-            {{ form.picture_description(placeholder="Geben Sie hier Ihre Bildbeschreibung ein", class="w-full p-2 mt-1
-            bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
+          <div class="mt-4">
+            {{ form.picture_description.label(class="block text-sm font-semibold text-gray-600") }}
+            {{ form.picture_description(placeholder="Geben Sie hier Ihre Bildbeschreibung ein", class="w-full h-32 p-2 mt-1 bg-white border rounded-md resize-none focus:outline-none focus:ring-1 focus:ring-green-500") }}
             <span id="charCount" class="text-xs text-right text-gray-500"></span>
           </div>
-          <div class="flex justify-end">
+          <div class="flex justify-end mt-4 space-x-2">
             <button type="button" id="step1Next"
-              class="px-6 py-2 mt-4 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none">
+              class="w-full px-6 py-2 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none md:w-auto">
               Next
             </button>
           </div>
@@ -40,56 +37,49 @@
         <!-- Nutzereingabe Step End-->
 
         <!-- Fundort Step Start-->
-        <div id="step2" class="hidden step">
+        <div id="step2" class="hidden overflow-auto step">
+          <div id="map" class="mt-4 border shadow-md h-96 sm:h-64 lg:h-96"></div>
           <div class="grid grid-cols-1 gap-4 mt-4 md:grid-cols-2">
             <div>
               {{ form.longitude.label(class="block text-sm font-semibold text-gray-600") }}
-              {{ form.longitude(class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
-              focus:ring-green-500") }}
+              {{ form.longitude(placeholder="z.B. 13.12345", class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
             </div>
             <div>
               {{ form.latitude.label(class="block text-sm font-semibold text-gray-600") }}
-              {{ form.latitude(class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
-              focus:ring-green-500") }}
+              {{ form.latitude(placeholder="z.B. 52.12345", class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
             </div>
             <div>
               {{ form.zip_code.label(class="block text-sm font-semibold text-gray-600") }}
-              {{ form.zip_code(id="zip_code", class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none
-              focus:ring-1 focus:ring-green-500") }}
+              {{ form.zip_code(id="zip_code", placeholder="z.B. 10115", class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
             </div>
             <div>
               {{ form.city.label(class="block text-sm font-semibold text-gray-600") }}
-              {{ form.city(id="city", class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
-              focus:ring-green-500") }}
+              {{ form.city(id="city", placeholder="z.B. Berlin", class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
             </div>
             <div>
               {{ form.street.label(class="block text-sm font-semibold text-gray-600") }}
-              {{ form.street(class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
-              focus:ring-green-500") }}
+              {{ form.street(placeholder="z.B. Musterstraße", class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
             </div>
             <div>
               {{ form.state.label(class="block text-sm font-semibold text-gray-600") }}
-              {{ form.state(id="state", class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none
-              focus:ring-1 focus:ring-green-500") }}
+              {{ form.state(id="state", placeholder="z.B. Berlin", class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
             </div>
             <div>
               {{ form.district.label(class="block text-sm font-semibold text-gray-600") }}
-              {{ form.district(id="district", class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none
-              focus:ring-1 focus:ring-green-500") }}
+              {{ form.district(id="district", placeholder="z.B. Mitte", class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
             </div>
           </div>
           <div>
             {{ form.location_description.label(class="block mt-4 text-sm font-semibold text-gray-600") }}
-            {{ form.location_description(class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none
-            focus:ring-1 focus:ring-green-500") }}
+            {{ form.location_description(placeholder="Geben Sie hier Ihre Ortsbeschreibung ein", class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
           </div>
-          <div class="flex justify-between">
+          <div class="flex justify-between mt-4 space-x-2">
             <button type="button" id="step2Prev"
-              class="px-6 py-2 mt-4 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none">
+              class="w-full px-6 py-2 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none md:w-auto">
               Prev
             </button>
             <button type="button" id="step2Next"
-              class="px-6 py-2 mt-4 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none">
+              class="w-full px-6 py-2 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none md:w-auto">
               Next
             </button>
           </div>
@@ -101,37 +91,36 @@
           <div class="grid grid-cols-1 gap-4 mt-4 md:grid-cols-2">
             <div>
               {{ form.first_name.label(class="block text-sm font-semibold text-gray-600") }}
-              {{ form.first_name(class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
-              focus:ring-green-500") }}
+              {{ form.first_name(placeholder="z.B. Max", class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
             </div>
             <div>
               {{ form.last_name.label(class="block text-sm font-semibold text-gray-600") }}
-              {{ form.last_name(class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
-              focus:ring-green-500") }}
+              {{ form.last_name(placeholder="z.B. Mustermann", class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
             </div>
             <div>
               {{ form.sighting_date.label(class="block text-sm font-semibold text-gray-600") }}
-              {{ form.sighting_date(class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
-              focus:ring-green-500") }}
+              {{ form.sighting_date(placeholder="z.B. 2023-05-14", class="w-full p-2 mt-1 bg-white border rounded-md focus:ring-green-500") }}
             </div>
             <div>
               {{ form.contact.label(class="block text-sm font-semibold text-gray-600") }}
-              {{ form.contact(class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
-              focus:ring-green-500") }}
+              {{ form.contact(placeholder="z.B. 0170-1234567", class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
             </div>
           </div>
-          <div>
-            {{ form.feedback.label(class="block mt-4 text-sm font-semibold text-gray-600") }}
-            {{ form.feedback(class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
-            focus:ring-green-500") }}
+          <div class="mt-4">
+            <div class="flex items-center">
+              <input id="feedback_checkbox" type="checkbox"
+                class="w-4 h-4 text-green-500 bg-gray-100 border-gray-300 rounded focus:ring-green-500 " />
+              <label for="feedback_checkbox" class="ml-2 text-sm font-medium text-gray-900">Wollen
+                Sie Rückmeldung bekommen?</label>
+            </div>
           </div>
-          <div class="flex justify-between">
+          <div class="flex justify-between mt-4 space-x-2">
             <button type="button" id="step3Prev"
-              class="px-6 py-2 mt-4 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none">
+              class="w-full px-6 py-2 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none md:w-auto">
               Prev
             </button>
             <button type="submit"
-              class="px-6 py-2 mt-4 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none">
+              class="w-full px-6 py-2 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none md:w-auto">
               Submit
             </button>
           </div>
@@ -139,9 +128,34 @@
         <!-- Melderinfo Step End-->
       </form>
 
-
-
       <script>
+        let map;
+        // Add Leaflet map configuration and event handling
+        function initMap() {
+          map = L.map('map').setView([52.5200, 13.4050], 5);
+
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 18,
+          }).addTo(map);
+
+          let userMarker;
+
+          // Update form fields on map click
+          map.on('click', function (e) {
+            document.querySelector('#latitude').value = e.latlng.lat.toFixed(5);
+            document.querySelector('#longitude').value = e.latlng.lng.toFixed(5);
+
+            getAddressFromCoordinates(e.latlng.lat, e.latlng.lng);
+
+            if (userMarker) {
+              userMarker.remove();
+            }
+
+            userMarker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map);
+          });
+        }
+        document.addEventListener('DOMContentLoaded', initMap);
 
         function getAddressFromCoordinates(latitude, longitude) {
           const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`;
@@ -249,6 +263,13 @@
           steps.forEach((step, i) => {
             step.classList.toggle('hidden', i !== index);
           });
+
+          // When showing the map, invalidate the size and slightly delay the map resize
+          if (index === 1) {
+            setTimeout(() => {
+              map.invalidateSize();
+            }, 100);
+          }
         }
 
         step2Prev.addEventListener('click', () => showStep(0));
