@@ -1,32 +1,94 @@
-{% extends "layout.html" %} 
+{% extends "layout.html" %}
 {% block title %}
 <!-- Titel der Seite -->
 <a class="p-2 duration-300 rounded-lg hover:bg-green-700" href="/admin">
   Admin- Center
 </a>
-{% endblock title %} 
+{% endblock title %}
 {% block text %}
 <!-- Kommentar unter der Überschrift -->
 Willkomen im Admin-Center! <br />
 Hier können sie die Datenbank und alle Meldungen verwalten. <br />
 Klicken sie dazu auf die unten aufgeführten Optionen! <br />
-{%endblock text %} 
+{%endblock text %}
 {% block content %}
 <!-- Inhalt im weißen Feld -->
 <div class="grid grid-cols-5 grid-rows-6 gap-4 m-3">
-  <div class="border-4 rounded-md border-gray-200 col-span-3 row-span-6 bg-gray-200 hover:shadow-xl duration-500"> 
-    Übersicht über die Meldungen <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br> <br>
+  <div class="col-span-3 row-span-6 duration-500 bg-gray-200 border-4 border-gray-200 rounded-md hover:shadow-xl">
+    {% block reported_sightings %}
+    <!-- Übersicht über die Meldungen -->
+    <div class="mt-6 overflow-x-auto overflow-y-auto h-96">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-100">
+          <tr>
+            <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-600 uppercase">ID</th>
+            <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-600 uppercase">Fund Datum</th>
+            <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-600 uppercase">Meldungsdatum
+            </th>
+            <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-600 uppercase">Anzahl</th>
+            <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-600 uppercase">Ort</th>
+            <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-600 uppercase">Beschreibung</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          {% for sighting in reported_sightings %}
+          <tr>
+            <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{{ sighting.id }}</td>
+            <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{{ sighting.dat_fund }}</td>
+            <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{{ sighting.dat_meld }}</td>
+            <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{{ sighting.anzahl }}</td>
+            <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{{ sighting.ort }}</td>
+            <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{{ sighting.beschreibung }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endblock reported_sightings %}
   </div>
-  <div class="border-4 rounded-md border-gray-200 col-span-2 row-span-2 bg-gray-200 hover:shadow-xl duration-500"> 
-    Filter auswählen und anwenden.
+  <div
+    class="sticky col-span-2 row-span-2 duration-500 bg-gray-200 border-4 border-gray-200 rounded-md top-3 hover:shadow-xl">
+    <!-- Filter auswählen und anwenden.-->
+    <form action="/admin/apply_filters" method="POST">
+      <label for="date_range" class="block text-sm font-medium text-gray-700">Date Range:</label>
+      <input type="date" name="start_date" class="block w-full mt-1 p-1.5 border-gray-300 rounded-md">
+      <input type="date" name="end_date" class="block w-full mt-1 p-1.5 border-gray-300 rounded-md">
+
+      <label for="location" class="block mt-4 text-sm font-medium text-gray-700">Location:</label>
+      <input type="text" name="location" class="block w-full mt-1 p-1.5 border-gray-300 rounded-md">
+
+      <button type="submit"
+        class="w-full mt-4 font-bold text-white duration-500 bg-green-900 rounded-md hover:shadow-xl hover:bg-green-700">
+        Apply Filters
+      </button>
+    </form>
   </div>
-  <div class="border-4 rounded-md border-gray-200 col-span-2 row-span-2 bg-gray-200 hover:shadow-xl duration-500"> 
-    Optionen wie Export Selected, Export All, Bearbeiten, etc. 
+  <div
+    class="sticky col-span-2 row-span-2 duration-500 bg-gray-200 border-4 border-gray-200 rounded-md top-3 hover:shadow-xl">
+    <!--   Optionen wie Export Selected, Export All, Bearbeiten, etc.  -->
+    <button
+      class="w-full mt-2 font-bold text-white duration-500 bg-green-900 rounded-md hover:shadow-xl hover:bg-green-700"
+      onclick="window.location.href = '/admin/export/csv';">
+      Export as CSV
+    </button>
+    <button
+      class="w-full mt-2 font-bold text-white duration-500 bg-green-900 rounded-md hover:shadow-xl hover:bg-green-700"
+      onclick="window.location.href = '/admin/export/xlsx';">
+      Export as Excel
+    </button>
+    <button
+      class="w-full mt-2 font-bold text-white duration-500 bg-green-900 rounded-md hover:shadow-xl hover:bg-green-700"
+      onclick="window.location.href = '/admin/export/selected';">
+      Export Selected
+    </button>
+    <!-- Add other action buttons here -->
   </div>
-  <button class="rounded-md bg-green-900 hover:shadow-xl hover:bg-green-700 duration-500 text-white font-bold" onclick="window.location.href = '/admin/userAdministration';"> 
-    Benutzerverwaltung anzeigen 
+  <button class="font-bold text-white duration-500 bg-green-900 rounded-md hover:shadow-xl hover:bg-green-700"
+    onclick="window.location.href = '/admin/userAdministration';">
+    Benutzerverwaltung anzeigen
   </button>
-  <button class="rounded-md bg-green-900 hover:shadow-xl hover:bg-green-700 duration-500 text-white font-bold" onclick="window.location.href = '/admin/log';"> 
+  <button class="font-bold text-white duration-500 bg-green-900 rounded-md hover:shadow-xl hover:bg-green-700"
+    onclick="window.location.href = '/admin/log';">
     Letzte Änderungen anzeigen
   </button>
 </div>

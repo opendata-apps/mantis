@@ -6,6 +6,8 @@ from app.database.models import TblMeldungen, TblFundortBeschreibung, TblFundort
 from datetime import datetime
 from app.forms import MantisSightingForm
 from sqlalchemy import or_
+from flask import render_template_string
+from sqlalchemy import inspect
 
 # Blueprints
 admin = Blueprint('admin', __name__)
@@ -13,11 +15,14 @@ admin = Blueprint('admin', __name__)
 
 @admin.route('/admin')
 def admin_index():
-    return render_template('admin/adminPanel.html')
+    reported_sightings = TblMeldungen.query.all()
+    return render_template('admin/adminPanel.html', reported_sightings=reported_sightings)
+
 
 @admin.route('/admin/log')
 def admin_subsites_log():
     return render_template('admin/log.html')
+
 
 @admin.route('/admin/userAdministration')
 def admin_subsites_users():
