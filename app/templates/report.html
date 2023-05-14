@@ -37,7 +37,8 @@
         <!-- Nutzereingabe Step End-->
 
         <!-- Fundort Step Start-->
-        <div id="step2" class="hidden step">
+        <div id="step2" class="hidden overflow-auto step">
+          <div id="map" class="mt-4 border shadow-md h-96 sm:h-64 lg:h-96"></div>
           <div class="grid grid-cols-1 gap-4 mt-4 md:grid-cols-2">
             <div>
               {{ form.longitude.label(class="block text-sm font-semibold text-gray-600") }}
@@ -128,6 +129,33 @@
       </form>
 
       <script>
+        let map;
+        // Add Leaflet map configuration and event handling
+        function initMap() {
+          map = L.map('map').setView([52.5200, 13.4050], 5);
+
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 18,
+          }).addTo(map);
+
+          let userMarker;
+
+          // Update form fields on map click
+          map.on('click', function (e) {
+            document.querySelector('#latitude').value = e.latlng.lat.toFixed(5);
+            document.querySelector('#longitude').value = e.latlng.lng.toFixed(5);
+
+            getAddressFromCoordinates(e.latlng.lat, e.latlng.lng);
+
+            if (userMarker) {
+              userMarker.remove();
+            }
+
+            userMarker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map);
+          });
+        }
+        document.addEventListener('DOMContentLoaded', initMap);
 
         function getAddressFromCoordinates(latitude, longitude) {
           const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`;
@@ -235,6 +263,13 @@
           steps.forEach((step, i) => {
             step.classList.toggle('hidden', i !== index);
           });
+
+          // When showing the map, invalidate the size and slightly delay the map resize
+          if (index === 1) {
+            setTimeout(() => {
+              map.invalidateSize();
+            }, 100);
+          }
         }
 
         step2Prev.addEventListener('click', () => showStep(0));
