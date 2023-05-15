@@ -3,7 +3,12 @@ Entwicklung
 
 .. toctree::
    :maxdepth: 2
-   :glob:
 
-   *.rst
+   color_palette.rst
+   database_schema.rst
+   installation.rst
+   installationspakete.rst
+   speicherschema-bilder.rst
+   workflow.rst
+
 
