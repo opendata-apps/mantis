@@ -2,6 +2,7 @@
 \.flantis
 \.1flantis
 \.migrations
+app\static\build\theme.css
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
