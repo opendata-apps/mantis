@@ -5,5 +5,5 @@ Entwicklung
    :maxdepth: 2
    :glob:
 
-   *
+   *.rst
 

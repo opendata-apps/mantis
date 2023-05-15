@@ -18,5 +18,5 @@ Sie finden hier die Dokumentation zum Projekt.
    :maxdepth: 1
    :glob:
 
-   ./insekt/steckbrief
-   ./development/index
+   ./insekt/steckbrief.rst
+   ./development/index.rst
