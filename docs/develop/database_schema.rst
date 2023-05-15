@@ -10,7 +10,7 @@
   Ordner
 
   ``manits/app/database/``.
-- Die Verbindung zur Datenbankt wird in der Datei
+- Die Verbindung zur Datenbank wird in der Datei
 
   ``manits/app/config.py``
 
