@@ -13,13 +13,14 @@ Klicken sie dazu auf die unten aufgeführten Optionen! <br />
 {%endblock text %}
 {% block content %}
 <!-- Inhalt im weißen Feld -->
-<div class="grid grid-cols-5 grid-rows-6 gap-4 m-3">
-  <div class="col-span-3 row-span-6 duration-500 bg-gray-200 border-4 border-gray-200 rounded-md hover:shadow-xl">
+<div class="grid h-screen grid-cols-5 grid-rows-6 gap-4 m-3">
+  <div
+    class="col-span-3 row-span-6 overflow-y-auto duration-500 bg-gray-200 border-4 border-gray-200 rounded-md hover:shadow-xl">
     {% block reported_sightings %}
     <!-- Übersicht über die Meldungen -->
-    <div class="mt-6 overflow-x-auto overflow-y-auto h-96">
-      <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-100">
+    <div class="mt-6 overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200" id="data_table">
+        <thead class="bg-gray-100" id="table-head">
           <tr>
             <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-600 uppercase">ID</th>
             <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-600 uppercase">Fund Datum</th>
@@ -30,7 +31,7 @@ Klicken sie dazu auf die unten aufgeführten Optionen! <br />
             <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-600 uppercase">Beschreibung</th>
           </tr>
         </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
+        <tbody class="bg-white divide-y divide-gray-200" id="table-body">
           {% for sighting in reported_sightings %}
           <tr>
             <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{{ sighting.id }}</td>
@@ -48,27 +49,31 @@ Klicken sie dazu auf die unten aufgeführten Optionen! <br />
   </div>
   <div
     class="sticky col-span-2 row-span-2 duration-500 bg-gray-200 border-4 border-gray-200 rounded-md top-3 hover:shadow-xl">
-    <!-- Filter auswählen und anwenden.-->
-    <form action="/admin/apply_filters" method="POST">
-      <label for="date_range" class="block text-sm font-medium text-gray-700">Date Range:</label>
-      <input type="date" name="start_date" class="block w-full mt-1 p-1.5 border-gray-300 rounded-md">
-      <input type="date" name="end_date" class="block w-full mt-1 p-1.5 border-gray-300 rounded-md">
+    <label for="tables" class="block text-sm font-medium text-gray-700">Select a table:</label>
+    <select id="tables" class="block w-full mt-1 p-1.5 border-gray-300 rounded-md" onchange="loadTableData(this.value)">
+      {% for table in tables %}
+      <option value="{{ table }}">{{ table }}</option>
+      {% endfor %}
+    </select>
 
-      <label for="location" class="block mt-4 text-sm font-medium text-gray-700">Location:</label>
-      <input type="text" name="location" class="block w-full mt-1 p-1.5 border-gray-300 rounded-md">
+    <label for="date_range" class="block text-sm font-medium text-gray-700">Date Range:</label>
+    <input type="date" name="start_date" class="block w-full mt-1 p-1.5 border-gray-300 rounded-md">
+    <input type="date" name="end_date" class="block w-full mt-1 p-1.5 border-gray-300 rounded-md">
 
-      <button type="submit"
-        class="w-full mt-4 font-bold text-white duration-500 bg-green-900 rounded-md hover:shadow-xl hover:bg-green-700">
-        Apply Filters
-      </button>
-    </form>
+    <label for="location" class="block mt-4 text-sm font-medium text-gray-700">Location:</label>
+    <input type="text" name="location" class="block w-full mt-1 p-1.5 border-gray-300 rounded-md">
+
+    <button type="submit"
+      class="w-full mt-4 font-bold text-white duration-500 bg-green-900 rounded-md hover:shadow-xl hover:bg-green-700">
+      Apply Filters
+    </button>
   </div>
   <div
     class="sticky col-span-2 row-span-2 duration-500 bg-gray-200 border-4 border-gray-200 rounded-md top-3 hover:shadow-xl">
     <!--   Optionen wie Export Selected, Export All, Bearbeiten, etc.  -->
     <button
       class="w-full mt-2 font-bold text-white duration-500 bg-green-900 rounded-md hover:shadow-xl hover:bg-green-700"
-      onclick="window.location.href = '/admin/export/csv';">
+      onclick="exportTableData()">
       Export as CSV
     </button>
     <button
@@ -91,5 +96,58 @@ Klicken sie dazu auf die unten aufgeführten Optionen! <br />
     onclick="window.location.href = '/admin/log';">
     Letzte Änderungen anzeigen
   </button>
+  <script>
+    function exportTableData() {
+      let selectedTable = document.getElementById('tables').value;
+      window.location.href = '/admin/export/csv/' + selectedTable;
+    }
+
+    window.onload = function () {
+      document.getElementById("tables").addEventListener("change", function () {
+        loadTableData(this.value);
+      });
+    }
+
+    function loadTableData(table_name) {
+      fetch('/table/' + table_name)
+        .then(response => response.json())
+        .then(data => {
+          let tableBody = document.getElementById('table-body');
+          let tableHead = document.getElementById('table-head');
+
+          // Clear previous data
+          tableBody.innerHTML = "";
+          tableHead.innerHTML = "";
+
+          if (data.length > 0) {
+            // Create table headers
+            let headerRow = document.createElement('tr');
+            for (let key in data[0]) {
+              let th = document.createElement('th');
+              th.classList.add('px-6', 'py-3', 'text-xs', 'font-medium', 'tracking-wider', 'text-left', 'text-gray-600', 'uppercase'); // Add the same styles
+              th.innerText = key;
+              headerRow.appendChild(th);
+            }
+            tableHead.appendChild(headerRow);
+
+            // Create table rows
+            for (let row of data) {
+              let tr = document.createElement('tr');
+              for (let key in row) {
+                let td = document.createElement('td');
+                td.classList.add('px-6', 'py-4', 'text-sm', 'text-gray-600', 'whitespace-nowrap'); // Add the same styles
+                td.innerText = row[key];
+                tr.appendChild(td);
+              }
+              tableBody.appendChild(tr);
+            }
+          }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+
+  </script>
+
 </div>
 {% endblock content %}

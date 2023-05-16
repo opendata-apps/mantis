@@ -15,6 +15,7 @@ data = Blueprint('data', __name__)
 def auswertungen():
     return render_template('auswertungen.html')
 
+
 # todo: new database
 
 

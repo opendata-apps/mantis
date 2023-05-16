@@ -12,6 +12,7 @@ from flask_sqlalchemy import SQLAlchemy
 # Blueprints
 main = Blueprint('main', __name__)
 
+
 @main.route('/start')
 @main.route('/')
 def index():
