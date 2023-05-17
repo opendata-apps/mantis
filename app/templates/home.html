@@ -1,97 +1,59 @@
-{% extends "layout.html" %} {% block title %}Gottesanbeterin{% endblock title %}
+{% extends "layout.html" %}
+{% block title %}Projektbeschreibung{% endblock title %}
+
 {% block content %}
 
-<!-- How to report section -->
-<section id="how-to-report" class="relative py-16">
-  <div class="container px-4 mx-auto">
-    <h2 class="mb-10 text-3xl font-bold text-center md:text-4xl">
-      Wie melde ich meine Gottesanbeterin-Funde?
-    </h2>
-    <div class="grid gap-8 md:grid-cols-2">
-      <div class="animate-fade-in">
-        <div
-          class="px-10 py-10 duration-500 transform bg-white rounded-lg shadow-md hover:-translate-y-1 hover:shadow-lg">
-          <div class="overflow-hidden duration-500 transform bg-white rounded-lg shadow-md">
-            <img src="{{ url_for('static', filename='images/berger09.webp') }}" alt="Meldung"
-              class="object-cover w-full">
-          </div>
-          <div class="px-6 py-4">
-            <h3 class="my-auto text-xl font-semibold text-center text-gray-800">
-              Meldung abgeben
-            </h3>
-            <p class="text-center text-gray-600">
-              Für eine Meldung werden ein Foto, der Fundort und das Datum benötigt.
-            </p>
-            <a href="/report" class="my-auto font-bold text-green-900 hover:underline">
-              Weiterlesen
-            </a>
-          </div>
-        </div>
+<!--Projektbeschreibung section -->
+<section id="Projektbeschreibung" class="relative pt-16">
+  <div class="grid grid-cols-1 gap-6 px-2 md:grid-cols-2 md:px-4 lg:grid-cols-3 xl:px-8">
+
+    <div class="mx-auto transform bg-white rounded-lg shadow-md hover:-translate-y-1 hover:shadow-lg card">
+      <img src="{{ url_for('static', filename='images/berger06.webp') }}" alt="Gottesanbeterin"
+        class="w-full h-auto rounded-t-lg">
+      <div class="px-4 py-6">
+        <h3 class="mb-2 text-xl font-semibold text-center text-gray-800">
+          So können Sie mitmachen
+        </h3>
+        <p class="text-center text-gray-600">
+          Machen Sie ein Foto von der Gottesanbeterin, notieren Sie den Fundort und das Datum und senden Sie uns alle
+          Daten zusammen mit Ihrer Adresse. Werden Sie zum Insektenforscher und helfen Sie uns, die Verbreitung der
+          Gottesanbeterin zu erfassen!
+        </p>
       </div>
-      <div class="animate-fade-in">
-        <div
-          class="px-10 py-10 duration-500 transform bg-white rounded-lg shadow-md hover:-translate-y-1 hover:shadow-lg">
-          <div class="overflow-hidden duration-500 transform bg-white rounded-lg shadow-md">
-            <img src="{{ url_for('static', filename='images/berger02.webp') }}" alt="Gottesanbeterin"
-              class="object-cover w-full">
-          </div>
-          <div class="px-6 py-4">
-            <h3 class="my-auto text-xl font-semibold text-center text-gray-800">
-              Weitere Informationen
-            </h3>
-            <p class="text-center text-gray-600">
-              Weitere Informationen zu Gottesanbeterinnen können Sie hier nachlesen.
-            </p>
-            <a href="/info" class="mt-4 font-bold text-green-900 hover:underline">
-              Weiterlesen
-            </a>
-          </div>
-        </div>
+    </div>
+
+    <div class="mx-auto transform bg-white rounded-lg shadow-md hover:-translate-y-1 hover:shadow-lg card">
+      <img src="{{ url_for('static', filename='images/berger03.webp') }}" alt="Gottesanbeterin"
+        class="w-full h-auto rounded-t-lg">
+      <div class="px-4 py-6">
+        <h3 class="mb-2 text-xl font-semibold text-center text-gray-800">
+          Wie funktioniert das Mitmachprojekt?
+        </h3>
+        <p class="text-center text-gray-600">
+          Im Jahr 2017 initiierten das Naturkundemuseum Potsdam und die Mantidenfreunde Berlin-Brandenburg das
+          Mitmachprojekt "Gottesanbeterin gesucht!". Bürgerinnen und Bürger sind dazu aufgerufen, Funde der
+          Gottesanbeterin zu melden. Über 40 Mal wurde die Gottesanbeterin in Brandenburg bereits gesichtet. Jeden
+          Monat
+          kommen neue Funde hinzu. Werden auch Sie zum Insektenforscher und helfen Sie dabei, die Verbreitung der
+          Gottesanbeterin zu dokumentieren!
+        </p>
+      </div>
+    </div>
+
+    <div class="mx-auto transform bg-white rounded-lg shadow-md hover:-translate-y-1 hover:shadow-lg card">
+      <img src="{{ url_for('static', filename='images/berger10.webp') }}" alt="Gottesanbeterin"
+        class="w-full h-auto rounded-t-lg">
+      <div class="px-4 py-6">
+        <h3 class="mb-2 text-xl font-semibold text-center text-gray-800">
+          Was passiert mit den Daten?
+        </h3>
+        <p class="text-center text-gray-600">
+          Jeder Fund wird in einer Datenbank erfasst. Am Ende eines jeden Jahres wird eine Verbreitungskarte der
+          Gottesanbeterin erstellt und auf der Homepage des Naturkundemuseums Potsdam veröffentlicht. Von Jahr zu Jahr
+          können wir so gemeinsam die Ausbreitung der Gottesanbeterin nachverfolgen
+        </p>
       </div>
     </div>
   </div>
 </section>
-
-
-<!-- Animated counter section -->
-<section class="py-16 ">
-  <div class="container px-4 mx-auto">
-    <div class="relative px-8 py-12 bg-green-800 rounded-lg shadow-lg">
-      <h2 class="mb-8 text-3xl font-bold leading-tight text-center text-white">
-        Wir haben bereits <br />
-        <span class="text-6xl font-extrabold text-white counter">0</span> <br />
-        Meldungen erhalten
-      </h2>
-      <p class="mb-8 text-lg text-center text-white">
-        Helfen Sie uns, diese Zahl zu erhöhen!
-      </p>
-    </div>
-  </div>
-  <script>
-    const counter = document.querySelector(".counter");
-    let count = 0;
-    const observer = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting) {
-        const postCount = parseInt('{{ post_count }}'); // Retrieve the post_count from the server-side variable
-        const increment = Math.ceil(postCount / '{{ post_count }}'); // Calculate the increment value based on post_count
-
-        const intervalId = setInterval(() => {
-          if (count < postCount) {
-            count += increment;
-            if (count > postCount) {
-              count = postCount;
-            }
-            counter.innerText = count;
-          } else {
-            clearInterval(intervalId);
-          }
-        }, 1);
-        observer.disconnect();
-      }
-    });
-    observer.observe(counter);
-  </script>
-</section>
-
-
 {% endblock content %}
