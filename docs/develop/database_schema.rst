@@ -25,7 +25,7 @@ Demodaten befinden sich im Ornder:
 
   ``manits/tests/demaodata``
 
-Die importansweisungen sind in der Datei
+Die import-Answeisungen sind in der Datei
 
   ``manits/tests/demaodata/demo-data-main.sql``
 

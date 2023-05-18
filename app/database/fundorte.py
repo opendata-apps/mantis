@@ -11,8 +11,8 @@ class TblFundorte (db.Model):
     strasse = db.Column(db.String(100), nullable=False)
     kreis = db.Column(db.String, nullable=False)
     land = db.Column(db.String(50), nullable=False)
-    amt = db.Column(db.String(50), nullable=False)
-    mtb = db.Column(db.String(50), nullable=False)
+    amt = db.Column(db.String(50), nullable=True)
+    mtb = db.Column(db.String(50), nullable=True)
     beschreibung = db.Column(db.Integer, db.ForeignKey(
         "beschreibung.id"), nullable=False)
     longitude = db.Column(db.VARCHAR(25), nullable=False)
