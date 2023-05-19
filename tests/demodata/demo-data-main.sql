@@ -31,10 +31,11 @@ insert into melduser select id, id , 1 from meldungen;
 --
 
 select
-  me.id, dat_fund, dat_meld, dat_bear, anzahl, fo_quelle, fo_kategorie, anmerkung,
+  me.id, dat_fund_von, dat_fund_bis, dat_meld, dat_bear,
+  anzahl, fo_quelle, art_m, art_w, art_n, art_o, anm_melder, anm_bearbeiter,
   be.beschreibung,
   user_id,  user_name, user_rolle, user_kontakt,
-  plz, ort, strasse, land, kreis, longitude, latitude, ablage
+  plz, ort, strasse, land, kreis, amt, mtb, longitude, latitude, ablage
 
 
  from melduser mu
