@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+{% block title %}Review neuer Meldungen{% endblock title %}
+{% block content %}
+<!--Admin Sample Page-->
+<div class="container px-4 py-2 mx-auto">
+
+  <form action="http://localhost:5000/reviewer"
+	method="post">
+  <p>ID eingeben (min: 2, max: 537):</p>
+  <p><input type="text" name="id" /></p>
+  <p class="pt-4"><input type="submit" value="submit"
+	    class="inline-block rounded  px-6 pb-2 pt-2.5 text-xs
+		   font-medium uppercase leading-normal text-white
+		   shadow-[0_4px_9px_-4px_#3b71ca] transition duration-150
+		   ease-in-out hover:bg-primary-600 bg-green-900"/>
+  </p>
+</form>  
+
+  <p class="pt-6">
+  {%for k, v in result.items() %}
+    {{k}} : [{{v}}] <br/>
+  {%endfor %}
+  </p>
+</div>
+
+{% endblock content %}
