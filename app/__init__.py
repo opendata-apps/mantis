@@ -17,8 +17,10 @@ def create_app(config_class=Config):
     from app.routes.main import main
     from app.routes.admin import admin
     from app.routes.data import data
+    from app.routes.reviewer import review
     app.register_blueprint(main)
     app.register_blueprint(admin)
     app.register_blueprint(data)
+    app.register_blueprint(review)
 
     return app
