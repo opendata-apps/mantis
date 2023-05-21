@@ -34,3 +34,10 @@
     font-size: 3rem !important;
   }
 }
+
+.table-responsive {
+  display: block !important;
+  width: 100% !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+}

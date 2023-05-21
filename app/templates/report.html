@@ -1,4 +1,5 @@
 {% extends "layout.html" %}
+{% from "macro.html" import popover %}
 {% block head %}
 <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
 {% endblock %}
@@ -9,23 +10,111 @@
   <div class="flex items-center min-h-screen bg-gray-100">
     <div class="w-full max-w-4xl p-6 mx-auto bg-white rounded-lg shadow-xl">
       <form action="" method="POST" enctype="multipart/form-data" id="mainForm">
-        <!-- Nutzereingabe Step Start-->
+
+        <!-- User Input and Location Input Step Start-->
         <div id="step1" class="step">
           {{ form.hidden_tag() }}
           <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              {{ form.picture.label(class="block text-sm font-semibold text-gray-600") }}
-              {{ form.picture(class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
+              <label class="block text-sm font-medium text-gray-90" for="{{ form.picture.id }}">
+                {{ form.picture.label.text }}
+                <div class="relative">
+                  {{ form.picture(class="block w-full mt-1 text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none ", id=form.picture.id) }}
+                  {{ popover('Hier Ihr Bild hochladen', 'picture') }}
+                </div>
+              </label>
+              <p class="mt-1 text-sm text-gray-500" id="{{ form.picture.id }}_help">
+                {{ form.picture.description }}
+              </p>
             </div>
             <div>
-              {{ form.gender.label(class="block text-sm font-semibold text-gray-600") }}
-              {{ form.gender(class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
+              <label class="block text-sm font-semibold text-gray-600">
+                {{ form.gender.label.text }}
+                <div class="relative">
+                  {{ form.gender(class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
+                  {{ popover('Geben Sie bitte das Geschlecht ein.', 'gender') }}
+                </div>
+              </label>
             </div>
-          </div>
-          <div class="mt-4">
-            {{ form.picture_description.label(class="block text-sm font-semibold text-gray-600") }}
-            {{ form.picture_description(placeholder="Geben Sie hier Ihre Bildbeschreibung ein", class="w-full h-32 p-2 mt-1 bg-white border rounded-md resize-none focus:outline-none focus:ring-1 focus:ring-green-500") }}
-            <span id="charCount" class="text-xs text-right text-gray-500"></span>
+            <div>
+              <label class="block text-sm font-semibold text-gray-600">
+                {{ form.longitude.label.text }}
+                <div class="relative">
+                  {{ form.longitude(placeholder="z.B. 13.12345", class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
+                  {{ popover('Geben Sie bitte den Längengrad ein.', 'longitude') }}
+                </div>
+              </label>
+              <label class="block text-sm font-semibold text-gray-600">
+                {{ form.latitude.label.text }}
+                <div class="relative">
+                  {{ form.latitude(placeholder="z.B. 52.12345", class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
+                  {{ popover('Geben Sie bitte den Breitengrad ein.', 'latitude') }}
+                </div>
+              </label>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-600">
+                {{ form.zip_code.label.text }}
+                <div class="relative">
+                  {{ form.zip_code(id="zip_code", placeholder="z.B. 10115", class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
+                  {{ popover('Geben Sie bitte die Postleitzahl ein.', 'zip_code') }}
+                </div>
+              </label>
+              <label class="block text-sm font-semibold text-gray-600">
+                {{ form.city.label.text }}
+                <div class="relative">
+                  {{ form.city(id="city", placeholder="z.B. Berlin", class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
+                  {{ popover('Geben Sie bitte den Stadtnamen ein.', 'city') }}
+                </div>
+              </label>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-600">
+                {{ form.street.label.text }}
+                <div class="relative">
+                  {{ form.street(placeholder="z.B. Musterstraße", class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
+                  {{ popover('Geben Sie bitte den Straßennamen ein.', 'street') }}
+                </div>
+              </label>
+              <label class="block text-sm font-semibold text-gray-600">
+                {{ form.state.label.text }}
+                <div class="relative">
+                  {{ form.state(id="state", placeholder="z.B. Berlin", class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
+                  {{ popover('Geben Sie bitte den Bundeslandnamen ein.', 'state') }}
+                </div>
+              </label>
+              <label class="block text-sm font-semibold text-gray-600">
+                {{ form.district.label.text }}
+                <div class="relative">
+                  {{ form.district(id="district", placeholder="z.B. Mitte", class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
+                  {{ popover('Geben Sie bitte den Bezirksnamen ein.', 'district') }}
+                </div>
+              </label>
+            </div>
+            <div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-600">
+                  {{ form.picture_description.label.text }}
+                  <div class="relative">
+                    {{ form.picture_description(placeholder="Geben Sie hier Ihre Bildbeschreibung ein", class="w-full p-2 mt-1 whitespace-pre-wrap bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
+                    {{ popover('Geben Sie bitte eine Beschreibung des Bildes ein.', 'picture_description') }}
+                  </div>
+                </label>
+                <span id="charCount" class="text-xs text-right text-gray-500"></span>
+              </div>
+              <div>
+                <label class="block mt-10 text-sm font-semibold text-gray-600">
+                  {{ form.location_description.label.text }}
+                  <div class="relative">
+                    {{ form.location_description(placeholder="Geben Sie hier Ihre Ortsbeschreibung ein", class="w-full p-2 mt-1 whitespace-pre-wrap bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
+                    {{ popover('Geben Sie bitte eine Beschreibung des Ortes ein.', 'location_description') }}
+                  </div>
+                </label>
+              </div>
+            </div>
+            <div class="col-span-full">
+              <div id="map" class="h-64 border shadow-md sm:h-96 lg:h-96"></div>
+            </div>
           </div>
           <div class="flex justify-end mt-4 space-x-2">
             <button type="button" id="step1Next"
@@ -34,76 +123,42 @@
             </button>
           </div>
         </div>
-        <!-- Nutzereingabe Step End-->
-
-        <!-- Fundort Step Start-->
-        <div id="step2" class="hidden overflow-auto step">
-          <div id="map" class="mt-4 border shadow-md h-96 sm:h-64 lg:h-96"></div>
-          <div class="grid grid-cols-1 gap-4 mt-4 md:grid-cols-2">
-            <div>
-              {{ form.longitude.label(class="block text-sm font-semibold text-gray-600") }}
-              {{ form.longitude(placeholder="z.B. 13.12345", class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
-            </div>
-            <div>
-              {{ form.latitude.label(class="block text-sm font-semibold text-gray-600") }}
-              {{ form.latitude(placeholder="z.B. 52.12345", class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
-            </div>
-            <div>
-              {{ form.zip_code.label(class="block text-sm font-semibold text-gray-600") }}
-              {{ form.zip_code(id="zip_code", placeholder="z.B. 10115", class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
-            </div>
-            <div>
-              {{ form.city.label(class="block text-sm font-semibold text-gray-600") }}
-              {{ form.city(id="city", placeholder="z.B. Berlin", class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
-            </div>
-            <div>
-              {{ form.street.label(class="block text-sm font-semibold text-gray-600") }}
-              {{ form.street(placeholder="z.B. Musterstraße", class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
-            </div>
-            <div>
-              {{ form.state.label(class="block text-sm font-semibold text-gray-600") }}
-              {{ form.state(id="state", placeholder="z.B. Berlin", class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
-            </div>
-            <div>
-              {{ form.district.label(class="block text-sm font-semibold text-gray-600") }}
-              {{ form.district(id="district", placeholder="z.B. Mitte", class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
-            </div>
-          </div>
-          <div>
-            {{ form.location_description.label(class="block mt-4 text-sm font-semibold text-gray-600") }}
-            {{ form.location_description(placeholder="Geben Sie hier Ihre Ortsbeschreibung ein", class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
-          </div>
-          <div class="flex justify-between mt-4 space-x-2">
-            <button type="button" id="step2Prev"
-              class="w-full px-6 py-2 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none md:w-auto">
-              Prev
-            </button>
-            <button type="button" id="step2Next"
-              class="w-full px-6 py-2 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none md:w-auto">
-              Next
-            </button>
-          </div>
-        </div>
-        <!-- Fundort Step End-->
+        <!-- User Input and Location Input Step End-->
 
         <!-- Melderinfo Step Start-->
         <div id="step3" class="hidden step">
-          <div class="grid grid-cols-1 gap-4 mt-4 md:grid-cols-2">
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              {{ form.first_name.label(class="block text-sm font-semibold text-gray-600") }}
-              {{ form.first_name(placeholder="z.B. Max", class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
+              <label class="block text-sm font-semibold text-gray-600">
+                {{ form.first_name.label.text }}
+                <div class="relative">
+                  {{ form.first_name(placeholder="z.B. Max", class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
+                  {{ popover('Geben Sie bitte Ihren Vornamen ein.', 'first_name') }}
+                </div>
+              </label>
+              <label class="block text-sm font-semibold text-gray-600">
+                {{ form.last_name.label.text }}
+                <div class="relative">
+                  {{ form.last_name(placeholder="z.B. Mustermann", class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
+                  {{ popover('Geben Sie bitte Ihren Nachnamen ein.', 'last_name') }}
+                </div>
+              </label>
             </div>
             <div>
-              {{ form.last_name.label(class="block text-sm font-semibold text-gray-600") }}
-              {{ form.last_name(placeholder="z.B. Mustermann", class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
-            </div>
-            <div>
-              {{ form.sighting_date.label(class="block text-sm font-semibold text-gray-600") }}
-              {{ form.sighting_date(placeholder="z.B. 2023-05-14", class="w-full p-2 mt-1 bg-white border rounded-md focus:ring-green-500") }}
-            </div>
-            <div>
-              {{ form.contact.label(class="block text-sm font-semibold text-gray-600") }}
-              {{ form.contact(placeholder="z.B. 0170-1234567", class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
+              <label class="block text-sm font-semibold text-gray-600">
+                {{ form.sighting_date.label.text }}
+                <div class="relative">
+                  {{ form.sighting_date(placeholder="z.B. 2023-05-14", class="w-full p-2 mt-1 bg-white border rounded-md focus:ring-green-500") }}
+                  {{ popover('Geben Sie bitte das Datum der Sichtung ein.', 'sighting_date') }}
+                </div>
+              </label>
+              <label class="block text-sm font-semibold text-gray-600">
+                {{ form.contact.label.text }}
+                <div class="relative">
+                  {{ form.contact(placeholder="z.B. 0170-1234567", class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
+                  {{ popover('Geben Sie bitte Ihre Kontaktinformationen ein.', 'contact') }}
+                </div>
+              </label>
             </div>
           </div>
           <div class="mt-4">
@@ -115,7 +170,7 @@
             </div>
           </div>
           <div class="flex justify-between mt-4 space-x-2">
-            <button type="button" id="step3Prev"
+            <button type="button" id="step2Prev"
               class="w-full px-6 py-2 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none md:w-auto">
               Prev
             </button>
@@ -127,280 +182,287 @@
         </div>
         <!-- Melderinfo Step End-->
       </form>
-
-      <script>
-        let map;
-        // Add Leaflet map configuration and event handling
-        function initMap() {
-          map = L.map('map').setView([52.5200, 13.4050], 5);
-
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-            maxZoom: 18,
-          }).addTo(map);
-
-          let userMarker;
-
-          // Update form fields on map click
-          map.on('click', function (e) {
-            document.querySelector('#latitude').value = e.latlng.lat.toFixed(5);
-            document.querySelector('#longitude').value = e.latlng.lng.toFixed(5);
-
-            getAddressFromCoordinates(e.latlng.lat, e.latlng.lng);
-
-            if (userMarker) {
-              userMarker.remove();
-            }
-
-            userMarker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map);
-          });
-        }
-        document.addEventListener('DOMContentLoaded', initMap);
-
-        function getAddressFromCoordinates(latitude, longitude) {
-          const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`;
-
-          fetch(nominatimUrl)
-            .then(response => response.json())
-            .then(data => {
-              const address = data.address;
-              document.querySelector("#zip_code").value = address.postcode || "";
-              document.querySelector("#city").value = address.city || "";
-              document.querySelector("#street").value = `${address.road || ""} ${address.house_number || ""}`.trim();
-              document.querySelector("#state").value = address.state || "";
-              document.querySelector("#district").value = address.suburb || "";
-              console.log("Address data:", address);
-            })
-            .catch(error => {
-              console.error("Error fetching address data:", error);
-            });
-        }
-
-        function saveFormDataToLocalStorage() {
-          const form = document.getElementById('mainForm');
-          const formData = new FormData(form);
-
-          for (const [key, value] of formData.entries()) {
-            localStorage.setItem(key, value);
-          }
-        }
-
-        function loadFormDataFromLocalStorage() {
-          const form = document.getElementById('mainForm');
-
-          for (const input of form.elements) {
-            if (input.name && input.type !== 'file') {
-              const value = localStorage.getItem(input.name);
-              if (value) {
-                try {
-                  input.value = value;
-                } catch (e) {
-                  console.error('Error setting input value:', e);
-                }
-              }
-            }
-          }
-        }
-
-
-        // Call this function when the page loads to load saved form data.
-        document.addEventListener('DOMContentLoaded', loadFormDataFromLocalStorage);
-
-        // Call this function to save form data to local storage when any input changes.
-        document.getElementById('mainForm').addEventListener('input', saveFormDataToLocalStorage);
-
-        document.addEventListener('DOMContentLoaded', function () {
-          const pictureInput = document.querySelector('#picture');
-
-          pictureInput.addEventListener('change', function (event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            EXIF.getData(file, function () {
-              // Read metadata from the image
-              const lat = EXIF.getTag(this, 'GPSLatitude');
-              const lng = EXIF.getTag(this, 'GPSLongitude');
-              const latRef = EXIF.getTag(this, 'GPSLatitudeRef');
-              const lngRef = EXIF.getTag(this, 'GPSLongitudeRef');
-
-              if (lat && lng && latRef && lngRef) {
-                // Convert coordinates to decimal
-                const latitude = toDecimal(lat, latRef);
-                const longitude = toDecimal(lng, lngRef);
-
-                // Set the values to the form fields
-                document.querySelector('#latitude').value = latitude;
-                document.querySelector('#longitude').value = longitude;
-                console.log('Latitude: ' + latitude + ' Longitude: ' + longitude);
-
-                getAddressFromCoordinates(latitude, longitude);
-              } else {
-                // Handle the case when GPS data is not available in the image
-                console.log('No GPS data found in the file');
-              }
-            });
-          });
-        });
-
-        function toDecimal(coord, ref) {
-          const [degrees, minutes, seconds] = coord;
-          let decimal = degrees + minutes / 60 + seconds / (60 * 60);
-
-          if (ref === 'S' || ref === 'W') {
-            decimal = -decimal;
-          }
-
-          return decimal;
-        }
-
-        const steps = document.querySelectorAll('.step');
-        const step1Next = document.getElementById('step1Next');
-        const step2Prev = document.getElementById('step2Prev');
-        const step2Next = document.getElementById('step2Next');
-        const step3Prev = document.getElementById('step3Prev');
-
-        function showStep(index) {
-          steps.forEach((step, i) => {
-            step.classList.toggle('hidden', i !== index);
-          });
-
-          // When showing the map, invalidate the size and slightly delay the map resize
-          if (index === 1) {
-            setTimeout(() => {
-              map.invalidateSize();
-            }, 100);
-          }
-        }
-
-        step2Prev.addEventListener('click', () => showStep(0));
-        step2Next.addEventListener('click', () => showStep(2));
-        step3Prev.addEventListener('click', () => showStep(1));
-
-        function autoCompleteData(inputField, zipCode, city, district, state) {
-          var inputs = ['zip_code', 'city', 'district', 'state'];
-
-          for (const id of inputs) {
-            if (inputField.id === id) continue;
-            let fieldValue = null;
-
-            switch (id) {
-              case 'zip_code':
-                fieldValue = zipCode;
-                break;
-              case 'city':
-                fieldValue = city;
-                break;
-              case 'district':
-                fieldValue = district;
-                break;
-              case 'state':
-                fieldValue = state;
-                break;
-            }
-
-            document.getElementById(id).value = fieldValue || '';
-          }
-        }
-
-        function getAutoCompleteData(inputField) {
-          var query = inputField.value;
-          if (query) {
-            fetch('/autocomplete?q=' + query)
-              .then(response => response.json())
-              .then(data => {
-                if (data.length > 0) {
-                  var firstResult = data[0];
-                  autoCompleteData(inputField, firstResult.plz, firstResult.ort, firstResult.landkreis, firstResult.bundesland);
-                }
-              });
-          }
-        }
-
-        document.addEventListener('DOMContentLoaded', function () {
-          var zipCodeInput = document.getElementById('zip_code');
-
-          function addEvents(inputField) {
-            inputField.addEventListener('keydown', function (event) {
-              if (event.key === 'Enter' || event.key === 'Tab') {
-                if (inputField.value.length >= 4) {
-                  getAutoCompleteData(inputField);
-                }
-              }
-            });
-            inputField.addEventListener('blur', function () {
-              if (inputField.value.length >= 5) {
-                getAutoCompleteData(inputField);
-              }
-            });
-            //if input field is empty, clear all other fields related to it
-            inputField.addEventListener('input', function () {
-              if (inputField.value === '') {
-                autoCompleteData(inputField, '', '', '', '');
-              }
-            });
-          }
-
-          addEvents(zipCodeInput);
-        });
-
-        // Character Counter for Picture Description
-        const inputField = document.querySelector("#{{ form.picture_description.id }}");
-        const charCountElement = document.querySelector("#charCount");
-
-        inputField.addEventListener("input", () => {
-          const charCount = inputField.value.length;
-          charCountElement.textContent = `(${charCount}/500)`;
-        });
-        // Character Counter for Picture Description
-
-        // Step 1 Validation
-        const GENDER_CHOICES = [
-          ['', 'Bitte auswählen'],
-          ['männchen', 'Männchen'],
-          ['weibchen', 'Weibchen'],
-          ['nymphen', 'Nymphen'],
-          ['ootheken', 'Ootheken']
-        ];
-
-        const ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif'];
-
-        function validateStep1() {
-          const picture = document.querySelector('#picture').files[0];
-          const allowedTypes = ['png', 'jpg', 'jpeg', 'gif'];
-          const allowedSize = 5 * 1024 * 1024;
-          const fileName = picture ? picture.name.toLowerCase() : '';
-
-          // Überprüfen, ob das Bildfeld ausgefüllt wurde und eine gültige Datei ausgewählt wurde
-          if (!picture) {
-            alert('Bitte wählen Sie ein Bild aus.');
-            return false;
-          } else if (!allowedTypes.includes(fileName.split('.').pop()) || picture.size > allowedSize) {
-            alert('Bitte geben Sie eine gültige Bilddatei ein, die kleiner als 5 MB ist und eine der folgenden Erweiterungen hat: PNG, JPG, JPEG oder GIF.')
-            return false;
-          } else {
-            const gender = document.querySelector('#gender').value;
-
-            // Überprüfen, ob das Geschlecht ausgefüllt wurde und ob es ein gültiger Wert ist
-            if (gender === '') {
-              alert('Bitte wählen Sie ein Entwicklungsstadium aus.');
-              return false;
-            }
-
-            return true;
-          }
-        }
-        // Ändern Sie den Event-Listener, um die Pflichtfeldüberprüfung durchzuführen
-        step1Next.addEventListener('click', () => {
-          if (validateStep1()) {
-            showStep(1);
-          }
-        });
-        // Step 1 Validation
-
-
-      </script>
     </div>
   </div>
+</body>
+
+<script>
+
+
+  let map;
+  // Add Leaflet map configuration and event handling
+  function initMap() {
+    map = L.map('map').setView([52.5200, 13.4050], 5);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 18,
+    }).addTo(map);
+
+    let userMarker;
+
+    // Update form fields on map click
+    map.on('click', function (e) {
+      document.querySelector('#latitude').value = e.latlng.lat.toFixed(5);
+      document.querySelector('#longitude').value = e.latlng.lng.toFixed(5);
+
+      getAddressFromCoordinates(e.latlng.lat, e.latlng.lng);
+
+      if (userMarker) {
+        userMarker.remove();
+      }
+
+      userMarker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map);
+    });
+  }
+  document.addEventListener('DOMContentLoaded', initMap);
+
+  function getAddressFromCoordinates(latitude, longitude) {
+    const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`;
+
+    fetch(nominatimUrl)
+      .then(response => response.json())
+      .then(data => {
+        const address = data.address;
+        document.querySelector("#zip_code").value = address.postcode || "";
+        document.querySelector("#city").value = address.city || "";
+        document.querySelector("#street").value = `${address.road || ""} ${address.house_number || ""}`.trim();
+        document.querySelector("#state").value = address.state || "";
+        document.querySelector("#district").value = address.suburb || "";
+        console.log("Address data:", address);
+      })
+      .catch(error => {
+        console.error("Error fetching address data:", error);
+      });
+  }
+
+  function saveFormDataToLocalStorage() {
+    const form = document.getElementById('mainForm');
+    const formData = new FormData(form);
+
+    for (const [key, value] of formData.entries()) {
+      localStorage.setItem(key, value);
+    }
+  }
+
+  function loadFormDataFromLocalStorage() {
+    const form = document.getElementById('mainForm');
+
+    for (const input of form.elements) {
+      if (input.name && input.type !== 'file') {
+        const value = localStorage.getItem(input.name);
+        if (value) {
+          try {
+            input.value = value;
+          } catch (e) {
+            console.error('Error setting input value:', e);
+          }
+        }
+      }
+    }
+  }
+
+
+  // Call this function when the page loads to load saved form data.
+  document.addEventListener('DOMContentLoaded', loadFormDataFromLocalStorage);
+
+  // Call this function to save form data to local storage when any input changes.
+  document.getElementById('mainForm').addEventListener('input', saveFormDataToLocalStorage);
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const pictureInput = document.querySelector('#picture');
+
+    pictureInput.addEventListener('change', function (event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      EXIF.getData(file, function () {
+        // Read metadata from the image
+        const lat = EXIF.getTag(this, 'GPSLatitude');
+        const lng = EXIF.getTag(this, 'GPSLongitude');
+        const latRef = EXIF.getTag(this, 'GPSLatitudeRef');
+        const lngRef = EXIF.getTag(this, 'GPSLongitudeRef');
+
+        if (lat && lng && latRef && lngRef) {
+          // Convert coordinates to decimal
+          const latitude = toDecimal(lat, latRef);
+          const longitude = toDecimal(lng, lngRef);
+
+          // Set the values to the form fields
+          document.querySelector('#latitude').value = latitude;
+          document.querySelector('#longitude').value = longitude;
+          console.log('Latitude: ' + latitude + ' Longitude: ' + longitude);
+
+          getAddressFromCoordinates(latitude, longitude);
+        } else {
+          // Handle the case when GPS data is not available in the image
+          console.log('No GPS data found in the file');
+        }
+      });
+    });
+  });
+
+  function toDecimal(coord, ref) {
+    const [degrees, minutes, seconds] = coord;
+    let decimal = degrees + minutes / 60 + seconds / (60 * 60);
+
+    if (ref === 'S' || ref === 'W') {
+      decimal = -decimal;
+    }
+
+    return decimal;
+  }
+
+  const steps = document.querySelectorAll('.step');
+  const step1Next = document.getElementById('step1Next');
+  const step2Prev = document.getElementById('step2Prev');
+
+  function showStep(index) {
+    steps.forEach((step, i) => {
+      step.classList.toggle('hidden', i !== index);
+    });
+
+    // When showing the map, invalidate the size and slightly delay the map resize
+    if (index === 1) {
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 100);
+    }
+  }
+
+  step1Next.addEventListener('click', () => showStep(1));
+  step2Prev.addEventListener('click', () => showStep(0));
+
+  function autoCompleteData(inputField, zipCode, city, district, state) {
+    var inputs = ['zip_code', 'city', 'district', 'state'];
+
+    for (const id of inputs) {
+      if (inputField.id === id) continue;
+      let fieldValue = null;
+
+      switch (id) {
+        case 'zip_code':
+          fieldValue = zipCode;
+          break;
+        case 'city':
+          fieldValue = city;
+          break;
+        case 'district':
+          fieldValue = district;
+          break;
+        case 'state':
+          fieldValue = state;
+          break;
+      }
+
+      document.getElementById(id).value = fieldValue || '';
+    }
+  }
+
+  function getAutoCompleteData(inputField) {
+    var query = inputField.value;
+    if (query) {
+      fetch('/autocomplete?q=' + query)
+        .then(response => response.json())
+        .then(data => {
+          if (data.length > 0) {
+            var firstResult = data[0];
+            autoCompleteData(inputField, firstResult.plz, firstResult.ort, firstResult.landkreis, firstResult.bundesland);
+          }
+        });
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    var zipCodeInput = document.getElementById('zip_code');
+
+    function addEvents(inputField) {
+      inputField.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' || event.key === 'Tab') {
+          if (inputField.value.length >= 4) {
+            getAutoCompleteData(inputField);
+          }
+        }
+      });
+      inputField.addEventListener('blur', function () {
+        if (inputField.value.length >= 5) {
+          getAutoCompleteData(inputField);
+        }
+      });
+      //if input field is empty, clear all other fields related to it
+      inputField.addEventListener('input', function () {
+        if (inputField.value === '') {
+          autoCompleteData(inputField, '', '', '', '');
+        }
+      });
+    }
+
+    addEvents(zipCodeInput);
+  });
+
+  // Character Counter for Picture Description on load
+  const inputField = document.querySelector("#{{ form.picture_description.id }}");
+  const charCountElement = document.querySelector("#charCount");
+
+  function updateCharCount() {
+    const charCount = inputField.value.length;
+    charCountElement.textContent = `(${charCount}/500)`;
+  }
+
+  inputField.addEventListener("input", updateCharCount);
+
+  // Display counter on load
+  updateCharCount();
+  // Character Counter for Picture Description
+
+  // Step 1 Validation
+  const GENDER_CHOICES = [
+    ['', 'Bitte auswählen'],
+    ['männchen', 'Männchen'],
+    ['weibchen', 'Weibchen'],
+    ['nymphen', 'Nymphen'],
+    ['ootheken', 'Ootheken']
+  ];
+
+  const ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif'];
+
+  function validateStep1() {
+    const picture = document.querySelector('#picture').files[0];
+    const allowedTypes = ['png', 'jpg', 'jpeg', 'gif'];
+    const allowedSize = 5 * 1024 * 1024;
+    const fileName = picture ? picture.name.toLowerCase() : '';
+
+    // Überprüfen, ob das Bildfeld ausgefüllt wurde und eine gültige Datei ausgewählt wurde
+    if (!picture) {
+      alert('Bitte wählen Sie ein Bild aus.');
+      return false;
+    } else if (!allowedTypes.includes(fileName.split('.').pop()) || picture.size > allowedSize) {
+      alert('Bitte geben Sie eine gültige Bilddatei ein, die kleiner als 5 MB ist und eine der folgenden Erweiterungen hat: PNG, JPG, JPEG oder GIF.')
+      return false;
+    } else {
+      const gender = document.querySelector('#gender').value;
+
+      // Überprüfen, ob das Geschlecht ausgefüllt wurde und ob es ein gültiger Wert ist
+      if (gender === '') {
+        alert('Bitte wählen Sie ein Entwicklungsstadium aus.');
+        return false;
+      }
+
+      return true;
+    }
+  }
+  // Ändern Sie den Event-Listener, um die Pflichtfeldüberprüfung durchzuführen
+  step1Next.addEventListener('click', () => {
+    if (validateStep1()) {
+      showStep(1);
+    }
+  });
+        // Step 1 Validation
+
+
+</script>
+</div>
+</div>
 </body>
 
 {% endblock content %}

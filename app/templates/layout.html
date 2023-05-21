@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/leaflet.css')}}" />
   <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
   <!--Link to local javascript leaflet-->
+  <script src="{{ url_for('static', filename='js/dist/flowbite.min.js')}}"></script>
   <script src="{{ url_for('static', filename='js/leaflet.js')}}"></script>
   {% block head %} {% endblock head %}
 </head>
@@ -49,23 +50,17 @@
         <div class="hidden bg-green-700 rounded-lg mobile-menu md:hidden">
           <div class="flex flex-col items-center justify-end">
             <a href="/"
-               class="w-full py-4 font-medium text-center text-white transition
-		      bg-opacity-50 rounded-lg hover:bg-green-500">Start</a>
+              class="w-full py-4 font-medium text-center text-white transition bg-opacity-50 rounded-lg hover:bg-green-500">Start</a>
             <a href="/info"
-               class="w-full py-4 font-medium text-center text-white transition
-		      bg-opacity-50 rounded-lg hover:bg-green-500">Infos</a>
+              class="w-full py-4 font-medium text-center text-white transition bg-opacity-50 rounded-lg hover:bg-green-500">Infos</a>
             <a href="/projekt"
-               class="w-full py-4 font-medium text-center text-white
-		      transition bg-opacity-50 rounded-lg hover:bg-green-500">Projekt</a>
+              class="w-full py-4 font-medium text-center text-white transition bg-opacity-50 rounded-lg hover:bg-green-500">Projekt</a>
             <a href="/report"
-               class="w-full py-4 font-medium text-center text-white
-		      transition bg-opacity-50 rounded-lg hover:bg-green-500">Melden</a>
+              class="w-full py-4 font-medium text-center text-white transition bg-opacity-50 rounded-lg hover:bg-green-500">Melden</a>
             <a href="/auswertungen"
-               class="w-full py-4 font-medium text-center text-white
-		      transition bg-opacity-50 rounded-lg hover:bg-green-500">Auswertungen</a>
+              class="w-full py-4 font-medium text-center text-white transition bg-opacity-50 rounded-lg hover:bg-green-500">Auswertungen</a>
             <a href="#links"
-               class="w-full py-4 font-medium text-center text-white transition
-		      bg-opacity-50 rounded-lg hover:bg-green-500">Mehr...</a>
+              class="w-full py-4 font-medium text-center text-white transition bg-opacity-50 rounded-lg hover:bg-green-500">Mehr...</a>
           </div>
         </div>
 
@@ -85,10 +80,7 @@
                 {% if request.path == '/' %}
                 <a href="report">
                   <button
-                    class="px-2 py-1 mt-4 text-lg font-bold text-white transition
-			   duration-500 ease-in-out transform bg-green-800 rounded-md
-			   hover:bg-green-700 active:bg-green-900 focus:outline-none
-			   focus:shadow-outline hover:scale-105 sm:px-4 sm:py-2 md:px-8 md:py-4">
+                    class="px-2 py-1 mt-4 text-lg font-bold text-white transition duration-500 ease-in-out transform bg-green-800 rounded-md hover:bg-green-700 active:bg-green-900 focus:outline-none focus:shadow-outline hover:scale-105 sm:px-4 sm:py-2 md:px-8 md:py-4">
                     Melden
                   </button>
                 </a>
@@ -163,7 +155,7 @@
           <div class="col-span-full lg:col-span-6"> </div>
           <div class="col-span-full lg:col-span-3">
             <span class="block mb-2 text-sm font-semibold uppercase text-blueGray-500">
-	      <u>Weitere Infos</u></span>
+              <u>Weitere Infos</u></span>
             <ul class="list-unstyled">
               <li>
                 <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800"
@@ -171,17 +163,14 @@
               </li>
               <li>
                 <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800"
-                   href="https://mantis-religiosa.readthedocs.io/de/latest/index.html"
-		   target="_blank">Dokumentation</a>
+                  href="https://mantis-religiosa.readthedocs.io/de/latest/index.html" target="_blank">Dokumentation</a>
               </li>
               <li>
                 <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800"
-                   href="https://gitlab.com/opendata-apps/mantis"
-		   target="_blank">Quellcode (GitLab)</a>
+                  href="https://gitlab.com/opendata-apps/mantis" target="_blank">Quellcode (GitLab)</a>
               </li>
               <li>
-                <a class="block pb-2 text-sm font-semibold text-blueGray-600
-			  hover:text-blueGray-800 tooltip"
+                <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800 tooltip"
                   title="Häufig gestellte Fragen" href="/faq">
                   FAQ</a>
               </li>
@@ -189,16 +178,14 @@
           </div>
           <div class="col-span-full lg:col-span-3">
             <span class="block mb-2 text-sm font-semibold uppercase text-blueGray-500">
-	      <u>Rechtliches</u></span>
+              <u>Rechtliches</u></span>
             <ul class="list-unstyled">
               <li>
-                <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800"
-		   href="/impressum">
+                <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800" href="/impressum">
                   Impressum</a>
               </li>
               <li>
-                <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800"
-		   href="/lizenz">
+                <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800" href="/lizenz">
                   Lizenz</a>
               </li>
               <li>
@@ -213,9 +200,8 @@
           <div class="w-full px-4 mx-auto text-center md:w-4/12">
             <div class="py-1 text-sm font-semibold text-blueGray-500">
               <span id="get-current-year"></span>
-	      <a class="text-blueGray-500 hover:text-blueGray-800"
-		 target="_blank">
-                 License: MIT - P22 - 2023
+              <a class="text-blueGray-500 hover:text-blueGray-800" target="_blank">
+                License: MIT - P22 - 2023
               </a>
               <a class="text-blueGray-500 hover:text-blueGray-800"></a>
             </div>
