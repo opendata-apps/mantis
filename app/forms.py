@@ -21,12 +21,13 @@ class MantisSightingForm(FlaskForm):
     # ? Start Deklaration
     # ? der Auswahlmöglichkeiten einiger Formeingaben
     GENDER_CHOICES = [('', 'Bitte auswählen'),
+                      ('keine Zuordnung', 'Keine Zuordnung'),
                       ('männchen', 'Männchen'),
                       ('weibchen', 'Weibchen'),
                       ('nymphen', 'Nymphen'),
                       ('ootheken', 'Ootheken')]
 
-    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'tif', 'tiff', 'bmp', 'jfif', 'webp', 'svg', 'svgz', 'ico'}
 
     # ? Ende Deklaration
 

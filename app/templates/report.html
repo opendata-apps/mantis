@@ -36,7 +36,6 @@
                 <div class="relative">
                   {{ form.gender(class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
                   focus:ring-green-500") }}
-                  {{ popover('Geben Sie bitte das Geschlecht ein.', 'gender') }}
                 </div>
               </label>
             </div>
@@ -146,12 +145,13 @@
             <div>
               <label class="block text-sm font-semibold text-gray-600">
                 {{ form.first_name.label.text }}
-                <div class="relative">
+                <div class="relative flex">
                   {{ form.first_name(placeholder="z.B. Max", class="w-full p-2 mt-1 bg-white border rounded-md
                   focus:outline-none focus:ring-1 focus:ring-green-500") }}
                   {{ popover('Geben Sie bitte Ihren Vornamen ein.', 'first_name') }}
                 </div>
               </label>
+
               <label class="block text-sm font-semibold text-gray-600">
                 {{ form.last_name.label.text }}
                 <div class="relative">
@@ -167,7 +167,6 @@
                 <div class="relative">
                   {{ form.sighting_date(placeholder="z.B. 2023-05-14", class="w-full p-2 mt-1 bg-white border rounded-md
                   focus:ring-green-500") }}
-                  {{ popover('Geben Sie bitte das Datum der Sichtung ein.', 'sighting_date') }}
                 </div>
               </label>
               <label class="block text-sm font-semibold text-gray-600">
@@ -180,14 +179,7 @@
               </label>
             </div>
           </div>
-          <div class="mt-4">
-            <div class="flex items-center">
-              <input id="feedback_checkbox" type="checkbox"
-                class="w-4 h-4 text-green-500 bg-gray-100 border-gray-300 rounded focus:ring-green-500 " />
-              <label for="feedback_checkbox" class="ml-2 text-sm font-medium text-gray-900">Wollen
-                Sie Rückmeldung bekommen?</label>
-            </div>
-          </div>
+
           <div class="flex justify-between mt-4 space-x-2">
             <button type="button" id="step2Prev"
               class="w-full px-6 py-2 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none md:w-auto">
@@ -437,17 +429,18 @@
   // Step 1 Validation
   const GENDER_CHOICES = [
     ['', 'Bitte auswählen'],
+    ['keine Zuoordnung', 'Keine Zuordnung']
     ['männchen', 'Männchen'],
     ['weibchen', 'Weibchen'],
     ['nymphen', 'Nymphen'],
     ['ootheken', 'Ootheken']
   ];
 
-  const ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif'];
+  const ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'tif', 'tiff', 'bmp', 'jfif', 'webp', 'svg', 'svgz', 'ico'];
 
   function validateStep1() {
     const picture = document.querySelector('#picture').files[0];
-    const allowedTypes = ['png', 'jpg', 'jpeg', 'gif'];
+    const allowedTypes = ['png', 'jpg', 'jpeg', 'gif', 'tif', 'tiff', 'bmp', 'jfif', 'webp', 'svg', 'svgz', 'ico'];
     const allowedSize = 5 * 1024 * 1024;
     const fileName = picture ? picture.name.toLowerCase() : '';
 
