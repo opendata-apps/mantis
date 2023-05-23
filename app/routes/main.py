@@ -16,8 +16,9 @@ main = Blueprint('main', __name__)
 @main.route('/start')
 @main.route('/')
 def index():
-    post_count = db.session.query(TblMeldungen).count()
-    return render_template('home.html', post_count=post_count)
+    #post_count = db.session.query(TblMeldungen).count()
+    #return render_template('home.html', post_count=post_count)
+    return render_template('home.html')
 
 
 @main.route('/static/build/theme.css')
