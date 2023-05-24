@@ -18,11 +18,29 @@
             <div>
               <label class="block text-sm font-medium text-gray-90" for="{{ form.picture.id }}">
                 {{ form.picture.label.text }}
+
+                <button data-popover-target="popover-picture" type="button"
+                  class="text-white bg-gray-400 hover:bg-gray-600 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg
+                 text-sm px-1 py-0 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">?</button>
+                <div data-popover id="popover-picture" role="tooltip" class="absolute z-10 invisible inline-block
+                          w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg
+                          shadow-sm opacity-0 dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800">
+                  <div
+                    class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg dark:border-gray-600 dark:bg-gray-700">
+                    <h3 class="font-semibold text-gray-900 dark:text-white">Popover title</h3>
+                  </div>
+                  <div class="px-3 py-2">
+                    <p>Anhand des Bildes können wir Ihre Bestimmung überprüfen. Ist ihr Fund von uns überprüft und
+                      freigegeben erscheint er in der Karte. Die Bilder werden nicht weiterverwendet. Ihre
+                      Uhrheberrechte bleiben unberührt</p>
+                  </div>
+                </div>
                 <div class="relative">
                   {{ form.picture(class="block w-full mt-1 text-sm text-gray-900 border border-gray-300 rounded-lg
                   cursor-pointer bg-gray-50 focus:outline-none ", id=form.picture.id, accept="image/*", capture="user")
                   }}
-                  {{ popover('Hier Ihr Bild hochladen', 'picture') }}
+
+
                 </div>
               </label>
 
@@ -33,6 +51,7 @@
             <div>
               <label class="block text-sm font-semibold text-gray-600">
                 {{ form.gender.label.text }}
+
                 <div class="relative">
                   {{ form.gender(class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
                   focus:ring-green-500") }}
@@ -42,62 +61,180 @@
             <div>
               <label class="block text-sm font-semibold text-gray-600">
                 {{ form.longitude.label.text }}
+
+                <button data-popover-target="popover-longitude" type="button"
+                  class="text-white bg-gray-400 hover:bg-gray-600 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg
+                 text-sm px-1 py-0 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">?</button>
+                <div data-popover id="popover-longitude" role="tooltip" class="absolute z-10 invisible inline-block
+                          w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg
+                          shadow-sm opacity-0 dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800">
+                  <div
+                    class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg dark:border-gray-600 dark:bg-gray-700">
+                    <h3 class="font-semibold text-gray-900 dark:text-white">Popover title</h3>
+                  </div>
+                  <div class="px-3 py-2">
+                    <p>Der Längengrad wird automatisch angegeben sobald sie den Marker an der unterstehenden Karte
+                      setzen.</p>
+                  </div>
+                </div>
+
                 <div class="relative">
                   {{ form.longitude(placeholder="z.B. 13.12345", class="w-full p-2 mt-1 bg-white border rounded-md
                   focus:outline-none focus:ring-1 focus:ring-green-500") }}
-                  {{ popover('Geben Sie bitte den Längengrad ein.', 'longitude') }}
+
                 </div>
               </label>
               <label class="block text-sm font-semibold text-gray-600">
                 {{ form.latitude.label.text }}
+
+                <button data-popover-target="popover-latitude" type="button"
+                  class="text-white bg-gray-400 hover:bg-gray-600 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg
+                 text-sm px-1 py-0 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">?</button>
+                <div data-popover id="popover-latitude" role="tooltip" class="absolute z-10 invisible inline-block
+                          w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg
+                          shadow-sm opacity-0 dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800">
+                  <div
+                    class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg dark:border-gray-600 dark:bg-gray-700">
+                    <h3 class="font-semibold text-gray-900 dark:text-white">Popover title</h3>
+                  </div>
+                  <div class="px-3 py-2">
+                    <p>Der Breitengrad wird automatisch angegeben sobald sie den Marker an der unterstehenden
+                      Karte setzen.</p>
+                  </div>
+                </div>
+
+
                 <div class="relative">
                   {{ form.latitude(placeholder="z.B. 52.12345", class="w-full p-2 mt-1 bg-white border rounded-md
                   focus:outline-none focus:ring-1 focus:ring-green-500") }}
-                  {{ popover('Geben Sie bitte den Breitengrad ein.', 'latitude') }}
+                 
+
                 </div>
               </label>
             </div>
             <div>
               <label class="block text-sm font-semibold text-gray-600">
                 {{ form.zip_code.label.text }}
+
+                <button data-popover-target="popover-zip" type="button"
+                  class="text-white bg-gray-400 hover:bg-gray-600 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg
+                 text-sm px-1 py-0 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">?</button>
+                <div data-popover id="popover-zip" role="tooltip" class="absolute z-10 invisible inline-block
+                          w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg
+                          shadow-sm opacity-0 dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800">
+                  <div
+                    class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg dark:border-gray-600 dark:bg-gray-700">
+                    <h3 class="font-semibold text-gray-900 dark:text-white">Popover title</h3>
+                  </div>
+                  <div class="px-3 py-2">
+                    <p>Falls der Wert nicht korrekt eingelesen wurde, geben Sie bitte die Postleitzahl ein.</p>
+                  </div>
+                </div>
+
                 <div class="relative">
                   {{ form.zip_code(id="zip_code", placeholder="z.B. 10115", class="w-full p-2 mt-1 bg-white border
                   rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
-                  {{ popover('Geben Sie bitte die Postleitzahl ein.', 'zip_code') }}
+
                 </div>
               </label>
               <label class="block text-sm font-semibold text-gray-600">
                 {{ form.city.label.text }}
+
+                <button data-popover-target="popover-city" type="button"
+                  class="text-white bg-gray-400 hover:bg-gray-600 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg
+                 text-sm px-1 py-0 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">?</button>
+                <div data-popover id="popover-city" role="tooltip" class="absolute z-10 invisible inline-block
+                          w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg
+                          shadow-sm opacity-0 dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800">
+                  <div
+                    class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg dark:border-gray-600 dark:bg-gray-700">
+                    <h3 class="font-semibold text-gray-900 dark:text-white">Popover title</h3>
+                  </div>
+                  <div class="px-3 py-2">
+                    <p>Falls der Wert nicht korrekt eingelesen wurde, geben Sie bitte den Stadtnamen ein.</p>
+                  </div>
+                </div>
+
                 <div class="relative">
                   {{ form.city(id="city", placeholder="z.B. Berlin", class="w-full p-2 mt-1 bg-white border rounded-md
                   focus:outline-none focus:ring-1 focus:ring-green-500") }}
-                  {{ popover('Geben Sie bitte den Stadtnamen ein.', 'city') }}
+
                 </div>
+
               </label>
             </div>
             <div>
               <label class="block text-sm font-semibold text-gray-600">
                 {{ form.street.label.text }}
+
+                <button data-popover-target="popover-street" type="button"
+                  class="text-white bg-gray-400 hover:bg-gray-600 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg
+                 text-sm px-1 py-0 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">?</button>
+                <div data-popover id="popover-street" role="tooltip" class="absolute z-10 invisible inline-block
+                          w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg
+                          shadow-sm opacity-0 dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800">
+                  <div
+                    class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg dark:border-gray-600 dark:bg-gray-700">
+                    <h3 class="font-semibold text-gray-900 dark:text-white">Popover title</h3>
+                  </div>
+                  <div class="px-3 py-2">
+                    <p>Falls der Wert nicht korrekt eingelesen wurde, geben Sie bitte den Straßennamen ein.</p>
+                  </div>
+                </div>
+
                 <div class="relative">
                   {{ form.street(placeholder="z.B. Musterstraße", class="w-full p-2 mt-1 bg-white border rounded-md
                   focus:outline-none focus:ring-1 focus:ring-green-500") }}
-                  {{ popover('Geben Sie bitte den Straßennamen ein.', 'street') }}
+
                 </div>
               </label>
               <label class="block text-sm font-semibold text-gray-600">
                 {{ form.state.label.text }}
+
+                <button data-popover-target="popover-bundesland" type="button"
+                  class="text-white bg-gray-400 hover:bg-gray-600 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg
+                 text-sm px-1 py-0 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">?</button>
+                <div data-popover id="popover-bundesland" role="tooltip" class="absolute z-10 invisible inline-block
+                          w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg
+                          shadow-sm opacity-0 dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800">
+                  <div
+                    class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg dark:border-gray-600 dark:bg-gray-700">
+                    <h3 class="font-semibold text-gray-900 dark:text-white">Popover title</h3>
+                  </div>
+                  <div class="px-3 py-2">
+                    <p>Falls der Wert nicht korrekt eingelesen wurde, geben Sie bitte den Bundeslandnamen ein.</p>
+                  </div>
+                </div>
+
+
                 <div class="relative">
                   {{ form.state(id="state", placeholder="z.B. Berlin", class="w-full p-2 mt-1 bg-white border rounded-md
                   focus:outline-none focus:ring-1 focus:ring-green-500") }}
-                  {{ popover('Geben Sie bitte den Bundeslandnamen ein.', 'state') }}
+
                 </div>
               </label>
               <label class="block text-sm font-semibold text-gray-600">
                 {{ form.district.label.text }}
+
+                <button data-popover-target="popover-bezirk" type="button"
+                  class="text-white bg-gray-400 hover:bg-gray-600 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg
+                 text-sm px-1 py-0 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">?</button>
+                <div data-popover id="popover-bezirk" role="tooltip" class="absolute z-10 invisible inline-block
+                          w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg
+                          shadow-sm opacity-0 dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800">
+                  <div
+                    class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg dark:border-gray-600 dark:bg-gray-700">
+                    <h3 class="font-semibold text-gray-900 dark:text-white">Popover title</h3>
+                  </div>
+                  <div class="px-3 py-2">
+                    <p>Falls der Wert nicht korrekt eingelesen wurde, geben Sie bitte den Bezirksnamen ein.</p>
+                  </div>
+                </div>
+
                 <div class="relative">
                   {{ form.district(id="district", placeholder="z.B. Mitte", class="w-full p-2 mt-1 bg-white border
                   rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
-                  {{ popover('Geben Sie bitte den Bezirksnamen ein.', 'district') }}
+
                 </div>
               </label>
             </div>
@@ -105,11 +242,26 @@
               <div>
                 <label class="block text-sm font-semibold text-gray-600">
                   {{ form.picture_description.label.text }}
+
+                  <button data-popover-target="popover-fundort" type="button"
+                  class="text-white bg-gray-400 hover:bg-gray-600 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg
+                 text-sm px-1 py-0 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">?</button>
+                <div data-popover id="popover-fundort" role="tooltip" class="absolute z-10 invisible inline-block
+                          w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg
+                          shadow-sm opacity-0 dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800">
+                  <div
+                    class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg dark:border-gray-600 dark:bg-gray-700">
+                    <h3 class="font-semibold text-gray-900 dark:text-white">Popover title</h3>
+                  </div>
+                  <div class="px-3 py-2">
+                    <p>Geben Sie bitte eine Beschreibung des Bildes eine</p>
+                  </div>
+                </div>
+                  
                   <div class="relative">
                     {{ form.picture_description(placeholder="Geben Sie hier Ihre Bildbeschreibung ein", class="w-full
                     p-2 mt-1 whitespace-pre-wrap bg-white border rounded-md focus:outline-none focus:ring-1
                     focus:ring-green-500") }}
-                    {{ popover('Geben Sie bitte eine Beschreibung des Bildes ein.', 'picture_description') }}
                   </div>
                 </label>
                 <span id="charCount" class="text-xs text-right text-gray-500"></span>
@@ -117,11 +269,27 @@
               <div>
                 <label class="block mt-10 text-sm font-semibold text-gray-600">
                   {{ form.location_description.label.text }}
+ 
+                  <button data-popover-target="popover-fundort" type="button"
+                    class="text-white bg-gray-400 hover:bg-gray-600 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg
+                   text-sm px-1 py-0 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">?</button>
+                  <div data-popover id="popover-fundort" role="tooltip" class="absolute z-10 invisible inline-block
+                            w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg
+                            shadow-sm opacity-0 dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800">
+                    <div
+                      class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg dark:border-gray-600 dark:bg-gray-700">
+                      <h3 class="font-semibold text-gray-900 dark:text-white">Popover title</h3>
+                    </div>
+                    <div class="px-3 py-2">
+                      <p>Geben Sie bitte eine Beschreibung des Ortes ein</p>
+                    </div>
+                  </div>
+    
                   <div class="relative">
                     {{ form.location_description(placeholder="Geben Sie hier Ihre Ortsbeschreibung ein", class="w-full
                     p-2 mt-1 whitespace-pre-wrap bg-white border rounded-md focus:outline-none focus:ring-1
                     focus:ring-green-500") }}
-                    {{ popover('Geben Sie bitte eine Beschreibung des Ortes ein.', 'location_description') }}
+  
                   </div>
                 </label>
               </div>
@@ -146,9 +314,11 @@
               <label class="block text-sm font-semibold text-gray-600">
                 {{ form.first_name.label.text }}
                 <div class="relative flex">
-                  {{ form.first_name(placeholder="z.B. Max", class="w-full p-2 mt-1 bg-white border rounded-md
+                  {{ form.first_name(placeholder="Erster Buchstabe z.B. M.", class="w-full p-2 mt-1 bg-white border
+                  rounded-md
                   focus:outline-none focus:ring-1 focus:ring-green-500") }}
-                  {{ popover('Geben Sie bitte Ihren Vornamen ein.', 'first_name') }}
+                  {{ popover('Geben Sie bitte Ihren ersten Buchstaben des Vornamens ein. Beispiel: M. für Max',
+                  'first_name') }}
                 </div>
               </label>
 
@@ -172,9 +342,11 @@
               <label class="block text-sm font-semibold text-gray-600">
                 {{ form.contact.label.text }}
                 <div class="relative">
-                  {{ form.contact(placeholder="z.B. 0170-1234567", class="w-full p-2 mt-1 bg-white border rounded-md
+                  {{ form.contact(placeholder="z.B. max@example.de", class="w-full p-2 mt-1 bg-white border rounded-md
                   focus:outline-none focus:ring-1 focus:ring-green-500") }}
-                  {{ popover('Geben Sie bitte Ihre Kontaktinformationen ein.', 'contact') }}
+                  {{ popover('Möchten sie eine Rückmeldung und eine Bestätigung ihrer bestimmung erhalten, hinterlassen
+                  Sie gerne Ihre E-Mail. Ihre Kontaktdaten werden geschützt, nicht weitergegeben oder anderweitig
+                  verwendet.', 'contact') }}
                 </div>
               </label>
             </div>
