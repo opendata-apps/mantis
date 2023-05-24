@@ -49,3 +49,8 @@ def lizenz():
 @main.route('/datenschutz')
 def datenschutz():
     return render_template('datenschutz.html')
+
+
+@main.route('/mantis-religiosa')
+def mantis_religiosa():
+    return render_template('mantis_religiosa.html')
