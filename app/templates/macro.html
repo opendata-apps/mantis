@@ -1,5 +1,6 @@
 {% macro popover(content, id) %}
-<button data-popover-target="popover-{{id}}" data-popover-placement="right" type="button">
+<button data-popover-target="popover-{{id}}" data-popover-placement="right" type="button"
+    class="absolute inset-y-0 right-0 flex items-center justify-center w-10 h-full text-gray-400 group-hover:text-gray-500">
     <svg class="w-4 h-4 ml-2 text-gray-400 hover:text-gray-500" aria-hidden="true" fill="currentColor"
         viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
         <path fill-rule="evenodd"
@@ -8,7 +9,6 @@
     </svg>
     <span class="sr-only">Show information</span>
 </button>
-</p>
 <div data-popover id="popover-{{id}}" role="tooltip"
     class="absolute z-10 invisible inline-block text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 w-72 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400">
     <div class="p-3 space-y-2">
