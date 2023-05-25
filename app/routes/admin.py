@@ -11,7 +11,8 @@ from sqlalchemy import inspect, text
 from sqlalchemy.orm import sessionmaker
 import csv
 from flask import Response, redirect, url_for
-from io import StringIO
+from io import StringIO, BytesIO
+import os
 
 
 # Blueprints
@@ -179,3 +180,36 @@ def get_table_data(table_name):
     data = [{column: value for column, value in zip(
         column_names, row)} for row in result]
     return jsonify(data)
+
+
+@admin.route('/admin/export/csv/reported_sightings')
+def export_sightings():    # Get the table object from the database
+    table = TblMeldungen.__table__
+
+    if table is None:
+        return jsonify({'error': 'Table not found'})
+
+    # Execute a select statement on the table
+    result = db.session.execute(table.select())
+
+    # Get the names of the columns
+    column_names = result.keys()
+
+    # Create an in-memory text stream
+    si = StringIO()
+
+    # Create a CSV writer
+    writer = csv.writer(si)
+
+    # Write column names
+    writer.writerow(column_names)
+
+    # Write data rows
+    for row in result:
+        writer.writerow(row)
+
+    # Set the position of the stream to the beginning
+    si.seek(0)
+
+    # Return the CSV data as a response
+    return Response(si, mimetype='text/csv', headers={"Content-Disposition": "attachment; filename=data.csv"})
