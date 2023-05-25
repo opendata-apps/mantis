@@ -1,8 +1,207 @@
-{% extends "layout.html" %} {% block content %}
-<!--Admin Sample Page-->
-<div class="Admin">
-    <h1>Admin Page</h1>
-    <p class="lead">This is the Admin Page</p>
+{% extends "layout.html" %}
+
+{% block content %}
+
+<div class="container px-4 mx-auto my-10 md:px-12">
+    <h1 class="text-4xl font-bold text-center">Admin Dashboard</h1>
+
+    <div class="flex items-center justify-between w-full p-2 mb-6 rounded shadow">
+        <input type="text" id="searchInput" onkeyup="searchReports()" placeholder="Search for reports..."
+            class="w-2/3 p-2 rounded shadow outline-none focus:ring-2 focus:ring-blue-500">
+        <button onclick="exportCSV()" class="px-4 py-2 ml-2 font-bold text-white bg-blue-500 rounded hover:bg-blue-700">
+            Export CSV
+        </button>
+    </div>
+
+    <div class="flex flex-wrap mt-6" id="reportContainer">
+        {% for sighting in reported_sightings %}
+        <div class="w-full px-2 mb-4 md:w-1/2 lg:w-1/3 report-card" data-report-id="{{sighting.id}}">
+            <div class="p-6 bg-white rounded shadow-sm {{ 'bg-green-100' if sighting.approved }}">
+                <h2 class="mb-2 text-xl font-bold">Report ID: {{ sighting.id }}</h2>
+                <p><strong>Date Reported:</strong> {{ sighting.dat_meld }}</p>
+                <p><strong>Location ID:</strong> {{ sighting.fo_zuordnung }}</p>
+                <p><strong>Details:</strong> {{ sighting.anm_melder }}</p>
+                <div class="flex items-center mt-4">
+                    <button onclick="openModal({{sighting.id}})" class="text-blue-500 hover:text-blue-800">
+                        <img src="/static/images/svg/edit.svg" alt="Edit" class="w-5 h-5">
+                    </button>
+                    <button onclick="deleteSighting({{sighting.id}})" class="ml-4 text-red-500 hover:text-red-800">
+                        <img src="/static/images/svg/delete.svg" alt="Delete" class="w-5 h-5">
+                    </button>
+                    <button onclick="toggleApprove({{sighting.id}})"
+                        class="inline-flex items-center px-4 py-2 ml-auto text-sm font-medium text-white bg-green-500 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                        <img src="/static/images/svg/approve.svg" alt="Approve" class="w-5 h-5 mr-2">
+                        Approve
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
 </div>
+
+<!-- Modal -->
+<div id="modal" class="fixed inset-0 z-10 hidden overflow-y-auto bg-gray-500 bg-opacity-75">
+    <div class="flex items-center justify-center min-h-screen">
+        <div class="bg-white rounded-lg shadow-xl">
+            <div class="px-4 py-4">
+                <!-- Tab Buttons -->
+                <div class="flex justify-center mb-4">
+                    <button class="px-4 py-2 font-semibold text-blue-700 bg-blue-100 rounded-lg focus:outline-none"
+                        id="tab-general-info">General Information</button>
+                    <button class="px-4 py-2 ml-2 font-semibold text-blue-700 bg-blue-100 rounded-lg focus:outline-none"
+                        id="tab-location-info">Place of Sighting with Map</button>
+                    <button class="px-4 py-2 ml-2 font-semibold text-blue-700 bg-blue-100 rounded-lg focus:outline-none"
+                        id="tab-user-info">User Information</button>
+                </div>
+                <!-- Tab Content -->
+                <div id="tab-content">
+                    <!-- Content will be loaded here -->
+                </div>
+                <!-- Actions -->
+                <div class="flex justify-end mt-4">
+                    <button type="button"
+                        class="px-4 py-2 font-semibold text-blue-700 bg-blue-100 rounded-lg focus:outline-none"
+                        onclick="saveChanges()">Save Changes</button>
+                    <button type="button"
+                        class="px-4 py-2 ml-2 font-semibold text-gray-700 bg-gray-200 rounded-lg focus:outline-none"
+                        onclick="closeModal()">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function searchReports() {
+        // Get input value
+        let input = document.getElementById('searchInput').value.toLowerCase();
+        let cards = document.getElementsByClassName('report-card');
+
+        // Hide or show cards based on input
+        for (let i = 0; i < cards.length; i++) {
+            let id = cards[i].getAttribute('data-report-id');
+            if (id.toLowerCase().includes(input)) {
+                cards[i].style.display = "";
+            } else {
+                cards[i].style.display = "none";
+            }
+        }
+    }
+
+    function toggleApprove(id) {
+        // Send request to server to toggle approval
+        fetch('/toggle_approve_sighting/' + id, { method: 'POST' })
+            .then(response => response.json())
+            .then(data => console.log(data))
+            .catch(error => console.error('Error:', error));
+        // Update card color
+        let card = document.querySelector(`[data-report-id="${id}"]`);
+        card.classList.toggle('bg-green-100');
+    }
+
+    function openModal(id) {
+        // Get report details and show in modal
+        fetch('/get_sighting/' + id)
+            .then(response => response.json())
+            .then(data => {
+                // Get tab buttons and content container
+                let tabGeneralInfo = document.getElementById('tab-general-info');
+                let tabLocationInfo = document.getElementById('tab-location-info');
+                let tabUserInfo = document.getElementById('tab-user-info');
+                let tabContent = document.getElementById('tab-content');
+
+                // Set initial content
+                tabContent.innerHTML = generateGeneralInfo(data);
+                tabGeneralInfo.classList.add('active');
+
+                // Add click listeners to tab buttons
+                tabGeneralInfo.addEventListener('click', function () {
+                    if (!this.classList.contains('active')) {
+                        tabContent.innerHTML = generateGeneralInfo(data);
+                        setActiveTab(this);
+                    }
+                });
+
+                tabLocationInfo.addEventListener('click', function () {
+                    if (!this.classList.contains('active')) {
+                        tabContent.innerHTML = generateLocationInfo(data);
+                        setActiveTab(this);
+                    }
+                });
+
+                tabUserInfo.addEventListener('click', function () {
+                    if (!this.classList.contains('active')) {
+                        tabContent.innerHTML = generateUserInfo(data);
+                        setActiveTab(this);
+                    }
+                });
+
+                // Show the modal
+                document.getElementById('modal').classList.remove('hidden');
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    function setActiveTab(tab) {
+        // Remove 'active' class from all tabs
+        let tabs = [document.getElementById('tab-general-info'), document.getElementById('tab-location-info'), document.getElementById('tab-user-info')];
+        tabs.forEach(t => t.classList.remove('active'));
+        // Add 'active' class to the selected tab
+        tab.classList.add('active');
+    }
+
+    function generateGeneralInfo(data) {
+        // Convert general info into HTML string
+        // Adjust fields according to your data structure
+        return `<p><strong>Report ID:</strong> ${data.id}</p>
+                <p><strong>Date Reported:</strong> ${data.dat_meld}</p>
+                <p><strong>Details:</strong> ${data.anm_melder}</p>`;
+    }
+
+    function generateLocationInfo(data) {
+        // Convert location info into HTML string
+        // Adjust fields according to your data structure
+        return `<p><strong>Location ID:</strong> ${data.fo_zuordnung}</p>
+                <!-- Include map implementation -->`;
+    }
+
+    function generateUserInfo(data) {
+        // Convert user info into HTML string
+        // Adjust fields according to your data structure
+        return `<p><strong>User Name:</strong> ${data.user_name}</p>
+                <p><strong>User Email:</strong> ${data.user_email}</p>`;
+    }
+
+    function closeModal() {
+        // Hide modal
+        document.getElementById('modal').classList.add('hidden');
+    }
+
+    function saveChanges() {
+        // Save changes to report details
+        // This will require additional setup based on how you want to edit the details
+    }
+
+    function deleteSighting(id) {
+        // Confirmation prompt
+        let confirmDelete = confirm('Are you sure you want to delete this sighting? This action cannot be undone.');
+        if (confirmDelete) {
+            // Existing delete function
+            fetch('/delete_sighting/' + id, { method: 'POST' })
+                .then(response => response.json())
+                .then(data => console.log(data))
+                .catch(error => console.error('Error:', error));
+            // Remove card from page
+            let card = document.querySelector(`[data-report-id="${id}"]`);
+            card.remove();
+        }
+    }
+
+    function exportCSV() {
+        // Assuming there's an export function in your routes
+        window.location.href = '/admin/export/csv/reported_sightings';
+    }
+</script>
 
 {% endblock content %}

@@ -10,7 +10,7 @@ from flask import render_template_string
 from sqlalchemy import inspect, text
 from sqlalchemy.orm import sessionmaker
 import csv
-from flask import Response
+from flask import Response, redirect, url_for
 from io import StringIO
 
 
@@ -18,13 +18,94 @@ from io import StringIO
 admin = Blueprint('admin', __name__)
 
 
-@admin.route('/admin')
-@admin.route('/admin')
+@admin.route('/adminPanel')
 def admin_index():
     inspector = inspect(db.engine)
     tables = inspector.get_table_names()
     reported_sightings = TblMeldungen.query.all()
     return render_template('admin/adminPanel.html', reported_sightings=reported_sightings, tables=tables)
+
+
+@admin.route('/admin')
+def admin_index2():
+    inspector = inspect(db.engine)
+    tables = inspector.get_table_names()
+    reported_sightings = TblMeldungen.query.all()
+    return render_template('admin/admin.html', reported_sightings=reported_sightings, tables=tables)
+
+
+@admin.route('/toggle_approve_sighting/<id>', methods=['POST'])
+def toggle_approve_sighting(id):
+    # Find the report by id
+    sighting = TblMeldungen.query.get(id)
+    if sighting:
+        # Toggle the 'approved' status
+        sighting.approved = not sighting.approved
+        db.session.commit()
+        return jsonify({'success': True})
+    else:
+        return jsonify({'error': 'Report not found'}), 404
+
+
+@admin.route('/get_sighting/<id>', methods=['GET'])
+def get_sighting(id):
+    # Find the report by id
+    sighting = db.session.query(
+        TblMeldungen,
+        TblFundorte,
+        TblFundortBeschreibung,
+        TblMeldungUser,
+        TblUsers
+    ).join(
+        TblFundorte, TblMeldungen.fo_zuordnung == TblFundorte.id
+    ).join(
+        TblFundortBeschreibung, TblFundorte.beschreibung == TblFundortBeschreibung.id
+    ).join(
+        TblMeldungUser, TblMeldungen.id == TblMeldungUser.id_meldung
+    ).join(
+        TblUsers, TblMeldungUser.id_user == TblUsers.id
+    ).filter(
+        TblMeldungen.id == id
+    ).first()
+
+    if sighting:
+        # Convert sighting to a dictionary and return it
+        sighting_dict = {}
+        for part in sighting:
+            part_dict = {c.name: getattr(part, c.name)
+                         for c in part.__table__.columns}
+            sighting_dict.update(part_dict)
+        return jsonify(sighting_dict)
+    else:
+        return jsonify({'error': 'Report not found'}), 404
+
+
+@admin.route('/delete_sighting/<id>', methods=['GET'])
+def delete_sighting(id):
+    # Find the report by id
+    sighting = TblMeldungen.query.get(id)
+    if sighting:
+        # Delete the report
+        db.session.delete(sighting)
+        db.session.commit()
+        # Redirect back to admin dashboard
+        return redirect(url_for('admin_index'))
+    else:
+        return jsonify({'error': 'Report not found'}), 404
+
+
+@admin.route('/save_sighting_changes/<id>', methods=['POST'])
+def save_sighting_changes(id):
+    # Find the report by id
+    sighting = TblMeldungen.query.get(id)
+    if sighting:
+        # Update sighting with data from request
+        # This will depend on how you implement the saveChanges function in JavaScript
+        # sighting.field = request.form['field']
+        db.session.commit()
+        return jsonify({'success': True})
+    else:
+        return jsonify({'error': 'Report not found'}), 404
 
 
 @admin.route('/admin/log')
