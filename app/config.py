@@ -8,3 +8,10 @@ class Config:
     MAP_CENTER_LATITUDE = 37.7749
     MAP_ZOOM = 1
     SECRET_KEY = os.urandom(24)
+    host = ""
+    port = 25
+    tls = True
+    username = ""
+    password = ""
+    sender = ""
+    to = ""

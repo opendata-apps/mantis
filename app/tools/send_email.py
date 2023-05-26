@@ -3,17 +3,16 @@ import os
 import datetime
 
 
-from conf import conf
+from app.config import Config
 
 # Variablen für die Emails
-# art = "Katze"   
+# art = "Katze"
 
 
-
-def send_email( subject = "no subject", content = "no content", to = "test@example.com" ):
+def send_email(subject="no subject", content="no content", to="test@example.com"):
     """ Send a simple, stupid, text, UTF-8 mail in Python """
 
-    for ill in [ "\n", "\r" ]:
+    for ill in ["\n", "\r"]:
         subject = subject.replace(ill, ' ')
 
     headers = {
@@ -27,7 +26,6 @@ def send_email( subject = "no subject", content = "no content", to = "test@examp
         'Subject': subject
     }
 
-
     # create the message
     msg = ''
     for key, value in headers.items():
@@ -36,24 +34,14 @@ def send_email( subject = "no subject", content = "no content", to = "test@examp
     # add contents
     msg += f"{content}"
 
-    s = smtplib.SMTP(conf.host, conf.port)
+    s = smtplib.SMTP(Config.host, Config.port)
 
-    if conf.tls:
+    if Config.tls:
         s.ehlo()
         s.starttls()
         s.ehlo()
 
-    if conf.username and conf.password:
-        s.login(conf.username, conf.password)
+    if Config.username and Config.password:
+        s.login(Config.username, Config.password)
     s.sendmail(headers['From'], headers['To'], msg.encode("utf8"))
     s.quit()
-
-
-
-
-
-
-
-
-
-    
