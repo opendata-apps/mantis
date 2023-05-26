@@ -183,7 +183,8 @@ def get_table_data(table_name):
 
 
 @admin.route('/admin/export/csv/reported_sightings')
-def export_sightings():    # Get the table object from the database
+def export_sightings():
+    # Get the table object from the database
     table = TblMeldungen.__table__
 
     if table is None:
