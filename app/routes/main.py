@@ -54,3 +54,7 @@ def datenschutz():
 @main.route('/mantis-religiosa')
 def mantis_religiosa():
     return render_template('mantis_religiosa.html')
+
+@main.route('/bestimmung')
+def bestimmung():
+    return render_template('bestimmung.html')
