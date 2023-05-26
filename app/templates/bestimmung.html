@@ -25,13 +25,14 @@
       </div>
     </template>
   </div>
+  <p>Hinweis: Bei Klick auf das Vorschaubild erscheint eine vergrößerte Ansicht</p>
   <p>1)</p> 
   <p>1a) Ist es ein Tier [Merkmale: Fangbeine, verschiedene Farben, Augenfleck (Nymphen, Männchen, Weibchen)]: gehe zu 2</p>
    <p>1b) Charakteristisch geformtes Gebilde aus einer harten schaumartigen Masse: Oothek (Gelege) [Siehe Bild 1]</p> 
   
   <div x-data="{}" class="px-2">
     <div class="flex -mx-2">
-      <div class="w-24 px-2">
+      <div class="w-48 px-2">
         <div class="bg-gray-400">
           <a @click="$dispatch('img-modal', {  imgModalSrc: '{{ url_for('static', filename='bestimmung/oothek-an-holz02.jpg') }}', imgModalDesc: 'Random Image One Description' })" class="cursor-pointer">
             <img alt="Placeholder" class="max-w-10 mx-auto my-auto" src="{{ url_for('static', filename='bestimmung/oothek-im-gras-klein.jpg') }}">
@@ -47,7 +48,7 @@
    
    <div x-data="{}" class="px-2">
      <div class="flex -mx-2">
-       <div class="w-24 px-2">
+       <div class="w-64 px-2">
          <div class="bg-gray-400">
            <a @click="$dispatch('img-modal', {  imgModalSrc: '{{ url_for('static', filename='bestimmung/berger-junge-nymphe-ohne-fluegelgross.jpg') }}', imgModalDesc: 'Random Image One Description' })" class="cursor-pointer">
              <img alt="Placeholder" class="max-w-10 mx-auto my-auto" src="{{ url_for('static', filename='bestimmung/berger-junge-nymphe-ohne-fluegelklein.jpg') }}">
@@ -58,7 +59,7 @@
     </div>
     <div x-data="{}" class="mt-4">
       <div class="flex -mx-2">
-        <div class="w-24 px-2">
+        <div class="w-48 px-2">
           <div class="bg-gray-400">
             <a @click="$dispatch('img-modal', {  imgModalSrc: '{{ url_for('static', filename='bestimmung/berger03groesser.jpg') }}', imgModalDesc: 'Random Image One Description' })" class="cursor-pointer">
               <img alt="Placeholder" class="max-w-10 mx-auto my-auto" src="{{ url_for('static', filename='bestimmung/berger03klein.jpg') }}">
@@ -80,7 +81,7 @@
    
    <div x-data="{}" class="mt-4">
      <div class="flex -mx-2">
-       <div class="w-24 px-2">
+       <div class="w-48 px-2">
          <div class="bg-gray-400">
            <a @click="$dispatch('img-modal', {  imgModalSrc: '{{ url_for('static', filename='bestimmung/erwachsenes-weibchengross.jpg') }}', imgModalDesc: 'Random Image One Description' })" class="cursor-pointer">
              <img alt="Placeholder" class="max-w-10 mx-auto my-auto" src="{{ url_for('static', filename='bestimmung/erwachsenes-weibchenklein.jpg') }}">
@@ -92,7 +93,7 @@
 
     <div x-data="{}" class="mt-4">
       <div class="flex -mx-2">
-        <div class="w-24 px-2">
+        <div class="w-48 px-2">
           <div class="bg-gray-400">
             <a @click="$dispatch('img-modal', {  imgModalSrc: '{{ url_for('static', filename='bestimmung/bestimmung-erwachsenes-maennchengross.jpg') }}', imgModalDesc: 'Random Image One Description' })" class="cursor-pointer">
               <img alt="Placeholder" class="max-w-10 mx-auto my-auto" src="{{ url_for('static', filename='bestimmung/bestimmung-erwachsenes-maennchenklein.jpg') }}">
@@ -104,7 +105,7 @@
 
      <div x-data="{}" class="mt-4">
       <div class="flex -mx-2">
-        <div class="w-24 px-2">
+        <div class="w-48 px-2">
           <div class="bg-gray-400">
             <a @click="$dispatch('img-modal', {  imgModalSrc: '{{ url_for('static', filename='bestimmung/maennchen-adult-grünklein.jpg') }}', imgModalDesc: 'Random Image One Description' })" class="cursor-pointer">
               <img alt="Placeholder" class="max-w-10 mx-auto my-auto" src="{{ url_for('static', filename='bestimmung/paerchen.jpg') }}">
