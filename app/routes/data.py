@@ -11,13 +11,6 @@ from sqlalchemy import or_
 data = Blueprint('data', __name__)
 
 
-@data.route('/auswertungen')
-def auswertungen():
-    return render_template('auswertungen.html')
-
-
-# todo: new database
-
 
 # Flask application and routes
 @data.route('/report', methods=['GET', 'POST'])
@@ -53,17 +46,16 @@ def autocomplete():
     return jsonify(suggestions)
 
 
-@data.route('/map')
+@data.route('/auswertungen')
 def show_map():
     # Fetch the reports data from the database
-    reports = TblMeldungen.query.join(
-        TblFundorte, TblMeldungen.fo_zuordung == TblFundorte.id).all()
-
+    reports = TblFundorte.query.join(
+        TblMeldungen, TblMeldungen.fo_zuordnung == TblFundorte.id).all()
     # Serialize the reports data as a JSON object
     reportsJson = json.dumps(
-        [{'latitude': report.latitude, 'longitude': report.longitude} for report in reports])
-    print(reportsJson)
-
+        [{'latitude': report.latitude.replace(',','.'),
+          'longitude': report.longitude.replace(',','.')}
+         for report in reports])
     # Render the template with the serialized data
     return render_template('map.html', reportsJson=reportsJson)
 
