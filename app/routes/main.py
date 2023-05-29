@@ -13,12 +13,10 @@ from flask_sqlalchemy import SQLAlchemy
 main = Blueprint('main', __name__)
 
 
-@main.route('/start')
 @main.route('/')
 def index():
-    #post_count = db.session.query(TblMeldungen).count()
-    #return render_template('home.html', post_count=post_count)
-    return render_template('home.html')
+    post_count = db.session.query(TblMeldungen).count()
+    return render_template('home.html', post_count=post_count)
 
 
 @main.route('/static/build/theme.css')
@@ -54,6 +52,7 @@ def datenschutz():
 @main.route('/mantis-religiosa')
 def mantis_religiosa():
     return render_template('mantis_religiosa.html')
+
 
 @main.route('/bestimmung')
 def bestimmung():

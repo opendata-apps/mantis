@@ -8,6 +8,8 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='build/theme.css') }}" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/leaflet.css')}}" />
   <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+  <script src="{{ url_for('static', filename='js/flow/flowbite.min.js')}}"></script>
+  <script src="{{ url_for('static', filename='js/leaflet.js')}}"></script>
   <!--Link to local javascript leaflet-->
   {% block head %} {% endblock head %}
 </head>
@@ -29,7 +31,8 @@
           </a>
           <div class="items-center hidden md:flex">
             <a href="/start" class="mr-5 text-sm font-medium text-white hover:text-green-300 md:text-base">Start</a>
-            <a href="/mantis-religiosa" class="mr-5 text-sm font-medium text-white hover:text-green-300 md:text-base">Gottesanbeterin</a>
+            <a href="/mantis-religiosa"
+              class="mr-5 text-sm font-medium text-white hover:text-green-300 md:text-base">Gottesanbeterin</a>
             <a href="/report" class="mr-5 text-sm font-medium text-white hover:text-green-300 md:text-base">Melden</a>
             <a href="/auswertungen"
               class="mr-5 text-sm font-medium text-white hover:text-green-300 md:text-base">Auswertungen</a>
@@ -229,8 +232,6 @@
       window.addEventListener("resize", adjustFooterPosition);
 
     </script>
-    <script src="{{ url_for('static', filename='js/flow/flowbite.min.js')}}"></script>
-    <script src="{{ url_for('static', filename='js/leaflet.js')}}"></script>
     <!--! End Footer -->
 </body>
 
