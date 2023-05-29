@@ -13,6 +13,7 @@ from flask_sqlalchemy import SQLAlchemy
 main = Blueprint('main', __name__)
 
 
+@main.route('/start')
 @main.route('/')
 def index():
     post_count = db.session.query(TblMeldungen).count()
