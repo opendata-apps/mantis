@@ -109,6 +109,11 @@ def save_sighting_changes(id):
         return jsonify({'error': 'Report not found'}), 404
 
 
+@admin.route('/change_mantis_gender/<id>', methods=['POST'])
+def change_mantis_gender(id):
+    pass
+
+
 @admin.route('/admin/log')
 def admin_subsites_log():
     return render_template('admin/log.html')

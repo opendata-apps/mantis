@@ -21,6 +21,8 @@
                 <p><strong>Date Reported:</strong> {{ sighting.dat_meld }}</p>
                 <p><strong>Location ID:</strong> {{ sighting.fo_zuordnung }}</p>
                 <p><strong>Details:</strong> {{ sighting.anm_melder }}</p>
+                <p><strong>Gender Details:</strong> Männlich: {{ sighting.art_m }}, Weiblich: {{ sighting.art_w }},
+                    Nymphe: {{ sighting.art_n }}, Ootheke: {{ sighting.art_o }}</p>
                 <div class="flex items-center mt-4">
                     <button onclick="openModal({{sighting.id}})" class="text-blue-500 hover:text-blue-800">
                         <img src="/static/images/svg/edit.svg" alt="Edit" class="w-5 h-5">
@@ -28,16 +30,26 @@
                     <button onclick="deleteSighting({{sighting.id}})" class="ml-4 text-red-500 hover:text-red-800">
                         <img src="/static/images/svg/delete.svg" alt="Delete" class="w-5 h-5">
                     </button>
-                    <button onclick="toggleApprove({{sighting.id}})"
-                        class="inline-flex items-center px-4 py-2 ml-auto text-sm font-medium text-white bg-green-500 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                        <img src="/static/images/svg/approve.svg" alt="Approve" class="w-5 h-5 mr-2">
-                        Approve
-                    </button>
+                    <div class="inline-flex items-center ml-auto">
+                        <select id="gender-{{sighting.id}}" onchange="changeGender({{sighting.id}})"
+                            class="px-3 py-2 mr-2 text-sm font-medium border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            <option value="M" {{ 'selected' if sighting.art_m[0]=='1' }}>Männlich</option>
+                            <option value="W" {{ 'selected' if sighting.art_w[0]=='1' }}>Weiblich</option>
+                            <option value="N" {{ 'selected' if sighting.art_n[0]=='1' }}>Nymphe</option>
+                            <option value="O" {{ 'selected' if sighting.art_o[0]=='1' }}>Ootheke</option>
+                        </select>
+                        <button onclick="toggleApprove({{sighting.id}})"
+                            class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-500 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                            <img src="/static/images/svg/approve.svg" alt="Approve" class="w-5 h-5 mr-2">
+                            Approve
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
         {% endfor %}
     </div>
+
 </div>
 
 <!-- Modal -->
@@ -155,11 +167,35 @@
     }
 
     function generateGeneralInfo(data) {
+        // Determine gender based on the art_ fields
+        let gender = '';
+        if (data.art_m) {
+            gender = 'Männlich';
+        } else if (data.art_w) {
+            gender = 'Weiblich';
+        } else if (data.art_n) {
+            gender = 'Nymphe';
+        } else if (data.art_o) {
+            gender = 'Ootheke';
+        }
+
         // Convert general info into HTML string
-        // Adjust fields according to your data structure
         return `<p><strong>Report ID:</strong> ${data.id}</p>
                 <p><strong>Date Reported:</strong> ${data.dat_meld}</p>
+                <p><strong>Gender:</strong> 
+                    <select id="modal-gender" name="gender" onchange="changeGenderInModal(${data.id})">
+                        <option value="M" ${gender === 'Männlich' ? 'selected' : ''}>Männlich</option>
+                        <option value="W" ${gender === 'Weiblich' ? 'selected' : ''}>Weiblich</option>
+                        <option value="N" ${gender === 'Nymphe' ? 'selected' : ''}>Nymphe</option>
+                        <option value="O" ${gender === 'Ootheke' ? 'selected' : ''}>Ootheke</option>
+                    </select>
+                </p>
                 <p><strong>Details:</strong> ${data.anm_melder}</p>`;
+    }
+
+    function changeGenderInModal(sightingId) {
+        const gender = document.getElementById('modal-gender').value;
+        changeGender(sightingId, gender);
     }
 
     function generateLocationInfo(data) {
