@@ -111,7 +111,22 @@ def save_sighting_changes(id):
 
 @admin.route('/change_mantis_gender/<id>', methods=['POST'])
 def change_mantis_gender(id):
-    pass
+    # Find the report by id
+    sighting = TblMeldungen.query.get(id)
+    if sighting:
+        # Get the new gender from the request
+        new_gender = request.form.get('new_gender')
+
+        # Set the appropriate gender field to true and the rest to false
+        sighting.art_m = new_gender == 'M'
+        sighting.art_w = new_gender == 'W'
+        sighting.art_n = new_gender == 'N'
+        sighting.art_o = new_gender == 'O'
+
+        db.session.commit()
+        return jsonify({'success': True})
+    else:
+        return jsonify({'error': 'Report not found'}), 404
 
 
 @admin.route('/admin/log')
