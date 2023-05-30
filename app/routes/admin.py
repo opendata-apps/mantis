@@ -109,24 +109,31 @@ def save_sighting_changes(id):
         return jsonify({'error': 'Report not found'}), 404
 
 
-@admin.route('/change_mantis_gender/<id>', methods=['POST'])
-def change_mantis_gender(id):
-    # Find the report by id
+@admin.route("/change_mantis_gender/<int:id>", methods=["POST"])
+def change_gender(id):
+    new_gender = request.form.get('new_gender')
+
     sighting = TblMeldungen.query.get(id)
-    if sighting:
-        # Get the new gender from the request
-        new_gender = request.form.get('new_gender')
 
-        # Set the appropriate gender field to true and the rest to false
-        sighting.art_m = new_gender == 'M'
-        sighting.art_w = new_gender == 'W'
-        sighting.art_n = new_gender == 'N'
-        sighting.art_o = new_gender == 'O'
+    # Reset all gender columns to '0'
+    sighting.art_m = '0'
+    sighting.art_w = '0'
+    sighting.art_n = '0'
+    sighting.art_o = '0'
 
-        db.session.commit()
-        return jsonify({'success': True})
-    else:
-        return jsonify({'error': 'Report not found'}), 404
+    # Update the specified gender to '1'
+    if new_gender == 'M':
+        sighting.art_m = '1'
+    elif new_gender == 'W':
+        sighting.art_w = '1'
+    elif new_gender == 'N':
+        sighting.art_n = '1'
+    elif new_gender == 'O':
+        sighting.art_o = '1'
+
+    db.session.commit()
+
+    return jsonify(success=True)
 
 
 @admin.route('/admin/log')

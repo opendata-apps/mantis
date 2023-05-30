@@ -1,4 +1,5 @@
 {% extends "layout.html" %}
+{% from "macro.html" import popover %}
 
 {% block content %}
 
@@ -22,6 +23,7 @@
 
     <div class="flex flex-wrap mt-6" id="reportContainer">
         {% for sighting in reported_sightings %}
+        <!-- Your HTML code for each sighting... -->
         <div class="w-full px-2 mb-4 md:w-1/2 lg:w-1/3 report-card" data-report-id="{{sighting.id}}">
             <div class="p-6 bg-white rounded shadow-sm {{ 'bg-green-100' if sighting.approved }}">
                 <h2 class="mb-2 text-xl font-bold">Report ID: {{ sighting.id }}</h2>
@@ -36,12 +38,15 @@
                         <img src="/static/images/svg/delete.svg" alt="Delete" class="w-5 h-5">
                     </button>
                     <div class="inline-flex items-center ml-auto">
-                        <select id="gender-{{sighting.id}}" onchange="changeGender({{sighting.id}})"
-                            class="px-3 py-2 mr-2 text-sm font-medium border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                            <option value="M" {{ 'selected' if sighting.art_m}}>Männlich</option>
-                            <option value="W" {{ 'selected' if sighting.art_w}}>Weiblich</option>
-                            <option value="N" {{ 'selected' if sighting.art_n}}>Nymphe</option>
-                            <option value="O" {{ 'selected' if sighting.art_o}}>Ootheke</option>
+                        {% set total = sighting.art_m[0]|int + sighting.art_w[0]|int + sighting.art_n[0]|int +
+                        sighting.art_o[0]|int %}
+                        <select id="gender-{{sighting.id}}"
+                            class="px-3 py-2 mr-2 text-sm font-medium border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                            {{ 'disabled' if total> 1 }}>
+                            <option value="M" {{ 'selected' if sighting.art_m[0]=='1' }}>Männlich</option>
+                            <option value="W" {{ 'selected' if sighting.art_w[0]=='1' }}>Weiblich</option>
+                            <option value="N" {{ 'selected' if sighting.art_n[0]=='1' }}>Nymphe</option>
+                            <option value="O" {{ 'selected' if sighting.art_o[0]=='1' }}>Ootheke</option>
                         </select>
                         <button onclick="toggleApprove({{sighting.id}})"
                             class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-500 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
@@ -53,9 +58,13 @@
             </div>
         </div>
         {% endfor %}
+
     </div>
 
+
+
 </div>
+
 
 <!-- Modal -->
 <div id="modal" class="fixed inset-0 z-10 hidden overflow-y-auto bg-gray-500 bg-opacity-75">
@@ -141,7 +150,6 @@
             });
     }
 
-
     function searchReports() {
         // Get input value
         let input = document.getElementById('searchInput').value.toLowerCase();
@@ -164,9 +172,6 @@
             .then(response => response.json())
             .then(data => console.log(data))
             .catch(error => console.error('Error:', error));
-        // Update card color
-        let card = document.querySelector(`[data-report-id="${id}"]`);
-        card.classList.toggle('bg-green-100');
     }
 
     function openModal(id) {
