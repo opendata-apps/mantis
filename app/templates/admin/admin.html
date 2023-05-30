@@ -8,10 +8,17 @@
     <div class="flex items-center justify-between w-full p-2 mb-6 rounded shadow">
         <input type="text" id="searchInput" onkeyup="searchReports()" placeholder="Search for reports..."
             class="w-2/3 p-2 rounded shadow outline-none focus:ring-2 focus:ring-blue-500">
+        <select id="sortInput" onchange="sortReports()"
+            class="w-1/5 p-2 rounded shadow outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="">Sort by...</option>
+            <option value="id_asc">ID Ascending</option>
+            <option value="id_desc">ID Descending</option>
+        </select>
         <button onclick="exportCSV()" class="px-4 py-2 ml-2 font-bold text-white bg-blue-500 rounded hover:bg-blue-700">
             Export CSV
         </button>
     </div>
+
 
     <div class="flex flex-wrap mt-6" id="reportContainer">
         {% for sighting in reported_sightings %}
@@ -86,6 +93,33 @@
 </div>
 
 <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.getElementById("sortInput").value = "id_asc";
+        sortReports();
+    });
+
+    function sortReports() {
+        let input = document.getElementById('sortInput').value;
+        let cards = Array.from(document.getElementsByClassName('report-card'));
+
+        cards.sort((a, b) => {
+            let idA = a.getAttribute('data-report-id');
+            let idB = b.getAttribute('data-report-id');
+
+            if (input == 'id_asc') {
+                return idA - idB;
+            } else if (input == 'id_desc') {
+                return idB - idA;
+            }
+        });
+
+        let container = document.getElementById('reportContainer');
+
+        cards.forEach((card) => {
+            container.appendChild(card);
+        });
+    }
+
     function changeGender(id) {
         const selectElement = document.getElementById(`gender-${id}`);
         const newGender = selectElement.value;
