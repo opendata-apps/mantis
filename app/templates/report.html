@@ -10,10 +10,11 @@
   <div class="flex items-center min-h-screen bg-gray-100">
     <div class="w-full max-w-4xl p-6 mx-auto bg-white rounded-lg shadow-xl">
       <form action="" method="POST" enctype="multipart/form-data" id="mainForm">
-
+	{{form.userid.label.text}} {{form.userid.data}}
         <!-- User Input and Location Input Step Start-->
         <div id="step1" class="step">
           {{ form.hidden_tag() }}
+	  
           <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
               <div class="flex justify-between">
