@@ -115,21 +115,21 @@ def change_gender(id):
 
     sighting = TblMeldungen.query.get(id)
 
-    # Reset all gender columns to '0'
-    sighting.art_m = '0'
-    sighting.art_w = '0'
-    sighting.art_n = '0'
-    sighting.art_o = '0'
+    # Reset all gender columns to 0
+    sighting.art_m = 0
+    sighting.art_w = 0
+    sighting.art_n = 0
+    sighting.art_o = 0
 
-    # Update the specified gender to '1'
+    # Update the specified gender to 1
     if new_gender == 'M':
-        sighting.art_m = '1'
+        sighting.art_m = 1
     elif new_gender == 'W':
-        sighting.art_w = '1'
+        sighting.art_w = 1
     elif new_gender == 'N':
-        sighting.art_n = '1'
+        sighting.art_n = 1
     elif new_gender == 'O':
-        sighting.art_o = '1'
+        sighting.art_o = 1
 
     db.session.commit()
 

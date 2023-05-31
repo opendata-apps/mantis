@@ -38,16 +38,17 @@
                         <img src="/static/images/svg/delete.svg" alt="Delete" class="w-5 h-5">
                     </button>
                     <div class="inline-flex items-center ml-auto">
-                        {% set total = sighting.art_m[0]|int + sighting.art_w[0]|int + sighting.art_n[0]|int +
-                        sighting.art_o[0]|int %}
+                        {% set total = sighting.art_m + sighting.art_w + sighting.art_n +
+                        sighting.art_o %}
                         <select id="gender-{{sighting.id}}"
                             class="px-3 py-2 mr-2 text-sm font-medium border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                            {{ 'disabled' if total> 1 }}>
-                            <option value="M" {{ 'selected' if sighting.art_m[0]=='1' }}>Männlich</option>
-                            <option value="W" {{ 'selected' if sighting.art_w[0]=='1' }}>Weiblich</option>
-                            <option value="N" {{ 'selected' if sighting.art_n[0]=='1' }}>Nymphe</option>
-                            <option value="O" {{ 'selected' if sighting.art_o[0]=='1' }}>Ootheke</option>
+                            onchange="changeGender({{sighting.id}})" {{ 'disabled' if total> 1 }}>
+                            <option value="M" {{ 'selected' if sighting.art_m==1 }}>Männlich</option>
+                            <option value="W" {{ 'selected' if sighting.art_w==1 }}>Weiblich</option>
+                            <option value="N" {{ 'selected' if sighting.art_n==1 }}>Nymphe</option>
+                            <option value="O" {{ 'selected' if sighting.art_o==1 }}>Ootheke</option>
                         </select>
+
                         <button onclick="toggleApprove({{sighting.id}})"
                             class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-500 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                             <img src="/static/images/svg/approve.svg" alt="Approve" class="w-5 h-5 mr-2">
@@ -58,11 +59,7 @@
             </div>
         </div>
         {% endfor %}
-
     </div>
-
-
-
 </div>
 
 
