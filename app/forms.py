@@ -33,7 +33,7 @@ class MantisSightingForm(FlaskForm):
 
     # ? Ende Deklaration
 
-    userid = StringField("Bneutzerkennung: ")
+    userid = StringField("Benutzerkennung: ")
     picture = FileField("Bild", validators=[FileRequired(), FileAllowed(
         ALLOWED_EXTENSIONS, 'Nur Bilder sind zulässig!')])
     gender = SelectField("Entwicklungsstadium",
