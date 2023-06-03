@@ -8,6 +8,7 @@ from wtforms import DateField
 from wtforms import FileField
 from wtforms import SubmitField
 from wtforms import SelectField
+from wtforms import FloatField
 from wtforms import BooleanField
 from flask_wtf.file import FileAllowed
 from flask_wtf.file import FileRequired
@@ -43,12 +44,12 @@ class MantisSightingForm(FlaskForm):
     picture_description = StringField(
         "Bildbeschreibung", validators=[Length(max=500)])
 
-    longitude = StringField('Längengrad',
-                            validators=[InputRequired(),
-                                        NumberRange(min=-180.0, max=180.0)])
-    latitude = StringField('Breitengrad',
+    longitude = FloatField('Längengrad',
                            validators=[InputRequired(),
-                                       NumberRange(min=-90.0, max=90.0)])
+                                       NumberRange(min=-180.0, max=180.0)])
+    latitude = FloatField('Breitengrad',
+                          validators=[InputRequired(),
+                                      NumberRange(min=-90.0, max=90.0)])
     zip_code = IntegerField("PLZ")
     city = StringField("Ort")
     street = StringField("Straße")
@@ -58,8 +59,6 @@ class MantisSightingForm(FlaskForm):
 
     report_first_name = StringField("Vorname", validators=[DataRequired()])
     report_last_name = StringField("Name", validators=[DataRequired()])
-    find_first_name = StringField("Vorname", validators=[DataRequired()])
-    find_last_name = StringField("Name", validators=[DataRequired()])
     sighting_date = DateField("Funddatum")
     contact = StringField("Kontakt (Email/Telefonnummer)",
                           validators=[DataRequired()])

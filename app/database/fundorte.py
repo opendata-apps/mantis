@@ -17,8 +17,6 @@ class TblFundorte (db.Model):
         "beschreibung.id"), nullable=False)
     longitude = db.Column(db.VARCHAR(25), nullable=False)
     latitude = db.Column(db.VARCHAR(25), nullable=False)
-    beschreibung = db.Column(db.Integer, db.ForeignKey(
-        "beschreibung.id"), nullable=False)
     ablage = db.Column(db.VARCHAR(255), nullable=False)
 
     def __repr__(self):
