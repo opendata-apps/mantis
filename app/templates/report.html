@@ -10,11 +10,10 @@
   <div class="flex items-center min-h-screen bg-gray-100">
     <div class="w-full max-w-4xl p-6 mx-auto bg-white rounded-lg shadow-xl">
       <form action="" method="POST" enctype="multipart/form-data" id="mainForm">
-	{{form.userid.label.text}} {{form.userid.data}}
+        {{form.userid.label.text}} {{form.userid.data}}
         <!-- User Input and Location Input Step Start-->
         <div id="step1" class="step">
           {{ form.hidden_tag() }}
-	  
           <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
               <div class="flex justify-between">
@@ -186,24 +185,49 @@
             <div>
               <label class="block text-sm font-semibold text-gray-600">
                 <div class="flex justify-between">
-                  {{ form.first_name.label.text }}
-                  {{ popover("popover-vorname", "Vorname",
+                  {{ form.report_first_name.label.text }}
+                  {{ popover("popover-reportvorname", "Vorname",
                   "Geben Sie bitte Ihren ersten Buchstaben des Vornamens ein. Beispiel: M. für Max") }}
                 </div>
                 <div class="relative">
-                  {{ form.first_name(placeholder="Erster Buchstabe z.B. M.",
+                  {{ form.report_first_name(placeholder="Erster Buchstabe z.B. M.",
                   class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
                 </div>
               </label>
 
               <label class="block text-sm font-semibold text-gray-600">
                 <div class="flex justify-between">
-                  {{ form.last_name.label.text }}
-                  {{ popover("popover-nachname", "Nachname",
+                  {{ form.report_last_name.label.text }}
+                  {{ popover("popover-reportnachname", "Nachname",
                   "Geben Sie hier bitte Ihren Nachnamen ein.") }}
                 </div>
                 <div class="relative">
-                  {{ form.last_name(placeholder="z.B. Mustermann",
+                  {{ form.report_last_name(placeholder="z.B. Mustermann",
+                  class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
+                </div>
+              </label>
+
+              <label class="hidden text-sm font-semibold text-gray-600">
+                <div class="flex justify-between">
+                  {{ form.find_first_name.label.text }}
+                  {{ popover("popover-fundvorname", "Name des Finders", "Geben Sie hier bitte den Namen des Finders
+                  ein.")
+                  }}
+                </div>
+                <div class="relative">
+                  {{ form.find_first_name(placeholder="z.B. Max Mustermann",
+                  class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
+                </div>
+              </label>
+
+              <label class="hidden text-sm font-semibold text-gray-600">
+                <div class="flex justify-between">
+                  {{ form.find_last_name.label.text }}
+                  {{ popover("popover-fundnachname", "Nachname des Finders",
+                  "Geben Sie hier bitte den Nachnamen des Finders ein.") }}
+                </div>
+                <div class="relative">
+                  {{ form.find_last_name(placeholder="z.B. Mustermann",
                   class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
                 </div>
               </label>
@@ -491,11 +515,11 @@
     ['ootheken', 'Ootheken']
   ];
 
-  const ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'tif', 'tiff', 'bmp', 'jfif', 'webp', 'svg', 'svgz', 'ico'];
+  const ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'jfif', 'webp'];
 
   function validateStep1() {
     const picture = document.querySelector('#picture').files[0];
-    const allowedTypes = ['png', 'jpg', 'jpeg', 'gif', 'tif', 'tiff', 'bmp', 'jfif', 'webp', 'svg', 'svgz', 'ico'];
+    const allowedTypes = ['png', 'jpg', 'jpeg', 'jfif', 'webp'];
     const allowedSize = 5 * 1024 * 1024;
     const fileName = picture ? picture.name.toLowerCase() : '';
 
@@ -524,9 +548,6 @@
       showStep(1);
     }
   });
-        // Step 1 Validation
-
-
 </script>
 </div>
 </div>

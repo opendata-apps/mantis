@@ -56,11 +56,12 @@ class MantisSightingForm(FlaskForm):
     district = StringField("Kreis")
     location_description = StringField("Fundort Beschreibung")
 
-    first_name = StringField("Vorname", validators=[DataRequired()])
-    last_name = StringField("Name", validators=[DataRequired()])
+    report_first_name = StringField("Vorname", validators=[DataRequired()])
+    report_last_name = StringField("Name", validators=[DataRequired()])
+    find_first_name = StringField("Vorname", validators=[DataRequired()])
+    find_last_name = StringField("Name", validators=[DataRequired()])
     sighting_date = DateField("Funddatum")
     contact = StringField("Kontakt (Email/Telefonnummer)",
                           validators=[DataRequired()])
-    feedback = BooleanField("Soll Rückmeldung bei Bearbeitung kommen?")
 
     submit = SubmitField("Absenden")
