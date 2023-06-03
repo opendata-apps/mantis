@@ -1,4 +1,5 @@
 {% extends "layout.html" %}
+{% from "_formhelpers.html" import render_field %}
 {% block title %}Review neuer Meldungen{% endblock title %}
 {% block content %}
 <!--Admin Sample Page-->
@@ -14,8 +15,15 @@
 		   shadow-[0_4px_9px_-4px_#3b71ca] transition duration-150
 		   ease-in-out hover:bg-primary-600 bg-green-900"/>
   </p>
-</form>  
-
+  <dl>
+    {{ render_field(form.user_id)}}
+    {{ render_field(form.longitude) }}
+    {{ render_field(form.latitude) }}
+    {{ render_field(form.first_name) }}
+    {{ render_field(form.last_name) }}
+  </dl>
+  <!--p><input type=submit value=Register-->
+</form>
   <p class="pt-6">
   {%for k, v in result.items() %}
     {{k}} : [{{v}}] <br/>

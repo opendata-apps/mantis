@@ -5,6 +5,8 @@ from flask import render_template_string
 from sqlalchemy import text
 import csv
 from flask import Response
+from app.routes.reviewer_form import ReviewerForm
+from werkzeug.datastructures import MultiDict
 
 # Blueprints
 review = Blueprint('reviewer', __name__)
@@ -13,7 +15,7 @@ review = Blueprint('reviewer', __name__)
 @review.route('/reviewer', methods=['POST'])
 def review_index():
     res = {'Anmerkung': 'Keinen Datensatz mit dieser ID gefunden!'}
-    if request.method == 'POST'and request.form['id']:
+    if request.method == 'POST': #and request.form['id']:
         try:
             id = int(request.form['id'])
         except:
@@ -39,7 +41,6 @@ def review_index():
         
         with db.engine.connect() as conn:
             result = conn.execute(sql)
-
             for row in result:
                 row = row._mapping
                 name_map = {'id': 'Datensatz',
@@ -72,5 +73,7 @@ def review_index():
                             'ablage': 'Pfad zum Bild'       
                             }
                 
-                res = dict((name_map[name], val) for name, val in row.items())            
-    return render_template('reviewer/start.html', result=res)
+                res = dict((name, val) for name, val in row.items())
+            print(res, type(res))
+    form =  ReviewerForm(formdata=MultiDict(res))
+    return render_template('reviewer/start.html', form=form, result=res)
