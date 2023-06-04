@@ -90,6 +90,7 @@ def report():
         new_meldung = TblMeldungen(
             dat_fund_von=form.sighting_date.data,
             dat_fund_bis=form.sighting_date.data,
+            dat_meldung=datetime.now(),
             fo_zuordnung=new_fundort.id,
             fo_quelle="F",
             art_m=art_m,
