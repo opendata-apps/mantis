@@ -117,7 +117,8 @@ def report():
         db.session.add(new_meldung_user)
         db.session.commit()
         return redirect(url_for('data.report'))
-
+    
+    print(form.errors)
     return render_template('report.html', form=form)
 
 
