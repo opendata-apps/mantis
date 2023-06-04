@@ -19,9 +19,10 @@ def review_index():
         try:
             id = int(request.form['id'])
         except:
+            form = {}
             res = {'Anmerkung': 'Keinen Datensatz mit dieser ID gefunden!'}
-            return render_template('reviewer/start.html', result=res)
-            
+            return render_template('reviewer/start.html', form=form, result=res)
+                
         sql= text(f"""
         select
         me.id, dat_fund_von, dat_fund_bis, dat_meld, dat_bear,
