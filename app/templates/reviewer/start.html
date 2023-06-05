@@ -21,7 +21,12 @@
 	{{ render_field(form.art_o) }}
       </div>
       <div class="basis-3/4">
-	Hier fehlt noch das Bild...
+
+	<img src="{{url_for('reviewer.imagedata',
+		  filename= result['ablage']) }}"
+	     alt="Mantis-Meldung"
+	     class="object-contain h-48 w-96 "/>
+	<p class="mt-4">Hier fehlt nich die vergrößerte Ansicht...</p>
       </div>
     {% endif %}
     </dl>

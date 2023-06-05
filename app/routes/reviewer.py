@@ -1,7 +1,9 @@
 from flask import jsonify, render_template, request, Blueprint
+import app
 from app import db
 from datetime import datetime
 from flask import render_template_string
+from flask import send_from_directory
 from sqlalchemy import text
 import csv
 from flask import Response
@@ -10,6 +12,15 @@ from werkzeug.datastructures import MultiDict
 
 # Blueprints
 review = Blueprint('reviewer', __name__)
+
+@review.route('/imagedata/<path:filename>', methods=["GET"])
+def imagedata(filename):
+    print("40*#")
+    print(app.config.Config.UPLOAD_PATH, filename)
+    return send_from_directory(app.config.Config.UPLOAD_PATH,
+                               filename,
+                               mimetype='image/webp')
+
 
 @review.route('/reviewer')
 @review.route('/reviewer', methods=['POST'])
@@ -75,6 +86,7 @@ def review_index():
                             }
                 
                 res = dict((name, val) for name, val in row.items())
-            print(res, type(res))
+            #print(res, type(res))
     form =  ReviewerForm(formdata=MultiDict(res))
     return render_template('reviewer/start.html', form=form, result=res)
+
