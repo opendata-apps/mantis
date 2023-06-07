@@ -11,7 +11,8 @@
     <div class="w-full max-w-4xl p-6 mx-auto bg-white rounded-lg shadow-xl">
       <form action="" method="POST" enctype="multipart/form-data" id="mainForm">
         {{ form.hidden_tag() }}
-        {{form.userid.label.text}} {{form.userid.data}}
+        {{ form.csrf_token }} {# Add the CSRF token here #}
+        {{ form.userid.label.text }} {{ form.userid.data }}
         <!-- User Input and Location Input Step Start-->
         <div id="step1" class="step">
           {{ form.hidden_tag() }}
@@ -306,7 +307,9 @@
     const formData = new FormData(form);
 
     for (const [key, value] of formData.entries()) {
-      localStorage.setItem(key, value);
+      if (key !== "csrf_token") { // exclude csrf_token
+        localStorage.setItem(key, value);
+      }
     }
   }
 
