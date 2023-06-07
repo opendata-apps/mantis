@@ -40,8 +40,12 @@ def toggle_approve_sighting(id):
     # Find the report by id
     sighting = TblMeldungen.query.get(id)
     if sighting:
-        # Toggle the 'approved' status
-        sighting.approved = not sighting.approved
+        # Set the dat_bear value to the current datetime if it is not already set
+        if not sighting.dat_bear:
+            sighting.dat_bear = datetime.now()
+        else:
+            sighting.dat_bear = None  # Clear the dat_bear value if it is already set
+
         db.session.commit()
         return jsonify({'success': True})
     else:
@@ -76,8 +80,10 @@ def get_sighting(id):
             part_dict = {c.name: getattr(part, c.name)
                          for c in part.__table__.columns}
             sighting_dict.update(part_dict)
+        print(sighting_dict)
         return jsonify(sighting_dict)
     else:
+        print(jsonify({'error': 'Report not found'}), 404)
         return jsonify({'error': 'Report not found'}), 404
 
 

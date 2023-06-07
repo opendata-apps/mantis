@@ -7,6 +7,11 @@
     <h1 class="text-4xl font-bold text-center">Admin Dashboard</h1>
 
     <div class="flex items-center justify-between w-full p-2 mb-6 rounded shadow">
+        <!-- Add the switch toggle -->
+        <label class="flex items-center space-x-2">
+            <input type="checkbox" id="toggleSwitch" onchange="toggleApprovedSightings()" checked>
+            <span class="text-sm font-medium">Show only non-approved sightings</span>
+        </label>
         <input type="text" id="searchInput" onkeyup="searchReports()" placeholder="Search for reports..."
             class="w-2/3 p-2 rounded shadow outline-none focus:ring-2 focus:ring-blue-500">
         <select id="sortInput" onchange="sortReports()"
@@ -28,6 +33,9 @@
             <div class="p-6 bg-white rounded shadow-sm {{ 'bg-green-100' if sighting.approved }}">
                 <h2 class="mb-2 text-xl font-bold">Report ID: {{ sighting.id }}</h2>
                 <p><strong>Date Reported:</strong> {{ sighting.dat_meld }}</p>
+                {% if sighting.dat_bear %}
+                <p data-dat-bear="{{ sighting.dat_bear }}"><strong>Date Approved:</strong> {{ sighting.dat_bear }}</p>
+                {% endif %}
                 <p><strong>Location ID:</strong> {{ sighting.fo_zuordnung }}</p>
                 <p><strong>Details:</strong> {{ sighting.anm_melder }}</p>
                 <div class="flex items-center mt-4">
@@ -42,18 +50,23 @@
                         sighting.art_o %}
                         <select id="gender-{{sighting.id}}"
                             class="px-3 py-2 mr-2 text-sm font-medium border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                            onchange="changeGender({{sighting.id}})" {{ 'disabled' if total> 1 else '' }} >
+                            onchange="changeGender({{sighting.id}})" {{ 'disabled' if sighting.dat_bear or total> 1 }} >
                             <option value="M" {{ 'selected' if sighting.art_m==1 }}>Männlich</option>
                             <option value="W" {{ 'selected' if sighting.art_w==1 }}>Weiblich</option>
                             <option value="N" {{ 'selected' if sighting.art_n==1 }}>Nymphe</option>
                             <option value="O" {{ 'selected' if sighting.art_o==1 }}>Ootheke</option>
                         </select>
-
+                        {% if sighting.dat_bear %}
+                        <span
+                            class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-500 rounded-md">
+                            Approved
+                        </span>
+                        {% else %}
                         <button onclick="toggleApprove({{sighting.id}})"
                             class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-500 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                            <img src="/static/images/svg/approve.svg" alt="Approve" class="w-5 h-5 mr-2">
                             Approve
                         </button>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -163,11 +176,19 @@
         }
     }
 
+    // Function to toggle approve a sighting
     function toggleApprove(id) {
-        // Send request to server to toggle approval
         fetch('/toggle_approve_sighting/' + id, { method: 'POST' })
             .then(response => response.json())
-            .then(data => console.log(data))
+            .then(data => {
+                if (data.success) {
+                    console.log(`Changed approval status of report ${id}`);
+                    // Remove the approved card from the view
+                    removeCardFromView(id);
+                } else {
+                    console.error('Failed to change approval status:', data.error);
+                }
+            })
             .catch(error => console.error('Error:', error));
     }
 
@@ -278,25 +299,60 @@
         // This will require additional setup based on how you want to edit the details
     }
 
+    // Function to delete a sighting
     function deleteSighting(id) {
-        // Confirmation prompt
         let confirmDelete = confirm('Are you sure you want to delete this sighting? This action cannot be undone.');
         if (confirmDelete) {
-            // Existing delete function
             fetch('/delete_sighting/' + id, { method: 'POST' })
                 .then(response => response.json())
-                .then(data => console.log(data))
+                .then(data => {
+                    console.log(data);
+                    // Remove the deleted card from the view
+                    removeCardFromView(id);
+                })
                 .catch(error => console.error('Error:', error));
-            // Remove card from page
-            let card = document.querySelector(`[data-report-id="${id}"]`);
-            card.remove();
         }
+    }
+
+    // Function to remove a card from the view
+    function removeCardFromView(id) {
+        let card = document.querySelector(`[data-report-id="${id}"]`);
+        card.remove();
     }
 
     function exportCSV() {
         // Assuming there's an export function in your routes
         window.location.href = '/admin/export/csv/reported_sightings';
     }
+
+    // Add a global variable to keep track of the toggle state
+    let showApprovedSightings = false;
+
+    // Function to toggle approved sightings based on the switch state
+    function toggleApprovedSightings() {
+        showApprovedSightings = !showApprovedSightings;
+        filterSightings();
+    }
+
+    // Function to filter sightings based on the toggle state
+    function filterSightings() {
+        let cards = Array.from(document.getElementsByClassName('report-card'));
+
+        cards.forEach(card => {
+            let datBear = card.querySelector('p[data-dat-bear]');
+            let isApproved = datBear !== null;
+
+            if (showApprovedSightings) {
+                card.style.display = isApproved ? '' : 'none';
+            } else {
+                card.style.display = isApproved ? 'none' : '';
+            }
+        });
+    }
+
+    // Call the filterSightings function initially to apply the default filter
+    filterSightings();
+
 </script>
 
 {% endblock content %}
