@@ -84,7 +84,7 @@
                 <!-- Tab Buttons -->
                 <div class="flex justify-center mb-4">
                     <button
-                        class="px-4 py-2 font-semibold text-green-700 bg-blue-100 rounded-lg focus:outline-none hover:bg-green-600 hover:text-white"
+                        class="px-4 py-2 font-semibold text-green-700 bg-blue-100 rounded-lg focus:outline-none hover:bg-green-600 hover:text-white active"
                         id="tab-general-info">General Information</button>
                     <button
                         class="px-4 py-2 ml-2 font-semibold text-green-700 bg-blue-100 rounded-lg focus:outline-none hover:bg-green-600 hover:text-white"
@@ -205,7 +205,7 @@
 
                 // Set initial content
                 tabContent.innerHTML = generateGeneralInfo(data);
-                tabGeneralInfo.classList.add('active');
+                setActiveTab(tabGeneralInfo);
 
                 // Add click listeners to tab buttons
                 tabGeneralInfo.addEventListener('click', function () {
@@ -235,6 +235,7 @@
             .catch(error => console.error('Error:', error));
     }
 
+
     function setActiveTab(tab) {
         // Remove 'active' class from all tabs
         let tabs = [document.getElementById('tab-general-info'), document.getElementById('tab-location-info'), document.getElementById('tab-user-info')];
@@ -242,6 +243,7 @@
         // Add 'active' class to the selected tab
         tab.classList.add('active');
     }
+
 
     function generateGeneralInfo(data) {
         // Determine gender based on the art_ fields
