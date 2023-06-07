@@ -5,6 +5,51 @@
 {% endblock %}
 {% block title %}Report{% endblock %}
 {% block content %}
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+{% for message in messages %}
+<div id="toast-interactive-{{ loop.index }}"
+  class="fixed z-50 w-3/4 max-w-2xl px-4 py-2 text-gray-500 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow toast dark:bg-gray-800 dark:text-gray-400 top-1/4 left-1/2"
+  role="alert">
+  <div class="flex">
+    <div
+      class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-green-500 bg-green-100 rounded-lg dark:text-green-300 dark:bg-green-900">
+      <span class="sr-only">Notification icon</span>
+    </div>
+    <div class="ml-3 text-sm font-normal">
+      <p class="mb-1 text-sm font-semibold text-gray-900 break-all dark:text-white">{{ message }}</p>
+      <div class="grid grid-cols-2 gap-2 mt-2">
+        <div>
+          <a href="/report"
+            class="inline-flex justify-center w-full px-2 py-1.5 text-xs font-medium text-center text-white bg-green-600 rounded-lg hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-blue-300 ">Report
+            Mantis</a>
+        </div>
+        <div>
+          <button onclick="copyToClipboard('{{ message }}')"
+            class="inline-flex justify-center w-full px-2 py-1.5 text-xs font-medium text-center text-gray-900 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 ">Copy
+            ID</button>
+        </div>
+      </div>
+    </div>
+    <button type="button"
+      class="ml-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex h-8 w-8 "
+      data-dismiss-target="#toast-interactive-{{ loop.index }}" aria-label="Close">
+      <span class="sr-only">Close</span>
+      <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
+        xmlns="http://www.w3.org/2000/svg">
+        <path fill-rule="evenodd"
+          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+          clip-rule="evenodd"></path>
+      </svg>
+    </button>
+  </div>
+</div>
+{% endfor %}
+{% endif %}
+{% endwith %}
+{% block body %}{% endblock %}
+
+
 
 <body>
   <div class="flex items-center min-h-screen bg-gray-100">
@@ -12,7 +57,6 @@
       <form action="" method="POST" enctype="multipart/form-data" id="mainForm">
         {{ form.hidden_tag() }}
         {{ form.csrf_token }} {# Add the CSRF token here #}
-        {{ form.userid.label.text }} {{ form.userid.data }}
         <!-- User Input and Location Input Step Start-->
         <div id="step1" class="step">
           {{ form.hidden_tag() }}
@@ -526,6 +570,27 @@
       showStep(1);
     }
   });
+
+  function copyToClipboard(text) {
+    var idPattern = /ID: (\w+)/;
+    var idMatch = text.match(idPattern);
+
+    if (idMatch) {
+      var id = idMatch[1];
+
+      var tempInput = document.createElement("input");
+      tempInput.value = id;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand("copy");
+      document.body.removeChild(tempInput);
+      // Show a success toast or something
+    }
+    else {
+      console.error("Unable to extract ID from text: " + text);
+    }
+  }
+
 </script>
 </div>
 </div>
