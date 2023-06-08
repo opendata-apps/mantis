@@ -58,7 +58,7 @@
                         </select>
                         {% if sighting.dat_bear %}
                         <span
-                            class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-500 rounded-md">
+                            class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-800 bg-green-100 rounded-md">
                             Approved
                         </span>
                         {% else %}
@@ -112,6 +112,11 @@
 </div>
 
 <script>
+    let map;
+    let marker;
+
+
+
     document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("sortInput").value = "id_asc";
         sortReports();
@@ -192,6 +197,15 @@
             .catch(error => console.error('Error:', error));
     }
 
+    function fetchReport(id) {
+        fetch('/get_sighting/' + id)
+            .then(response => response.json())
+            .then(data => {
+                openModal(data);
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
     function openModal(id) {
         // Get report details and show in modal
         fetch('/get_sighting/' + id)
@@ -203,6 +217,7 @@
                 let tabUserInfo = document.getElementById('tab-user-info');
                 let tabContent = document.getElementById('tab-content');
 
+                console.log(data.latitude, data.longitude);
                 // Set initial content
                 tabContent.innerHTML = generateGeneralInfo(data);
                 setActiveTab(tabGeneralInfo);
@@ -215,12 +230,37 @@
                     }
                 });
 
+
+                locationData = data;
+                console.log(locationData.latitude, locationData.longitude);
+
                 tabLocationInfo.addEventListener('click', function () {
                     if (!this.classList.contains('active')) {
-                        tabContent.innerHTML = generateLocationInfo(data);
+                        tabContent.innerHTML = generateLocationInfo(locationData);
                         setActiveTab(this);
+
+                        // Initiate the map when 'Place of Sighting with Map' tab is clicked
+                        setTimeout(function () {
+                            let lat = parseFloat(locationData.latitude.replace(',', '.'));
+                            let lng = parseFloat(locationData.longitude.replace(',', '.'));
+                            map = L.map('map').setView([lat, lng], 13);
+
+
+                            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                maxZoom: 18,
+                                tileSize: 512,
+                                zoomOffset: -1
+                            }).addTo(map);
+
+                            L.marker([lat, lng]).addTo(map);
+                            console.log('Lat:', lat, 'Lng:', lng);
+
+                            // Redraw tiles after the modal is shown
+                            map.invalidateSize();
+                        }, 0);
                     }
                 });
+
 
                 tabUserInfo.addEventListener('click', function () {
                     if (!this.classList.contains('active')) {
@@ -277,19 +317,20 @@
         changeGender(sightingId, gender);
     }
 
-    function generateLocationInfo(data) {
-        // Convert location info into HTML string
-        // Adjust fields according to your data structure
-        return `<p><strong>Location ID:</strong> ${data.fo_zuordnung}</p>
-                <!-- Include map implementation -->`;
-    }
-
     function generateUserInfo(data) {
         // Convert user info into HTML string
         // Adjust fields according to your data structure
         return `<p><strong>User Name:</strong> ${data.user_name}</p>
                 <p><strong>User Email:</strong> ${data.user_email}</p>`;
     }
+
+
+    function generateLocationInfo(data) {
+        // Convert location info into HTML string
+        return `<p><strong>Location ID:</strong> ${data.fo_zuordnung}</p>
+                <div id="map" style="height: 400px; width: 100%;"></div>`;
+    }
+
 
     function closeModal() {
         // Hide modal
@@ -318,7 +359,7 @@
 
     // Function to remove a card from the view
     function removeCardFromView(id) {
-        let card = document.querySelector(`[data-report-id="${id}"]`);
+        let card = document.querySelector(`[data - report - id= "${id}"]`);
         card.remove();
     }
 

@@ -54,6 +54,7 @@ def toggle_approve_sighting(id):
 
 @admin.route('/get_sighting/<id>', methods=['GET'])
 def get_sighting(id):
+    print("Get sighting with id: " + id + "")
     # Find the report by id
     sighting = db.session.query(
         TblMeldungen,
