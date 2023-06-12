@@ -14,14 +14,26 @@ from flask import request
 from werkzeug.utils import secure_filename
 import os
 from datetime import datetime
+from pathlib import Path
+from PIL import Image
 
 # Blueprints
 data = Blueprint('data', __name__)
 
 
 # Flask application and routes
-UPLOAD_FOLDER = 'altes-lager/images/meldungen'
+UPLOAD_FOLDER = 'app/datastore'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+
+def create_directory(date):
+    dir_path = os.path.join(UPLOAD_FOLDER, date)
+    Path(dir_path).mkdir(parents=True, exist_ok=True)
+    return dir_path
+
+
+def create_filename(location, usrid):
+    return '{}-{}.webp'.format(location, usrid)
 
 
 def allowed_file(filename):
@@ -69,9 +81,16 @@ def report():
             flash('No selected file')
             return redirect(request.url)
         if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(UPLOAD_FOLDER, filename))
-            bildpfad = os.path.join(UPLOAD_FOLDER, filename)
+            date_folder = create_directory(
+                form.sighting_date.data.strftime('%Y-%m-%d'))
+            filename = create_filename(form.city.data, usrid)
+            full_file_path = os.path.join(date_folder, filename)
+
+            # Convert image to webp and save
+            img = Image.open(file)
+            img.save(full_file_path, 'WEBP')
+
+            bildpfad = full_file_path
 
         new_fundort = TblFundorte(
             plz=form.zip_code.data,
@@ -117,11 +136,11 @@ def report():
         )
         db.session.add(new_meldung_user)
         db.session.commit()
-        
+
         flash('Vielen Dank für Ihre Meldung! Um weitere Meldungen zu machen, speichern Sie bitte die ID: ' + str(usrid) + ' ab.')
 
         return redirect(url_for('data.report'))
-    
+
     print(form.errors)
     return render_template('report.html', form=form)
 
