@@ -1,5 +1,4 @@
 {% extends "layout.html" %}
-{% from "macro.html" import popover %}
 
 {% block content %}
 
@@ -46,8 +45,8 @@
                         <img src="/static/images/svg/delete.svg" alt="Delete" class="w-5 h-5">
                     </button>
                     <div class="inline-flex items-center ml-auto">
-                        {% set total = sighting.art_m + sighting.art_w + sighting.art_n +
-                        sighting.art_o %}
+                        {% set total = (sighting.art_m or 0) + (sighting.art_w or 0) + (sighting.art_n or 0) +
+                        (sighting.art_o or 0) %}
                         <select id="gender-{{sighting.id}}"
                             class="px-3 py-2 mr-2 text-sm font-medium border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                             onchange="changeGender({{sighting.id}})" {{ 'disabled' if sighting.dat_bear or total> 1 }} >

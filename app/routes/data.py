@@ -41,56 +41,97 @@ def allowed_file(filename):
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
+def update_or_create_user(usrid, last_name, first_name, contact):
+    existing_user = TblUsers.query.filter_by(user_id=usrid).first()
+
+    if existing_user:
+        existing_user.user_name = last_name + " " + first_name[0] + "."
+        existing_user.user_kontakt = contact
+    else:
+        new_user = TblUsers(
+            user_id=usrid,
+            user_name=last_name + " " + first_name[0] + ".",
+            user_rolle=1,
+            user_kontakt=contact,
+        )
+        db.session.add(new_user)
+        db.session.flush()
+
+    return existing_user or new_user
+
+
+def handle_file_upload(request, form, usrid):
+    if 'picture' not in request.files:
+        flash('No file part')
+        return None
+    file = request.files['picture']
+    # If user does not select file, browser also
+    # submit an empty part without filename
+    if file.filename == '':
+        flash('No selected file')
+        return None
+    if file and allowed_file(file.filename):
+        date_folder = create_directory(
+            form.sighting_date.data.strftime('%Y-%m-%d'))
+        filename = create_filename(form.city.data, usrid)
+        full_file_path = os.path.join(date_folder, filename)
+
+        # Convert image to webp and save
+        img = Image.open(file)
+        img.save(full_file_path, 'WEBP')
+
+        return full_file_path
+    return None
+
+# Define a function to set gender field
+
+
+def set_gender_fields(selected_gender):
+    # Initialize all fields to 0
+    genders = {'art_m': 0, 'art_w': 0, 'art_n': 0, 'art_o': 0}
+
+    # Map form's gender data to field
+    gender_mapping = {'männchen': 'art_m', 'weibchen': 'art_w',
+                      'nymphen': 'art_n', 'ootheken': 'art_o'}
+    gender_field = gender_mapping.get(selected_gender)
+
+    if gender_field:
+        genders[gender_field] = 1
+
+    return genders
+
+
 @data.route('/report', methods=['GET', 'POST'])
-def report():
-    usrid = get_new_id()
+@data.route('/report/<usrid>', methods=['GET', 'POST'])
+def report(usrid=None):
+    existing_user = None
+
+    if usrid:
+        existing_user = TblUsers.query.filter_by(user_id=usrid).first()
+
+    if not existing_user:
+        usrid = get_new_id()
+
     form = MantisSightingForm(userid=usrid)
 
-    if form.validate_on_submit():
-        # Initialize all fields to 0
-        art_m = 0
-        art_w = 0
-        art_n = 0
-        art_o = 0
+    if existing_user and request.method == 'GET':
+        form.report_first_name.data = existing_user.user_name.split(" ")[1]
+        form.report_last_name.data = existing_user.user_name.split(" ")[0]
+        form.contact.data = existing_user.user_kontakt
 
-        # Set the appropriate field to 1 based on the gender
-        if form.gender.data == 'männchen':
-            art_m = 1
-        elif form.gender.data == 'weibchen':
-            art_w = 1
-        elif form.gender.data == 'nymphen':
-            art_n = 1
-        elif form.gender.data == 'ootheken':
-            art_o = 1
+    if form.validate_on_submit():
+        # Code for handling form submissions
+
+        genders = set_gender_fields(form.gender.data)
 
         new_fundort_beschreibung = TblFundortBeschreibung(
             beschreibung=form.location_description.data,
         )
         db.session.add(new_fundort_beschreibung)
-        db.session.flush()  # This is needed to generate the ID
+        db.session.flush()
 
         # Check if the post request has the file part
-        bildpfad = None
-        if 'picture' not in request.files:
-            flash('No file part')
-            return redirect(request.url)
-        file = request.files['picture']
-        # If user does not select file, browser also
-        # submit an empty part without filename
-        if file.filename == '':
-            flash('No selected file')
-            return redirect(request.url)
-        if file and allowed_file(file.filename):
-            date_folder = create_directory(
-                form.sighting_date.data.strftime('%Y-%m-%d'))
-            filename = create_filename(form.city.data, usrid)
-            full_file_path = os.path.join(date_folder, filename)
-
-            # Convert image to webp and save
-            img = Image.open(file)
-            img.save(full_file_path, 'WEBP')
-
-            bildpfad = full_file_path
+        bildpfad = handle_file_upload(request, form, usrid)
 
         new_fundort = TblFundorte(
             plz=form.zip_code.data,
@@ -104,7 +145,7 @@ def report():
             ablage=bildpfad,
         )
         db.session.add(new_fundort)
-        db.session.flush()  # This is needed to generate the ID
+        db.session.flush()
 
         new_meldung = TblMeldungen(
             dat_fund_von=form.sighting_date.data,
@@ -112,27 +153,17 @@ def report():
             dat_meld=datetime.now(),
             fo_zuordnung=new_fundort.id,
             fo_quelle="F",
-            art_m=art_m,
-            art_w=art_w,
-            art_n=art_n,
-            art_o=art_o,
+            **genders,
         )
         db.session.add(new_meldung)
-        db.session.flush()  # This is needed to generate the ID
+        db.session.flush()
 
-        new_user = TblUsers(
-            user_id=usrid,
-            user_name=form.report_last_name.data + " " +
-            form.report_first_name.data[0] + ".",
-            user_rolle=1,
-            user_kontakt=form.contact.data,
-        )
-        db.session.add(new_user)
-        db.session.flush()  # This is needed to generate the ID
+        updated_user = update_or_create_user(usrid, form.report_last_name.data, form.report_first_name.data,
+                                             form.contact.data)
 
         new_meldung_user = TblMeldungUser(
             id_meldung=new_meldung.id,
-            id_user=new_user.id,
+            id_user=updated_user.id,
         )
         db.session.add(new_meldung_user)
         db.session.commit()

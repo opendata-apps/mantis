@@ -9,7 +9,7 @@
 {% if messages %}
 {% for message in messages %}
 <div id="toast-interactive-{{ loop.index }}"
-  class="fixed z-50 w-3/4 max-w-2xl px-4 py-2 text-gray-500 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow toast dark:bg-gray-800 dark:text-gray-400 top-1/4 left-1/2 min-h-16"
+  class="fixed z-50 max-w-2xl px-4 py-2 text-gray-500 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow toast dark:bg-gray-800 dark:text-gray-400 top-1/4 left-1/2 min-h-16"
   role="alert">
   <div class="flex">
     <div
@@ -54,266 +54,264 @@
 
 
 
-<body>
-  <div class="flex items-center min-h-screen bg-gray-100">
-    <div class="w-full max-w-4xl p-6 mx-auto bg-white rounded-lg shadow-xl">
-      <form action="" method="POST" enctype="multipart/form-data" id="mainForm">
+<div class="flex items-center min-h-screen bg-gray-100">
+  <div class="w-full max-w-4xl p-6 mx-auto bg-white rounded-lg shadow-xl">
+    <form action="" method="POST" enctype="multipart/form-data" id="mainForm">
+      {{ form.hidden_tag() }}
+      {{ form.csrf_token }}
+      <!-- User Input and Location Input Step Start-->
+      <div id="step1" class="step">
         {{ form.hidden_tag() }}
-        {{ form.csrf_token }} {# Add the CSRF token here #}
-        <!-- User Input and Location Input Step Start-->
-        <div id="step1" class="step">
-          {{ form.hidden_tag() }}
-          <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div>
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div>
+            <div class="flex justify-between">
+              {{ form.picture.label.text }}
+              {{ popover("popover-picture", "Info zum Bild-Upload",
+              "Anhand des Bildes können wir Ihre Bestimmung überprüfen. Ist Ihr Fund von uns überprüft und
+              freigegeben,
+              erscheint er in der Karte. Die Bilder werden nicht weiterverwendet. Ihre Urheberrechte bleiben
+              unberührt.") }}
+            </div>
+            <div class="relative">
+              {{ form.picture(class="block w-full mt-1 text-sm text-gray-900 border border-gray-300 rounded-lg
+              cursor-pointer bg-gray-50 focus:outline-none ",
+              id=form.picture.id, accept="image/*", capture="user")
+              }}
+            </div>
+            <p class="mt-1 text-sm text-gray-500" id="{{ form.picture.id }}_help">
+              {{ form.picture.description }}
+            </p>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
-                {{ form.picture.label.text }}
-                {{ popover("popover-picture", "Info zum Bild-Upload",
-                "Anhand des Bildes können wir Ihre Bestimmung überprüfen. Ist Ihr Fund von uns überprüft und
-                freigegeben,
-                erscheint er in der Karte. Die Bilder werden nicht weiterverwendet. Ihre Urheberrechte bleiben
-                unberührt.") }}
+                {{ form.gender.label.text }}
+                {{ popover("popover-gender", "Entwicklungsstadium",
+                'Dieses Feld ist eine kleine Herausforderung für den Melder. Trauen Sie sich zu, das Geschlecht oder
+                das
+                Entwicklungsstadium zu bestimmen? Die Merkmale für die Bestimmung sind auf der folgender Seite genau
+                beschrieben In jedem Fall werden Sie nach einer Bewertung
+                durch Fachleute über das Ergebnis informiert.
+                Versuchen Sie es!', '/bestimmung', 'Hilfe zur Bestimmung') }}
               </div>
               <div class="relative">
-                {{ form.picture(class="block w-full mt-1 text-sm text-gray-900 border border-gray-300 rounded-lg
-                cursor-pointer bg-gray-50 focus:outline-none ",
-                id=form.picture.id, accept="image/*", capture="user")
+                {{ form.gender(class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
+                focus:ring-green-500") }}
+              </div>
+            </label>
+          </div>
+          <div>
+            <label class="text-sm font-semibold text-gray-600">
+              <div class="flex justify-between">
+                <div>{{ form.longitude.label.text }}</div>
+                {{ popover("popover-longitude", "Koordinaten",
+                "Der Längengrad wird automatisch angegeben, sobald Sie den Marker an der untenstehenden Karte
+                setzen.")
                 }}
               </div>
-              <p class="mt-1 text-sm text-gray-500" id="{{ form.picture.id }}_help">
-                {{ form.picture.description }}
-              </p>
-            </div>
-            <div>
-              <label class="block text-sm font-semibold text-gray-600">
-                <div class="flex justify-between">
-                  {{ form.gender.label.text }}
-                  {{ popover("popover-gender", "Entwicklungsstadium",
-                  'Dieses Feld ist eine kleine Herausforderung für den Melder. Trauen Sie sich zu, das Geschlecht oder
-                  das
-                  Entwicklungsstadium zu bestimmen? Die Merkmale für die Bestimmung sind auf der folgender Seite genau
-                  beschrieben In jedem Fall werden Sie nach einer Bewertung
-                  durch Fachleute über das Ergebnis informiert.
-                  Versuchen Sie es!', '/bestimmung', 'Hilfe zur Bestimmung') }}
-                </div>
-                <div class="relative">
-                  {{ form.gender(class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
-                  focus:ring-green-500") }}
-                </div>
-              </label>
-            </div>
-            <div>
-              <label class="text-sm font-semibold text-gray-600">
-                <div class="flex justify-between">
-                  <div>{{ form.longitude.label.text }}</div>
-                  {{ popover("popover-longitude", "Koordinaten",
-                  "Der Längengrad wird automatisch angegeben, sobald Sie den Marker an der untenstehenden Karte
-                  setzen.")
-                  }}
-                </div>
-                <div class="relative">
-                  {{ form.longitude(placeholder="z.B. 13.12345",
-                  class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
-                  focus:ring-green-500") }}
-                </div>
-              </label>
-              <label class="block text-sm font-semibold text-gray-600">
-                <div class="flex justify-between">
-                  {{ form.latitude.label.text }}
-                  {{ popover("popover-latitude", "Koordinaten",
-                  "Der Breitengrad wird automatisch angegeben, sobald Sie den Marker an der untenstehenden Karte
-                  setzen.")
-                  }}
-                </div>
-                <div class="relative">
-                  {{ form.latitude(placeholder="z.B. 52.12345",
-                  class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
-                  focus:ring-green-500") }}
-                </div>
-              </label>
-            </div>
-            <div>
-              <label class="block text-sm font-semibold text-gray-600">
-                <div class="flex justify-between">
-                  {{ form.zip_code.label.text }}
-                  {{ popover("popover-zip", "Postleitzahl",
-                  "Falls der Wert nicht korrekt eingelesen wurde, geben Sie bitte die Postleitzahl ein.") }}
-                </div>
-                <div class="relative">
-                  {{ form.zip_code(id="zip_code",
-                  placeholder="z.B. 10115",
-                  class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
-                  focus:ring-green-500") }}
-                </div>
-              </label>
-              <label class="block text-sm font-semibold text-gray-600">
-                <div class="flex justify-between">
-                  {{ form.city.label.text }}
-                  {{ popover("popover-city", "Ort",
-                  "Falls der Wert nicht korrekt eingelesen wurde, geben Sie bitte den Stadtnamen ein.") }}
-                </div>
-                <div class="relative">
-                  {{ form.city(id="city",
-                  placeholder="z.B. Berlin",
-                  class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
-                  focus:ring-green-500") }}
-                </div>
-              </label>
-            </div>
-            <div>
-              <label class="block text-sm font-semibold text-gray-600">
-                <div class="flex justify-between">
-                  {{ form.street.label.text }}
-                  {{ popover("popover-street", "Straße",
-                  "Falls der Wert nicht korrekt eingelesen wurde, geben Sie bitte den Straßennamen ein.") }}
-                </div>
-                <div class="relative">
-                  {{ form.street(placeholder="z.B. Musterstraße",
-                  class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
-                  focus:ring-green-500") }}
-                </div>
-              </label>
-              <label class="block text-sm font-semibold text-gray-600">
-                <div class="flex justify-between">
-                  {{ form.state.label.text }}
-                  {{ popover("popover-bundesland", "Bundesland",
-                  "Falls der Wert nicht korrekt eingelesen wurde, ergänzen Sie bitte den Namen des Bundeslandes.") }}
-                </div>
-                <div class="relative">
-                  {{ form.state(id="state",
-                  placeholder="z.B. Berlin",
-                  class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
-                  focus:ring-green-500") }}
-                </div>
-              </label>
-              <label class="block text-sm font-semibold text-gray-600">
-                <div class="flex justify-between">
-                  {{ form.district.label.text }}
-                  {{ popover("popover-bezirk", "Landkreis/Stadt",
-                  "Falls der Wert nicht korrekt eingelesen wurde, geben Sie bitte den Landkreis/die Stadt ein.") }}
-                </div>
-                <div class="relative">
-                  {{ form.district(id="district",
-                  placeholder="z.B. Mitte",
-                  class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
-                  focus:ring-green-500") }}
-                </div>
-              </label>
-            </div>
-            <div>
+              <div class="relative">
+                {{ form.longitude(placeholder="z.B. 13.12345",
+                class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500")
+                }}
+              </div>
+            </label>
+            <label class="block text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
-                {{ form.picture_description.label.text }}
-                {{ popover("popover-beschreibung", "Ergänzungen zum Fund",
-                "Ergänzende Angaben zum Bild (maximal 500 Zeichen)") }}
+                {{ form.latitude.label.text }}
+                {{ popover("popover-latitude", "Koordinaten",
+                "Der Breitengrad wird automatisch angegeben, sobald Sie den Marker an der untenstehenden Karte
+                setzen.")
+                }}
               </div>
               <div class="relative">
-                {{ form.picture_description(placeholder="Geben Sie hier Ihre Bildbeschreibung ein",
+                {{ form.latitude(placeholder="z.B. 52.12345",
+                class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500")
+                }}
+              </div>
+            </label>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-600">
+              <div class="flex justify-between">
+                {{ form.zip_code.label.text }}
+                {{ popover("popover-zip", "Postleitzahl",
+                "Falls der Wert nicht korrekt eingelesen wurde, geben Sie bitte die Postleitzahl ein.") }}
+              </div>
+              <div class="relative">
+                {{ form.zip_code(id="zip_code",
+                placeholder="z.B. 10115",
+                class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500")
+                }}
+              </div>
+            </label>
+            <label class="block text-sm font-semibold text-gray-600">
+              <div class="flex justify-between">
+                {{ form.city.label.text }}
+                {{ popover("popover-city", "Ort",
+                "Falls der Wert nicht korrekt eingelesen wurde, geben Sie bitte den Stadtnamen ein.") }}
+              </div>
+              <div class="relative">
+                {{ form.city(id="city",
+                placeholder="z.B. Berlin",
+                class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500")
+                }}
+              </div>
+            </label>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-600">
+              <div class="flex justify-between">
+                {{ form.street.label.text }}
+                {{ popover("popover-street", "Straße",
+                "Falls der Wert nicht korrekt eingelesen wurde, geben Sie bitte den Straßennamen ein.") }}
+              </div>
+              <div class="relative">
+                {{ form.street(placeholder="z.B. Musterstraße",
+                class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500")
+                }}
+              </div>
+            </label>
+            <label class="block text-sm font-semibold text-gray-600">
+              <div class="flex justify-between">
+                {{ form.state.label.text }}
+                {{ popover("popover-bundesland", "Bundesland",
+                "Falls der Wert nicht korrekt eingelesen wurde, ergänzen Sie bitte den Namen des Bundeslandes.") }}
+              </div>
+              <div class="relative">
+                {{ form.state(id="state",
+                placeholder="z.B. Berlin",
+                class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500")
+                }}
+              </div>
+            </label>
+            <label class="block text-sm font-semibold text-gray-600">
+              <div class="flex justify-between">
+                {{ form.district.label.text }}
+                {{ popover("popover-bezirk", "Landkreis/Stadt",
+                "Falls der Wert nicht korrekt eingelesen wurde, geben Sie bitte den Landkreis/die Stadt ein.") }}
+              </div>
+              <div class="relative">
+                {{ form.district(id="district",
+                placeholder="z.B. Mitte",
+                class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500")
+                }}
+              </div>
+            </label>
+          </div>
+          <div>
+            <div class="flex justify-between">
+              {{ form.picture_description.label.text }}
+              {{ popover("popover-beschreibung", "Ergänzungen zum Fund",
+              "Ergänzende Angaben zum Bild (maximal 500 Zeichen)") }}
+            </div>
+            <div class="relative">
+              {{ form.picture_description(placeholder="Geben Sie hier Ihre Bildbeschreibung ein",
+              class="w-full p-2 mt-1 whitespace-pre-wrap bg-white border rounded-md focus:outline-none focus:ring-1
+              focus:ring-green-500") }}
+            </div>
+            <span id="charCount" class="text-xs text-right text-gray-500"></span>
+
+            <div>
+              <div class="flex justify-between">
+                {{ form.location_description.label.text }}
+                {{ popover("popover-fundort", "Ergänzungen Ort",
+                "Beschreiben Sie hier bitte den Ort etwas genauer (maximal 500 Zeichen)") }}
+              </div>
+              <div class="relative">
+                {{ form.location_description(placeholder="Geben Sie hier Ihre Ortsbeschreibung ein",
                 class="w-full p-2 mt-1 whitespace-pre-wrap bg-white border rounded-md focus:outline-none focus:ring-1
                 focus:ring-green-500") }}
               </div>
-              <span id="charCount" class="text-xs text-right text-gray-500"></span>
+            </div>
+          </div>
+        </div>
+        <div class="col-span-full">
+          <div id="map" class="h-64 border shadow-md sm:h-96 lg:h-96">
+          </div>
+        </div>
+        <div class="flex justify-end mt-4 space-x-2">
+          <button type="button" id="step1Next"
+            class="w-full px-6 py-2 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none md:w-auto">
+            Next
+          </button>
+        </div>
+      </div>
+      <!-- User Input and Location Input Step End-->
 
-              <div>
-                <div class="flex justify-between">
-                  {{ form.location_description.label.text }}
-                  {{ popover("popover-fundort", "Ergänzungen Ort",
-                  "Beschreiben Sie hier bitte den Ort etwas genauer (maximal 500 Zeichen)") }}
-                </div>
-                <div class="relative">
-                  {{ form.location_description(placeholder="Geben Sie hier Ihre Ortsbeschreibung ein",
-                  class="w-full p-2 mt-1 whitespace-pre-wrap bg-white border rounded-md focus:outline-none focus:ring-1
-                  focus:ring-green-500") }}
-                </div>
+      <!-- Melderinfo Step Start-->
+      <div id="step3" class="hidden step">
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div>
+            <label class="block text-sm font-semibold text-gray-600">
+              <div class="flex justify-between">
+                {{ form.report_first_name.label.text }}
+                {{ popover("popover-reportvorname", "Vorname",
+                "Geben Sie bitte Ihren ersten Buchstaben des Vornamens ein. Beispiel: M. für Max") }}
               </div>
-            </div>
+              <div class="relative">
+                {{ form.report_first_name(placeholder="Erster Buchstabe z.B. M.",
+                class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500")
+                }}
+              </div>
+            </label>
+
+            <label class="block text-sm font-semibold text-gray-600">
+              <div class="flex justify-between">
+                {{ form.report_last_name.label.text }}
+                {{ popover("popover-reportnachname", "Nachname",
+                "Geben Sie hier bitte Ihren Nachnamen ein.") }}
+              </div>
+              <div class="relative">
+                {{ form.report_last_name(placeholder="z.B. Mustermann",
+                class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500")
+                }}
+              </div>
+            </label>
           </div>
-          <div class="col-span-full">
-            <div id="map" class="h-64 border shadow-md sm:h-96 lg:h-96">
-            </div>
-          </div>
-          <div class="flex justify-end mt-4 space-x-2">
-            <button type="button" id="step1Next"
-              class="w-full px-6 py-2 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none md:w-auto">
-              Next
-            </button>
+          <div>
+            <label class="block text-sm font-semibold text-gray-600">
+              <div class="flex justify-between">
+                {{ form.sighting_date.label.text }}
+                {{ popover("popover-datum", "Datum",
+                "Wählen Sie hier bitte das Funddatum.") }}
+              </div>
+              <div class="relative">
+                {{ form.sighting_date(placeholder="z.B. 2023-05-14",
+                class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-green-500") }}
+              </div>
+            </label>
+            <label class="block text-sm font-semibold text-gray-600">
+              <div class="flex justify-between">
+                {{ form.contact.label.text }}
+                {{ popover("popover-kontakt", "Kontaktdaten",
+                "Möchten Sie eine Rückmeldung und eine Bestätigung Ihrer Bestimmung erhalten, hinterlassen Sie gerne
+                Ihre E-Mail. Ihre Kontaktdaten werden geschützt, nicht weitergegeben oder anderweitig verwendet.") }}
+              </div>
+              <div class="relative">
+                {{ form.contact(placeholder="z.B. max@example.de",
+                class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500")
+                }}
+              </div>
+            </label>
           </div>
         </div>
-        <!-- User Input and Location Input Step End-->
 
-        <!-- Melderinfo Step Start-->
-        <div id="step3" class="hidden step">
-          <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div>
-              <label class="block text-sm font-semibold text-gray-600">
-                <div class="flex justify-between">
-                  {{ form.report_first_name.label.text }}
-                  {{ popover("popover-reportvorname", "Vorname",
-                  "Geben Sie bitte Ihren ersten Buchstaben des Vornamens ein. Beispiel: M. für Max") }}
-                </div>
-                <div class="relative">
-                  {{ form.report_first_name(placeholder="Erster Buchstabe z.B. M.",
-                  class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
-                  focus:ring-green-500") }}
-                </div>
-              </label>
-
-              <label class="block text-sm font-semibold text-gray-600">
-                <div class="flex justify-between">
-                  {{ form.report_last_name.label.text }}
-                  {{ popover("popover-reportnachname", "Nachname",
-                  "Geben Sie hier bitte Ihren Nachnamen ein.") }}
-                </div>
-                <div class="relative">
-                  {{ form.report_last_name(placeholder="z.B. Mustermann",
-                  class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
-                  focus:ring-green-500") }}
-                </div>
-              </label>
-            </div>
-            <div>
-              <label class="block text-sm font-semibold text-gray-600">
-                <div class="flex justify-between">
-                  {{ form.sighting_date.label.text }}
-                  {{ popover("popover-datum", "Datum",
-                  "Wählen Sie hier bitte das Funddatum.") }}
-                </div>
-                <div class="relative">
-                  {{ form.sighting_date(placeholder="z.B. 2023-05-14",
-                  class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-green-500") }}
-                </div>
-              </label>
-              <label class="block text-sm font-semibold text-gray-600">
-                <div class="flex justify-between">
-                  {{ form.contact.label.text }}
-                  {{ popover("popover-kontakt", "Kontaktdaten",
-                  "Möchten Sie eine Rückmeldung und eine Bestätigung Ihrer Bestimmung erhalten, hinterlassen Sie gerne
-                  Ihre E-Mail. Ihre Kontaktdaten werden geschützt, nicht weitergegeben oder anderweitig verwendet.") }}
-                </div>
-                <div class="relative">
-                  {{ form.contact(placeholder="z.B. max@example.de",
-                  class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
-                  focus:ring-green-500") }}
-                </div>
-              </label>
-            </div>
-          </div>
-
-          <div class="flex justify-between mt-4 space-x-2">
-            <button type="button" id="step2Prev"
-              class="w-full px-6 py-2 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none md:w-auto">
-              Prev
-            </button>
-            <form>
-              {{ form.submit(class="w-full px-6 py-2 text-sm font-medium leading-5 text-center text-white
-              transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600
-              focus:outline-none md:w-auto") }}
-            </form>
-          </div>
+        <div class="flex justify-between mt-4 space-x-2">
+          <button type="button" id="step2Prev"
+            class="w-full px-6 py-2 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none md:w-auto">
+            Prev
+          </button>
+          <form>
+            {{ form.submit(class="w-full px-6 py-2 text-sm font-medium leading-5 text-center text-white
+            transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600
+            focus:outline-none md:w-auto") }}
+          </form>
         </div>
-        <!-- Melderinfo Step End-->
-      </form>
-    </div>
+      </div>
+      <!-- Melderinfo Step End-->
+    </form>
   </div>
-</body>
+</div>
 
 <script>
 
@@ -350,20 +348,29 @@
     const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`;
 
     fetch(nominatimUrl)
-      .then(response => response.json())
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
       .then(data => {
         const address = data.address;
-        document.querySelector("#zip_code").value = address.postcode || "";
-        document.querySelector("#city").value = address.city || "";
+
+        document.querySelector("#zip_code").value = address.postcode ? address.postcode.split(";")[0] : "";
+        document.querySelector("#city").value = address.city || address.town || address.village || "";
         document.querySelector("#street").value = `${address.road || ""} ${address.house_number || ""}`.trim();
-        document.querySelector("#state").value = address.state || "";
-        document.querySelector("#district").value = address.suburb || "";
-        console.log("Address data:", address);
+        document.querySelector("#state").value = address.state || address.city || "";
+        document.querySelector("#district").value = address.county || address.suburb || address.borough || "";
+
+        console.log("Returned data:", data);
       })
       .catch(error => {
         console.error("Error fetching address data:", error);
       });
   }
+
+
 
   function saveFormDataToLocalStorage() {
     const form = document.getElementById('mainForm');
