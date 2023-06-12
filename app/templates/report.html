@@ -9,7 +9,7 @@
 {% if messages %}
 {% for message in messages %}
 <div id="toast-interactive-{{ loop.index }}"
-  class="fixed z-50 w-3/4 max-w-2xl px-4 py-2 text-gray-500 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow toast dark:bg-gray-800 dark:text-gray-400 top-1/4 left-1/2"
+  class="fixed z-50 w-3/4 max-w-2xl px-4 py-2 text-gray-500 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow toast dark:bg-gray-800 dark:text-gray-400 top-1/4 left-1/2 min-h-16"
   role="alert">
   <div class="flex">
     <div
@@ -17,7 +17,9 @@
       <span class="sr-only">Notification icon</span>
     </div>
     <div class="ml-3 text-sm font-normal">
-      <p class="mb-1 text-sm font-semibold text-gray-900 break-all dark:text-white">{{ message }}</p>
+      <p class="mb-1 text-sm font-semibold text-gray-900 break-all dark:text-white">{{ message.title }}</p>
+      <p class="text-gray-800 dark:text-gray-400">{{ message.message }}</p>
+      <pre class="overflow-x-auto font-mono text-xs text-gray-800 dark:text-gray-400">{{ message.usrid }}</pre>
       <div class="grid grid-cols-2 gap-2 mt-2">
         <div>
           <a href="/report"
@@ -25,7 +27,7 @@
             Mantis</a>
         </div>
         <div>
-          <button onclick="copyToClipboard('{{ message }}')"
+          <button onclick="copyToClipboard('{{ message.usrid }}')" title="Copy User ID"
             class="inline-flex justify-center w-full px-2 py-1.5 text-xs font-medium text-center text-gray-900 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 ">Copy
             ID</button>
         </div>
@@ -47,7 +49,8 @@
 {% endfor %}
 {% endif %}
 {% endwith %}
-{% block body %}{% endblock %}
+
+
 
 
 
@@ -71,7 +74,8 @@
                 unberührt.") }}
               </div>
               <div class="relative">
-                {{ form.picture(class="block w-full mt-1 text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none ",
+                {{ form.picture(class="block w-full mt-1 text-sm text-gray-900 border border-gray-300 rounded-lg
+                cursor-pointer bg-gray-50 focus:outline-none ",
                 id=form.picture.id, accept="image/*", capture="user")
                 }}
               </div>
@@ -92,7 +96,8 @@
                   Versuchen Sie es!', '/bestimmung', 'Hilfe zur Bestimmung') }}
                 </div>
                 <div class="relative">
-                  {{ form.gender(class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
+                  {{ form.gender(class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
+                  focus:ring-green-500") }}
                 </div>
               </label>
             </div>
@@ -107,7 +112,8 @@
                 </div>
                 <div class="relative">
                   {{ form.longitude(placeholder="z.B. 13.12345",
-                  class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
+                  class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
+                  focus:ring-green-500") }}
                 </div>
               </label>
               <label class="block text-sm font-semibold text-gray-600">
@@ -120,7 +126,8 @@
                 </div>
                 <div class="relative">
                   {{ form.latitude(placeholder="z.B. 52.12345",
-                  class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
+                  class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
+                  focus:ring-green-500") }}
                 </div>
               </label>
             </div>
@@ -134,7 +141,8 @@
                 <div class="relative">
                   {{ form.zip_code(id="zip_code",
                   placeholder="z.B. 10115",
-                  class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
+                  class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
+                  focus:ring-green-500") }}
                 </div>
               </label>
               <label class="block text-sm font-semibold text-gray-600">
@@ -146,7 +154,8 @@
                 <div class="relative">
                   {{ form.city(id="city",
                   placeholder="z.B. Berlin",
-                  class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
+                  class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
+                  focus:ring-green-500") }}
                 </div>
               </label>
             </div>
@@ -159,7 +168,8 @@
                 </div>
                 <div class="relative">
                   {{ form.street(placeholder="z.B. Musterstraße",
-                  class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
+                  class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
+                  focus:ring-green-500") }}
                 </div>
               </label>
               <label class="block text-sm font-semibold text-gray-600">
@@ -171,7 +181,8 @@
                 <div class="relative">
                   {{ form.state(id="state",
                   placeholder="z.B. Berlin",
-                  class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
+                  class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
+                  focus:ring-green-500") }}
                 </div>
               </label>
               <label class="block text-sm font-semibold text-gray-600">
@@ -183,7 +194,8 @@
                 <div class="relative">
                   {{ form.district(id="district",
                   placeholder="z.B. Mitte",
-                  class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
+                  class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
+                  focus:ring-green-500") }}
                 </div>
               </label>
             </div>
@@ -195,7 +207,8 @@
               </div>
               <div class="relative">
                 {{ form.picture_description(placeholder="Geben Sie hier Ihre Bildbeschreibung ein",
-                class="w-full p-2 mt-1 whitespace-pre-wrap bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
+                class="w-full p-2 mt-1 whitespace-pre-wrap bg-white border rounded-md focus:outline-none focus:ring-1
+                focus:ring-green-500") }}
               </div>
               <span id="charCount" class="text-xs text-right text-gray-500"></span>
 
@@ -207,7 +220,8 @@
                 </div>
                 <div class="relative">
                   {{ form.location_description(placeholder="Geben Sie hier Ihre Ortsbeschreibung ein",
-                  class="w-full p-2 mt-1 whitespace-pre-wrap bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
+                  class="w-full p-2 mt-1 whitespace-pre-wrap bg-white border rounded-md focus:outline-none focus:ring-1
+                  focus:ring-green-500") }}
                 </div>
               </div>
             </div>
@@ -237,7 +251,8 @@
                 </div>
                 <div class="relative">
                   {{ form.report_first_name(placeholder="Erster Buchstabe z.B. M.",
-                  class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
+                  class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
+                  focus:ring-green-500") }}
                 </div>
               </label>
 
@@ -249,7 +264,8 @@
                 </div>
                 <div class="relative">
                   {{ form.report_last_name(placeholder="z.B. Mustermann",
-                  class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
+                  class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
+                  focus:ring-green-500") }}
                 </div>
               </label>
             </div>
@@ -274,7 +290,8 @@
                 </div>
                 <div class="relative">
                   {{ form.contact(placeholder="z.B. max@example.de",
-                  class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
+                  class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
+                  focus:ring-green-500") }}
                 </div>
               </label>
             </div>
@@ -286,7 +303,9 @@
               Prev
             </button>
             <form>
-              {{ form.submit(class="w-full px-6 py-2 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none md:w-auto") }}
+              {{ form.submit(class="w-full px-6 py-2 text-sm font-medium leading-5 text-center text-white
+              transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600
+              focus:outline-none md:w-auto") }}
             </form>
           </div>
         </div>
@@ -571,13 +590,8 @@
     }
   });
 
-  function copyToClipboard(text) {
-    var idPattern = /ID: (\w+)/;
-    var idMatch = text.match(idPattern);
-
-    if (idMatch) {
-      var id = idMatch[1];
-
+  function copyToClipboard(id) {
+    if (id) {
       var tempInput = document.createElement("input");
       tempInput.value = id;
       document.body.appendChild(tempInput);
@@ -587,9 +601,10 @@
       // Show a success toast or something
     }
     else {
-      console.error("Unable to extract ID from text: " + text);
+      console.error("No ID provided: " + id);
     }
   }
+
 
 </script>
 </div>

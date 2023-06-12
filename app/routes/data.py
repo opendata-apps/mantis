@@ -137,7 +137,11 @@ def report():
         db.session.add(new_meldung_user)
         db.session.commit()
 
-        flash('Vielen Dank für Ihre Meldung! Um weitere Meldungen zu machen, speichern Sie bitte die ID: ' + str(usrid) + ' ab.')
+        flash({
+            'title': 'Vielen Dank für Ihre Meldung!',
+            'message': 'Um weitere Meldungen zu machen, speichern Sie bitte die folgende ID:',
+            'usrid': str(usrid),
+        })
 
         return redirect(url_for('data.report'))
 
