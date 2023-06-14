@@ -1,47 +1,37 @@
-from flask import jsonify, render_template, request, Blueprint, redirect, url_for, flash
-from app import db
-import json
-from app.database.models import TblMeldungen
-from app.database.models import TblFundorte
-from app.database.models import TblPlzOrt
-from app.database.models import TblUsers
-from app.database.models import TblFundortBeschreibung
-from app.database.models import TblMeldungUser
-from app.forms import MantisSightingForm
-from sqlalchemy import or_
-from app.tools.gen_user_id import get_new_id
-from flask import request
-from werkzeug.utils import secure_filename
-import os
 from datetime import datetime
 from pathlib import Path
 from PIL import Image
 
+from flask import Blueprint, flash, jsonify, redirect, render_template, request, url_for
+from sqlalchemy import or_
+from werkzeug.utils import secure_filename
+
+from app import db
+from app.database.models import TblFundortBeschreibung, TblFundorte, TblMeldungUser, TblMeldungen, TblPlzOrt,TblUsers
+from app.forms import MantisSightingForm
+from app.tools.gen_user_id import get_new_id
+import os
+
 # Blueprints
 data = Blueprint('data', __name__)
-
 
 # Flask application and routes
 UPLOAD_FOLDER = 'app/datastore'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
-
-def create_directory(date):
+def _create_directory(date):
     dir_path = os.path.join(UPLOAD_FOLDER, date)
     Path(dir_path).mkdir(parents=True, exist_ok=True)
     return dir_path
 
-
-def create_filename(location, usrid):
+def _create_filename(location, usrid):
     return '{}-{}.webp'.format(location, usrid)
 
-
-def allowed_file(filename):
+def _allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-
-def update_or_create_user(usrid, last_name, first_name, contact):
+def _update_or_create_user(usrid, last_name, first_name, contact):
     existing_user = TblUsers.query.filter_by(user_id=usrid).first()
 
     if not existing_user:
@@ -56,39 +46,28 @@ def update_or_create_user(usrid, last_name, first_name, contact):
         return new_user
     return existing_user
 
-
-
-def handle_file_upload(request, form, usrid):
+def _handle_file_upload(request, form, usrid):
     if 'picture' not in request.files:
         flash('No file part')
         return None
     file = request.files['picture']
-    # If user does not select file, browser also
-    # submit an empty part without filename
-    if file.filename == '':
+
+    if file.filename == '' or not _allowed_file(file.filename):
         flash('No selected file')
         return None
-    if file and allowed_file(file.filename):
-        date_folder = create_directory(
-            form.sighting_date.data.strftime('%Y-%m-%d'))
-        filename = create_filename(form.city.data, usrid)
-        full_file_path = os.path.join(date_folder, filename)
 
-        # Convert image to webp and save
-        img = Image.open(file)
-        img.save(full_file_path, 'WEBP')
+    date_folder = _create_directory(form.sighting_date.data.strftime('%Y-%m-%d'))
+    filename = _create_filename(form.city.data, usrid)
+    full_file_path = os.path.join(date_folder, filename)
 
-        return full_file_path
-    return None
+    # Convert image to webp and save
+    img = Image.open(file)
+    img.save(full_file_path, 'WEBP')
 
-# Define a function to set gender field
+    return full_file_path
 
-
-def set_gender_fields(selected_gender):
-    # Initialize all fields to 0
+def _set_gender_fields(selected_gender):
     genders = {'art_m': 0, 'art_w': 0, 'art_n': 0, 'art_o': 0}
-
-    # Map form's gender data to field
     gender_mapping = {'männchen': 'art_m', 'weibchen': 'art_w',
                       'nymphen': 'art_n', 'ootheken': 'art_o'}
     gender_field = gender_mapping.get(selected_gender)
@@ -98,26 +77,20 @@ def set_gender_fields(selected_gender):
 
     return genders
 
-def user_to_dict(user):
+def _user_to_dict(user):
     return {
         "user_name": user.user_name,
         "user_kontakt": user.user_kontakt,
-        # Include any other fields that you need in JavaScript
     }
-
-
 
 @data.route('/report', methods=['GET', 'POST'])
 @data.route('/report/<usrid>', methods=['GET', 'POST'])
 def report(usrid=None):
-    existing_user = None
-    if usrid:
-        existing_user = TblUsers.query.filter_by(user_id=usrid).first()
+    existing_user = TblUsers.query.filter_by(user_id=usrid).first() if usrid else None
     if not existing_user:
         usrid = get_new_id()
 
     form = MantisSightingForm(userid=usrid)
-
 
     if existing_user and request.method == 'GET':
         form.process(obj=existing_user)
@@ -126,51 +99,29 @@ def report(usrid=None):
         form.contact.render_kw = {"readonly": "readonly"}
 
     if form.validate_on_submit():
-        # Code for handling form submissions
-
-        genders = set_gender_fields(form.gender.data)
-
-        new_fundort_beschreibung = TblFundortBeschreibung(
-            beschreibung=form.location_description.data,
-        )
+        new_fundort_beschreibung = TblFundortBeschreibung(beschreibung=form.location_description.data)
         db.session.add(new_fundort_beschreibung)
         db.session.flush()
 
-        # Check if the post request has the file part
-        bildpfad = handle_file_upload(request, form, usrid)
+        bildpfad = _handle_file_upload(request, form, usrid)
 
-        new_fundort = TblFundorte(
-            plz=form.zip_code.data,
-            ort=form.city.data,
-            strasse=form.street.data,
-            kreis=form.district.data,
-            land=form.state.data,
-            longitude=form.longitude.data,
-            latitude=form.latitude.data,
-            beschreibung=new_fundort_beschreibung.id,
-            ablage=bildpfad,
-        )
+        new_fundort = TblFundorte(plz=form.zip_code.data, ort=form.city.data, strasse=form.street.data,
+                                  kreis=form.district.data, land=form.state.data, longitude=form.longitude.data,
+                                  latitude=form.latitude.data, beschreibung=new_fundort_beschreibung.id, ablage=bildpfad)
         db.session.add(new_fundort)
         db.session.flush()
 
-        new_meldung = TblMeldungen(
-            dat_fund_von=form.sighting_date.data,
-            dat_fund_bis=form.sighting_date.data,
-            dat_meld=datetime.now(),
-            fo_zuordnung=new_fundort.id,
-            fo_quelle="F",
-            **genders,
-        )
+        genders = _set_gender_fields(form.gender.data)
+
+        new_meldung = TblMeldungen(dat_fund_von=form.sighting_date.data, dat_fund_bis=form.sighting_date.data,
+                                   dat_meld=datetime.now(), fo_zuordnung=new_fundort.id, fo_quelle="F", **genders)
         db.session.add(new_meldung)
         db.session.flush()
 
-        updated_user = update_or_create_user(usrid, form.report_last_name.data, form.report_first_name.data,
-                                             form.contact.data)
+        updated_user = _update_or_create_user(usrid, form.report_last_name.data, form.report_first_name.data,
+                                              form.contact.data)
 
-        new_meldung_user = TblMeldungUser(
-            id_meldung=new_meldung.id,
-            id_user=updated_user.id,
-        )
+        new_meldung_user = TblMeldungUser(id_meldung=new_meldung.id, id_user=updated_user.id)
         db.session.add(new_meldung_user)
         db.session.commit()
 
@@ -184,8 +135,9 @@ def report(usrid=None):
 
     print(form.errors)
     if existing_user is not None:
-        existing_user = user_to_dict(existing_user)
+        existing_user = _user_to_dict(existing_user)
     return render_template('report.html', form=form, existing_user=existing_user)
+
 
     
 
