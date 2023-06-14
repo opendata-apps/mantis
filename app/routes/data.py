@@ -44,10 +44,7 @@ def allowed_file(filename):
 def update_or_create_user(usrid, last_name, first_name, contact):
     existing_user = TblUsers.query.filter_by(user_id=usrid).first()
 
-    if existing_user:
-        existing_user.user_name = last_name + " " + first_name[0] + "."
-        existing_user.user_kontakt = contact
-    else:
+    if not existing_user:
         new_user = TblUsers(
             user_id=usrid,
             user_name=last_name + " " + first_name[0] + ".",
@@ -56,8 +53,9 @@ def update_or_create_user(usrid, last_name, first_name, contact):
         )
         db.session.add(new_user)
         db.session.flush()
+        return new_user
+    return existing_user
 
-    return existing_user or new_user
 
 
 def handle_file_upload(request, form, usrid):
@@ -100,24 +98,32 @@ def set_gender_fields(selected_gender):
 
     return genders
 
+def user_to_dict(user):
+    return {
+        "user_name": user.user_name,
+        "user_kontakt": user.user_kontakt,
+        # Include any other fields that you need in JavaScript
+    }
+
+
 
 @data.route('/report', methods=['GET', 'POST'])
 @data.route('/report/<usrid>', methods=['GET', 'POST'])
 def report(usrid=None):
     existing_user = None
-
     if usrid:
         existing_user = TblUsers.query.filter_by(user_id=usrid).first()
-
     if not existing_user:
         usrid = get_new_id()
 
     form = MantisSightingForm(userid=usrid)
 
+
     if existing_user and request.method == 'GET':
-        form.report_first_name.data = existing_user.user_name.split(" ")[1]
-        form.report_last_name.data = existing_user.user_name.split(" ")[0]
-        form.contact.data = existing_user.user_kontakt
+        form.process(obj=existing_user)
+        form.report_first_name.render_kw = {"readonly": "readonly"}
+        form.report_last_name.render_kw = {"readonly": "readonly"}
+        form.contact.render_kw = {"readonly": "readonly"}
 
     if form.validate_on_submit():
         # Code for handling form submissions
@@ -177,7 +183,12 @@ def report(usrid=None):
         return redirect(url_for('data.report'))
 
     print(form.errors)
-    return render_template('report.html', form=form)
+    if existing_user is not None:
+        existing_user = user_to_dict(existing_user)
+    return render_template('report.html', form=form, existing_user=existing_user)
+
+    
+
 
 
 @data.route('/autocomplete', methods=['GET'])

@@ -19,7 +19,8 @@ from wtforms.validators import InputRequired, NumberRange
 class MantisSightingForm(FlaskForm):
     def __init__(self, *args, **kwargs):
         super(MantisSightingForm, self).__init__(*args, **kwargs)
-        kwargs.pop('userid')
+        self.userid = kwargs.pop('userid', None)  # add a default argument to pop method
+
 
     # ? Start Deklaration
     # ? der Auswahlmöglichkeiten einiger Formeingaben
