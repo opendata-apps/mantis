@@ -59,6 +59,7 @@
     <form action="" method="POST" enctype="multipart/form-data" id="mainForm">
       {{ form.hidden_tag() }}
       {{ form.csrf_token }}
+
       <!-- User Input and Location Input Step Start-->
       <div id="step1" class="step">
         {{ form.hidden_tag() }}
@@ -85,151 +86,136 @@
               {{ form.picture.description }}
             </p>
           </div>
-
           <div>
-            <label class="block text-sm font-semibold text-gray-600">
+            <label for="{{ form.gender.id }}" class="block text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.gender.label.text }}
                 {{ popover("popover-gender", "Entwicklungsstadium",
                 'Dieses Feld ist eine kleine Herausforderung für den Melder. Trauen Sie sich zu, das Geschlecht oder
-                das
-                Entwicklungsstadium zu bestimmen? Die Merkmale für die Bestimmung sind auf der folgender Seite genau
-                beschrieben In jedem Fall werden Sie nach einer Bewertung
-                durch Fachleute über das Ergebnis informiert.
+                das Entwicklungsstadium zu bestimmen? Die Merkmale für die Bestimmung sind auf der folgender Seite genau
+                beschrieben In jedem Fall werden Sie nach einer Bewertung durch Fachleute über das Ergebnis informiert.
                 Versuchen Sie es!', '/bestimmung', 'Hilfe zur Bestimmung') }}
               </div>
               <div class="relative">
-                {{ form.gender(class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
+                {{ form.gender(class="input-field") }}
               </div>
             </label>
           </div>
+
           <div>
-            <label class="text-sm font-semibold text-gray-600">
+            <label for="{{ form.longitude.id }}" class="block text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
-                <div>{{ form.longitude.label.text }}</div>
+                {{ form.longitude.label.text }}
                 {{ popover("popover-longitude", "Koordinaten",
-                "Der Längengrad wird automatisch angegeben, sobald Sie den Marker an der untenstehenden Karte
-                setzen.")
+                "Der Längengrad wird automatisch angegeben, sobald Sie den Marker an der untenstehenden Karte setzen.")
                 }}
               </div>
               <div class="relative">
-                {{ form.longitude(placeholder="z.B. 13.12345",
-                class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500")
-                }}
+                {{ form.longitude(placeholder="z.B. 13.12345", class="input-field") }}
               </div>
             </label>
-            <label class="block text-sm font-semibold text-gray-600">
+            <label for="{{ form.latitude.id }}" class="block text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.latitude.label.text }}
                 {{ popover("popover-latitude", "Koordinaten",
-                "Der Breitengrad wird automatisch angegeben, sobald Sie den Marker an der untenstehenden Karte
-                setzen.")
+                "Der Breitengrad wird automatisch angegeben, sobald Sie den Marker an der untenstehenden Karte setzen.")
                 }}
               </div>
               <div class="relative">
-                {{ form.latitude(placeholder="z.B. 52.12345",
-                class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500")
-                }}
+                {{ form.latitude(placeholder="z.B. 52.12345", class="input-field") }}
               </div>
             </label>
           </div>
+
           <div>
-            <label class="block text-sm font-semibold text-gray-600">
+            <label for="zip_code" class="block text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.zip_code.label.text }}
                 {{ popover("popover-zip", "Postleitzahl",
                 "Falls der Wert nicht korrekt eingelesen wurde, geben Sie bitte die Postleitzahl ein.") }}
               </div>
               <div class="relative">
-                {{ form.zip_code(id="zip_code",
-                placeholder="z.B. 10115",
-                class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500")
-                }}
+                {{ form.zip_code(id="zip_code", placeholder="z.B. 10115", class="input-field") }}
               </div>
             </label>
-            <label class="block text-sm font-semibold text-gray-600">
+            <label for="city" class="block text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.city.label.text }}
                 {{ popover("popover-city", "Ort",
                 "Falls der Wert nicht korrekt eingelesen wurde, geben Sie bitte den Stadtnamen ein.") }}
               </div>
               <div class="relative">
-                {{ form.city(id="city",
-                placeholder="z.B. Berlin",
-                class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500")
-                }}
+                {{ form.city(id="city", placeholder="z.B. Berlin", class="input-field") }}
               </div>
             </label>
           </div>
+
           <div>
-            <label class="block text-sm font-semibold text-gray-600">
+            <label for="{{ form.street.id }}" class="block text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.street.label.text }}
                 {{ popover("popover-street", "Straße",
                 "Falls der Wert nicht korrekt eingelesen wurde, geben Sie bitte den Straßennamen ein.") }}
               </div>
               <div class="relative">
-                {{ form.street(placeholder="z.B. Musterstraße",
-                class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500")
-                }}
+                {{ form.street(placeholder="z.B. Musterstraße", class="input-field") }}
               </div>
             </label>
-            <label class="block text-sm font-semibold text-gray-600">
+            <label for="state" class="block text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.state.label.text }}
                 {{ popover("popover-bundesland", "Bundesland",
                 "Falls der Wert nicht korrekt eingelesen wurde, ergänzen Sie bitte den Namen des Bundeslandes.") }}
               </div>
               <div class="relative">
-                {{ form.state(id="state",
-                placeholder="z.B. Berlin",
-                class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500")
-                }}
+                {{ form.state(id="state", placeholder="z.B. Berlin", class="input-field") }}
               </div>
             </label>
-            <label class="block text-sm font-semibold text-gray-600">
+            <label for="district" class="block text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.district.label.text }}
                 {{ popover("popover-bezirk", "Landkreis/Stadt",
                 "Falls der Wert nicht korrekt eingelesen wurde, geben Sie bitte den Landkreis/die Stadt ein.") }}
               </div>
               <div class="relative">
-                {{ form.district(id="district",
-                placeholder="z.B. Mitte",
-                class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500")
-                }}
+                {{ form.district(id="district", placeholder="z.B. Mitte", class="input-field") }}
               </div>
             </label>
           </div>
+
           <div>
             <div class="flex justify-between">
-              {{ form.picture_description.label.text }}
+              <label for="{{ form.picture_description.id }}" class="block text-sm font-semibold text-gray-600">{{
+                form.picture_description.label.text }}</label>
               {{ popover("popover-beschreibung", "Ergänzungen zum Fund",
               "Ergänzende Angaben zum Bild (maximal 500 Zeichen)") }}
             </div>
             <div class="relative">
-              {{ form.picture_description(placeholder="Geben Sie hier Ihre Bildbeschreibung ein",
-              class="w-full p-2 mt-1 whitespace-pre-wrap bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
+              {{ form.picture_description(placeholder="Geben Sie hier Ihre Bildbeschreibung ein", class="input-field")
+              }}
             </div>
             <span id="charCount" class="text-xs text-right text-gray-500"></span>
 
             <div>
               <div class="flex justify-between">
-                {{ form.location_description.label.text }}
+                <label for="{{ form.location_description.id }}" class="block text-sm font-semibold text-gray-600">{{
+                  form.location_description.label.text }}</label>
                 {{ popover("popover-fundort", "Ergänzungen Ort",
                 "Beschreiben Sie hier bitte den Ort etwas genauer (maximal 500 Zeichen)") }}
               </div>
               <div class="relative">
                 {{ form.location_description(placeholder="Geben Sie hier Ihre Ortsbeschreibung ein",
-                class="w-full p-2 mt-1 whitespace-pre-wrap bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
+                class="input-field") }}
               </div>
             </div>
           </div>
         </div>
+
         <div class="col-span-full">
           <div id="map" class="h-64 border shadow-md sm:h-96 lg:h-96">
           </div>
         </div>
+
         <div class="flex justify-end mt-4 space-x-2">
           <button type="button" id="step1Next"
             class="w-full px-6 py-2 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none md:w-auto">
@@ -240,48 +226,43 @@
       <!-- User Input and Location Input Step End-->
 
       <!-- Melderinfo Step Start-->
-      <div id="step3" class="hidden step">
+      <div id="step2" class="hidden step">
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
-            <label class="block text-sm font-semibold text-gray-600">
+            <label for="{{ form.report_first_name.id }}" class="block text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.report_first_name.label.text }}
                 {{ popover("popover-reportvorname", "Vorname",
                 "Geben Sie bitte Ihren ersten Buchstaben des Vornamens ein. Beispiel: M. für Max") }}
               </div>
               <div class="relative">
-                {{ form.report_first_name(placeholder="Erster Buchstabe z.B. M.",
-                class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500")
-                }}
+                {{ form.report_first_name(placeholder="Erster Buchstabe z.B. M.", class="input-field") }}
               </div>
             </label>
 
-            <label class="block text-sm font-semibold text-gray-600">
+            <label for="{{ form.report_last_name.id }}" class="block text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.report_last_name.label.text }}
                 {{ popover("popover-reportnachname", "Nachname",
                 "Geben Sie hier bitte Ihren Nachnamen ein.") }}
               </div>
               <div class="relative">
-                {{ form.report_last_name(placeholder="z.B. Mustermann",
-                class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500")
-                }}
+                {{ form.report_last_name(placeholder="z.B. Mustermann", class="input-field") }}
               </div>
             </label>
           </div>
           <div>
-            <label class="block text-sm font-semibold text-gray-600">
+            <label for="{{ form.sighting_date.id }}" class="block text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.sighting_date.label.text }}
                 {{ popover("popover-datum", "Datum",
                 "Wählen Sie hier bitte das Funddatum.") }}
               </div>
               <div class="relative">
-                {{ form.sighting_date(placeholder="z.B. 2023-05-14",
-                class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-green-500") }}
+                {{ form.sighting_date(placeholder="z.B. 2023-05-14", class="input-field") }}
               </div>
             </label>
-            <label class="block text-sm font-semibold text-gray-600">
+            <label for="{{ form.contact.id }}" class="block text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.contact.label.text }}
                 {{ popover("popover-kontakt", "Kontaktdaten",
@@ -289,9 +270,7 @@
                 Ihre E-Mail. Ihre Kontaktdaten werden geschützt, nicht weitergegeben oder anderweitig verwendet.") }}
               </div>
               <div class="relative">
-                {{ form.contact(placeholder="z.B. max@example.de",
-                class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500")
-                }}
+                {{ form.contact(placeholder="z.B. max@example.de", class="input-field") }}
               </div>
             </label>
           </div>
@@ -311,6 +290,8 @@
     </form>
   </div>
 </div>
+
+
 
 <script>
 

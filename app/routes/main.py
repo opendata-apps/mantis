@@ -58,3 +58,8 @@ def mantis_religiosa():
 @main.route('/bestimmung')
 def bestimmung():
     return render_template('bestimmung.html')
+
+
+@main.route('/404')
+def vierNullVier():
+    return render_template('404.html')

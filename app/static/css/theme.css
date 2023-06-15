@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+.input-field {
+  @apply block w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500;
+}
+
 .sticky-nav {
   background-color: rgb(0, 59, 40) !important;
   z-index: 9999 !important;
