@@ -11,6 +11,7 @@ from app.database.models import TblFundortBeschreibung, TblFundorte, TblMeldungU
 from app.forms import MantisSightingForm
 from app.tools.gen_user_id import get_new_id
 import os
+import json
 
 # Blueprints
 data = Blueprint('data', __name__)
