@@ -67,8 +67,7 @@
             <div class="flex justify-between">
               {{ form.picture.label.text }}
               {{ popover("popover-picture", "Info zum Bild-Upload",
-              "Anhand des Bildes können wir Ihre Bestimmung überprüfen. Ist Ihr Fund von uns überprüft und
-              freigegeben,
+              "Anhand des Bildes können wir Ihre Bestimmung überprüfen. Ist Ihr Fund von uns überprüft und freigegeben,
               erscheint er in der Karte. Die Bilder werden nicht weiterverwendet. Ihre Urheberrechte bleiben
               unberührt.") }}
             </div>
@@ -76,11 +75,17 @@
               {{ form.picture(class="block w-full mt-1 text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none ",
               id=form.picture.id, accept="image/*", capture="user")
               }}
+              <!-- Image Preview -->
+              <div id="imagePreview"
+                class="absolute top-0 right-0 hidden w-16 h-16 mt-2 mr-2 overflow-hidden bg-gray-200 rounded-lg">
+                <img id="previewImage" class="object-cover w-full h-full" src="#" alt="Preview">
+              </div>
             </div>
             <p class="mt-1 text-sm text-gray-500" id="{{ form.picture.id }}_help">
               {{ form.picture.description }}
             </p>
           </div>
+
           <div>
             <label class="block text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
@@ -447,6 +452,27 @@
         }
       });
     });
+  });
+
+  const input = document.getElementById('{{ form.picture.id }}');
+  const preview = document.getElementById('previewImage');
+  const previewContainer = document.getElementById('imagePreview');
+
+  input.addEventListener('change', function (e) {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+
+      reader.addEventListener('load', function () {
+        preview.setAttribute('src', reader.result);
+      });
+
+      reader.readAsDataURL(file);
+      previewContainer.classList.remove('hidden');
+    } else {
+      preview.setAttribute('src', '#');
+      previewContainer.classList.add('hidden');
+    }
   });
 
   // Check if a success message is being flashed
