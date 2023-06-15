@@ -7,7 +7,7 @@ from sqlalchemy import or_
 from werkzeug.utils import secure_filename
 
 from app import db
-from app.database.models import TblFundortBeschreibung, TblFundorte, TblMeldungUser, TblMeldungen, TblPlzOrt,TblUsers
+from app.database.models import TblFundortBeschreibung, TblFundorte, TblMeldungUser, TblMeldungen, TblPlzOrt, TblUsers
 from app.forms import MantisSightingForm
 from app.tools.gen_user_id import get_new_id
 import os
@@ -19,17 +19,21 @@ data = Blueprint('data', __name__)
 UPLOAD_FOLDER = 'app/datastore'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
+
 def _create_directory(date):
     dir_path = os.path.join(UPLOAD_FOLDER, date)
     Path(dir_path).mkdir(parents=True, exist_ok=True)
     return dir_path
 
+
 def _create_filename(location, usrid):
     return '{}-{}.webp'.format(location, usrid)
+
 
 def _allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 
 def _update_or_create_user(usrid, last_name, first_name, contact):
     existing_user = TblUsers.query.filter_by(user_id=usrid).first()
@@ -46,6 +50,7 @@ def _update_or_create_user(usrid, last_name, first_name, contact):
         return new_user
     return existing_user
 
+
 def _handle_file_upload(request, form, usrid):
     if 'picture' not in request.files:
         flash('No file part')
@@ -56,7 +61,8 @@ def _handle_file_upload(request, form, usrid):
         flash('No selected file')
         return None
 
-    date_folder = _create_directory(form.sighting_date.data.strftime('%Y-%m-%d'))
+    date_folder = _create_directory(
+        form.sighting_date.data.strftime('%Y-%m-%d'))
     filename = _create_filename(form.city.data, usrid)
     full_file_path = os.path.join(date_folder, filename)
 
@@ -65,6 +71,7 @@ def _handle_file_upload(request, form, usrid):
     img.save(full_file_path, 'WEBP')
 
     return full_file_path
+
 
 def _set_gender_fields(selected_gender):
     genders = {'art_m': 0, 'art_w': 0, 'art_n': 0, 'art_o': 0}
@@ -77,16 +84,19 @@ def _set_gender_fields(selected_gender):
 
     return genders
 
+
 def _user_to_dict(user):
     return {
         "user_name": user.user_name,
         "user_kontakt": user.user_kontakt,
     }
 
+
 @data.route('/report', methods=['GET', 'POST'])
 @data.route('/report/<usrid>', methods=['GET', 'POST'])
 def report(usrid=None):
-    existing_user = TblUsers.query.filter_by(user_id=usrid).first() if usrid else None
+    existing_user = TblUsers.query.filter_by(
+        user_id=usrid).first() if usrid else None
     if not existing_user:
         usrid = get_new_id()
 
@@ -99,7 +109,8 @@ def report(usrid=None):
         form.contact.render_kw = {"readonly": "readonly"}
 
     if form.validate_on_submit():
-        new_fundort_beschreibung = TblFundortBeschreibung(beschreibung=form.location_description.data)
+        new_fundort_beschreibung = TblFundortBeschreibung(
+            beschreibung=form.location_description.data)
         db.session.add(new_fundort_beschreibung)
         db.session.flush()
 
@@ -121,7 +132,8 @@ def report(usrid=None):
         updated_user = _update_or_create_user(usrid, form.report_last_name.data, form.report_first_name.data,
                                               form.contact.data)
 
-        new_meldung_user = TblMeldungUser(id_meldung=new_meldung.id, id_user=updated_user.id)
+        new_meldung_user = TblMeldungUser(
+            id_meldung=new_meldung.id, id_user=updated_user.id)
         db.session.add(new_meldung_user)
         db.session.commit()
 
@@ -137,10 +149,6 @@ def report(usrid=None):
     if existing_user is not None:
         existing_user = _user_to_dict(existing_user)
     return render_template('report.html', form=form, existing_user=existing_user)
-
-
-    
-
 
 
 @data.route('/autocomplete', methods=['GET'])
