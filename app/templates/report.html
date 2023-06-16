@@ -73,7 +73,8 @@
               unberührt.") }}
             </div>
             <div class="relative">
-              {{ form.picture(class="block w-full mt-1 text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none ",
+              {{ form.picture(class="block w-full mt-1 text-sm text-gray-900 border border-gray-300 rounded-lg
+              cursor-pointer bg-gray-50 focus:outline-none ",
               id=form.picture.id, accept="image/*", capture="user")
               }}
               <!-- Image Preview -->
@@ -282,7 +283,9 @@
             Prev
           </button>
           <form>
-            {{ form.submit(class="w-full px-6 py-2 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none md:w-auto") }}
+            {{ form.submit(class="w-full px-6 py-2 text-sm font-medium leading-5 text-center text-white
+            transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600
+            focus:outline-none md:w-auto") }}
           </form>
         </div>
       </div>
@@ -294,8 +297,6 @@
 
 
 <script>
-
-
   let map;
   // Add Leaflet map configuration and event handling
   function initMap() {
