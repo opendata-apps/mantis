@@ -1,5 +1,8 @@
-🗃️ Databank-Schema
-==================
+🗃️ Databank
+===========
+
+Schema
+------
 .. index:: Datanbank; Schema
 .. index:: Schema; Datenbank
 	   
@@ -25,8 +28,31 @@ Demodaten befinden sich im Ornder:
 
   ``manits/tests/demaodata``
 
-Die import-Answeisungen sind in der Datei
+Neuanlage
+---------
 
-  ``manits/tests/demaodata/demo-data-main.sql``
+Die Schritten für eine Neuanlage der Datenbank und der Inport der
+Demodaten:
 
-aufgelistet.
+1. In der Datenbank
+
+   ::
+
+      \c postgres
+      drop database mantis_tracker;
+      create database mantis_tracker;
+
+2. In der virutellen Umgebung (env)
+
+   ::
+
+      rm -rf migrations
+      flask db init
+      flask db migrate -m "Initialisierung"
+      flask db upgrade
+      
+3. Einlesen der Demodaten
+
+   Die dort genannten Schritte nacheinander ausführen.
+   
+   Siehe ``manits/tests/demaodata/demo-data-main.sql``
