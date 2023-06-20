@@ -19,8 +19,8 @@ from wtforms.validators import InputRequired, NumberRange
 class MantisSightingForm(FlaskForm):
     def __init__(self, *args, **kwargs):
         super(MantisSightingForm, self).__init__(*args, **kwargs)
-        self.userid = kwargs.pop('userid', None)  # add a default argument to pop method
-
+        # add a default argument to pop method
+        self.userid = kwargs.pop('userid', None)
 
     # ? Start Deklaration
     # ? der Auswahlmöglichkeiten einiger Formeingaben
@@ -60,6 +60,9 @@ class MantisSightingForm(FlaskForm):
 
     report_first_name = StringField("Vorname", validators=[DataRequired()])
     report_last_name = StringField("Name", validators=[DataRequired()])
+    identical_finder_melder = BooleanField("Finder und Melder sind identisch")
+    finder_first_name = StringField("Vorname")
+    finder_last_name = StringField("Name")
     sighting_date = DateField("Funddatum")
     contact = StringField("Kontakt (Email/Telefonnummer)",
                           validators=[DataRequired()])

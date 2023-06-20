@@ -50,17 +50,13 @@
 {% endif %}
 {% endwith %}
 
-
-
-
-
 <div class="flex items-center min-h-screen bg-gray-100">
   <div class="w-full max-w-4xl p-6 mx-auto bg-white rounded-lg shadow-xl">
     <form action="" method="POST" enctype="multipart/form-data" id="mainForm">
       {{ form.hidden_tag() }}
       {{ form.csrf_token }}
 
-      <!-- User Input and Location Input Step Start-->
+      <!-- Step 1: Bild-Upload -->
       <div id="step1" class="step">
         {{ form.hidden_tag() }}
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -88,22 +84,6 @@
             </p>
           </div>
           <div>
-            <label for="{{ form.gender.id }}" class="block text-sm font-semibold text-gray-600">
-              <div class="flex justify-between">
-                {{ form.gender.label.text }}
-                {{ popover("popover-gender", "Entwicklungsstadium",
-                'Dieses Feld ist eine kleine Herausforderung für den Melder. Trauen Sie sich zu, das Geschlecht oder
-                das Entwicklungsstadium zu bestimmen? Die Merkmale für die Bestimmung sind auf der folgender Seite genau
-                beschrieben In jedem Fall werden Sie nach einer Bewertung durch Fachleute über das Ergebnis informiert.
-                Versuchen Sie es!', '/bestimmung', 'Hilfe zur Bestimmung') }}
-              </div>
-              <div class="relative">
-                {{ form.gender(class="input-field") }}
-              </div>
-            </label>
-          </div>
-
-          <div>
             <label for="{{ form.longitude.id }}" class="block text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.longitude.label.text }}
@@ -127,30 +107,23 @@
               </div>
             </label>
           </div>
+        </div>
 
-          <div>
-            <label for="zip_code" class="block text-sm font-semibold text-gray-600">
-              <div class="flex justify-between">
-                {{ form.zip_code.label.text }}
-                {{ popover("popover-zip", "Postleitzahl",
-                "Falls der Wert nicht korrekt eingelesen wurde, geben Sie bitte die Postleitzahl ein.") }}
-              </div>
-              <div class="relative">
-                {{ form.zip_code(id="zip_code", placeholder="z.B. 10115", class="input-field") }}
-              </div>
-            </label>
-            <label for="city" class="block text-sm font-semibold text-gray-600">
-              <div class="flex justify-between">
-                {{ form.city.label.text }}
-                {{ popover("popover-city", "Ort",
-                "Falls der Wert nicht korrekt eingelesen wurde, geben Sie bitte den Stadtnamen ein.") }}
-              </div>
-              <div class="relative">
-                {{ form.city(id="city", placeholder="z.B. Berlin", class="input-field") }}
-              </div>
-            </label>
-          </div>
+        <div class="col-span-full">
+          <div id="map" class="h-64 border shadow-md sm:h-96 lg:h-96"></div>
+        </div>
 
+        <div class="flex justify-end mt-4 space-x-2">
+          <button type="button" id="step1Next"
+            class="w-full px-6 py-2 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none md:w-auto">
+            Next
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 2: Beschreibung Ort und Fund -->
+      <div id="step2" class="hidden step">
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
             <label for="{{ form.street.id }}" class="block text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
@@ -162,7 +135,7 @@
                 {{ form.street(placeholder="z.B. Musterstraße", class="input-field") }}
               </div>
             </label>
-            <label for="state" class="block text-sm font-semibold text-gray-600">
+            <label for="{{ form.state.id }}" class="block text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.state.label.text }}
                 {{ popover("popover-bundesland", "Bundesland",
@@ -172,7 +145,7 @@
                 {{ form.state(id="state", placeholder="z.B. Berlin", class="input-field") }}
               </div>
             </label>
-            <label for="district" class="block text-sm font-semibold text-gray-600">
+            <label for="{{ form.district.id }}" class="block text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.district.label.text }}
                 {{ popover("popover-bezirk", "Landkreis/Stadt",
@@ -182,25 +155,44 @@
                 {{ form.district(id="district", placeholder="z.B. Mitte", class="input-field") }}
               </div>
             </label>
-          </div>
-
-          <div>
-            <div class="flex justify-between">
-              <label for="{{ form.picture_description.id }}" class="block text-sm font-semibold text-gray-600">{{
-                form.picture_description.label.text }}</label>
-              {{ popover("popover-beschreibung", "Ergänzungen zum Fund",
-              "Ergänzende Angaben zum Bild (maximal 500 Zeichen)") }}
-            </div>
-            <div class="relative">
-              {{ form.picture_description(placeholder="Geben Sie hier Ihre Bildbeschreibung ein", class="input-field")
-              }}
-            </div>
-            <span id="charCount" class="text-xs text-right text-gray-500"></span>
-
-            <div>
+            <label for="{{ form.gender.id }}" class="block text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
-                <label for="{{ form.location_description.id }}" class="block text-sm font-semibold text-gray-600">{{
-                  form.location_description.label.text }}</label>
+                {{ form.gender.label.text }}
+                {{ popover("popover-gender", "Entwicklungsstadium",
+                'Dieses Feld ist eine kleine Herausforderung für den Melder. Trauen Sie sich zu, das Geschlecht oder
+                das Entwicklungsstadium zu bestimmen? Die Merkmale für die Bestimmung sind auf der folgender Seite genau
+                beschrieben In jedem Fall werden Sie nach einer Bewertung durch Fachleute über das Ergebnis informiert.
+                Versuchen Sie es!', '/bestimmung', 'Hilfe zur Bestimmung') }}
+              </div>
+              <div class="relative">
+                {{ form.gender(class="input-field") }}
+              </div>
+            </label>
+          </div>
+          <div>
+            <label for="{{ form.zip_code.id }}" class="block text-sm font-semibold text-gray-600">
+              <div class="flex justify-between">
+                {{ form.zip_code.label.text }}
+                {{ popover("popover-zip", "Postleitzahl",
+                "Falls der Wert nicht korrekt eingelesen wurde, geben Sie bitte die Postleitzahl ein.") }}
+              </div>
+              <div class="relative">
+                {{ form.zip_code(id="zip_code", placeholder="z.B. 10115", class="input-field") }}
+              </div>
+            </label>
+            <label for="{{ form.city.id }}" class="block text-sm font-semibold text-gray-600">
+              <div class="flex justify-between">
+                {{ form.city.label.text }}
+                {{ popover("popover-city", "Ort",
+                "Falls der Wert nicht korrekt eingelesen wurde, geben Sie bitte den Stadtnamen ein.") }}
+              </div>
+              <div class="relative">
+                {{ form.city(id="city", placeholder="z.B. Berlin", class="input-field") }}
+              </div>
+            </label>
+            <label for="{{ form.location_description.id }}" class="block text-sm font-semibold text-gray-600">
+              <div class="flex justify-between">
+                {{ form.location_description.label.text }}
                 {{ popover("popover-fundort", "Ergänzungen Ort",
                 "Beschreiben Sie hier bitte den Ort etwas genauer (maximal 500 Zeichen)") }}
               </div>
@@ -208,26 +200,35 @@
                 {{ form.location_description(placeholder="Geben Sie hier Ihre Ortsbeschreibung ein",
                 class="input-field") }}
               </div>
-            </div>
+            </label>
+            <label for="{{ form.picture_description.id }}" class="block text-sm font-semibold text-gray-600">
+              <div class="flex justify-between">
+                {{ form.picture_description.label.text }}
+                {{ popover("popover-beschreibung", "Ergänzungen zum Fund",
+                "Ergänzende Angaben zum Bild (maximal 500 Zeichen)") }}
+              </div>
+              <div class="relative">
+                {{ form.picture_description(placeholder="Geben Sie hier Ihre Bildbeschreibung ein",
+                class="input-field") }}
+              </div>
+            </label>
           </div>
         </div>
 
-        <div class="col-span-full">
-          <div id="map" class="h-64 border shadow-md sm:h-96 lg:h-96">
-          </div>
-        </div>
-
-        <div class="flex justify-end mt-4 space-x-2">
-          <button type="button" id="step1Next"
+        <div class="flex justify-between mt-4 space-x-2">
+          <button type="button" id="step2Prev"
+            class="w-full px-6 py-2 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none md:w-auto">
+            Prev
+          </button>
+          <button type="button" id="step2Next"
             class="w-full px-6 py-2 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none md:w-auto">
             Next
           </button>
         </div>
       </div>
-      <!-- User Input and Location Input Step End-->
 
-      <!-- Melderinfo Step Start-->
-      <div id="step2" class="hidden step">
+      <!-- Step 3: Person(en) -->
+      <div id="step3" class="hidden step">
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
             <label for="{{ form.report_first_name.id }}" class="block text-sm font-semibold text-gray-600">
@@ -240,7 +241,6 @@
                 {{ form.report_first_name(placeholder="Erster Buchstabe z.B. M.", class="input-field") }}
               </div>
             </label>
-
             <label for="{{ form.report_last_name.id }}" class="block text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.report_last_name.label.text }}
@@ -251,8 +251,6 @@
                 {{ form.report_last_name(placeholder="z.B. Mustermann", class="input-field") }}
               </div>
             </label>
-          </div>
-          <div>
             <label for="{{ form.sighting_date.id }}" class="block text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.sighting_date.label.text }}
@@ -263,6 +261,8 @@
                 {{ form.sighting_date(placeholder="z.B. 2023-05-14", class="input-field") }}
               </div>
             </label>
+          </div>
+          <div>
             <label for="{{ form.contact.id }}" class="block text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.contact.label.text }}
@@ -274,11 +274,35 @@
                 {{ form.contact(placeholder="z.B. max@example.de", class="input-field") }}
               </div>
             </label>
+            <label class="block text-sm font-semibold text-gray-600">
+              <div class="flex items-center">
+                {{ form.identical_finder_melder(class="mr-2") }}
+                <span>Finder und Melder sind identisch</span>
+              </div>
+            </label>
+            <div id="additionalFields" class="hidden">
+              <label for="{{ form.finder_first_name.id }}" class="block text-sm font-semibold text-gray-600">
+                <div class="flex justify-between">
+                  {{ form.finder_first_name.label.text }}
+                </div>
+                <div class="relative">
+                  {{ form.finder_first_name(placeholder="Vorname des Finders", class="input-field") }}
+                </div>
+              </label>
+              <label for="{{ form.finder_last_name.id }}" class="block text-sm font-semibold text-gray-600">
+                <div class="flex justify-between">
+                  {{ form.finder_last_name.label.text }}
+                </div>
+                <div class="relative">
+                  {{ form.finder_last_name(placeholder="Nachname des Finders", class="input-field") }}
+                </div>
+              </label>
+            </div>
           </div>
         </div>
 
         <div class="flex justify-between mt-4 space-x-2">
-          <button type="button" id="step2Prev"
+          <button type="button" id="step3Prev"
             class="w-full px-6 py-2 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none md:w-auto">
             Prev
           </button>
@@ -289,7 +313,6 @@
           </form>
         </div>
       </div>
-      <!-- Melderinfo Step End-->
     </form>
   </div>
 </div>
@@ -476,25 +499,33 @@
     return decimal;
   }
 
-  const steps = document.querySelectorAll('.step');
+  const step1 = document.getElementById('step1');
+  const step2 = document.getElementById('step2');
+  const step3 = document.getElementById('step3');
   const step1Next = document.getElementById('step1Next');
   const step2Prev = document.getElementById('step2Prev');
-
-  function showStep(index) {
-    steps.forEach((step, i) => {
-      step.classList.toggle('hidden', i !== index);
-    });
-
-    // When showing the map, invalidate the size and slightly delay the map resize
-    if (index === 1) {
-      setTimeout(() => {
-        map.invalidateSize();
-      }, 100);
-    }
-  }
+  const step2Next = document.getElementById('step2Next');
+  const step3Prev = document.getElementById('step3Prev');
+  const additionalFields = document.getElementById('additionalFields');
+  const form = document.getElementById('mainForm');
 
   step1Next.addEventListener('click', () => showStep(1));
   step2Prev.addEventListener('click', () => showStep(0));
+  step2Next.addEventListener('click', () => showStep(2));
+  step3Prev.addEventListener('click', () => showStep(1));
+
+  function showStep(index) {
+    step1.classList.toggle('hidden', index !== 0);
+    step2.classList.toggle('hidden', index !== 1);
+    step3.classList.toggle('hidden', index !== 2);
+    if (index === 2) {
+      additionalFields.classList.toggle('hidden', !form.identical_finder_melder.checked);
+    }
+  }
+
+  form.identical_finder_melder.addEventListener('change', () => {
+    additionalFields.classList.toggle('hidden', !form.identical_finder_melder.checked);
+  });
 
   function autoCompleteData(inputField, zipCode, city, district, state) {
     var inputs = ['zip_code', 'city', 'district', 'state'];
@@ -563,20 +594,6 @@
     addEvents(zipCodeInput);
   });
 
-  // Character Counter for Picture Description on load
-  const inputField = document.querySelector("#{{ form.picture_description.id }}");
-  const charCountElement = document.querySelector("#charCount");
-
-  function updateCharCount() {
-    const charCount = inputField.value.length;
-    charCountElement.textContent = `(${charCount}/500)`;
-  }
-
-  inputField.addEventListener("input", updateCharCount);
-
-  // Display counter on load
-  updateCharCount();
-  // Character Counter for Picture Description
 
   // Step 1 Validation
   const GENDER_CHOICES = [
@@ -590,37 +607,6 @@
 
   const ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'jfif', 'webp'];
 
-  function validateStep1() {
-    const picture = document.querySelector('#picture').files[0];
-    const allowedTypes = ['png', 'jpg', 'jpeg', 'jfif', 'webp'];
-    const allowedSize = 5 * 1024 * 1024;
-    const fileName = picture ? picture.name.toLowerCase() : '';
-
-    // Überprüfen, ob das Bildfeld ausgefüllt wurde und eine gültige Datei ausgewählt wurde
-    if (!picture) {
-      alert('Bitte wählen Sie ein Bild aus.');
-      return false;
-    } else if (!allowedTypes.includes(fileName.split('.').pop()) || picture.size > allowedSize) {
-      alert('Bitte geben Sie eine gültige Bilddatei ein, die kleiner als 5 MB ist und eine der folgenden Erweiterungen hat: PNG, JPG, JPEG oder GIF.')
-      return false;
-    } else {
-      const gender = document.querySelector('#gender').value;
-
-      // Überprüfen, ob das Geschlecht ausgefüllt wurde und ob es ein gültiger Wert ist
-      if (gender === '') {
-        alert('Bitte wählen Sie ein Entwicklungsstadium aus.');
-        return false;
-      }
-
-      return true;
-    }
-  }
-  // Ändern Sie den Event-Listener, um die Pflichtfeldüberprüfung durchzuführen
-  step1Next.addEventListener('click', () => {
-    if (validateStep1()) {
-      showStep(1);
-    }
-  });
 
   function copyToClipboard(id) {
     if (id) {
@@ -636,8 +622,6 @@
       console.error("No ID provided: " + id);
     }
   }
-
-
 </script>
 </div>
 </div>

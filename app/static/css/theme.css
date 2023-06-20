@@ -11,6 +11,10 @@
   z-index: 9999 !important;
 }
 
+.invalid-input {
+  border: 1px solid red !important;
+}
+
 .topContainer {
   position: relative;
 }
