@@ -300,9 +300,60 @@
             </div>
           </div>
         </div>
-
         <div class="flex justify-between mt-4 space-x-2">
           <button type="button" id="step3Prev"
+            class="w-full px-6 py-2 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none md:w-auto">
+            Prev
+          </button>
+          <button type="button" id="step3Next"
+            class="w-full px-6 py-2 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none md:w-auto">
+            Next
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 4: Zusammenfassung und Vorschau -->
+      <div id="step4" class="hidden step">
+        <h2 class="text-lg font-semibold text-gray-800">Zusammenfassung</h2>
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div>
+            <h3 class="text-sm font-semibold text-gray-600">Bild</h3>
+            <div>
+              <img id="summaryImage" class="object-cover w-full h-auto" src="#" alt="Bildvorschau">
+            </div>
+          </div>
+          <div>
+            <h3 class="text-sm font-semibold text-gray-600">Standort</h3>
+            <div id="map" class="h-48"></div>
+            <ul class="list-disc list-inside">
+              <li><strong>Längengrad:</strong> <span id="summaryLongitude"></span></li>
+              <li><strong>Breitengrad:</strong> <span id="summaryLatitude"></span></li>
+              <li><strong>Straße:</strong> <span id="summaryStreet"></span></li>
+              <li><strong>Postleitzahl:</strong> <span id="summaryZipCode"></span></li>
+              <li><strong>Ort:</strong> <span id="summaryCity"></span></li>
+              <li><strong>Landkreis/Stadt:</strong> <span id="summaryDistrict"></span></li>
+              <li><strong>Bundesland:</strong> <span id="summaryState"></span></li>
+            </ul>
+          </div>
+        </div>
+
+        <h3 class="mt-6 text-sm font-semibold text-gray-600">Beschreibung</h3>
+        <ul class="list-disc list-inside">
+          <li><strong>Entwicklungsstadium:</strong> <span id="summaryGender"></span></li>
+          <li><strong>Ergänzungen Ort:</strong> <span id="summaryLocationDescription"></span></li>
+          <li><strong>Ergänzungen zum Fund:</strong> <span id="summaryPictureDescription"></span></li>
+        </ul>
+
+        <h3 class="mt-6 text-sm font-semibold text-gray-600">Person(en)</h3>
+        <ul class="list-disc list-inside">
+          <li><strong>Vorname:</strong> <span id="summaryFirstName"></span></li>
+          <li><strong>Nachname:</strong> <span id="summaryLastName"></span></li>
+          <li><strong>Datum:</strong> <span id="summarySightingDate"></span></li>
+          <li><strong>Kontakt:</strong> <span id="summaryContact"></span></li>
+        </ul>
+
+        <div class="flex justify-between mt-4 space-x-2">
+          <button type="button" id="step4Prev"
             class="w-full px-6 py-2 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none md:w-auto">
             Prev
           </button>
@@ -313,7 +364,8 @@
           </form>
         </div>
       </div>
-    </form>
+
+
   </div>
 </div>
 
@@ -502,10 +554,13 @@
   const step1 = document.getElementById('step1');
   const step2 = document.getElementById('step2');
   const step3 = document.getElementById('step3');
+  const step4 = document.getElementById('step4');
   const step1Next = document.getElementById('step1Next');
   const step2Prev = document.getElementById('step2Prev');
   const step2Next = document.getElementById('step2Next');
   const step3Prev = document.getElementById('step3Prev');
+  const step3Next = document.getElementById('step3Next');
+  const step4Prev = document.getElementById('step4Prev');
   const additionalFields = document.getElementById('additionalFields');
   const form = document.getElementById('mainForm');
 
@@ -513,11 +568,14 @@
   step2Prev.addEventListener('click', () => showStep(0));
   step2Next.addEventListener('click', () => showStep(2));
   step3Prev.addEventListener('click', () => showStep(1));
+  step3Next.addEventListener('click', () => showStep(3));
+  step4Prev.addEventListener('click', () => showStep(2));
 
   function showStep(index) {
     step1.classList.toggle('hidden', index !== 0);
     step2.classList.toggle('hidden', index !== 1);
     step3.classList.toggle('hidden', index !== 2);
+    step4.classList.toggle('hidden', index !== 3);
     if (index === 2) {
       additionalFields.classList.toggle('hidden', !form.identical_finder_melder.checked);
     }
@@ -607,6 +665,62 @@
 
   const ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'jfif', 'webp'];
 
+  // Step 4: Zusammenfassung und Vorschau
+  const summaryImage = document.getElementById('summaryImage');
+  const summaryLongitude = document.getElementById('summaryLongitude');
+  const summaryLatitude = document.getElementById('summaryLatitude');
+  const summaryStreet = document.getElementById('summaryStreet');
+  const summaryZipCode = document.getElementById('summaryZipCode');
+  const summaryCity = document.getElementById('summaryCity');
+  const summaryDistrict = document.getElementById('summaryDistrict');
+  const summaryState = document.getElementById('summaryState');
+  const summaryGender = document.getElementById('summaryGender');
+  const summaryLocationDescription = document.getElementById('summaryLocationDescription');
+  const summaryPictureDescription = document.getElementById('summaryPictureDescription');
+  const summaryFirstName = document.getElementById('summaryFirstName');
+  const summaryLastName = document.getElementById('summaryLastName');
+  const summarySightingDate = document.getElementById('summarySightingDate');
+  const summaryContact = document.getElementById('summaryContact');
+  const submitButton = document.getElementById('submitBtn');
+
+  function updateSummary() {
+    const pictureInput = document.getElementById('picture');
+    const file = pictureInput.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function () {
+        summaryImage.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    } else {
+      summaryImage.src = '#';
+    }
+
+    summaryLongitude.textContent = document.getElementById('longitude').value;
+    summaryLatitude.textContent = document.getElementById('latitude').value;
+    summaryStreet.textContent = document.getElementById('street').value;
+    summaryZipCode.textContent = document.getElementById('zip_code').value;
+    summaryCity.textContent = document.getElementById('city').value;
+    summaryDistrict.textContent = document.getElementById('district').value;
+    summaryState.textContent = document.getElementById('state').value;
+    summaryGender.textContent = document.getElementById('gender').value;
+    summaryLocationDescription.textContent = document.getElementById('location_description').value;
+    summaryPictureDescription.textContent = document.getElementById('picture_description').value;
+    summaryFirstName.textContent = document.getElementById('report_first_name').value;
+    summaryLastName.textContent = document.getElementById('report_last_name').value;
+    summarySightingDate.textContent = document.getElementById('sighting_date').value;
+    summaryContact.textContent = document.getElementById('contact').value;
+  }
+
+  // Call the updateSummary function whenever the form inputs change
+  document.querySelectorAll('input, select, textarea').forEach(function (input) {
+    input.addEventListener('input', updateSummary);
+  });
+
+
+  // Initially update the summary
+  updateSummary();
+
 
   function copyToClipboard(id) {
     if (id) {
@@ -622,6 +736,7 @@
       console.error("No ID provided: " + id);
     }
   }
+
 </script>
 </div>
 </div>
