@@ -104,6 +104,13 @@ gunicorn run:app    # For Windows: waitress-serve --listen=*:8000 run:app
 
 ### Step 11: 🌐 Open http://localhost:5000 in your browser
 
+
+### Meldung id error fix
+```bash
+SELECT setval('[TableName]_id_seq', (SELECT MAX(id) FROM [TableName]))
+```
+
+
 # 📝 License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
