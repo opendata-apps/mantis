@@ -86,12 +86,9 @@
                     upload</span> or drag and drop</p>
                 <p class="text-xs text-gray-500 dark:text-gray-400">SVG, PNG, JPG or GIF (MAX. 800x400px)</p>
               </div>
-              {{ form.picture(class="hidden", id=form.picture.id, accept="image/*", capture="user") }}
+              {{ form.picture(class="hidden", id=form.picture.id, accept="image/*") }}
             </label>
           </div>
-          <p class="mt-1 text-sm text-gray-500" id="{{ form.picture.id }}_help">
-            {{ form.picture.description }}
-          </p>
         </div>
 
         <div class="grid grid-cols-2 gap-4 mb-4">
