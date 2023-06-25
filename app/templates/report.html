@@ -57,32 +57,44 @@
       {{ form.csrf_token }}
 
       <!-- Step 1: Bild-Upload -->
+
       <div id="step1" class="step">
         {{ form.hidden_tag() }}
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div>
-            <div class="flex justify-between">
-              {{ form.picture.label.text }}
-              {{ popover("popover-picture", "Info zum Bild-Upload",
-              "Anhand des Bildes können wir Ihre Bestimmung überprüfen. Ist Ihr Fund von uns überprüft und freigegeben,
-              erscheint er in der Karte. Die Bilder werden nicht weiterverwendet. Ihre Urheberrechte bleiben
-              unberührt.") }}
-            </div>
-            <div class="relative">
-              {{ form.picture(class="block w-full mt-1 text-sm text-gray-900 border border-gray-300 rounded-lg
-              cursor-pointer bg-gray-50 focus:outline-none ",
-              id=form.picture.id, accept="image/*", capture="user")
-              }}
-              <!-- Image Preview -->
-              <div id="imagePreview"
-                class="absolute top-0 right-0 hidden w-16 h-16 mt-2 mr-2 overflow-hidden bg-gray-200 rounded-lg">
-                <img id="previewImage" class="object-cover w-full h-full" src="#" alt="Preview">
-              </div>
-            </div>
-            <p class="mt-1 text-sm text-gray-500" id="{{ form.picture.id }}_help">
-              {{ form.picture.description }}
-            </p>
+
+        <div class="mb-4">
+          <div class="flex justify-between">
+            {{ form.picture.label.text }}
+            {{ popover("popover-picture", "Info zum Bild-Upload",
+            "Anhand des Bildes können wir Ihre Bestimmung überprüfen. Ist Ihr Fund von uns überprüft und freigegeben,
+            erscheint er in der Karte. Die Bilder werden nicht weiterverwendet. Ihre Urheberrechte bleiben
+            unberührt.") }}
           </div>
+          <div class="flex items-center justify-center w-full">
+            <label for="{{ form.picture.id }}"
+              class="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600">
+              <div id="imagePreview"
+                class="flex flex-col items-center justify-center hidden w-full h-64 overflow-hidden">
+                <img id="previewImage" class="object-scale-down w-full h-full" src="#" alt="Preview">
+              </div>
+              <div id="uploadText" class="flex flex-col items-center justify-center pt-5 pb-6">
+                <svg aria-hidden="true" class="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor"
+                  viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                </svg>
+                <p class="mb-2 text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold">Click to
+                    upload</span> or drag and drop</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">SVG, PNG, JPG or GIF (MAX. 800x400px)</p>
+              </div>
+              {{ form.picture(class="hidden", id=form.picture.id, accept="image/*", capture="user") }}
+            </label>
+          </div>
+          <p class="mt-1 text-sm text-gray-500" id="{{ form.picture.id }}_help">
+            {{ form.picture.description }}
+          </p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-4">
           <div>
             <label for="{{ form.longitude.id }}" class="block text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
@@ -95,6 +107,8 @@
                 {{ form.longitude(placeholder="z.B. 13.12345", class="input-field") }}
               </div>
             </label>
+          </div>
+          <div>
             <label for="{{ form.latitude.id }}" class="block text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.latitude.label.text }}
@@ -120,6 +134,7 @@
           </button>
         </div>
       </div>
+
 
       <!-- Step 2: Beschreibung Ort und Fund -->
       <div id="step2" class="hidden step">
@@ -312,47 +327,45 @@
         </div>
       </div>
 
-      <!-- Step 4: Zusammenfassung und Vorschau -->
-      <div id="step4" class="hidden step">
-        <h2 class="text-lg font-semibold text-gray-800">Zusammenfassung</h2>
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div>
-            <h3 class="text-sm font-semibold text-gray-600">Bild</h3>
+      <div id="step4" class="hidden p-5 rounded-lg shadow-lg step bg-gradient-to-r from-gray-100 to-gray-200">
+        <h2 class="mb-4 text-3xl font-semibold text-gray-800">Zusammenfassung</h2>
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <div class="p-5 bg-white rounded-lg shadow-md">
+            <h3 class="mb-2 text-xl font-semibold text-gray-800">Bild</h3>
             <div>
-              <img id="summaryImage" class="object-cover w-full h-auto" src="#" alt="Bildvorschau">
+              <img id="summaryImage" class="object-cover w-full h-auto rounded-lg" src="#" alt="Bildvorschau">
             </div>
           </div>
-          <div>
-            <h3 class="text-sm font-semibold text-gray-600">Standort</h3>
-            <div id="map" class="h-48"></div>
-            <ul class="list-disc list-inside">
-              <li><strong>Längengrad:</strong> <span id="summaryLongitude"></span></li>
-              <li><strong>Breitengrad:</strong> <span id="summaryLatitude"></span></li>
-              <li><strong>Straße:</strong> <span id="summaryStreet"></span></li>
-              <li><strong>Postleitzahl:</strong> <span id="summaryZipCode"></span></li>
-              <li><strong>Ort:</strong> <span id="summaryCity"></span></li>
-              <li><strong>Landkreis/Stadt:</strong> <span id="summaryDistrict"></span></li>
-              <li><strong>Bundesland:</strong> <span id="summaryState"></span></li>
+          <div class="p-5 bg-white rounded-lg shadow-md">
+            <h3 class="mb-2 text-xl font-semibold text-gray-800">Standort</h3>
+            <div id="summaryMap" class="h-64 rounded-lg"></div>
+            <ul class="mt-3 text-lg list-disc list-inside">
+              <li><strong class="text-gray-800">Längengrad:</strong> <span id="summaryLongitude"></span></li>
+              <li><strong class="text-gray-800">Breitengrad:</strong> <span id="summaryLatitude"></span></li>
+              <li><strong class="text-gray-800">Straße:</strong> <span id="summaryStreet"></span></li>
+              <li><strong class="text-gray-800">Postleitzahl:</strong> <span id="summaryZipCode"></span></li>
+              <li><strong class="text-gray-800">Ort:</strong> <span id="summaryCity"></span></li>
+              <li><strong class="text-gray-800">Landkreis/Stadt:</strong> <span id="summaryDistrict"></span></li>
+              <li><strong class="text-gray-800">Bundesland:</strong> <span id="summaryState"></span></li>
             </ul>
           </div>
         </div>
-
-        <h3 class="mt-6 text-sm font-semibold text-gray-600">Beschreibung</h3>
-        <ul class="list-disc list-inside">
-          <li><strong>Entwicklungsstadium:</strong> <span id="summaryGender"></span></li>
-          <li><strong>Ergänzungen Ort:</strong> <span id="summaryLocationDescription"></span></li>
-          <li><strong>Ergänzungen zum Fund:</strong> <span id="summaryPictureDescription"></span></li>
+        <h3 class="mt-8 text-lg font-semibold text-gray-800">Beschreibung</h3>
+        <ul class="text-lg list-disc list-inside">
+          <li><strong class="text-gray-800">Entwicklungsstadium:</strong> <span id="summaryGender"></span></li>
+          <li><strong class="text-gray-800">Ergänzungen Ort:</strong> <span id="summaryLocationDescription"></span>
+          </li>
+          <li><strong class="text-gray-800">Ergänzungen zum Fund:</strong> <span id="summaryPictureDescription"></span>
+          </li>
         </ul>
-
-        <h3 class="mt-6 text-sm font-semibold text-gray-600">Person(en)</h3>
-        <ul class="list-disc list-inside">
-          <li><strong>Vorname:</strong> <span id="summaryFirstName"></span></li>
-          <li><strong>Nachname:</strong> <span id="summaryLastName"></span></li>
-          <li><strong>Datum:</strong> <span id="summarySightingDate"></span></li>
-          <li><strong>Kontakt:</strong> <span id="summaryContact"></span></li>
+        <h3 class="mt-8 text-lg font-semibold text-gray-800">Person(en)</h3>
+        <ul class="text-lg list-disc list-inside">
+          <li><strong class="text-gray-800">Vorname:</strong> <span id="summaryFirstName"></span></li>
+          <li><strong class="text-gray-800">Nachname:</strong> <span id="summaryLastName"></span></li>
+          <li><strong class="text-gray-800">Datum:</strong> <span id="summarySightingDate"></span></li>
+          <li><strong class="text-gray-800">Kontakt:</strong> <span id="summaryContact"></span></li>
         </ul>
-
-        <div class="flex justify-between mt-4 space-x-2">
+        <div class="flex justify-between mt-6 space-x-4">
           <button type="button" id="step4Prev"
             class="w-full px-6 py-2 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none md:w-auto">
             Prev
@@ -364,380 +377,402 @@
           </form>
         </div>
       </div>
-
-
   </div>
-</div>
 
 
 
-<script>
-  let map;
-  // Add Leaflet map configuration and event handling
-  function initMap() {
-    map = L.map('map').setView([52.5200, 13.4050], 5);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      maxZoom: 18,
-    }).addTo(map);
+  <script>
+    let map;
+    // Add Leaflet map configuration and event handling
+    function initMap() {
+      map = L.map('map').setView([52.5200, 13.4050], 5);
 
-    let userMarker;
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 18,
+      }).addTo(map);
 
-    // Update form fields on map click
-    map.on('click', function (e) {
-      document.querySelector('#latitude').value = e.latlng.lat.toFixed(5);
-      document.querySelector('#longitude').value = e.latlng.lng.toFixed(5);
+      let userMarker;
 
-      getAddressFromCoordinates(e.latlng.lat, e.latlng.lng);
+      // Update form fields on map click
+      map.on('click', function (e) {
+        document.querySelector('#latitude').value = e.latlng.lat.toFixed(5);
+        document.querySelector('#longitude').value = e.latlng.lng.toFixed(5);
 
-      if (userMarker) {
-        userMarker.remove();
-      }
+        getAddressFromCoordinates(e.latlng.lat, e.latlng.lng);
 
-      userMarker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map);
-    });
-  }
-  document.addEventListener('DOMContentLoaded', initMap);
-
-  function getAddressFromCoordinates(latitude, longitude) {
-    const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`;
-
-    fetch(nominatimUrl)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+        if (userMarker) {
+          userMarker.remove();
         }
-        return response.json();
-      })
-      .then(data => {
-        const address = data.address;
 
-        document.querySelector("#zip_code").value = address.postcode ? address.postcode.split(";")[0] : "";
-        document.querySelector("#city").value = address.city || address.town || address.village || "";
-        document.querySelector("#street").value = `${address.road || ""} ${address.house_number || ""}`.trim();
-        document.querySelector("#state").value = address.state || address.city || "";
-        document.querySelector("#district").value = address.county || address.suburb || address.borough || "";
-
-        console.log("Returned data:", data);
-      })
-      .catch(error => {
-        console.error("Error fetching address data:", error);
+        userMarker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map);
       });
-  }
-
-  // Use Jinja2 to pass the Python variables to JavaScript
-  let existing_user = {{ existing_user | tojson | safe }};
-
-  // Check if the existing_user is not null
-  if (existing_user) {
-    // Prefill and lock the fields
-    document.getElementById("report_first_name").value = existing_user.user_name.split(" ")[1];
-    document.getElementById("report_last_name").value = existing_user.user_name.split(" ")[0];
-    document.getElementById("contact").value = existing_user.user_kontakt;
-
-    // Make the fields readonly
-    document.getElementById("report_first_name").readOnly = true;
-    document.getElementById("report_last_name").readOnly = true;
-    document.getElementById("contact").readOnly = true;
-  }
-
-
-  function saveFormDataToLocalStorage() {
-    const form = document.getElementById('mainForm');
-    const formData = new FormData(form);
-
-    for (const [key, value] of formData.entries()) {
-      if (key !== "csrf_token") { // exclude csrf_token
-        localStorage.setItem(key, value);
-      }
     }
-  }
+    document.addEventListener('DOMContentLoaded', initMap);
 
-  function loadFormDataFromLocalStorage() {
-    const form = document.getElementById('mainForm');
+    function getAddressFromCoordinates(latitude, longitude) {
+      const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`;
 
-    for (const input of form.elements) {
-      if (input.name && input.type !== 'file') {
-        const value = localStorage.getItem(input.name);
-        if (value) {
-          try {
-            input.value = value;
-          } catch (e) {
-            console.error('Error setting input value:', e);
+      fetch(nominatimUrl)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
           }
-        }
-      }
-    }
-  }
-
-
-  // Call this function when the page loads to load saved form data.
-  document.addEventListener('DOMContentLoaded', loadFormDataFromLocalStorage);
-
-  // Call this function to save form data to local storage when any input changes.
-  document.getElementById('mainForm').addEventListener('input', saveFormDataToLocalStorage);
-
-  document.addEventListener('DOMContentLoaded', function () {
-    const pictureInput = document.querySelector('#picture');
-
-    pictureInput.addEventListener('change', function (event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      EXIF.getData(file, function () {
-        // Read metadata from the image
-        const lat = EXIF.getTag(this, 'GPSLatitude');
-        const lng = EXIF.getTag(this, 'GPSLongitude');
-        const latRef = EXIF.getTag(this, 'GPSLatitudeRef');
-        const lngRef = EXIF.getTag(this, 'GPSLongitudeRef');
-
-        if (lat && lng && latRef && lngRef) {
-          // Convert coordinates to decimal
-          const latitude = toDecimal(lat, latRef);
-          const longitude = toDecimal(lng, lngRef);
-
-          // Set the values to the form fields
-          document.querySelector('#latitude').value = latitude;
-          document.querySelector('#longitude').value = longitude;
-          console.log('Latitude: ' + latitude + ' Longitude: ' + longitude);
-
-          getAddressFromCoordinates(latitude, longitude);
-        } else {
-          // Handle the case when GPS data is not available in the image
-          console.log('No GPS data found in the file');
-        }
-      });
-    });
-  });
-
-  const input = document.getElementById('{{ form.picture.id }}');
-  const preview = document.getElementById('previewImage');
-  const previewContainer = document.getElementById('imagePreview');
-
-  input.addEventListener('change', function (e) {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-
-      reader.addEventListener('load', function () {
-        preview.setAttribute('src', reader.result);
-      });
-
-      reader.readAsDataURL(file);
-      previewContainer.classList.remove('hidden');
-    } else {
-      preview.setAttribute('src', '#');
-      previewContainer.classList.add('hidden');
-    }
-  });
-
-  // Check if a success message is being flashed
-  {% with messages = get_flashed_messages() %}
-  {% if messages %}
-  // If there is a success message, clear local storage
-  localStorage.clear();
-  {% endif %}
-  {% endwith %}
-
-  function toDecimal(coord, ref) {
-    const [degrees, minutes, seconds] = coord;
-    let decimal = degrees + minutes / 60 + seconds / (60 * 60);
-
-    if (ref === 'S' || ref === 'W') {
-      decimal = -decimal;
-    }
-
-    return decimal;
-  }
-
-  const step1 = document.getElementById('step1');
-  const step2 = document.getElementById('step2');
-  const step3 = document.getElementById('step3');
-  const step4 = document.getElementById('step4');
-  const step1Next = document.getElementById('step1Next');
-  const step2Prev = document.getElementById('step2Prev');
-  const step2Next = document.getElementById('step2Next');
-  const step3Prev = document.getElementById('step3Prev');
-  const step3Next = document.getElementById('step3Next');
-  const step4Prev = document.getElementById('step4Prev');
-  const additionalFields = document.getElementById('additionalFields');
-  const form = document.getElementById('mainForm');
-
-  step1Next.addEventListener('click', () => showStep(1));
-  step2Prev.addEventListener('click', () => showStep(0));
-  step2Next.addEventListener('click', () => showStep(2));
-  step3Prev.addEventListener('click', () => showStep(1));
-  step3Next.addEventListener('click', () => showStep(3));
-  step4Prev.addEventListener('click', () => showStep(2));
-
-  function showStep(index) {
-    step1.classList.toggle('hidden', index !== 0);
-    step2.classList.toggle('hidden', index !== 1);
-    step3.classList.toggle('hidden', index !== 2);
-    step4.classList.toggle('hidden', index !== 3);
-    if (index === 2) {
-      additionalFields.classList.toggle('hidden', !form.identical_finder_melder.checked);
-    }
-  }
-
-  form.identical_finder_melder.addEventListener('change', () => {
-    additionalFields.classList.toggle('hidden', !form.identical_finder_melder.checked);
-  });
-
-  function autoCompleteData(inputField, zipCode, city, district, state) {
-    var inputs = ['zip_code', 'city', 'district', 'state'];
-
-    for (const id of inputs) {
-      if (inputField.id === id) continue;
-      let fieldValue = null;
-
-      switch (id) {
-        case 'zip_code':
-          fieldValue = zipCode;
-          break;
-        case 'city':
-          fieldValue = city;
-          break;
-        case 'district':
-          fieldValue = district;
-          break;
-        case 'state':
-          fieldValue = state;
-          break;
-      }
-
-      document.getElementById(id).value = fieldValue || '';
-    }
-  }
-
-  function getAutoCompleteData(inputField) {
-    var query = inputField.value;
-    if (query) {
-      fetch('/autocomplete?q=' + query)
-        .then(response => response.json())
+          return response.json();
+        })
         .then(data => {
-          if (data.length > 0) {
-            var firstResult = data[0];
-            autoCompleteData(inputField, firstResult.plz, firstResult.ort, firstResult.landkreis, firstResult.bundesland);
-          }
+          const address = data.address;
+
+          document.querySelector("#zip_code").value = address.postcode ? address.postcode.split(";")[0] : "";
+          document.querySelector("#city").value = address.city || address.town || address.village || "";
+          document.querySelector("#street").value = `${address.road || ""} ${address.house_number || ""}`.trim();
+          document.querySelector("#state").value = address.state || address.city || "";
+          document.querySelector("#district").value = address.county || address.suburb || address.borough || "";
+
+          console.log("Returned data:", data);
+        })
+        .catch(error => {
+          console.error("Error fetching address data:", error);
         });
     }
-  }
 
-  document.addEventListener('DOMContentLoaded', function () {
-    var zipCodeInput = document.getElementById('zip_code');
+    // Use Jinja2 to pass the Python variables to JavaScript
+    let existing_user = {{ existing_user | tojson | safe }};
 
-    function addEvents(inputField) {
-      inputField.addEventListener('keydown', function (event) {
-        if (event.key === 'Enter' || event.key === 'Tab') {
-          if (inputField.value.length >= 4) {
-            getAutoCompleteData(inputField);
+    // Check if the existing_user is not null
+    if (existing_user) {
+      // Prefill and lock the fields
+      document.getElementById("report_first_name").value = existing_user.user_name.split(" ")[1];
+      document.getElementById("report_last_name").value = existing_user.user_name.split(" ")[0];
+      document.getElementById("contact").value = existing_user.user_kontakt;
+
+      // Make the fields readonly
+      document.getElementById("report_first_name").readOnly = true;
+      document.getElementById("report_last_name").readOnly = true;
+      document.getElementById("contact").readOnly = true;
+    }
+
+
+    function saveFormDataToLocalStorage() {
+      const form = document.getElementById('mainForm');
+      const formData = new FormData(form);
+
+      for (const [key, value] of formData.entries()) {
+        if (key !== "csrf_token") { // exclude csrf_token
+          localStorage.setItem(key, value);
+        }
+      }
+    }
+
+    function loadFormDataFromLocalStorage() {
+      const form = document.getElementById('mainForm');
+
+      for (const input of form.elements) {
+        if (input.name && input.type !== 'file') {
+          const value = localStorage.getItem(input.name);
+          if (value) {
+            try {
+              input.value = value;
+            } catch (e) {
+              console.error('Error setting input value:', e);
+            }
           }
         }
+      }
+    }
+
+
+    // Call this function when the page loads to load saved form data.
+    document.addEventListener('DOMContentLoaded', loadFormDataFromLocalStorage);
+
+    // Call this function to save form data to local storage when any input changes.
+    document.getElementById('mainForm').addEventListener('input', saveFormDataToLocalStorage);
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const pictureInput = document.querySelector('#picture');
+
+      pictureInput.addEventListener('change', function (event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        EXIF.getData(file, function () {
+          // Read metadata from the image
+          const lat = EXIF.getTag(this, 'GPSLatitude');
+          const lng = EXIF.getTag(this, 'GPSLongitude');
+          const latRef = EXIF.getTag(this, 'GPSLatitudeRef');
+          const lngRef = EXIF.getTag(this, 'GPSLongitudeRef');
+
+          if (lat && lng && latRef && lngRef) {
+            // Convert coordinates to decimal
+            const latitude = toDecimal(lat, latRef);
+            const longitude = toDecimal(lng, lngRef);
+
+            // Set the values to the form fields
+            document.querySelector('#latitude').value = latitude;
+            document.querySelector('#longitude').value = longitude;
+            console.log('Latitude: ' + latitude + ' Longitude: ' + longitude);
+
+            getAddressFromCoordinates(latitude, longitude);
+          } else {
+            // Handle the case when GPS data is not available in the image
+            console.log('No GPS data found in the file');
+          }
+        });
       });
-      inputField.addEventListener('blur', function () {
-        if (inputField.value.length >= 5) {
-          getAutoCompleteData(inputField);
+    });
+
+
+    const input = document.getElementById('{{ form.picture.id }}');
+    const preview = document.getElementById('previewImage');
+    const previewContainer = document.getElementById('imagePreview');
+    const uploadText = document.getElementById('uploadText');
+
+    input.addEventListener('change', function (e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+
+        reader.addEventListener('load', function () {
+          preview.setAttribute('src', reader.result);
+        });
+
+        reader.readAsDataURL(file);
+        previewContainer.classList.remove('hidden');
+        uploadText.classList.add('hidden');
+      } else {
+        preview.setAttribute('src', '#');
+        previewContainer.classList.add('hidden');
+        uploadText.classList.remove('hidden');
+      }
+    });
+
+
+    // Check if a success message is being flashed
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    // If there is a success message, clear local storage
+    localStorage.clear();
+    {% endif %}
+    {% endwith %}
+
+    function toDecimal(coord, ref) {
+      const [degrees, minutes, seconds] = coord;
+      let decimal = degrees + minutes / 60 + seconds / (60 * 60);
+
+      if (ref === 'S' || ref === 'W') {
+        decimal = -decimal;
+      }
+
+      return decimal;
+    }
+
+    const step1 = document.getElementById('step1');
+    const step2 = document.getElementById('step2');
+    const step3 = document.getElementById('step3');
+    const step4 = document.getElementById('step4');
+    const step1Next = document.getElementById('step1Next');
+    const step2Prev = document.getElementById('step2Prev');
+    const step2Next = document.getElementById('step2Next');
+    const step3Prev = document.getElementById('step3Prev');
+    const step3Next = document.getElementById('step3Next');
+    const step4Prev = document.getElementById('step4Prev');
+    const additionalFields = document.getElementById('additionalFields');
+    const form = document.getElementById('mainForm');
+
+    step1Next.addEventListener('click', () => showStep(1));
+    step2Prev.addEventListener('click', () => showStep(0));
+    step2Next.addEventListener('click', () => showStep(2));
+    step3Prev.addEventListener('click', () => showStep(1));
+    step3Next.addEventListener('click', () => showStep(3));
+    step4Prev.addEventListener('click', () => showStep(2));
+
+    function showStep(index) {
+      step1.classList.toggle('hidden', index !== 0);
+      step2.classList.toggle('hidden', index !== 1);
+      step3.classList.toggle('hidden', index !== 2);
+      step4.classList.toggle('hidden', index !== 3);
+      if (index === 2) {
+        additionalFields.classList.toggle('hidden', !form.identical_finder_melder.checked);
+      }
+    }
+
+    form.identical_finder_melder.addEventListener('change', () => {
+      additionalFields.classList.toggle('hidden', !form.identical_finder_melder.checked);
+    });
+
+    function autoCompleteData(inputField, zipCode, city, district, state) {
+      var inputs = ['zip_code', 'city', 'district', 'state'];
+
+      for (const id of inputs) {
+        if (inputField.id === id) continue;
+        let fieldValue = null;
+
+        switch (id) {
+          case 'zip_code':
+            fieldValue = zipCode;
+            break;
+          case 'city':
+            fieldValue = city;
+            break;
+          case 'district':
+            fieldValue = district;
+            break;
+          case 'state':
+            fieldValue = state;
+            break;
         }
-      });
-      //if input field is empty, clear all other fields related to it
-      inputField.addEventListener('input', function () {
-        if (inputField.value === '') {
-          autoCompleteData(inputField, '', '', '', '');
+
+        document.getElementById(id).value = fieldValue || '';
+      }
+    }
+
+    function getAutoCompleteData(inputField) {
+      var query = inputField.value;
+      if (query) {
+        fetch('/autocomplete?q=' + query)
+          .then(response => response.json())
+          .then(data => {
+            if (data.length > 0) {
+              var firstResult = data[0];
+              autoCompleteData(inputField, firstResult.plz, firstResult.ort, firstResult.landkreis, firstResult.bundesland);
+            }
+          });
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      var zipCodeInput = document.getElementById('zip_code');
+
+      function addEvents(inputField) {
+        inputField.addEventListener('keydown', function (event) {
+          if (event.key === 'Enter' || event.key === 'Tab') {
+            if (inputField.value.length >= 4) {
+              getAutoCompleteData(inputField);
+            }
+          }
+        });
+        inputField.addEventListener('blur', function () {
+          if (inputField.value.length >= 5) {
+            getAutoCompleteData(inputField);
+          }
+        });
+        //if input field is empty, clear all other fields related to it
+        inputField.addEventListener('input', function () {
+          if (inputField.value === '') {
+            autoCompleteData(inputField, '', '', '', '');
+          }
+        });
+      }
+
+      addEvents(zipCodeInput);
+    });
+
+
+    // Step 1 Validation
+    const GENDER_CHOICES = [
+      ['', 'Bitte auswählen'],
+      ['keine Zuoordnung', 'Keine Zuordnung']
+      ['männchen', 'Männchen'],
+      ['weibchen', 'Weibchen'],
+      ['nymphen', 'Nymphen'],
+      ['ootheken', 'Ootheken']
+    ];
+
+    const ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'jfif', 'webp'];
+
+    // Step 4: Zusammenfassung und Vorschau
+    // Map initialization
+    const summaryMap = L.map("summaryMap").setView([0, 0], 13);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
+      maxZoom: 18,
+    }).addTo(summaryMap);
+
+    const summaryMarker = L.marker([0, 0]).addTo(summaryMap);
+    const summaryMarkerPopup = L.popup().setContent("");
+    summaryMarker.bindPopup(summaryMarkerPopup);
+
+    const updateSummary = () => {
+      const data = JSON.parse(localStorage.getItem('formData'));
+
+      if (data) {
+        // Update the location on the map
+        const newLatLng = new L.LatLng(data.latitude, data.longitude);
+        summaryMarker.setLatLng(newLatLng);
+        summaryMap.setView(newLatLng, 13);
+
+        // Update the popup content
+        const popupContent = `<strong>Straße:</strong> ${data.street}<br>
+    <strong>Postleitzahl:</strong> ${data.zip_code}<br>
+    <strong>Ort:</strong> ${data.city}<br>
+    <strong>Landkreis/Stadt:</strong> ${data.district}<br>
+    <strong>Bundesland:</strong> ${data.state}`;
+        summaryMarkerPopup.setContent(popupContent);
+
+        // Picture is loaded directly from input as per your request, not from localStorage
+        const pictureInput = document.getElementById('picture');
+        const file = pictureInput.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function () {
+            summaryImage.src = reader.result;
+          };
+          reader.readAsDataURL(file);
+        } else {
+          summaryImage.src = '#';
         }
+
+        summaryLongitude.textContent = data.longitude;
+        summaryLatitude.textContent = data.latitude;
+        summaryStreet.textContent = data.street;
+        summaryZipCode.textContent = data.zip_code;
+        summaryCity.textContent = data.city;
+        summaryDistrict.textContent = data.district;
+        summaryState.textContent = data.state;
+        summaryGender.textContent = data.gender;
+        summaryLocationDescription.textContent = data.location_description;
+        summaryPictureDescription.textContent = data.picture_description;
+        summaryFirstName.textContent = data.report_first_name;
+        summaryLastName.textContent = data.report_last_name;
+        summarySightingDate.textContent = data.sighting_date;
+        summaryContact.textContent = data.contact;
+      }
+    }
+
+    // Call the updateSummary function whenever the form inputs change
+    document.querySelectorAll('input, select, textarea').forEach(function (input) {
+      input.addEventListener('input', function () {
+        // Store form data in local storage on input change
+        let formData = {};
+        document.querySelectorAll('input, select, textarea').forEach(function (input) {
+          formData[input.id] = input.value;
+        });
+        localStorage.setItem('formData', JSON.stringify(formData));
+        updateSummary();
       });
+    });
+
+    // Initially update the summary
+    updateSummary();
+
+
+    function copyToClipboard(id) {
+      if (id) {
+        var tempInput = document.createElement("input");
+        tempInput.value = id;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand("copy");
+        document.body.removeChild(tempInput);
+        // Show a success toast or something
+      }
+      else {
+        console.error("No ID provided: " + id);
+      }
     }
 
-    addEvents(zipCodeInput);
-  });
-
-
-  // Step 1 Validation
-  const GENDER_CHOICES = [
-    ['', 'Bitte auswählen'],
-    ['keine Zuoordnung', 'Keine Zuordnung']
-    ['männchen', 'Männchen'],
-    ['weibchen', 'Weibchen'],
-    ['nymphen', 'Nymphen'],
-    ['ootheken', 'Ootheken']
-  ];
-
-  const ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'jfif', 'webp'];
-
-  // Step 4: Zusammenfassung und Vorschau
-  const summaryImage = document.getElementById('summaryImage');
-  const summaryLongitude = document.getElementById('summaryLongitude');
-  const summaryLatitude = document.getElementById('summaryLatitude');
-  const summaryStreet = document.getElementById('summaryStreet');
-  const summaryZipCode = document.getElementById('summaryZipCode');
-  const summaryCity = document.getElementById('summaryCity');
-  const summaryDistrict = document.getElementById('summaryDistrict');
-  const summaryState = document.getElementById('summaryState');
-  const summaryGender = document.getElementById('summaryGender');
-  const summaryLocationDescription = document.getElementById('summaryLocationDescription');
-  const summaryPictureDescription = document.getElementById('summaryPictureDescription');
-  const summaryFirstName = document.getElementById('summaryFirstName');
-  const summaryLastName = document.getElementById('summaryLastName');
-  const summarySightingDate = document.getElementById('summarySightingDate');
-  const summaryContact = document.getElementById('summaryContact');
-  const submitButton = document.getElementById('submitBtn');
-
-  function updateSummary() {
-    const pictureInput = document.getElementById('picture');
-    const file = pictureInput.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = function () {
-        summaryImage.src = reader.result;
-      };
-      reader.readAsDataURL(file);
-    } else {
-      summaryImage.src = '#';
-    }
-
-    summaryLongitude.textContent = document.getElementById('longitude').value;
-    summaryLatitude.textContent = document.getElementById('latitude').value;
-    summaryStreet.textContent = document.getElementById('street').value;
-    summaryZipCode.textContent = document.getElementById('zip_code').value;
-    summaryCity.textContent = document.getElementById('city').value;
-    summaryDistrict.textContent = document.getElementById('district').value;
-    summaryState.textContent = document.getElementById('state').value;
-    summaryGender.textContent = document.getElementById('gender').value;
-    summaryLocationDescription.textContent = document.getElementById('location_description').value;
-    summaryPictureDescription.textContent = document.getElementById('picture_description').value;
-    summaryFirstName.textContent = document.getElementById('report_first_name').value;
-    summaryLastName.textContent = document.getElementById('report_last_name').value;
-    summarySightingDate.textContent = document.getElementById('sighting_date').value;
-    summaryContact.textContent = document.getElementById('contact').value;
-  }
-
-  // Call the updateSummary function whenever the form inputs change
-  document.querySelectorAll('input, select, textarea').forEach(function (input) {
-    input.addEventListener('input', updateSummary);
-  });
-
-
-  // Initially update the summary
-  updateSummary();
-
-
-  function copyToClipboard(id) {
-    if (id) {
-      var tempInput = document.createElement("input");
-      tempInput.value = id;
-      document.body.appendChild(tempInput);
-      tempInput.select();
-      document.execCommand("copy");
-      document.body.removeChild(tempInput);
-      // Show a success toast or something
-    }
-    else {
-      console.error("No ID provided: " + id);
-    }
-  }
-
-</script>
+  </script>
 </div>
 </div>
 </body>
