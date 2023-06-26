@@ -72,8 +72,7 @@
           <div class="flex items-center justify-center w-full">
             <label for="{{ form.picture.id }}"
               class="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600">
-              <div id="imagePreview"
-                class="flex flex-col items-center justify-center hidden w-full h-64 overflow-hidden">
+              <div id="imagePreview" class="flex-col items-center justify-center hidden w-full h-64 overflow-hidden">
                 <img id="previewImage" class="object-scale-down w-full h-full" src="#" alt="Preview">
               </div>
               <div id="uploadText" class="flex flex-col items-center justify-center pt-5 pb-6">
@@ -84,7 +83,7 @@
                 </svg>
                 <p class="mb-2 text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold">Click to
                     upload</span> or drag and drop</p>
-                <p class="text-xs text-gray-500 dark:text-gray-400">SVG, PNG, JPG or GIF (MAX. 800x400px)</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400"> PNG JPG JPEG oder WEBP (MAX. 800x400px)</p>
               </div>
               {{ form.picture(class="hidden", id=form.picture.id, accept="image/*") }}
             </label>
@@ -368,9 +367,7 @@
             Prev
           </button>
           <form>
-            {{ form.submit(class="w-full px-6 py-2 text-sm font-medium leading-5 text-center text-white
-            transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600
-            focus:outline-none md:w-auto") }}
+            {{ form.submit(class="w-full px-6 py-2 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none md:w-auto") }}
           </form>
         </div>
       </div>
@@ -404,7 +401,20 @@
         }
 
         userMarker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map);
+
+        // Save form data to local storage
+        let formData = {};
+        document.querySelectorAll('input, select, textarea').forEach(function (input) {
+          formData[input.id] = input.value;
+        });
+        localStorage.setItem('formData', JSON.stringify(formData));
+        updateSummary();  // Also update the summary map right away
+
+        // add longitute and latitude to local storage
+        localStorage.setItem('latitude', e.latlng.lat.toFixed(5));
+        localStorage.setItem('longitude', e.latlng.lng.toFixed(5));
       });
+
     }
     document.addEventListener('DOMContentLoaded', initMap);
 
@@ -589,10 +599,19 @@
       step2.classList.toggle('hidden', index !== 1);
       step3.classList.toggle('hidden', index !== 2);
       step4.classList.toggle('hidden', index !== 3);
+
+      // Call invalidateSize after the step containing the map becomes visible
+      if (index === 3) {  // If this is the step number of the summary step
+        setTimeout(() => {
+          summaryMap.invalidateSize();
+        }, 400);  // This delay is to ensure that the DOM has finished updating before invalidateSize is called
+      }
+
       if (index === 2) {
         additionalFields.classList.toggle('hidden', !form.identical_finder_melder.checked);
       }
     }
+
 
     form.identical_finder_melder.addEventListener('change', () => {
       additionalFields.classList.toggle('hidden', !form.identical_finder_melder.checked);
@@ -665,19 +684,6 @@
       addEvents(zipCodeInput);
     });
 
-
-    // Step 1 Validation
-    const GENDER_CHOICES = [
-      ['', 'Bitte auswählen'],
-      ['keine Zuoordnung', 'Keine Zuordnung']
-      ['männchen', 'Männchen'],
-      ['weibchen', 'Weibchen'],
-      ['nymphen', 'Nymphen'],
-      ['ootheken', 'Ootheken']
-    ];
-
-    const ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'jfif', 'webp'];
-
     // Step 4: Zusammenfassung und Vorschau
     // Map initialization
     const summaryMap = L.map("summaryMap").setView([0, 0], 13);
@@ -695,9 +701,14 @@
 
       if (data) {
         // Update the location on the map
-        const newLatLng = new L.LatLng(data.latitude, data.longitude);
+        newLatLng = new L.LatLng(data.latitude, data.longitude);
         summaryMarker.setLatLng(newLatLng);
         summaryMap.setView(newLatLng, 13);
+
+        // Add a delay before calling invalidateSize
+        setTimeout(() => {
+          summaryMap.invalidateSize();
+        }, 400);  // Adjust delay as needed
 
         // Update the popup content
         const popupContent = `<strong>Straße:</strong> ${data.street}<br>
@@ -751,8 +762,7 @@
     });
 
     // Initially update the summary
-    updateSummary();
-
+    document.addEventListener('DOMContentLoaded', updateSummary);
 
     function copyToClipboard(id) {
       if (id) {
@@ -768,7 +778,6 @@
         console.error("No ID provided: " + id);
       }
     }
-
   </script>
 </div>
 </div>
