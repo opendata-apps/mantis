@@ -143,6 +143,30 @@ def change_gender(id):
     return jsonify(success=True)
 
 
+@admin.route("/change_mantis_count/<int:id>", methods=["POST"])
+def change_mantis_count(id):
+    new_count = request.form.get('new_count')
+    mantis_type = request.form.get('type')
+
+    sighting = TblMeldungen.query.get(id)
+
+    # Update the count for the specified mantis type
+    if mantis_type == 'Männlich':
+        sighting.art_m = new_count
+    elif mantis_type == 'Weiblich':
+        sighting.art_w = new_count
+    elif mantis_type == 'Nymphe':
+        sighting.art_n = new_count
+    elif mantis_type == 'Ootheke':
+        sighting.art_o = new_count
+    elif mantis_type == 'Andere':
+        sighting.art_a = new_count
+
+    db.session.commit()
+
+    return jsonify(success=True)
+
+
 @admin.route('/admin/log')
 def admin_subsites_log():
     return render_template('admin/log.html')

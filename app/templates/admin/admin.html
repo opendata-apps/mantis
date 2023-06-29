@@ -45,11 +45,11 @@
                         <img src="/static/images/svg/delete.svg" alt="Delete" class="w-5 h-5">
                     </button>
                     <div class="inline-flex items-center ml-auto">
-                      {% set total = ((sighting.art_m or 0) + (sighting.art_w or 0) +
-		      (sighting.art_n or 0) + (sighting.art_o or 0)) | int %}
+                        {% set total = ((sighting.art_m or 0) + (sighting.art_w or 0) +
+                        (sighting.art_n or 0) + (sighting.art_o or 0)) | int %}
                         <select id="gender-{{sighting.id}}"
                             class="px-3 py-2 mr-2 text-sm font-medium border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                            onchange="changeGender({{sighting.id}})" {{ 'disabled' if sighting.dat_bear or total > 1 }} >
+                            onchange="changeGender({{sighting.id}})" {{ 'disabled' if sighting.dat_bear or total> 1 }} >
                             <option value="M" {{ 'selected' if sighting.art_m==1 }}>Männlich</option>
                             <option value="W" {{ 'selected' if sighting.art_w==1 }}>Weiblich</option>
                             <option value="N" {{ 'selected' if sighting.art_n==1 }}>Nymphe</option>
@@ -286,34 +286,39 @@
 
     function generateGeneralInfo(data) {
         // Determine gender based on the art_ fields
-        let gender = '';
-        if (data.art_m) {
-            gender = 'Männlich';
-        } else if (data.art_w) {
-            gender = 'Weiblich';
-        } else if (data.art_n) {
-            gender = 'Nymphe';
-        } else if (data.art_o) {
-            gender = 'Ootheke';
-        }
+        let mantis_types = ['Männlich', 'Weiblich', 'Nymphe', 'Ootheke'];
+        let gender_counts = [data.art_m, data.art_w, data.art_n, data.art_o];
 
         // Convert general info into HTML string
-        return `<p><strong>Report ID:</strong> ${data.id}</p>
-                <p><strong>Date Reported:</strong> ${data.dat_meld}</p>
-                <p><strong>Gender:</strong> 
-                    <select id="modal-gender" name="gender" onchange="changeGenderInModal(${data.id})">
-                        <option value="M" ${gender === 'Männlich' ? 'selected' : ''}>Männlich</option>
-                        <option value="W" ${gender === 'Weiblich' ? 'selected' : ''}>Weiblich</option>
-                        <option value="N" ${gender === 'Nymphe' ? 'selected' : ''}>Nymphe</option>
-                        <option value="O" ${gender === 'Ootheke' ? 'selected' : ''}>Ootheke</option>
-                    </select>
-                </p>
-                <p><strong>Details:</strong> ${data.anm_melder}</p>`;
+        let html = `<p class="mb-4"><strong>Report ID:</strong> ${data.id}</p>
+                    <p class="mb-4"><strong>Date Reported:</strong> ${data.dat_meld}</p>`;
+
+        for (let i = 0; i < mantis_types.length; i++) {
+            html += `<div class="flex items-center mb-4">
+                        <label for="mantis-count-${mantis_types[i]}" class="mr-2 font-semibold">${mantis_types[i]}</label>
+                        <input id="mantis-count-${mantis_types[i]}" type="number" min="0" value="${gender_counts[i]}" onchange="changeGenderCount(${data.id}, '${mantis_types[i]}', this.value)"
+                            class="input-field" style="width: 60px;">
+                    </div>`;
+        }
+
+        html += `<p class="mb-4"><strong>Details:</strong> ${data.anm_melder}</p>`;
+        return html;
     }
 
-    function changeGenderInModal(sightingId) {
-        const gender = document.getElementById('modal-gender').value;
-        changeGender(sightingId, gender);
+    function changeGenderCount(id, type, newCount) {
+        fetch(`/change_mantis_count/${id}`, {
+            method: 'POST',
+            body: new URLSearchParams({ type: type, new_count: newCount }),
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log(`Changed count of ${type} for report ${id} to ${newCount}`);
+                } else {
+                    console.error('Failed to change count:', data.error);
+                }
+            });
     }
 
     function generateUserInfo(data) {
