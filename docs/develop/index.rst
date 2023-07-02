@@ -6,6 +6,7 @@ Entwicklung/technische Doku
 
    color_palette.rst
    installation.rst
+   server-nginx
    database_schema.rst
    speicherschema-bilder.rst
    workflow.rst
