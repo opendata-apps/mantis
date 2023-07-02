@@ -2,9 +2,8 @@
  Server: Nginx
 ===============
 
-Eine Flask-Anwenung hinter einem Proxy (NGINX zu platzieren,
-erfordert zusätzliche Konfigurationseinstellungen wie hier
-beschrieben:
+Eine Flask-Anwendung hinter einem Proxy (NGINX) zu platzieren,
+erfordert zusätzliche Konfigurationsschritte wie hier beschrieben:
 
 `Flask hinter NGINX`_
 
@@ -16,7 +15,7 @@ beschrieben:
         app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1
     )
 
-Die NGINX-Konfigurtation:
+Die NGINX-Konfiguration:
 
 ::
 
