@@ -152,7 +152,7 @@ def report(usrid=None):
         flash({
             'title': 'Vielen Dank für Ihre Meldung!',
             'message': 'Um weitere Meldungen zu machen, speichern Sie bitte die folgende ID:',
-            'usrid': str(usrid),
+            'usrid': f"{request.url}/{usrid}",
         })
 
         return redirect(url_for('data.report'))
