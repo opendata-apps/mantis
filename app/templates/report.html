@@ -1,5 +1,6 @@
 {% extends "layout.html" %}
 {% from "macro.html" import popover %}
+{% from "macro.html" import formButton %}
 {% block head %}
 <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
 {% endblock %}
@@ -23,11 +24,13 @@
       <div class="grid grid-cols-2 gap-2 mt-2">
         <div>
           <a href="/report"
-            class="inline-flex justify-center w-full px-2 py-1.5 text-xs font-medium text-center text-white bg-green-600 rounded-lg hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-blue-300 ">Report Mantis</a>
+            class="inline-flex justify-center w-full px-2 py-1.5 text-xs font-medium text-center text-white bg-green-600 rounded-lg hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-blue-300 ">Report
+            Mantis</a>
         </div>
         <div>
           <button onclick="copyToClipboard('{{ message.usrid }}')" title="Copy User ID"
-            class="inline-flex justify-center w-full px-2 py-1.5 text-xs font-medium text-center text-gray-900 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 ">Copy ID (URL)</button>
+            class="inline-flex justify-center w-full px-2 py-1.5 text-xs font-medium text-center text-gray-900 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 ">Copy
+            ID (URL)</button>
         </div>
       </div>
     </div>
@@ -47,15 +50,13 @@
 {% endfor %}
 {% endif %}
 {% endwith %}
-
 <div class="flex items-center min-h-screen bg-gray-100">
   <div class="w-full max-w-4xl p-6 mx-auto bg-white rounded-lg shadow-xl">
     <form action="" method="POST" enctype="multipart/form-data" id="mainForm">
       {{ form.hidden_tag() }}
-       <!-- Step 1: Bild-Upload -->
-
+      <!-- Step 1: Bild-Upload -->
       <div id="step1" class="step">
-         <div class="mb-4">
+        <div class="mb-4">
           <div class="flex justify-between">
             {{ form.picture.label.text }}
             {{ popover("popover-picture", "Info zum Bild-Upload",
@@ -75,7 +76,7 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                 </svg>
-                <p class="mb-2 text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold">Klick, um Bild zu 
+                <p class="mb-2 text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold">Klick, um Bild zu
                     laden ...</span></p>
                 <p class="text-xs text-gray-500 dark:text-gray-400"> PNG JPG JPEG oder WEBP (MAX. 800x400px)</p>
               </div>
@@ -112,21 +113,17 @@
             </label>
           </div>
         </div>
-         <p>
-	   Benutzen Sie die Zoom-Funktion (+ und - Button oder
-	   mittleres Mausrad),sezten Sie mit einem Klick die
-	   Marke. Die linke Maustaste verschiebt die Karte. Die Koordinaten
-	   werden dann automatisch ins Formular übernommen.
-	 </p>
         <div class="col-span-full">
+          {{ popover("popover-map", "Karte",
+          " Benutzen Sie die Zoom-Funktion (+ und - Button oder
+          mittleres Mausrad),sezten Sie mit einem Klick die
+          Marke. Die linke Maustaste verschiebt die Karte. Die Koordinaten
+          werden dann automatisch ins Formular übernommen..")
+          }}
           <div id="map" class="h-64 border shadow-md sm:h-96 lg:h-96"></div>
         </div>
-
         <div class="flex justify-end mt-4 space-x-2">
-          <button type="button" id="step1Next"
-            class="w-full px-6 py-2 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none md:w-auto">
-            Next
-          </button>
+          {{ formButton('step1Next', 'Next') }}
         </div>
       </div>
 
@@ -166,82 +163,65 @@
               </div>
             </label>
 
-	    <label class="block text-sm font-semibold text-gray-600">
-	      <div class="flex justify-between">
+            <label class="block text-sm font-semibold text-gray-600">
+              <div class="flex justify-between">
                 {{ form.gender.label.text }}
-		<button data-popover-target="popover-gender"
-			type="button"
-			class="text-black pl-10 pr-2">?</button>
-	      </div>
-              <div data-popover
-		   id="popover-gender"
-		   role="tooltip"
-		   class="absolute z-50 invisible inline-block w-64 text-sm text-gray-500
-			  transition-opacity duration-300 bg-white border border-gray-200 rounded-lg
-                          shadow-sm opacity-0 dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800">
+                <button data-popover-target="popover-gender" type="button" class="pl-10 pr-2 text-black">?</button>
+              </div>
+              <div data-popover id="popover-gender" role="tooltip"
+                class="absolute z-50 invisible inline-block w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800">
                 <div
                   class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg dark:border-gray-600 dark:bg-gray-700">
                   <h3 class="font-semibold text-green-900 dark:text-green">
-		    Entwicklungsstadium
-		  </h3>
+                    Entwicklungsstadium
+                  </h3>
                 </div>
                 <div class="px-3 py-2 bg-green-100">
                   <p>
-		    Dieses Feld ist eine kleine Herausforderung für
-		    den Melder. Traun Sie sich zu, das Geschlecht
-		    oder das Entwicklungsstadium zu bestimmen?
-		    Die Merkmale für die Bestimmung sind auf
-		    folgender Seite genau beschrieben:
-		    
-		    <a class="block pb-2 text-sm font-semibold
-			      text-blue-600
-			      hover:text-blueGray-800"
-		       href="/bestimmung"
-		       target="_blank">
-		      Link: Hilfe zur Bestimmung <br/>(öffnet neuen Tab)</a>
-		    
-		    In jedem Fall werden sie nach einer Bewertung
-		    durch Fackleute über das Ergebnis informiert.
+                    Dieses Feld ist eine kleine Herausforderung für
+                    den Melder. Traun Sie sich zu, das Geschlecht
+                    oder das Entwicklungsstadium zu bestimmen?
+                    Die Merkmale für die Bestimmung sind auf
+                    folgender Seite genau beschrieben:
+
+                    <a class="block pb-2 text-sm font-semibold text-blue-600 hover:text-blueGray-800" href="/bestimmung"
+                      target="_blank">
+                      Link: Hilfe zur Bestimmung <br />(öffnet neuen Tab)</a>
+
+                    In jedem Fall werden sie nach einer Bewertung
+                    durch Fackleute über das Ergebnis informiert.
                     <br />
-		    Versuchen Sie es!
-		    
-		  </p>
+                    Versuchen Sie es!
+
+                  </p>
                 </div>
               </div>
-	      
+
               <div class="relative">
-                {{ form.gender(class="w-full p-2 mt-1 bg-white border
-		rounded-md focus:outline-none focus:ring-1
+                {{ form.gender(class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
                 focus:ring-green-500") }}
               </div>
             </label>
-	  </div>
-	  <div>
-	    <label class="block text-sm font-semibold text-gray-600">
-	      <div class="flex justify-between">
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-600">
+              <div class="flex justify-between">
                 {{ form.zip_code.label.text }}
-		<button data-popover-target="popover-zip"
-			type="button"
-			class="text-black pl-10 pr-2">?</button>
-	      </div>
-              <div data-popover
-		   id="popover-zip"
-		   role="tooltip"
-		   class="absolute z-50 invisible inline-block
-                          w-64 text-sm text-gray-500 transition-opacity duration-300
-			  bg-white border border-gray-200 rounded-lg shadow-sm opacity-0
-			  dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800">
-			  <div class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg
-				      dark:border-gray-600 dark:bg-gray-700">
-			    <h3 class="font-semibold text-gray-900 dark:text-white">Postleitzahl</h3>
-			  </div>
-			  <div class="px-3 py-2">
-			    <p>
-			      Falls der Wert nicht korrekt eingelesen wurde, geben Sie bitte die Postleitzahl ein.
-			    </p>
-			  </div>
-	  </div>		  
-          </label>
+                <button data-popover-target="popover-zip" type="button" class="pl-10 pr-2 text-black">?</button>
+              </div>
+              <div data-popover id="popover-zip" role="tooltip"
+                class="absolute z-50 invisible inline-block w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800">
+                <div
+                  class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg dark:border-gray-600 dark:bg-gray-700">
+                  <h3 class="font-semibold text-gray-900 dark:text-white">Postleitzahl</h3>
+                </div>
+                <div class="px-3 py-2">
+                  <p>
+                    Falls der Wert nicht korrekt eingelesen wurde, geben Sie bitte die Postleitzahl ein.
+                  </p>
+                </div>
+              </div>
+            </label>
             <div class="relative">
               {{ form.zip_code(id="zip_code", placeholder="z.B. 10115", class="input-field") }}
             </div>
@@ -281,14 +261,8 @@
         </div>
 
         <div class="flex justify-between mt-4 space-x-2">
-          <button type="button" id="step2Prev"
-            class="w-full px-6 py-2 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none md:w-auto">
-            Prev
-          </button>
-          <button type="button" id="step2Next"
-            class="w-full px-6 py-2 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none md:w-auto">
-            Next
-          </button>
+          {{ formButton('step2Prev', 'Prev') }}
+          {{ formButton('step2Next', 'Next') }}
         </div>
       </div>
 
@@ -366,18 +340,12 @@
           </div>
         </div>
         <div class="flex justify-between mt-4 space-x-2">
-          <button type="button" id="step3Prev"
-            class="w-full px-6 py-2 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none md:w-auto">
-            Prev
-          </button>
-          <button type="button" id="step3Next"
-            class="w-full px-6 py-2 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none md:w-auto">
-            Next
-          </button>
+          {{ formButton('step3Prev', 'Prev') }}
+          {{ formButton('step3Next', 'Next') }}
         </div>
       </div>
 
-      <div id="step4" class="hidden p-5 rounded-lg shadow-lg step bg-gradient-to-r from-gray-100 to-gray-200">
+      <div id="step4" class="hidden">
         <h2 class="mb-4 text-3xl font-semibold text-gray-800">Zusammenfassung</h2>
         <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
           <div class="p-5 bg-white rounded-lg shadow-md">
@@ -403,25 +371,41 @@
         <h3 class="mt-8 text-lg font-semibold text-gray-800">Beschreibung</h3>
         <ul class="text-lg list-disc list-inside">
           <li><strong class="text-gray-800">Entwicklungsstadium:</strong> <span id="summaryGender"></span></li>
-          <li><strong class="text-gray-800">Ergänzungen Ort:</strong> <span id="summaryLocationDescription"></span>
+          <li><strong class="text-gray-800">Ortsbeschreibung:</strong> <span id="summaryLocationDescription"></span>
           </li>
-          <li><strong class="text-gray-800">Ergänzungen zum Fund:</strong> <span id="summaryPictureDescription"></span>
+          <li><strong class="text-gray-800">Bildbeschreibung:</strong> <span id="summaryPictureDescription"></span>
           </li>
         </ul>
-        <h3 class="mt-8 text-lg font-semibold text-gray-800">Person(en)</h3>
+        <h3 class="mt-8 text-lg font-semibold text-gray-800">Person</h3>
         <ul class="text-lg list-disc list-inside">
           <li><strong class="text-gray-800">Vorname:</strong> <span id="summaryFirstName"></span></li>
           <li><strong class="text-gray-800">Nachname:</strong> <span id="summaryLastName"></span></li>
-          <li><strong class="text-gray-800">Datum:</strong> <span id="summarySightingDate"></span></li>
-          <li><strong class="text-gray-800">Kontakt:</strong> <span id="summaryContact"></span></li>
+          <li><strong class="text-gray-800">Fund Datum:</strong> <span id="summarySightingDate"></span></li>
+          <li><strong class="text-gray-800">E-Mail:</strong> <span id="summaryContact"></span></li>
         </ul>
         <div class="flex justify-between mt-6 space-x-4">
-          <button type="button" id="step4Prev"
-            class="w-full px-6 py-2 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none md:w-auto">
-            Prev
-          </button>
+          {{ formButton('step4Prev', 'Prev') }}
           <form>
-            {{ form.submit(class="w-full px-6 py-2 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-green-500 border border-transparent rounded-lg hover:bg-green-600 focus:outline-none md:w-auto") }}
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit"
+              class="relative px-6 py-2 text-sm font-medium text-white transition duration-300 bg-green-400 rounded-md hover:bg-green-500 ease">
+              <span class="absolute bottom-0 left-0 h-full -ml-2">
+                <svg viewBox="0 0 487 487" class="w-auto h-full opacity-100 object-stretch"
+                  xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M0 .3c67 2.1 134.1 4.3 186.3 37 52.2 32.7 89.6 95.8 112.8 150.6 23.2 54.8 32.3 101.4 61.2 149.9 28.9 48.4 77.7 98.8 126.4 149.2H0V.3z"
+                    fill="#FFF" fill-rule="nonzero" fill-opacity=".1"></path>
+                </svg>
+              </span>
+              <span class="absolute top-0 right-0 w-8 h-full -mr-2">
+                <svg viewBox="0 0 487 487" class="object-cover w-full h-full" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M487 486.7c-66.1-3.6-132.3-7.3-186.3-37s-95.9-85.3-126.2-137.2c-30.4-51.8-49.3-99.9-76.5-151.4C70.9 109.6 35.6 54.8.3 0H487v486.7z"
+                    fill="#FFF" fill-rule="nonzero" fill-opacity=".1"></path>
+                </svg>
+              </span>
+              <span class="relative">Submit</span>
+            </button>
           </form>
         </div>
       </div>
