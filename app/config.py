@@ -7,7 +7,8 @@ class Config:
     MAP_CENTER_LONGITUDE = -122.4194
     MAP_CENTER_LATITUDE = 37.7749
     MAP_ZOOM = 1
-    SECRET_KEY = os.urandom(24)
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'do-not-get-tired-youll-never-find'
+    WTF_CSRF_ENABLED = True
     UPLOAD_PATH = "datastore"
     host = ""
     port = 25
