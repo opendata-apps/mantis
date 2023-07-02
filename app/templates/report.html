@@ -54,14 +54,10 @@
   <div class="w-full max-w-4xl p-6 mx-auto bg-white rounded-lg shadow-xl">
     <form action="" method="POST" enctype="multipart/form-data" id="mainForm">
       {{ form.hidden_tag() }}
-      {{ form.csrf_token }}
-
-      <!-- Step 1: Bild-Upload -->
+       <!-- Step 1: Bild-Upload -->
 
       <div id="step1" class="step">
-        {{ form.hidden_tag() }}
-
-        <div class="mb-4">
+         <div class="mb-4">
           <div class="flex justify-between">
             {{ form.picture.label.text }}
             {{ popover("popover-picture", "Info zum Bild-Upload",
@@ -81,8 +77,8 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                 </svg>
-                <p class="mb-2 text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold">Click to
-                    upload</span> or drag and drop</p>
+                <p class="mb-2 text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold">Klick, um Bild zu 
+                    laden ...</span></p>
                 <p class="text-xs text-gray-500 dark:text-gray-400"> PNG JPG JPEG oder WEBP (MAX. 800x400px)</p>
               </div>
               {{ form.picture(class="hidden", id=form.picture.id, accept="image/*") }}
@@ -166,31 +162,86 @@
                 {{ form.district(id="district", placeholder="z.B. Mitte", class="input-field") }}
               </div>
             </label>
-            <label for="{{ form.gender.id }}" class="block text-sm font-semibold text-gray-600">
-              <div class="flex justify-between">
+
+	    <label class="block text-sm font-semibold text-gray-600">
+	      <div class="flex justify-between">
                 {{ form.gender.label.text }}
-                {{ popover("popover-gender", "Entwicklungsstadium",
-                'Dieses Feld ist eine kleine Herausforderung für den Melder. Trauen Sie sich zu, das Geschlecht oder
-                das Entwicklungsstadium zu bestimmen? Die Merkmale für die Bestimmung sind auf der folgender Seite genau
-                beschrieben In jedem Fall werden Sie nach einer Bewertung durch Fachleute über das Ergebnis informiert.
-                Versuchen Sie es!', '/bestimmung', 'Hilfe zur Bestimmung') }}
+		<button data-popover-target="popover-gender"
+			type="button"
+			class="text-black pl-10 pr-2">?</button>
+	      </div>
+              <div data-popover
+		   id="popover-gender"
+		   role="tooltip"
+		   class="absolute z-50 invisible inline-block w-64 text-sm text-gray-500
+			  transition-opacity duration-300 bg-white border border-gray-200 rounded-lg
+                          shadow-sm opacity-0 dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800">
+                <div
+                  class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg dark:border-gray-600 dark:bg-gray-700">
+                  <h3 class="font-semibold text-green-900 dark:text-green">
+		    Entwicklungsstadium
+		  </h3>
+                </div>
+                <div class="px-3 py-2 bg-green-100">
+                  <p>
+		    Dieses Feld ist eine kleine Herausforderung für
+		    den Melder. Traun Sie sich zu, das Geschlecht
+		    oder das Entwicklungsstadium zu bestimmen?
+		    Die Merkmale für die Bestimmung sind auf
+		    folgender Seite genau beschrieben:
+		    
+		    <a class="block pb-2 text-sm font-semibold
+			      text-blue-600
+			      hover:text-blueGray-800"
+		       href="/bestimmung"
+		       target="_blank">
+		      Link: Hilfe zur Bestimmung <br/>(öffnet neuen Tab)</a>
+		    
+		    In jedem Fall werden sie nach einer Bewertung
+		    durch Fackleute über das Ergebnis informiert.
+                    <br />
+		    Versuchen Sie es!
+		    
+		  </p>
+                </div>
               </div>
+	      
               <div class="relative">
-                {{ form.gender(class="input-field") }}
+                {{ form.gender(class="w-full p-2 mt-1 bg-white border
+		rounded-md focus:outline-none focus:ring-1
+                focus:ring-green-500") }}
               </div>
             </label>
-          </div>
-          <div>
-            <label for="{{ form.zip_code.id }}" class="block text-sm font-semibold text-gray-600">
-              <div class="flex justify-between">
+	  </div>
+	  <div>
+	    <label class="block text-sm font-semibold text-gray-600">
+	      <div class="flex justify-between">
                 {{ form.zip_code.label.text }}
-                {{ popover("popover-zip", "Postleitzahl",
-                "Falls der Wert nicht korrekt eingelesen wurde, geben Sie bitte die Postleitzahl ein.") }}
-              </div>
-              <div class="relative">
-                {{ form.zip_code(id="zip_code", placeholder="z.B. 10115", class="input-field") }}
-              </div>
-            </label>
+		<button data-popover-target="popover-zip"
+			type="button"
+			class="text-black pl-10 pr-2">?</button>
+	      </div>
+              <div data-popover
+		   id="popover-zip"
+		   role="tooltip"
+		   class="absolute z-50 invisible inline-block
+                          w-64 text-sm text-gray-500 transition-opacity duration-300
+			  bg-white border border-gray-200 rounded-lg shadow-sm opacity-0
+			  dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800">
+			  <div class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg
+				      dark:border-gray-600 dark:bg-gray-700">
+			    <h3 class="font-semibold text-gray-900 dark:text-white">Postleitzahl</h3>
+			  </div>
+			  <div class="px-3 py-2">
+			    <p>
+			      Falls der Wert nicht korrekt eingelesen wurde, geben Sie bitte die Postleitzahl ein.
+			    </p>
+			  </div>
+	  </div>		  
+          </label>
+            <div class="relative">
+              {{ form.zip_code(id="zip_code", placeholder="z.B. 10115", class="input-field") }}
+            </div>
             <label for="{{ form.city.id }}" class="block text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.city.label.text }}
