@@ -49,3 +49,7 @@
   overflow-x: auto !important;
   -webkit-overflow-scrolling: touch !important;
 }
+
+html {
+  scroll-behavior: smooth !important;
+}
