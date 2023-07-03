@@ -29,7 +29,7 @@ def _create_directory(date):
 
 def _create_filename(location, usrid):
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    return '{}-{}-{}-{}.webp'.format(location, timestamp, usrid, secure_filename(location))
+    return '{}-{}-{}.webp'.format(secure_filename(location),timestamp, secure_filename(usrid))
 
 
 def _allowed_file(filename):
