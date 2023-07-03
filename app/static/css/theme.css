@@ -38,8 +38,8 @@
 }
 
 @media (max-width: 768px) {
-  .text-6xl {
-    font-size: 3rem !important;
+  .title {
+    font-size: 1.8rem !important;
   }
 }
 
