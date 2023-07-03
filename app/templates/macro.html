@@ -1,3 +1,5 @@
+<!-- Help Popover Macro -->
+
 {% macro popover(target, title, content, link_url=None, link_text=None) %}
 <div class="relative">
     <div class="absolute bottom-0 right-0 mr-2 -mb-9" style="z-index: 999;">
@@ -19,6 +21,8 @@
 </div>
 {% endmacro %}
 
+<!-- Form Buttons Macro -->
+
 {% macro formButton(id, text) %}
 <a id="{{ id }}"
     class="relative px-6 py-2 text-sm font-medium text-white transition duration-300 bg-green-400 rounded-md hover:bg-green-500 ease">
@@ -38,4 +42,19 @@
     </span>
     <span class="relative">{{ text }}</span>
 </a>
+{% endmacro %}
+
+<!-- Reviewer field render Macro -->
+
+{% macro render_field(field) %}
+<dt>{{ field.label }}
+<dd class="{{field.cls}}">{{ field(**kwargs)|safe }}
+    {% if field.errors %}
+    <ul class=errors>
+        {% for error in field.errors %}
+        <li>{{ error }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+</dd>
 {% endmacro %}

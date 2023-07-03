@@ -150,70 +150,81 @@
     <!--! Start Footer -->
     <!--https://tailwindcomponents.com/component/footer-5-->
     <!--! Start Footer -->
-    <footer id="links" class="relative pt-8 pb-6 bg-gray-200 footer">
-      <div class="container px-4 mx-auto">
-        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-12">
-          <div class="col-span-full lg:col-span-6"> </div>
-          <div class="col-span-full lg:col-span-3">
-            <span class="block mb-2 text-sm font-semibold uppercase text-blueGray-500">
-              <u>Weitere Infos</u></span>
-            <ul class="list-unstyled">
-              <li>
-                <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800"
-                  href="https://mantis-religiosa.readthedocs.io/de/latest/index.html" target="_blank">Dokumentation</a>
-              </li>
-              <li>
-                <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800"
-                  href="https://gitlab.com/opendata-apps/mantis" target="_blank">Quellcode (GitLab)</a>
-              </li>
-              <li>
-                <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800 tooltip"
-                  title="Häufig gestellte Fragen" href="/faq">
-                  FAQ</a>
-              </li>
-            </ul>
-          </div>
-          <div class="col-span-full lg:col-span-3">
-            <span class="block mb-2 text-sm font-semibold uppercase text-blueGray-500">
-              <u>Rechtliches</u></span>
-            <ul class="list-unstyled">
-              <li>
-                <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800" href="/impressum">
-                  Impressum</a>
-              </li>
-              <li>
-                <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800" href="/lizenz">
-                  Lizenz</a>
-              </li>
-              <li>
-                <a class="block pb-2 text-sm font-semibold text-blueGray-600 hover:text-blueGray-800"
-                  href="/datenschutz">Datenschutz</a>
-              </li>
-            </ul>
-          </div>
+    <footer class="bg-gray-200">
+      <div class="max-w-5xl px-4 py-4 mx-auto sm:px-6 lg:px-8">
+        <div class="flex justify-center text-green-600">
+          <h1 class="text-3xl font-bold">MITMACHPROJEKT</h1>
         </div>
-        <hr class="my-6 border-blueGray-300" />
-        <div class="flex flex-wrap items-center justify-center md:justify-between">
-          <div class="w-full px-4 mx-auto text-center md:w-4/12">
-            <div class="py-1 text-sm font-semibold text-blueGray-500">
-              <span id="get-current-year"></span>
-              <a class="text-blueGray-500 hover:text-blueGray-800" target="_blank">
-                <span class="text-yellow-600">✻</span>
-                Python/Flask-App
-                <span class="text-yellow-600">✻</span>
-                Lizenz: MIT
-                <span class="text-yellow-600">✻</span>
-                P22
-                <span class="text-yellow-600">✻</span>
-                2023
-                <span class="text-yellow-600">✻</span>
-              </a>
-              <a class="text-blueGray-500 hover:text-blueGray-800"></a>
-            </div>
-          </div>
-        </div>
+        <p class="max-w-md mx-auto mt-6 leading-relaxed text-center text-gray-500">
+          Die Gottesanbeterin (Mantis religiosa) ist eine faszinierende Insektenart mit einer einzigartigen
+          Jagdstrategie.
+        </p>
+
+        <ul class="flex flex-wrap justify-center gap-6 mt-12 md:gap-8 lg:gap-12">
+          <li>
+            <a class="text-gray-700 transition hover:text-gray-700/75"
+              href="https://mantis-religiosa.readthedocs.io/de/latest/index.html">
+              Dokumentation
+            </a>
+          </li>
+
+          <li>
+            <a class="text-gray-700 transition hover:text-gray-700/75" href="https://gitlab.com/opendata-apps/mantis">
+              Quellcode (GitLab)
+            </a>
+          </li>
+
+          <li>
+            <a class="text-gray-700 transition hover:text-gray-700/75" href="/faq">
+              FAQ
+            </a>
+          </li>
+
+          <li>
+            <a class="text-gray-700 transition hover:text-gray-700/75" href="/impressum">
+              Impressum
+            </a>
+          </li>
+
+          <li>
+            <a class="text-gray-700 transition hover:text-gray-700/75" href="/lizenz">
+              Lizenz
+            </a>
+          </li>
+
+          <li>
+            <a class="text-gray-700 transition hover:text-gray-700/75" href="/datenschutz">
+              Datenschutz
+            </a>
+          </li>
+        </ul>
+
+        <ul class="flex justify-center gap-6 mt-12 md:gap-8">
+          <li>
+            <a href="/" rel="noreferrer" target="_blank" class="text-gray-700 transition hover:text-gray-700/75">
+              <span class="sr-only">GitLab</span>
+              <img src="/static/images/svg/gitlab.svg" alt="GitLab (Code)" title="GitLab" class="w-8 h-8">
+            </a>
+          </li>
+          <li>
+            <a href="/" rel="noreferrer" target="_blank" class="text-gray-700 transition hover:text-gray-700/75">
+              <span class="sr-only">Naturkunde Museum Potsdam</span>
+              <img src="/static/images/svg/praying-mantis.svg" alt="Museum" title="Naturkunde Museum Potsdam"
+                class="w-8 h-8">
+            </a>
+          </li>
+          <li>
+            <a href="/" rel="noreferrer" target="_blank" class="text-gray-700 transition hover:text-gray-700/75">
+              <span class="sr-only">GitLab</span>
+              <img src="/static/images/svg/readme.svg" alt="Dokumentation" title="Dokumentation" class="w-8 h-8">
+            </a>
+          </li>
+        </ul>
+        <p class="mt-12 text-center text-gray-600 ">✻ Python/Flask-App ✻ Lizenz: MIT ✻ P22 ✻ 2023 ✻</p>
       </div>
     </footer>
+
+
     <script>
       function adjustFooterPosition() {
         const contentContainer = document.getElementById("content-container");
