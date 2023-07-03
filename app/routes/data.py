@@ -176,18 +176,23 @@ def autocomplete():
 
     return jsonify(suggestions)
 
-
 @data.route('/auswertungen')
 def show_map():
-    # Fetch the reports data from the database
+    # Fetch the reports data from the database                                                                                                               
     reports = TblFundorte.query.join(
         TblMeldungen, TblMeldungen.fo_zuordnung == TblFundorte.id).all()
-    # Serialize the reports data as a JSON object
-    reportsJson = json.dumps(
-        [{'latitude': report.latitude.replace(',', '.'),
-          'longitude': report.longitude.replace(',', '.')}
-         for report in reports])
-    # Render the template with the serialized data
+    # Serialize the reports data as a JSON object                                                                                                            
+    koords = []
+    for report in reports:
+        try:
+            lati = float(report.latitude.replace(',', '.'))
+            long =float(report.longitude.replace(',', '.'))
+            koords.append({'latitude': lati,
+                           'longitude': long})
+        except:
+            pass
+
+    reportsJson = json.dumps(koords)
     return render_template('map.html', reportsJson=reportsJson)
 
 

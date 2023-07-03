@@ -1,31 +1,32 @@
-{% extends "layout.html" %}
-{% block title %}Übersicht Fundmeldungen{% endblock title %}
+% extends "layout.html" %}
+{% block title %}Übersicht Fundmeldungen {% endblock title %}
 {% block content %}
 <div class="container flex flex-row p-6 mx-auto">
     <div id="map" class="object-fill grow h-screen auto-rows-max"></div>
 </div>
 <script>
-
+  
     const map = L.map('map').setView([51.991649, 13.080113], 7);
-
+  
     const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
     }).addTo(map);
-
+  
     var reports = JSON.parse('{{ reportsJson | safe }}');
-
+    //console.log(reports);
     for (var i = 0; i < reports.length; i++) {
-        console.log(reports.latitude, reports.longitude)
         var report = reports[i];
+        //console.log(report.latitude, report.longitude);
         const marker = L.marker([report.latitude, report.longitude]).addTo(map)
-        const circle = L.circle([report.latitude, report.longitude], {
+	
+        /* const circle = L.circle([repgort.latitude, report.longitude], {               
             color: 'red',
             fillColor: '#f03',
             fillOpacity: 0.5,
             radius: 10
         }).addTo(map).bindPopup('I am a circle.');
+        */
     };
 </script>
 
-{% endblock content %}
