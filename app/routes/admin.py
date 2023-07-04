@@ -32,8 +32,14 @@ def admin_index2():
     inspector = inspect(db.engine)
     tables = inspector.get_table_names()
     reported_sightings = TblMeldungen.query.all()
+    for sighting in reported_sightings:
+        sighting.fundort = TblFundorte.query.get(sighting.fo_zuordnung)
     return render_template('admin/admin.html', reported_sightings=reported_sightings, tables=tables)
 
+@admin.route('/<path:filename>')
+def report_Img(filename):
+    print("Get image with filename: " + filename + "")
+    return send_from_directory('', filename)
 
 @admin.route('/toggle_approve_sighting/<id>', methods=['POST'])
 def toggle_approve_sighting(id):
