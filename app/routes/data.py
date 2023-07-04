@@ -142,10 +142,10 @@ def report(usrid=None):
         flash({
             'title': 'Vielen Dank für Ihre Meldung!',
             'message': 'Um weitere Meldungen zu machen, speichern Sie bitte die folgende ID:',
-            'usrid': f"{request.url}/{usrid}",
+            'usrid': url_for('data.report', usrid=usrid, _external=True),
         })
 
-        return redirect(url_for('data.report'))
+        return redirect(url_for('data.report', usrid=usrid))
 
     print(form.errors)
     if existing_user is not None:

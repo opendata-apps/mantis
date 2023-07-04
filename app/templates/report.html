@@ -9,8 +9,8 @@
 {% with messages = get_flashed_messages() %}
 {% if messages %}
 {% for message in messages %}
-<div id="toast-interactive-{{ loop.index }}"
-  class="fixed z-50 max-w-2xl px-4 py-2 text-gray-500 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow toast dark:bg-gray-800 dark:text-gray-400 top-1/4 left-1/2 min-h-16"
+<div style="z-index: 999" id="toast-interactive-{{ loop.index }}"
+  class="fixed max-w-2xl px-4 py-2 text-gray-500 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow toast dark:bg-gray-800 dark:text-gray-400 top-1/4 left-1/2 min-h-16"
   role="alert">
   <div class="flex">
     <div
@@ -380,9 +380,9 @@
         </ul>
         <div class="flex justify-between mt-6 space-x-4">
           {{ formButton('step4Prev', 'Prev') }}
-          <form>
+          <form id="myForm">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit"
+            <button id="submitBtn" type="submit"
               class="relative px-6 py-2 text-sm font-medium text-white transition duration-300 bg-green-400 rounded-md hover:bg-green-500 ease">
               <span class="absolute bottom-0 left-0 h-full -ml-2">
                 <svg viewBox="0 0 487 487" class="w-auto h-full opacity-100 object-stretch"
@@ -714,6 +714,24 @@
       addEvents(zipCodeInput);
     });
 
+    document.addEventListener('DOMContentLoaded', function () {
+      let myForm = document.getElementById('myForm');
+      let submitBtn = document.getElementById('submitBtn');
+
+      if (myForm && submitBtn) {
+        myForm.addEventListener('submit', function (e) {
+          // Disable the submit button
+          submitBtn.disabled = true;
+
+          // Re-enable the button after 5 seconds
+          setTimeout(function () {
+            submitBtn.disabled = false;
+          }, 5000);
+        });
+      }
+    });
+
+
     // Step 4: Zusammenfassung und Vorschau
     // Map initialization
     const summaryMap = L.map("summaryMap").setView([0, 0], 13);
@@ -738,14 +756,14 @@
         // Add a delay before calling invalidateSize
         setTimeout(() => {
           summaryMap.invalidateSize();
-        }, 400);  // Adjust delay as needed
+        }, 400); // Adjust delay as needed
 
         // Update the popup content
         const popupContent = `<strong>Straße:</strong> ${data.street}<br>
-    <strong>Postleitzahl:</strong> ${data.zip_code}<br>
-    <strong>Ort:</strong> ${data.city}<br>
-    <strong>Landkreis/Stadt:</strong> ${data.district}<br>
-    <strong>Bundesland:</strong> ${data.state}`;
+  <strong>Postleitzahl:</strong> ${data.zip_code}<br>
+  <strong>Ort:</strong> ${data.city}<br>
+  <strong>Landkreis/Stadt:</strong> ${data.district}<br>
+  <strong>Bundesland:</strong> ${data.state}`;
         summaryMarkerPopup.setContent(popupContent);
 
         // Picture is loaded directly from input as per your request, not from localStorage
