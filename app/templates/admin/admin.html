@@ -287,6 +287,7 @@
                 let tabUserInfo = document.getElementById('tab-user-info');
                 let tabContent = document.getElementById('tab-content');
 
+                console.log(id)
                 console.log(data.latitude, data.longitude);
                 // Set initial content
                 tabContent.innerHTML = generateGeneralInfo(data);
@@ -345,6 +346,23 @@
             .catch(error => console.error('Error:', error));
     }
 
+    function changeGenderCount(id, type, newCount) {
+        fetch(`/change_mantis_count/${id}`, {
+            method: 'POST',
+            body: new URLSearchParams({ type: type, new_count: newCount }),
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log(`Changed count of ${type} for report ${id} to ${newCount}`);
+                } else {
+                    console.error('Failed to change count:', data.error);
+                }
+            });
+    }
+
+
 
     function setActiveTab(tab) {
         // Remove 'active' class from all tabs
@@ -367,29 +385,13 @@
         for (let i = 0; i < mantis_types.length; i++) {
             html += `<div class="flex items-center mb-4">
                         <label for="mantis-count-${mantis_types[i]}" class="mr-2 font-semibold">${mantis_types[i]}</label>
-                        <input id="mantis-count-${mantis_types[i]}" type="number" min="0" value="${gender_counts[i]}" onchange="changeGenderCount(${data.id}, '${mantis_types[i]}', this.value)"
+                        <input id="mantis-count-${mantis_types[i]}" type="number" min="0" value="${gender_counts[i]}" onchange="changeGenderCount(${data.id_meldung}, '${mantis_types[i]}', this.value)"
                             class="input-field" style="width: 60px;">
                     </div>`;
         }
 
         html += `<p class="mb-4"><strong>Details:</strong> ${data.anm_melder}</p>`;
         return html;
-    }
-
-    function changeGenderCount(id, type, newCount) {
-        fetch(`/change_mantis_count/${id}`, {
-            method: 'POST',
-            body: new URLSearchParams({ type: type, new_count: newCount }),
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    console.log(`Changed count of ${type} for report ${id} to ${newCount}`);
-                } else {
-                    console.error('Failed to change count:', data.error);
-                }
-            });
     }
 
     function openImageModal(imageUrl) {
