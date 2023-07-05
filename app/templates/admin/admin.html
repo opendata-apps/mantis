@@ -35,11 +35,12 @@
 
     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3" id="reportContainer">
         {% for sighting in reported_sightings %}
-        <div class="overflow-hidden bg-white rounded-lg shadow report-card squeezing-out"
-            data-report-id="{{sighting.id}}">
+        <div class="overflow-hidden bg-white rounded-lg shadow report-card" data-report-id="{{sighting.id}}">
             <div class="relative">
-                <img class="object-cover w-full h-64"
+                <img onclick="openImageModal('{{ url_for('admin.report_Img', filename=sighting.fundort.ablage[4:]) }}')"
+                    class="object-cover w-full h-64 cursor-pointer"
                     src="{{ url_for('admin.report_Img', filename=sighting.fundort.ablage[4:]) }}" alt="Report Image">
+
                 <div class="px-4 py-4 md:px-6">
                     <div class="relative px-4 -mt-16">
                         <div class="bg-white p-6 rounded-lg shadow-lg {{ 'bg-green-100' if sighting.approved }}">
@@ -53,14 +54,10 @@
                                 </div>
                                 {% endif %}
                             </div>
-
                             <h4 class="mt-1 text-xl font-semibold leading-tight truncate"
                                 title="Ort: {{sighting.ort}}&#13;&#10;Postleitzahl: {{sighting.plz}}&#13;&#10;Kreis: {{sighting.kreis}}&#13;&#10;Land: {{sighting.land}}">
                                 Ort: {{sighting.kreis}} | {{sighting.ort}}
                             </h4>
-
-
-
                             <div class="mt-1">
                                 <p><strong>Melde-Datum:</strong> {{ sighting.dat_meld }}</p>
                                 {% if sighting.dat_fund_von == sighting.dat_fund_bis %}
@@ -70,7 +67,6 @@
                                     }}</p>
                                 {% endif %}
                             </div>
-
                             <div class="flex items-center mt-4">
                                 <button onclick="openModal({{sighting.id}})" style="min-width: 2.5rem;">
                                     <img src="/static/images/svg/edit.svg" alt="Edit" class="w-5 h-5">
@@ -114,6 +110,28 @@
     </div>
 </div>
 
+<div id="imageModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="imageModalLabel" tabindex="-1">
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+        <div id="imageModalBackdrop" class="fixed inset-0 transition-opacity" aria-hidden="true">
+            <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+        </div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div
+            class="inline-block px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+            <div class="sm:flex sm:items-start">
+                <div class="mt-2">
+                    <img id="modalImage" class="w-full h-auto" src="" alt="Full Image View">
+                </div>
+            </div>
+            <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                <button type="button" onclick="closeImageModal()"
+                    class="inline-flex justify-center w-full px-4 py-2 text-base font-medium text-white bg-green-600 border border-transparent rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 
 <!-- Modal -->
@@ -221,6 +239,17 @@
             }
         }
     }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        document.getElementById("sortInput").value = "id_asc";
+        sortReports();
+
+        // Add click event listeners for the modal backdrops
+        document.getElementById('imageModalBackdrop').addEventListener('click', closeImageModal);
+        //document.getElementById('modalBackdrop').addEventListener('click', closeModal);
+    });
+
+
 
     // Function to toggle approve a sighting
     function toggleApprove(id) {
@@ -332,7 +361,7 @@
         let gender_counts = [data.art_m, data.art_w, data.art_n, data.art_o];
 
         // Convert general info into HTML string
-        let html = `<p class="mb-4"><strong>Report ID:</strong> ${data.id}</p>
+        let html = `<p class="mb-4"><strong>Report ID:</strong> ${data.id_meldung}</p>
                     <p class="mb-4"><strong>Date Reported:</strong> ${data.dat_meld}</p>`;
 
         for (let i = 0; i < mantis_types.length; i++) {
@@ -362,6 +391,16 @@
                 }
             });
     }
+
+    function openImageModal(imageUrl) {
+        document.getElementById('modalImage').src = imageUrl;
+        document.getElementById('imageModal').style.display = 'block';
+    }
+
+    function closeImageModal() {
+        document.getElementById('imageModal').style.display = 'none';
+    }
+
 
     function generateUserInfo(data) {
         // Convert user info into HTML string
@@ -455,7 +494,6 @@
 
     // Call the filterSightings function initially to apply the default filter
     filterSightings();
-
 
 </script>
 
