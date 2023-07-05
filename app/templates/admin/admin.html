@@ -53,13 +53,20 @@
                                 {% endif %}
                             </div>
 
-                            <h4 class="mt-1 text-xl font-semibold leading-tight truncate">Date Reported: {{
-                                sighting.dat_meld }}
-                            </h4>
+                            <h4 class="mt-1 text-xl font-semibold leading-tight truncate"
+                                title={{sighting.beschreibung.beschreibung}}>Ort: {{
+                                sighting.kreis }} |
+                                {{sighting.ort}}</h4>
+
 
                             <div class="mt-1">
-                                <p><strong>Location ID:</strong> {{ sighting.fo_zuordnung }}</p>
-                                <p><strong>Details:</strong> {{ sighting.anm_melder }}</p>
+                                <p><strong>Melde-Datum:</strong> {{ sighting.dat_meld }}</p>
+                                {% if sighting.dat_fund_von == sighting.dat_fund_bis %}
+                                <p><strong>Fund-Datum:</strong> {{ sighting.dat_fund_von }}</p>
+                                {% else %}
+                                <p><strong>Fund-Datum:</strong> {{ sighting.dat_fund_von }} - {{ sighting.dat_fund_bis
+                                    }}</p>
+                                {% endif %}
                             </div>
 
                             <div class="flex items-center mt-4">

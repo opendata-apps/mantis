@@ -34,7 +34,13 @@ def admin_index2():
     reported_sightings = TblMeldungen.query.all()
     for sighting in reported_sightings:
         sighting.fundort = TblFundorte.query.get(sighting.fo_zuordnung)
+        sighting.beschreibung = TblFundortBeschreibung.query.get(sighting.fundort.beschreibung)
+        sighting.ort = sighting.fundort.ort
+        sighting.plz = sighting.fundort.plz
+        sighting.kreis = sighting.fundort.kreis
+        sighting.land = sighting.fundort.land
     return render_template('admin/admin.html', reported_sightings=reported_sightings, tables=tables)
+
 
 @admin.route('/<path:filename>')
 def report_Img(filename):
