@@ -15,11 +15,11 @@
 
         <div class="flex-grow">
             <input type="text" id="searchInput" onkeyup="searchReports()" placeholder="Search for reports..."
-                class="w-full px-4 py-2 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                class="w-full px-4 py-2 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
         </div>
 
         <select id="sortInput" onchange="sortReports()"
-            class="w-48 px-4 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            class="w-48 px-4 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
             <option value="">Sort by...</option>
             <option value="id_asc">ID Ascending</option>
             <option value="id_desc">ID Descending</option>
@@ -35,7 +35,8 @@
 
     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3" id="reportContainer">
         {% for sighting in reported_sightings %}
-        <div class="overflow-hidden bg-white rounded-lg shadow report-card" data-report-id="{{sighting.id}}">
+        <div class="overflow-hidden bg-white rounded-lg shadow report-card squeezing-out"
+            data-report-id="{{sighting.id}}">
             <div class="relative">
                 <img class="object-cover w-full h-64"
                     src="{{ url_for('admin.report_Img', filename=sighting.fundort.ablage[4:]) }}" alt="Report Image">
@@ -54,9 +55,10 @@
                             </div>
 
                             <h4 class="mt-1 text-xl font-semibold leading-tight truncate"
-                                title={{sighting.beschreibung.beschreibung}}>Ort: {{
-                                sighting.kreis }} |
-                                {{sighting.ort}}</h4>
+                                title="Ort: {{sighting.ort}}&#13;&#10;Postleitzahl: {{sighting.plz}}&#13;&#10;Kreis: {{sighting.kreis}}&#13;&#10;Land: {{sighting.land}}">
+                                Ort: {{sighting.kreis}} | {{sighting.ort}}
+                            </h4>
+
 
 
                             <div class="mt-1">
@@ -70,18 +72,18 @@
                             </div>
 
                             <div class="flex items-center mt-4">
-                                <button onclick="openModal({{sighting.id}})" class="text-blue-500 hover:text-blue-800">
+                                <button onclick="openModal({{sighting.id}})" style="min-width: 2.5rem;">
                                     <img src="/static/images/svg/edit.svg" alt="Edit" class="w-5 h-5">
                                 </button>
-                                <button onclick="deleteSighting({{sighting.id}})"
-                                    class="ml-4 text-red-500 hover:text-red-800">
+                                <button onclick="deleteSighting({{sighting.id}})" class="ml-4"
+                                    style="min-width: 2.5rem;">
                                     <img src="/static/images/svg/delete.svg" alt="Delete" class="w-5 h-5">
                                 </button>
-                                <div class="inline-flex items-center ml-auto">
+                                <div class="inline-flex flex-wrap items-center ml-auto">
                                     {% set total = ((sighting.art_m or 0) + (sighting.art_w or 0) +
                                     (sighting.art_n or 0) + (sighting.art_o or 0)) | int %}
                                     <select id="gender-{{sighting.id}}"
-                                        class="px-3 py-2 mr-2 text-sm font-medium border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                        class="px-3 py-2 mr-2 text-sm font-medium border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                                         onchange="changeGender({{sighting.id}})" {{ 'disabled' if sighting.dat_bear or
                                         total> 1
                                         }} >
@@ -122,13 +124,13 @@
                 <!-- Tab Buttons -->
                 <div class="flex justify-center mb-4">
                     <button
-                        class="px-4 py-2 font-semibold text-green-700 bg-blue-100 rounded-lg focus:outline-none hover:bg-green-600 hover:text-white active"
+                        class="px-4 py-2 font-semibold text-green-700 bg-green-100 rounded-lg focus:outline-none hover:bg-green-600 hover:text-white active"
                         id="tab-general-info">General Information</button>
                     <button
-                        class="px-4 py-2 ml-2 font-semibold text-green-700 bg-blue-100 rounded-lg focus:outline-none hover:bg-green-600 hover:text-white"
+                        class="px-4 py-2 ml-2 font-semibold text-green-700 bg-green-100 rounded-lg focus:outline-none hover:bg-green-600 hover:text-white"
                         id="tab-location-info">Place of Sighting with Map</button>
                     <button
-                        class="px-4 py-2 ml-2 font-semibold text-green-700 bg-blue-100 rounded-lg focus:outline-none hover:bg-green-600 hover:text-white"
+                        class="px-4 py-2 ml-2 font-semibold text-green-700 bg-green-100 rounded-lg focus:outline-none hover:bg-green-600 hover:text-white"
                         id="tab-user-info">User Information</button>
                 </div>
                 <!-- Tab Content -->
@@ -401,11 +403,27 @@
         }
     }
 
-    // Function to remove a card from the view
     function removeCardFromView(id) {
-        let card = document.querySelector(`[data - report - id= "${id}"]`);
-        card.remove();
+        let card = document.querySelector(`[data-report-id="${id}"]`);
+        let followingCards = Array.from(document.querySelectorAll(`[data-report-id]`)).slice(Array.from(document.querySelectorAll(`[data-report-id]`)).indexOf(card) + 1);
+
+        card.classList.add('fade-out');
+
+        // Allow animation to complete before removing the card
+        setTimeout(function () {
+            card.remove();
+            // add slide in animation to following cards
+            followingCards.forEach((followingCard) => {
+                followingCard.classList.add('slide-in');
+                setTimeout(() => {
+                    followingCard.classList.remove('slide-in');
+                }, 500);
+            });
+        }, 500); // matches the duration of the fade-out animation
     }
+
+
+
 
     function exportCSV() {
         // Assuming there's an export function in your routes

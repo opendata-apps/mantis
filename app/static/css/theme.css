@@ -53,3 +53,30 @@
 html {
   scroll-behavior: smooth !important;
 }
+
+@layer components {
+  .fade-out {
+    animation: fadeOut 0.5s forwards;
+  }
+  .slide-in {
+    animation: slideIn 0.5s forwards;
+  }
+  @keyframes fadeOut {
+    from {
+      opacity: 1;
+      transform: scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: scale(0.7);
+    }
+  }
+  @keyframes slideIn {
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+}
