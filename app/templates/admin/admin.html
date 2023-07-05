@@ -35,11 +35,11 @@
 
     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3" id="reportContainer">
         {% for sighting in reported_sightings %}
-        <div class="overflow-hidden bg-white rounded-lg shadow report-card squeezing-out"
+        <div class="overflow-hidden bg-white rounded-lg shadow report-card"
             data-report-id="{{sighting.id}}">
             <div class="relative">
                 <img class="object-cover w-full h-64"
-                    src="{{ url_for('admin.report_Img', filename=sighting.fundort.ablage[4:]) }}" alt="Report Image">
+                     src="{{ url_for('admin.report_Img', filename=sighting.fundort.ablage[4:]) }}" alt="Report Image">
                 <div class="px-4 py-4 md:px-6">
                     <div class="relative px-4 -mt-16">
                         <div class="bg-white p-6 rounded-lg shadow-lg {{ 'bg-green-100' if sighting.approved }}">
