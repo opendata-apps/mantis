@@ -95,7 +95,7 @@
                 }}
               </div>
               <div class="relative">
-                {{ form.longitude(placeholder="z.B. 13.12345", class="input-field") }}
+                {{ form.longitude(class="input-field") }}
               </div>
             </label>
           </div>
@@ -108,7 +108,7 @@
                 }}
               </div>
               <div class="relative">
-                {{ form.latitude(placeholder="z.B. 52.12345", class="input-field") }}
+                {{ form.latitude(class="input-field") }}
               </div>
             </label>
           </div>
@@ -139,7 +139,7 @@
                 "Falls der Wert nicht korrekt eingelesen wurde, geben Sie bitte den Straßennamen ein.") }}
               </div>
               <div class="relative">
-                {{ form.street(placeholder="z.B. Musterstraße", class="input-field") }}
+                {{ form.street(class="input-field") }}
               </div>
             </label>
             <label for="{{ form.state.id }}" class="block text-sm font-semibold text-gray-600">
@@ -149,7 +149,7 @@
                 "Falls der Wert nicht korrekt eingelesen wurde, ergänzen Sie bitte den Namen des Bundeslandes.") }}
               </div>
               <div class="relative">
-                {{ form.state(id="state", placeholder="z.B. Berlin", class="input-field") }}
+                {{ form.state(id="state", class="input-field") }}
               </div>
             </label>
             <label for="{{ form.district.id }}" class="block text-sm font-semibold text-gray-600">
@@ -159,7 +159,7 @@
                 "Falls der Wert nicht korrekt eingelesen wurde, geben Sie bitte den Landkreis/die Stadt ein.") }}
               </div>
               <div class="relative">
-                {{ form.district(id="district", placeholder="z.B. Mitte", class="input-field") }}
+                {{ form.district(id="district", class="input-field") }}
               </div>
             </label>
 
@@ -196,8 +196,7 @@
                 </div>
               </div>
               <div class="relative">
-                {{ form.gender(class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
-                focus:ring-green-500") }}
+                {{ form.gender(class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
               </div>
             </label>
           </div>
@@ -221,7 +220,7 @@
               </div>
             </label>
             <div class="relative">
-              {{ form.zip_code(id="zip_code", placeholder="z.B. 10115", class="input-field") }}
+              {{ form.zip_code(id="zip_code", class="input-field") }}
             </div>
             <label for="{{ form.city.id }}" class="block text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
@@ -230,7 +229,7 @@
                 "Falls der Wert nicht korrekt eingelesen wurde, geben Sie bitte den Stadtnamen ein.") }}
               </div>
               <div class="relative">
-                {{ form.city(id="city", placeholder="z.B. Berlin", class="input-field") }}
+                {{ form.city(id="city", class="input-field") }}
               </div>
             </label>
             <label for="{{ form.location_description.id }}" class="block text-sm font-semibold text-gray-600">
@@ -240,7 +239,7 @@
                 "Beschreiben Sie hier bitte den Ort etwas genauer (maximal 500 Zeichen)") }}
               </div>
               <div class="relative">
-                {{ form.location_description(placeholder="Geben Sie hier Ihre Ortsbeschreibung ein",
+                {{ form.location_description(
                 class="input-field") }}
               </div>
             </label>
@@ -251,7 +250,7 @@
                 "Ergänzende Angaben zum Bild (maximal 500 Zeichen)") }}
               </div>
               <div class="relative">
-                {{ form.picture_description(placeholder="Geben Sie hier Ihre Bildbeschreibung ein",
+                {{ form.picture_description(
                 class="input-field") }}
               </div>
             </label>
@@ -273,7 +272,7 @@
                 "Geben Sie bitte Ihren ersten Buchstaben des Vornamens ein. Beispiel: M. für Max") }}
               </div>
               <div class="relative">
-                {{ form.report_first_name(placeholder="Erster Buchstabe z.B. M.", class="input-field") }}
+                {{ form.report_first_name(class="input-field") }}
               </div>
             </label>
             <label for="{{ form.report_last_name.id }}" class="block text-sm font-semibold text-gray-600">
@@ -283,7 +282,7 @@
                 "Geben Sie hier bitte Ihren Nachnamen ein.") }}
               </div>
               <div class="relative">
-                {{ form.report_last_name(placeholder="z.B. Mustermann", class="input-field") }}
+                {{ form.report_last_name(class="input-field") }}
               </div>
             </label>
             <label for="{{ form.sighting_date.id }}" class="block text-sm font-semibold text-gray-600">
@@ -293,7 +292,7 @@
                 "Wählen Sie hier bitte das Funddatum.") }}
               </div>
               <div class="relative">
-                {{ form.sighting_date(placeholder="z.B. 2023-05-14", class="input-field") }}
+                {{ form.sighting_date(class="input-field") }}
               </div>
             </label>
           </div>
@@ -306,7 +305,7 @@
                 Ihre E-Mail. Ihre Kontaktdaten werden geschützt, nicht weitergegeben oder anderweitig verwendet.") }}
               </div>
               <div class="relative">
-                {{ form.contact(placeholder="z.B. max@example.de", class="input-field") }}
+                {{ form.contact(class="input-field") }}
               </div>
             </label>
             <label class="block text-sm font-semibold text-gray-600">
@@ -321,7 +320,7 @@
                   {{ form.finder_first_name.label.text }}
                 </div>
                 <div class="relative">
-                  {{ form.finder_first_name(placeholder="Vorname des Finders", class="input-field") }}
+                  {{ form.finder_first_name(class="input-field") }}
                 </div>
               </label>
               <label for="{{ form.finder_last_name.id }}" class="block text-sm font-semibold text-gray-600">
@@ -329,7 +328,7 @@
                   {{ form.finder_last_name.label.text }}
                 </div>
                 <div class="relative">
-                  {{ form.finder_last_name(placeholder="Nachname des Finders", class="input-field") }}
+                  {{ form.finder_last_name(class="input-field") }}
                 </div>
               </label>
             </div>

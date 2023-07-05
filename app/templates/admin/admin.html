@@ -83,6 +83,7 @@
                                         onchange="changeGender({{sighting.id}})" {{ 'disabled' if sighting.dat_bear or
                                         total> 1
                                         }} >
+                                        <option value="0" {{ 'selected' if total==0 }}>Unbekannt</option>
                                         <option value="M" {{ 'selected' if sighting.art_m==1 }}>Männlich</option>
                                         <option value="W" {{ 'selected' if sighting.art_w==1 }}>Weiblich</option>
                                         <option value="N" {{ 'selected' if sighting.art_n==1 }}>Nymphe</option>
@@ -408,7 +409,7 @@
         // Convert user info into HTML string
         // Adjust fields according to your data structure
         return `<p><strong>User Name:</strong> ${data.user_name}</p>
-                <p><strong>User Email:</strong> ${data.user_email}</p>`;
+                <p><strong>User Email:</strong> ${data.user_kontakt}</p>`;
     }
 
 
