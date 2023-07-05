@@ -24,8 +24,7 @@ class MantisSightingForm(FlaskForm):
 
     # ? Start Deklaration
     # ? der Auswahlmöglichkeiten einiger Formeingaben
-    GENDER_CHOICES = [('', 'Bitte auswählen'),
-                      ('keine Zuordnung', 'Keine Zuordnung'),
+    GENDER_CHOICES = [('keine Zuordnung', 'Keine Zuordnung'),
                       ('männchen', 'Männchen'),
                       ('weibchen', 'Weibchen'),
                       ('nymphen', 'Nymphen'),
