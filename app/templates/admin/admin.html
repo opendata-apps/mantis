@@ -4,49 +4,47 @@
 
 
 <div class="container px-4 mx-auto my-10 md:px-12">
-
-    <div class="flex items-center mb-5 space-x-4">
-        <!-- Add the switch toggle -->
+    <div class="flex flex-wrap items-center justify-between mb-5 space-x-4">
         <div class="flex items-center space-x-2">
+            <label for="toggleSwitch" class="text-sm font-medium">Show only non-approved sightings</label>
             <input type="checkbox" id="toggleSwitch" onchange="toggleApprovedSightings()" checked
                 class="form-toggleswitch">
-            <label for="toggleSwitch" class="text-sm font-medium">Show only non-approved sightings</label>
         </div>
-
         <div class="flex-grow">
             <input type="text" id="searchInput" onkeyup="searchReports()" placeholder="Search for reports..."
                 class="w-full px-4 py-2 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
         </div>
-
-        <select id="sortInput" onchange="sortReports()"
-            class="w-48 px-4 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
-            <option value="">Sort by...</option>
-            <option value="id_asc">ID Ascending</option>
-            <option value="id_desc">ID Descending</option>
-        </select>
-
-        <button onclick="exportCSV()"
-            class="px-6 py-2 text-sm text-white bg-green-600 rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green -500 focus:outline-none">
-            Export CSV
-        </button>
+        <div>
+            <select id="sortInput" onchange="sortReports()"
+                class="w-48 px-4 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                <option value="">Sort by...</option>
+                <option value="id_asc">ID Ascending</option>
+                <option value="id_desc">ID Descending</option>
+            </select>
+        </div>
+        <div>
+            <button onclick="exportCSV()"
+                class="px-6 py-2 text-sm text-white bg-green-600 rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:outline-none">Export
+                CSV</button>
+        </div>
     </div>
 
 
 
-    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3" id="reportContainer">
+    <div class="grid grid-cols-1 gap-6 mb-4 sm:grid-cols-2 lg:grid-cols-3" id="reportContainer">
         {% for sighting in reported_sightings %}
-        <div class="overflow-hidden bg-white rounded-lg shadow report-card" data-report-id="{{sighting.id}}">
+        <div class="mb-8 overflow-hidden transition-shadow duration-200 ease-in-out bg-white rounded-lg shadow-lg hover:shadow-xl report-card"
+            data-report-id="{{sighting.id}}">
             <div class="relative">
                 <img onclick="openImageModal('{{ url_for('admin.report_Img', filename=sighting.fundort.ablage[4:]) }}')"
-                    class="object-cover w-full h-64 cursor-pointer"
+                    class="object-cover w-full h-64 transition-transform duration-200 ease-in-out rounded-t-lg cursor-pointer hover:scale-105"
                     src="{{ url_for('admin.report_Img', filename=sighting.fundort.ablage[4:]) }}" alt="Report Image">
-
-                <div class="px-4 py-4 md:px-6">
+                <div class="px-6 py-6 md:px-6">
                     <div class="relative px-4 -mt-16">
-                        <div class="bg-white p-6 rounded-lg shadow-lg {{ 'bg-green-100' if sighting.approved }}">
+                        <div class="p-6 rounded-lg shadow-lg {{ 'bg-green-100' if sighting.approved }} bg-white">
                             <div class="flex items-baseline">
                                 <span
-                                    class="inline-block px-2 py-1 text-xs font-semibold leading-none tracking-wide text-green-800 uppercase bg-green-200 rounded-full">Report
+                                    class="inline-block px-3 py-1 mb-4 text-xs font-semibold leading-none tracking-wide text-white uppercase bg-green-500 rounded-full">Report
                                     ID: {{ sighting.id }}</span>
                                 {% if sighting.dat_bear %}
                                 <div class="ml-2 text-sm font-semibold tracking-wide text-gray-600">
@@ -68,10 +66,12 @@
                                 {% endif %}
                             </div>
                             <div class="flex items-center mt-4">
-                                <button onclick="openModal({{sighting.id}})" style="min-width: 2.5rem;">
+                                <button onclick="openModal({{sighting.id}})" style="min-width: 2.5rem;"
+                                    class="p-1 transition-colors duration-200 rounded focus:outline-none hover:bg-green-200">
                                     <img src="/static/images/svg/edit.svg" alt="Edit" class="w-5 h-5">
                                 </button>
-                                <button onclick="deleteSighting({{sighting.id}})" class="ml-4"
+                                <button onclick="deleteSighting({{sighting.id}})"
+                                    class="p-1 ml-4 transition-colors duration-200 rounded focus:outline-none hover:bg-red-200"
                                     style="min-width: 2.5rem;">
                                     <img src="/static/images/svg/delete.svg" alt="Delete" class="w-5 h-5">
                                 </button>

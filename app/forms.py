@@ -13,9 +13,8 @@ def validate_past_date(form, field):
 
 def validate_zip_code(form, field):
     if field.data and (len(str(field.data)) > 5 or not str(field.data).isdigit()):
-        raise ValidationError(f"Die Postleitzahl ist ungültig: {len(str(field.data))}")
-
-
+        raise ValidationError(
+            f"Die Postleitzahl ist ungültig: {len(str(field.data))}")
 
 
 class MantisSightingForm(FlaskForm):
@@ -48,7 +47,7 @@ class MantisSightingForm(FlaskForm):
     picture_description = StringField(
         "sonstige Angaben zum Fundort", validators=[Length(max=500)], render_kw={'placeholder': 'Geben Sie hier Ihre sonstige Angaben zum Fundort ein'})
 
-    longitude = FloatField('Längengrad',
+    longitude = FloatField('*Längengrad',
                            validators=[InputRequired(),
                                        NumberRange(min=-180.0, max=180.0)],
                            render_kw={'placeholder': 'z.B. 13.12345',
@@ -70,7 +69,7 @@ class MantisSightingForm(FlaskForm):
     state = StringField("*Bundesland", validators=[DataRequired(message='Das Bundesland ist erforderlich.')], render_kw={
                         'placeholder': 'Bundesland'})
     district = StringField("Kreis", render_kw={'placeholder': 'z.B. Mitte'})
-    location_description = StringField("*Fundort Beschreibung", render_kw={
+    location_description = StringField("Fundort Beschreibung", render_kw={
                                        'placeholder': 'Geben Sie hier Ihre Ortsbeschreibung ein'})
 
     report_first_name = StringField(
