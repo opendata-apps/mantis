@@ -196,7 +196,8 @@
                 </div>
               </div>
               <div class="relative">
-                {{ form.gender(class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500") }}
+                {{ form.gender(class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
+                focus:ring-green-500") }}
               </div>
             </label>
           </div>
@@ -239,10 +240,22 @@
                 "Beschreiben Sie hier bitte den Ort etwas genauer (maximal 500 Zeichen)") }}
               </div>
               <div class="relative">
-                {{ form.location_description(
-                class="input-field") }}
+                {{ form.location_description(id=form.location_description.id, list="locations", class="input-field") }}
+                <datalist id="locations">
+                  <option value="im Haus">
+                  <option value="im Garten">
+                  <option value="auf dem Balkon/auf der Terrasse">
+                  <option value="am Fenster/an der Hauswand">
+                  <option value="Industriebrache">
+                  <option value="im Wald">
+                  <option value="Wiese/Weide">
+                  <option value="HeidelandschaftStraßengraben/Wegesrand/Ruderalflur">
+                  <option value="Gewerbegebiet">
+                  <option value="Im oder am Auto">
+                </datalist>
               </div>
             </label>
+
             <label for="{{ form.picture_description.id }}" class="block text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.picture_description.label.text }}
