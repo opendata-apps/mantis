@@ -2,32 +2,37 @@
 {% block title %}Übersicht Fundmeldungen {% endblock title %}
 {% block content %}
 <div class="container flex flex-row p-6 mx-auto">
-    <div id="map" class="object-fill grow h-screen auto-rows-max"></div>
+    <div id="map" class="object-fill h-screen grow auto-rows-max"></div>
 </div>
 <script>
-  
+    const mapApiKey = ""; // https://arcgis.esri.de/dos-and-donts-was-ist-wichtig-im-umgang-mit-esri-basemaps/
+
     const map = L.map('map').setView([51.991649, 13.080113], 7);
-  
-    const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+
+    const openStreetMapLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-    }).addTo(map);
-  
+    });
+
+    const arcGISLayer = L.esri.Vector.vectorBasemapLayer("ArcGIS:Imagery", {
+        mapApiKey: mapApiKey
+    });
+
+    // Add default layer to the map
+    map.addLayer(openStreetMapLayer);
+
     var reports = JSON.parse('{{ reportsJson | safe }}');
-    //console.log(reports);
     for (var i = 0; i < reports.length; i++) {
         var report = reports[i];
-        //console.log(report.latitude, report.longitude);
         const marker = L.marker([report.latitude, report.longitude]).addTo(map)
-	
-        /* const circle = L.circle([repgort.latitude, report.longitude], {               
-            color: 'red',
-            fillColor: '#f03',
-            fillOpacity: 0.5,
-            radius: 10
-        }).addTo(map).bindPopup('I am a circle.');
-        */
     };
-</script>
 
+    // Layer switcher control
+    var baseMaps = {
+        "OpenStreetMap": openStreetMapLayer,
+        "ArcGIS": arcGISLayer
+    };
+
+    L.control.layers(baseMaps).addTo(map);
+</script>
 {% endblock content %}
