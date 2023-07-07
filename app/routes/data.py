@@ -127,7 +127,7 @@ def report(usrid=None):
         genders = _set_gender_fields(form.gender.data)
 
         new_meldung = TblMeldungen(dat_fund_von=form.sighting_date.data, dat_fund_bis=form.sighting_date.data,
-                                   dat_meld=datetime.now(), fo_zuordnung=new_fundort.id, fo_quelle="F", **genders)
+                                   dat_meld=datetime.now(), fo_zuordnung=new_fundort.id, fo_quelle="F", **genders, anm_melder=form.picture_description.data)
         db.session.add(new_meldung)
         db.session.flush()
 

@@ -44,7 +44,7 @@ class MantisSightingForm(FlaskForm):
                              message="Bitte wählen Sie eine Option.")],
                          render_kw={'title': 'Entwicklungsstadium auswählen'})
     picture_description = StringField(
-        "Bildbeschreibung", validators=[Length(max=500)], render_kw={'placeholder': 'Geben Sie hier Ihre Bildbeschreibung ein'})
+        "sonstige Angaben zum Fundort", validators=[Length(max=500)], render_kw={'placeholder': 'Geben Sie hier Ihre sonstige Angaben zum Fundort ein'})
 
     longitude = FloatField('Längengrad',
                            validators=[InputRequired(),
