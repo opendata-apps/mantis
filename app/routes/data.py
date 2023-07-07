@@ -29,7 +29,7 @@ def _create_directory(date):
 
 def _create_filename(location, usrid):
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    return '{}-{}-{}.webp'.format(secure_filename(location),timestamp, secure_filename(usrid))
+    return '{}-{}-{}.webp'.format(secure_filename(location), timestamp, secure_filename(usrid))
 
 
 def _allowed_file(filename):
@@ -176,17 +176,18 @@ def autocomplete():
 
     return jsonify(suggestions)
 
+
 @data.route('/auswertungen')
 def show_map():
-    # Fetch the reports data from the database                                                                                                               
+    # Fetch the reports data from the database where dat_bear is not null in TblMeldungen
     reports = TblFundorte.query.join(
-        TblMeldungen, TblMeldungen.fo_zuordnung == TblFundorte.id).all()
-    # Serialize the reports data as a JSON object                                                                                                            
+        TblMeldungen, TblMeldungen.fo_zuordnung == TblFundorte.id).filter(TblMeldungen.dat_bear != None).all()
+    # Serialize the reports data as a JSON object
     koords = []
     for report in reports:
         try:
             lati = float(report.latitude.replace(',', '.'))
-            long =float(report.longitude.replace(',', '.'))
+            long = float(report.longitude.replace(',', '.'))
             koords.append({'latitude': lati,
                            'longitude': long})
         except:
