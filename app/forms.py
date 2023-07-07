@@ -12,8 +12,10 @@ def validate_past_date(form, field):
 
 
 def validate_zip_code(form, field):
-    if field.data and (len(str(field.data)) != 5 or not str(field.data).isdigit()):
-        raise ValidationError("Die Postleitzahl ist ungültig.")
+    if field.data and (len(str(field.data)) > 5 or not str(field.data).isdigit()):
+        raise ValidationError(f"Die Postleitzahl ist ungültig: {len(str(field.data))}")
+
+
 
 
 class MantisSightingForm(FlaskForm):
