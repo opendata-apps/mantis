@@ -1,153 +1,114 @@
-{% extends "layout.html" %} {% block title %}FAQ{% endblock title %} 
-{% block content %}
+{% extends "layout.html" %}
+{% block title %}FAQ {% endblock title %}
 
-<div class="container px-4 py-2 mx-auto">
-  <div class="flex flex-wrap">
-    <div class="px-2 mb-4">
-      <details class="p-6 rounded-lg open:bg-white open:ring-1 open:ring-black/5 open:shadow-lg" close>
-        <summary class="text-3xl font-bold text-green-700">
-          Muss ich mich für meine Meldung anmelden oder registrieren?
-        </summary>
-        <!-- TODO: Remove dounble classes -->
-        <div class="mt-3 text-sm text-2xl leading-6 leading-10 text-slate-600">
-          <p>
-            Nein, eine Registrierung oder Anmeldung ist nicht nötig.
-          </p>
+{% block content %}
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [{% for faq in faq_entries %}{
+      "@type": "Question",
+      "name": "{{ faq.title }}",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "{{ faq.content }}"
+      }}{% if not loop.last %},{% endif %}{% endfor %}
+    ]
+  }
+</script>
+
+<div class="container px-8 py-6 mx-auto">
+  <div class="flex flex-wrap justify-center">
+    <div class="w-full px-4 mb-8 md:w-2/3">
+      <input
+        class="w-full px-4 py-3 mb-8 text-lg leading-tight text-gray-700 bg-white border border-gray-200 rounded appearance-none focus:outline-none focus:shadow-outline"
+        id="faq-search" type="text" placeholder="Search FAQ">
+
+      {% set faq_entries = [
+      {"title": "Muss ich mich für meine Meldung anmelden oder registrieren?", "content": "Nein, eine Registrierung oder
+      Anmeldung ist nicht nötig."},
+      {"title": "Wer kann mitmachen?", "content": "Mitmachen können Kinder, Jugendliche oder Erwachsene, die Interesse
+      haben, sich an diesem Forschungsprojekt zu beteiligen."},
+      {"title": "Wie kann ich mitmachen?", "content": "Rufen Sie das Meldeformular auf, beginnen mit dem Hochladen eines
+      Bildes... Mehr brauchen Sie nicht zu tun."},
+      {"title": "Kann ich auch Gottesanbeterinnen außerhalb von Berlin und Brandenburg melden?", "content": "Ja. Der
+      Fokus des Projektes liegt zwar auf Nachweisen der Gottesanbeterin in Berlin und Brandenburg..."},
+      {"title": "Kann ich auch Beobachtungen aus vorherigen jahren melden?", "content": "Sehr gerne... Schauen Sie gerne
+      auch Ihre Fotoarchive durch..."},
+      {"title": "Wonach soll ich schauen?", "content": "Jegliche Nachweise der gut getarnten Lauerjägerin sind
+      interessant..."},
+      {"title": "Wo soll ich suchen?", "content": "Die Europäische Gottesanbeterin ist eine Wärme und Sonne liebende
+      Art..."},
+      {"title": "Muss ich etwas unternehmen, wenn ich eine Gottesanbeterin finde?", "content": "Machen Sie bitte ein
+      Foto und melden Sie uns Ihren Fund..."},
+      {"title": "Was passiert mit meiner Meldung?", "content": "Im Naturkundemuseum Potsdam werden die Meldungen in
+      einer Datenbank erfasst..."},
+      {"title": "Was passiert mit meinen Daten?", "content": "Mit dem neuen Meldeportal können Sie den Fundort direkt in
+      der Karte auswählen (anklicken)..."},
+      {"title": "Das passiert mit meinen Fotos?", "content": "Die Fotos dienen ausschließlich der Absicherung des
+      Fundes..."}
+      ] %}
+      <div class="space-y-6" id="faq-container">
+        {% for faq in faq_entries %}
+        <div class="faq-item" data-title="{{ faq.title|lower }}">
+          <div
+            class="flex items-center justify-between block p-6 transition-all duration-200 ease-in bg-white border border-gray-200 rounded-lg shadow-lg cursor-pointer hover:shadow-xl faq-header"
+            data-id="faq{{ loop.index }}">
+            <h2
+              class="text-2xl font-semibold text-green-800 transition-colors duration-200 ease-in-out hover:text-green-600">
+              {{ faq.title }}</h2>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+              class="w-6 h-6 transition-transform duration-200 ease-in transform"
+              style="transition: transform 0.3s ease;">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </div>
+          <div
+            class="overflow-hidden overflow-y-hidden duration-700 ease-in-out faq-content max-h-0 transition-max-height"
+            style="max-height: 0;" id="faq{{ loop.index }}">
+            <p class="px-6 pb-4 mt-3 text-lg leading-6 text-gray-800">
+              {{ faq.content }}
+            </p>
+          </div>
         </div>
-      </details>
-      <details class="p-6 rounded-lg open:bg-white open:ring-1 open:ring-black/5 open:shadow-lg" close>
-        <summary class="text-3xl font-bold text-green-700">
-          Wer kann mitmachen?
-        </summary>
-        <div class="mt-3 text-sm text-2xl leading-6 leading-10 text-slate-600">
-          <p>
-            Mitmachen können Kinder, Jugendliche oder Erwachsene, die Interesse haben, sich an diesem Forschungsprojekt zu beteiligen.
-          </p>
-        </div>
-      </details>
-      <details class="p-6 rounded-lg open:bg-white open:ring-1 open:ring-black/5 open:shadow-lg" close>
-        <summary class="text-3xl font-bold text-green-700">
-          Wie kann ich mitmachen?
-        </summary>
-        <div class="mt-3 text-sm text-2xl leading-6 leading-10 text-slate-600">
-          <p>
-             Rufen Sie das Meldeformular auf, beginnen mit dem
-             Hochladen eines Bildes. Vervollständigen Sie die Daten,
-             markieren Sie auf der Karte den Fundort und ergänzen Sie
-             die Daten zum Fund.  Wenn Sie mögen, können Sie sich mit
-             dem Bestimmungsschlüssel das Geschlecht und/oder das
-             Entwicklungsstadium Ihrer Gottesanbeterin selbst bestimmen.
-	     Wenn Sie eine Rückantwort wünschen, können Sie
-             auch Ihre E-Mailadresse angeben. Mehr brauchen Sie nicht zu tun.
-          </p>
-        </div>
-      </details>
-      <details class="p-6 rounded-lg open:bg-white open:ring-1 open:ring-black/5 open:shadow-lg" close>
-        <summary class="text-3xl font-bold text-green-700">
-          Kann ich auch Gottesanbeterinnen außerhalb von Berlin und Brandenburg melden?
-        </summary>
-        <div class="mt-3 text-sm text-2xl leading-6 leading-10 text-slate-600">
-          <p>
-            Ja. Der Fokus des Projektes liegt zwar auf Nachweisen der Gottesanbeterin in Berlin und Brandenburg.
-            Weitere Funde aus Deutschland können aber auch gemeldet werden.
-            Diese werden in der bundesweiten Erfassung der Art berücksichtigt
-          </p>
-        </div>
-      </details>
-      <details class="p-6 rounded-lg open:bg-white open:ring-1 open:ring-black/5 open:shadow-lg" close>
-        <summary class="text-3xl font-bold text-green-700">
-          Kann ich auch Beobachtungen aus vorherigen jahren melden?
-        </summary>
-        <div class="mt-3 text-sm text-2xl leading-6 leading-10 text-slate-600">
-          <p>
-            Sehr gerne. Durch die Angabe des Funddatums, können wir Ihren Fund zeitlich genau einordnen.
-             Funde aus vorherigen Jahren vervollständigen das Bild der Verbreitung und Ausbreitung der Art und sind somit sehr wertvoll.
-             Schauen Sie gerne auch Ihre Fotoarchive durch. Dort könnten möglicherweise Fotos des interessanten Tieres verborgen sein.
-             In den Dateieigenschaften der Bilder finden Sie das Aufnahmedatum, welches mit dem Funddatum identisch ist.
-          </p>
-        </div>
-      </details>
-      <details class="p-6 rounded-lg open:bg-white open:ring-1 open:ring-black/5 open:shadow-lg" close>
-        <summary class="text-3xl font-bold text-green-700">
-          Wonach soll ich schauen?
-        </summary>
-        <div class="mt-3 text-sm text-2xl leading-6 leading-10 text-slate-600">
-          <p>
-            Jegliche Nachweise der gut getarnten Lauerjägerin sind interessant.
-            Neben den Nymphen und erwachsenen Tieren sind die Eigelege (Ootheken) ein wichtiger Hinweis auf die Fortpflanzung (Reproduktion) der Art.
-          </p>
-        </div>
-      </details>
-      <details class="p-6 rounded-lg open:bg-white open:ring-1 open:ring-black/5 open:shadow-lg" close>
-        <summary class="text-3xl font-bold text-green-700">
-          Wo soll ich suchen?
-        </summary>
-        <div class="mt-3 text-sm text-2xl leading-6 leading-10 text-slate-600">
-          <p>
-            Die Europäische Gottesanbeterin ist eine Wärme und Sonne liebende Art.
-            Sie kommt in gut besonntem Trockenrasenoffenland mit geringem Strauchbewuchs vor.
-            Sie lebt im hohen Gras, an Stauden aber auch auf dem Boden.
-            In Berlin und Brandenburg wurde die Art z.B. auf Brachen, an stillgelegten Bahntrassen, auf Truppenübungsplätzen und auf alten Tagebauflächen nachgewiesen.
-            Interessanter Weise werden auch viele Funde im urbanen Raum gemacht. So wurde Sie in Innenstädten, auf Balkonen und in Gärten gefunden.
-            Die Tiere werden vom Licht angelockt und fliegen manchmal auch in offenstehende Fenster und Türen ein.
-            Die Nymphen kommen im gleichen Habitat vor und führen dieselbe Lebensweise wie ihre Eltern.
-            In geschlossenen Wäldern kommt sie bei uns nicht vor.
-          </p>
-        </div>
-      </details>
-      <details class="p-6 rounded-lg open:bg-white open:ring-1 open:ring-black/5 open:shadow-lg" close>
-        <summary class="text-3xl font-bold text-green-700">
-          Muss ich etwas unternehmen, wenn ich eine Gottesanbeterin finde?
-        </summary>
-        <div class="mt-3 text-sm text-2xl leading-6 leading-10 text-slate-600">
-          <p>
-            Machen Sie bitte ein Foto und melden Sie uns Ihren Fund. Ansonsten brauchen Sie nichts zu tun.
-            Die Gottesanbeterin ist eine geschützte Art. Lassen Sie sie bitte an Ort und Stelle sitzen.
-            Sollte sich eine Gottesanbeterin in Ihre Wohnung verirrt haben, setzen Sie sie bitte nach draußen auf den Balkon,
-            in den Hof oder in die Vegetation in der Nähe Ihres Hauses.
-            Tiere, die Sie spät im Jahr finden, werden den Winter nicht überleben. Lassen Sie sie draußen.
-            Vielleicht legen Sie noch ein Gelege, welches den Winter ohne Hilfe übersteht.
-          </p>
-        </div>
-      </details>
-      <details class="p-6 rounded-lg open:bg-white open:ring-1 open:ring-black/5 open:shadow-lg" close>
-        <summary class="text-3xl font-bold text-green-700">
-          Was passiert mit meiner Meldung?
-        </summary>
-        <div class="mt-3 text-sm text-2xl leading-6 leading-10 text-slate-600">
-          <p>
-            Im Naturkundemuseum Potsdam werden die Meldungen in einer Datenbank erfasst.
-            Gemeinsam mit den Mantidenfreunden Berlin-Brandenburg werden anschließend Verbreitungskarten erstellt.
-            Anhand der Karten kann die Ausbreitung der Art über die Jahre hinweg nachvollzogen werden.
-            Die Informationen über die Entwicklungsstadien ermöglicht es uns die Entwicklung der Art in verschiedenen Jahren miteinander zu vergleichen.
-          </p>
-        </div>
-      </details>
-      <details class="p-6 rounded-lg open:bg-white open:ring-1 open:ring-black/5 open:shadow-lg" close>
-        <summary class="text-3xl font-bold text-green-700">
-          Was passiert mit meinen Daten?
-        </summary>
-        <div class="mt-3 text-sm text-2xl leading-6 leading-10 text-slate-600">
-          <p>
-            Mit dem neuen Meldeportal können Sie den Fundort direkt in der Karte auswählen (anklicken).
-            Gespeichert werden dann nur die geographischen Koordinaten und keine persönlichen Daten, wie z.B. Adressdaten.
-            Melderdaten werden vertraulich behandelt und ausschließlich projektbezogen verwendet.
-          </p>
-        </div>
-      </details>
-      <details class="p-6 rounded-lg open:bg-white open:ring-1 open:ring-black/5 open:shadow-lg" close>
-        <summary class="text-3xl font-bold text-green-700">
-          Das passiert mit meinen Fotos?
-        </summary>
-        <div class="mt-3 text-sm text-2xl leading-6 leading-10 text-slate-600">
-          <p>
-            Die Fotos dienen ausschließlich der Absicherung des Fundes, der Bestimmung des Geschlechtes und des Stadiums der Gottesanbeterin.
-             Die Bilder werden von uns nicht weiterverwendet. Die Urheberrechte verbleiben bei Ihnen.
-          </p>
-        </div>
-      </details>
+        {% endfor %}
+      </div>
     </div>
   </div>
 </div>
+
+
+<script>
+  const faqItems = document.querySelectorAll(".faq-item");
+  faqItems.forEach((item) => {
+    const header = item.querySelector('.faq-header');
+    const content = item.querySelector('.faq-content');
+    const arrow = header.querySelector('svg');
+
+    header.addEventListener('click', () => {
+      if (content.style.maxHeight !== '0px') {
+        content.style.maxHeight = '0px';
+        arrow.style.transform = 'rotate(0deg)';
+      } else {
+        content.style.maxHeight = '2000px';
+        arrow.style.transform = 'rotate(180deg)';
+      }
+    });
+  });
+
+  const search = document.querySelector('#faq-search');
+  search.addEventListener('input', (e) => {
+    const val = e.target.value.toLowerCase();
+    const items = document.querySelectorAll('.faq-item');
+    items.forEach(item => {
+      const title = item.getAttribute('data-title');
+      if (title.includes(val)) {
+        item.style.display = 'block';
+      } else {
+        item.style.display = 'none';
+      }
+    });
+  });
+</script>
 
 {% endblock content %}
