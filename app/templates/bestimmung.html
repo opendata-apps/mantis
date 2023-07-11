@@ -4,22 +4,168 @@
 {% block content %}
 <div class="container p-6 mx-auto lg:flex-row lg:mb-0 lg:max-w-6xl">
   <p>Hinweis: Bei Klick auf das Vorschaubild erscheint eine vergrößerte Ansicht.<br />
-    Die Farbe des Tieres spielt für die Bestimmung keine Rolle!</p>
-  <p class="text-center">1)</p>
-  <p>1a) Charakteristisch geformtes Gebilde aus einer harten schaumartigen Masse: Oothek (Gelege) [Siehe Bild 1]</p>
-  <p>1b) Ist es ein Tier [Merkmale: Fangbeine, verschiedene Farben, Augenfleck (Nymphen, Männchen, Weibchen)]: gehe zu
-    2).</p>
+    Die Farbe des Tieres spielt für die Bestimmung <b>keine</b> Rolle!</p>
+
+    <p class="text-center">
+      <span class="text-xs font-semibold inline-block py-1 px-2 uppercase
+		   rounded-full text-pink-600 bg-pink-200 uppercase last:mr-0 mr-1">
+	1.
+      </span>
+    </p>
+  <p>
+    
+    <span class="text-xs font-semibold inline-block py-1 px-2 uppercase
+		 rounded-full text-pink-600 bg-pink-200 uppercase last:mr-0 mr-1">
+      1a
+    </span>
+    Charakteristisch geformtes, bräunliches Gebilde (an eine
+    Walnuss erinnernd) aus einer harten, bauschaumartigen Masse. Zumeist
+    im unteren Bereich strauchiger und krautiger Vegetation abgelegt, aber
+    auch an Oberflächen, wie Steinen, Holz oder Metall (dann meist an der
+    Unterseite)
+    <br/>&rArr; Oothek (Gelege) [Siehe Bild 1]
+  </p>
+  <p>
+    <span class="text-xs font-semibold inline-block py-1 px-2 uppercase
+		 rounded-full text-pink-600 bg-pink-200 uppercase last:mr-0 mr-1">
+      1b
+    </span>
+     Kein Gelege (Oothek) sondern ein Insekt mit sechs
+    Beinen. Vorderbeine zu Fangbeinen umgebildet und mit Dornen
+    besetzt. Fangbeine in Lauerposition unter der stark verlängerten
+    Vorderbrust wie zum Gebet gehalten. Dreieckiger, sehr wendiger
+    Kopf. Färbung grün, gelblich bis dunkelbraun
+    <br/>&rArr; Nymphe oder Vollinsekt, gehe zu 2
+  </p>
   <div>
 
     <!-- Modal toggle: Bild 1 -->
-    <button data-modal-target="defaultBild1" data-modal-toggle="defaultBild1" class="mt-2" type="button">
-      <img alt="Oothek" class="mx-auto my-auto max-w-10"
-        src="{{ url_for('static', filename='images/bestimmung/oothek-klein.jpg') }}">
-      Bild 1: Oothek
+    <button data-modal-target="defaultOothek1" data-modal-toggle="defaultOothek1" class="mt-2" type="button">
+      <img alt="Oothek" class="mx-2"
+           src="{{ url_for('static', filename='images/bestimmung/oothek--klein__an-vegetation.jpg') }}">
+      Bild 1: Oothek an der <br/>Vegetation<br/>
+    </button>
+    <button data-modal-target="defaultOothek2" data-modal-toggle="defaultOothek2" class="mt-2" type="button">
+      <img alt="Oothek" class="mx-2"
+           src="{{ url_for('static', filename='images/bestimmung/oothek--klein__an-holz.jpg') }}">
+      Bild 2: Oothek <br/>am Holz<br/>
     </button>
 
-    <!-- Main modal -->
-    <div id="defaultBild1" tabindex="-1" aria-hidden="true" class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4
+    <button data-modal-target="defaultOothek3" data-modal-toggle="defaultOothek3" class="mt-2" type="button">
+      <img alt="Oothek" class="mx-2"
+           src="{{ url_for('static', filename='images/bestimmung/oothek--klein__an-schiene.jpg') }}">
+      Bild 3: Oothek an einer<br/> einer Bahnschiene
+    </button>
+
+     <p class="text-center">
+      <span class="text-xs font-semibold inline-block py-1 px-2 uppercase
+		   rounded-full text-pink-600 bg-pink-200 uppercase last:mr-0 mr-1">
+	2.
+      </span>
+    </p>
+
+    <p>
+       <span class="text-xs font-semibold inline-block py-1 px-2 uppercase
+		   rounded-full text-pink-600 bg-pink-200 uppercase last:mr-0 mr-1">
+	2a
+      </span>Flügellos bzw. mit Flügelstummeln (im Bild violett
+      eingefärbt), Segmente am Hinterleib von oben sichtbar. 6 mm bis 50 mm
+      lang. Meist zwischen Mai und August auftretend, in kalten Jahren auch
+      bis in den September hinein zu finden. Nymphe (Larve), junges Tier
+      Beispielfotos: eine sehr junge Nymphe ohne Flügel sowie eine subadulte
+      Nymphe mit violett eingefärbten Flügelstummeln und gelben Pfeilen, die
+      die Segmente. [Bild 4].</p>
+    <p>
+       <span class="text-xs font-semibold inline-block py-1 px-2 uppercase
+		   rounded-full text-pink-600 bg-pink-200 uppercase last:mr-0 mr-1">
+	2b
+       </span>
+       Flügel vollständig ausgebildet, reichen bis zum
+       Hinterleibsende oder darüber hinaus (im Bild violett
+       eingefärbt).
+      <br/>&rArr; Erwachsenes Tier, gehe zu 3 [Siehe Bild 5].
+    </p>
+    <!-- Modal Nymphe 1-->
+    <button data-modal-target="defaultNymphe1" data-modal-toggle="defaultNymphe1" class="mt-2" type="button">
+      <img alt="Oothek" class="mx-auto my-auto max-w-10"
+           src="{{ url_for('static', filename='images/bestimmung/berger-junge-nymphe-ohne-fluegelklein.jpg') }}">
+      Bild 4: Nymphe
+    </button>
+
+
+    <!-- Modal toggle: Bild3 -->
+    <button data-modal-target="AdultTier" data-modal-toggle="AdultTier" class="mt-2" type="button">
+      <img alt="Oothek" class="mx-auto my-auto max-w-10"
+           src="{{ url_for('static', filename='images/bestimmung/erwachsenes-tier-klein.jpg') }}">
+      Bild 5: Erwachsenes Tier
+    </button>
+
+    <p class="text-center">
+      <span class="text-xs font-semibold inline-block py-1 px-2 uppercase
+		   rounded-full text-pink-600 bg-pink-200 uppercase last:mr-0 mr-1">
+	3.
+      </span>
+    </p>
+
+    <p>
+       <span class="text-xs font-semibold inline-block py-1 px-2 uppercase
+		   rounded-full text-pink-600 bg-pink-200 uppercase last:mr-0 mr-1">
+	3a
+      </span>
+      Sehr schlankes Tier (dünner als ein Bleistift) bis ca. 60 mm
+      lang. Fühler (im Bild gelb markiert) deutlich länger als die
+      Vorderbrust (im Bild rot markiert). Fühler an der Basis (am Kopf)
+      dicker nach vorne spitz auslaufend: Männchen. [Siehe Bild 6 und 7]
+      <br/>&rArr; Männchen.
+    </p>
+    <p class="mt-2">
+       <span class="text-xs font-semibold inline-block py-1 px-2 uppercase
+		   rounded-full text-pink-600 bg-pink-200 uppercase last:mr-0 mr-1">
+	3b
+      </span>
+      Großes und kräftiges Tier (dicker als ein Bleistift) bis
+      ca. 75 mm lang. Fühler (im Bild gelb markiert) deutlich kürzer
+      als die Vorderbrust (im Bild rot markiert). Fühler über die
+      gesamte Länge zwirndünn. [Siehe Bild 6 und 8]
+      <br/>&rArr;Weibchen
+    </p>
+    <!-- Modal toggle: Bild4 -->
+    <button data-modal-target="AdultPaerchen" data-modal-toggle="AdultPaerchen" class="mt-2" type="button">
+      <img alt="Oothek" class="mx-auto my-auto max-w-10"
+           src="{{ url_for('static', filename='images/bestimmung/paerchenklein.jpg') }}">
+      Bild 6: Paerchen
+    </button>
+    <!-- Modal toggle: Bild4 -->
+    <button data-modal-target="AdultMaennchen" data-modal-toggle="AdultMaennchen" class="mt-2" type="button">
+      <img alt="Oothek" class="mx-auto my-auto max-w-10"
+           src="{{ url_for('static', filename='images/bestimmung/maennchen-adult-gruenklein.jpg') }}">
+      Bild 7: Männchen 
+    </button>
+
+    <!-- Modal toggle: Bild4 -->
+    <button data-modal-target="AdultWeibchen" data-modal-toggle="AdultWeibchen" class="mt-2" type="button">
+      <img alt="Oothek" class="mx-auto my-auto max-w-10"
+           src="{{ url_for('static', filename='images/bestimmung/erwachsenes-weibchen-klein.jpg') }}">
+      Bild 8:  Weibchen
+    </button>
+
+    <p class="text-center">
+      <span class="text-xs font-semibold inline-block py-1 px-2 uppercase
+		   rounded-full text-pink-600 bg-pink-200 uppercase last:mr-0 mr-1">
+	4.
+      </span>
+    </p>
+    <p>
+      Sollten Sie sich die Bestimmung nicht zutrauen, sich nicht sicher sein oder befinden sich vielleicht
+      mehrere Tiere auf Ihrem Bild, z.B. ein Pärchen, ein Gelege legendes Weibchen, eine Oothek mit
+      schlüpfenden Nymphen, Kannibalismus o.ä., wählen Sie bitte „Keine Zuordnung“ aus. Wenn Sie Ihre
+      E-Mail hinterlassen, melden wir uns bei Ihnen und teilen Ihnen gerne mit, was auf Ihrem Bild zu
+      sehen ist.
+    </p>
+    
+    <!-- Main modal Bild 1-->
+    <div id="defaultOothek1" tabindex="-1" aria-hidden="true"
+	 class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4
 		overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
       <div class="relative w-full max-w-2xl max-h-full">
         <!-- Modal content -->
@@ -30,10 +176,10 @@
               Oothek
             </h3>
             <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900
-			   rounded-lg text-sm p-1.5 ml-auto inline-flex items-center
-			   dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="defaultBild1">
+					 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center
+					 dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="defaultOothek1">
               <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
-                xmlns="http://www.w3.org/2000/svg">
+                   xmlns="http://www.w3.org/2000/svg">
                 <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0
 					     111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10
 					     11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10
@@ -42,31 +188,21 @@
               <span class="sr-only">Close modal</span>
             </button>
           </div>
-          <!-- Modal: Bild 1 body -->
+          <!-- Modal: body -->
           <div class="p-6 space-y-6">
             <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
               <img alt="Oothek" class="mx-auto my-auto max-w-10"
-                src="{{ url_for('static', filename='images/bestimmung/oothek-gross.jpg') }}">
+                   src="{{ url_for('static', filename='images/bestimmung/oothek--gross__an-vegetation.jpg') }}">
             </p>
+	    <p>Oothek an Vegetation.</p>
           </div>
         </div>
       </div>
     </div>
-
-    <p class="text-center">2)</p>
-    <p>2a) Flügellos bzw. mit Flügelstummeln, Segmente am Hinterleib von oben
-      sichtbar: Nymphe [Bild 2].</p>
-    <p> 2b) Flügel vollständig ausgeprägt, reichen bis zum Hinterleibsende: Erwachsenes Tier [Siehe Bild 3]: gehe zu 3).
-    </p>
-    <!-- Modal toggle: Bild2 -->
-    <button data-modal-target="defaultBild2" data-modal-toggle="defaultBild2" class="mt-2" type="button">
-      <img alt="Oothek" class="mx-auto my-auto max-w-10"
-        src="{{ url_for('static', filename='images/bestimmung/berger-junge-nymphe-ohne-fluegelklein.jpg') }}">
-      Bild 2: Nymphe
-    </button>
-
-    <!-- Main modal -->
-    <div id="defaultBild2" tabindex="-1" aria-hidden="true" class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4
+    <!-- Ende Main modal  1-->
+    <!-- Main modal Bild-->
+    <div id="defaultOothek2" tabindex="-1" aria-hidden="true"
+	 class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4
 		overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
       <div class="relative w-full max-w-2xl max-h-full">
         <!-- Modal content -->
@@ -74,41 +210,110 @@
           <!-- Modal header -->
           <div class="flex items-start justify-between p-4 border-b rounded-t dark:border-gray-600">
             <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
-              Nymphe
+	      Oothek
             </h3>
             <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900
-			   rounded-lg text-sm p-1.5 ml-auto inline-flex items-center
-			   dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="defaultBild2">
-              <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
-                xmlns="http://www.w3.org/2000/svg">
+					 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center
+					 dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="defaultOothek2">
+	      <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
+                   xmlns="http://www.w3.org/2000/svg">
                 <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0
 					     111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10
 					     11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10
 					     4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-              </svg>
-              <span class="sr-only">Close modal</span>
+	      </svg>
+	      <span class="sr-only">Close modal</span>
+            </button>
+          </div>
+          <!-- Modal: body -->
+          <div class="p-6 space-y-6">
+            <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
+	      <img alt="Oothek" class="mx-auto my-auto max-w-10"
+                   src="{{ url_for('static', filename='images/bestimmung/oothek--gross__an-holz.jpg') }}">
+            </p>
+	    <p>Oothek am Holz.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Ende Main modal Bild 2-->
+    <!-- Main modal Bild-->
+    <div id="defaultOothek3" tabindex="-1" aria-hidden="true"
+	 class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4
+		overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
+      <div class="relative w-full max-w-2xl max-h-full">
+        <!-- Modal content -->
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+          <!-- Modal header -->
+          <div class="flex items-start justify-between p-4 border-b rounded-t dark:border-gray-600">
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+	      Oothek
+            </h3>
+            <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900
+					 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center
+					 dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="defaultOothek3">
+	      <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
+                   xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0
+					     111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10
+					     11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10
+					     4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+	      </svg>
+	      <span class="sr-only">Close modal</span>
+            </button>
+          </div>
+          <!-- Modal: body -->
+          <div class="p-6 space-y-6">
+            <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
+	      <img alt="Oothek" class="mx-auto my-auto max-w-10"
+                   src="{{ url_for('static', filename='images/bestimmung/othek-an-schiene--gross.jpg') }}">
+              </p>
+	    <p>Oothek im Spiegel, an einer Bahnschiene einer stillgelegten Strecke.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Ende Main modal Bild 3-->
+    <!-- Main modal Nymphe 1-->
+    <div id="defaultNymphe1" tabindex="-1" aria-hidden="true"
+	 class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4
+		overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
+      <div class="relative w-full max-w-2xl max-h-full">
+        <!-- Modal content -->
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+          <!-- Modal header -->
+          <div class="flex items-start justify-between p-4 border-b rounded-t dark:border-gray-600">
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+	      Nymphe
+            </h3>
+            <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900
+					 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center
+					 dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="defaultNymphe1">
+	      <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
+                   xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0
+					     111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10
+					     11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10
+					     4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+	      </svg>
+	      <span class="sr-only">Close modal</span>
             </button>
           </div>
           <!-- Modal: Bild2 body -->
           <div class="p-6 space-y-6">
             <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
-              <img alt="Oothek" class="mx-auto my-auto max-w-10"
-                src="{{ url_for('static', filename='images/bestimmung/berger-junge-nymphe-ohne-fluegelgross.jpg') }}">
+	      <img alt="Oothek" class="mx-auto my-auto max-w-10"
+                   src="{{ url_for('static', filename='images/bestimmung/berger-junge-nymphe-ohne-fluegelgross.jpg') }}">
             </p>
+	    <p>Sehr junge Nymphe ohne Flügelstummel im Mai/Juni.</p>
           </div>
         </div>
       </div>
     </div>
-
-    <!-- Modal toggle: Bild3 -->
-    <button data-modal-target="defaultBild3" data-modal-toggle="defaultBild3" class="mt-2" type="button">
-      <img alt="Oothek" class="mx-auto my-auto max-w-10"
-        src="{{ url_for('static', filename='images/bestimmung/berger03klein.jpg') }}">
-      Bild 3: Erwachsenes Tier
-    </button>
-
-    <!-- Main modal -->
-    <div id="defaultBild3" tabindex="-1" aria-hidden="true" class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4
+    <!-- Ende Main modal Bild 4-->
+        <!-- Main modal Nymphe 2-->
+    <div id="AdultTier" tabindex="-1" aria-hidden="true"
+	 class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4
 		overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
       <div class="relative w-full max-w-2xl max-h-full">
         <!-- Modal content -->
@@ -116,140 +321,39 @@
           <!-- Modal header -->
           <div class="flex items-start justify-between p-4 border-b rounded-t dark:border-gray-600">
             <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
-              Erwachsenes Tier
+	      Erwachsenes Tier
             </h3>
             <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900
-			   rounded-lg text-sm p-1.5 ml-auto inline-flex items-center
-			   dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="defaultBild3">
-              <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
-                xmlns="http://www.w3.org/2000/svg">
+					 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center
+					 dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="AdultTier">
+	      <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
+                   xmlns="http://www.w3.org/2000/svg">
                 <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0
 					     111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10
 					     11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10
 					     4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-              </svg>
-              <span class="sr-only">Close modal</span>
+	      </svg>
+	      <span class="sr-only">Close modal</span>
             </button>
           </div>
-          <!-- Modal: Bild3 body -->
+          <!-- Modal: Bild2 body -->
           <div class="p-6 space-y-6">
             <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
-              <img alt="Oothek" class="mx-auto my-auto max-w-10"
-                src="{{ url_for('static', filename='images/bestimmung/berger03groesser.jpg') }}">
+	      <img alt="Oothek" class="mx-auto my-auto max-w-10"
+                   src="{{ url_for('static', filename='images/bestimmung/erwachsenes -tier-gross.jpg') }}">
             </p>
+	    <p>Erwachsenes Tier, violett eingefärbt: vollständig ausgebildete (lange) Flügel.</p>
           </div>
         </div>
       </div>
     </div>
+    <!-- Ende Main modal Bild 5-->
+    
 
-
-    <p class="text-center">3)</p>
-    <p> 3a) Beschreibung und Bild mit Markierungen der wichtigen Merkmale: Männchen,
-      Größenangabe, schlank, Fühler (gelb) deutlich länger als Kopf und Halsschild
-      zusammen (ca. ?Fühlerlänge Mänchen? in mm), Fühler an der Basis (am Kopf) dicker
-      nach vorne spitz auslaufend: Männchen [Siehe Bild 4 und 6].
-    </p>
-    <p class="mt-2"> 3b) Beschreibung und Bild mit Markierungen der wichtigen Merkmale:
-      Beschreibung und Bild mit Markierungen der wichtigen Merkmale: Weibchen, Fühler
-      (gelb) kürzer als Kopf und Halsschild zusammen, Vergleich Fühlerlänge (gelb),
-      Halsschild & Kopf (rot) (ca. 12 mm) fadendünn: Weibchen [Siehe Bild 5 und 6]</p>
-
-    <!-- Modal toggle: Bild4 -->
-    <button data-modal-target="defaultBild4" data-modal-toggle="defaultBild4" class="mt-2" type="button">
-      <img alt="Oothek" class="mx-auto my-auto max-w-10"
-        src="{{ url_for('static', filename='images/bestimmung/erwachsenes-weibchenklein.jpg') }}">
-      Bild 4: Weibchen
-    </button>
-
-    <!-- Main modal -->
-    <div id="defaultBild4" tabindex="-1" aria-hidden="true" class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4
-		overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
-      <div class="relative w-full max-w-2xl max-h-full">
-        <!-- Modal content -->
-        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
-          <!-- Modal header -->
-          <div class="flex items-start justify-between p-4 border-b rounded-t dark:border-gray-600">
-            <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
-              Erwachsenes Weibchen
-            </h3>
-            <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900
-			   rounded-lg text-sm p-1.5 ml-auto inline-flex items-center
-			   dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="defaultBild4">
-              <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
-                xmlns="http://www.w3.org/2000/svg">
-                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0
-					     111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10
-					     11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10
-					     4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-              </svg>
-              <span class="sr-only">Close modal</span>
-            </button>
-          </div>
-          <!-- Modal: Bild4 body -->
-          <div class="p-6 space-y-6">
-            <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
-              <img alt="Oothek" class="mx-auto my-auto max-w-10"
-                src="{{ url_for('static', filename='images/bestimmung/erwachsenes-weibchengross.jpg') }}">
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-
-    <!-- Modal toggle: Bild5 -->
-    <button data-modal-target="defaultBild5" data-modal-toggle="defaultBild5" class="mt-2" type="button">
-      <img alt="Oothek" class="mx-auto my-auto max-w-10"
-        src="{{ url_for('static', filename='images/bestimmung/erwachsenes-maennchenklein.jpg') }}">
-      Bild 5: Männchen
-    </button>
-
-    <!-- Main modal -->
-    <div id="defaultBild5" tabindex="-1" aria-hidden="true" class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4
-		overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
-      <div class="relative w-full max-w-2xl max-h-full">
-        <!-- Modal content -->
-        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
-          <!-- Modal header -->
-          <div class="flex items-start justify-between p-4 border-b rounded-t dark:border-gray-600">
-            <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
-              Erwachsenes Männchen
-            </h3>
-            <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900
-			   rounded-lg text-sm p-1.5 ml-auto inline-flex items-center
-			   dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="defaultBild5">
-              <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
-                xmlns="http://www.w3.org/2000/svg">
-                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0
-					     111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10
-					     11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10
-					     4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-              </svg>
-              <span class="sr-only">Close modal</span>
-            </button>
-          </div>
-          <!-- Modal: Bild5 body -->
-          <div class="p-6 space-y-6">
-            <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
-              <img alt="Oothek" class="mx-auto my-auto max-w-10"
-                src="{{ url_for('static', filename='images/bestimmung/erwachsenes-maennchengross.jpg') }}">
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-
-
-    <!-- Modal toggle: Bild6 -->
-    <button data-modal-target="defaultBild6" data-modal-toggle="defaultBild6" class="mt-2" type="button">
-      <img alt="Oothek" class="mx-auto my-auto max-w-10"
-        src="{{ url_for('static', filename='images/bestimmung/paerchenklein.jpg') }}">
-      Bild 6: Pärchen
-    </button>
-
-    <!-- Main modal -->
-    <div id="defaultBild6" tabindex="-1" aria-hidden="true" class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4
+<!------>
+  <!-- Main modal -->
+    <div id="AdultPaerchen" tabindex="-1" aria-hidden="true"
+	 class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4
 		overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
       <div class="relative w-full max-w-2xl max-h-full">
         <!-- Modal content -->
@@ -260,10 +364,10 @@
               Pärchen
             </h3>
             <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900
-			   rounded-lg text-sm p-1.5 ml-auto inline-flex items-center
-			   dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="defaultBild6">
+					 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center
+					 dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="AdultPaerchen">
               <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
-                xmlns="http://www.w3.org/2000/svg">
+                   xmlns="http://www.w3.org/2000/svg">
                 <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0
 					     111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10
 					     11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10
@@ -276,15 +380,89 @@
           <div class="p-6 space-y-6">
             <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
               <img alt="Oothek" class="mx-auto my-auto max-w-10"
-                src="{{ url_for('static', filename='images/bestimmung/paerchengross.jpg') }}">
+                   src="{{ url_for('static', filename='images/bestimmung/paerchengross.jpg') }}">
             </p>
+	    <p>Pärchen bei der Paarung für den Größenvergleich (Körper und Fühler).</p>
+	    <p>Weibchen (grün), Männchen (strohfarben).</p>
+          </div>
+        </div>
+      </div>
+    </div>
+     <!-- Main modal -->
+    <div id="AdultMaennchen" tabindex="-1" aria-hidden="true"
+	 class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4
+		overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
+      <div class="relative w-full max-w-2xl max-h-full">
+        <!-- Modal content -->
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+          <!-- Modal header -->
+          <div class="flex items-start justify-between p-4 border-b rounded-t dark:border-gray-600">
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+              Männchen
+            </h3>
+            <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900
+					 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center
+					 dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="AdultMaennchen">
+              <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
+                   xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0
+					     111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10
+					     11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10
+					     4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+              </svg>
+              <span class="sr-only">Close modal</span>
+            </button>
+          </div>
+          <!-- Modal: Bild5 body -->
+          <div class="p-6 space-y-6">
+            <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
+              <img alt="Oothek" class="mx-auto my-auto max-w-10"
+                   src="{{ url_for('static', filename='images/bestimmung/maennchen-adult-gruengross.jpg') }}">
+            </p>
+	    <p>Männchen (grün)</p>
           </div>
         </div>
       </div>
     </div>
 
+    <!-- Main modal -->
+    <div id="AdultWeibchen" tabindex="-1" aria-hidden="true"
+	 class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4
+		overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
+      <div class="relative w-full max-w-2xl max-h-full">
+        <!-- Modal content -->
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+          <!-- Modal header -->
+          <div class="flex items-start justify-between p-4 border-b rounded-t dark:border-gray-600">
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+              Weibchen
+            </h3>
+            <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900
+					 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center
+					 dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="AdultWeibchen">
+              <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
+                   xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0
+					     111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10
+					     11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10
+					     4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+              </svg>
+              <span class="sr-only">Close modal</span>
+            </button>
+          </div>
+          <!-- Modal: Bild5 body -->
+          <div class="p-6 space-y-6">
+            <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
+              <img alt="Oothek" class="mx-auto my-auto max-w-10"
+                   src="{{ url_for('static', filename='images/bestimmung/erwachsenes-weibchen-gross.jpg') }}">
+            </p>
+	    <p>Weichchen (strohfarben)</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
   </div>
-</div>
-</div>
 </div>
 {% endblock content %}
