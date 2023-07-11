@@ -35,8 +35,8 @@ class MantisSightingForm(FlaskForm):
     picture = FileField("*Bild laden", validators=[
         FileRequired(message='Das Bild ist erforderlich'),
         FileAllowed(ALLOWED_EXTENSIONS, message='Nur Bilder sind zulässig!'),
-        FileSize(max_size=5*1024*1024,
-                 message='Das Bild muss kleiner als 5MB sein')
+        FileSize(max_size=10*1024*1024,
+                 message='Das Bild muss kleiner als 10MB sein')
     ])
     gender = SelectField("Entwicklungsstadium",
                          choices=GENDER_CHOICES,

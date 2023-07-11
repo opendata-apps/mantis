@@ -5,6 +5,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Mantis -- Mitmachprojekt</title>
+  <meta name="description" content="Helfen Sie die Ausbreitung der Gottesanbeterin in der Region zu erforschen.">
+  <meta name="keywords" content="Mantis religiosa L., Mitmachprojekt, melden, Meldung, Projekt, Gottesanbeterin, Potsdam, Naturkundemuseum">
+  <meta itemprop="name" content="Mantis -- Mitmachprojekt">
+  <meta itemprop="keywords" content="Mantis religiosa L., Mitmachprojekt, melden, Meldung, Projekt, Gottesanbeterin, Potsdam, Naturkundemuseum">
   <link rel="stylesheet" href="{{ url_for('static', filename='build/theme.css') }}" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/leaflet.css')}}" />
   <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
@@ -12,6 +16,7 @@
   <script src="{{ url_for('static', filename='js/leaflet.js')}}"></script>
   <script src="https://unpkg.com/esri-leaflet@3.0.10/dist/esri-leaflet.js"></script>
   <script src="https://unpkg.com/esri-leaflet-vector@4.0.2/dist/esri-leaflet-vector.js" crossorigin=""></script>
+  
   <!--Link to local javascript leaflet-->
   {% block head %} {% endblock head %}
 </head>
@@ -39,10 +44,6 @@
               class="mr-5 text-sm font-bold text-white transition-colors duration-300 hover:text-green-400 md:text-base">Melden</a>
             <a href="/auswertungen"
               class="mr-5 text-sm font-bold text-white transition-colors duration-300 hover:text-green-400 md:text-base">Auswertungen</a>
-            <a href="#links"
-              class="mr-5 text-sm font-bold text-white transition-colors duration-300 hover:text-green-400 md:text-base">Mehr...</a>
-          </div>
-
           <div class="flex items-center md:hidden">
             <button class="ml-10 mobile-menu-button">
               <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20"
@@ -81,7 +82,7 @@
               <div class="flex flex-col items-center justify-center w-full">
                 <!-- Change to flex-col and center items -->
                 <h1 class="mb-6 font-bold text-white title md:text-6xl">
-                  {% block title %}{% endblock title %}
+		  {% block title %}{% endblock title %}
                 </h1>
                 {% if request.path in ['/', '/start', '/report'] %}
                 <a href="/report"
@@ -175,7 +176,7 @@
   <footer id="links" class="bg-gray-200 footer ">
     <div class="max-w-5xl px-4 py-4 mx-auto sm:px-6 lg:px-8">
       <div class="flex justify-center text-green-600">
-        <h1 class="text-3xl font-bold">MITMACHPROJEKT</h1>
+        <h2 class="text-3xl font-bold">MITMACHPROJEKT</h2>
       </div>
       <p class="max-w-md mx-auto mt-6 leading-relaxed text-center text-gray-500">
         Die Gottesanbeterin (<i> Mantis religiosa </i>) ist eine faszinierende Insektenart mit einer einzigartigen
