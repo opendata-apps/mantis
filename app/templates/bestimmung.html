@@ -1,12 +1,27 @@
 {% extends "layout.html" %}
-{% block title %}Bestimmung des Geschlechts{% endblock title %}
+{% block title %}Bestimmungschlüssel{% endblock title %}
 
 {% block content %}
 <div class="container p-6 mx-auto lg:flex-row lg:mb-0 lg:max-w-6xl">
-  <p>Hinweis: Bei Klick auf das Vorschaubild erscheint eine vergrößerte Ansicht.<br />
-    Die Farbe des Tieres spielt für die Bestimmung <b>keine</b> Rolle!</p>
+  <section id="meldeformular" class="p-4 mt-8 bg-green-200 rounded-lg shadow-lg pb-2">
+    <div class="flex flex-col items-center justify-between md:flex-row">
+      <div class="mb-4 md:mb-0">
+        <h2 class="mb-2 text-2xl font-bold text-gray-800">Bestimmungsschlüssel</h2>
+        <p class="text-gray-700">
+	  Die Bestimmung erlaubt uns, das Auftreten und die Entwicklung im
+	  Jahresverlauf und in verschiedenen Jahren miteinander zu
+	  vergleichen.	  
+        </p> <br/>
+	<p><b>Hinweis:</b>
+	  Bei Klick auf das Vorschaubild erscheint eine vergrößerte Ansicht.<br />
+	  Die Farbe des Tieres spielt für die Bestimmung <b>keine</b> Rolle!
+	</p>
+      </div>
+    </div>
+  </section>
+  
 
-    <p class="text-center">
+    <p class="text-center mt-3">
       <span class="text-xs font-semibold inline-block py-1 px-2 uppercase
 		   rounded-full text-pink-600 bg-pink-200 uppercase last:mr-0 mr-1">
 	1.
@@ -35,7 +50,7 @@
     besetzt. Fangbeine in Lauerposition unter der stark verlängerten
     Vorderbrust wie zum Gebet gehalten. Dreieckiger, sehr wendiger
     Kopf. Färbung grün, gelblich bis dunkelbraun
-    <br/>&rArr; Nymphe oder Vollinsekt, gehe zu 2
+    <br/>&rArr; Nymphe oder Vollinsekt, &rArr; gehe zu 2
   </p>
   <div>
 
@@ -83,7 +98,7 @@
        Flügel vollständig ausgebildet, reichen bis zum
        Hinterleibsende oder darüber hinaus (im Bild violett
        eingefärbt).
-      <br/>&rArr; Erwachsenes Tier, gehe zu 3 [Siehe Bild 5].
+      <br/>&rArr; Erwachsenes Tier &rArr;gehe zu 3 [Siehe Bild 5].
     </p>
     <!-- Modal Nymphe 1-->
     <button data-modal-target="defaultNymphe1" data-modal-toggle="defaultNymphe1" class="mt-2" type="button">
@@ -128,6 +143,14 @@
       als die Vorderbrust (im Bild rot markiert). Fühler über die
       gesamte Länge zwirndünn. [Siehe Bild 6 und 8]
       <br/>&rArr;Weibchen
+    </p>
+
+    <p class="mt-2">
+      <span class="text-xs font-semibold inline-block py-1 px-2 uppercase
+		   rounded-full text-pink-600 bg-pink-200 uppercase last:mr-0 mr-1">
+	3c
+      </span>
+      Ich bin mir nicht sicher... &rArr; gehe zu 4.
     </p>
     <!-- Modal toggle: Bild4 -->
     <button data-modal-target="AdultPaerchen" data-modal-toggle="AdultPaerchen" class="mt-2" type="button">
