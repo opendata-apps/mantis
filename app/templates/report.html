@@ -4,7 +4,7 @@
 {% block head %}
 <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
 {% endblock %}
-{% block title %}Report{% endblock %}
+{% block title %}Fund melden{% endblock %}
 {% block content %}
 {% with messages = get_flashed_messages() %}
 {% if messages %}
@@ -24,8 +24,7 @@
       <div class="grid grid-cols-2 gap-2 mt-2">
         <div>
           <a href="/report"
-            class="inline-flex justify-center w-full px-2 py-1.5 text-xs font-medium text-center text-white bg-green-600 rounded-lg hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-blue-300 ">Report
-            Mantis</a>
+            class="inline-flex justify-center w-full px-2 py-1.5 text-xs font-medium text-center text-white bg-green-600 rounded-lg hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-blue-300 ">Report  Mantis</a>
         </div>
         <div>
           <button onclick="copyToClipboard('{{ message.usrid }}')" title="Copy User ID"

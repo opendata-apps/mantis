@@ -14,8 +14,8 @@
   <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
   <script src="{{ url_for('static', filename='js/flow/flowbite.min.js')}}"></script>
   <script src="{{ url_for('static', filename='js/leaflet.js')}}"></script>
-  <script src="https://unpkg.com/esri-leaflet@3.0.10/dist/esri-leaflet.js"></script>
-  <script src="https://unpkg.com/esri-leaflet-vector@4.0.2/dist/esri-leaflet-vector.js" crossorigin=""></script>
+  <!--script src="https://unpkg.com/esri-leaflet@3.0.10/dist/esri-leaflet.js"></script>
+  <script src="https://unpkg.com/esri-leaflet-vector@4.0.2/dist/esri-leaflet-vector.js" crossorigin=""></script-->
   
   <!--Link to local javascript leaflet-->
   {% block head %} {% endblock head %}
@@ -32,7 +32,7 @@
         <div class="container flex items-center justify-between px-4 py-3 mx-auto">
           <a href="/start" class="flex items-center font-extrabold text-white">
             <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Mantis Projekt Logo"
-              class="h-6 mr-2 sm:h-9" />
+              class="h-20 mr-2" />
             <span class="text-2xl">Mitmachprojekt</span>
           </a>
           <div class="items-center hidden md:flex">
@@ -84,7 +84,7 @@
                 <h1 class="mb-6 font-bold text-white title md:text-6xl">
 		  {% block title %}{% endblock title %}
                 </h1>
-                {% if request.path in ['/', '/start', '/report'] %}
+                {% if request.path in ['/', '/start'] %}
                 <a href="/report"
                   class="relative px-10 py-3 overflow-hidden font-medium text-white transition-all transition duration-300 ease-out bg-green-600 rounded-md group hover:bg-gradient-to-r hover:from-green-600 hover:to-green-500 hover:ring-2 hover:ring-offset-2 hover:ring-green-500">
                   <span class="absolute bottom-0 left-0 h-full -ml-2">
