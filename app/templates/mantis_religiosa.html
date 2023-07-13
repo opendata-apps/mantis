@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% block title %}<i> Mantis religiosa </i>{% endblock title %}
+{% block title %}<i> Mantis religiosa </i><br/> <span class="text-base">(ein geschütztes Tier)</span>{% endblock title %}
 
 {% block content %}
 <main class="container px-4 py-12 mx-auto sm:px-6 lg:px-8">
@@ -22,8 +22,11 @@
     </aside>
     <article class="order-1 md:col-span-3 md:order-2">
       <div class="p-8 bg-white rounded-lg shadow-lg">
-        <h1 class="mb-4 text-3xl font-bold">Die faszinierende Welt der <a href="https://en.wikipedia.org/wiki/Mantis"
-            target="_blank">Gottesanbeterin</a></h1>
+        <h1 class="mb-4 text-3xl font-bold">
+	  Die faszinierende Welt der
+	  <a href="https://de.wikipedia.org/wiki/Mantis"
+	     target="_blank">Gottesanbeterin</a>
+	</h1>
         <img class="mb-4 rounded" src="{{ url_for('static', filename='images/mantis--maennchen__krueger.webp') }}"
              alt="Profile of Mantis religiosa">
 	<p>Bildquelle: Krüger B. 2012</p> 
