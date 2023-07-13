@@ -180,8 +180,10 @@ def autocomplete():
 @data.route('/auswertungen')
 def show_map():
     # Fetch the reports data from the database where dat_bear is not null in TblMeldungen
+    # TblMeldungen, TblMeldungen.fo_zuordnung == TblFundorte.id).filter(TblMeldungen.dat_bear != None).all()
+    # Im Testmodus alle Meldungen anzeigen
     reports = TblFundorte.query.join(
-        TblMeldungen, TblMeldungen.fo_zuordnung == TblFundorte.id).filter(TblMeldungen.dat_bear != None).all()
+        TblMeldungen, TblMeldungen.fo_zuordnung == TblFundorte.id).all()
     # Serialize the reports data as a JSON object
     koords = []
     for report in reports:
