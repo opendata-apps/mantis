@@ -30,6 +30,7 @@ def create_app(config_class=Config):
     csrf.exempt(main)
     csrf.exempt(admin)
     csrf.exempt(review)
+    # csrf.exempt(data)
 
     app.register_blueprint(main)
     app.register_blueprint(admin)

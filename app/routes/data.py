@@ -5,6 +5,8 @@ from PIL import Image
 from flask import Blueprint, flash, jsonify, redirect, render_template, request, url_for
 from sqlalchemy import or_
 from werkzeug.utils import secure_filename
+from werkzeug.datastructures import MultiDict
+from werkzeug.datastructures import CombinedMultiDict
 
 from app import db
 from app.database.models import TblFundortBeschreibung, TblFundorte, TblMeldungUser, TblMeldungen, TblPlzOrt, TblUsers
@@ -12,6 +14,7 @@ from app.forms import MantisSightingForm
 from app.tools.gen_user_id import get_new_id
 import os
 import json
+
 
 # Blueprints
 data = Blueprint('data', __name__)
@@ -175,6 +178,19 @@ def autocomplete():
         })
 
     return jsonify(suggestions)
+
+
+@data.route('/validate', methods=['POST'])
+def validate():
+    form_data = CombinedMultiDict(
+        (request.form, request.files))  # type: ignore
+    form = MantisSightingForm(form_data)
+
+    if form.validate():
+        return jsonify({'success': True})
+    else:
+        print(form.errors)
+        return jsonify({'errors': form.errors}), 400
 
 
 @data.route('/auswertungen')
