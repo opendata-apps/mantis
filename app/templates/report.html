@@ -29,8 +29,8 @@
             Mantis</a>
         </div>
         <div>
-          <button onclick="copyToClipboard('{{ message.usrid }}')" title="Copy User ID"
-            class="inline-flex justify-center w-full px-2 py-1.5 text-xs font-medium text-center text-gray-900 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 ">Copy
+          <button onclick="copyToClipboard('{{ message.usrid }}', this)" title="Copy User ID"
+            class="copy-btn inline-flex justify-center w-full px-2 py-1.5 text-xs font-medium text-center text-gray-900 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 ">Copy
             ID (URL)</button>
         </div>
       </div>
@@ -51,9 +51,11 @@
 {% endfor %}
 {% endif %}
 {% endwith %}
+
 <div class="flex items-center min-h-screen bg-gray-100">
-  <div class="w-full max-w-4xl p-6 mx-auto bg-white rounded-lg shadow-xl">
-    <form action="" method="POST" enctype="multipart/form-data" id="mainForm" data-current-step="0">
+  <div class="w-full p-4 mx-auto max-w-7xl">
+    <form action="" method="POST" enctype="multipart/form-data" id="mainForm" data-current-step="0"
+      class="p-8 transition-all duration-500 bg-white shadow-xl rounded-2xl">
       {{ form.hidden_tag() }}
       <!-- Step 1: Bild-Upload -->
       <div id="step1" class="step" data-step-index="0">
@@ -67,25 +69,27 @@
           </div>
           <div class="flex items-center justify-center w-full">
             <label for="{{ form.picture.id }}"
-              class="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600">
-              <div id="imagePreview" class="flex-col items-center justify-center hidden w-full h-64 overflow-hidden">
-                <img id="previewImage" class="object-scale-down w-full h-full" src="#" alt="Preview">
+              class="flex flex-col items-center justify-center w-full h-64 transition-all duration-500 ease-in-out border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500">
+              <div id="imagePreview"
+                class="flex-col items-center justify-center hidden w-full h-64 overflow-hidden transition-all duration-500 ease-in-out fade-in">
+                <img id="previewImage" class="object-scale-down w-full h-full" src="#"
+                  alt="Preview image of the mantis">
               </div>
-              <div id="uploadText" class="flex flex-col items-center justify-center pt-5 pb-6">
-                <svg aria-hidden="true" class="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor"
-                  viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <div id="uploadText"
+                class="flex flex-col items-center justify-center pt-5 pb-6 transition-all duration-500 ease-in-out">
+                <svg aria-hidden="true" class="w-10 h-10 mb-3 text-gray-400 animate-bounce" fill="none"
+                  stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                 </svg>
-                <p class="mb-2 text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold">Klick, um Bild zu
-                    laden ...</span></p>
-                <p class="text-xs text-gray-500 dark:text-gray-400"> PNG JPG JPEG oder WEBP (MAX. 800x400px)</p>
+                <p class="mb-2 text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold">Click to upload
+                    image...</span></p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">PNG, JPG, JPEG or WEBP (Max. 800x400px)</p>
               </div>
               {{ form.picture(class="hidden", id=form.picture.id, accept="image/*") }}
             </label>
           </div>
         </div>
-
         <div class="grid grid-cols-2 gap-4 mb-4">
           <div>
             <label for="{{ form.longitude.id }}" class="block text-sm font-semibold text-gray-600">
@@ -127,7 +131,6 @@
           {{ formButton('step1Next', 'Next') }}
         </div>
       </div>
-
 
       <!-- Step 2: Beschreibung Ort und Fund -->
       <div id="step2" class="hidden step" data-step-index="1">
@@ -184,11 +187,9 @@
                     oder das Entwicklungsstadium zu bestimmen?
                     Die Merkmale für die Bestimmung sind auf
                     folgender Seite genau beschrieben:
-
                     <a class="block pb-2 text-sm font-semibold text-blue-600 hover:text-blueGray-800" href="/bestimmung"
                       target="_blank">
                       Link: Hilfe zur Bestimmung <br />(öffnet neuen Tab)</a>
-
                     In jedem Fall werden sie nach einer Bewertung
                     durch Fackleute über das Ergebnis informiert.
                     <br />
@@ -197,8 +198,9 @@
                 </div>
               </div>
               <div class="relative">
-                {{ form.gender(class="w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1
-                focus:ring-green-500") }}
+                {{ form.gender(class="block w-full px-4 py-2 mt-2 text-base text-gray-700 transition-colors bg-white
+                rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent
+                hover:bg-gray-200") }}
               </div>
             </label>
           </div>
@@ -353,6 +355,8 @@
           {{ formButton('step3Next', 'Next') }}
         </div>
       </div>
+
+      <!-- Step 4: Zusammenfassung -->
       <div id="step4" class="hidden">
         <h2 class="mb-4 text-3xl font-semibold text-gray-800">Zusammenfassung</h2>
         <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -381,8 +385,7 @@
           <li><strong class="text-gray-800">Entwicklungsstadium:</strong> <span id="summaryGender"></span></li>
           <li><strong class="text-gray-800">Ortsbeschreibung:</strong> <span id="summaryLocationDescription"></span>
           </li>
-          <li><strong class="text-gray-800">Bildbeschreibung:</strong> <span id="summaryPictureDescription"></span>
-          </li>
+          <li><strong class="text-gray-800">Bildbeschreibung:</strong> <span id="summaryPictureDescription"></span></li>
         </ul>
         <h3 class="mt-8 text-lg font-semibold text-gray-800">Person</h3>
         <ul class="text-lg list-disc list-inside">
@@ -395,6 +398,10 @@
           {{ formButton('step4Prev', 'Prev') }}
           <form id="myForm">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div style="display: none;">
+              <label>Please leave this field empty</label>
+              <input type="text" id="text" name="tt" />
+            </div>
             <button id="submitBtn" type="submit"
               class="relative px-6 py-2 text-sm font-medium text-white transition duration-300 bg-green-400 rounded-md hover:bg-green-500 ease">
               <span class="absolute bottom-0 left-0 h-full -ml-2">
@@ -417,6 +424,7 @@
           </form>
         </div>
       </div>
+
   </div>
 
   <script>
@@ -654,7 +662,11 @@
       console.log('Errors:', errors);
       // Clear any existing error messages
       const errorElements = document.querySelectorAll('.form-error');
-      errorElements.forEach(el => el.remove());
+      errorElements.forEach(el => {
+        // Remove error styling from field
+        el.previousElementSibling.classList.remove('error-field');
+        el.remove();
+      });
 
       let currentStepErrors = [];  // to keep track of errors in the current step
 
@@ -663,10 +675,13 @@
         const fieldErrors = errors[fieldName];
         const field = document.querySelector(`[name="${fieldName}"]`);
         if (field && field.closest('.step') && parseInt(field.closest('.step').dataset.stepIndex) === currentStepIndex) {
+          // Add error styling to field
+          field.classList.add('error-field');
+
           const errorContainer = document.createElement('div');
           errorContainer.classList.add('form-error');
           errorContainer.textContent = fieldErrors.join(', ');
-          field.parentElement.appendChild(errorContainer);
+          field.parentElement.insertBefore(errorContainer, field.nextSibling);
           currentStepErrors.push(fieldName);  // add to the list of current step errors
         }
       }
@@ -889,7 +904,7 @@
     // Initially update the summary
     document.addEventListener('DOMContentLoaded', updateSummary);
 
-    function copyToClipboard(id) {
+    function copyToClipboard(id, el) {
       if (id) {
         var tempInput = document.createElement("input");
         tempInput.value = id;
@@ -898,11 +913,16 @@
         document.execCommand("copy");
         document.body.removeChild(tempInput);
         // Show a success toast or something
+        el.innerText = 'Copied!';
+        setTimeout(function () {
+          el.innerText = 'Copy ID (URL)';
+        }, 2000);
       }
       else {
         console.error("No ID provided: " + id);
       }
     }
+
   </script>
 </div>
 </div>

@@ -3,7 +3,15 @@
 @tailwind utilities;
 
 .input-field {
-  @apply block w-full p-2 mt-1 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500;
+  @apply block w-full px-4 py-2 mt-2 text-base text-gray-700 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200 transition-colors;
+}
+
+.error-field {
+  @apply border-red-500 bg-red-100 focus:ring-red-500;
+}
+
+.form-error {
+  @apply text-red-500 mt-2;
 }
 
 .sticky-nav {
@@ -79,4 +87,18 @@ html {
       transform: translateX(0);
     }
   }
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.fade-in {
+  animation-name: fade-in;
+  animation-duration: 1s;
 }
