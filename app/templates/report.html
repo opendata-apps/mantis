@@ -632,7 +632,7 @@
         body: formData
       })
         .then(response => {
-          if (!response.ok && response.status !== 400) {
+          if (!response.ok && response.status !== 333) {
             throw new Error(`HTTP error! status: ${response.status}`);
           }
           return response.json();

@@ -190,7 +190,7 @@ def validate():
         return jsonify({'success': True})
     else:
         print(form.errors)
-        return jsonify({'errors': form.errors}), 400
+        return jsonify({'errors': form.errors}), 333
 
 
 @data.route('/auswertungen')
