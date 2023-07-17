@@ -13,7 +13,5 @@ class Config:
     host = ""
     port = 25
     tls = True
-    username = ""
-    password = ""
-    sender = ""
-    to = ""
+    sender_email = ""
+    sender_pass = ""

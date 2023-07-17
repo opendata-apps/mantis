@@ -2,19 +2,24 @@ from datetime import datetime
 from pathlib import Path
 from PIL import Image
 
-from flask import Blueprint, flash, jsonify, redirect, render_template, request, url_for
+from flask import Blueprint, flash, jsonify, redirect
+from flask import render_template, request, url_for
 from sqlalchemy import or_
 from werkzeug.utils import secure_filename
-from werkzeug.datastructures import MultiDict
 from werkzeug.datastructures import CombinedMultiDict
 
 from app import db
-from app.database.models import TblFundortBeschreibung, TblFundorte, TblMeldungUser, TblMeldungen, TblPlzOrt, TblUsers
+from app.database.models import TblFundortBeschreibung
+from app.database.models import TblFundorte, TblMeldungUser
+from app.database.models import TblMeldungen, TblPlzOrt, TblUsers
 from app.forms import MantisSightingForm
 from app.tools.gen_user_id import get_new_id
 import os
 import json
 
+from app.tools.send_email import send_email
+from app.tools.fundmeldung import text
+from app.tools.fundmeldung import html
 
 # Blueprints
 data = Blueprint('data', __name__)
@@ -32,7 +37,9 @@ def _create_directory(date):
 
 def _create_filename(location, usrid):
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    return '{}-{}-{}.webp'.format(secure_filename(location), timestamp, secure_filename(usrid))
+    return '{}-{}-{}.webp'.format(secure_filename(location),
+                                  timestamp,
+                                  secure_filename(usrid))
 
 
 def _allowed_file(filename):
@@ -121,20 +128,33 @@ def report(usrid=None):
 
         bildpfad = _handle_file_upload(request, form, usrid)
 
-        new_fundort = TblFundorte(plz=form.zip_code.data, ort=form.city.data, strasse=form.street.data,
-                                  kreis=form.district.data, land=form.state.data, longitude=form.longitude.data,
-                                  latitude=form.latitude.data, beschreibung=new_fundort_beschreibung.id, ablage=bildpfad)
+        new_fundort = TblFundorte(plz=form.zip_code.data,
+                                  ort=form.city.data,
+                                  strasse=form.street.data,
+                                  kreis=form.district.data,
+                                  land=form.state.data,
+                                  longitude=form.longitude.data,
+                                  latitude=form.latitude.data,
+                                  beschreibung=new_fundort_beschreibung.id,
+                                  ablage=bildpfad)
         db.session.add(new_fundort)
         db.session.flush()
 
         genders = _set_gender_fields(form.gender.data)
 
-        new_meldung = TblMeldungen(dat_fund_von=form.sighting_date.data, dat_fund_bis=form.sighting_date.data,
-                                   dat_meld=datetime.now(), fo_zuordnung=new_fundort.id, fo_quelle="F", **genders, anm_melder=form.picture_description.data)
+        new_meldung = TblMeldungen(dat_fund_von=form.sighting_date.data,
+                                   dat_fund_bis=form.sighting_date.data,
+                                   dat_meld=datetime.now(),
+                                   fo_zuordnung=new_fundort.id,
+                                   fo_quelle="F",
+                                   **genders,
+                                   anm_melder=form.picture_description.data)
         db.session.add(new_meldung)
         db.session.flush()
 
-        updated_user = _update_or_create_user(usrid, form.report_last_name.data, form.report_first_name.data,
+        updated_user = _update_or_create_user(usrid,
+                                              form.report_last_name.data,
+                                              form.report_first_name.data,
                                               form.contact.data)
 
         new_meldung_user = TblMeldungUser(
@@ -144,16 +164,22 @@ def report(usrid=None):
 
         flash({
             'title': 'Vielen Dank für Ihre Meldung!',
-            'message': 'Um weitere Meldungen zu machen, speichern Sie bitte die folgende ID:',
+            'message': 'Um weitere Meldungen zu machen, \
+                        speichern Sie bitte die folgende ID:',
             'usrid': url_for('data.report', usrid=usrid, _external=True),
         })
+        addresse = form.contact.data
+        if addresse:
+            meldebestaetigung(to=addresse)
 
         return redirect(url_for('data.report', usrid=usrid))
 
     print(form.errors)
     if existing_user is not None:
         existing_user = _user_to_dict(existing_user)
-    return render_template('report.html', form=form, existing_user=existing_user)
+    return render_template('report.html',
+                           form=form,
+                           existing_user=existing_user)
 
 
 @data.route('/autocomplete', methods=['GET'])
@@ -195,8 +221,10 @@ def validate():
 
 @data.route('/auswertungen')
 def show_map():
-    # Fetch the reports data from the database where dat_bear is not null in TblMeldungen
-    # TblMeldungen, TblMeldungen.fo_zuordnung == TblFundorte.id).filter(TblMeldungen.dat_bear != None).all()
+    # Fetch the reports data from the database where dat_bear
+    # is not null in TblMeldungen
+    # TblMeldungen, TblMeldungen.fo_zuordnung == \
+    # TblFundorte.id).filter(TblMeldungen.dat_bear != None).all()
     # Im Testmodus alle Meldungen anzeigen
     reports = TblFundorte.query.join(
         TblMeldungen, TblMeldungen.fo_zuordnung == TblFundorte.id).all()
@@ -219,3 +247,12 @@ def show_map():
 def statistics():
     mantis_count = TblMeldungen.query.count()
     return render_template('statistics.html', mantis_count=mantis_count)
+
+
+def meldebestaetigung(to="test@example.com"):
+    "Send plain-text and HTML email as message"
+
+    subject = "Meldebestätigung"
+    to = to
+    send_email(subject, text, html, to)
+    return "Abgeschickt"
