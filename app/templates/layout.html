@@ -6,17 +6,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Mantis -- Mitmachprojekt</title>
   <meta name="description" content="Helfen Sie die Ausbreitung der Gottesanbeterin in der Region zu erforschen.">
-  <meta name="keywords" content="Mantis religiosa L., Mitmachprojekt, melden, Meldung, Projekt, Gottesanbeterin, Potsdam, Naturkundemuseum">
+  <meta name="keywords"
+    content="Mantis religiosa L., Mitmachprojekt, melden, Meldung, Projekt, Gottesanbeterin, Potsdam, Naturkundemuseum">
   <meta itemprop="name" content="Mantis -- Mitmachprojekt">
-  <meta itemprop="keywords" content="Mantis religiosa L., Mitmachprojekt, melden, Meldung, Projekt, Gottesanbeterin, Potsdam, Naturkundemuseum">
+  <meta itemprop="keywords"
+    content="Mantis religiosa L., Mitmachprojekt, melden, Meldung, Projekt, Gottesanbeterin, Potsdam, Naturkundemuseum">
   <link rel="stylesheet" href="{{ url_for('static', filename='build/theme.css') }}" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/leaflet.css')}}" />
   <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
   <script src="{{ url_for('static', filename='js/flow/flowbite.min.js')}}"></script>
   <script src="{{ url_for('static', filename='js/leaflet.js')}}"></script>
-  <!--script src="https://unpkg.com/esri-leaflet@3.0.10/dist/esri-leaflet.js"></script>
-  <script src="https://unpkg.com/esri-leaflet-vector@4.0.2/dist/esri-leaflet-vector.js" crossorigin=""></script-->
-  
+  <script src="https://unpkg.com/esri-leaflet@3.0.10/dist/esri-leaflet.js"></script>
+  <script src="https://unpkg.com/esri-leaflet-vector@4.0.2/dist/esri-leaflet-vector.js" crossorigin=""></script>
+
   <!--Link to local javascript leaflet-->
   {% block head %} {% endblock head %}
 </head>
@@ -44,32 +46,32 @@
               class="mr-5 text-sm font-bold text-white transition-colors duration-300 hover:text-green-400 md:text-base">Melden</a>
             <a href="/auswertungen"
               class="mr-5 text-sm font-bold text-white transition-colors duration-300 hover:text-green-400 md:text-base">Auswertungen</a>
-          <div class="flex items-center md:hidden">
-            <button class="ml-10 mobile-menu-button">
-              <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20"
-                xmlns="http://www.w3.org/2000/svg">
-                <path fill-rule="evenodd" clip-rule="evenodd"
-                  d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" />
-              </svg>
-            </button>
+            <div class="flex items-center md:hidden">
+              <button class="ml-10 mobile-menu-button">
+                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20"
+                  xmlns="http://www.w3.org/2000/svg">
+                  <path fill-rule="evenodd" clip-rule="evenodd"
+                    d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" />
+                </svg>
+              </button>
+            </div>
           </div>
-        </div>
-        <div class="hidden bg-green-700 rounded-lg mobile-menu md:hidden">
-          <div class="flex flex-col items-center justify-end">
-            <a href="/"
-              class="w-full py-4 font-medium text-center text-white transition bg-opacity-50 rounded-lg hover:bg-green-500">Start</a>
-            <a href="/info"
-              class="w-full py-4 font-medium text-center text-white transition bg-opacity-50 rounded-lg hover:bg-green-500">Infos</a>
-            <a href="/projekt"
-              class="w-full py-4 font-medium text-center text-white transition bg-opacity-50 rounded-lg hover:bg-green-500">Projekt</a>
-            <a href="/report"
-              class="w-full py-4 font-medium text-center text-white transition bg-opacity-50 rounded-lg hover:bg-green-500">Melden</a>
-            <a href="/auswertungen"
-              class="w-full py-4 font-medium text-center text-white transition bg-opacity-50 rounded-lg hover:bg-green-500">Auswertungen</a>
-            <a href="#links"
-              class="w-full py-4 font-medium text-center text-white transition bg-opacity-50 rounded-lg hover:bg-green-500">Mehr...</a>
+          <div class="hidden bg-green-700 rounded-lg mobile-menu md:hidden">
+            <div class="flex flex-col items-center justify-end">
+              <a href="/"
+                class="w-full py-4 font-medium text-center text-white transition bg-opacity-50 rounded-lg hover:bg-green-500">Start</a>
+              <a href="/info"
+                class="w-full py-4 font-medium text-center text-white transition bg-opacity-50 rounded-lg hover:bg-green-500">Infos</a>
+              <a href="/projekt"
+                class="w-full py-4 font-medium text-center text-white transition bg-opacity-50 rounded-lg hover:bg-green-500">Projekt</a>
+              <a href="/report"
+                class="w-full py-4 font-medium text-center text-white transition bg-opacity-50 rounded-lg hover:bg-green-500">Melden</a>
+              <a href="/auswertungen"
+                class="w-full py-4 font-medium text-center text-white transition bg-opacity-50 rounded-lg hover:bg-green-500">Auswertungen</a>
+              <a href="#links"
+                class="w-full py-4 font-medium text-center text-white transition bg-opacity-50 rounded-lg hover:bg-green-500">Mehr...</a>
+            </div>
           </div>
-        </div>
       </nav>
       <!-- Navbar End -->
       <!-- Content Start -->
@@ -82,7 +84,7 @@
               <div class="flex flex-col items-center justify-center w-full">
                 <!-- Change to flex-col and center items -->
                 <h1 class="mb-6 font-bold text-white title md:text-6xl">
-		  {% block title %}{% endblock title %}
+                  {% block title %}{% endblock title %}
                 </h1>
                 {% if request.path in ['/', '/start'] %}
                 <a href="/report"
