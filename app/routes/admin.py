@@ -5,15 +5,19 @@ import json
 from app.database.models import TblMeldungen, TblFundortBeschreibung, TblFundorte, TblMeldungUser, TblPlzOrt, TblUsers
 from datetime import datetime
 from app.forms import MantisSightingForm
-from sqlalchemy import or_
+from sqlalchemy import or_, MetaData
 from flask import render_template_string
 from sqlalchemy import inspect, text
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, joinedload
 import csv
 from flask import Response, redirect, url_for
 from io import StringIO, BytesIO
 import os
-
+import pandas as pd
+from io import BytesIO
+from flask import send_file
+from sqlalchemy import Table, create_engine
+from flask import abort
 
 # Blueprints
 admin = Blueprint('admin', __name__)
@@ -252,35 +256,63 @@ def get_table_data(table_name):
     return jsonify(data)
 
 
-@admin.route('/admin/export/csv/reported_sightings')
-def export_sightings():
-    # Get the table object from the database
-    table = TblMeldungen.__table__
+# Define a function to convert a row to a dictionary
+def row2dict(row):
+    d = {}
+    for item in row:
+        for column in item.__table__.columns:
+            d[column.name] = str(getattr(item, column.name))
 
-    if table is None:
-        return jsonify({'error': 'Table not found'})
+    return d
 
-    # Execute a select statement on the table
-    result = db.session.execute(table.select())
+# Generalize the export function
+@admin.route('/admin/export/xlsx/<string:value>')
+def export_data(value):
+    # Create a session
+    Session = sessionmaker(bind=db.engine)
+    session = Session()
+    
+    if value == 'all':
+        # Perform the query and join tables
+        data = session.query(
+            TblMeldungen,
+            TblFundorte,
+            TblFundortBeschreibung,
+            TblMeldungUser,
+            TblUsers
+        ).join(
+            TblFundorte, TblMeldungen.fo_zuordnung == TblFundorte.id
+        ).join(
+            TblFundortBeschreibung, TblFundorte.beschreibung == TblFundortBeschreibung.id
+        ).join(
+            TblMeldungUser, TblMeldungen.id == TblMeldungUser.id_meldung
+        ).join(
+            TblUsers, TblMeldungUser.id_user == TblUsers.id
+        ).all()
 
-    # Get the names of the columns
-    column_names = result.keys()
+        # Convert each row to a dictionary
+        data_dicts = [row2dict(row) for row in data]
 
-    # Create an in-memory text stream
-    si = StringIO()
+        df = pd.DataFrame(data_dicts)
+        filename = 'all_data.xlsx'
+    elif value == 'accepted':
+        data = session.query(TblMeldungen).filter(TblMeldungen.dat_bear.isnot(None)).all()
+        df = pd.DataFrame([x.__dict__ for x in data])
+        filename = 'accepted_reports.xlsx'
+    elif value == 'non_accepted':
+        data = session.query(TblMeldungen).filter(TblMeldungen.dat_bear.is_(None)).all()
+        df = pd.DataFrame([x.__dict__ for x in data])
+        filename = 'non_accepted_reports.xlsx'
+    else:
+        abort(404, description="Resource not found")
 
-    # Create a CSV writer
-    writer = csv.writer(si)
+    # Write the DataFrame to an Excel file
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        df.to_excel(writer, sheet_name='Data', index=False)
 
-    # Write column names
-    writer.writerow(column_names)
+    # Reset the file pointer to the beginning
+    output.seek(0)
 
-    # Write data rows
-    for row in result:
-        writer.writerow(row)
-
-    # Set the position of the stream to the beginning
-    si.seek(0)
-
-    # Return the CSV data as a response
-    return Response(si, mimetype='text/csv', headers={"Content-Disposition": "attachment; filename=data.csv"})
+    # Send the file
+    return send_file(output, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', as_attachment=True, download_name=filename)
