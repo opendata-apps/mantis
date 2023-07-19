@@ -265,46 +265,54 @@ def row2dict(row):
 
     return d
 
-# Generalize the export function
-@admin.route('/admin/export/xlsx/<string:value>')
-def export_data(value):
+# Function to perform the query
+def perform_query(filter_value=None):
     # Create a session
     Session = sessionmaker(bind=db.engine)
     session = Session()
-    
+
+    query = session.query(
+        TblMeldungen,
+        TblFundorte,
+        TblFundortBeschreibung,
+        TblMeldungUser,
+        TblUsers
+    ).join(
+        TblFundorte, TblMeldungen.fo_zuordnung == TblFundorte.id
+    ).join(
+        TblFundortBeschreibung, TblFundorte.beschreibung == TblFundortBeschreibung.id
+    ).join(
+        TblMeldungUser, TblMeldungen.id == TblMeldungUser.id_meldung
+    ).join(
+        TblUsers, TblMeldungUser.id_user == TblUsers.id
+    )
+
+    # Apply the filter if necessary
+    if filter_value is not None:
+        if filter_value:
+            query = query.filter(TblMeldungen.dat_bear.isnot(None))  # rows where dat_bear is not null
+        else:
+            query = query.filter(TblMeldungen.dat_bear.is_(None))  # rows where dat_bear is null
+        
+    return query.all()
+
+# Route
+@admin.route('/admin/export/xlsx/<string:value>')
+def export_data(value):
     if value == 'all':
-        # Perform the query and join tables
-        data = session.query(
-            TblMeldungen,
-            TblFundorte,
-            TblFundortBeschreibung,
-            TblMeldungUser,
-            TblUsers
-        ).join(
-            TblFundorte, TblMeldungen.fo_zuordnung == TblFundorte.id
-        ).join(
-            TblFundortBeschreibung, TblFundorte.beschreibung == TblFundortBeschreibung.id
-        ).join(
-            TblMeldungUser, TblMeldungen.id == TblMeldungUser.id_meldung
-        ).join(
-            TblUsers, TblMeldungUser.id_user == TblUsers.id
-        ).all()
-
-        # Convert each row to a dictionary
-        data_dicts = [row2dict(row) for row in data]
-
-        df = pd.DataFrame(data_dicts)
+        data = perform_query()
         filename = 'all_data.xlsx'
     elif value == 'accepted':
-        data = session.query(TblMeldungen).filter(TblMeldungen.dat_bear.isnot(None)).all()
-        df = pd.DataFrame([x.__dict__ for x in data])
+        data = perform_query(filter_value=True)
         filename = 'accepted_reports.xlsx'
     elif value == 'non_accepted':
-        data = session.query(TblMeldungen).filter(TblMeldungen.dat_bear.is_(None)).all()
-        df = pd.DataFrame([x.__dict__ for x in data])
+        data = perform_query(filter_value=False)
         filename = 'non_accepted_reports.xlsx'
     else:
         abort(404, description="Resource not found")
+
+    data_dicts = [row2dict(row) for row in data]
+    df = pd.DataFrame(data_dicts)
 
     # Write the DataFrame to an Excel file
     output = BytesIO()
