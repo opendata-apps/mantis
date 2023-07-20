@@ -30,8 +30,8 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 
 def _create_directory(date):
-    dir_path = os.path.join(UPLOAD_FOLDER, date)
-    Path(dir_path).mkdir(parents=True, exist_ok=True)
+    dir_path = Path(UPLOAD_FOLDER) / date
+    dir_path.mkdir(parents=True, exist_ok=True)
     return dir_path
 
 
@@ -76,13 +76,14 @@ def _handle_file_upload(request, form, usrid):
     date_folder = _create_directory(
         form.sighting_date.data.strftime('%Y-%m-%d'))
     filename = _create_filename(form.city.data, usrid)
-    full_file_path = os.path.join(date_folder, filename)
+    full_file_path = date_folder / filename
 
     # Convert image to webp and save
     img = Image.open(file)
-    img.save(full_file_path, 'WEBP')
+    img.save(str(full_file_path), 'WEBP')
 
-    return full_file_path
+    # return the path as string with forward slashes
+    return str(full_file_path.as_posix())
 
 
 def _set_gender_fields(selected_gender):
@@ -168,9 +169,9 @@ def report(usrid=None):
                         speichern Sie bitte die folgende ID:',
             'usrid': url_for('data.report', usrid=usrid, _external=True),
         })
-        addresse = form.contact.data
-        if addresse:
-            meldebestaetigung(to=addresse)
+        # addresse = form.contact.data
+        # if addresse:
+        #    meldebestaetigung(to=addresse)
 
         return redirect(url_for('data.report', usrid=usrid))
 
