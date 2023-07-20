@@ -65,6 +65,10 @@ GRANT ALL PRIVILEGES ON DATABASE mantis_tracker TO mantis_user;
 ### Step 5: 🔄 ONLY If database structure changed
 
 ```bash
+flask db init
+```
+
+```bash
 flask db migrate -m "your comment"
 ```
 
@@ -104,12 +108,11 @@ gunicorn run:app    # For Windows: waitress-serve --listen=*:8000 run:app
 
 ### Step 11: 🌐 Open http://localhost:5000 in your browser
 
-
 ### Meldung id error fix
+
 ```bash
 SELECT setval('[TableName]_id_seq', (SELECT MAX(id) FROM [TableName]))
 ```
-
 
 # 📝 License
 
