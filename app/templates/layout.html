@@ -49,35 +49,30 @@
               class="mr-5 text-sm font-bold text-white transition-colors duration-300 hover:text-green-400 md:text-base">Auswertungen</a>
 
           </div>
-          <div class="flex items-center md:hidden">
-            <button class="ml-10 mobile-menu-button">
-              <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20"
-                xmlns="http://www.w3.org/2000/svg">
+          <div class="md:hidden">
+            <button class="mobile-menu-button">
+              <svg class="w-6 h-6 text-white transition-transform duration-200 transform" fill="currentColor"
+                viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                 <path fill-rule="evenodd" clip-rule="evenodd"
                   d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" />
               </svg>
             </button>
+            <div
+              class="absolute left-0 w-full transition-all duration-500 origin-top transform scale-y-0 bg-green-700 rounded-lg opacity-0 top-full mobile-menu">
+              <a href="/start"
+                class="block px-4 py-2 my-2 text-lg font-medium text-center text-white transition-colors duration-300 rounded-lg hover:bg-green-500">Start</a>
+              <a href="/mantis-religiosa"
+                class="block px-4 py-2 my-2 text-lg font-medium text-center text-white transition-colors duration-300 rounded-lg hover:bg-green-500">Gottesanbeterin</a>
+              <a href="/report"
+                class="block px-4 py-2 my-2 text-lg font-medium text-center text-white transition-colors duration-300 rounded-lg hover:bg-green-500">Melden</a>
+              <a href="/auswertungen"
+                class="block px-4 py-2 my-2 text-lg font-medium text-center text-white transition-colors duration-300 rounded-lg hover:bg-green-500">Auswertungen</a>
+            </div>
           </div>
-        </div>
-        <div class="hidden bg-green-700 rounded-lg mobile-menu md:hidden">
-          <div class="flex flex-col items-center justify-end">
-            <a href="/"
-              class="w-full py-4 font-medium text-center text-white transition bg-opacity-50 rounded-lg hover:bg-green-500">Start</a>
-            <a href="/info"
-              class="w-full py-4 font-medium text-center text-white transition bg-opacity-50 rounded-lg hover:bg-green-500">Infos</a>
-            <a href="/projekt"
-              class="w-full py-4 font-medium text-center text-white transition bg-opacity-50 rounded-lg hover:bg-green-500">Projekt</a>
-            <a href="/report"
-              class="w-full py-4 font-medium text-center text-white transition bg-opacity-50 rounded-lg hover:bg-green-500">Melden</a>
-            <a href="/auswertungen"
-              class="w-full py-4 font-medium text-center text-white transition bg-opacity-50 rounded-lg hover:bg-green-500">Auswertungen</a>
-          </div>
-        </div>
       </nav>
       <!-- Navbar End -->
       <!-- Content Start -->
-      <div class="relative bg-fixed bg-center bg-no-repeat bg-cover"
-        style="background-image: url('{{ url_for('static', filename='images/IMG_1899b_D_Berger.jpg') }}');">
+      <div class="relative bg-fixed bg-center bg-no-repeat bg-cover">
         <div class="z-10 flex-wrap items-center justify-center w-full pb-1" style="position: relative;">
           <div class="absolute inset-0 flex items-center justify-center overflow-hidden"></div>
           <div class="container relative px-4 pt-16 pb-1 mx-auto text-center"> <!-- Add text-center here -->
@@ -121,51 +116,36 @@
     </div>
     <div id="overlay"></div>
 
-    <!-- Navbar and Content Wrapper End -->
-    <!-- Navbar and Content Wrapper End -->
+
   </div>
   <!-- Background Image div End -->
   <script>
     const mobileMenuButton = document.querySelector(".mobile-menu-button");
     const mobileMenu = document.querySelector(".mobile-menu");
-    const navbar = document.querySelector("nav");
+    const navbar = document.querySelector("#navbar");
 
     mobileMenuButton.addEventListener("click", function () {
-      if (mobileMenu.classList.contains("hidden")) {
-        mobileMenu.classList.remove("hidden");
-        navbar.classList.add("shadow-lg");
-        navbar.classList.add("sticky-nav");
+      if (mobileMenu.classList.contains('scale-y-0')) {
+        mobileMenu.classList.remove('scale-y-0', 'opacity-0');
+        setTimeout(() => mobileMenu.style.transformOrigin = 'top', 500);
       } else {
-        mobileMenu.classList.add("hidden");
-        if (window.scrollY === 0) {
-          navbar.classList.remove("shadow-lg");
-          navbar.classList.remove("sticky-nav");
-        }
+        mobileMenu.style.transformOrigin = '';
+        setTimeout(() => mobileMenu.classList.add('scale-y-0', 'opacity-0'), 0);
       }
+      mobileMenuButton.querySelector('svg').classList.toggle('rotate-90');
+      navbar.classList.toggle("sticky-nav", "transition-all", "duration-500");
     });
 
     window.addEventListener("scroll", function () {
-      if (window.scrollY > 0 && !mobileMenu.classList.contains("hidden")) {
-        navbar.classList.add("shadow-lg");
-        navbar.classList.add("sticky-nav");
-      } else if (
-        window.scrollY === 0 &&
-        !mobileMenu.classList.contains("hidden")
-      ) {
-        navbar.classList.remove("shadow-lg");
-        navbar.classList.add("sticky-nav");
-      } else if (
-        window.scrollY === 0 &&
-        mobileMenu.classList.contains("hidden")
-      ) {
-        navbar.classList.remove("shadow-lg");
-        navbar.classList.remove("sticky-nav");
-      } else {
-        navbar.classList.add("shadow-lg");
-        navbar.classList.add("sticky-nav");
-      }
+      let isScrolled = window.scrollY > 0;
+      navbar.classList.toggle("shadow-lg", isScrolled);
+      navbar.classList.toggle("sticky-nav", isScrolled || !mobileMenu.classList.contains("scale-y-0"));
     });
   </script>
+
+
+
+
 
   <!--! White Content Start-->
   <div class="z-10 flex flex-wrap mt-0 bg-gray-100" id="content-container">
