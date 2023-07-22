@@ -18,8 +18,8 @@ import os
 import json
 
 from app.tools.send_email import send_email
-from app.tools.fundmeldung import text
-from app.tools.fundmeldung import html
+
+from ..config import Config
 
 # Blueprints
 data = Blueprint('data', __name__)
@@ -169,13 +169,17 @@ def report(usrid=None):
                         speichern Sie bitte die folgende ID:',
             'usrid': url_for('data.report', usrid=usrid, _external=True),
         })
-        # addresse = form.contact.data
-        # if addresse:
-        #    meldebestaetigung(to=addresse)
+        addresse = form.contact.data
+        """
+{'id': 2, 'dat_fund_von': datetime.date(2023, 7, 7), 'dat_fund_bis': datetime.date(2023, 7, 7), 'dat_meld': datetime.date(2023, 7, 7), 'dat_bear': None, 'art_m': 0, 'art_w': 1, 'art_n': 0, 'art_o': 0, 'art_s': None, 'fo_zuordnung': 4, 'fo_quelle': 'F', 'anm_melder': None, 'anm_bearbeiter': None, 'plz': 11111, 'ort': 'Potsdam', 'strasse': 'Caputher Heuweg', 'kreis': 'Potsdam-Mittelmark', 'land': 'Brandenburg', 'amt': None, 'mtb': None, 'beschreibung': 'am Haus', 'longitude': '13.08939', 'latitude': '52.35547', 'ablage': 'app/datastore/2023-07-07/Potsdam-20230707145607-17d31973137f148369e7862b439bc8f29bf12d0c.webp', 'id_meldung': 3, 'id_user': 2, 'user_id': '17d31973137f148369e7862b439bc8f29bf12d0c', 'user_name': 'Berger D.', 'user_rolle': '1', 'user_kontakt': 'dirk.berger@rathaus.potsdam.de'}
+
+        """
+        
+        #if addresse:
+        #    send_email(formdata=form)
 
         return redirect(url_for('data.report', usrid=usrid))
 
-    print(form.errors)
     if existing_user is not None:
         existing_user = _user_to_dict(existing_user)
     return render_template('report.html',
@@ -216,7 +220,6 @@ def validate():
     if form.validate():
         return jsonify({'success': True})
     else:
-        print(form.errors)
         return jsonify({'errors': form.errors}), 333
 
 
@@ -241,19 +244,12 @@ def show_map():
             pass
 
     reportsJson = json.dumps(koords)
-    return render_template('map.html', reportsJson=reportsJson)
+    return render_template('map.html',
+                           reportsJson=reportsJson,
+                           apikey=Config.esri)
 
 
 @data.route('/statistics')
 def statistics():
     mantis_count = TblMeldungen.query.count()
     return render_template('statistics.html', mantis_count=mantis_count)
-
-
-def meldebestaetigung(to="test@example.com"):
-    "Send plain-text and HTML email as message"
-
-    subject = "Meldebestätigung"
-    to = to
-    send_email(subject, text, html, to)
-    return "Abgeschickt"

@@ -1,13 +1,13 @@
 {% extends "layout.html" %}
-{% block title %}Übersicht Fundmeldungen {% endblock title %}
+{% block title %}Fundmeldungen 2023{% endblock title %}
 {% block content %}
 <div class="container flex flex-row p-6 mx-auto">
     <div id="map" class="object-fill h-screen grow auto-rows-max"></div>
 </div>
 <script>
-    const mapApiKey = ""; // https://arcgis.esri.de/dos-and-donts-was-ist-wichtig-im-umgang-mit-esri-basemaps/
+  const mapApiKey = "{{apikey}}"; // https://arcgis.esri.de/dos-and-donts-was-ist-wichtig-im-umgang-mit-esri-basemaps/
     // https://developers.arcgis.com/dashboard/
-    const map = L.map('map').setView([51.991649, 13.080113], 7);
+    const map = L.map('map').setView([51.991649, 13.080113], 9);
 
     const openStreetMapLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,

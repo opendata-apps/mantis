@@ -89,7 +89,7 @@
       bis in den September hinein zu finden. Nymphe (Larve), junges Tier
       Beispielfotos: eine sehr junge Nymphe ohne Flügel sowie eine subadulte
       Nymphe mit violett eingefärbten Flügelstummeln und gelben Pfeilen, die
-      die Segmente. [Bild 4].</p>
+      die Segmente. [Bild 4 und 5].</p>
     <p>
        <span class="text-xs font-semibold inline-block py-1 px-2 uppercase
 		   rounded-full text-pink-600 bg-pink-200 uppercase last:mr-0 mr-1">
@@ -97,14 +97,20 @@
        </span>
        Flügel vollständig ausgebildet, reichen bis zum
        Hinterleibsende oder darüber hinaus (im Bild violett
-       eingefärbt).
-      <br/>&rArr; Erwachsenes Tier &rArr;gehe zu 3 [Siehe Bild 5].
+       eingefärbt) [Siehe Bild 6].
+      <br/>&rArr; Erwachsenes Tier &rArr;gehe zu 3 .
     </p>
     <!-- Modal Nymphe 1-->
     <button data-modal-target="defaultNymphe1" data-modal-toggle="defaultNymphe1" class="mt-2" type="button">
       <img alt="Oothek" class="mx-auto my-auto max-w-10"
            src="{{ url_for('static', filename='images/bestimmung/berger-junge-nymphe-ohne-fluegelklein.jpg') }}">
-      Bild 4: Nymphe
+      Bild 4: Nymphe<br/> &nbsp;
+    </button>
+    
+     <button data-modal-target="defaultNymphe2" data-modal-toggle="defaultNymphe2" class="mt-2" type="button">
+      <img alt="Oothek" class="mx-auto my-auto max-w-10"
+           src="{{ url_for('static', filename='images/bestimmung/krueger-junge-nymphe-stummelfluegel-klein.jpg') }}">
+      Bild 5: Nymphe <br/> mit Stummelflügeln
     </button>
 
 
@@ -112,7 +118,7 @@
     <button data-modal-target="AdultTier" data-modal-toggle="AdultTier" class="mt-2" type="button">
       <img alt="Oothek" class="mx-auto my-auto max-w-10"
            src="{{ url_for('static', filename='images/bestimmung/erwachsenes-tier-klein.jpg') }}">
-      Bild 5: Erwachsenes Tier
+      Bild 6: Erwachsenes Tier<br/> &nbsp;
     </button>
 
     <p class="text-center">
@@ -130,7 +136,7 @@
       Sehr schlankes Tier (dünner als ein Bleistift) bis ca. 60 mm
       lang. Fühler (im Bild gelb markiert) deutlich länger als die
       Vorderbrust (im Bild rot markiert). Fühler an der Basis (am Kopf)
-      dicker nach vorne spitz auslaufend: Männchen. [Siehe Bild 6 und 7]
+      dicker nach vorne spitz auslaufend: Männchen. [Siehe Bild 7 und 8]
       <br/>&rArr; Männchen.
     </p>
     <p class="mt-2">
@@ -141,7 +147,7 @@
       Großes und kräftiges Tier (dicker als ein Bleistift) bis
       ca. 75 mm lang. Fühler (im Bild gelb markiert) deutlich kürzer
       als die Vorderbrust (im Bild rot markiert). Fühler über die
-      gesamte Länge zwirndünn. [Siehe Bild 6 und 8]
+      gesamte Länge zwirndünn. [Siehe Bild 7 und 9]
       <br/>&rArr;Weibchen
     </p>
 
@@ -156,20 +162,20 @@
     <button data-modal-target="AdultPaerchen" data-modal-toggle="AdultPaerchen" class="mt-2" type="button">
       <img alt="Oothek" class="mx-auto my-auto max-w-10"
            src="{{ url_for('static', filename='images/bestimmung/paerchenklein.jpg') }}">
-      Bild 6: Paerchen
+      Bild 7: Paerchen
     </button>
     <!-- Modal toggle: Bild4 -->
     <button data-modal-target="AdultMaennchen" data-modal-toggle="AdultMaennchen" class="mt-2" type="button">
       <img alt="Oothek" class="mx-auto my-auto max-w-10"
            src="{{ url_for('static', filename='images/bestimmung/maennchen-adult-gruenklein.jpg') }}">
-      Bild 7: Männchen 
+      Bild 8: Männchen 
     </button>
 
     <!-- Modal toggle: Bild4 -->
     <button data-modal-target="AdultWeibchen" data-modal-toggle="AdultWeibchen" class="mt-2" type="button">
       <img alt="Oothek" class="mx-auto my-auto max-w-10"
            src="{{ url_for('static', filename='images/bestimmung/erwachsenes-weibchen-klein.jpg') }}">
-      Bild 8:  Weibchen
+      Bild 9:  Weibchen
     </button>
 
     <p class="text-center">
@@ -329,6 +335,46 @@
                    src="{{ url_for('static', filename='images/bestimmung/berger-junge-nymphe-ohne-fluegelgross.jpg') }}">
             </p>
 	    <p>Sehr junge Nymphe ohne Flügelstummel im Mai/Juni.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Ende Main modal Bild 4-->
+    <!-- Main modal Nymphe 2-->
+    <div id="defaultNymphe2" tabindex="-1" aria-hidden="true"
+	 class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4
+		overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
+      <div class="relative w-full max-w-2xl max-h-full">
+        <!-- Modal content -->
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+          <!-- Modal header -->
+          <div class="flex items-start justify-between p-4 border-b rounded-t dark:border-gray-600">
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+	      Nymphe
+            </h3>
+            <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900
+					 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center
+					 dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="defaultNymphe2">
+	      <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
+                   xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0
+					     111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10
+					     11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10
+					     4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+	      </svg>
+	      <span class="sr-only">Close modal</span>
+            </button>
+          </div>
+          <!-- Modal: Bild2 body -->
+          <div class="p-6 space-y-6">
+            <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
+	      <img alt="Nymphe" class="mx-auto my-auto max-w-10"
+                   src="{{ url_for('static', filename='images/bestimmung/krueger-junge-nymphe-stummelfluegel-gross.jpg') }}">
+            </p>
+	    <p>
+	      Nymphe mit Flügelstummeln (pink und blau), im Juli/August,
+	      in manchen Jahren bis in den September hinein zu finden.
+	    </p>
           </div>
         </div>
       </div>

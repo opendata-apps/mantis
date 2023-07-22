@@ -15,3 +15,4 @@ class Config:
     tls = True
     sender_email = ""
     sender_pass = ""
+    esri= ""
