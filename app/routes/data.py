@@ -225,11 +225,15 @@ def validate():
 
 @data.route('/auswertungen')
 def show_map():
+    # Summe aller Meldungen für den Counter 
+    post_count = db.session.query(TblMeldungen).count()
+    
     # Fetch the reports data from the database where dat_bear
     # is not null in TblMeldungen
     # TblMeldungen, TblMeldungen.fo_zuordnung == \
     # TblFundorte.id).filter(TblMeldungen.dat_bear != None).all()
     # Im Testmodus alle Meldungen anzeigen
+
     reports = TblFundorte.query.join(
         TblMeldungen, TblMeldungen.fo_zuordnung == TblFundorte.id).all()
     # Serialize the reports data as a JSON object
@@ -246,7 +250,8 @@ def show_map():
     reportsJson = json.dumps(koords)
     return render_template('map.html',
                            reportsJson=reportsJson,
-                           apikey=Config.esri)
+                           apikey=Config.esri,
+                           post_count=post_count)
 
 
 @data.route('/statistics')
