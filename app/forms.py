@@ -35,6 +35,22 @@ class MantisSightingForm(FlaskForm):
                       ('nymphen', 'Nymphen'),
                       ('ootheken', 'Ootheken')]
 
+    location_description_CHOICES = [('keine Angabe', 'Keine Angabe'),
+                                    ('im Haus', 'Im Haus'),
+                                    ('im Garten', 'Im Garten'),
+                                    ('auf dem Balkon/auf der Terrasse',
+                                     'Auf dem Balkon/auf der Terrasse'),
+                                    ('am Fenster/an der Hauswand',
+                                     'Am Fenster/an der Hauswand'),
+                                    ('Industriebrache', 'Industriebrache'),
+                                    ('im Wald', 'Im Wald'),
+                                    ('Wiese/Weide', 'Wiese/Weide'),
+                                    ('Heidelandschaft', 'Heidelandschaft'),
+                                    ('Straßengraben/Wegesrand/Ruderalflur',
+                                     'Straßengraben/Wegesrand/Ruderalflur'),
+                                    ('Gewerbegebiet', 'Gewerbegebiet'),
+                                    ('Im oder am Auto', 'Im oder am Auto')]
+
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'jfif', 'webp'}
 
     userid = StringField("*Benutzerkennung:", render_kw={
@@ -72,8 +88,8 @@ class MantisSightingForm(FlaskForm):
                           render_kw={'placeholder': 'z.B. 52.12345',
                                      'title': 'Der Breitengrad Ihres Standorts'},
                           description='Bitte geben Sie den Breitengrad des Standorts ein, an dem Sie die Mantis religiosa gesehen haben.')
-    zip_code = IntegerField(
-        "PLZ", render_kw={'placeholder': 'PLZ'})
+    zip_code = IntegerField("PLZ", validators=[Optional()], render_kw={
+                            'placeholder': 'PLZ'})
     city = StringField("*Ort", validators=[DataRequired(message='Bitte geben Sie einen Ort ein.')], render_kw={
                        'placeholder': 'z.B. Berlin'})
     street = StringField("Straße", validators=[Optional()], render_kw={
@@ -81,8 +97,8 @@ class MantisSightingForm(FlaskForm):
     state = StringField("*Bundesland", validators=[DataRequired(message='Das Bundesland ist erforderlich.')], render_kw={
                         'placeholder': 'Bundesland'})
     district = StringField("Kreis", render_kw={'placeholder': 'z.B. Mitte'})
-    location_description = StringField("Fundort Beschreibung", render_kw={
-                                       'placeholder': 'Geben Sie hier Ihre Ortsbeschreibung ein'})
+    location_description = SelectField("Fundort Beschreibung", choices=location_description_CHOICES,
+                                       default="Keine Angabe", render_kw={'title': 'Fundort Beschreibung auswählen'})
 
     report_first_name = StringField(
         "*Vorname", validators=[DataRequired(message='Der Vorname ist erforderlich.')], render_kw={'placeholder': 'Erster Buchstabe z.B. M.'})

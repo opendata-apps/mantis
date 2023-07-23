@@ -92,7 +92,7 @@
         </div>
         <div class="grid grid-cols-2 gap-4 mb-4">
           <div>
-            <label for="{{ form.longitude.id }}" class="block text-sm font-semibold text-gray-600">
+            <label for="{{ form.longitude.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.longitude.label.text }}
                 {{ popover("popover-longitude", "Koordinaten",
@@ -105,7 +105,7 @@
             </label>
           </div>
           <div>
-            <label for="{{ form.latitude.id }}" class="block text-sm font-semibold text-gray-600">
+            <label for="{{ form.latitude.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.latitude.label.text }}
                 {{ popover("popover-latitude", "Koordinaten",
@@ -119,14 +119,20 @@
           </div>
         </div>
         <div class="col-span-full">
-          {{ popover("popover-map", "Karte",
-          " Benutzen Sie die Zoom-Funktion (+ und - Button oder
-          mittleres Mausrad),sezten Sie mit einem Klick die
-          Marke. Die linke Maustaste verschiebt die Karte. Die Koordinaten
-          werden dann automatisch ins Formular übernommen..")
-          }}
+          <label for="map" class="block mt-1 text-sm font-semibold text-gray-600">
+            <div class="flex justify-between">
+              {{ "Karte" }}
+              {{ popover("popover-map", "Karte",
+              " Benutzen Sie die Zoom-Funktion (+ und - Button oder
+              mittleres Mausrad),sezten Sie mit einem Klick die
+              Marke. Die linke Maustaste verschiebt die Karte. Die Koordinaten
+              werden dann automatisch ins Formular übernommen..")
+              }}
+            </div>
+          </label>
           <div id="map" class="h-64 border shadow-md sm:h-96 lg:h-96"></div>
         </div>
+
         <div class="flex justify-end mt-4 space-x-2">
           {{ formButton('step1Next', 'Next') }}
         </div>
@@ -136,7 +142,7 @@
       <div id="step2" class="hidden step" data-step-index="1">
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
-            <label for="{{ form.street.id }}" class="block text-sm font-semibold text-gray-600">
+            <label for="{{ form.street.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.street.label.text }}
                 {{ popover("popover-street", "Straße",
@@ -146,7 +152,7 @@
                 {{ form.street(class="input-field") }}
               </div>
             </label>
-            <label for="{{ form.state.id }}" class="block text-sm font-semibold text-gray-600">
+            <label for="{{ form.state.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.state.label.text }}
                 {{ popover("popover-bundesland", "Bundesland",
@@ -156,7 +162,7 @@
                 {{ form.state(id="state", class="input-field") }}
               </div>
             </label>
-            <label for="{{ form.district.id }}" class="block text-sm font-semibold text-gray-600">
+            <label for="{{ form.district.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.district.label.text }}
                 {{ popover("popover-bezirk", "Landkreis/Stadt",
@@ -167,10 +173,16 @@
               </div>
             </label>
 
-            <label class="block text-sm font-semibold text-gray-600">
+            <label class="block mt-1 text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.gender.label.text }}
-                <button data-popover-target="popover-gender" type="button" class="pl-10 pr-2 text-black">?</button>
+                <button data-popover-target="popover-gender" type="button" class="pl-2 pr-1 text-black">
+                  <svg class="w-4 h-4 text-gray-600 " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
+                    viewBox="0 0 20 20">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M7.529 7.988a2.502 2.502 0 0 1 5 .191A2.441 2.441 0 0 1 10 10.582V12m-.01 3.008H10M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                  </svg>
+                </button>
               </div>
               <div data-popover id="popover-gender" role="tooltip"
                 class="absolute z-50 invisible inline-block w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800">
@@ -198,35 +210,23 @@
                 </div>
               </div>
               <div class="relative">
-                {{ form.gender(class="block w-full px-4 py-2 mt-2 text-base text-gray-700 transition-colors bg-white
-                rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent
-                hover:bg-gray-200") }}
+                {{ form.gender(class="block w-full px-4 py-2 text-base text-gray-700 transition-colors bg-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200") }}
               </div>
             </label>
           </div>
           <div>
-            <label class="block text-sm font-semibold text-gray-600">
+            <label class="block mt-1 text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.zip_code.label.text }}
-                <button data-popover-target="popover-zip" type="button" class="pl-10 pr-2 text-black">?</button>
+                {{ popover("popover-zip", "Postleitzahl",
+                "Falls der Wert nicht korrekt eingelesen wurde, geben Sie bitte die Postleitzahl ein..") }}
               </div>
-              <div data-popover id="popover-zip" role="tooltip"
-                class="absolute z-50 invisible inline-block w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800">
-                <div
-                  class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg dark:border-gray-600 dark:bg-gray-700">
-                  <h3 class="font-semibold text-gray-900 dark:text-white">Postleitzahl</h3>
-                </div>
-                <div class="px-3 py-2">
-                  <p>
-                    Falls der Wert nicht korrekt eingelesen wurde, geben Sie bitte die Postleitzahl ein.
-                  </p>
-                </div>
-              </div>
+
             </label>
             <div class="relative">
               {{ form.zip_code(id="zip_code", class="input-field") }}
             </div>
-            <label for="{{ form.city.id }}" class="block text-sm font-semibold text-gray-600">
+            <label for="{{ form.city.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.city.label.text }}
                 {{ popover("popover-city", "Ort",
@@ -236,30 +236,18 @@
                 {{ form.city(id="city", class="input-field") }}
               </div>
             </label>
-            <label for="{{ form.location_description.id }}" class="block text-sm font-semibold text-gray-600">
+            <label for="{{ form.location_description.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.location_description.label.text }}
                 {{ popover("popover-fundort", "Ergänzungen Ort",
                 "Beschreiben Sie hier bitte den Ort etwas genauer (maximal 500 Zeichen)") }}
               </div>
               <div class="relative">
-                {{ form.location_description(id=form.location_description.id, list="locations", class="input-field") }}
-                <datalist id="locations">
-                  <option value="im Haus">
-                  <option value="im Garten">
-                  <option value="auf dem Balkon/auf der Terrasse">
-                  <option value="am Fenster/an der Hauswand">
-                  <option value="Industriebrache">
-                  <option value="im Wald">
-                  <option value="Wiese/Weide">
-                  <option value="HeidelandschaftStraßengraben/Wegesrand/Ruderalflur">
-                  <option value="Gewerbegebiet">
-                  <option value="Im oder am Auto">
-                </datalist>
+                {{ form.location_description(id=form.location_description.id, class="input-field") }}
               </div>
             </label>
 
-            <label for="{{ form.picture_description.id }}" class="block text-sm font-semibold text-gray-600">
+            <label for="{{ form.picture_description.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.picture_description.label.text }}
                 {{ popover("popover-beschreibung", "Ergänzungen zum Fund",
@@ -281,7 +269,7 @@
       <div id="step3" class="hidden step" data-step-index="2">
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
-            <label for="{{ form.report_first_name.id }}" class="block text-sm font-semibold text-gray-600">
+            <label for="{{ form.report_first_name.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.report_first_name.label.text }}
                 {{ popover("popover-reportvorname", "Vorname",
@@ -291,7 +279,7 @@
                 {{ form.report_first_name(class="input-field") }}
               </div>
             </label>
-            <label for="{{ form.report_last_name.id }}" class="block text-sm font-semibold text-gray-600">
+            <label for="{{ form.report_last_name.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.report_last_name.label.text }}
                 {{ popover("popover-reportnachname", "Nachname",
@@ -301,7 +289,7 @@
                 {{ form.report_last_name(class="input-field") }}
               </div>
             </label>
-            <label for="{{ form.sighting_date.id }}" class="block text-sm font-semibold text-gray-600">
+            <label for="{{ form.sighting_date.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.sighting_date.label.text }}
                 {{ popover("popover-datum", "Datum",
@@ -313,7 +301,7 @@
             </label>
           </div>
           <div>
-            <label for="{{ form.contact.id }}" class="block text-sm font-semibold text-gray-600">
+            <label for="{{ form.contact.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.contact.label.text }}
                 {{ popover("popover-kontakt", "Kontaktdaten",
@@ -324,14 +312,14 @@
                 {{ form.contact(class="input-field") }}
               </div>
             </label>
-            <label class="block text-sm font-semibold text-gray-600">
+            <label class="block mt-1 text-sm font-semibold text-gray-600">
               <div class="flex items-center">
                 {{ form.identical_finder_melder(class="mr-2") }}
                 <span>Finder und Melder sind identisch</span>
               </div>
             </label>
             <div id="additionalFields" class="hidden">
-              <label for="{{ form.finder_first_name.id }}" class="block text-sm font-semibold text-gray-600">
+              <label for="{{ form.finder_first_name.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
                 <div class="flex justify-between">
                   {{ form.finder_first_name.label.text }}
                 </div>
@@ -339,7 +327,7 @@
                   {{ form.finder_first_name(class="input-field") }}
                 </div>
               </label>
-              <label for="{{ form.finder_last_name.id }}" class="block text-sm font-semibold text-gray-600">
+              <label for="{{ form.finder_last_name.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
                 <div class="flex justify-between">
                   {{ form.finder_last_name.label.text }}
                 </div>
@@ -660,6 +648,7 @@
       currentStepIndex = parseInt(currentStepIndex);  // parse to integer
 
       console.log('Errors:', errors);
+
       // Clear any existing error messages
       const errorElements = document.querySelectorAll('.form-error');
       errorElements.forEach(el => {
@@ -668,6 +657,12 @@
         el.remove();
       });
 
+      // Remove error styling from picture label
+      const pictureLabel = document.querySelector('label[for="picture"]');
+      if (pictureLabel) {
+        pictureLabel.classList.remove('error-field');
+      }
+
       let currentStepErrors = [];  // to keep track of errors in the current step
 
       // Add new error messages
@@ -675,12 +670,27 @@
         const fieldErrors = errors[fieldName];
         const field = document.querySelector(`[name="${fieldName}"]`);
         if (field && field.closest('.step') && parseInt(field.closest('.step').dataset.stepIndex) === currentStepIndex) {
-          // Add error styling to field
-          field.classList.add('error-field');
+          // If the field is the picture field, add error styling to the label
+          if (fieldName === 'picture') {
+            const label = document.querySelector(`label[for="${fieldName}"]`);
+            label.classList.add('error-field');
+          } else {
+            // Add error styling to field
+            field.classList.add('error-field');
+          }
 
           const errorContainer = document.createElement('div');
           errorContainer.classList.add('form-error');
-          errorContainer.textContent = fieldErrors.join(', ');
+          errorContainer.style.display = 'flex'; // This line added
+          errorContainer.style.alignItems = 'center'; // To vertically align the items
+          errorContainer.style.margin = '0 0 0.5rem 0'; // To add space between the SVG and the text
+          errorContainer.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4" style="margin-right: 0.5rem;">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+            </svg>
+            <span style="font-size: 0.75rem;">${fieldErrors.join(', ')}</span>
+          `;
+
           field.parentElement.insertBefore(errorContainer, field.nextSibling);
           currentStepErrors.push(fieldName);  // add to the list of current step errors
         }
@@ -688,7 +698,6 @@
 
       return currentStepErrors;  // return the list of current step errors
     }
-
 
 
     const step1 = document.getElementById('step1');
