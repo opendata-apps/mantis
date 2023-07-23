@@ -5,6 +5,7 @@ from wtforms import StringField, IntegerField, DateField, SelectField, BooleanFi
 from datetime import date
 import re
 
+#translations_cache = {}
 
 def validate_past_date(form, field):
     if field.data and field.data > date.today():
@@ -18,7 +19,12 @@ def validate_zip_code(form, field):
 
 
 class MantisSightingForm(FlaskForm):
+    class Meta:
+        locales = ['de_DE', 'de']
+        
     def __init__(self, *args, **kwargs):
+        if 'LANGUAGES' in kwargs:
+            self.LANGUAGES = kwargs.pop('LANGUAGES')
         super(MantisSightingForm, self).__init__(*args, **kwargs)
         self.userid = kwargs.pop('userid', None)
 
@@ -33,7 +39,7 @@ class MantisSightingForm(FlaskForm):
     userid = StringField("*Benutzerkennung:", render_kw={
                          'placeholder': 'Benutzerkennung'})
     picture = FileField("*Bild laden", validators=[
-        FileRequired(message='Das Bild ist erforderlich'),
+        FileRequired(message='Das Bild ist erforderlich, maximal 10MB.'),
         FileAllowed(ALLOWED_EXTENSIONS, message='Nur Bilder sind zulässig!'),
         FileSize(max_size=10*1024*1024,
                  message='Das Bild muss kleiner als 10MB sein')
@@ -45,17 +51,22 @@ class MantisSightingForm(FlaskForm):
                              message="Bitte wählen Sie eine Option.")],
                          render_kw={'title': 'Entwicklungsstadium auswählen'})
     picture_description = StringField(
-        "sonstige Angaben zum Fundort", validators=[Length(max=500)], render_kw={'placeholder': 'Geben Sie hier Ihre sonstige Angaben zum Fundort ein'})
+        "sonstige Angaben zum Fundort",
+        validators=[Length(max=500)],
+        render_kw={'placeholder': 'Geben Sie hier Ihre sonstige Angaben zum Fundort ein'})
 
     longitude = FloatField('*Längengrad',
-                           validators=[InputRequired(),
+                           validators=[InputRequired('Pflichtfeld, das gefüllt wird, \
+                           wenn der Marker in der Karte gesetzt ist.'),
                                        NumberRange(min=-180.0, max=180.0)],
                            render_kw={'placeholder': 'z.B. 13.12345',
                                       'title': 'Der Längengrad Ihres Standorts'},
-                           description='Bitte geben Sie den Längengrad des Standorts ein, an dem Sie die Mantis religiosa gesehen haben.')
+                           description='Bitte geben Sie den Längengrad des Standorts ein, \
+                           an dem Sie die Mantis religiosa gesehen haben.')
 
     latitude = FloatField('*Breitengrad',
-                          validators=[InputRequired(),
+                          validators=[InputRequired('Pflichtfeld, das gefüllt wird, \
+                          wenn der Marker in der Karte gesetzt ist.'),
                                       NumberRange(min=-90.0, max=90.0)],
                           render_kw={'placeholder': 'z.B. 52.12345',
                                      'title': 'Der Breitengrad Ihres Standorts'},
@@ -90,3 +101,9 @@ class MantisSightingForm(FlaskForm):
         render_kw={'placeholder': 'z.B. max@example.de'})
 
     submit = SubmitField("Absenden")
+
+    def _get_translations(self):
+        languages = tuple(self.LANGUAGES) if self.LANGUAGES else (self.meta.locales or None)
+        if languages not in translations_cache:
+            translations_cache[languages] = get_translations(languages)
+        return translations_cache[languages]

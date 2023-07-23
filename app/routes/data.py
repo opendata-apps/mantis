@@ -113,7 +113,7 @@ def report(usrid=None):
     if not existing_user:
         usrid = get_new_id()
 
-    form = MantisSightingForm(userid=usrid)
+    form = MantisSightingForm(userid=usrid, meta={'locales': ['de_DE', 'de']})
 
     if existing_user and request.method == 'GET':
         form.process(obj=existing_user)
