@@ -5,7 +5,8 @@ from wtforms import StringField, IntegerField, DateField, SelectField, BooleanFi
 from datetime import date
 import re
 
-#translations_cache = {}
+# translations_cache = {}
+
 
 def validate_past_date(form, field):
     if field.data and field.data > date.today():
@@ -21,7 +22,7 @@ def validate_zip_code(form, field):
 class MantisSightingForm(FlaskForm):
     class Meta:
         locales = ['de_DE', 'de']
-        
+
     def __init__(self, *args, **kwargs):
         if 'LANGUAGES' in kwargs:
             self.LANGUAGES = kwargs.pop('LANGUAGES')
@@ -72,7 +73,7 @@ class MantisSightingForm(FlaskForm):
                                      'title': 'Der Breitengrad Ihres Standorts'},
                           description='Bitte geben Sie den Breitengrad des Standorts ein, an dem Sie die Mantis religiosa gesehen haben.')
     zip_code = IntegerField(
-        "*PLZ", validators=[DataRequired(message='Die Postleitzahl ist erforderlich.'), validate_zip_code], render_kw={'placeholder': 'PLZ'})
+        "PLZ", render_kw={'placeholder': 'PLZ'})
     city = StringField("*Ort", validators=[DataRequired(message='Bitte geben Sie einen Ort ein.')], render_kw={
                        'placeholder': 'z.B. Berlin'})
     street = StringField("Straße", validators=[Optional()], render_kw={
@@ -103,7 +104,8 @@ class MantisSightingForm(FlaskForm):
     submit = SubmitField("Absenden")
 
     def _get_translations(self):
-        languages = tuple(self.LANGUAGES) if self.LANGUAGES else (self.meta.locales or None)
+        languages = tuple(self.LANGUAGES) if self.LANGUAGES else (
+            self.meta.locales or None)
         if languages not in translations_cache:
             translations_cache[languages] = get_translations(languages)
         return translations_cache[languages]
