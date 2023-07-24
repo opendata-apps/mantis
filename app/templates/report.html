@@ -121,7 +121,7 @@
         <div class="col-span-full">
           <label for="map" class="block mt-1 text-sm font-semibold text-gray-600">
             <div class="flex justify-between">
-              {{ "Karte" }}
+              {{ "Karte: Setzen Sie den Marker in der Karte, die Koordinaten werden automatisch übernemmen." }}
               {{ popover("popover-map", "Karte",
               " Benutzen Sie die Zoom-Funktion (+ und - Button oder
               mittleres Mausrad),sezten Sie mit einem Klick die
@@ -134,7 +134,7 @@
         </div>
 
         <div class="flex justify-end mt-4 space-x-2">
-          {{ formButton('step1Next', 'Next') }}
+          {{ formButton('step1Next', 'Weiter') }}
         </div>
       </div>
 
@@ -263,8 +263,8 @@
           </div>
         </div>
         <div class="flex justify-between mt-4 space-x-2">
-          {{ formButton('step2Prev', 'Prev') }}
-          {{ formButton('step2Next', 'Next') }}
+          {{ formButton('step2Prev', 'Zurück') }}
+          {{ formButton('step2Next', 'Weiter') }}
         </div>
       </div>
       <!-- Step 3: Person(en) -->
@@ -343,8 +343,8 @@
           </div>
         </div>
         <div class="flex justify-between mt-4 space-x-2">
-          {{ formButton('step3Prev', 'Prev') }}
-          {{ formButton('step3Next', 'Next') }}
+          {{ formButton('step3Prev', 'Zurück') }}
+          {{ formButton('step3Next', 'Weiter') }}
         </div>
       </div>
 
@@ -388,7 +388,7 @@
           <li><strong class="text-gray-800">E-Mail:</strong> <span id="summaryContact"></span></li>
         </ul>
         <div class="flex justify-between mt-6 space-x-4">
-          {{ formButton('step4Prev', 'Prev') }}
+          {{ formButton('step4Prev', 'Zurück') }}
           <form id="myForm">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div style="display: none;">
@@ -412,7 +412,7 @@
                     fill="#FFF" fill-rule="nonzero" fill-opacity=".1"></path>
                 </svg>
               </span>
-              <span class="relative">Submit</span>
+              <span class="relative">Senden</span>
             </button>
           </form>
         </div>
