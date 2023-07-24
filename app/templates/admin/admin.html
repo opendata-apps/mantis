@@ -158,6 +158,7 @@
                                         <option value="W" {{ 'selected' if sighting.art_w==1 }}>Weiblich</option>
                                         <option value="N" {{ 'selected' if sighting.art_n==1 }}>Nymphe</option>
                                         <option value="O" {{ 'selected' if sighting.art_o==1 }}>Ootheke</option>
+                                        <option value="S" {{ 'selected' if sighting.art_s==1 }}>Andere</option>
                                     </select>
                                     {% if sighting.dat_bear %}
                                     <span
@@ -446,8 +447,8 @@
 
     function generateGeneralInfo(data) {
         // Determine gender based on the art_ fields
-        let mantis_types = ['Männlich', 'Weiblich', 'Nymphe', 'Ootheke'];
-        let gender_counts = [data.art_m, data.art_w, data.art_n, data.art_o];
+        let mantis_types = ['Männlich', 'Weiblich', 'Nymphe', 'Ootheke', 'Andere'];
+        let gender_counts = [data.art_m, data.art_w, data.art_n, data.art_o, data.art_s];
 
         // Convert general info into HTML string
         let html = `<p class="mb-4"><strong>Report ID:</strong> ${data.id_meldung}</p>

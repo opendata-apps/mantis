@@ -38,7 +38,8 @@ def admin_index2():
     reported_sightings = TblMeldungen.query.all()
     for sighting in reported_sightings:
         sighting.fundort = TblFundorte.query.get(sighting.fo_zuordnung)
-        sighting.beschreibung = TblFundortBeschreibung.query.get(sighting.fundort.beschreibung)
+        sighting.beschreibung = TblFundortBeschreibung.query.get(
+            sighting.fundort.beschreibung)
         sighting.ort = sighting.fundort.ort
         sighting.plz = sighting.fundort.plz
         sighting.kreis = sighting.fundort.kreis
@@ -50,6 +51,7 @@ def admin_index2():
 def report_Img(filename):
     print("Get image with filename: " + filename + "")
     return send_from_directory('', filename)
+
 
 @admin.route('/toggle_approve_sighting/<id>', methods=['POST'])
 def toggle_approve_sighting(id):
@@ -143,6 +145,7 @@ def change_gender(id):
     sighting.art_w = 0
     sighting.art_n = 0
     sighting.art_o = 0
+    sighting.art_s = 0
 
     # Update the specified gender to 1
     if new_gender == 'M':
@@ -153,6 +156,8 @@ def change_gender(id):
         sighting.art_n = 1
     elif new_gender == 'O':
         sighting.art_o = 1
+    elif new_gender == 'S':
+        sighting.art_s = 1
 
     db.session.commit()
 
@@ -176,9 +181,12 @@ def change_mantis_count(id):
     elif mantis_type == 'Ootheke':
         sighting.art_o = new_count
     elif mantis_type == 'Andere':
-        sighting.art_a = new_count
+        sighting.art_s = new_count
 
     db.session.commit()
+
+    print(
+        f"Changed count of {mantis_type} to {new_count} for sighting with id {id} now {sighting.art_m} {sighting.art_w} {sighting.art_n} {sighting.art_o} {sighting.art_s}")
 
     return jsonify(success=True)
 
@@ -266,6 +274,8 @@ def row2dict(row):
     return d
 
 # Function to perform the query
+
+
 def perform_query(filter_value=None):
     # Create a session
     Session = sessionmaker(bind=db.engine)
@@ -290,13 +300,17 @@ def perform_query(filter_value=None):
     # Apply the filter if necessary
     if filter_value is not None:
         if filter_value:
-            query = query.filter(TblMeldungen.dat_bear.isnot(None))  # rows where dat_bear is not null
+            # rows where dat_bear is not null
+            query = query.filter(TblMeldungen.dat_bear.isnot(None))
         else:
-            query = query.filter(TblMeldungen.dat_bear.is_(None))  # rows where dat_bear is null
-        
+            # rows where dat_bear is null
+            query = query.filter(TblMeldungen.dat_bear.is_(None))
+
     return query.all()
 
 # Route
+
+
 @admin.route('/admin/export/xlsx/<string:value>')
 def export_data(value):
     if value == 'all':

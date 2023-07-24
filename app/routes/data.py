@@ -148,7 +148,8 @@ def report(usrid=None):
                                    dat_meld=datetime.now(),
                                    fo_zuordnung=new_fundort.id,
                                    fo_quelle="F",
-                                   **genders,
+                                   art_s='0',
+                                   ** genders,
                                    anm_melder=form.picture_description.data)
         db.session.add(new_meldung)
         db.session.flush()

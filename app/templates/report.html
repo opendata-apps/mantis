@@ -210,7 +210,9 @@
                 </div>
               </div>
               <div class="relative">
-                {{ form.gender(class="block w-full px-4 py-2 text-base text-gray-700 transition-colors bg-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200") }}
+                {{ form.gender(class="block w-full px-4 py-2 text-base text-gray-700 transition-colors bg-white
+                rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent
+                hover:bg-gray-200") }}
               </div>
             </label>
           </div>
@@ -272,8 +274,8 @@
             <label for="{{ form.report_first_name.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.report_first_name.label.text }}
-                {{ popover("popover-reportvorname", "Vorname",
-                "Geben Sie bitte Ihren ersten Buchstaben des Vornamens ein. Beispiel: M. für Max") }}
+                {{ popover("popover-reportvorname", "Vorname", "Geben Sie bitte Ihren ersten Buchstaben des Vornamens
+                ein. Beispiel: M. für Max") }}
               </div>
               <div class="relative">
                 {{ form.report_first_name(class="input-field") }}
@@ -282,8 +284,7 @@
             <label for="{{ form.report_last_name.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.report_last_name.label.text }}
-                {{ popover("popover-reportnachname", "Nachname",
-                "Geben Sie hier bitte Ihren Nachnamen ein.") }}
+                {{ popover("popover-reportnachname", "Nachname", "Geben Sie hier bitte Ihren Nachnamen ein.") }}
               </div>
               <div class="relative">
                 {{ form.report_last_name(class="input-field") }}
@@ -292,8 +293,7 @@
             <label for="{{ form.sighting_date.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.sighting_date.label.text }}
-                {{ popover("popover-datum", "Datum",
-                "Wählen Sie hier bitte das Funddatum.") }}
+                {{ popover("popover-datum", "Datum", "Wählen Sie hier bitte das Funddatum.") }}
               </div>
               <div class="relative">
                 {{ form.sighting_date(class="input-field") }}
@@ -304,37 +304,41 @@
             <label for="{{ form.contact.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.contact.label.text }}
-                {{ popover("popover-kontakt", "Kontaktdaten",
-                "Möchten Sie eine Rückmeldung und eine Bestätigung Ihrer Bestimmung erhalten, hinterlassen Sie gerne
-                Ihre E-Mail. Ihre Kontaktdaten werden geschützt, nicht weitergegeben oder anderweitig verwendet.") }}
+                {{ popover("popover-kontakt", "Kontaktdaten", "Möchten Sie eine Rückmeldung und eine Bestätigung Ihrer
+                Bestimmung erhalten, hinterlassen Sie gerne Ihre E-Mail. Ihre Kontaktdaten werden geschützt, nicht
+                weitergegeben oder anderweitig verwendet.") }}
               </div>
               <div class="relative">
                 {{ form.contact(class="input-field") }}
               </div>
             </label>
-            <label class="block mt-1 text-sm font-semibold text-gray-600">
-              <div class="flex items-center">
-                {{ form.identical_finder_melder(class="mr-2") }}
-                <span>Finder und Melder sind identisch</span>
+            <div>
+              <div id="additionalFields" class="hidden">
+                <label for="{{ form.finder_first_name.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
+                  <div class="flex justify-between">
+                    {{ form.finder_first_name.label.text }}
+                  </div>
+                  <div class="relative">
+                    {{ form.finder_first_name(class="input-field") }}
+                  </div>
+                </label>
+                <label for="{{ form.finder_last_name.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
+                  <div class="flex justify-between">
+                    {{ form.finder_last_name.label.text }}
+                  </div>
+                  <div class="relative">
+                    {{ form.finder_last_name(class="input-field") }}
+                  </div>
+                </label>
               </div>
-            </label>
-            <div id="additionalFields" class="hidden">
-              <label for="{{ form.finder_first_name.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
-                <div class="flex justify-between">
-                  {{ form.finder_first_name.label.text }}
-                </div>
-                <div class="relative">
-                  {{ form.finder_first_name(class="input-field") }}
-                </div>
-              </label>
-              <label for="{{ form.finder_last_name.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
-                <div class="flex justify-between">
-                  {{ form.finder_last_name.label.text }}
-                </div>
-                <div class="relative">
-                  {{ form.finder_last_name(class="input-field") }}
-                </div>
-              </label>
+              <div class="mt-4">
+                <label class="block text-sm font-semibold text-gray-600">
+                  <div class="flex items-center justify-between">
+                    <span>Finder und Melder sind identisch</span>
+                    {{ form.identical_finder_melder(class="w-5 h-5 text-blue-600 form-checkbox") }}
+                  </div>
+                </label>
+              </div>
             </div>
           </div>
         </div>
@@ -343,6 +347,7 @@
           {{ formButton('step3Next', 'Next') }}
         </div>
       </div>
+
 
       <!-- Step 4: Zusammenfassung -->
       <div id="step4" class="hidden">
@@ -739,13 +744,13 @@
       }
 
       if (index === 2) {
-        additionalFields.classList.toggle('hidden', !form.identical_finder_melder.checked);
+        additionalFields.classList.toggle('hidden', form.identical_finder_melder.checked);
       }
     }
 
 
     form.identical_finder_melder.addEventListener('change', () => {
-      additionalFields.classList.toggle('hidden', !form.identical_finder_melder.checked);
+      additionalFields.classList.toggle('hidden', form.identical_finder_melder.checked);
     });
 
     function autoCompleteData(inputField, zipCode, city, district, state) {
