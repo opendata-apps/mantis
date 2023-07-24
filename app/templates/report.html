@@ -52,7 +52,7 @@
 {% endif %}
 {% endwith %}
 
-<div class="flex items-center min-h-screen bg-gray-100">
+<div class="flex items-center justify-center min-h-screen bg-gray-100">
   <div class="w-full p-4 mx-auto max-w-7xl">
     <form action="" method="POST" enctype="multipart/form-data" id="mainForm" data-current-step="0"
       class="p-8 transition-all duration-500 bg-white shadow-xl rounded-2xl">
@@ -417,21 +417,37 @@
           </form>
         </div>
       </div>
-
   </div>
 
   <script>
+    // First Map:
     let map;
-    // Add Leaflet map configuration and event handling
-    function initMap() {
-      map = L.map('map').setView([52.5200, 13.4050], 5);
+    let userMarker;
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    function initMap() {
+      map = L.map('map').setView([52.5200, 13.4050], 7);
+
+      // Define map layers
+      const openStreetMapLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         maxZoom: 18,
-      }).addTo(map);
+      });
 
-      let userMarker;
+      const arcGISLayer = L.esri.Vector.vectorBasemapLayer("ArcGIS:Imagery", {
+        apikey: "AAPK86a1c1ed208a4f79995f90b84d565349Xh10gkyVbjU6BegInrQpqdskRjIG7TlZAnVod8zIf86N0rK-OU--C-m8Kysc_Azw" // Add your actual API key here
+      });
+
+      // Add default layer to the map
+      map.addLayer(openStreetMapLayer);
+
+      // Layer switcher control
+      var baseMaps = {
+        "Karte": openStreetMapLayer,
+        "Satellit": arcGISLayer
+      };
+
+      L.control.layers(baseMaps).addTo(map);
+
 
       // Update form fields on map click
       map.on('click', function (e) {
@@ -840,11 +856,29 @@
 
     // Step 4: Zusammenfassung und Vorschau
     // Map initialization
+    // Second Map:
     const summaryMap = L.map("summaryMap").setView([0, 0], 13);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+
+    // Define map layers
+    const openStreetMapLayerSummary = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
       maxZoom: 18,
-    }).addTo(summaryMap);
+    });
+
+    const arcGISLayerSummary = L.esri.Vector.vectorBasemapLayer("ArcGIS:Imagery", {
+      apikey: "AAPK86a1c1ed208a4f79995f90b84d565349Xh10gkyVbjU6BegInrQpqdskRjIG7TlZAnVod8zIf86N0rK - OU--C- m8Kysc_Azw" // Add your actual API key here
+    });
+
+    // Add default layer to the map
+    summaryMap.addLayer(openStreetMapLayerSummary);
+
+    // Layer switcher control
+    var baseMapsSummary = {
+      "OpenStreetMap": openStreetMapLayerSummary,
+      "ArcGIS": arcGISLayerSummary
+    };
+
+    L.control.layers(baseMapsSummary).addTo(summaryMap);
 
     const summaryMarker = L.marker([0, 0]).addTo(summaryMap);
     const summaryMarkerPopup = L.popup().setContent("");

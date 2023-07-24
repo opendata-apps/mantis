@@ -15,7 +15,8 @@
 }
 
 .sticky-nav {
-  @apply bg-green-800 bg-opacity-80 backdrop-filter backdrop-blur-lg z-50;
+  @apply bg-green-800 bg-opacity-80 backdrop-filter backdrop-blur-lg;
+  z-index: 99999 !important;
 }
 
 #overlay {
