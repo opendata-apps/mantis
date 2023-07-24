@@ -1,5 +1,6 @@
 {% extends "layout.html" %}
-{% block title %}<i> Mantis religiosa </i><br/> <span class="text-base">(ein geschütztes Tier)</span>{% endblock title %}
+{% block title %}<i> Mantis religiosa </i><br /> <span class="text-base">(ein geschütztes Tier)</span>{% endblock title
+%}
 
 {% block content %}
 <main class="container px-4 py-12 mx-auto sm:px-6 lg:px-8">
@@ -8,14 +9,15 @@
       <div class="sticky top-20">
         <nav class="p-4 bg-white rounded-lg shadow-lg">
           <h2 class="mb-2 text-xl font-bold">Inhaltsverzeichnis</h2>
-          <ul>
+          <ul class="mb.2">
             <li class="mb-2"><a href="#steckbrief">Steckbrief</a></li>
             <li class="mb-2"><a href="#ueberblick">Überblick</a></li>
             <li class="mb-2"><a href="#habitat">Habitat</a></li>
             <li class="mb-2"><a href="#verbreitungsgebiet">Verbreitungsgebiet</a></li>
             <li class="mb-2"><a href="#lebenszyklus">Lebenszyklus</a></li>
             <li class="mb-2"><a href="#beobachtungstipps">Beobachtungstipps</a></li>
-            <li><a href="#meldeformular">Meldeformular</a></li>
+            <li class="mb-2"><a href="#links">Weiterführende Links</a></li>
+            <li class="mb-2"><a href="#meldeformular">Meldeformular</a></li>
           </ul>
         </nav>
       </div>
@@ -23,66 +25,65 @@
     <article class="order-1 md:col-span-3 md:order-2">
       <div class="p-8 bg-white rounded-lg shadow-lg">
         <h1 class="mb-4 text-3xl font-bold">
-	  Die faszinierende Welt der
-	  <a href="https://de.wikipedia.org/wiki/Mantis"
-	     target="_blank">Gottesanbeterin</a>
-	</h1>
+          Die faszinierende Welt der
+          <a href="https://de.wikipedia.org/wiki/Mantis" target="_blank">Gottesanbeterin</a>
+        </h1>
         <img class="mb-4 rounded" src="{{ url_for('static', filename='images/mantis--maennchen__krueger.webp') }}"
-             alt="Profile of Mantis religiosa">
-	<p>Bildquelle: Krüger B. 2012</p> 
+          alt="Profile of Mantis religiosa">
+        <p>Bildquelle: Krüger B. 2012</p>
         <div class="text-lg leading-normal text-gray-800">
           <section id="steckbrief" class="mb-8">
             <h2 class="mb-2 text-2xl font-bold text-gray-800">Steckbrief</h2>
             <ul>
               <li>
-		<strong>Wissenschaftlicher Name:</strong> <i> Mantis religiosa </i> L., 1758
-	      </li>
+                <strong>Wissenschaftlicher Name:</strong> <i> Mantis religiosa </i> L., 1758
+              </li>
               <li>
-		<strong>Ordnung:</strong> <em><a href="https://de.wikipedia.org/wiki/Mantodea"
-						 target="_blank">Fangschrecken (Mantodea)</a></em>
-	      </li>
+                <strong>Ordnung:</strong> <em><a href="https://de.wikipedia.org/wiki/Mantodea"
+                    target="_blank">Fangschrecken (Mantodea)</a></em>
+              </li>
               <li>
-		<strong>Größe:</strong> <em>Weibchen 7 cm, Männchen 5-6 cm</em>
-	      </li>
+                <strong>Größe:</strong> <em>Weibchen 7 cm, Männchen 5-6 cm</em>
+              </li>
               <li>
-		<strong>Lebensraum:</strong> <em>Offene Grasfluren, Brachen, Ruderalflächen, Gärten</em>
-	      </li>
+                <strong>Lebensraum:</strong> <em>Offene Grasfluren, Brachen, Ruderalflächen, Gärten</em>
+              </li>
               <li>
-		<strong>Verbreitung:</strong> <em>Europa, Asien, Afrika</em>
-	      </li>
+                <strong>Verbreitung:</strong> <em>Europa, Asien, Afrika</em>
+              </li>
               <li>
-		<strong>Lebensweise:</strong> <em>Räuberisch</em>
-	      </li>
+                <strong>Lebensweise:</strong> <em>Räuberisch</em>
+              </li>
               <li>
-		<strong>Ernährung:</strong> <em>Insekten und Spinnen</em>
-	      </li>
+                <strong>Ernährung:</strong> <em>Insekten und Spinnen</em>
+              </li>
             </ul>
           </section>
           <section id="ueberblick" class="mb-8">
             <h2 class="mb-2 text-2xl font-bold text-gray-800">Überblick</h2>
             <p>
 
-	      Das Verbreitungsgebiet der Europäischen Gottesanbeterin
-	      erstreckt sich vom südlichen Europa von Portugal über
-	      Spanien, Frankreich, Italien, über den Balkan, in die
-	      Türkei bis nach Asien. Auch in Afrika kommt die
-	      Gottesanbeterin vor. Ursprünglich wurde sie nur in
-	      Rheinland-Pfalz, Baden- Württemberg und im Saarland
-	      gefunden, aber seit den 1990er Jahren breitet sie sich
-	      allmählich Richtung Norden aus. Seit 1998 ist eine
-	      stabile, isolierte Population in Berlin-Schöneberg
-	      bekannt, und die erste Gottesanbeterin in Brandenburg
-	      wurde 2007 gefunden. Aktuell ist die Fangschrecke in der
-	      Südhälfte Brandenburgs recht weit verbreitet, in den
-	      nördlichen Landkreisen hingegen liegen erst seit Kurzem
-	      vereinzelte Meldungen vor. Auch in Berlin wird die Art
-	      immer häufiger nachgewiesen. Es gibt aber immer noch
-	      Verbreitungslücken, daher zählt nach wie vor jede
-	      Meldung.
+              Das Verbreitungsgebiet der Europäischen Gottesanbeterin
+              erstreckt sich vom südlichen Europa von Portugal über
+              Spanien, Frankreich, Italien, über den Balkan, in die
+              Türkei bis nach Asien. Auch in Afrika kommt die
+              Gottesanbeterin vor. Ursprünglich wurde sie nur in
+              Rheinland-Pfalz, Baden- Württemberg und im Saarland
+              gefunden, aber seit den 1990er Jahren breitet sie sich
+              allmählich Richtung Norden aus. Seit 1998 ist eine
+              stabile, isolierte Population in Berlin-Schöneberg
+              bekannt, und die erste Gottesanbeterin in Brandenburg
+              wurde 2007 gefunden. Aktuell ist die Fangschrecke in der
+              Südhälfte Brandenburgs recht weit verbreitet, in den
+              nördlichen Landkreisen hingegen liegen erst seit Kurzem
+              vereinzelte Meldungen vor. Auch in Berlin wird die Art
+              immer häufiger nachgewiesen. Es gibt aber immer noch
+              Verbreitungslücken, daher zählt nach wie vor jede
+              Meldung.
             </p>
             <img class="mb-4 rounded" src="{{ url_for('static', filename='images/mantis--weibchen__krueger.webp') }}"
-		 alt="Mantis religiosa hunting">
-	    <p>Bildquelle: Krüger B. 2005</p> 
+              alt="Mantis religiosa hunting">
+            <p>Bildquelle: Krüger B. 2005</p>
           </section>
           <section id="habitat" class="mb-8">
             <h2 class="mb-2 text-2xl font-bold text-gray-800">Habitat</h2>
@@ -144,6 +145,27 @@
               aufwärmen. Mit ihrer grünen bis braunen Färbung sind sie
               jedoch perfekt getarnt und nicht leicht zu entdecken.
             </p>
+          </section>
+          <section id="#meldeformular" class="mb-8">
+            <h2 class="mb-2 text-2xl font-bold text-gray-800">Weiterführende Links</h2>
+            <ul class="text-green-500 underline">
+              <li class="hover:text-green-600">
+                <a href="https://www.bkmakro.de/Makro/Mantiden/MR.htm" target="_blank"
+                  class="hover:text-green-400">Mantidenfreunde</a>
+              </li>
+              <li class="hover:text-green-600">
+                <a href="https://www.naturkundemuseum-potsdam.de/gottesanbeterin-gesucht" target="_blank"
+                  class="hover:text-green-400">Naturkundemuseum-Potsdam</a>
+              </li>
+              <li class="hover:text-green-600">
+                <a href="https://www.nabu.de/tiere-und-pflanzen/insekten-und-spinnen/sonstige-insekten/21589.html"
+                  target="_blank" class="hover:text-green-400">NABU - Gottesanbeterin</a>
+              </li>
+              <li class="hover:text-green-600">
+                <a href="https://de.wikipedia.org/wiki/Europ%C3%A4ische_Gottesanbeterin" target="_blank"
+                  class="hover:text-green-400">Wikipedia Gottesanbeterin</a>
+              </li>
+            </ul>
           </section>
           <section id="meldeformular" class="p-4 mt-8 bg-green-200 rounded-lg shadow-lg">
             <div class="flex flex-col items-center justify-between md:flex-row">
