@@ -2,26 +2,25 @@ class TblMeldungen(db.Model):
     __tablename__ = "meldungen"
 
     id = db.Column(db.Integer, primary_key=True)
+    deleted = db.Column(db.Boolean, nullable=True)
     dat_fund_von = db.Column(db.Date, nullable=False)
     dat_fund_bis = db.Column(db.Date, nullable=True)
     dat_meld = db.Column(db.Date, nullable=True)
     dat_bear = db.Column(db.Date, nullable=True)
-    anzahl = db.Column(db.Integer, nullable=True)
+    bearb_id = db.Column(db.String(40), nullable=False)
+    tiere = db.Column(db.Integer, nullable=True)
     art_m = db.Column(db.Integer, nullable=True)
     art_w = db.Column(db.Integer, nullable=True)
     art_n = db.Column(db.Integer, nullable=True)
     art_o = db.Column(db.Integer, nullable=True)
-    fo_zuordnung = db.Column(
-        db.Integer,  db.ForeignKey("fundorte.id"), nullable=True)
-    fo_quelle = db.Column(db.String(1), nullable=True)
-    anm_melder = db.Column(db.String(500), nullable=True)
-    anm_bearbeiter = db.Column(db.String(500), nullable=True)
+    art_s = db.Column(db.Integer, nullable=True)
 
 class TblFundortBeschreibung(db.Model):
     __tablename__ = "beschreibung"
 
     id = db.Column(db.Integer, primary_key=True)
     beschreibung = db.Column(db.String(45), nullable=False)
+
 
 class TblFundorte (db.Model):
     __tablename__ = "fundorte"
@@ -38,9 +37,8 @@ class TblFundorte (db.Model):
         "beschreibung.id"), nullable=False)
     longitude = db.Column(db.VARCHAR(25), nullable=False)
     latitude = db.Column(db.VARCHAR(25), nullable=False)
-    beschreibung = db.Column(db.Integer, db.ForeignKey(
-        "beschreibung.id"), nullable=False)
     ablage = db.Column(db.VARCHAR(255), nullable=False)
+
 
 class TblMeldungUser(db.Model):
     __tablename__ = "melduser"
@@ -51,6 +49,7 @@ class TblMeldungUser(db.Model):
     id_user = db.Column(db.Integer, db.ForeignKey(
         "users.id"), unique=False, nullable=False)
 
+
 class TblFundmeldungen(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     funddatum = db.Column(db.date, nullable=False)
@@ -58,7 +57,6 @@ class TblFundmeldungen(db.Model):
     erstbearbeiter = db.Column(db.varchar, nullable=False)
     bearbeitungsdatum = db.Column(db.date, nullable=False)
     bildpfad = db.Column(db.varchar, nullable=False) 
-
 
 class TblUsers(db.Model):
     __tablename__ = "users"

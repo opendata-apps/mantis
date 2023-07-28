@@ -185,7 +185,8 @@ def report(usrid=None):
         existing_user = _user_to_dict(existing_user)
     return render_template('report.html',
                            form=form,
-                           existing_user=existing_user)
+                           existing_user=existing_user,
+                           apikey=Config.esri,)
 
 
 @data.route('/autocomplete', methods=['GET'])
@@ -253,9 +254,3 @@ def show_map():
                            reportsJson=reportsJson,
                            apikey=Config.esri,
                            post_count=post_count)
-
-
-@data.route('/statistics')
-def statistics():
-    mantis_count = TblMeldungen.query.count()
-    return render_template('statistics.html', mantis_count=mantis_count)

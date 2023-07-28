@@ -2,7 +2,7 @@
 {% block title %}Fundmeldungen 2023{% endblock title %}
 {% block content %}
 <div class="container flex flex-row p-6 mx-auto">
-    <div id="map" class="object-fill h-screen grow auto-rows-max"></div>
+  <div id="map" class="object-fill h-screen grow auto-rows-max"></div>
 </div>
 <!-- Animated counter section -->
 <section class="py-16 ">
@@ -15,9 +15,9 @@
       </h2>
       <p class="mb-8 text-lg text-center text-white">
         Helfen Sie uns, diese Zahl zu erhöhen! <br /><br />
-	<a class="underline text-white-700" href="https://www.naturkundemuseum-potsdam.de/gottesanbeterin-gesucht">
-	  Besuchen Sie auch die Informationsseite des Naturkundemuseum Potsdam
-	</a>
+        <a class="underline text-white-700" href="https://www.naturkundemuseum-potsdam.de/gottesanbeterin-gesucht">
+          Besuchen Sie auch die Informationsseite des Naturkundemuseum Potsdam
+        </a>
       </p>
     </div>
   </div>
@@ -50,33 +50,33 @@
 
 <script>
   const mapApiKey = "{{apikey}}"; // https://arcgis.esri.de/dos-and-donts-was-ist-wichtig-im-umgang-mit-esri-basemaps/
-    // https://developers.arcgis.com/dashboard/
-    const map = L.map('map').setView([51.991649, 13.080113], 9);
+  // https://developers.arcgis.com/dashboard/
+  const map = L.map('map').setView([51.991649, 13.080113], 9);
 
-    const openStreetMapLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 11,
-        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-    });
+  const openStreetMapLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 11,
+    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+  });
 
-    const arcGISLayer = L.esri.Vector.vectorBasemapLayer("ArcGIS:Imagery", {
-        apikey: mapApiKey // Corrected here
-    });
+  const arcGISLayer = L.esri.Vector.vectorBasemapLayer("ArcGIS:Imagery", {
+    apikey: mapApiKey // Corrected here
+  });
 
-    // Add default layer to the map
-    map.addLayer(openStreetMapLayer);
+  // Add default layer to the map
+  map.addLayer(openStreetMapLayer);
 
-    var reports = JSON.parse('{{ reportsJson | safe }}');
-    for (var i = 0; i < reports.length; i++) {
-        var report = reports[i];
-        const marker = L.marker([report.latitude, report.longitude]).addTo(map)
-    };
+  var reports = JSON.parse('{{ reportsJson | safe }}');
+  for (var i = 0; i < reports.length; i++) {
+    var report = reports[i];
+    const marker = L.marker([report.latitude, report.longitude]).addTo(map)
+  };
 
-    // Layer switcher control
-    var baseMaps = {
-        "OpenStreetMap": openStreetMapLayer,
-        "ArcGIS": arcGISLayer
-    };
+  // Layer switcher control
+  var baseMaps = {
+    "OpenStreetMap": openStreetMapLayer,
+    "ArcGIS": arcGISLayer
+  };
 
-    L.control.layers(baseMaps).addTo(map);
+  L.control.layers(baseMaps).addTo(map);
 </script>
 {% endblock content %}

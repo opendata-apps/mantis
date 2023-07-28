@@ -11,14 +11,14 @@ class TblMeldungen(db.Model):
     dat_fund_bis = db.Column(db.Date, nullable=True)
     dat_meld = db.Column(db.Date, nullable=True)
     dat_bear = db.Column(db.Date, nullable=True)
-    bearb_id = db.Column(db.String(40), nullable=False)
+    bearb_id = db.Column(db.String(40), nullable=True)
     tiere = db.Column(db.Integer, nullable=True)
     art_m = db.Column(db.Integer, nullable=True)
     art_w = db.Column(db.Integer, nullable=True)
     art_n = db.Column(db.Integer, nullable=True)
     art_o = db.Column(db.Integer, nullable=True)
     art_s = db.Column(db.Integer, nullable=True)
-    
+
     fo_zuordnung = db.Column(
         db.Integer,  db.ForeignKey("fundorte.id"), nullable=True)
     fo_quelle = db.Column(db.String(1), nullable=True)

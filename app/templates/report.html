@@ -2,7 +2,6 @@
 {% from "macro.html" import popover %}
 {% from "macro.html" import formButton %}
 {% block head %}
-<script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
 <meta name="csrf-token" content="{{ csrf_token() }}">
 {% endblock %}
 {% block title %}Fund melden{% endblock %}
@@ -424,6 +423,7 @@
     // First Map:
     let map;
     let userMarker;
+    mapApiKey = "{{apikey}}"
 
     function initMap() {
       map = L.map('map').setView([52.5200, 13.4050], 7);
@@ -435,7 +435,7 @@
       });
 
       const arcGISLayer = L.esri.Vector.vectorBasemapLayer("ArcGIS:Imagery", {
-        apikey: ""
+        apikey: mapApiKey // Add your actual API key here
       });
 
       // Add default layer to the map
@@ -859,6 +859,7 @@
     // Map initialization
     // Second Map:
     const summaryMap = L.map("summaryMap").setView([0, 0], 13);
+    mapApiKey = "{{apikey}}"
 
     // Define map layers
     const openStreetMapLayerSummary = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -867,7 +868,7 @@
     });
 
     const arcGISLayerSummary = L.esri.Vector.vectorBasemapLayer("ArcGIS:Imagery", {
-      apikey: "AAPK86a1c1ed208a4f79995f90b84d565349Xh10gkyVbjU6BegInrQpqdskRjIG7TlZAnVod8zIf86N0rK - OU--C- m8Kysc_Azw" // Add your actual API key here
+      apikey: mapApiKey // Add your actual API key here
     });
 
     // Add default layer to the map
