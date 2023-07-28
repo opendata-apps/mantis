@@ -7,20 +7,7 @@
   content="Finden Sie Antworten auf häufig gestellte Fragen zu der Meldung und Beobachtung der Gottesanbeterin (Mantis religiosa) in Deutschland. Erfahren Sie, wie Sie mithelfen können, diese Art zu verfolgen.">
 <meta name="keywords" content="Gottesanbeterin, Mantis religiosa, Deutschland, Meldung, Beobachtung, FAQ">
 {% endblock head %}
-<script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": [{% for faq in faq_entries %}{
-      "@type": "Question",
-      "name": "{{ faq.title }}",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "{{ faq.content }}"
-      }}{% if not loop.last %},{% endif %}{% endfor %}
-    ]
-  }
-</script>
+
 
 <div class="container px-8 py-6 mx-auto">
   <div class="flex flex-wrap justify-center">
