@@ -11,7 +11,7 @@ from werkzeug.datastructures import CombinedMultiDict
 from app import db
 from app.database.models import TblFundortBeschreibung
 from app.database.models import TblFundorte, TblMeldungUser
-from app.database.models import TblMeldungen, TblPlzOrt, TblUsers
+from app.database.models import TblMeldungen, TblUsers
 from app.forms import MantisSightingForm
 from app.tools.gen_user_id import get_new_id
 import os
@@ -148,7 +148,7 @@ def report(usrid=None):
                                    dat_meld=datetime.now(),
                                    fo_zuordnung=new_fundort.id,
                                    fo_quelle="F",
-                                   art_s='0',
+                                   art_f='0',
                                    ** genders,
                                    anm_melder=form.picture_description.data)
         db.session.add(new_meldung)
@@ -181,30 +181,6 @@ def report(usrid=None):
                            form=form,
                            existing_user=existing_user,
                            apikey=Config.esri,)
-
-
-@data.route('/autocomplete', methods=['GET'])
-def autocomplete():
-    query = request.args.get('q')
-    results = db.session.query(TblPlzOrt).filter(
-        or_(
-            TblPlzOrt.plz.startswith(query),
-            TblPlzOrt.ort.startswith(query),
-            TblPlzOrt.landkreis.startswith(query),
-            TblPlzOrt.bundesland.startswith(query)
-        )
-    ).limit(10).all()
-
-    suggestions = []
-    for result in results:
-        suggestions.append({
-            'plz': result.plz,
-            'ort': result.ort,
-            'landkreis': result.landkreis,
-            'bundesland': result.bundesland
-        })
-
-    return jsonify(suggestions)
 
 
 @data.route('/validate', methods=['POST'])

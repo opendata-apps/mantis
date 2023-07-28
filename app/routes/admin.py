@@ -2,7 +2,7 @@ from flask import jsonify, render_template, request, Blueprint, send_from_direct
 from app import db
 # from app.database.models import Mantis
 import json
-from app.database.models import TblMeldungen, TblFundortBeschreibung, TblFundorte, TblMeldungUser, TblPlzOrt, TblUsers
+from app.database.models import TblMeldungen, TblFundortBeschreibung, TblFundorte, TblMeldungUser, TblUsers
 from datetime import datetime
 from app.forms import MantisSightingForm
 from sqlalchemy import or_, MetaData
@@ -146,7 +146,7 @@ def change_gender(id):
     sighting.art_w = 0
     sighting.art_n = 0
     sighting.art_o = 0
-    sighting.art_s = 0
+    sighting.art_f = 0
 
     # Update the specified gender to 1
     if new_gender == 'M':
@@ -158,7 +158,7 @@ def change_gender(id):
     elif new_gender == 'O':
         sighting.art_o = 1
     elif new_gender == 'S':
-        sighting.art_s = 1
+        sighting.art_f = 1
 
     db.session.commit()
 
@@ -182,12 +182,12 @@ def change_mantis_count(id):
     elif mantis_type == 'Ootheke':
         sighting.art_o = new_count
     elif mantis_type == 'Andere':
-        sighting.art_s = new_count
+        sighting.art_f = new_count
 
     db.session.commit()
 
     print(
-        f"Changed count of {mantis_type} to {new_count} for sighting with id {id} now {sighting.art_m} {sighting.art_w} {sighting.art_n} {sighting.art_o} {sighting.art_s}")
+        f"Changed count of {mantis_type} to {new_count} for sighting with id {id} now {sighting.art_m} {sighting.art_w} {sighting.art_n} {sighting.art_o} {sighting.art_f}")
 
     return jsonify(success=True)
 

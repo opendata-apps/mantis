@@ -2,7 +2,7 @@ from flask import jsonify, render_template, request, Blueprint, send_from_direct
 from app import db
 # from app.database.models import Mantis
 import json
-from app.database.models import TblMeldungen, TblFundortBeschreibung, TblFundorte, TblMeldungUser, TblPlzOrt, TblUsers
+from app.database.models import TblMeldungen, TblFundortBeschreibung, TblFundorte, TblMeldungUser, TblUsers
 from datetime import datetime
 from app.forms import MantisSightingForm
 from sqlalchemy import or_

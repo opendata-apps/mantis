@@ -43,7 +43,7 @@ class TblMeldungen(db.Model):
             'art_w': self.art_w,
             'art_n': self.art_n,
             'art_o': self.art_o,
-            'art_f': self.art_s,
+            'art_f': self.art_f,
             'fo_zuordung': self.fo_zuordnung,
             'fo_quelle': self.fo_quelle,
             'fo_beleg': self.fo_beleg,

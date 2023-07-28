@@ -815,46 +815,6 @@
       }
     }
 
-    function getAutoCompleteData(inputField) {
-      var query = inputField.value;
-      if (query) {
-        fetch('/autocomplete?q=' + query)
-          .then(response => response.json())
-          .then(data => {
-            if (data.length > 0) {
-              var firstResult = data[0];
-              autoCompleteData(inputField, firstResult.plz, firstResult.ort, firstResult.landkreis, firstResult.bundesland);
-            }
-          });
-      }
-    }
-
-    document.addEventListener('DOMContentLoaded', function () {
-      var zipCodeInput = document.getElementById('zip_code');
-
-      function addEvents(inputField) {
-        inputField.addEventListener('keydown', function (event) {
-          if (event.key === 'Enter' || event.key === 'Tab') {
-            if (inputField.value.length >= 4) {
-              getAutoCompleteData(inputField);
-            }
-          }
-        });
-        inputField.addEventListener('blur', function () {
-          if (inputField.value.length >= 5) {
-            getAutoCompleteData(inputField);
-          }
-        });
-        //if input field is empty, clear all other fields related to it
-        inputField.addEventListener('input', function () {
-          if (inputField.value === '') {
-            autoCompleteData(inputField, '', '', '', '');
-          }
-        });
-      }
-
-      addEvents(zipCodeInput);
-    });
 
     document.addEventListener('DOMContentLoaded', function () {
       let myForm = document.getElementById('myForm');

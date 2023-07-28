@@ -3,5 +3,5 @@ from .fundmeldungen import TblMeldungen
 from .fundortbeschreibung import TblFundortBeschreibung
 from .fundorte import TblFundorte
 from .meldung_user import TblMeldungUser
-from .plzort import TblPlzOrt
+
 from .users import TblUsers
