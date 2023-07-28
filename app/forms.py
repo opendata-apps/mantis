@@ -112,10 +112,8 @@ class MantisSightingForm(FlaskForm):
 
     sighting_date = DateField("*Funddatum", validators=[
                               DataRequired(message='Das Funddatum ist erforderlich.'), validate_past_date], render_kw={'placeholder': 'z.B. 2023-05-14'})
-    contact = StringField("*Kontakt (Email)", validators=[
-        DataRequired(message='Der Kontakt ist erforderlich.'),
-        Email(message='Die Email Adresse ist ungültig.')],
-        render_kw={'placeholder': 'z.B. max@example.de'})
+    contact = StringField("Kontakt (Email)", validators=[Optional(Email(message='Die Email Adresse ist ungültig.'))],
+                          render_kw={'placeholder': 'z.B. max@example.de'})
 
     submit = SubmitField("Absenden")
 
