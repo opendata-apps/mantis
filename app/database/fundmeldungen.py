@@ -17,7 +17,7 @@ class TblMeldungen(db.Model):
     art_w = db.Column(db.Integer, nullable=True)
     art_n = db.Column(db.Integer, nullable=True)
     art_o = db.Column(db.Integer, nullable=True)
-    art_s = db.Column(db.Integer, nullable=True)
+    art_f = db.Column(db.Integer, nullable=True)
 
     fo_zuordnung = db.Column(
         db.Integer,  db.ForeignKey("fundorte.id"), nullable=True)
@@ -43,7 +43,7 @@ class TblMeldungen(db.Model):
             'art_w': self.art_w,
             'art_n': self.art_n,
             'art_o': self.art_o,
-            'art_s': self.art_s,
+            'art_f': self.art_s,
             'fo_zuordung': self.fo_zuordnung,
             'fo_quelle': self.fo_quelle,
             'fo_beleg': self.fo_beleg,
