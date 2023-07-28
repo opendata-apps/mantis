@@ -169,10 +169,6 @@ def report(usrid=None):
             'message': 'Vielen Dank für Ihre Meldung!',
         })
         addresse = form.contact.data
-        """
-{'id': 2, 'dat_fund_von': datetime.date(2023, 7, 7), 'dat_fund_bis': datetime.date(2023, 7, 7), 'dat_meld': datetime.date(2023, 7, 7), 'dat_bear': None, 'art_m': 0, 'art_w': 1, 'art_n': 0, 'art_o': 0, 'art_s': None, 'fo_zuordnung': 4, 'fo_quelle': 'F', 'anm_melder': None, 'anm_bearbeiter': None, 'plz': 11111, 'ort': 'Potsdam', 'strasse': 'Caputher Heuweg', 'kreis': 'Potsdam-Mittelmark', 'land': 'Brandenburg', 'amt': None, 'mtb': None, 'beschreibung': 'am Haus', 'longitude': '13.08939', 'latitude': '52.35547', 'ablage': 'app/datastore/2023-07-07/Potsdam-20230707145607-17d31973137f148369e7862b439bc8f29bf12d0c.webp', 'id_meldung': 3, 'id_user': 2, 'user_id': '17d31973137f148369e7862b439bc8f29bf12d0c', 'user_name': 'Berger D.', 'user_rolle': '1', 'user_kontakt': 'dirk.berger@rathaus.potsdam.de'}
-
-        """
 
         # if addresse:
         #    send_email(formdata=form)

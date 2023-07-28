@@ -19,4 +19,4 @@ class Config:
     tls = True
     sender_email = ""
     sender_pass = ""
-    esri = os.environ.get('ESRI_MAP_KEY')
+    esri = os.environ.get('ESRI_MAP_KEY') or 'no-key-found'

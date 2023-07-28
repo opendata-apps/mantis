@@ -93,6 +93,7 @@ def get_sighting(id):
     ).first()
 
     if sighting:
+        print(sighting)
         # Convert sighting to a dictionary and return it
         sighting_dict = {}
         for part in sighting:

@@ -1,7 +1,12 @@
 {% extends "layout.html" %}
-{% block title %}FAQ {% endblock title %}
+{% block title %}Häufig gestellte Fragen (FAQ){% endblock title %}
 
 {% block content %}
+{% block head %}
+<meta name="description"
+  content="Finden Sie Antworten auf häufig gestellte Fragen zu der Meldung und Beobachtung der Gottesanbeterin (Mantis religiosa) in Deutschland. Erfahren Sie, wie Sie mithelfen können, diese Art zu verfolgen.">
+<meta name="keywords" content="Gottesanbeterin, Mantis religiosa, Deutschland, Meldung, Beobachtung, FAQ">
+{% endblock head %}
 <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -25,7 +30,8 @@
         id="faq-search" type="text" placeholder="Search FAQ">
 
       {% set faq_entries = [
-      {"title": "Muss ich mich für meine Meldung anmelden oder registrieren?", "content": "Nein, für eine Meldung ist eine Registrierung oder
+      {"title": "Muss ich mich für meine Meldung anmelden oder registrieren?", "content": "Nein, für eine Meldung ist
+      eine Registrierung oder
       Anmeldung nicht nötig."},
       {"title": "Wer kann mitmachen?", "content": "Mitmachen können Kinder, Jugendliche oder Erwachsene, die Interesse
       haben, sich an diesem Forschungsprojekt zu beteiligen."},
@@ -121,6 +127,21 @@
     </div>
   </div>
 </div>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [{% for faq in faq_entries %}{
+      "@type": "Question",
+      "name": "{{ faq.title }}",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "{{ faq.content }}"
+      }}{% if not loop.last %},{% endif %}{% endfor %}
+    ]
+  }
+</script>
 
 
 <script>
