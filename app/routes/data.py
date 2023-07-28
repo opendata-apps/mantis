@@ -165,10 +165,8 @@ def report(usrid=None):
         db.session.commit()
 
         flash({
-            'title': 'Vielen Dank für Ihre Meldung!',
-            'message': 'Um weitere Meldungen zu machen, \
-                        speichern Sie bitte die folgende ID:',
-            'usrid': url_for('data.report', usrid=usrid, _external=True),
+            'title': 'Daten wurden gesendet.',
+            'message': 'Vielen Dank für Ihre Meldung!',
         })
         addresse = form.contact.data
         """
