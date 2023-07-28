@@ -105,7 +105,7 @@
         <div class="mb-8 overflow-hidden transition-shadow duration-200 ease-in-out bg-white rounded-lg shadow-lg hover:shadow-xl report-card"
             data-report-id="{{sighting.id}}">
             <div class="relative">
-                <img onclick="openImageModal('{{ url_for('admin.report_Img', filename=sighting.fundort.ablage) }}')"
+                <img onclick="openImageModal('{{ url_for('admin.report_Img', filename='datastore/' +  sighting.fundort.ablage) }}')"
                     class="object-cover w-full h-64 transition-transform duration-200 ease-in-out rounded-t-lg cursor-pointer hover:scale-105"
                     src="{{ url_for('admin.report_Img', filename='datastore/' +  sighting.fundort.ablage)}}"
                     alt="{{imagepath}}">
