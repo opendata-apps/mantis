@@ -106,9 +106,9 @@
         <div class="mb-8 overflow-hidden transition-shadow duration-200 ease-in-out bg-white rounded-lg shadow-lg hover:shadow-xl report-card"
             data-report-id="{{sighting.id}}">
             <div class="relative">
-                <img onclick="openImageModal('{{ url_for('admin.report_Img', filename=sighting.fundort.ablage[4:]) }}')"
-                    class="object-cover w-full h-64 transition-transform duration-200 ease-in-out rounded-t-lg cursor-pointer hover:scale-105"
-                    src="{{ url_for('admin.report_Img', filename=sighting.fundort.ablage[4:]) }}" alt="Report Image">
+                <img onclick="openImageModal('{{ url_for('admin.report_Img', filename='datastore' + sighting.fundort.ablage[4:]) }}')"
+                     class="object-cover w-full h-64 transition-transform duration-200 ease-in-out rounded-t-lg cursor-pointer hover:scale-105"
+                    src="{{ url_for('admin.report_Img', filename='datastore' + sighting.fundort.ablage[4:])}}" alt="{{imagepath}}">
                 <div class="px-6 py-6 md:px-6">
                     <div class="relative px-4 -mt-16">
                         <div class="p-6 rounded-lg shadow-lg {{ 'bg-green-100' if sighting.approved }} bg-white">

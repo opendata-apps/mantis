@@ -16,3 +16,4 @@ class Config:
     sender_email = ""
     sender_pass = ""
     esri= ""
+

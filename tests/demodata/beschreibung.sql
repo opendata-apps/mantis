@@ -13,4 +13,6 @@ insert into beschreibung (id, beschreibung) values (12,'im Garten');
 insert into beschreibung (id, beschreibung) values (13,'im Haus');
 insert into beschreibung (id, beschreibung) values (14,'im Wald');
 insert into beschreibung (id, beschreibung) values (15,'im/am Auto');
+insert into beschreibung (id, beschreibung) values (16,'anderer Fundort');
+
 
