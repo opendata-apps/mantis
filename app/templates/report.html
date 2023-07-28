@@ -176,8 +176,10 @@
               <div class="flex justify-between">
                 {{ form.gender.label.text }}
                 <a href="/bestimmung" target="_blank"
-                  class="block text-sm font-semibold text-blue-600 hover:text-blueGray-800">Anleitung zur Bestimmung
-                  (neuer Tab)</a>
+                  class="inline-flex items-center justify-center px-2 py-1 text-xs font-bold text-blue-600 sm:text-xs hover:text-blue-800 hover:underline "
+                  title="Anleitung zur Bestimmung in neuem Tabn öffnen">
+                  Anleitung zur Bestimmung
+                </a>
                 <button data-popover-target="popover-gender" type="button" class="pl-2 pr-1 text-black">
                   <svg class="w-4 h-4 text-gray-600 " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
                     viewBox="0 0 20 20">
@@ -598,7 +600,20 @@
 
     input.addEventListener('change', function (e) {
       const file = e.target.files[0];
+      const validFileTypes = ["image/png", "image/jpeg", "image/jfif", "image/webp", "image/heic"];
+
+      // Clear previous error messages
+      clearErrorsForField('picture');
+
       if (file) {
+        // Check if the file type is valid
+        if (!validFileTypes.includes(file.type.toLowerCase())) {
+          // Call your error function here
+          showErrors({ picture: ["Ungültiger Datentyp erlaubt sind PNG, JPG, JPEG, JFIF, WEBP, oder HEIC Datein."] }, 0);
+          e.target.value = ''; // Clear the input
+          return;
+        }
+
         const reader = new FileReader();
 
         reader.addEventListener('load', function () {
@@ -614,6 +629,23 @@
         uploadText.classList.remove('hidden');
       }
     });
+
+    function clearErrorsForField(fieldName) {
+      // Remove error styling from picture label
+      const label = document.querySelector(`label[for="${fieldName}"]`);
+      if (label) {
+        label.classList.remove('error-field');
+      }
+
+      // Clear any existing error messages
+      const field = document.querySelector(`[name="${fieldName}"]`);
+      const errorElement = field.parentElement.querySelector('.form-error');
+      if (errorElement) {
+        // Remove error styling from field
+        field.classList.remove('error-field');
+        errorElement.remove();
+      }
+    }
 
 
     // Check if a success message is being flashed

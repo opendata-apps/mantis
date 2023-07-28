@@ -1,6 +1,7 @@
-# Path: app/config.py
-
 import os
+from dotenv import load_dotenv
+
+load_dotenv(dotenv_path="app/.env")
 
 
 class Config:
@@ -18,4 +19,4 @@ class Config:
     tls = True
     sender_email = ""
     sender_pass = ""
-    esri = os.environ.get('ESRI_MAP_KEY') or "your-default-key"
+    esri = os.environ.get('ESRI_MAP_KEY')

@@ -4,26 +4,41 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Mantis -- Mitmachprojekt</title>
-  <meta name="description" content="Helfen Sie die Ausbreitung der Gottesanbeterin in der Region zu erforschen.">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <title>Mantis Religiosa -- Mitmachprojekt</title>
+  <meta name="description"
+    content="Helfen Sie, die Ausbreitung der Gottesanbeterin in Deutschland zu erforschen. Nehmen Sie am Mitmachprojekt teil und melden Sie Sichtungen.">
   <meta name="keywords"
-    content="Mantis religiosa L., Mitmachprojekt, melden, Meldung, Projekt, Gottesanbeterin, Potsdam, Naturkundemuseum">
-  <meta itemprop="name" content="Mantis -- Mitmachprojekt">
+    content="Mantis religiosa, Gottesanbeterin, Mitmachprojekt, Melden, Meldung, Citizen Science, Naturkundemuseum, Potsdam, Deutschland">
+
+  <link rel="canonical" href="https://gottesanbeterin-gesucht.de/" />
+
+  <meta itemprop="name" content="Gottesanbeterin Gesucht -- Mitmachprojekt">
+  <meta itemprop="description"
+    content="Helfen Sie, die Ausbreitung der Gottesanbeterin in Deutschland zu erforschen. Nehmen Sie am Mitmachprojekt teil und melden Sie Sichtungen.">
   <meta itemprop="keywords"
-    content="Mantis religiosa L., Mitmachprojekt, melden, Meldung, Projekt, Gottesanbeterin, Potsdam, Naturkundemuseum">
+    content="Mantis religiosa, Gottesanbeterin, Mitmachprojekt, Melden, Meldung, Citizen Science, Naturkundemuseum, Potsdam, Deutschland">
+
+  <meta property="og:title" content="Mantis Religiosa -- Mitmachprojekt">
+  <meta property="og:description"
+    content="Helfen Sie, die Ausbreitung der Gottesanbeterin in Deutschland zu erforschen. Nehmen Sie am Mitmachprojekt teil und melden Sie Sichtungen.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://gottesanbeterin-gesucht.de/">
+  <meta property="og:image" content="{{ url_for('static', filename='images/berger08.webp') }}">
+  <meta property="og:image:alt" content="Gottesanbeterin">
   <link rel="stylesheet" href="{{ url_for('static', filename='build/theme.css') }}" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/leaflet.css')}}" />
   <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.webp') }}">
-  <script src="{{ url_for('static', filename='js/flow/flowbite.min.js')}}"></script>
+
+  <script src="{{ url_for('static', filename='js/flow/flowbite.min.js')}}" defer></script>
   <script src="{{ url_for('static', filename='js/leaflet.js')}}"></script>
   <script src="{{ url_for('static', filename='js/esri-leaflet.js')}}"></script>
   <script src="{{ url_for('static', filename='js/esri-leaflet-vector.js')}}"></script>
-  <script src="{{ url_for('static', filename='js/exif-js.js')}}"></script>
+  <script src="{{ url_for('static', filename='js/exif-js.js')}}" defer></script>
 
-
-  <!--Link to local javascript leaflet-->
   {% block head %} {% endblock head %}
 </head>
+
 
 
 <body class="antialiased bg-gray-100">

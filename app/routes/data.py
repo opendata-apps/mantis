@@ -227,6 +227,7 @@ def validate():
 
 @data.route('/auswertungen')
 def show_map():
+
     # Summe aller Meldungen für den Counter
     post_count = db.session.query(TblMeldungen).count()
 
