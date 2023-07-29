@@ -96,7 +96,7 @@ class MantisSightingForm(FlaskForm):
                          'placeholder': 'z.B. Musterstraße'})
     state = StringField("*Bundesland", validators=[DataRequired(message='Das Bundesland ist erforderlich.')], render_kw={
                         'placeholder': 'Bundesland'})
-    district = StringField("Kreis", render_kw={'placeholder': 'z.B. Mitte'})
+    district = StringField("Landkreis/Stadtteil", render_kw={'placeholder': 'z.B. Mitte'})
     location_description = SelectField("Fundort Beschreibung", choices=location_description_CHOICES,
                                        default="Keine Angabe", render_kw={'title': 'Fundort Beschreibung auswählen'})
 
