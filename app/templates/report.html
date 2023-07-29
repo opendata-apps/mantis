@@ -273,7 +273,9 @@
             <label for="{{ form.report_last_name.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.report_last_name.label.text }}
-                {{ popover("popover-reportnachname", "Nachname", "Geben Sie hier bitte Ihren Nachnamen ein.") }}
+                {{ popover("popover-reportnachname", "Nachname", "Bitte geben Sie Ihren Namen wie
+                   angegeben ein. Die Eingabe des Meldernamens ermöglicht uns, Doppelmeldungen zu erkennen und
+                   zusammenzuführen") }}
               </div>
               <div class="relative">
                 {{ form.report_last_name(class="input-field") }}
@@ -364,7 +366,7 @@
         </div>
         <h3 class="mt-8 text-lg font-semibold text-gray-800">Beschreibung</h3>
         <ul class="text-lg list-disc list-inside">
-          <li><strong class="text-gray-800">Entwicklungsstadium:</strong> <span id="summaryGender"></span></li>
+          <li><strong class="text-gray-800">Entwicklungsstadium/Geschlecht:</strong> <span id="summaryGender"></span></li>
           <li><strong class="text-gray-800">Ortsbeschreibung:</strong> <span id="summaryLocationDescription"></span>
           </li>
           <li><strong class="text-gray-800">Bildbeschreibung:</strong> <span id="summaryPictureDescription"></span></li>
