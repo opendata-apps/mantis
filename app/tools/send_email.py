@@ -21,17 +21,21 @@ def rendertextmsg(formdata):
     }
     return f"""
     Liebe/r Mantis-Freund*In,
-    
+
     Vielen Dank, dass Sie sich am Gottesanbeterinnen-Monitoring beteiligt
-    haben. Ihre Meldung ist bei uns eingegangen. Sobald das Geschlecht des 
-    gemeldeten Tieres ermittelt ist, erhalten Sie von uns eine weitere Email.
+    haben. Seit 2016 wurden uns bereits über 2.500 Meldungen aus
+    Brandenburg und Berlin gemeldet. Vor allem aus dem Süden
+    Brandenburgs. Im Norden wird die Art viel seltener gesichtet. Auch in
+    Berlin und Potsdam mehren sich die Funde. Sobald wir Ihre Fundmeldung
+    überprüft haben, wird sie in der Verbreitungskarte – hier unter
+    Auswertungen – angezeigt. Noch einmal vielen Dank für Ihre Meldung.
     
-    Mit freundlichen Grüßen
+    Mit freundlichen Grüßen 
     
     Ihr Team vom Mantis-Portal
 
-    Hier nocheinmal Ihre Meldung:
-    =============================
+    Folgende Daten haben wir erhalten:
+    ==================================
 
     Kontakt: { data['Kontakt'] }
     Ihr Link für neue Meldungen:  https://gottesanbeterin-gesucht.de/report/{ data['link'] }
@@ -65,9 +69,14 @@ def renderhtmlmsg(formdata):
     <h3>Liebe/r Mantis-Freund*In,</h3>
     
     <p>
-    Vielen Dank, dass Sie sich am Gottesanbeterinnen-Monitoring beteiligt<br/>
-    haben. Ihre Meldung ist bei uns eingegangen. Sobald das Geschlecht des<br/> 
-    gemeldetenTieres ermittelt ist, erhalten Sie von uns eine weitere Email.
+    Vielen Dank, dass Sie sich am Gottesanbeterinnen-Monitoring beteiligt
+    haben. Seit 2016 wurden uns bereits über 2.500 Meldungen aus
+    Brandenburg und Berlin gemeldet. Vor allem aus dem Süden
+    Brandenburgs. Im Norden wird die Art viel seltener gesichtet. Auch in
+    Berlin und Potsdam mehren sich die Funde. Sobald wir Ihre Fundmeldung
+    überprüft haben, wird sie in der Verbreitungskarte – hier unter
+    Auswertungen – angezeigt. Noch einmal vielen Dank für Ihre Meldung.
+
     </p>
     <p>
     Mit freundlichen Grüßen
@@ -76,8 +85,7 @@ def renderhtmlmsg(formdata):
     Ihr Team vom Mantis-Portal
     </p>
     <hr/>
-    <p>Hier noch einmal die von Ihnen gesendenten Daten</p>
-
+    <p>Folgende Daten haben wir erhalten:</p>
     <table>
     <tr>    
     <td>Kontakt:</td><td>{ data['Kontakt'] }</td>
