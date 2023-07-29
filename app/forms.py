@@ -68,9 +68,9 @@ class MantisSightingForm(FlaskForm):
                              message="Bitte wählen Sie eine Option.")],
                          render_kw={'title': 'Entwicklungsstadium auswählen'})
     picture_description = StringField(
-        "sonstige Angaben zum Fundort",
+        "Sonstige Angaben zum Fundort",
         validators=[Length(max=500)],
-        render_kw={'placeholder': 'Geben Sie hier Ihre sonstige Angaben zum Fundort ein'})
+        render_kw={'placeholder': 'Freihandeingabe Fundort'})
 
     longitude = FloatField('*Längengrad',
                            validators=[InputRequired('Pflichtfeld, das gefüllt wird, \
@@ -97,22 +97,22 @@ class MantisSightingForm(FlaskForm):
     state = StringField("*Bundesland", validators=[DataRequired(message='Das Bundesland ist erforderlich.')], render_kw={
                         'placeholder': 'Bundesland'})
     district = StringField("Landkreis/Stadtteil", render_kw={'placeholder': 'z.B. Mitte'})
-    location_description = SelectField("Fundort Beschreibung", choices=location_description_CHOICES,
+    location_description = SelectField("Fundort-Beschreibung", choices=location_description_CHOICES,
                                        default="Keine Angabe", render_kw={'title': 'Fundort Beschreibung auswählen'})
 
     report_first_name = StringField(
-        "*Vorname", validators=[DataRequired(message='Der Vorname ist erforderlich.')], render_kw={'placeholder': 'Erster Buchstabe z.B. M.'})
+        "*Vorname (Melder)", validators=[DataRequired(message='Der Vorname ist erforderlich.')], render_kw={'placeholder': 'Erster Buchstabe z.B. M.'})
     report_last_name = StringField(
-        "*Name", validators=[DataRequired(message='Der Name ist erforderlich.')], render_kw={'placeholder': 'z.B. Mustermann'})
+        "*Nachname (Melder)", validators=[DataRequired(message='Der Nachname ist erforderlich.')], render_kw={'placeholder': 'z.B. Mustermann'})
     identical_finder_melder = BooleanField("Finder und Melder sind identisch")
     finder_first_name = StringField(
-        "Vorname", render_kw={'placeholder': 'Erster Buchstabe Finder z.B. M.'})
+        "Vorname (Finder)", render_kw={'placeholder': 'Erster Buchstabe Finder z.B. M.'})
     finder_last_name = StringField(
-        "Name", render_kw={'placeholder': 'z.B. Mustermann'})
+        "Nachname (Finder)", render_kw={'placeholder': 'z.B. Mustermann'})
 
     sighting_date = DateField("*Funddatum", validators=[
                               DataRequired(message='Das Funddatum ist erforderlich.'), validate_past_date], render_kw={'placeholder': 'z.B. 2023-05-14'})
-    contact = StringField("Kontakt (Email)", validators=[Optional(Email(message='Die Email Adresse ist ungültig.'))],
+    contact = StringField("Kontakt (E-Mail)", validators=[Optional(Email(message='Die Email Adresse ist ungültig.'))],
                           render_kw={'placeholder': 'z.B. max@example.de'})
 
     submit = SubmitField("Absenden")
