@@ -297,7 +297,10 @@
             <label for="{{ form.sighting_date.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.sighting_date.label.text }}
-                {{ popover("popover-datum", "Datum", "Wählen Sie hier bitte das Funddatum.") }}
+                {{ popover("popover-datum", "Datum", "Wählen Sie hier bitte das Funddatum.
+		TT für den Tag,
+		MM für den Monat und 
+		JJJJ für das Jahr") }}
               </div>
               <div class="relative">
                 {{ form.sighting_date(class="input-field") }}

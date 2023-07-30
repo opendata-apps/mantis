@@ -157,7 +157,7 @@
                                         <option value="M" {{ 'selected' if sighting.art_m==1 }}>Männlich</option>
                                         <option value="W" {{ 'selected' if sighting.art_w==1 }}>Weiblich</option>
                                         <option value="N" {{ 'selected' if sighting.art_n==1 }}>Nymphe</option>
-                                        <option value="O" {{ 'selected' if sighting.art_o==1 }}>Ootheke</option>
+                                        <option value="O" {{ 'selected' if sighting.art_o==1 }}>Oothek</option>
                                         <option value="S" {{ 'selected' if sighting.art_f==1 }}>Andere</option>
                                     </select>
                                     {% if sighting.dat_bear %}
@@ -474,7 +474,7 @@
 
     function generateGeneralInfo(data) {
         // Determine gender based on the art_ fields
-        let mantis_types = ['Männlich', 'Weiblich', 'Nymphe', 'Ootheke', 'Andere'];
+        let mantis_types = ['Männchen', 'Weibchen', 'Nymphe', 'Oothek', 'Andere'];
         let gender_counts = [data.art_m, data.art_w, data.art_n, data.art_o, data.art_f];
 
         // Convert general info into HTML string
