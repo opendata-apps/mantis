@@ -47,7 +47,7 @@ class MantisSightingForm(FlaskForm):
         ('9', 'Straßengraben/Wegesrand/Ruderalflur'),
         ('10', 'Gewerbegebiet'),
         ('11', 'Im oder am Auto'),
-        ('16', 'anderer Fundort')]
+        ('99', 'anderer Fundort')]
     
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'jfif', 'webp'}
 
