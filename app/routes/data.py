@@ -20,18 +20,18 @@ import json
 from app.tools.send_email import send_email
 
 from ..config import Config
-
 # Blueprints
 data = Blueprint('data', __name__)
 
 # Flask application and routes
-UPLOAD_FOLDER = 'app/datastore'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 
 def _create_directory(date):
-    dir_path = Path(UPLOAD_FOLDER) / date
+    current_year = datetime.now().strftime("%Y")
+    dir_path = Path(Config.UPLOAD_FOLDER + "/" + current_year + "/" + date)
+    print(dir_path)
     dir_path.mkdir(parents=True, exist_ok=True)
+    ablage_path = current_year + "/" + date
     return dir_path
 
 
@@ -44,7 +44,7 @@ def _create_filename(location, usrid):
 
 def _allowed_file(filename):
     return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+           filename.rsplit('.', 1)[1].lower() in Config.ALLOWED_EXTENSIONS
 
 
 def _update_or_create_user(usrid, last_name, first_name, contact):
@@ -122,12 +122,13 @@ def report(usrid=None):
         form.contact.render_kw = {"readonly": "readonly"}
 
     if form.validate_on_submit():
-        #new_fundort_beschreibung = TblFundortBeschreibung(
+        # new_fundort_beschreibung = TblFundortBeschreibung(
         #    beschreibung=form.location_description.data)
-        #db.session.add(new_fundort_beschreibung)
-        #db.session.flush()
+        # db.session.add(new_fundort_beschreibung)
+        # db.session.flush()
 
-        bildpfad = _handle_file_upload(request, form, usrid)
+        bildpfad = _handle_file_upload(request, form, usrid).replace(
+            Config.UPLOAD_FOLDER + "/", "")
 
         new_fundort = TblFundorte(plz=form.zip_code.data,
                                   ort=form.city.data,

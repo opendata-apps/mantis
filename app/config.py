@@ -13,10 +13,11 @@ class Config:
     SECRET_KEY = os.environ.get(
         'SECRET_KEY') or 'do-not-get-tired-youll-never-find'
     WTF_CSRF_ENABLED = True
-    UPLOAD_PATH = "datastore"
     host = ""
     port = 25
     tls = True
     sender_email = ""
     sender_pass = ""
     esri = os.environ.get('ESRI_MAP_KEY') or 'no-key-found'
+    UPLOAD_FOLDER = 'app/datastore'
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}

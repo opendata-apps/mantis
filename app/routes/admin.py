@@ -18,6 +18,7 @@ from io import BytesIO
 from flask import send_file
 from sqlalchemy import Table, create_engine
 from flask import abort
+from app.config import Config
 
 # Blueprints
 admin = Blueprint('admin', __name__)
@@ -33,6 +34,7 @@ def admin_index():
 
 @admin.route('/admin')
 def admin_index2():
+    image_path = Config.UPLOAD_FOLDER.replace("app/", "")
     inspector = inspect(db.engine)
     tables = inspector.get_table_names()
     reported_sightings = TblMeldungen.query.all()
@@ -44,7 +46,7 @@ def admin_index2():
         sighting.plz = sighting.fundort.plz
         sighting.kreis = sighting.fundort.kreis
         sighting.land = sighting.fundort.land
-    return render_template('admin/admin.html', reported_sightings=reported_sightings, tables=tables)
+    return render_template('admin/admin.html', reported_sightings=reported_sightings, tables=tables, image_path=image_path)
 
 
 @admin.route('/<path:filename>')
