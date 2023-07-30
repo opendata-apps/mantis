@@ -29,28 +29,26 @@ class MantisSightingForm(FlaskForm):
         super(MantisSightingForm, self).__init__(*args, **kwargs)
         self.userid = kwargs.pop('userid', None)
 
-    GENDER_CHOICES = [('keine Zuordnung', 'Keine Zuordnung'),
-                      ('männchen', 'Männchen'),
-                      ('weibchen', 'Weibchen'),
-                      ('nymphen', 'Nymphen'),
-                      ('ootheken', 'Ootheken')]
+    GENDER_CHOICES = [('1', 'Keine Zuordnung'),
+                      ('2', 'Männchen'),
+                      ('3', 'Weibchen'),
+                      ('4', 'Nymphe'),
+                      ('5', 'Ootheke')]
 
-    location_description_CHOICES = [('keine Angabe', 'Keine Angabe'),
-                                    ('im Haus', 'Im Haus'),
-                                    ('im Garten', 'Im Garten'),
-                                    ('auf dem Balkon/auf der Terrasse',
-                                     'Auf dem Balkon/auf der Terrasse'),
-                                    ('am Fenster/an der Hauswand',
-                                     'Am Fenster/an der Hauswand'),
-                                    ('Industriebrache', 'Industriebrache'),
-                                    ('im Wald', 'Im Wald'),
-                                    ('Wiese/Weide', 'Wiese/Weide'),
-                                    ('Heidelandschaft', 'Heidelandschaft'),
-                                    ('Straßengraben/Wegesrand/Ruderalflur',
-                                     'Straßengraben/Wegesrand/Ruderalflur'),
-                                    ('Gewerbegebiet', 'Gewerbegebiet'),
-                                    ('Im oder am Auto', 'Im oder am Auto')]
-
+    location_description_CHOICES = [
+        ('1', 'Im Haus'),
+        ('2', 'Im Garten'),
+        ('3', 'Auf dem Balkon/auf der Terrasse'),
+        ('4', 'Am Fenster/an der Hauswand'),
+        ('5', 'Industriebrache'),
+        ('6', 'Im Wald'),
+        ('7', 'Wiese/Weide'),
+        ('8', 'Heidelandschaft'),
+        ('9', 'Straßengraben/Wegesrand/Ruderalflur'),
+        ('10', 'Gewerbegebiet'),
+        ('11', 'Im oder am Auto'),
+        ('16', 'anderer Fundort')]
+    
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'jfif', 'webp'}
 
     userid = StringField("*Benutzerkennung:", render_kw={

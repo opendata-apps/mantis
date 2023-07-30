@@ -122,10 +122,10 @@ def report(usrid=None):
         form.contact.render_kw = {"readonly": "readonly"}
 
     if form.validate_on_submit():
-        new_fundort_beschreibung = TblFundortBeschreibung(
-            beschreibung=form.location_description.data)
-        db.session.add(new_fundort_beschreibung)
-        db.session.flush()
+        #new_fundort_beschreibung = TblFundortBeschreibung(
+        #    beschreibung=form.location_description.data)
+        #db.session.add(new_fundort_beschreibung)
+        #db.session.flush()
 
         bildpfad = _handle_file_upload(request, form, usrid)
 
@@ -136,7 +136,7 @@ def report(usrid=None):
                                   land=form.state.data,
                                   longitude=form.longitude.data,
                                   latitude=form.latitude.data,
-                                  beschreibung=new_fundort_beschreibung.id,
+                                  beschreibung=int(form.gender.data),
                                   ablage=bildpfad)
         db.session.add(new_fundort)
         db.session.flush()
