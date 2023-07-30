@@ -122,10 +122,6 @@ def report(usrid=None):
         form.contact.render_kw = {"readonly": "readonly"}
 
     if form.validate_on_submit():
-        # new_fundort_beschreibung = TblFundortBeschreibung(
-        #    beschreibung=form.location_description.data)
-        # db.session.add(new_fundort_beschreibung)
-        # db.session.flush()
 
         bildpfad = _handle_file_upload(request, form, usrid).replace(
             Config.UPLOAD_FOLDER + "/", "")
