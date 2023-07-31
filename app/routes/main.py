@@ -7,7 +7,7 @@ from datetime import datetime
 from app.forms import MantisSightingForm
 from sqlalchemy import or_
 from flask_sqlalchemy import SQLAlchemy
-
+from flask import flash, redirect, url_for
 
 # Blueprints
 main = Blueprint('main', __name__)
@@ -19,8 +19,18 @@ def index():
     post_count = db.session.query(TblMeldungen).count()
     return render_template('home.html', post_count=post_count)
 
+import time
 
-@main.route('/static/build/theme.css')
+@main.route('/test')
+def test():
+    flash({
+            'title': 'Daten wurden gesendet.',
+            'message': 'Vielen Dank für Ihre Meldung!',
+        })
+    return render_template('test.html')
+
+
+
 def styles():
     return send_from_directory('static/build', 'theme.css')
 

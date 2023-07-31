@@ -32,8 +32,15 @@ def admin_index():
     return render_template('admin/adminPanel.html', reported_sightings=reported_sightings, tables=tables)
 
 
-@admin.route('/admin')
-def admin_index2():
+@admin.route('/reviewer/<usrid>')
+def admin_index2(usrid):
+    # Fetch the user based on the 'usrid' parameter
+    user = TblUsers.query.filter_by(user_id=usrid).first()
+
+    # If the user doesn't exist or the role isn't 9, return 404
+    if not user or user.user_rolle != '9':
+        abort(404)
+
     image_path = Config.UPLOAD_FOLDER.replace("app/", "")
     inspector = inspect(db.engine)
     tables = inspector.get_table_names()
