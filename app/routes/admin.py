@@ -182,7 +182,7 @@ def change_gender(id):
         sighting.art_n = 1
     elif new_gender == 'O':
         sighting.art_o = 1
-    elif new_gender == 'S':
+    elif new_gender == 'F':
         sighting.art_f = 1
 
     db.session.commit()
@@ -199,13 +199,13 @@ def change_mantis_count(id):
     sighting = TblMeldungen.query.get(id)
 
     # Update the count for the specified mantis type
-    if mantis_type == 'Männlich':
+    if mantis_type == 'Männchen':
         sighting.art_m = new_count
     elif mantis_type == 'Weiblich':
         sighting.art_w = new_count
     elif mantis_type == 'Nymphe':
         sighting.art_n = new_count
-    elif mantis_type == 'Ootheke':
+    elif mantis_type == 'Oothek':
         sighting.art_o = new_count
     elif mantis_type == 'Andere':
         sighting.art_f = new_count
