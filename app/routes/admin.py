@@ -1,3 +1,4 @@
+from flask import session  # import session
 from flask import jsonify, render_template, request, Blueprint, send_from_directory
 from app import db
 # from app.database.models import Mantis
@@ -15,21 +16,25 @@ from io import StringIO, BytesIO
 import os
 import pandas as pd
 from io import BytesIO
+from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity
 from flask import send_file
 from sqlalchemy import Table, create_engine
 from flask import abort, session
 from app.config import Config
+from functools import wraps
+from flask import g
 
 # Blueprints
 admin = Blueprint('admin', __name__)
 
 
-@admin.route('/adminPanel')
-def admin_index():
-    inspector = inspect(db.engine)
-    tables = inspector.get_table_names()
-    reported_sightings = TblMeldungen.query.all()
-    return render_template('admin/adminPanel.html', reported_sightings=reported_sightings, tables=tables)
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            abort(404)
+        return f(*args, **kwargs)
+    return decorated_function
 
 
 @admin.route('/reviewer/<usrid>')
@@ -43,6 +48,9 @@ def admin_index2(usrid):
 
     # Get the user_name of the logged in user_id
     user_name = user.user_name
+
+    # Store the userid in session
+    session['user_id'] = usrid
 
     image_path = Config.UPLOAD_FOLDER.replace("app/", "")
     inspector = inspect(db.engine)
@@ -66,6 +74,7 @@ def report_Img(filename):
 
 
 @admin.route('/toggle_approve_sighting/<id>', methods=['POST'])
+@login_required
 def toggle_approve_sighting(id):
     # Find the report by id
     sighting = TblMeldungen.query.get(id)
@@ -83,6 +92,7 @@ def toggle_approve_sighting(id):
 
 
 @admin.route('/get_sighting/<id>', methods=['GET'])
+@login_required
 def get_sighting(id):
     print("Get sighting with id: " + id + "")
     # Find the report by id
@@ -120,6 +130,7 @@ def get_sighting(id):
 
 
 @admin.route('/delete_sighting/<id>', methods=['GET'])
+@login_required
 def delete_sighting(id):
     # Find the report by id
     sighting = TblMeldungen.query.get(id)
@@ -134,6 +145,7 @@ def delete_sighting(id):
 
 
 @admin.route('/save_sighting_changes/<id>', methods=['POST'])
+@login_required
 def save_sighting_changes(id):
     # Find the report by id
     sighting = TblMeldungen.query.get(id)
@@ -148,6 +160,7 @@ def save_sighting_changes(id):
 
 
 @admin.route("/change_mantis_gender/<int:id>", methods=["POST"])
+@login_required
 def change_gender(id):
     new_gender = request.form.get('new_gender')
 
@@ -178,6 +191,7 @@ def change_gender(id):
 
 
 @admin.route("/change_mantis_count/<int:id>", methods=["POST"])
+@login_required
 def change_mantis_count(id):
     new_count = request.form.get('new_count')
     mantis_type = request.form.get('type')
@@ -205,16 +219,19 @@ def change_mantis_count(id):
 
 
 @admin.route('/admin/log')
+@login_required
 def admin_subsites_log():
     return render_template('admin/log.html')
 
 
 @admin.route('/admin/userAdministration')
+@login_required
 def admin_subsites_users():
     return render_template('admin/userAdministration.html')
 
 
 @admin.route('/admin/export/csv/<table_name>', methods=['GET'])
+@login_required
 def export_csv(table_name):
     # Get the table object from the database
     table = db.metadata.tables.get(table_name)
@@ -250,6 +267,7 @@ def export_csv(table_name):
 
 # Get all table names
 @admin.route('/get_tables', methods=['GET'])
+@login_required
 def get_tables():
     inspector = inspect(db.engine)
     tables = inspector.get_table_names()
@@ -258,6 +276,7 @@ def get_tables():
 
 
 @admin.route('/table/<table_name>')
+@login_required
 def get_table_data(table_name):
     # Get the table object from the database
     table = db.metadata.tables.get(table_name)
@@ -325,6 +344,7 @@ def perform_query(filter_value=None):
 
 
 @admin.route('/admin/export/xlsx/<string:value>')
+@login_required
 def export_data(value):
     if value == 'all':
         data = perform_query()

@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+from datetime import timedelta
 
 load_dotenv(dotenv_path="app/.env")
 
@@ -21,3 +22,4 @@ class Config:
     esri = os.environ.get('ESRI_MAP_KEY') or 'no-key-found'
     UPLOAD_FOLDER = 'app/datastore'
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
+    PERMANENT_SESSION_LIFETIME = timedelta(hours=1)
