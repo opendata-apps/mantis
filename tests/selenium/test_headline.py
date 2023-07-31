@@ -13,7 +13,7 @@ try:
     driver.get('http://localhost:5000')
     title = driver.title
     content = driver.page_source
-    assert '<title>Mantis -- Mitmachprojekt</title>' in content
+    assert '<title>Mantis Religiosa Beobachtungen | Mitmachprojekt | Gottesanbeterin Gesucht</title>' in content
 
 finally:
 

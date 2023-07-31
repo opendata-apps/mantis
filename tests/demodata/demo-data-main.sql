@@ -32,7 +32,6 @@ SELECT setval('beschreibung_id_seq', (SELECT MAX(id) FROM beschreibung));
 SELECT setval('fundorte_id_seq', (SELECT MAX(id) FROM fundorte));
 SELECT setval('meldungen_id_seq', (SELECT MAX(id) FROM meldungen));
 SELECT setval('melduser_id_seq', (SELECT MAX(id) FROM melduser));
-SELECT setval('plzort_osm_id_seq', (SELECT MAX(osm_id) FROM plzort));
 SELECT setval('users_id_seq', (SELECT MAX(id) FROM users));
 
 
