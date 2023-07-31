@@ -88,8 +88,8 @@ def _handle_file_upload(request, form, usrid):
 
 def _set_gender_fields(selected_gender):
     genders = {'art_m': 0, 'art_w': 0, 'art_n': 0, 'art_o': 0}
-    gender_mapping = {'männchen': 'art_m', 'weibchen': 'art_w',
-                      'nymphen': 'art_n', 'ootheken': 'art_o'}
+    gender_mapping = {'Männchen': 'art_m', 'Weibchen': 'art_w',
+                      'Nymphe': 'art_n', 'Oothek': 'art_o'}
     gender_field = gender_mapping.get(selected_gender)
 
     if gender_field:
@@ -133,7 +133,8 @@ def report(usrid=None):
                                   land=form.state.data,
                                   longitude=form.longitude.data,
                                   latitude=form.latitude.data,
-                                  beschreibung=int(form.location_description.data),
+                                  beschreibung=int(
+                                      form.location_description.data),
                                   ablage=bildpfad)
         db.session.add(new_fundort)
         db.session.flush()

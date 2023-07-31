@@ -29,11 +29,11 @@ class MantisSightingForm(FlaskForm):
         super(MantisSightingForm, self).__init__(*args, **kwargs)
         self.userid = kwargs.pop('userid', None)
 
-    GENDER_CHOICES = [('1', 'Keine Zuordnung'),
-                      ('2', 'Männchen'),
-                      ('3', 'Weibchen'),
-                      ('4', 'Nymphe'),
-                      ('5', 'Ootheke')]
+    GENDER_CHOICES = [('keine Zuordnung', 'Keine Zuordnung'),
+                      ('Männchen', 'Männchen'),
+                      ('Weibchen', 'Weibchen'),
+                      ('Nymphe', 'Nymphe'),
+                      ('Oothek', 'Oothek')]
 
     location_description_CHOICES = [
         ('1', 'Im Haus'),
