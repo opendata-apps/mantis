@@ -41,6 +41,9 @@ def admin_index2(usrid):
     if not user or user.user_rolle != '9':
         abort(404)
 
+    # Get the user_name of the logged in user_id
+    user_name = user.user_name
+
     image_path = Config.UPLOAD_FOLDER.replace("app/", "")
     inspector = inspect(db.engine)
     tables = inspector.get_table_names()
@@ -53,7 +56,7 @@ def admin_index2(usrid):
         sighting.plz = sighting.fundort.plz
         sighting.kreis = sighting.fundort.kreis
         sighting.land = sighting.fundort.land
-    return render_template('admin/admin.html', reported_sightings=reported_sightings, tables=tables, image_path=image_path)
+    return render_template('admin/admin.html', reported_sightings=reported_sightings, tables=tables, image_path=image_path, user_name=user_name)
 
 
 @admin.route('/<path:filename>')

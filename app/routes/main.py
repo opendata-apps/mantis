@@ -35,6 +35,8 @@ def styles():
     return send_from_directory('static/build', 'theme.css')
 
 
+
+
 @main.route('/projekt')
 def projekt():
     return render_template('projekt.html')
@@ -70,6 +72,5 @@ def bestimmung():
     return render_template('bestimmung.html')
 
 
-@main.route('/404')
-def vierNullVier():
-    return render_template('404.html')
+def not_found(e):
+    return render_template("404.html")

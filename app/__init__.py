@@ -4,6 +4,7 @@ from flask_migrate import Migrate
 from .config import Config
 from flask_wtf.csrf import CSRFProtect
 from werkzeug.middleware.proxy_fix import ProxyFix
+from flask import render_template
 
 csrf = CSRFProtect()
 db = SQLAlchemy()
@@ -36,5 +37,11 @@ def create_app(config_class=Config):
     app.register_blueprint(admin)
     app.register_blueprint(data)
     app.register_blueprint(review)
+    app.register_error_handler(404, page_not_found)
 
     return app
+
+
+
+def page_not_found(e):
+  return render_template('404.html'), 404

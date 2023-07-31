@@ -133,7 +133,7 @@ def report(usrid=None):
                                   land=form.state.data,
                                   longitude=form.longitude.data,
                                   latitude=form.latitude.data,
-                                  beschreibung=int(form.gender.data),
+                                  beschreibung=int(form.location_description.data),
                                   ablage=bildpfad)
         db.session.add(new_fundort)
         db.session.flush()
