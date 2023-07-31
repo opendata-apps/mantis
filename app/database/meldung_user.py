@@ -11,6 +11,8 @@ class TblMeldungUser(db.Model):
         "meldungen.id"), unique=False, nullable=False)
     id_user = db.Column(db.Integer, db.ForeignKey(
         "users.id"), unique=False, nullable=False)
+    id_finder = db.Column(db.Integer, db.ForeignKey(
+        "users.id"), unique=False, nullable=True)
 
     def __repr__(self):
         return f'<Report {self.id}>'

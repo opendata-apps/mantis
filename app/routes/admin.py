@@ -17,7 +17,7 @@ import pandas as pd
 from io import BytesIO
 from flask import send_file
 from sqlalchemy import Table, create_engine
-from flask import abort
+from flask import abort, session
 from app.config import Config
 
 # Blueprints

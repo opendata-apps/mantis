@@ -8,6 +8,7 @@ class TblUsers(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.String(40), nullable=False)
     user_name = db.Column(db.String(45), nullable=False)
+#    finder_name = db.Column(db.String(45), nullable=True)
     user_rolle = db.Column(db.String(1), nullable=False)
     user_kontakt = db.Column(db.String(45), nullable=True)
 
