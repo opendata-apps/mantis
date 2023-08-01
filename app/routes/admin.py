@@ -16,7 +16,6 @@ from io import StringIO, BytesIO
 import os
 import pandas as pd
 from io import BytesIO
-from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity
 from flask import send_file
 from sqlalchemy import Table, create_engine
 from flask import abort, session
