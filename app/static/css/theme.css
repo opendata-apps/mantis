@@ -117,3 +117,22 @@ html {
   background-color: #10b981 !important;
 }
 
+.link-underline {
+  border-bottom-width: 0 !important;
+  background-image: linear-gradient(transparent, transparent),
+    linear-gradient(#fff, #fff) !important;
+  background-size: 0 3px !important;
+  background-position: 0 100% !important;
+  background-repeat: no-repeat !important;
+  transition: background-size 0.5s ease-in-out !important;
+}
+
+.link-underline-black {
+  background-image: linear-gradient(transparent, transparent),
+    linear-gradient(rgb(240, 255, 255), rgb(240, 255, 255)) !important;
+}
+
+.link-underline:hover {
+  background-size: 100% 3px !important;
+  background-position: 0 100%;
+}

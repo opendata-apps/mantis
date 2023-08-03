@@ -10,8 +10,8 @@
     content="Beobachtungen der Gottesanbeterin (Mantis religiosa) in Deutschland. Melden Sie Ihre Beobachtungen und unterstützen Sie unsere Forschung zur Verbreitung dieser Art.">
   <meta name="keywords"
     content="Mantis religiosa, Gottesanbeterin, Mitmachprojekt, Beobachtungen, Meldung, Citizen Science, Naturkundemuseum, Potsdam, Deutschland, Citizen Science Projekte, Gottesanbeterin gesichtet, Gottesanbeterin sichten">
-    <link rel="canonical" href="{{ request.url }}" />
-    <!-- Schema.org markup for Google+ -->
+  <link rel="canonical" href="{{ request.url }}" />
+  <!-- Schema.org markup for Google+ -->
   <meta itemprop="name" content="Gottesanbeterin Gesucht | Mitmachprojekt | Mantis Religiosa Beobachtungen">
   <meta itemprop="description"
     content="Beobachtungen der Gottesanbeterin (Mantis religiosa) in Deutschland. Melden Sie Ihre Beobachtungen und unterstützen Sie unsere Forschung zur Verbreitung dieser Art.">
@@ -39,8 +39,9 @@
 
   <link rel="stylesheet" href="{{ url_for('static', filename='build/theme.css') }}" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/leaflet.css')}}" />
-  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.webp') }}" alt="Gottesanbeterin Logo">
-  
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.webp') }}"
+    alt="Gottesanbeterin Logo">
+
   <script src="{{ url_for('static', filename='js/flow/flowbite.min.js')}}" defer></script>
   <script src="{{ url_for('static', filename='js/leaflet.js')}}"></script>
   <script src="{{ url_for('static', filename='js/esri-leaflet.js')}}"></script>
@@ -53,24 +54,34 @@
 
 <body class="antialiased bg-gray-100">
   <div class="topContainer">
-    <div class="relative bg-fixed bg-center bg-no-repeat bg-cover" style="background-image: url('{{ url_for('static', filename='images/IMG_1899b_D_Berger.webp') }}');">
+    <div class="relative bg-fixed bg-center bg-no-repeat bg-cover"
+      style="background-image: url('{{ url_for('static', filename='images/IMG_1899b_D_Berger.webp') }}');">
       <nav id="navbar" class="fixed top-0 left-0 z-50 w-full transition-all duration-500 ease-in-out">
         <div class="container flex items-center justify-between px-4 py-3 mx-auto">
           <a href="/start" class="flex items-center font-extrabold text-white">
-            <img src="{{ url_for('static', filename='images/favicon.webp') }}" alt="Logo des Mantis Religiosa Projekts" class="h-6 mr-2 sm:h-9" />
+            <img src="{{ url_for('static', filename='images/favicon.webp') }}" alt="Logo des Mantis Religiosa Projekts"
+              class="h-6 mr-2 sm:h-9" />
             <span class="text-2xl text-white link link-underline link-underline-black">Mitmachprojekt</span>
           </a>
           <div class="items-center hidden md:flex">
-            <a href="/start" class="mr-5 text-sm font-bold text-white transition-colors duration-300 hover:text-green-400 md:text-base" title="Startseite">
+            <a href="/start"
+              class="mr-5 text-base font-bold text-white transition-colors duration-300 hover:text-green-400 md:text-base"
+              title="Startseite">
               <span class="text-white link link-underline link-underline-black">Start</span>
             </a>
-            <a href="/mantis-religiosa" class="mr-5 text-sm font-bold text-white transition-colors duration-300 hover:text-green-400 md:text-base" title="Informationen zur Gottesanbeterin">
+            <a href="/mantis-religiosa"
+              class="mr-5 text-base font-bold text-white transition-colors duration-300 hover:text-green-400 md:text-base"
+              title="Informationen zur Gottesanbeterin">
               <span class="text-white link link-underline link-underline-black">Gottesanbeterin</span>
             </a>
-            <a href="/report" class="mr-5 text-sm font-bold text-white transition-colors duration-300 hover:text-green-400 md:text-base" title="Melden Sie eine Gottesanbeterin-Sichtung">
+            <a href="/report"
+              class="mr-5 text-base font-bold text-white transition-colors duration-300 hover:text-green-400 md:text-base"
+              title="Melden Sie eine Gottesanbeterin-Sichtung">
               <span class="text-white link link-underline link-underline-black">Melden</span>
             </a>
-            <a href="/auswertungen" class="mr-5 text-sm font-bold text-white transition-colors duration-300 hover:text-green-400 md:text-base" title="Statistiken und Auswertungen">
+            <a href="/auswertungen"
+              class="mr-5 text-base font-bold text-white transition-colors duration-300 hover:text-green-400 md:text-base"
+              title="Statistiken und Auswertungen">
               <span class="text-white link link-underline link-underline-black">Auswertungen</span>
             </a>
           </div>
@@ -98,26 +109,6 @@
                 title="Auswertungen der Mantis Meldungen">Auswertungen</a>
             </div>
           </div>
-          <style>
-            .link-underline {
-              border-bottom-width: 0;
-              background-image: linear-gradient(transparent, transparent), linear-gradient(#fff, #fff);
-              background-size: 0 3px;
-              background-position: 0 100%;
-              background-repeat: no-repeat;
-              transition: background-size .5s ease-in-out;
-            }
-            
-            .link-underline-black {
-              background-image: linear-gradient(transparent, transparent), linear-gradient(rgb(13, 146, 24), rgb(13, 146,24))
-            }
-            
-            .link-underline:hover {
-              background-size: 100% 3px;
-              background-position: 0 100%
-            }
-            
-          </style>
       </nav>
 
       <!-- Navbar End -->
@@ -213,7 +204,7 @@
       </div>
       <p class="max-w-md mx-auto mt-6 leading-relaxed text-center text-gray-500">
         Die Gottesanbeterin (<i>Mantis religiosa </i> L., 1758) ist eine faszinierende
-	Insektenart mit einer einzigartigen Jagdstrategie.
+        Insektenart mit einer einzigartigen Jagdstrategie.
       </p>
 
       <ul class="flex flex-wrap justify-center gap-6 mt-12 md:gap-8 lg:gap-12">
