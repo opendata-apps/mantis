@@ -1,17 +1,21 @@
 {% extends "layout.html" %}
 {% block title %}Fundmeldungen 2023{% endblock title %}
+{% block text %} Übersicht zu allen bestätigten Meldungen. {% endblock text %}
 {% block content %}
-  <p class="container flex flex-row pl-6 pt-2 mx-auto">Übersicht zu allen bestätigten Meldungen.</p>
-<div class="container flex flex-row p-6 mx-auto">
-  <div id="map" class="object-fill h-screen grow auto-rows-max"></div>
-</div>
+<section class="container mx-auto mt-10">
+  <h2 class="mb-6 text-3xl font-semibold text-center">Bestätigte Meldungen Karte</h2>
+  <div class="container flex flex-row p-6">
+    <div id="map" class="object-fill h-screen bg-white rounded-lg shadow-md grow auto-rows-max"></div>
+  </div>
+</section>
+
 <!-- Animated counter section -->
-<section class="py-16 ">
+<section class="py-16 bg-gray-100">
   <div class="container px-4 mx-auto">
     <div class="relative px-8 py-12 bg-green-800 rounded-lg shadow-lg">
       <h2 class="mb-8 text-3xl font-bold leading-tight text-center text-white">
         Wir haben bereits <br />
-        <span class="text-6xl font-extrabold text-white counter">0</span> <br />
+        <span class="text-6xl font-extrabold text-white counter" data-target="{{ post_count }}">0</span> <br />
         Meldungen erhalten
       </h2>
       <p class="mb-8 text-lg text-center text-white">
@@ -22,48 +26,37 @@
       </p>
     </div>
   </div>
-  <script>
-    const counter = document.querySelector(".counter");
-    let count = 0;
-    const observer = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting) {
-        const postCount = parseInt('{{ post_count }}'); // Retrieve the post_count from the server-side variable
-        const increment = Math.ceil(postCount / '{{ post_count }}'); // Calculate the increment value based on post_count
-
-        const intervalId = setInterval(() => {
-          if (count < postCount) {
-            count += increment;
-            if (count > postCount) {
-              count = postCount;
-            }
-            counter.innerText = count;
-          } else {
-            clearInterval(intervalId);
-          }
-        }, 1);
-        observer.disconnect();
-      }
-    });
-    observer.observe(counter);
-  </script>
-
 </section>
 
 <script>
-  const mapApiKey = "{{apikey}}"; // https://arcgis.esri.de/dos-and-donts-was-ist-wichtig-im-umgang-mit-esri-basemaps/
-  // https://developers.arcgis.com/dashboard/
+  // Counter animation
+  const counter = document.querySelector('.counter');
+  const target = +counter.dataset.target;
+  const observer = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting) {
+      let count = 0;
+      const interval = setInterval(() => {
+        counter.innerText = count++;
+        if (count > target) clearInterval(interval);
+      }, Math.round(2000 / target));
+      observer.disconnect();
+    }
+  });
+  observer.observe(counter);
+
+  // Map
+  const mapApiKey = "{{apikey}}";
   const map = L.map('map').setView([51.991649, 13.080113], 9);
 
   const openStreetMapLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 11,
-    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
   });
 
   const arcGISLayer = L.esri.Vector.vectorBasemapLayer("ArcGIS:Imagery", {
-    apikey: mapApiKey // Corrected here
+    apikey: mapApiKey
   });
 
-  // Add default layer to the map
   map.addLayer(openStreetMapLayer);
 
   var reports = JSON.parse('{{ reportsJson | safe }}');
@@ -72,10 +65,9 @@
     const marker = L.marker([report.latitude, report.longitude]).addTo(map)
   };
 
-  // Layer switcher control
   var baseMaps = {
-    "OpenStreetMap": openStreetMapLayer,
-    "ArcGIS": arcGISLayer
+    "Straßenansicht": openStreetMapLayer,
+    "Satellitenansicht": arcGISLayer
   };
 
   L.control.layers(baseMaps).addTo(map);

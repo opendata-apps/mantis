@@ -46,7 +46,7 @@
           Lauerjägerin macht durch ihre Lebensweise die Suche nach ihr
           schwierig. Aus diesem Grunde sind wir auf Ihre Hilfe
           angewiesen.Sie ernährt sich vor allem von anderen
-          Kerbtieren.  Die Unterstützung durch die Melder in den
+          Kerbtieren. Die Unterstützung durch die Melder in den
           vergangenen Jahren weit über die Landesgrenzen hinaus war
           sehr überwältigend.
           <br />
@@ -87,13 +87,12 @@
 </section>
 
 <!-- Animated counter section -->
-<!-- Animated counter section -->
 <section class="py-16 ">
   <div class="container px-4 mx-auto">
     <div class="relative px-8 py-12 bg-green-800 rounded-lg shadow-lg">
       <h2 class="mb-8 text-3xl font-bold leading-tight text-center text-white">
         Wir haben bereits <br />
-        <span class="text-6xl font-extrabold text-white counter">0</span> <br />
+        <span class="text-6xl font-extrabold text-white counter" data-target="{{ post_count }}">0</span> <br />
         Meldungen erhalten
       </h2>
       <p class="mb-8 text-lg text-center text-white">
@@ -101,32 +100,25 @@
       </p>
     </div>
   </div>
-  <script>
-    const counter = document.querySelector(".counter");
-    let count = 0;
-    const observer = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting) {
-        const postCount = parseInt('{{ post_count }}'); // Retrieve the post_count from the server-side variable
-        const increment = Math.ceil(postCount / '{{ post_count }}'); // Calculate the increment value based on post_count
-
-        const intervalId = setInterval(() => {
-          if (count < postCount) {
-            count += increment;
-            if (count > postCount) {
-              count = postCount;
-            }
-            counter.innerText = count;
-          } else {
-            clearInterval(intervalId);
-          }
-        }, 1);
-        observer.disconnect();
-      }
-    });
-    observer.observe(counter);
-  </script>
-
 </section>
-
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    var counter = document.querySelector('.counter');
+    var target = parseInt(counter.getAttribute('data-target'));
+    var observer = new IntersectionObserver(function (entries) {
+      if (entries[0].isIntersecting === true) {
+        var interval = setInterval(function () {
+          var current = parseInt(counter.innerText);
+          if (current < target) {
+            counter.innerText = current + 1;
+          } else {
+            clearInterval(interval);
+          }
+        }, 100);
+      }
+    }, { threshold: [1] });
+    observer.observe(counter);
+  });
+</script>
 
 {% endblock content %}
