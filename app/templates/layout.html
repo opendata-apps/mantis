@@ -51,35 +51,28 @@
 </head>
 
 
-
 <body class="antialiased bg-gray-100">
-  <!-- Background Image div Start -->
   <div class="topContainer">
-    <!-- Navbar and Content Wrapper Start -->
-    <div class="relative bg-fixed bg-center bg-no-repeat bg-cover"
-      style="background-image: url('{{ url_for('static', filename='images/IMG_1899b_D_Berger.webp') }}');">
-      <!-- Navbar Start -->
+    <div class="relative bg-fixed bg-center bg-no-repeat bg-cover" style="background-image: url('{{ url_for('static', filename='images/IMG_1899b_D_Berger.webp') }}');">
       <nav id="navbar" class="fixed top-0 left-0 z-50 w-full transition-all duration-500 ease-in-out">
         <div class="container flex items-center justify-between px-4 py-3 mx-auto">
           <a href="/start" class="flex items-center font-extrabold text-white">
-            <img src="{{ url_for('static', filename='images/favicon.webp') }}" alt="Logo des Mantis Religiosa Projekts"
-              class="h-6 mr-2 sm:h-9" />
-            <span class="text-2xl">Mitmachprojekt</span>
+            <img src="{{ url_for('static', filename='images/favicon.webp') }}" alt="Logo des Mantis Religiosa Projekts" class="h-6 mr-2 sm:h-9" />
+            <span class="text-2xl text-white link link-underline link-underline-black">Mitmachprojekt</span>
           </a>
           <div class="items-center hidden md:flex">
-            <a href="/start"
-              class="mr-5 text-sm font-bold text-white transition-colors duration-300 hover:text-green-400 md:text-base"
-              title="Startseite">Start</a>
-            <a href="/mantis-religiosa"
-              class="mr-5 text-sm font-bold text-white transition-colors duration-300 hover:text-green-400 md:text-base"
-              title="Informationen zur Gottesanbeterin">Gottesanbeterin</a>
-            <a href="/report"
-              class="mr-5 text-sm font-bold text-white transition-colors duration-300 hover:text-green-400 md:text-base"
-              title="Melden Sie eine Gottesanbeterin-Sichtung">Melden</a>
-            <a href="/auswertungen"
-              class="mr-5 text-sm font-bold text-white transition-colors duration-300 hover:text-green-400 md:text-base"
-              title="Statistiken und Auswertungen">Auswertungen</a>
-
+            <a href="/start" class="mr-5 text-sm font-bold text-white transition-colors duration-300 hover:text-green-400 md:text-base" title="Startseite">
+              <span class="text-white link link-underline link-underline-black">Start</span>
+            </a>
+            <a href="/mantis-religiosa" class="mr-5 text-sm font-bold text-white transition-colors duration-300 hover:text-green-400 md:text-base" title="Informationen zur Gottesanbeterin">
+              <span class="text-white link link-underline link-underline-black">Gottesanbeterin</span>
+            </a>
+            <a href="/report" class="mr-5 text-sm font-bold text-white transition-colors duration-300 hover:text-green-400 md:text-base" title="Melden Sie eine Gottesanbeterin-Sichtung">
+              <span class="text-white link link-underline link-underline-black">Melden</span>
+            </a>
+            <a href="/auswertungen" class="mr-5 text-sm font-bold text-white transition-colors duration-300 hover:text-green-400 md:text-base" title="Statistiken und Auswertungen">
+              <span class="text-white link link-underline link-underline-black">Auswertungen</span>
+            </a>
           </div>
           <div class="md:hidden">
             <button class="mobile-menu-button">
@@ -105,7 +98,28 @@
                 title="Auswertungen der Mantis Meldungen">Auswertungen</a>
             </div>
           </div>
+          <style>
+            .link-underline {
+              border-bottom-width: 0;
+              background-image: linear-gradient(transparent, transparent), linear-gradient(#fff, #fff);
+              background-size: 0 3px;
+              background-position: 0 100%;
+              background-repeat: no-repeat;
+              transition: background-size .5s ease-in-out;
+            }
+            
+            .link-underline-black {
+              background-image: linear-gradient(transparent, transparent), linear-gradient(rgb(13, 146, 24), rgb(13, 146,24))
+            }
+            
+            .link-underline:hover {
+              background-size: 100% 3px;
+              background-position: 0 100%
+            }
+            
+          </style>
       </nav>
+
       <!-- Navbar End -->
       <!-- Content Start -->
       <div class="relative bg-fixed bg-center bg-no-repeat bg-cover">
