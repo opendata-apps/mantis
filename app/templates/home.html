@@ -7,7 +7,8 @@
 <section id="Projektbeschreibung" class="relative pt-16">
   <div class="grid grid-cols-1 gap-6 px-2 md:grid-cols-2 md:px-4 lg:grid-cols-3 xl:px-8">
 
-    <div class="mx-auto transform bg-white rounded-lg shadow-md hover:-translate-y-1 hover:shadow-lg card">
+    <div
+      class="mx-auto transition-transform duration-500 ease-in-out transform bg-white rounded-lg shadow-md hover:-translate-y-1 hover:shadow-lg card">
       <img src="{{ url_for('static', filename='images/berger06.webp') }}" alt="Gottesanbeterin"
         class="w-full h-auto rounded-t-lg">
       <div class="px-4 py-6">
@@ -30,7 +31,8 @@
       </div>
     </div>
 
-    <div class="mx-auto transform bg-white rounded-lg shadow-md hover:-translate-y-1 hover:shadow-lg card">
+    <div
+      class="mx-auto transition-transform duration-500 ease-in-out transform bg-white rounded-lg shadow-md hover:-translate-y-1 hover:shadow-lg card">
       <img src="{{ url_for('static', filename='images/berger03.webp') }}" alt="Gottesanbeterin"
         class="w-full h-auto rounded-t-lg">
       <div class="px-4 py-6">
@@ -52,7 +54,7 @@
           <br />
           Mehr Informationen über die Gottesanbeterin finden Sie auf
           dem folgenden Link:
-          <a class="block pt-2 text-sm font-semibold text-blue-600 underline hover:text-blueGray-800"
+          <a class="block pt-2 text-sm font-semibold text-blue-600 underline transition-transform duration-500 ease-in-out hover:text-blueGray-800"
             href="/mantis-religiosa">
             <i> Mantis religiosa </i> L. 1758</a>
 
@@ -60,7 +62,8 @@
       </div>
     </div>
 
-    <div class="mx-auto transform bg-white rounded-lg shadow-md hover:-translate-y-1 hover:shadow-lg card">
+    <div
+      class="mx-auto transition-transform duration-500 ease-in-out transform bg-white rounded-lg shadow-md hover:-translate-y-1 hover:shadow-lg card">
       <img src="{{ url_for('static', filename='images/berger10.webp') }}" alt="Gottesanbeterin"
         class="w-full h-auto rounded-t-lg">
       <div class="px-4 py-6">
@@ -87,15 +90,16 @@
 </section>
 
 <!-- Animated counter section -->
-<section class="py-16 ">
+<section class="py-16 bg-gray-100">
   <div class="container px-4 mx-auto">
-    <div class="relative px-8 py-12 bg-green-800 rounded-lg shadow-lg">
+    <div class="relative px-8 py-12 bg-green-800 rounded-lg shadow-2xl"> <!-- Made the shadows darker -->
       <h2 class="mb-8 text-3xl font-bold leading-tight text-center text-white">
         Wir haben bereits <br />
-        <span class="text-6xl font-extrabold text-white counter" data-target="{{ post_count }}">0</span> <br />
+        <span class="font-extrabold text-white text-7xl counter" data-target="{{ post_count }}">0</span> <br />
+        <!-- Increased the font size to make the count more prominent -->
         Meldungen erhalten
       </h2>
-      <p class="mb-8 text-lg text-center text-white">
+      <p class="mb-8 text-xl text-center text-white"> <!-- Increased the font size to make it more readable -->
         Helfen Sie uns, diese Zahl zu erhöhen!
       </p>
     </div>
