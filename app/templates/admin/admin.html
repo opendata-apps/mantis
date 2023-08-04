@@ -130,11 +130,10 @@
                             </h4>
                             <div class="mt-1">
                                 <p><strong>Melde-Datum:</strong> {{ sighting.dat_meld }}</p>
-                                {% if sighting.dat_fund_von == sighting.dat_fund_bis %}
+                                {% if sighting.dat_fund_bis %}
+                                <p><strong>Fund-Datum:</strong> {{ sighting.dat_fund_von }} - {{ sighting.dat_fund_bis}}</p>
+                                    {% else %}
                                 <p><strong>Fund-Datum:</strong> {{ sighting.dat_fund_von }}</p>
-                                {% else %}
-                                <p><strong>Fund-Datum:</strong> {{ sighting.dat_fund_von }} - {{ sighting.dat_fund_bis
-                                    }}</p>
                                 {% endif %}
                             </div>
                             <div class="flex items-center mt-4">
@@ -222,39 +221,43 @@
 
 
 <!-- Modal -->
+<!-- Modal -->
 <div id="modal" class="fixed inset-0 z-10 hidden overflow-y-auto bg-gray-500 bg-opacity-75">
     <div class="flex items-center justify-center min-h-screen">
-        <div class="bg-white rounded-lg shadow-xl">
-            <div class="px-4 py-4">
+        <div class="w-full mx-4 bg-white rounded-lg shadow-xl md:max-w-3xl">
+            <div class="p-6">
                 <!-- Tab Buttons -->
-                <div class="flex justify-center mb-4">
+                <div class="flex justify-center mb-4 space-x-2 md:space-x-4">
                     <button
-                        class="px-4 py-2 font-semibold text-green-700 bg-green-100 rounded-lg focus:outline-none hover:bg-green-600 hover:text-white active"
+                        class="px-4 py-2 font-semibold text-white bg-green-500 rounded-lg focus:outline-none hover:bg-green-600"
                         id="tab-general-info">General Information</button>
                     <button
-                        class="px-4 py-2 ml-2 font-semibold text-green-700 bg-green-100 rounded-lg focus:outline-none hover:bg-green-600 hover:text-white"
+                        class="px-4 py-2 font-semibold text-green-700 bg-green-100 rounded-lg focus:outline-none hover:bg-green-600 hover:text-white"
                         id="tab-location-info">Position auf der Karte</button>
                     <button
-                        class="px-4 py-2 ml-2 font-semibold text-green-700 bg-green-100 rounded-lg focus:outline-none hover:bg-green-600 hover:text-white"
+                        class="px-4 py-2 font-semibold text-green-700 bg-green-100 rounded-lg focus:outline-none hover:bg-green-600 hover:text-white"
                         id="tab-user-info">User Information</button>
                 </div>
                 <!-- Tab Content -->
-                <div id="tab-content">
+                <div id="tab-content" class="overflow-y-auto" style="max-height: 400px;">
                     <!-- Content will be loaded here -->
                 </div>
                 <!-- Actions -->
-                <div class="flex justify-end mt-4">
+                <div class="flex justify-end mt-4 space-x-2">
                     <button type="button"
-                        class="px-4 py-2 font-semibold text-green-900 bg-green-500 rounded-lg focus:outline-none hover:bg-green-700 hover:text-white"
+                        class="px-4 py-2 font-semibold text-white bg-green-500 rounded-lg focus:outline-none hover:bg-green-600"
                         onclick="saveChanges()">Speichern</button>
                     <button type="button"
-                        class="px-4 py-2 ml-2 font-semibold text-gray-700 bg-gray-200 rounded-lg focus:outline-none hover:bg-gray-400"
+                        class="px-4 py-2 font-semibold text-gray-700 bg-gray-200 rounded-lg focus:outline-none hover:bg-gray-300"
                         onclick="closeModal()">Schließen</button>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+
+
 
 
 <script>
@@ -364,6 +367,7 @@
     }
 
     function openModal(id) {
+        document.body.style.overflow = 'hidden';
         // Get report details and show in modal
         fetch('/get_sighting/' + id)
             .then(response => response.json())
@@ -475,25 +479,32 @@
     }
 
     function generateGeneralInfo(data) {
-        // Determine gender based on the art_ fields
-        let mantis_types = ['Männchen', 'Weiblich', 'Nymphe', 'Oothek', 'Andere'];
-        let gender_counts = [data.art_m, data.art_w, data.art_n, data.art_o, data.art_f];
+        let mantis_types = ['Männchen', 'Weiblich', 'Nymphe', 'Oothek', 'Andere', 'Anzahl'];
+        let gender_counts = [data.art_m, data.art_w, data.art_n, data.art_o, data.art_f, data.tiere];
+    
+        let html = `<div class="flex flex-col md:flex-row md:space-x-6">
+                        <div class="md:w-1/2">
+                            ${mantis_types.map((type, i) => `
+                                <div class="flex items-center">
+                                    <label for="mantis-count-${type}" class="w-32 my-4 mr-2 font-semibold">${type}</label>
+                                    <input id="mantis-count-${type}" type="number" min="0" value="${gender_counts[i]}" onchange="changeGenderCount(${data.id_meldung}, '${type}', this.value)"
+                                        class="input-field-admin" >
+                                    
+                                </div>
+                            `).join('')}
 
-        // Convert general info into HTML string
-        let html = `<p class="mb-4"><strong>Report ID:</strong> ${data.id_meldung}</p>
-                    <p class="mb-4"><strong>Date Reported:</strong> ${data.dat_meld}</p>`;
-
-        for (let i = 0; i < mantis_types.length; i++) {
-            html += `<div class="flex items-center mb-4">
-                        <label for="mantis-count-${mantis_types[i]}" class="mr-2 font-semibold">${mantis_types[i]}</label>
-                        <input id="mantis-count-${mantis_types[i]}" type="number" min="0" value="${gender_counts[i]}" onchange="changeGenderCount(${data.id_meldung}, '${mantis_types[i]}', this.value)"
-                            class="input-field" style="width: 100px;">
-                    </div>`;
-        }
-
-        html += `<p class="mb-4"><strong>Details:</strong> ${data.anm_melder}</p>`;
+                        </div>
+                        <div class="space-y-4 md:w-1/2">
+                            <p class="mb-4"><strong>Report ID:</strong> ${data.id_meldung}</p>
+                            <p class="mb-4"><strong>Date Reported:</strong> ${data.dat_meld.replace(/\d{2}:\d{2}:\d{2} GMT/, '')}</p>
+                        </div>
+                    </div>
+                    <p class="mt-6 mb-2 font-semibold">Details:</p>
+                    <div class="px-3 py-2 overflow-auto bg-gray-100 rounded-lg details-text" style="max-height: 150px;">${data.anm_melder.replace(/\n/g, '<br />')}</div>`;
         return html;
     }
+    
+    
 
     function generateUserInfo(data) {
         return `<p><strong>User Name:</strong> ${data.user_name}</p>
@@ -510,6 +521,7 @@
 
     function closeModal() {
         // Hide modal
+        document.body.style.overflow = 'auto';
         document.getElementById('modal').classList.add('hidden');
     }
 

@@ -6,6 +6,10 @@
   @apply block w-full px-4 py-2  text-base text-gray-700 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200 transition-colors;
 }
 
+.input-field-admin {
+  @apply block w-24 px-4 py-2  text-base text-gray-700 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200 transition-colors;
+}
+
 .error-field {
   @apply border-red-500 bg-red-100 focus:ring-red-500;
 }
@@ -136,3 +140,11 @@ html {
   background-size: 100% 3px !important;
   background-position: 0 100%;
 }
+
+
+.details-text {
+  border: 1px solid #ddd !important;
+  padding: 10px !important;
+  border-radius: 5px !important;
+}
+

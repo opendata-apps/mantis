@@ -208,6 +208,8 @@ def change_mantis_count(id):
         sighting.art_o = new_count
     elif mantis_type == 'Andere':
         sighting.art_f = new_count
+    elif mantis_type == 'Anzahl':
+        sighting.tiere = new_count
 
     db.session.commit()
 
