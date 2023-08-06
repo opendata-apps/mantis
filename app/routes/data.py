@@ -29,7 +29,6 @@ data = Blueprint('data', __name__)
 def _create_directory(date):
     current_year = datetime.now().strftime("%Y")
     dir_path = Path(Config.UPLOAD_FOLDER + "/" + current_year + "/" + date)
-    print(dir_path)
     dir_path.mkdir(parents=True, exist_ok=True)
     ablage_path = current_year + "/" + date
     return dir_path
@@ -51,12 +50,9 @@ def _update_or_create_user(usrid, finderid, last_name, first_name, contact, find
     existing_user = TblUsers.query.filter_by(user_id=usrid).first()
     # existing_finder = TblUsers.query.filter_by(
     #     user_id=usrid).filter_by(user_rolle="2").first()
-    print("report" + last_name + first_name + contact)
-    print("finder" + finder_last_name + finder_first_name)
 
     new_finder = None
     if finder_first_name and finder_last_name:
-        print("finder" + finder_last_name + finder_first_name)
         new_finder = TblUsers(
             user_id=finderid,
             user_name=finder_last_name + " " + finder_first_name[0] + ".",
@@ -176,12 +172,6 @@ def report(usrid=None):
                                                               form.finder_first_name.data,
                                                               form.finder_last_name.data,
                                                               )
-        print("User" + usrid,
-              form.report_last_name.data,
-              form.report_first_name.data,
-              form.contact.data,
-              form.finder_first_name.data,
-              form.finder_last_name.data,)
 
         if updated_finder:
             new_meldung_user = TblMeldungUser(

@@ -68,7 +68,6 @@ def admin_index2(usrid):
 
 @admin.route('/<path:filename>')
 def report_Img(filename):
-    print("Get image with filename: " + filename + "")
     return send_from_directory('', filename)
 
 
@@ -93,7 +92,6 @@ def toggle_approve_sighting(id):
 @admin.route('/get_sighting/<id>', methods=['GET'])
 @login_required
 def get_sighting(id):
-    print("Get sighting with id: " + id + "")
     # Find the report by id
     sighting = db.session.query(
         TblMeldungen,
@@ -114,17 +112,14 @@ def get_sighting(id):
     ).first()
 
     if sighting:
-        print(sighting)
         # Convert sighting to a dictionary and return it
         sighting_dict = {}
         for part in sighting:
             part_dict = {c.name: getattr(part, c.name)
                          for c in part.__table__.columns}
             sighting_dict.update(part_dict)
-        print(sighting_dict)
         return jsonify(sighting_dict)
     else:
-        print(jsonify({'error': 'Report not found'}), 404)
         return jsonify({'error': 'Report not found'}), 404
 
 
@@ -213,9 +208,6 @@ def change_mantis_count(id):
 
     db.session.commit()
 
-    print(
-        f"Changed count of {mantis_type} to {new_count} for sighting with id {id} now {sighting.art_m} {sighting.art_w} {sighting.art_n} {sighting.art_o} {sighting.art_f}")
-
     return jsonify(success=True)
 
 
@@ -272,7 +264,6 @@ def export_csv(table_name):
 def get_tables():
     inspector = inspect(db.engine)
     tables = inspector.get_table_names()
-    print(jsonify({"tables": tables}))
     return jsonify({"tables": tables})
 
 
