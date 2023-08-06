@@ -307,7 +307,6 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    console.log(`Changed gender of report ${id} to ${newGender}`);
                 } else {
                     console.error('Failed to change gender:', data.error);
                 }
@@ -347,7 +346,6 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    console.log(`Changed approval status of report ${id}`);
                     // Remove the approved card from the view
                     removeCardFromView(id);
                 } else {
@@ -378,8 +376,7 @@
                 let tabUserInfo = document.getElementById('tab-user-info');
                 let tabContent = document.getElementById('tab-content');
 
-                console.log(id)
-                console.log(data.latitude, data.longitude);
+
                 // Set initial content
                 tabContent.innerHTML = generateGeneralInfo(data);
                 setActiveTab(tabGeneralInfo);
@@ -394,7 +391,6 @@
 
 
                 locationData = data;
-                console.log(locationData.latitude, locationData.longitude);
 
                 tabLocationInfo.addEventListener('click', function () {
                     if (!this.classList.contains('active')) {
@@ -415,7 +411,6 @@
                             }).addTo(map);
 
                             L.marker([lat, lng]).addTo(map);
-                            console.log('Lat:', lat, 'Lng:', lng);
 
                             // Redraw tiles after the modal is shown
                             map.invalidateSize();
@@ -446,7 +441,6 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    console.log(`Changed count of ${type} for report ${id} to ${newCount}`);
                 } else {
                     console.error('Failed to change count:', data.error);
                 }
@@ -537,7 +531,6 @@
             fetch('/delete_sighting/' + id, { method: 'POST' })
                 .then(response => response.json())
                 .then(data => {
-                    console.log(data);
                     // Remove the deleted card from the view
                     removeCardFromView(id);
                 })

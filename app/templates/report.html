@@ -508,7 +508,6 @@
           document.querySelector("#state").value = address.state || address.city || "";
           document.querySelector("#district").value = address.county || address.suburb || address.borough || "";
 
-          console.log("Returned data:", data);
         })
         .catch(error => {
           console.error("Error fetching address data:", error);
@@ -589,12 +588,10 @@
             // Set the values to the form fields
             document.querySelector('#latitude').value = latitude;
             document.querySelector('#longitude').value = longitude;
-            console.log('Latitude: ' + latitude + ' Longitude: ' + longitude);
 
             getAddressFromCoordinates(latitude, longitude);
           } else {
             // Handle the case when GPS data is not available in the image
-            console.log('No GPS data found in the file');
           }
         });
       });
@@ -714,9 +711,7 @@
         })
         .then(data => {
           const currentStepErrors = showErrors(data.errors, form.dataset.currentStep);
-          console.log('Current step:', form.dataset.currentStep);
           if (currentStepErrors.length === 0) {
-            console.log('No errors in the current step');
             showStep(nextStepIndex);
           }
         })
@@ -731,7 +726,6 @@
     function showErrors(errors, currentStepIndex) {
       currentStepIndex = parseInt(currentStepIndex);  // parse to integer
 
-      console.log('Errors:', errors);
 
       // Clear any existing error messages
       const errorElements = document.querySelectorAll('.form-error');
@@ -808,7 +802,6 @@
     function showStep(index) {
       // Update the current step attribute
       form.dataset.currentStep = index;
-      console.log('Current step:', form.dataset.currentStep);
 
       step1.classList.toggle('hidden', index !== 0);
       step2.classList.toggle('hidden', index !== 1);
