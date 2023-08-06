@@ -1,4 +1,14 @@
-# 🦗 Mantis Tracker 🦗
+# 🦗 [Gottesanbeterin Gesucht Mitmachprojekt](https://gottesanbeterin-gesucht.de/) 🦗
+
+
+
+
+
+
+
+
+
+
 
 ![Header Banner](https://i.ibb.co/fxgcjgC/image-2023-05-02-210757973.png)
 
@@ -49,7 +59,7 @@ pip install -r requirements.txt
 
 ### Step 4: 🗄️ Create a PostgreSQL database
 
-Verwenden sie das Programm `psql` für ihr Betriebssystem.
+Use the Program `psql`
 
 ```bash
 psql -U postgres
