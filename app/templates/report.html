@@ -4,6 +4,7 @@
 {% block head %}
 <meta name="csrf-token" content="{{ csrf_token() }}">
 {% endblock %}
+{% block page_title %}Mantis Religiosa Beobachtungen Melden{% endblock %}
 {% block title %}Fund melden{% endblock %}
 {% block content %}
 {% with messages = get_flashed_messages() %}
@@ -678,15 +679,15 @@
       event.preventDefault();
       const form = event.target.closest('form');
       const formData = new FormData(form);
-    
+
       let csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-      
+
       // The button that was clicked
       const button = event.target;
-    
+
       // Save the current button text
       const originalButtonText = button.textContent;
-    
+
       // Inject the SVG into the button
       button.innerHTML = `
         <svg class="w-5 h-5 mx-auto text-white animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -694,7 +695,7 @@
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
       `;
-    
+
       fetch('/validate', {
         method: 'POST',
         headers: {
@@ -702,30 +703,30 @@
         },
         body: formData
       })
-      .then(response => {
-        // Replace the SVG in the button with the original button text
-        button.textContent = originalButtonText;
-    
-        if (!response.ok && response.status !== 333) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then(data => {
-        const currentStepErrors = showErrors(data.errors, form.dataset.currentStep);
-        console.log('Current step:', form.dataset.currentStep);
-        if (currentStepErrors.length === 0) {
-          console.log('No errors in the current step');
-          showStep(nextStepIndex);
-        }
-      })
-      .catch(error => {
-        // Replace the SVG in the button with the original button text in case of an error as well
-        button.textContent = originalButtonText;
-        console.error(error);
-      });
+        .then(response => {
+          // Replace the SVG in the button with the original button text
+          button.textContent = originalButtonText;
+
+          if (!response.ok && response.status !== 333) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          const currentStepErrors = showErrors(data.errors, form.dataset.currentStep);
+          console.log('Current step:', form.dataset.currentStep);
+          if (currentStepErrors.length === 0) {
+            console.log('No errors in the current step');
+            showStep(nextStepIndex);
+          }
+        })
+        .catch(error => {
+          // Replace the SVG in the button with the original button text in case of an error as well
+          button.textContent = originalButtonText;
+          console.error(error);
+        });
     }
-    
+
 
     function showErrors(errors, currentStepIndex) {
       currentStepIndex = parseInt(currentStepIndex);  // parse to integer

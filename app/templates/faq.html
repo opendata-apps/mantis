@@ -1,4 +1,7 @@
 {% extends "layout.html" %}
+Häufig gestellte Fragen (FAQ)
+{% block page_title %} Häufig gestellte Fragen (FAQ) | Mantis Religiosa Beobachtungen | Mitmachprojekt | Gottesanbeterin
+Gesucht{% endblock %}
 {% block title %}Häufig gestellte Fragen (FAQ){% endblock title %}
 
 {% block content %}
@@ -32,7 +35,8 @@
       „Fundort-Beschreibung“ aus. Wenn Sie mögen, können Sie sich mit
       dem Bestimmungsschlüssel das Geschlecht und das
       Entwicklungsstadium Ihrer Gottesanbeterin selbst
-      bestimmen. Geben Sie das Funddatum an. Sollten Finder und Melder unterschiedliche Personen sein, können  Sie nun noch den
+      bestimmen. Geben Sie das Funddatum an. Sollten Finder und Melder unterschiedliche Personen sein, können Sie nun
+      noch den
       Namen des Finders eintragen. Wenn Sie eine
       Rückantwort wünschen, können Sie auch Ihre E- Mailadresse
       angeben. Mehr brauchen Sie nicht zu tun.
@@ -55,7 +59,7 @@
       {"title": "Wo soll ich suchen?",
       "content": "Die Europäische Gottesanbeterin ist eine Wärme und Sonne liebende Art. Sie kommt in gut
       besonntem Trockenrasenoffenland mit geringem Strauchbewuchs vor. Sie lebt im hohen
-      Gras, an Stauden aber auch auf dem Boden  z.B. auf Brachen, an stillgelegten
+      Gras, an Stauden aber auch auf dem Boden z.B. auf Brachen, an stillgelegten
       Bahntrassen, auf Truppenübungsplätzen und auf alten Tagebauflächen wurde sie gefunden.
       Viele Zufallsfunde wurden auch in Innenstädten, auf Balkonen und in Gärten gemacht. In
       geschlossenen Wäldern kommt sie bei uns nicht vor.
@@ -79,7 +83,7 @@
       behandelt und ausschließlich projektbezogen verwendet und nicht weitergegeben."},
       {"title": "Das passiert mit meinen Fotos?",
       "content": "Die Fotos dienen ausschließlich der Absicherung des Fundes.
-      Die Bilder werden von uns nicht  weiterverwendet oder publiziert.
+      Die Bilder werden von uns nicht weiterverwendet oder publiziert.
       Die Urheberrechte verbleiben bei Ihnen.
       "}
       ] %}
@@ -117,6 +121,7 @@
   {
     "@context": "https://schema.org",
     "@type": "FAQPage",
+    "name": "Mantis FAQPage"
     "mainEntity": [{% for faq in faq_entries %}{
       "@type": "Question",
       "name": "{{ faq.title }}",

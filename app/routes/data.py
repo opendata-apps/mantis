@@ -162,8 +162,8 @@ def report(usrid=None):
                                    fo_zuordnung=new_fundort.id,
                                    fo_quelle="F",
                                    art_f='0',
-                                   tiere = '1'
-                                   ** genders,
+                                   tiere='1',
+                                   **genders,
                                    anm_melder=form.picture_description.data)
         db.session.add(new_meldung)
         db.session.flush()
