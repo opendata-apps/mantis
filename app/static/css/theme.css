@@ -64,6 +64,11 @@
 
 html {
   scroll-behavior: smooth !important;
+  font-size: 100% !important;
+}
+
+* {
+  transition: all 0.3s ease-out;
 }
 
 @layer components {
