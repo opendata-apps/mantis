@@ -123,17 +123,16 @@ def get_sighting(id):
         return jsonify({'error': 'Report not found'}), 404
 
 
-@admin.route('/delete_sighting/<id>', methods=['GET'])
+@admin.route('/delete_sighting/<id>', methods=['POST'])
 @login_required
 def delete_sighting(id):
     # Find the report by id
     sighting = TblMeldungen.query.get(id)
     if sighting:
-        # Delete the report
-        db.session.delete(sighting)
+        # Set the deleted value to True
+        sighting.deleted = True
         db.session.commit()
-        # Redirect back to admin dashboard
-        return redirect(url_for('admin_index'))
+        return jsonify({'message': 'Report successfully deleted'}), 200
     else:
         return jsonify({'error': 'Report not found'}), 404
 

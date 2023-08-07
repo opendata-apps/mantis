@@ -7,10 +7,10 @@
 
 <div class="container px-4 mx-auto my-10 md:px-12">
     <div class="flex flex-wrap items-center justify-between mb-5 space-x-4">
-        <div class="flex items-center space-x-4">
+        <div class="flex flex-wrap items-center space-x-4 md:space-x-0 md:space-y-4 md:flex-col">
             <!-- Filter button -->
             <button id="filterDropdownButton" data-dropdown-toggle="filterDropdown"
-                class="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg md:w-auto focus:outline-none hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                class="flex items-center justify-center w-full px-4 py-2 mb-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg md:w-auto md:mb-0 focus:outline-none hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200"
                 type="button">
                 <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="w-4 h-4 mr-2 text-gray-400"
                     viewbox="0 0 20 20" fill="currentColor">
@@ -28,11 +28,11 @@
 
             <!-- Filter dropdown menu -->
             <div id="filterDropdown"
-                class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
-                <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="filterDropdownButton">
+                class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 ">
+                <ul class="py-2 text-sm text-gray-700 " aria-labelledby="filterDropdownButton">
                     <li>
                         <label
-                            class="block w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                            class="block w-full px-4 py-2 text-left hover:bg-gray-100 ">
                             <div
                                 class="relative inline-block w-10 mr-2 align-middle transition duration-200 ease-in select-none">
                                 <input type="checkbox" name="toggle" id="toggle" onchange="toggleApprovedSightings()"
@@ -49,11 +49,12 @@
             </div>
         </div>
 
-        <div class="flex-grow">
+        <div class="flex-grow mb-2 md:mb-0">
             <input type="text" id="searchInput" onkeyup="searchReports()" placeholder="Search for reports..."
                 class="w-full px-4 py-2 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
         </div>
-        <div>
+        
+        <div class="mb-2 md:mb-0">
             <select id="sortInput" onchange="sortReports()"
                 class="w-48 px-4 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
                 <option value="">Sort by...</option>
@@ -64,7 +65,7 @@
         <div class="flex items-center space-x-4">
             <!-- Dropdown button -->
             <button id="dropdownExportButton" data-dropdown-toggle="dropdown"
-                class="flex items-center justify-center flex-shrink-0 px-3 py-2 text-sm font-medium text-white bg-green-600 border border-green-400 rounded-lg focus:outline-none hover:bg-green-600 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                class="flex items-center justify-center flex-shrink-0 px-3 py-2 text-sm font-medium text-white bg-green-600 border border-green-400 rounded-lg focus:outline-none hover:bg-green-600 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200 "
                 type="button">
                 <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24"
                     stroke-width="2" stroke="currentColor" aria-hidden="true">
@@ -76,23 +77,23 @@
 
             <!-- Dropdown menu -->
             <div id="dropdown"
-                class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
-                <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownExportButton">
+                class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 ">
+                <ul class="py-2 text-sm text-gray-700 " aria-labelledby="dropdownExportButton">
                     <li>
                         <button onclick="exportData('all')"
-                            class="block w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                            class="block w-full px-4 py-2 text-left hover:bg-gray-100 ">
                             Export All Data
                         </button>
                     </li>
                     <li>
                         <button onclick="exportData('accepted')"
-                            class="block w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                            class="block w-full px-4 py-2 text-left hover:bg-gray-100 ">
                             Export Accepted Reports
                         </button>
                     </li>
                     <li>
                         <button onclick="exportData('non_accepted')"
-                            class="block w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                            class="block w-full px-4 py-2 text-left hover:bg-gray-100 ">
                             Export Non-Accepted Reports
                         </button>
                     </li>
@@ -103,75 +104,77 @@
 
     <div class="grid grid-cols-1 gap-6 mb-4 sm:grid-cols-2 lg:grid-cols-3" id="reportContainer">
         {% for sighting in reported_sightings %}
-        <div class="mb-8 overflow-hidden transition-shadow duration-200 ease-in-out bg-white rounded-lg shadow-lg hover:shadow-xl report-card"
+        <div class="mb-4 overflow-hidden transition-shadow duration-200 ease-in-out bg-white rounded-lg shadow-lg hover:shadow-xl report-card"
             data-report-id="{{sighting.id}}">
             <div class="relative">
                 <img onclick="openImageModal('{{ url_for('admin.report_Img', filename=image_path + "/" +
                     sighting.fundort.ablage) }}')"
-                    class="object-cover w-full h-64 transition-transform duration-200 ease-in-out rounded-t-lg cursor-pointer hover:scale-105"
+                    class="object-cover w-full h-48 transition-transform duration-200 ease-in-out rounded-t-lg cursor-pointer md:h-64 hover:scale-105"
                     src="{{ url_for('admin.report_Img', filename=image_path + "/" + sighting.fundort.ablage)}}"
                     alt="{{imagepath}}">
-                <div class="px-6 py-6 md:px-6">
-                    <div class="relative px-4 -mt-16">
-                        <div class="p-6 rounded-lg shadow-lg {{ 'bg-green-100' if sighting.approved }} bg-white">
-                            <div class="flex items-baseline">
+                <div class="p-4 md:p-6">
+                    <div class="relative -mt-10 md:mt-0">
+                        <div class="p-4 rounded-lg shadow-lg {{ 'bg-green-100' if sighting.approved }} bg-white">
+                            <div class="flex flex-col items-baseline md:flex-row">
                                 <span
-                                    class="inline-block px-3 py-1 mb-4 text-xs font-semibold leading-none tracking-wide text-white uppercase bg-green-500 rounded-full">Report
+                                    class="inline-block px-2 py-1 mb-2 text-xs font-semibold leading-none tracking-wide text-white uppercase bg-green-500 rounded-full md:mb-0">Report
                                     ID: {{ sighting.id }}</span>
                                 {% if sighting.dat_bear %}
-                                <div class="ml-2 text-sm font-semibold tracking-wide text-gray-600">
+                                <div class="ml-0 text-xs font-semibold tracking-wide text-gray-600 md:ml-2 md:text-sm">
                                     <strong>Date Approved:</strong> {{ sighting.dat_bear }}
                                 </div>
                                 {% endif %}
                             </div>
-                            <h4 class="mt-1 text-xl font-semibold leading-tight truncate"
+                            <h4 class="mt-2 text-lg font-semibold leading-tight truncate md:text-xl"
                                 title="Ort: {{sighting.ort}}&#13;&#10;Postleitzahl: {{sighting.plz}}&#13;&#10;Kreis: {{sighting.kreis}}&#13;&#10;Land: {{sighting.land}}">
                                 Ort: {{sighting.kreis}} | {{sighting.ort}}
                             </h4>
-                            <div class="mt-1">
-                                <p><strong>Melde-Datum:</strong> {{ sighting.dat_meld }}</p>
+                            <div class="mt-2">
+                                <p class="text-sm"><strong>Melde-Datum:</strong> {{ sighting.dat_meld }}</p>
                                 {% if sighting.dat_fund_bis %}
-                                <p><strong>Fund-Datum:</strong> {{ sighting.dat_fund_von }} - {{ sighting.dat_fund_bis}}</p>
-                                    {% else %}
-                                <p><strong>Fund-Datum:</strong> {{ sighting.dat_fund_von }}</p>
+                                <p class="text-sm"><strong>Fund-Datum:</strong> {{ sighting.dat_fund_von }} - {{ sighting.dat_fund_bis}}</p>
+                                {% else %}
+                                <p class="text-sm"><strong>Fund-Datum:</strong> {{ sighting.dat_fund_von }}</p>
                                 {% endif %}
                             </div>
-                            <div class="flex items-center mt-4">
-                                <button onclick="openModal({{sighting.id}})" style="min-width: 2.5rem;"
+                            <div class="flex flex-wrap items-center mt-3">
+                                <button onclick="openModal({{sighting.id}})" style="min-width: 2 rem;"
                                     class="p-1 transition-colors duration-200 rounded focus:outline-none hover:bg-green-200">
-                                    <img src="/static/images/svg/edit.svg" alt="Edit" class="w-5 h-5">
+                                    <img src="/static/images/svg/edit.svg" alt="Edit" class="w-4 h-4 md:w-5 md:h-5">
                                 </button>
                                 <button onclick="deleteSighting({{sighting.id}})"
-                                    class="p-1 ml-4 transition-colors duration-200 rounded focus:outline-none hover:bg-red-200"
-                                    style="min-width: 2.5rem;">
-                                    <img src="/static/images/svg/delete.svg" alt="Delete" class="w-5 h-5">
+                                    class="p-1 ml-2 transition-colors duration-200 rounded md:ml-4 focus:outline-none hover:bg-red-200"
+                                    style="min-width: 2 rem;">
+                                    <img src="/static/images/svg/delete.svg" alt="Delete" class="w-4 h-4 md:w-5 md:h-5">
                                 </button>
-                                <div class="inline-flex flex-wrap items-center ml-auto">
-                                    {% set total = ((sighting.art_m or 0) + (sighting.art_w or 0) +
-                                    (sighting.art_n or 0) + (sighting.art_o or 0)) | int %}
-                                    <select id="gender-{{sighting.id}}"
-                                        class="px-3 py-2 mr-2 text-sm font-medium border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                                        onchange="changeGender({{sighting.id}})" {{ 'disabled' if sighting.dat_bear or
-                                        total> 1
-                                        }} >
-                                        <option value="0" {{ 'selected' if total==0 }}>Unbekannt</option>
-                                        <option value="M" {{ 'selected' if sighting.art_m==1 }}>Männchen</option>
-                                        <option value="W" {{ 'selected' if sighting.art_w==1 }}>Weiblich</option>
-                                        <option value="N" {{ 'selected' if sighting.art_n==1 }}>Nymphe</option>
-                                        <option value="O" {{ 'selected' if sighting.art_o==1 }}>Oothek</option>
-                                        <option value="F" {{ 'selected' if sighting.art_f==1 }}>Andere</option>
-                                    </select>
-                                    {% if sighting.dat_bear %}
-                                    <span
-                                        class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-800 bg-green-100 rounded-md">
-                                        Approved
-                                    </span>
-                                    {% else %}
-                                    <button onclick="toggleApprove({{sighting.id}})"
-                                        class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-500 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                                        Approve
-                                    </button>
-                                    {% endif %}
+                                <div class="inline-flex flex-wrap items-center mt-2 ml-2 md:mt-0 md:ml-auto">
+                                    <div class="inline-flex flex-wrap items-center ml-auto">
+                                        {% set total = ((sighting.art_m or 0) + (sighting.art_w or 0) +
+                                        (sighting.art_n or 0) + (sighting.art_o or 0)) | int %}
+                                        <select id="gender-{{sighting.id}}"
+                                            class="px-2 py-2 mr-2 text-sm font-medium border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                                            onchange="changeGender({{sighting.id}})" {{ 'disabled' if sighting.dat_bear or
+                                            total> 1
+                                            }} >
+                                            <option value="0" {{ 'selected' if total==0 }}>Unbekannt</option>
+                                            <option value="M" {{ 'selected' if sighting.art_m==1 }}>Männchen</option>
+                                            <option value="W" {{ 'selected' if sighting.art_w==1 }}>Weiblich</option>
+                                            <option value="N" {{ 'selected' if sighting.art_n==1 }}>Nymphe</option>
+                                            <option value="O" {{ 'selected' if sighting.art_o==1 }}>Oothek</option>
+                                            <option value="F" {{ 'selected' if sighting.art_f==1 }}>Andere</option>
+                                        </select>
+                                        {% if sighting.dat_bear %}
+                                        <span
+                                            class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-800 bg-green-100 rounded-md">
+                                            Approved
+                                        </span>
+                                        {% else %}
+                                        <button onclick="toggleApprove({{sighting.id}})"
+                                            class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-500 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                            Approve
+                                        </button>
+                                        {% endif %}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -180,6 +183,7 @@
             </div>
         </div>
         {% endfor %}
+        
     </div>
 </div>
 

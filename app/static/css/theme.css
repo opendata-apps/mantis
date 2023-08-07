@@ -67,9 +67,6 @@ html {
   font-size: 100% !important;
 }
 
-* {
-  transition: all 0.3s ease-out;
-}
 
 @layer components {
   .fade-out {
@@ -151,3 +148,4 @@ html {
   padding: 10px !important;
   border-radius: 5px !important;
 }
+

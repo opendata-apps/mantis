@@ -3,6 +3,7 @@ datastore
 import
 .#*
 #*
+db-import.sh
 \.mantis
 \.flantis
 \.1flantis

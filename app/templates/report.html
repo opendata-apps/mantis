@@ -11,16 +11,16 @@
 {% if messages %}
 {% for message in messages %}
 <div style="z-index: 999" id="toast-interactive-{{ loop.index }}"
-  class="fixed max-w-2xl px-4 py-2 text-gray-500 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow toast dark:bg-gray-800 dark:text-gray-400 top-1/4 left-1/2 min-h-16"
+  class="fixed max-w-2xl px-4 py-2 text-gray-500 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow toast   top-1/4 left-1/2 min-h-16"
   role="alert">
   <div class="flex">
     <div
-      class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-green-500 bg-green-100 rounded-lg dark:text-green-300 dark:bg-green-900">
+      class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-green-500 bg-green-100 rounded-lg  ">
       <span class="sr-only">Notification icon</span>
     </div>
     <div class="ml-3 text-sm font-normal">
-      <p class="mb-1 text-sm font-semibold text-gray-900 break-all dark:text-white">{{ message.title }}</p>
-      <p class="text-gray-800 dark:text-gray-400">{{ message.message }}</p>
+      <p class="mb-1 text-sm font-semibold text-gray-900 break-all ">{{ message.title }}</p>
+      <p class="text-gray-800 ">{{ message.message }}</p>
     </div>
     <button type="button"
       class="ml-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex h-8 w-8 "
@@ -56,7 +56,7 @@
           </div>
           <div class="flex items-center justify-center w-full">
             <label for="{{ form.picture.id }}"
-              class="flex flex-col items-center justify-center w-full h-64 transition-all duration-500 ease-in-out border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500">
+              class="flex flex-col items-center justify-center w-full h-64 transition-all duration-500 ease-in-out border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50   hover:bg-gray-100  ">
               <div id="imagePreview"
                 class="flex-col items-center justify-center hidden w-full h-64 overflow-hidden transition-all duration-500 ease-in-out fade-in">
                 <img id="previewImage" class="object-scale-down w-full h-full" src="#"
@@ -69,9 +69,9 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                 </svg>
-                <p class="mb-2 text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold">Click to upload
+                <p class="mb-2 text-sm text-gray-500 "><span class="font-semibold">Click to upload
                     image...</span></p>
-                <p class="text-xs text-gray-500 dark:text-gray-400">PNG, JPG, JPEG or WEBP (Max. 800x400px)</p>
+                <p class="text-xs text-gray-500 ">PNG, JPG, JPEG or WEBP (Max. 800x400px)</p>
               </div>
               {{ form.picture(class="hidden", id=form.picture.id, accept="image/*") }}
             </label>
@@ -191,10 +191,10 @@
                 </button>
               </div>
               <div data-popover id="popover-gender" role="tooltip"
-                class="absolute z-50 invisible inline-block w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800">
+                class="absolute z-50 invisible inline-block w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0   ">
                 <div
-                  class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg dark:border-gray-600 dark:bg-gray-700">
-                  <h3 class="font-semibold text-green-900 dark:text-green">
+                  class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg  ">
+                  <h3 class="font-semibold text-green-900 ">
                     Entwicklungsstadium/Geschlecht
                   </h3>
                 </div>
