@@ -21,20 +21,9 @@ def index():
 
 import time
 
-@main.route('/test')
-def test():
-    flash({
-            'title': 'Daten wurden gesendet.',
-            'message': 'Vielen Dank für Ihre Meldung!',
-        })
-    return render_template('test.html')
-
-
 
 def styles():
     return send_from_directory('static/build', 'theme.css')
-
-
 
 
 @main.route('/projekt')
