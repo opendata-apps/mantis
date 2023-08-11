@@ -422,10 +422,10 @@
                     }
                 });
 
-
+                userInfo = data;
                 tabUserInfo.addEventListener('click', function () {
                     if (!this.classList.contains('active')) {
-                        tabContent.innerHTML = generateUserInfo(data);
+                        tabContent.innerHTML = generateUserInfo(userInfo);
                         setActiveTab(this);
                     }
                 });
