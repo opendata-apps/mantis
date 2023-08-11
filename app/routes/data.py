@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from PIL import Image
 
@@ -23,6 +23,7 @@ from ..config import Config
 # Blueprints
 data = Blueprint('data', __name__)
 checklist = Config.CHECKLIST
+checklist['datum'] = datetime.now()  + timedelta(days=1)
 
 # Flask application and routes
 def _create_directory(date):
@@ -118,6 +119,16 @@ def _user_to_dict(user):
 def _saveip(ip):
     "Manage IP's to control allow only one report/day"
     global checklist
+    today = datetime.now()
+    nextday = checklist.get('datum', None)
+
+    print(today)
+    print(nextday)
+
+    # reset checklist if one day has left
+    if today > nextday:
+      checklist.clear()
+      checklist['datum'] = datetime.now()  + timedelta(days=1)
     if  ip  not in checklist:
       checklist[ip] = 0
     else:
@@ -133,7 +144,8 @@ def report(usrid=None):
     pid = os.getpid()
     mark = f"{ip}:{pid}"
     _saveip(mark)
-    if checklist.get(mark) > 2:
+    print(checklist)
+    if checklist.get(mark) > 6:
         return redirect(url_for('main.index'))
     finderid = get_new_id()
     existing_user = TblUsers.query.filter_by(
@@ -206,7 +218,7 @@ def report(usrid=None):
         addresse = form.contact.data
 
         if Config.send_emails and addresse:
-           send_email(formdata=form)
+            send_email(formdata=form)
 
         return redirect(url_for('data.report', usrid=usrid))
 
