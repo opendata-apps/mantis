@@ -16,16 +16,15 @@ from app.forms import MantisSightingForm
 from app.tools.gen_user_id import get_new_id
 import os
 import json
-
+import copy
 from app.tools.send_email import send_email
 
 from ..config import Config
 # Blueprints
 data = Blueprint('data', __name__)
+checklist = Config.CHECKLIST
 
 # Flask application and routes
-
-
 def _create_directory(date):
     current_year = datetime.now().strftime("%Y")
     dir_path = Path(Config.UPLOAD_FOLDER + "/" + current_year + "/" + date)
@@ -116,9 +115,26 @@ def _user_to_dict(user):
     }
 
 
+def _saveip(ip):
+    "Manage IP's to control allow only one report/day"
+    global checklist
+    if  ip  not in checklist:
+      checklist[ip] = 0
+    else:
+        checklist[ip] += 1
+    return
+
 @data.route('/report', methods=['GET', 'POST'])
 @data.route('/report/<usrid>', methods=['GET', 'POST'])
 def report(usrid=None):
+    # check ip 
+    global checklist
+    ip = request.remote_addr
+    pid = os.getpid()
+    mark = f"{ip}:{pid}"
+    _saveip(mark)
+    if checklist.get(mark) > 2:
+        return redirect(url_for('main.index'))
     finderid = get_new_id()
     existing_user = TblUsers.query.filter_by(
         user_id=usrid).first() if usrid else None
@@ -189,8 +205,8 @@ def report(usrid=None):
         })
         addresse = form.contact.data
 
-        # if addresse:
-        #    send_email(formdata=form)
+        if Config.send_emails and addresse:
+           send_email(formdata=form)
 
         return redirect(url_for('data.report', usrid=usrid))
 
