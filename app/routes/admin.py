@@ -30,26 +30,31 @@ admin = Blueprint('admin', __name__)
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if 'user_id' not in session:
+        user_id = kwargs.get('usrid')
+        session_user_id = session.get('user_id')
+
+        # If user_id is not in session, check if it is valid and has role 9
+        if session_user_id is None and user_id:
+            user = TblUsers.query.filter_by(user_id=user_id).first()
+            if user and user.user_rolle == '9':
+                session['user_id'] = user_id
+            else:
+                abort(404)
+        elif session_user_id and session_user_id != user_id:
             abort(404)
+
         return f(*args, **kwargs)
     return decorated_function
 
 
 @admin.route('/reviewer/<usrid>')
+@login_required
 def admin_index2(usrid):
     # Fetch the user based on the 'usrid' parameter
     user = TblUsers.query.filter_by(user_id=usrid).first()
 
-    # If the user doesn't exist or the role isn't 9, return 404
-    if not user or user.user_rolle != '9':
-        abort(404)
-
     # Get the user_name of the logged in user_id
     user_name = user.user_name
-
-    # Store the userid in session
-    session['user_id'] = usrid
 
     image_path = Config.UPLOAD_FOLDER.replace("app/", "")
     inspector = inspect(db.engine)
