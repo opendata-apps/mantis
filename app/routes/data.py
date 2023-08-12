@@ -145,7 +145,7 @@ def report(usrid=None):
     mark = f"{ip}:{pid}"
     _saveip(mark)
     print(checklist)
-    if checklist.get(mark) > 6:
+    if checklist.get(mark) > 9:
         return redirect(url_for('main.index'))
     finderid = get_new_id()
     existing_user = TblUsers.query.filter_by(

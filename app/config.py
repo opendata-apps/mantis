@@ -19,7 +19,7 @@ class Config:
     tls = True
     sender_email = ""
     sender_pass = ""
-    send_emails = True
+    send_emails = False
     esri = os.environ.get('ESRI_MAP_KEY') or 'no-key-found'
     UPLOAD_FOLDER = 'app/datastore'
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
