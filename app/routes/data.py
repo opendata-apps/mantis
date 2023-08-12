@@ -23,9 +23,11 @@ from ..config import Config
 # Blueprints
 data = Blueprint('data', __name__)
 checklist = Config.CHECKLIST
-checklist['datum'] = datetime.now()  + timedelta(days=1)
+checklist['datum'] = datetime.now() + timedelta(days=1)
 
 # Flask application and routes
+
+
 def _create_directory(date):
     current_year = datetime.now().strftime("%Y")
     dir_path = Path(Config.UPLOAD_FOLDER + "/" + current_year + "/" + date)
@@ -127,26 +129,18 @@ def _saveip(ip):
 
     # reset checklist if one day has left
     if today > nextday:
-      checklist.clear()
-      checklist['datum'] = datetime.now()  + timedelta(days=1)
-    if  ip  not in checklist:
-      checklist[ip] = 0
+        checklist.clear()
+        checklist['datum'] = datetime.now() + timedelta(days=1)
+    if ip not in checklist:
+        checklist[ip] = 0
     else:
         checklist[ip] += 1
     return
 
+
 @data.route('/report', methods=['GET', 'POST'])
 @data.route('/report/<usrid>', methods=['GET', 'POST'])
 def report(usrid=None):
-    # check ip 
-    global checklist
-    ip = request.remote_addr
-    pid = os.getpid()
-    mark = f"{ip}:{pid}"
-    _saveip(mark)
-    print(checklist)
-    if checklist.get(mark) > 9:
-        return redirect(url_for('main.index'))
     finderid = get_new_id()
     existing_user = TblUsers.query.filter_by(
         user_id=usrid).first() if usrid else None
@@ -160,6 +154,17 @@ def report(usrid=None):
         form.report_first_name.render_kw = {"readonly": "readonly"}
         form.report_last_name.render_kw = {"readonly": "readonly"}
         form.contact.render_kw = {"readonly": "readonly"}
+
+    if request.method == 'POST':
+        # Rate-limiting logic only for POST requests
+        global checklist
+        ip = request.remote_addr
+        pid = os.getpid()
+        mark = f"{ip}:{pid}"
+        _saveip(mark)
+        print(checklist)
+        if checklist.get(mark) > 9:
+            return redirect(url_for('main.index'))
 
     if form.validate_on_submit():
 
