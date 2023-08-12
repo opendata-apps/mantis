@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms.validators import DataRequired, Length, NumberRange, Email, ValidationError, InputRequired, Optional, Regexp
 from flask_wtf.file import FileAllowed, FileRequired, FileSize
-from wtforms import StringField, IntegerField, DateField, SelectField, BooleanField, FloatField, FileField, SubmitField
+from wtforms import StringField, IntegerField, DateField, SelectField, BooleanField, FloatField, FileField, SubmitField, HiddenField
 from datetime import date
 import re
 
@@ -113,7 +113,7 @@ class MantisSightingForm(FlaskForm):
                               DataRequired(message='Das Funddatum ist erforderlich.'), validate_past_date], render_kw={'placeholder': 'z.B. 2023-05-14'})
     contact = StringField("Kontakt (E-Mail)", validators=[Optional(Email(message='Die Email Adresse ist ungültig.'))],
                           render_kw={'placeholder': 'z.B. max@example.de'})
-
+    honeypot = StringField()
     submit = SubmitField("Absenden")
 
     def _get_translations(self):

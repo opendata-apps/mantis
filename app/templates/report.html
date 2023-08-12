@@ -11,11 +11,11 @@
 {% if messages %}
 {% for message in messages %}
 <div style="z-index: 999" id="toast-interactive-{{ loop.index }}"
-  class="fixed max-w-2xl px-4 py-2 text-gray-500 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow toast   top-1/4 left-1/2 min-h-16"
+  class="fixed max-w-2xl px-4 py-2 text-gray-500 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow toast top-1/4 left-1/2 min-h-16"
   role="alert">
   <div class="flex">
     <div
-      class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-green-500 bg-green-100 rounded-lg  ">
+      class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-green-500 bg-green-100 rounded-lg ">
       <span class="sr-only">Notification icon</span>
     </div>
     <div class="ml-3 text-sm font-normal">
@@ -56,7 +56,7 @@
           </div>
           <div class="flex items-center justify-center w-full">
             <label for="{{ form.picture.id }}"
-              class="flex flex-col items-center justify-center w-full h-64 transition-all duration-500 ease-in-out border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50   hover:bg-gray-100  ">
+              class="flex flex-col items-center justify-center w-full h-64 transition-all duration-500 ease-in-out border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 ">
               <div id="imagePreview"
                 class="flex-col items-center justify-center hidden w-full h-64 overflow-hidden transition-all duration-500 ease-in-out fade-in">
                 <img id="previewImage" class="object-scale-down w-full h-full" src="#"
@@ -191,9 +191,9 @@
                 </button>
               </div>
               <div data-popover id="popover-gender" role="tooltip"
-                class="absolute z-50 invisible inline-block w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0   ">
+                class="absolute z-50 invisible inline-block w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 ">
                 <div
-                  class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg  ">
+                  class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg ">
                   <h3 class="font-semibold text-green-900 ">
                     Entwicklungsstadium/Geschlecht
                   </h3>
@@ -339,6 +339,10 @@
                     {{ form.finder_last_name(class="input-field") }}
                   </div>
                 </label>
+                <div style="display:none;">
+                  <label for="honeypot">Leave this field blank</label>
+                  <input type="text" id="honeypot" name="honeypot">
+                </div>                
               </div>
               <div class="mt-4">
                 <label class="block text-sm font-semibold text-gray-600">
@@ -400,11 +404,6 @@
         <div class="flex justify-between mt-6 space-x-4">
           {{ formButton('step4Prev', 'Zurück') }}
           <form id="myForm">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <div style="display: none;">
-              <label>Please leave this field empty</label>
-              <input type="text" id="text" name="tt" />
-            </div>
             <button id="submitBtn" type="submit"
               class="relative px-6 py-2 text-sm font-medium text-white transition duration-300 bg-green-400 rounded-md hover:bg-green-500 ease">
               <span class="absolute bottom-0 left-0 h-full -ml-2">
