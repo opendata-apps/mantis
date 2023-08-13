@@ -28,7 +28,7 @@
 
             <!-- Filter dropdown menu -->
             <div id="filterDropdown"
-                class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 ">
+                class="z-10 hidden w-48 bg-white divide-y divide-gray-100 rounded-lg shadow ">
                 <ul class="py-2 text-sm text-gray-700 " aria-labelledby="filterDropdownButton">
                     <li>
                         <label
@@ -45,6 +45,15 @@
                         </label>
                     </li>
                     <!-- Add more filter options here -->
+                    <li>
+                        <label class="block w-full px-4 py-2 text-left hover:bg-gray-100">
+                            <div class="relative inline-block w-10 mr-2 align-middle transition duration-200 ease-in select-none">
+                                <input type="checkbox" name="toggleDeleted" id="toggleDeleted" onchange="toggleDeletedSightings()" class="absolute block w-6 h-6 bg-white border-4 rounded-full appearance-none cursor-pointer toggle-checkbox" />
+                                <label for="toggleDeleted" class="block h-6 overflow-hidden bg-gray-300 rounded-full cursor-pointer toggle-label"></label>
+                            </div>
+                            <span id="checkbox-label-deleted" class="ml-2 text-sm text-gray-700">Nicht Gelöscht</span>
+                        </label>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -105,7 +114,10 @@
     <div class="grid grid-cols-1 gap-6 mb-4 sm:grid-cols-2 lg:grid-cols-3" id="reportContainer">
         {% for sighting in reported_sightings %}
         <div class="mb-4 overflow-hidden transition-shadow duration-200 ease-in-out bg-white rounded-lg shadow-lg hover:shadow-xl report-card"
-            data-report-id="{{sighting.id}}">
+            data-report-id="{{sighting.id}}"
+            data-approved="{{ 'true' if sighting.dat_bear else 'false' }}"
+            data-deleted="{{ 'true' if sighting.deleted else 'false' }}"            
+            >
             <div class="relative">
                 <img onclick="openImageModal('{{ url_for('admin.report_Img', filename=image_path + "/" +
                     sighting.fundort.ablage) }}')"
@@ -575,37 +587,64 @@
     }
 
 
-
-
     let showApprovedSightings = false;
-
+    let showDeletedSightings = false;
+    
     function toggleApprovedSightings() {
         var label = document.getElementById("checkbox-label");
-
+    
         showApprovedSightings = !showApprovedSightings;
         filterSightings();
-
-        if (showApprovedSightings) {
-            label.innerHTML = "Bestätigt";
-        } else {
-            label.innerHTML = "Unbestätigt";
-        }
+    
+        label.innerHTML = showApprovedSightings ? "Bestätigt" : "Unbestätigt";
+    }
+    
+    function toggleDeletedSightings() {
+        var label = document.getElementById("checkbox-label-deleted");
+    
+        showDeletedSightings = !showDeletedSightings;
+        filterSightings();
+    
+        label.innerHTML = showDeletedSightings ? "Gelöscht" : "Nicht gelöscht";
     }
 
     // Function to filter sightings based on the toggle state
     function filterSightings() {
         let cards = Array.from(document.getElementsByClassName('report-card'));
-
+    
         cards.forEach(card => {
-            let isApproved = card.querySelector('.bg-green-100') !== null;
-
-            if (showApprovedSightings) {
-                card.style.display = isApproved ? '' : 'none';
+            let isApproved = card.getAttribute('data-approved') === 'true';
+            let isDeleted = card.getAttribute('data-deleted') === 'true';
+            let reportId = card.getAttribute('data-report-id');
+    
+            // Determine if the card should be shown
+            let showCard = true;
+    
+            if (showApprovedSightings && !isApproved) {
+                showCard = false;
+            }
+    
+            if (showDeletedSightings && !isDeleted) {
+                showCard = false;
+            }
+    
+            if (!showApprovedSightings && isApproved) {
+                showCard = false;
+            }
+    
+            if (!showDeletedSightings && isDeleted) {
+                showCard = false;
+            }
+    
+            // Hide or show the card based on the final decision
+            if (showCard) {
+                card.classList.remove('hidden');
             } else {
-                card.style.display = isApproved ? 'none' : '';
+                card.classList.add('hidden');
             }
         });
     }
+    
 
     // Call the filterSightings function initially to apply the default filter
     document.addEventListener('DOMContentLoaded', (event) => {
@@ -619,8 +658,6 @@
 
         filterSightings();
     });
-
-
 </script>
 
 

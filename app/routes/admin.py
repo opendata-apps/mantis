@@ -30,17 +30,15 @@ admin = Blueprint('admin', __name__)
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        user_id = kwargs.get('usrid')
         session_user_id = session.get('user_id')
 
-        # If user_id is not in session, check if it is valid and has role 9
-        if session_user_id is None and user_id:
-            user = TblUsers.query.filter_by(user_id=user_id).first()
-            if user and user.user_rolle == '9':
-                session['user_id'] = user_id
-            else:
-                abort(404)
-        elif session_user_id and session_user_id != user_id:
+        # If user_id is not in session, abort
+        if session_user_id is None:
+            abort(404)
+
+        # Check if user_id is valid and has role 9
+        user = TblUsers.query.filter_by(user_id=session_user_id).first()
+        if not user or user.user_rolle != '9':
             abort(404)
 
         return f(*args, **kwargs)
@@ -56,6 +54,9 @@ def admin_index2(usrid):
     # Get the user_name of the logged in user_id
     user_name = user.user_name
 
+    # Store the userid in session
+    session['user_id'] = usrid
+
     image_path = Config.UPLOAD_FOLDER.replace("app/", "")
     inspector = inspect(db.engine)
     tables = inspector.get_table_names()
@@ -68,6 +69,8 @@ def admin_index2(usrid):
         sighting.plz = sighting.fundort.plz
         sighting.kreis = sighting.fundort.kreis
         sighting.land = sighting.fundort.land
+        sighting.deleted = sighting.deleted
+        sighting.dat_bear = sighting.dat_bear
     return render_template('admin/admin.html', reported_sightings=reported_sightings, tables=tables, image_path=image_path, user_name=user_name)
 
 
