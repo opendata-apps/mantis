@@ -54,6 +54,7 @@
                             <span id="checkbox-label-deleted" class="ml-2 text-sm text-gray-700">Nicht Gelöscht</span>
                         </label>
                     </li>
+                    
                 </ul>
             </div>
         </div>
@@ -195,7 +196,6 @@
             </div>
         </div>
         {% endfor %}
-        
     </div>
 </div>
 
@@ -272,10 +272,6 @@
 </div>
 
 
-
-
-
-
 <script>
     let map;
     let marker;
@@ -294,11 +290,14 @@
         cards.sort((a, b) => {
             let idA = a.getAttribute('data-report-id');
             let idB = b.getAttribute('data-report-id');
-
-            if (input == 'id_asc') {
-                return idA - idB;
-            } else if (input == 'id_desc') {
-                return idB - idA;
+        
+            switch (input) {
+                case 'id_asc':
+                    return idA - idB;
+                case 'id_desc':
+                    return idB - idA;
+                default:
+                    return 0; // Default case to handle unexpected values
             }
         });
 
@@ -382,73 +381,76 @@
 
     function openModal(id) {
         document.body.style.overflow = 'hidden';
-        // Get report details and show in modal
+        clearTabClickListeners();
         fetch('/get_sighting/' + id)
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
             .then(data => {
-                // Get tab buttons and content container
                 let tabGeneralInfo = document.getElementById('tab-general-info');
                 let tabLocationInfo = document.getElementById('tab-location-info');
                 let tabUserInfo = document.getElementById('tab-user-info');
                 let tabContent = document.getElementById('tab-content');
-
-
+    
                 // Set initial content
                 tabContent.innerHTML = generateGeneralInfo(data);
                 setActiveTab(tabGeneralInfo);
-
-                generalData = data;
-
+    
                 // Add click listeners to tab buttons
-                tabGeneralInfo.addEventListener('click', function () {
-                    if (!this.classList.contains('active')) {
-                        tabContent.innerHTML = generateGeneralInfo(generalData);
-                        setActiveTab(this);
-                    }
-                });
-
-
-                locationData = data;
-
-                tabLocationInfo.addEventListener('click', function () {
-                    if (!this.classList.contains('active')) {
-                        tabContent.innerHTML = generateLocationInfo(locationData);
-                        setActiveTab(this);
-
-                        // Initiate the map when 'Place of Sighting with Map' tab is clicked
-                        setTimeout(function () {
-                            let lat = parseFloat(locationData.latitude.replace(',', '.'));
-                            let lng = parseFloat(locationData.longitude.replace(',', '.'));
-                            map = L.map('map').setView([lat, lng], 13);
-
-
-                            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                                maxZoom: 18,
-                                tileSize: 512,
-                                zoomOffset: -1
-                            }).addTo(map);
-
-                            L.marker([lat, lng]).addTo(map);
-
-                            // Redraw tiles after the modal is shown
-                            map.invalidateSize();
-                        }, 0);
-                    }
-                });
-
-                userInfo = data;
-                tabUserInfo.addEventListener('click', function () {
-                    if (!this.classList.contains('active')) {
-                        tabContent.innerHTML = generateUserInfo(userInfo);
-                        setActiveTab(this);
-                    }
-                });
-
+                addTabClickListener(tabGeneralInfo, generateGeneralInfo, data);
+                addTabClickListener(tabLocationInfo, generateLocationInfo, data);
+                addTabClickListener(tabUserInfo, generateUserInfo, data);
+    
                 // Show the modal
                 document.getElementById('modal').classList.remove('hidden');
             })
             .catch(error => console.error('Error:', error));
     }
+    
+
+    function addTabClickListener(tabElement, contentGenerator, data) {
+        tabElement.onclick = function() {
+            if (!this.classList.contains('active')) {
+                document.getElementById('tab-content').innerHTML = contentGenerator(data);
+                setActiveTab(this);
+    
+                if (contentGenerator === generateLocationInfo) {
+                    initiateMap(data);
+                }
+            }
+        };
+    }
+
+    function clearTabClickListeners() {
+        let tabGeneralInfo = document.getElementById('tab-general-info');
+        let tabLocationInfo = document.getElementById('tab-location-info');
+        let tabUserInfo = document.getElementById('tab-user-info');
+    
+        tabGeneralInfo.onclick = null;
+        tabLocationInfo.onclick = null;
+        tabUserInfo.onclick = null;
+    }
+    
+    
+    function initiateMap(data) {
+        setTimeout(function () {
+            let lat = parseFloat(data.latitude.replace(',', '.'));
+            let lng = parseFloat(data.longitude.replace(',', '.'));
+            let map = L.map('map').setView([lat, lng], 13);
+    
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 18,
+                tileSize: 512,
+                zoomOffset: -1
+            }).addTo(map);
+    
+            L.marker([lat, lng]).addTo(map);
+    
+            // Redraw tiles after the modal is shown
+            map.invalidateSize();
+        }, 0);
+    }    
 
     function changeGenderCount(id, type, newCount) {
         fetch(`/change_mantis_count/${id}`, {
@@ -535,7 +537,8 @@
         // Hide modal
         document.body.style.overflow = 'auto';
         document.getElementById('modal').classList.add('hidden');
-    }
+        clearTabClickListeners(); // Clear listeners when the modal is closed
+    }   
 
     function saveChanges() {
         // Save changes to report details
