@@ -397,10 +397,12 @@
                 tabContent.innerHTML = generateGeneralInfo(data);
                 setActiveTab(tabGeneralInfo);
 
+                generalData = data;
+
                 // Add click listeners to tab buttons
                 tabGeneralInfo.addEventListener('click', function () {
                     if (!this.classList.contains('active')) {
-                        tabContent.innerHTML = generateGeneralInfo(data);
+                        tabContent.innerHTML = generateGeneralInfo(generalData);
                         setActiveTab(this);
                     }
                 });
