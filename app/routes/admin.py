@@ -65,6 +65,10 @@ def admin_index2(usrid):
         sighting.land = sighting.fundort.land
         sighting.deleted = sighting.deleted
         sighting.dat_bear = sighting.dat_bear
+        if sighting.bearb_id:
+            approver = TblUsers.query.filter_by(
+                user_id=sighting.bearb_id).first()
+            sighting.approver_username = approver.user_name if approver else 'Unknown'
     return render_template('admin/admin.html', reported_sightings=reported_sightings, tables=tables, image_path=image_path, user_name=user_name)
 
 
