@@ -74,7 +74,8 @@ def admin_index2(usrid):
 
 @admin.route('/<path:filename>')
 def report_Img(filename):
-    return send_from_directory('', filename)
+    print(f"report_Img filename: {filename}")
+    return send_from_directory('', filename, mimetype='image/webp', as_attachment=False)
 
 
 @admin.route('/toggle_approve_sighting/<id>', methods=['POST'])

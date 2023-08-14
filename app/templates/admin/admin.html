@@ -217,29 +217,31 @@
         </div>
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
         <div
-            class="inline-block px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
-            <div class="mt-2">
-                <img id="modalImage" class="w-full h-auto" src="" alt="Full Image View">
+            class="inline-block px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-full sm:w-11/12 md:w-3/4 lg:w-1/2 xl:w-1/3 sm:p-6">
+            <div class="flex justify-center mt-2">
+                <img id="modalImage" class="w-full max-h-[70vh] object-cover" src="" alt="Full Image View">
             </div>
             <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
                 <button type="button" onclick="closeImageModal()"
-                    class="inline-flex justify-center w-full px-4 py-2 text-base font-medium text-white bg-green-600 border border-transparent rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm"
+                    class="inline-flex justify-center w-full px-4 py-2 mb-2 text-base font-medium text-white bg-green-600 border border-transparent rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:mb-0 sm:ml-3 sm:w-auto sm:text-sm"
                     title="Schließen Sie das Fenster">
                     Close
                 </button>
                 <button type="button" onclick="openImageNewTab()"
-                    class="inline-flex justify-center w-full px-4 py-2 text-base font-medium text-white bg-green-600 border border-transparent rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm"
+                    class="inline-flex justify-center w-full px-4 py-2 mb-2 text-base font-medium text-white bg-green-600 border border-transparent rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:mb-0 sm:ml-3 sm:w-auto sm:text-sm"
                     title="Öffnen Sie das Bild in einem neuen Tab">
-                    <svg class="w-[16px] h-[16px] text-gray-200 " aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                    <svg class="w-[16px] h-[16px] text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                         fill="none" viewBox="0 0 18 18">
                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M15 11v4.833A1.166 1.166 0 0 1 13.833 17H2.167A1.167 1.167 0 0 1 1 15.833V4.167A1.166 1.166 0 0 1 2.167 3h4.618m4.447-2H17v5.768M9.111 8.889l7.778-7.778" />
                     </svg>
                 </button>
             </div>
+            
         </div>
     </div>
 </div>
+
 
 
 
@@ -501,12 +503,14 @@
 
 
     function openImageModal(imageUrl) {
+        document.body.style.overflow = 'hidden';
         document.getElementById('modalImage').src = imageUrl;
         document.getElementById('imageModal').style.display = 'block';
     }
 
     function closeImageModal() {
         document.getElementById('imageModal').style.display = 'none';
+        document.body.style.overflow = 'auto';
     }
 
     function openImageNewTab() {
