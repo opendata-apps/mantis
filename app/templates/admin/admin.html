@@ -408,16 +408,31 @@
     
                 // Show the modal
                 document.getElementById('modal').classList.remove('hidden');
+    
+                // Disable inputs if the sighting has been approved
+                let reportCard = document.querySelector(`[data-report-id="${id}"]`);
+                let isApproved = reportCard.getAttribute('data-approved') === 'true';
+                disableInputsIfApproved(isApproved);
             })
             .catch(error => console.error('Error:', error));
     }
     
+    
+    function disableInputsIfApproved(isApproved) {
+        let inputs = document.querySelectorAll('.input-field-admin');
+        inputs.forEach(input => {
+            input.disabled = isApproved;
+        });
+    }
+    
 
     function addTabClickListener(tabElement, contentGenerator, data) {
+        let isApproved = document.querySelector(`[data-report-id="${data.id}"]`).getAttribute('data-approved') === 'true';
         tabElement.onclick = function() {
             if (!this.classList.contains('active')) {
                 document.getElementById('tab-content').innerHTML = contentGenerator(data);
                 setActiveTab(this);
+                disableInputsIfApproved(isApproved);
     
                 if (contentGenerator === generateLocationInfo) {
                     initiateMap(data);
