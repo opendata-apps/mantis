@@ -65,12 +65,17 @@ def admin_index2(usrid):
         sighting.land = sighting.fundort.land
         sighting.deleted = sighting.deleted
         sighting.dat_bear = sighting.dat_bear
+        if sighting.bearb_id:
+            approver = TblUsers.query.filter_by(
+                user_id=sighting.bearb_id).first()
+            sighting.approver_username = approver.user_name if approver else 'Unknown'
     return render_template('admin/admin.html', reported_sightings=reported_sightings, tables=tables, image_path=image_path, user_name=user_name)
 
 
 @admin.route('/<path:filename>')
 def report_Img(filename):
-    return send_from_directory('', filename)
+    print(f"report_Img filename: {filename}")
+    return send_from_directory('', filename, mimetype='image/webp', as_attachment=False)
 
 
 @admin.route('/toggle_approve_sighting/<id>', methods=['POST'])
@@ -84,7 +89,7 @@ def toggle_approve_sighting(id):
             sighting.dat_bear = datetime.now()
         else:
             sighting.dat_bear = None  # Clear the dat_bear value if it is already set
-
+        sighting.bearb_id = session['user_id']
         db.session.commit()
         return jsonify({'success': True})
     else:
@@ -133,6 +138,7 @@ def delete_sighting(id):
     if sighting:
         # Set the deleted value to True
         sighting.deleted = True
+        sighting.bearb_id = session['user_id']
         db.session.commit()
         return jsonify({'message': 'Report successfully deleted'}), 200
     else:
@@ -148,6 +154,7 @@ def save_sighting_changes(id):
         # Update sighting with data from request
         # This will depend on how you implement the saveChanges function in JavaScript
         # sighting.field = request.form['field']
+        sighting.bearb_id = session['user_id']
         db.session.commit()
         return jsonify({'success': True})
     else:
@@ -180,6 +187,7 @@ def change_gender(id):
     elif new_gender == 'F':
         sighting.art_f = 1
 
+    sighting.bearb_id = session['user_id']
     db.session.commit()
 
     return jsonify(success=True)
@@ -207,6 +215,7 @@ def change_mantis_count(id):
     elif mantis_type == 'Anzahl':
         sighting.tiere = new_count
 
+    sighting.bearb_id = session['user_id']
     db.session.commit()
 
     return jsonify(success=True)
