@@ -41,8 +41,8 @@ SELECT setval('users_id_seq', (SELECT MAX(id) FROM users));
 --
 
 select
-  me.id, dat_fund_von, dat_fund_bis, dat_meld, dat_bear,
-  anzahl, fo_quelle, art_m, art_w, art_n, art_o, anm_melder, anm_bearbeiter,
+  me.id, deleted, dat_fund_von, dat_fund_bis, dat_meld, dat_bear,
+  anzahl, fo_quelle, art_m, art_w, art_n, art_o, art_f, anm_melder, anm_bearbeiter,
   be.beschreibung,
   user_id,  user_name, user_rolle, user_kontakt,
   plz, ort, strasse, land, kreis, amt, mtb, longitude, latitude, ablage
