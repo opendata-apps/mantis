@@ -1,7 +1,7 @@
 Mantis's Projekt
 ================
 
-.. image:: gottesanbeterin.png
+.. image:: gottesanbeterin.webp
     :alt: Mantis Tracker
     :width: 200px
 

@@ -10,7 +10,7 @@
 
 
 
-![Header Banner](https://i.ibb.co/fxgcjgC/image-2023-05-02-210757973.png)
+![Header Banner](https://i.ibb.co/QrjJ7NM/berger03.webp)
 
 An interactive web application to track Mantis Religiosa sightings in Brandenburg, presented by the Naturkunde Museum Potsdam.
 
