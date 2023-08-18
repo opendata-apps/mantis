@@ -163,7 +163,7 @@ def report(usrid=None):
         mark = f"{ip}:{pid}"
         _saveip(mark)
         print(checklist)
-        if checklist.get(mark) > 9:
+        if checklist.get(mark) > 2:
             return redirect(url_for('main.index'))
 
     if form.validate_on_submit():
