@@ -432,7 +432,7 @@
     
 
     function addTabClickListener(tabElement, contentGenerator, data) {
-        let isApproved = document.querySelector(`[data-report-id="${data.id}"]`).getAttribute('data-approved') === 'true';
+        let isApproved = document.querySelector(`[data-report-id="${data.id_meldung}"]`).getAttribute('data-approved') === 'true';
         tabElement.onclick = function() {
             if (!this.classList.contains('active')) {
                 document.getElementById('tab-content').innerHTML = contentGenerator(data);
