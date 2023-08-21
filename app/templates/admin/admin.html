@@ -258,9 +258,9 @@
                     <button
                         class="px-4 py-2 font-semibold text-green-700 bg-green-100 rounded-lg focus:outline-none hover:bg-green-600 hover:text-white"
                         id="tab-location-info">Position auf der Karte</button>
-                    <button
+                    <!--button
                         class="px-4 py-2 font-semibold text-green-700 bg-green-100 rounded-lg focus:outline-none hover:bg-green-600 hover:text-white"
-                        id="tab-user-info">User Information</button>
+                        id="tab-user-info">User Information</button-->
                 </div>
                 <!-- Tab Content -->
                 <div id="tab-content" class="overflow-y-auto" style="max-height: 450px;">
@@ -399,7 +399,7 @@
             .then(data => {
                 let tabGeneralInfo = document.getElementById('tab-general-info');
                 let tabLocationInfo = document.getElementById('tab-location-info');
-                let tabUserInfo = document.getElementById('tab-user-info');
+                //let tabUserInfo = document.getElementById('tab-user-info');
                 let tabContent = document.getElementById('tab-content');
     
                 // Set initial content
@@ -409,7 +409,7 @@
                 // Add click listeners to tab buttons
                 addTabClickListener(tabGeneralInfo, generateGeneralInfo, data);
                 addTabClickListener(tabLocationInfo, generateLocationInfo, data);
-                addTabClickListener(tabUserInfo, generateUserInfo, data);
+                //addTabClickListener(tabUserInfo, generateUserInfo, data);
     
                 // Show the modal
                 document.getElementById('modal').classList.remove('hidden');
@@ -449,11 +449,11 @@
     function clearTabClickListeners() {
         let tabGeneralInfo = document.getElementById('tab-general-info');
         let tabLocationInfo = document.getElementById('tab-location-info');
-        let tabUserInfo = document.getElementById('tab-user-info');
+        //let tabUserInfo = document.getElementById('tab-user-info');
     
         tabGeneralInfo.onclick = null;
         tabLocationInfo.onclick = null;
-        tabUserInfo.onclick = null;
+        //tabUserInfo.onclick = null;
     }
     
     
@@ -495,7 +495,7 @@
 
     function setActiveTab(tab) {
         // Remove 'active' class from all tabs
-        let tabs = [document.getElementById('tab-general-info'), document.getElementById('tab-location-info'), document.getElementById('tab-user-info')];
+        let tabs = [document.getElementById('tab-general-info'), document.getElementById('tab-location-info')]; //document.getElementById('tab-user-info')];
         tabs.forEach(t => t.classList.remove('active'));
         // Add 'active' class to the selected tab
         tab.classList.add('active');
@@ -550,18 +550,23 @@
     
     
 
-    function generateUserInfo(data) {
+    /*function generateUserInfo(data) {
         return `<p><strong>User Name:</strong> ${data.user_name}</p>
                 <p><strong>User Email:</strong> ${data.user_kontakt}</p>
                 <p><strong>User ID:</strong> ${data.user_id}</p>
                 <p><strong>User Role:</strong> ${data. user_rolle}</p>`;
-    }
+    }*/
 
 
     function generateLocationInfo(data) {
         // Convert location info into HTML string
         return `<p><strong>Location ID:</strong> ${data.fo_zuordnung}</p>
-                <div id="map" style="height: 400px; width: 100%;"></div>`;
+                <div id="map" style="height: 400px; width: 100%;"></div>
+                <p class="border border-1 border-dotted border-green-700 m-2">  </p>
+                <p><strong>User Name:</strong> ${data.user_name}</p>
+                <p><strong>User Email:</strong> ${data.user_kontakt}</p>
+                <p><strong>User ID:</strong> ${data.user_id}</p>
+                <p><strong>User Role:</strong> ${data. user_rolle}</p>`;
     }
 
 
