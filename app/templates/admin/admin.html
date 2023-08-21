@@ -171,18 +171,6 @@
                                     <div class="inline-flex flex-wrap items-center ml-auto">
                                         {% set total = ((sighting.art_m or 0) + (sighting.art_w or 0) +
                                         (sighting.art_n or 0) + (sighting.art_o or 0)) | int %}
-                                        <!--select id="gender-{{sighting.id}}"
-                                            class="px-2 py-2 mr-2 text-sm font-medium border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                                            onchange="changeGender({{sighting.id}})" {{ 'disabled' if sighting.dat_bear or
-                                            total> 1
-                                            }} >
-                                            <option value="0" {{ 'selected' if total==0 }}>Unbekannt</option>
-                                            <option value="M" {{ 'selected' if sighting.art_m==1 }}>Männchen</option>
-                                            <option value="W" {{ 'selected' if sighting.art_w==1 }}>Weiblich</option>
-                                            <option value="N" {{ 'selected' if sighting.art_n==1 }}>Nymphe</option>
-                                            <option value="O" {{ 'selected' if sighting.art_o==1 }}>Oothek</option>
-                                            <option value="F" {{ 'selected' if sighting.art_f==1 }}>Andere</option>
-                                        </select-->
                                         {% if sighting.dat_bear %}
                                         <span
                                             class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-800 bg-green-100 rounded-md">
@@ -258,9 +246,6 @@
                     <button
                         class="px-4 py-2 font-semibold text-green-700 bg-green-100 rounded-lg focus:outline-none hover:bg-green-600 hover:text-white"
                         id="tab-location-info">Position auf der Karte</button>
-                    <!--button
-                        class="px-4 py-2 font-semibold text-green-700 bg-green-100 rounded-lg focus:outline-none hover:bg-green-600 hover:text-white"
-                        id="tab-user-info">User Information</button-->
                 </div>
                 <!-- Tab Content -->
                 <div id="tab-content" class="overflow-y-auto" style="max-height: 450px;">
@@ -316,26 +301,6 @@
             container.appendChild(card);
         });
     }
-
-   /* function changeGender(id) {
-        const selectElement = document.getElementById(`gender-${id}`);
-        const newGender = selectElement.value;
-
-        fetch(`/change_mantis_gender/${id}`, {
-            method: 'POST',
-            body: new URLSearchParams({ new_gender: newGender }),
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                } else {
-                    console.error('Failed to change gender:', data.error);
-                }
-            });
-    } */
 
     function searchReports() {
         // Get input value
@@ -399,7 +364,7 @@
             .then(data => {
                 let tabGeneralInfo = document.getElementById('tab-general-info');
                 let tabLocationInfo = document.getElementById('tab-location-info');
-                //let tabUserInfo = document.getElementById('tab-user-info');
+                
                 let tabContent = document.getElementById('tab-content');
     
                 // Set initial content
@@ -409,7 +374,6 @@
                 // Add click listeners to tab buttons
                 addTabClickListener(tabGeneralInfo, generateGeneralInfo, data);
                 addTabClickListener(tabLocationInfo, generateLocationInfo, data);
-                //addTabClickListener(tabUserInfo, generateUserInfo, data);
     
                 // Show the modal
                 document.getElementById('modal').classList.remove('hidden');
@@ -449,11 +413,9 @@
     function clearTabClickListeners() {
         let tabGeneralInfo = document.getElementById('tab-general-info');
         let tabLocationInfo = document.getElementById('tab-location-info');
-        //let tabUserInfo = document.getElementById('tab-user-info');
     
         tabGeneralInfo.onclick = null;
         tabLocationInfo.onclick = null;
-        //tabUserInfo.onclick = null;
     }
     
     
@@ -547,16 +509,6 @@
                       </div>`;                      
         return html;
     }
-    
-    
-
-    /*function generateUserInfo(data) {
-        return `<p><strong>User Name:</strong> ${data.user_name}</p>
-                <p><strong>User Email:</strong> ${data.user_kontakt}</p>
-                <p><strong>User ID:</strong> ${data.user_id}</p>
-                <p><strong>User Role:</strong> ${data. user_rolle}</p>`;
-    }*/
-
 
     function generateLocationInfo(data) {
         // Convert location info into HTML string
