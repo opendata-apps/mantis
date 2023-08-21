@@ -502,11 +502,31 @@
                         </div>
                     </div>
                     <p class="mt-6 mb-2 font-semibold">Details:</p>
-                    <div class="px-3 py-2 overflow-auto bg-gray-100 rounded-lg details-text" style="max-height: 150px;">${data.anm_melder.replace(/\n/g, '<br />')}</div>
+                    <div class="px-3 py-2 overflow-auto bg-gray-100 rounded-lg details-text mr-3" style="max-height: 150px;">${data.anm_melder.replace(
+                      /\n/g,
+                      "<br />"
+                    )}</div>
+                    
+                    <p class="mb-2 font-semibold">Fundortquelle:</p>
+                    <div class="px-3 py-2 bg-gray-100 rounded-lg w-24">
+                        <input type="text" class="w-full bg-gray-100" style="border: none; outline: none;">
+                      </div>
+
+                    <p class="mb-2 font-semibold">Amt:</p>
+                    <div class="px-3 py-2 bg-gray-100 rounded-lg mr-3">
+                        <input type="text" class="w-full bg-gray-100" style="border: none; outline: none;">
+                      </div>
+
+                    <p class="mb-2 font-semibold">Messtischblatt:</p>
+                    <div class="px-3 py-2 bg-gray-100 rounded-lg mr-3">
+                        <input type="text" class="w-full bg-gray-100" style="border: none; outline: none;">
+                      </div>
+
+
                     <p class="mb-2 font-semibold">Kommentar (Reviewer):</p>
                     <div class="px-3 py-2 overflow-auto bg-gray-100 rounded-lg details-text" style="max-height: 150px;">
-                        <textarea class="w-full h-full bg-transparent border-none outline-none resize-none" placeholder="Hier Text eingeben..."></textarea>
-                      </div>`;                      
+                        <textarea class="w-full h-full bg-transparent border-none outline-none resize-none"></textarea>
+                      </div>`;                        
         return html;
     }
 
