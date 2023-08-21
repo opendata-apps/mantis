@@ -171,7 +171,7 @@
                                     <div class="inline-flex flex-wrap items-center ml-auto">
                                         {% set total = ((sighting.art_m or 0) + (sighting.art_w or 0) +
                                         (sighting.art_n or 0) + (sighting.art_o or 0)) | int %}
-                                        <select id="gender-{{sighting.id}}"
+                                        <!--select id="gender-{{sighting.id}}"
                                             class="px-2 py-2 mr-2 text-sm font-medium border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                                             onchange="changeGender({{sighting.id}})" {{ 'disabled' if sighting.dat_bear or
                                             total> 1
@@ -182,7 +182,7 @@
                                             <option value="N" {{ 'selected' if sighting.art_n==1 }}>Nymphe</option>
                                             <option value="O" {{ 'selected' if sighting.art_o==1 }}>Oothek</option>
                                             <option value="F" {{ 'selected' if sighting.art_f==1 }}>Andere</option>
-                                        </select>
+                                        </select-->
                                         {% if sighting.dat_bear %}
                                         <span
                                             class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-800 bg-green-100 rounded-md">
@@ -317,7 +317,7 @@
         });
     }
 
-    function changeGender(id) {
+   /* function changeGender(id) {
         const selectElement = document.getElementById(`gender-${id}`);
         const newGender = selectElement.value;
 
@@ -335,7 +335,7 @@
                     console.error('Failed to change gender:', data.error);
                 }
             });
-    }
+    } */
 
     function searchReports() {
         // Get input value
