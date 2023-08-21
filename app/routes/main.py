@@ -61,5 +61,10 @@ def bestimmung():
     return render_template('bestimmung.html')
 
 
+@main.route('/gallerie')
+def gallerie():
+    return render_template('gallerie.html')
+
+
 def not_found(e):
     return render_template("404.html")
