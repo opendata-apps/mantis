@@ -177,5 +177,3 @@ migrations/alembic.ini
 migrations/env.py
 migrations/README
 migrations/script.py.mako
-package-lock.json
-package.json
