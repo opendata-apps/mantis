@@ -1,15 +1,5 @@
 # 🦗 [Gottesanbeterin Gesucht Mitmachprojekt](https://gottesanbeterin-gesucht.de/) 🦗
 
-
-
-
-
-
-
-
-
-
-
 ![Header Banner](https://i.ibb.co/QrjJ7NM/berger03.webp)
 
 An interactive web application to track Mantis Religiosa sightings in Brandenburg, presented by the Naturkunde Museum Potsdam.
@@ -69,6 +59,8 @@ psql -U postgres
 CREATE DATABASE mantis_tracker;
 CREATE USER mantis_user WITH PASSWORD 'mantis';
 GRANT ALL PRIVILEGES ON DATABASE mantis_tracker TO mantis_user;
+-- MacOS only:
+GRANT usage, create ON SCHEMA public TO mantis_user;
 \q
 ```
 
