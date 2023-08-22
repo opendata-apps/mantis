@@ -12,7 +12,7 @@
     <div class="container flex flex-row p-6">
         <div class="object-fill h-screen bg-white rounded-lg shadow-md grow auto-rows-max">
             <!-- Anzeige des zufälligen Bildes -->
-            <img src="{{ url_for('main.gallerie_bilder', filename=bild.bildname) }}" alt="Bildbeschreibung" style="width: 400px; height: 300px;">
+            <img src="{{ url_for('main.gallerie_bilder', filename=bild.bildname) }}" alt="Bild" style="width: 400px; height: 300px;">
             <p>Fotograph: {{ bild.fotograph }}</p>
             <p>Lizenz: {{ bild.lizenz }}</p>
             <p>Datum: {{ bild.datum }}</p>

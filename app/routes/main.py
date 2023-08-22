@@ -8,7 +8,10 @@ from app.forms import MantisSightingForm
 from sqlalchemy import or_
 from flask_sqlalchemy import SQLAlchemy
 from flask import flash, redirect, url_for
+from flask import render_template, send_from_directory
 import random
+import os
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Blueprints
 main = Blueprint('main', __name__)
@@ -62,19 +65,21 @@ def bestimmung():
     return render_template('bestimmung.html')
 
 
+
 @main.route('/gallerie')
 def gallerie():
-    with open('../database/gallerie/gallerie.json', 'r', encoding='utf-8') as file:
+    json_path = os.path.join(BASE_DIR, '..', 'database', 'gallerie', 'gallerie.json')
+    with open(json_path, 'r', encoding='utf-8') as file:
         bilder = json.load(file)
         
     zufall_bild = random.choice(bilder)
     
     return render_template('gallerie.html', bild=zufall_bild)
 
-
 @main.route('/gallerie-bilder/<filename>')
 def gallerie_bilder(filename):
-    return send_from_directory('../database/gallerie', filename)
+    bilder_directory = os.path.join(BASE_DIR, '..', 'database', 'gallerie')
+    return send_from_directory(bilder_directory, filename)
 
 
 def not_found(e):
