@@ -1,21 +1,23 @@
 {% extends "layout.html" %}
-{% block title %}Gallerie{% endblock title %}
-{% block meta_keywords %} Bilder, Gallerie
-Gottesanbeterin, Mantis religiosa Auswertungen {% endblock %}
-{% block text %} Gallerie {% endblock text %}
+
+{% block title %}Fundmeldungen 2023{% endblock title %}
+
+{% block meta_keywords %} Auswertungen, Bilder, Gottesanbeterin, Mantis religiosa Auswertungen {% endblock %}
+
+{% block text %} Bildergallerie {% endblock text %}
+
 {% block content %}
 <section class="container mx-auto mt-10">
-  <h2 class="mb-6 text-3xl font-semibold text-center">Bestätigte Meldungen Karte</h2>
-  <div class="container flex flex-row p-6">
-    <div id="map" class="object-fill h-screen bg-white rounded-lg shadow-md grow auto-rows-max"></div>
-  </div>
+    <h2 class="mb-6 text-3xl font-semibold text-center">Bilder von Fundmeldungen</h2>
+    <div class="container flex flex-row p-6">
+        <div class="object-fill h-screen bg-white rounded-lg shadow-md grow auto-rows-max">
+            <!-- Anzeige des zufälligen Bildes -->
+            <img src="{{ url_for('main.gallerie_bilder', filename=bild.bildname) }}" alt="Bildbeschreibung" style="width: 400px; height: 300px;">
+            <p>Fotograph: {{ bild.fotograph }}</p>
+            <p>Lizenz: {{ bild.lizenz }}</p>
+            <p>Datum: {{ bild.datum }}</p>
+            <p>Beschreibung: {{ bild.bildbeschreibung }}</p>
+        </div>
+    </div>
 </section>
-
-
-
-<script>
-
-</script>
-
 {% endblock content %}
-
