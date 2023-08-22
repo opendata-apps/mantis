@@ -72,24 +72,9 @@ def gallerie():
     with open(json_path, 'r', encoding='utf-8') as file:
         bilder = json.load(file)
         
-    current_index = int(request.args.get('current_index', 0))
+    zufall_bild = random.choice(bilder)
     
-    return render_template('gallerie.html', bilder=bilder, current_index=current_index)
-
-@main.route('/gallerie-navigation/<direction>')
-def gallerie_navigation(direction):
-    json_path = os.path.join(BASE_DIR, '..', 'database', 'gallerie', 'gallerie.json')
-    with open(json_path, 'r', encoding='utf-8') as file:
-        bilder = json.load(file)
-    
-    current_index = int(request.args.get('current_index', 0))
-    
-    if direction == 'left':
-        current_index = (current_index - 1) % len(bilder)
-    elif direction == 'right':
-        current_index = (current_index + 1) % len(bilder)
-    
-    return redirect(url_for('main.gallerie', current_index=current_index))
+    return render_template('gallerie.html', bild=zufall_bild)
 
 @main.route('/gallerie-bilder/<filename>')
 def gallerie_bilder(filename):

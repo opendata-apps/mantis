@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+
+{% block title %}Bildergallerie{% endblock title %}
+
+{% block meta_keywords %} Auswertungen, Bilder, Gottesanbeterin, Mantis religiosa Auswertungen {% endblock %}
+
+{% block text %} Bildergallerie {% endblock text %}
+
+{% block content %}
+<section class="container mx-auto mt-10">
+    <h2 class="mb-6 text-3xl font-semibold text-center">Bilder von Fundmeldungen</h2>
+    <div class="container flex flex-row p-6">
+        <div class="object-fill h-screen bg-white rounded-lg shadow-md grow auto-rows-max">
+            <!-- Anzeige des zufälligen Bildes -->
+            <img src="{{ url_for('main.gallerie_bilder', filename=bild.bildname) }}" alt="Bild" style="width: 400px; height: 300px;">
+            <p>Fotograph: {{ bild.fotograph }}</p>
+            <div class="license-info">
+                <img src="/static/images/{{ bild.lizenz }}.webp" alt="Lizenz-Icon" style="width: 100px;">
+            </div>
+            <p>Datum: {{ bild.datum }}</p>
+            <p>Beschreibung: {{ bild.bildbeschreibung }}</p>
+        </div>
+    </div>
+</section>
+{% endblock content %}
