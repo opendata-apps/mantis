@@ -64,7 +64,7 @@ def bestimmung():
 
 @main.route('/gallerie')
 def gallerie():
-    with open('C:/Home/Apps/python/mantis/mantis/app/database/gallerie/gallerie.json', 'r', encoding='utf-8') as file:
+    with open('../database/gallerie/gallerie.json', 'r', encoding='utf-8') as file:
         bilder = json.load(file)
         
     zufall_bild = random.choice(bilder)
@@ -74,7 +74,7 @@ def gallerie():
 
 @main.route('/gallerie-bilder/<filename>')
 def gallerie_bilder(filename):
-    return send_from_directory('C:/Home/Apps/python/mantis/mantis/app/database/gallerie', filename)
+    return send_from_directory('../database/gallerie', filename)
 
 
 def not_found(e):
