@@ -13,24 +13,28 @@
                 class="flex items-center justify-center w-full px-4 py-2 mb-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg md:w-auto md:mb-0 focus:outline-none hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200"
                 type="button">
                 <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="w-4 h-4 mr-2 text-gray-400"
-                viewbox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd"
+                    viewbox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
                         d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"
                         clip-rule="evenodd" />
                 </svg>
                 Filter
                 <svg class="-mr-1 ml-1.5 w-5 h-5" fill="currentColor" viewbox="0 0 20 20"
-                xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <path clip-rule="evenodd" fill-rule="evenodd"
-                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                    xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path clip-rule="evenodd" fill-rule="evenodd"
+                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
                 </svg>
             </button>
-            
-            <div id="filterDropdown" class="z-10 hidden w-64 sm:w-80 bg-white divide-y divide-gray-100 rounded-lg shadow-lg p-4 space-y-4">
-                <form>
+
+            <div id="filterDropdown"
+                class="z-10 hidden w-64 sm:w-80 bg-white divide-y divide-gray-100 rounded-lg shadow-lg p-4 space-y-4">
+                <!--! Filter Dropdown Start-->
+                <form action="/admin_index2" method="POST">
                     <div>
-                        <label for="statusInput" class="block text-sm font-medium text-gray-700">Bearbeitet oder offen</label>
-                        <select id="statusInput" class="w-full px-3 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        <label for="statusInput" class="block text-sm font-medium text-gray-700">Bearbeitet oder
+                            offen</label>
+                        <select id="statusInput"
+                            class="w-full px-3 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
                             <option value="">Alle anzeigen</option>
                             <option value="bearbeitet">Bearbeitet</option>
                             <option value="offen">Offen</option>
@@ -38,25 +42,31 @@
                     </div>
                     <hr class="my-2">
                     <div class="flex items-center space-x-4">
-                        <label for="dateFromInput" class="block text-sm font-medium text-gray-700">Datum Einsendung von</label>
-                        <input type="date" id="dateFromInput" class="px-3 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        <label for="dateFromInput" class="block text-sm font-medium text-gray-700">Datum Einsendung
+                            von</label>
+                        <input type="date" id="dateFromInput"
+                            class="px-3 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
                         <label for="dateToInput" class="block text-sm font-medium text-gray-700">bis</label>
-                        <input type="date" id="dateToInput" class="px-3 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        <input type="date" id="dateToInput"
+                            class="px-3 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
                     </div>
                     <hr class="my-2">
                     <div>
                         <label for="districtInput" class="block text-sm font-medium text-gray-700">Landkreis</label>
-                        <input type="text" id="districtInput" placeholder="Landkreis eingeben..." class="w-full px-3 py-2 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        <input type="text" id="districtInput" placeholder="Landkreis eingeben..."
+                            class="w-full px-3 py-2 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
                     </div>
                     <hr class="my-2">
                     <div>
                         <label for="cityInput" class="block text-sm font-medium text-gray-700">Stadt</label>
-                        <input type="text" id="cityInput" placeholder="Stadt eingeben..." class="w-full px-3 py-2 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        <input type="text" id="cityInput" placeholder="Stadt eingeben..."
+                            class="w-full px-3 py-2 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
                     </div>
                     <hr class="my-2">
                     <div>
                         <label for="typeInput" class="block text-sm font-medium text-gray-700">Art</label>
-                        <select id="typeInput" class="w-full px-3 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        <select id="typeInput"
+                            class="w-full px-3 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
                             <option value="">Alle anzeigen</option>
                             <option value="männlich">Männlich</option>
                             <option value="weiblich">Weiblich</option>
@@ -67,7 +77,8 @@
                     <hr class="my-2">
                     <div>
                         <label for="locationInput" class="block text-sm font-medium text-gray-700">Fundort</label>
-                        <select id="locationInput" class="w-full px-3 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        <select id="locationInput"
+                            class="w-full px-3 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
                             <option value="">Alle anzeigen</option>
                             <option value="Fundemeldung">Fundemeldung</option>
                             <option value="Exkursion">Exkursion</option>
@@ -76,20 +87,25 @@
                     </div>
                     <hr class="my-2">
                     <div class="flex items-center space-x-4">
-                        <label for="dateFromSpotting" class="block text-sm font-medium text-gray-700">Datum Fund von</label>
-                        <input type="date" id="dateFromSpotting" class="px-3 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        <label for="dateFromSpotting" class="block text-sm font-medium text-gray-700">Datum Fund
+                            von</label>
+                        <input type="date" id="dateFromSpotting"
+                            class="px-3 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
                         <label for="dateToSpotting" class="block text-sm font-medium text-gray-700">bis</label>
-                        <input type="date" id="dateToSpotting" class="px-3 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        <input type="date" id="dateToSpotting"
+                            class="px-3 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
                     </div>
                     <hr class="my-2">
                     <div class="mt-4">
-                        <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:border-transparent">
+                        <button type="submit"
+                            class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:border-transparent">
                             Filtern
                         </button>
                     </div>
                 </form>
+                <!--! Filter Dropdown end-->
             </div>
-            
+
 
 
             <div class="flex items-center space-x-4">
@@ -132,7 +148,7 @@
         </div>
 
 
-        
+
 
         <div class="grid grid-cols-1 gap-6 mb-4 sm:grid-cols-2 lg:grid-cols-3" id="reportContainer">
             {% for sighting in reported_sightings %}
@@ -305,30 +321,30 @@
         </div>
     </div>
 
-<!--! Pagination Start-->
-<div class="mb-2 md:mb-0">
-    <label for="pageSizeInput" class="block text-sm font-medium text-gray -700 ">Anzahl pro Seite</label>
-    <select id="pageSizeInput" onchange="loadData()"
-        class="w -48 px -4 py -2 text -sm rounded -lg shadow -sm focus :ring -2 focus :ring -green -500 focus :border -transparent ">
-        <option value="">Wählen Sie eine Option...</option>
-        <option value="30">30</option>
-        <option value="60">60</option>
-        <option value="90">90</option>
-        <option value="120">120</option>
-    </select>
-</div>
-<div id="paginationControls">
-    <button id="prevPageButton" onclick="changePage(-1)">&lt; Previous</button>
-    <span id="currentPage"></span>
-    <button id="nextPageButton" onclick="changePage(1)">Next &gt;</button>
-</div>
-<div class="grid grid-cols-1 gap-6 mb-4 sm:grid-cols-2 lg:grid-cols-3" id="reportContainer">
-    <!-- Dynamically loaded content -->
-</div>
-<!--! Pagination End-->
+    <!--! Pagination Start-->
+    <div class="mb-2 md:mb-0">
+        <label for="pageSizeInput" class="block text-sm font-medium text-gray -700 ">Anzahl pro Seite</label>
+        <select id="pageSizeInput" onchange="loadData()"
+            class="w -48 px -4 py -2 text -sm rounded -lg shadow -sm focus :ring -2 focus :ring -green -500 focus :border -transparent ">
+            <option value="">Wählen Sie eine Option...</option>
+            <option value="30">30</option>
+            <option value="60">60</option>
+            <option value="90">90</option>
+            <option value="120">120</option>
+        </select>
+    </div>
+    <div id="paginationControls">
+        <button id="prevPageButton" onclick="changePage(-1)">&lt; Previous</button>
+        <span id="currentPage"></span>
+        <button id="nextPageButton" onclick="changePage(1)">Next &gt;</button>
+    </div>
+    <div class="grid grid-cols-1 gap-6 mb-4 sm:grid-cols-2 lg:grid-cols-3" id="reportContainer">
+        <!-- Dynamically loaded content -->
+    </div>
+    <!--! Pagination End-->
 
 
     <script src="/static/js/review.js"></script>
+</div>
 
-
-    {% endblock content %}
+{% endblock content %}

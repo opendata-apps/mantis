@@ -72,6 +72,31 @@ def admin_index2(usrid):
     return render_template('admin/admin.html', reported_sightings=reported_sightings, tables=tables, image_path=image_path, user_name=user_name)
 
 
+
+# Define your route to handle the form submission
+@app.route('/submit_form', methods=['POST'])
+def submit_form():
+    # Retrieve form data
+    status = request.form.get('statusInput')
+    date_from = request.form.get('dateFromInput')
+    date_to = request.form.get('dateToInput')
+    district = request.form.get('districtInput')
+    city = request.form.get('cityInput')
+    animal_type = request.form.get('typeInput')
+    location = request.form.get('locationInput')
+    date_from_spotting = request.form.get('dateFromSpotting')
+    date_to_spotting = request.form.get('dateToSpotting')
+
+    # Process the data as needed
+    # ...
+
+    return "Form data received and processed"
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+
+
 @admin.route('/<path:filename>')
 def report_Img(filename):
     print(f"report_Img filename: {filename}")
