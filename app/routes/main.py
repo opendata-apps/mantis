@@ -72,7 +72,7 @@ def gallerie():
     with open(json_path, 'r', encoding='utf-8') as file:
         bilder = json.load(file)
         
-    current_index = int(request.args.get('current_index', 0))
+    current_index = int(request.args.get('current_index', random.randint(0, len(bilder) - 1)))
     
     return render_template('gallerie.html', bilder=bilder, current_index=current_index)
 
