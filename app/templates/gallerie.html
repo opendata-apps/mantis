@@ -14,7 +14,10 @@
             <!-- Anzeige des zufälligen Bildes -->
             <img src="{{ url_for('main.gallerie_bilder', filename=bild.bildname) }}" alt="Bild" style="width: 400px; height: 300px;">
             <p>Fotograph: {{ bild.fotograph }}</p>
-            <p>Lizenz: {{ bild.lizenz }}</p>
+            <div class="license-info">
+                <img src="/static/images/lizenz-icon.webp" alt="Lizenz-Icon" style="width: 100px;">
+                <span>Lizenz: {{ bild.lizenz }}</span>
+            </div>
             <p>Datum: {{ bild.datum }}</p>
             <p>Beschreibung: {{ bild.bildbeschreibung }}</p>
         </div>
