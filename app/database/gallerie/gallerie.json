@@ -1,0 +1,30 @@
+[
+    {
+        "bildname": "kuehn1.webp",
+        "fotograph": "Max Mustermann",
+        "lizenz": "Lizenz kuehn",
+        "datum": "01.01.2023",
+        "bildbeschreibung": "Ein schönes Bild."
+    },
+    {
+        "bildname": "richter1.webp",
+        "fotograph": "Max Mustermann",
+        "lizenz": "Lizenz recherder",
+        "datum": "01.01.2023",
+        "bildbeschreibung": "Ein schönes Bild2."
+    },
+    {
+        "bildname": "wiesner1.webp",
+        "fotograph": "Max Mustermann",
+        "lizenz": " fewer",
+        "datum": "01.01.2023",
+        "bildbeschreibung": "Ein schönes Bild3."
+    },
+    {
+        "bildname": "wiesner2.webp",
+        "fotograph": "Max Mustermann",
+        "lizenz": "Lizenz fwfwefwew",
+        "datum": "01.01.2023",
+        "bildbeschreibung": "Ein schönes Bild4."
+    }
+]
