@@ -1,30 +1,44 @@
 [
     {
         "bildname": "kuehn1.webp",
-        "fotograph": "Max Mustermann",
+        "fotograph": "Maggy Kühn ",
         "lizenz": "Lizenz kuehn",
-        "datum": "01.01.2023",
-        "bildbeschreibung": "Ein schönes Bild."
+        "datum": "21.08.2023",
+        "bildbeschreibung": "Zivilisation und die Gottesanbeterin."
     },
     {
         "bildname": "richter1.webp",
-        "fotograph": "Max Mustermann",
+        "fotograph": "Inga Richter",
         "lizenz": "Lizenz recherder",
-        "datum": "01.01.2023",
-        "bildbeschreibung": "Ein schönes Bild2."
+        "datum": "21.08.2023",
+        "bildbeschreibung": "Die Mangtis religiosa als Blumenkönigin."
     },
     {
         "bildname": "wiesner1.webp",
-        "fotograph": "Max Mustermann",
+        "fotograph": "Daniela Wiesner",
         "lizenz": " fewer",
-        "datum": "01.01.2023",
-        "bildbeschreibung": "Ein schönes Bild3."
+        "datum": "21.08.2023",
+        "bildbeschreibung": "Die Mantis religiosa in natürlicher Harmonie."
     },
     {
         "bildname": "wiesner2.webp",
-        "fotograph": "Max Mustermann",
+        "fotograph": "Daniela Wiesner",
         "lizenz": "Lizenz fwfwefwew",
-        "datum": "01.01.2023",
-        "bildbeschreibung": "Ein schönes Bild4."
+        "datum": "21.08.2023",
+        "bildbeschreibung": "Die Mantis religiosa ist Handzahm :-)"
+    },
+    {
+        "bildname": "deutschmann1.webp",
+        "fotograph": "Janine Deutschmann",
+        "lizenz": "Lizenz fwfwefwew",
+        "datum": "21.08.2023",
+        "bildbeschreibung": "Mantis religiosa in unnatürlicher Umgebung."
+    },
+    {
+        "bildname": "archut1.webp",
+        "fotograph": "Silke & Christian Archut",
+        "lizenz": "Lizenz fwfwefwew",
+        "datum": "21.08.2023",
+        "bildbeschreibung": "Die natürlichen Elemente und die Ruhe einer Gottesanbeterin."
     }
 ]
