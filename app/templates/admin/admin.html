@@ -321,28 +321,6 @@
         </div>
     </div>
 
-    <!--! Pagination Start-->
-    <div class="mb-2 md:mb-0">
-        <label for="pageSizeInput" class="block text-sm font-medium text-gray -700 ">Anzahl pro Seite</label>
-        <select id="pageSizeInput" onchange="loadData()"
-            class="w -48 px -4 py -2 text -sm rounded -lg shadow -sm focus :ring -2 focus :ring -green -500 focus :border -transparent ">
-            <option value="">Wählen Sie eine Option...</option>
-            <option value="30">30</option>
-            <option value="60">60</option>
-            <option value="90">90</option>
-            <option value="120">120</option>
-        </select>
-    </div>
-    <div id="paginationControls">
-        <button id="prevPageButton" onclick="changePage(-1)">&lt; Previous</button>
-        <span id="currentPage"></span>
-        <button id="nextPageButton" onclick="changePage(1)">Next &gt;</button>
-    </div>
-    <div class="grid grid-cols-1 gap-6 mb-4 sm:grid-cols-2 lg:grid-cols-3" id="reportContainer">
-        <!-- Dynamically loaded content -->
-    </div>
-    <!--! Pagination End-->
-
 
     <script src="/static/js/review.js"></script>
 </div>
