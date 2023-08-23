@@ -453,7 +453,22 @@
             });
     }
 
-
+    function changeMetaData(id, type, newContent) {
+        console.log(id,type,newContent)
+        fetch(`/change_mantis_meta_data/${id}`, {
+            
+            method: 'POST',
+            body: new URLSearchParams({ id:id, type: type, new_data: newContent }),
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                } else {
+                    console.error('Failed to change metadata:', data.error);
+                }
+            });
+    }
 
     function setActiveTab(tab) {
         // Remove 'active' class from all tabs
@@ -481,6 +496,7 @@
     }
 
     function generateGeneralInfo(data) {
+        console.log(data);
         let mantis_types = ['Männchen', 'Weiblich', 'Nymphe', 'Oothek', 'Andere', 'Anzahl'];
         let gender_counts = [data.art_m, data.art_w, data.art_n, data.art_o, data.art_f, data.tiere];
     
@@ -509,23 +525,35 @@
                     
                     <p class="mb-2 font-semibold">Fundortquelle:</p>
                     <div class="px-3 py-2 bg-gray-100 rounded-lg w-24">
-                        <input type="text" class="w-full bg-gray-100" style="border: none; outline: none;">
+                        <input type="text" class="w-full bg-gray-100" style="border: none; outline: none;"
+                        name="fo_quelle"
+                        onchange="changeMetaData(${data.id_meldung},'fo_quelle', this.value)"
+                        value=${data.fo_quelle}>
                       </div>
 
                     <p class="mb-2 font-semibold">Amt:</p>
                     <div class="px-3 py-2 bg-gray-100 rounded-lg mr-3">
-                        <input type="text" class="w-full bg-gray-100" style="border: none; outline: none;">
+                        <input type="text" class="w-full bg-gray-100" style="border: none; outline: none;"
+                        name="amt"
+                        onchange="changeMetaData(${data.id_meldung},'amt', this.value)"
+                        value=${data.amt}>
                       </div>
 
                     <p class="mb-2 font-semibold">Messtischblatt:</p>
                     <div class="px-3 py-2 bg-gray-100 rounded-lg mr-3">
-                        <input type="text" class="w-full bg-gray-100" style="border: none; outline: none;">
+                        <input type="text" class="w-full bg-gray-100" style="border: none; outline: none;"
+                        name="mtb"
+                        onchange="changeMetaData(${data.id_meldung},'mtb', this.value)"
+                        value=${data.mtb}>
                       </div>
 
 
                     <p class="mb-2 font-semibold">Kommentar (Reviewer):</p>
-                    <div class="px-3 py-2 overflow-auto bg-gray-100 rounded-lg details-text" style="max-height: 150px;">
-                        <textarea class="w-full h-full bg-transparent border-none outline-none resize-none"></textarea>
+                    <div class="px-3 py-2 overflow-auto bg-gray-100 rounded-lg details-text mr-3" style="max-height: 150px;">
+                        <textarea class="w-full h-full bg-transparent border-none outline-none resize-none"
+                        name="anm_bearbeiter"
+                        onchange="changeMetaData(${data.id_meldung},'anm_bearbeiter', this.value)"
+                        >${data.anm_bearbeiter}</textarea>
                       </div>`;                        
         return html;
     }
@@ -538,7 +566,7 @@
                 <p><strong>User Name:</strong> ${data.user_name}</p>
                 <p><strong>User Email:</strong> ${data.user_kontakt}</p>
                 <p><strong>User ID:</strong> ${data.user_id}</p>
-                <p><strong>User Role:</strong> ${data. user_rolle}</p>`;
+                <p><strong>User Role:</strong> ${data.user_rolle}</p>`;
     }
 
 
