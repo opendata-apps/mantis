@@ -421,11 +421,7 @@
                     fill="#FFF" fill-rule="nonzero" fill-opacity=".1"></path>
                 </svg>
               </span>
-              <span id="send" class="relative">Senden</span>
-              <svg id= "loadSend" class="hidden w-5 h-5 mx-auto text-white animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
+              <span class="relative">Senden</span>
             </button>
           </form>
         </div>
@@ -679,33 +675,23 @@
       event.preventDefault();
       const form = event.target.closest('form');
       const formData = new FormData(form);
-    
-      // Define the CSRF token like in the old code
-      const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-    
+
+      let csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
       // The button that was clicked
-      const button = event.target.closest('a');
-      const buttonId = button.id;
-      const buttonLoader = document.getElementById(buttonId + 'Loader');
-      const buttonText = document.getElementById(buttonId + 'Text');
-    
-      if (!buttonLoader || !buttonText) {
-        console.error('Button loader or text not found');
-        return;
-      }
-    
-      // Check if the button is already in loading state
-      if (buttonLoader.classList.contains('loading')) {
-        return; // Exit if the button is already loading
-      }
-    
-      // Add a 'loading' class to the buttonLoader to track the loading state
-      buttonLoader.classList.add('loading');
-    
-      // Toggle the loading SVG and the button text
-      buttonLoader.classList.remove('hidden');
-      buttonText.classList.add('hidden');
-    
+      const button = event.target;
+
+      // Save the current button text
+      const originalButtonText = button.textContent;
+
+      // Inject the SVG into the button
+      button.innerHTML = `
+        <svg class="w-5 h-5 mx-auto text-white animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+      `;
+
       fetch('/validate', {
         method: 'POST',
         headers: {
@@ -714,11 +700,9 @@
         body: formData
       })
         .then(response => {
-          // Remove the 'loading' class to indicate the loading is done
-          buttonLoader.classList.remove('loading');
-          buttonLoader.classList.add('hidden');
-          buttonText.classList.remove('hidden');
-    
+          // Replace the SVG in the button with the original button text
+          button.textContent = originalButtonText;
+
           if (!response.ok && response.status !== 333) {
             throw new Error(`HTTP error! status: ${response.status}`);
           }
@@ -731,16 +715,11 @@
           }
         })
         .catch(error => {
-          // Remove the 'loading' class in case of an error as well
-          buttonLoader.classList.remove('loading');
-          buttonLoader.classList.add('hidden');
-          buttonText.classList.remove('hidden');
+          // Replace the SVG in the button with the original button text in case of an error as well
+          button.textContent = originalButtonText;
           console.error(error);
         });
     }
-    
-    
-    
 
 
     function showErrors(errors, currentStepIndex) {
@@ -871,20 +850,23 @@
       }
     }
 
-// Disable the submit button permanently after it is clicked
-document.getElementById('submitBtn').addEventListener('click', () => { 
-  var loadingMsg = document.getElementById('loadSend');
-  var submitBtn = document.getElementById('submitBtn');
-  var send = document.getElementById('send');
 
+    document.addEventListener('DOMContentLoaded', function () {
+      let myForm = document.getElementById('myForm');
+      let submitBtn = document.getElementById('submitBtn');
 
-  // Disable the submit button and show loading message
-  submitBtn.disabled = true;
+      if (myForm && submitBtn) {
+        myForm.addEventListener('submit', function (e) {
+          // Disable the submit button
+          submitBtn.disabled = true;
 
-  send.classList.add('hidden');
-  loadingMsg.classList.remove('hidden');
-});
-
+          // Re-enable the button after 5 seconds
+          setTimeout(function () {
+            submitBtn.disabled = false;
+          }, 5000);
+        });
+      }
+    });
 
 
     // Step 4: Zusammenfassung und Vorschau
