@@ -1,27 +1,23 @@
-from flask import session  # import session
-from flask import jsonify, render_template, request, Blueprint, send_from_directory
-from app import db
-# from app.database.models import Mantis
-import json
-from app.database.models import TblMeldungen, TblFundortBeschreibung, TblFundorte, TblMeldungUser, TblUsers
-from datetime import datetime
-from app.forms import MantisSightingForm
-from sqlalchemy import or_, MetaData
-from flask import render_template_string
-from sqlalchemy import inspect, text
-from sqlalchemy.orm import sessionmaker, joinedload
+# Import standard libraries
 import csv
-from flask import Response, redirect, url_for
-from io import StringIO, BytesIO
+import json
 import os
-import pandas as pd
-from io import BytesIO
-from flask import send_file
-from sqlalchemy import Table, create_engine
-from flask import abort, session
-from app.config import Config
+from datetime import datetime
 from functools import wraps
-from flask import g
+from io import BytesIO, StringIO
+
+# Import third-party libraries
+import pandas as pd
+from flask import (Blueprint, Response, abort, g, jsonify, redirect, render_template, render_template_string, request, send_file, send_from_directory, session, url_for)
+from sqlalchemy import MetaData, Table, create_engine, inspect, or_, text
+from sqlalchemy.orm import joinedload, sessionmaker
+
+# Import local modules
+from app import db
+from app.config import Config
+from app.database.models import (TblFundortBeschreibung, TblFundorte, TblMeldungUser, TblMeldungen, TblUsers)
+from app.forms import MantisSightingForm
+
 
 # Blueprints
 admin = Blueprint('admin', __name__)
@@ -51,6 +47,10 @@ def admin_index2(usrid):
     # Store the userid in session
     session['user_id'] = usrid
 
+
+
+
+
     image_path = Config.UPLOAD_FOLDER.replace("app/", "")
     inspector = inspect(db.engine)
     tables = inspector.get_table_names()
@@ -70,6 +70,31 @@ def admin_index2(usrid):
                 user_id=sighting.bearb_id).first()
             sighting.approver_username = approver.user_name if approver else 'Unknown'
     return render_template('admin/admin.html', reported_sightings=reported_sightings, tables=tables, image_path=image_path, user_name=user_name)
+
+
+
+# Define your route to handle the form submission
+@admin.route('/submit_form', methods=['POST'])
+def submit_form():
+    # Retrieve form data
+    status = request.form.get('statusInput')
+    date_from = request.form.get('dateFromInput')
+    date_to = request.form.get('dateToInput')
+    district = request.form.get('districtInput')
+    city = request.form.get('cityInput')
+    animal_type = request.form.get('typeInput')
+    location = request.form.get('locationInput')
+    date_from_spotting = request.form.get('dateFromSpotting')
+    date_to_spotting = request.form.get('dateToSpotting')
+
+    # Process the data as needed
+    # ...
+
+    return "Form data received and processed"
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
 
 
 @admin.route('/<path:filename>')

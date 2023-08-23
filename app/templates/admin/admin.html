@@ -26,317 +26,216 @@
                 </svg>
             </button>
 
-            <!-- Filter dropdown menu -->
             <div id="filterDropdown"
-                class="z-10 hidden w-48 bg-white divide-y divide-gray-100 rounded-lg shadow ">
-                <ul class="py-2 text-sm text-gray-700 " aria-labelledby="filterDropdownButton">
-                    <li>
-                        <label
-                            class="block w-full px-4 py-2 text-left hover:bg-gray-100 ">
-                            <div
-                                class="relative inline-block w-10 mr-2 align-middle transition duration-200 ease-in select-none">
-                                <input type="checkbox" name="toggle" id="toggle" onchange="toggleApprovedSightings()"
-                                    class="absolute block w-6 h-6 bg-white border-4 rounded-full appearance-none cursor-pointer toggle-checkbox"
-                                    checked />
-                                <label for="toggle"
-                                    class="block h-6 overflow-hidden bg-gray-300 rounded-full cursor-pointer toggle-label"></label>
-                            </div>
-                            <span id="checkbox-label" class="ml-2 text-sm text-gray-700">Unbestätigt</span>
-                        </label>
-                    </li>
-                    <!-- Add more filter options here -->
-                    <li>
-                        <label class="block w-full px-4 py-2 text-left hover:bg-gray-100">
-                            <div class="relative inline-block w-10 mr-2 align-middle transition duration-200 ease-in select-none">
-                                <input type="checkbox" name="toggleDeleted" id="toggleDeleted" onchange="toggleDeletedSightings()" class="absolute block w-6 h-6 bg-white border-4 rounded-full appearance-none cursor-pointer toggle-checkbox" />
-                                <label for="toggleDeleted" class="block h-6 overflow-hidden bg-gray-300 rounded-full cursor-pointer toggle-label"></label>
-                            </div>
-                            <span id="checkbox-label-deleted" class="ml-2 text-sm text-gray-700">Nicht Gelöscht</span>
-                        </label>
-                    </li>
-                    
-                </ul>
+                class="z-10 hidden w-64 sm:w-80 bg-white divide-y divide-gray-100 rounded-lg shadow-lg p-4 space-y-4">
+                <!--! Filter Dropdown Start-->
+                <form action="/admin_index2" method="POST">
+                    <div>
+                        <label for="statusInput" class="block text-sm font-medium text-gray-700">Bearbeitet oder
+                            offen</label>
+                        <select id="statusInput"
+                            class="w-full px-3 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                            <option value="">Alle anzeigen</option>
+                            <option value="bearbeitet">Bearbeitet</option>
+                            <option value="offen">Offen</option>
+                        </select>
+                    </div>
+                    <hr class="my-2">
+                    <div class="flex items-center space-x-4">
+                        <label for="dateFromInput" class="block text-sm font-medium text-gray-700">Datum Einsendung
+                            von</label>
+                        <input type="date" id="dateFromInput"
+                            class="px-3 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        <label for="dateToInput" class="block text-sm font-medium text-gray-700">bis</label>
+                        <input type="date" id="dateToInput"
+                            class="px-3 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                    </div>
+                    <hr class="my-2">
+                    <div>
+                        <label for="districtInput" class="block text-sm font-medium text-gray-700">Landkreis</label>
+                        <input type="text" id="districtInput" placeholder="Landkreis eingeben..."
+                            class="w-full px-3 py-2 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                    </div>
+                    <hr class="my-2">
+                    <div>
+                        <label for="cityInput" class="block text-sm font-medium text-gray-700">Stadt</label>
+                        <input type="text" id="cityInput" placeholder="Stadt eingeben..."
+                            class="w-full px-3 py-2 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                    </div>
+                    <hr class="my-2">
+                    <div>
+                        <label for="typeInput" class="block text-sm font-medium text-gray-700">Art</label>
+                        <select id="typeInput"
+                            class="w-full px-3 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                            <option value="">Alle anzeigen</option>
+                            <option value="männlich">Männlich</option>
+                            <option value="weiblich">Weiblich</option>
+                            <option value="nümphe">Nümphe</option>
+                            <option value="oothek">Oothek</option>
+                        </select>
+                    </div>
+                    <hr class="my-2">
+                    <div>
+                        <label for="locationInput" class="block text-sm font-medium text-gray-700">Fundort</label>
+                        <select id="locationInput"
+                            class="w-full px-3 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                            <option value="">Alle anzeigen</option>
+                            <option value="Fundemeldung">Fundemeldung</option>
+                            <option value="Exkursion">Exkursion</option>
+                            <option value="Literatur">Literatur</option>
+                        </select>
+                    </div>
+                    <hr class="my-2">
+                    <div class="flex items-center space-x-4">
+                        <label for="dateFromSpotting" class="block text-sm font-medium text-gray-700">Datum Fund
+                            von</label>
+                        <input type="date" id="dateFromSpotting"
+                            class="px-3 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        <label for="dateToSpotting" class="block text-sm font-medium text-gray-700">bis</label>
+                        <input type="date" id="dateToSpotting"
+                            class="px-3 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                    </div>
+                    <hr class="my-2">
+                    <div class="mt-4">
+                        <button type="submit"
+                            class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:border-transparent">
+                            Filtern
+                        </button>
+                    </div>
+                </form>
+                <!--! Filter Dropdown end-->
+            </div>
+
+
+
+            <div class="flex items-center space-x-4">
+                <!-- Dropdown button -->
+                <button id="dropdownExportButton" data-dropdown-toggle="dropdown"
+                    class="flex items-center justify-center flex-shrink-0 px-3 py-2 text-sm font-medium text-white bg-green-600 border border-green-400 rounded-lg focus:outline-none hover:bg-green-600 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200 "
+                    type="button">
+                    <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24"
+                        stroke-width="2" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                    </svg>
+                    Export
+                </button>
+
+
+                <div id="dropdown" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 ">
+                    <ul class="py-2 text-sm text-gray-700 " aria-labelledby="dropdownExportButton">
+                        <li>
+                            <button onclick="exportData('all')"
+                                class="block w-full px-4 py-2 text-left hover:bg-gray-100 ">
+                                Export All Data
+                            </button>
+                        </li>
+                        <li>
+                            <button onclick="exportData('accepted')"
+                                class="block w-full px-4 py-2 text-left hover:bg-gray-100 ">
+                                Export Accepted Reports
+                            </button>
+                        </li>
+                        <li>
+                            <button onclick="exportData('non_accepted')"
+                                class="block w-full px-4 py-2 text-left hover:bg-gray-100 ">
+                                Export Non-Accepted Reports
+                            </button>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
 
-        <div class="flex-grow mb-2 md:mb-0">
-            <input type="text" id="searchInput" onkeyup="searchReports()" placeholder="Search for reports..."
-                class="w-full px-4 py-2 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
-        </div>
-        
-        <div class="mb-2 md:mb-0">
-            <select id="sortInput" onchange="sortReports()"
-                class="w-48 px-4 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                <option value="">Sort by...</option>
-                <option value="id_asc">ID Ascending</option>
-                <option value="id_desc">ID Descending</option>
-            </select>
-        </div>
-        <div class="flex items-center space-x-4">
-            <!-- Dropdown button -->
-            <button id="dropdownExportButton" data-dropdown-toggle="dropdown"
-                class="flex items-center justify-center flex-shrink-0 px-3 py-2 text-sm font-medium text-white bg-green-600 border border-green-400 rounded-lg focus:outline-none hover:bg-green-600 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200 "
-                type="button">
-                <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24"
-                    stroke-width="2" stroke="currentColor" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-                </svg>
-                Export
-            </button>
-
-            <!-- Dropdown menu -->
-            <div id="dropdown"
-                class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 ">
-                <ul class="py-2 text-sm text-gray-700 " aria-labelledby="dropdownExportButton">
-                    <li>
-                        <button onclick="exportData('all')"
-                            class="block w-full px-4 py-2 text-left hover:bg-gray-100 ">
-                            Export All Data
-                        </button>
-                    </li>
-                    <li>
-                        <button onclick="exportData('accepted')"
-                            class="block w-full px-4 py-2 text-left hover:bg-gray-100 ">
-                            Export Accepted Reports
-                        </button>
-                    </li>
-                    <li>
-                        <button onclick="exportData('non_accepted')"
-                            class="block w-full px-4 py-2 text-left hover:bg-gray-100 ">
-                            Export Non-Accepted Reports
-                        </button>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </div>
 
 
-    <div class="flex flex-wrap justify-between items-center p-4">
-        <div class="flex-grow mb-2 md:mb-0">
-            <input type="text" id="searchInput" onkeyup="searchReports()" placeholder="Suche nach Berichten..."
-                class="w-full px-4 py-2 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
-        </div>
-    
-        <div class="mb-2 md:mb-0">
-            <select id="sortInput" onchange="sortReports()"
-                class="w-48 px-4 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                <option value="">Sortieren nach...</option>
-                <option value="id_asc">ID Aufsteigend</option>
-                <option value="id_desc">ID Absteigend</option>
-            </select>
-        </div>
-    
-        <div class="flex items-center space-x-4">
-            <!-- Dropdown button -->
-            <button id="dropdownExportButton" data-dropdown-toggle="dropdown"
-                class="flex items-center justify-center flex-shrink-0 px-3 py-2 text-sm font-medium text-white bg-green-600 border border-green-400 rounded-lg focus:outline-none hover:bg-green-600 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200 "
-                type="button">
-                <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24"
-                    stroke-width="2" stroke="currentColor" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-                </svg>
-                Exportieren
-            </button>
-    
-            <!-- Dropdown menu -->
-            <div id="dropdown" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 ">
-                <ul class="py-2 text-sm text-gray-700 " aria-labelledby="dropdownExportButton">
-                    <li>
-                        <button onclick="exportData('all')" class="block w-full px-4 py-2 text-left hover:bg-gray-100 ">
-                            Alle Daten exportieren
-                        </button>
-                    </li>
-                    <li>
-                        <button onclick="exportData('accepted')"
-                            class="block w-full px-4 py-2 text-left hover:bg-gray-100 ">
-                            Akzeptierte Berichte exportieren
-                        </button>
-                    </li>
-                    <li>
-                        <button onclick="exportData('non_accepted')"
-                            class="block w-full px-4 py-2 text-left hover:bg-gray-100 ">
-                            Nicht akzeptierte Berichte exportieren
-                        </button>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </div>
-    
-    <div class="flex flex-wrap justify-between items-center p-4">
-        <div class="mb-2 md:mb-0">
-            <label for="statusInput" class="block text-sm font-medium text-gray-700">Bearbeitet oder offen</label>
-            <select id="statusInput" onchange="filterReports()"
-                class="w-48 px-4 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                <option value="">Alle anzeigen</option>
-                <option value="bearbeitet">Bearbeitet</option>
-                <option value="offen">Offen</option>
-            </select>
-        </div>
-    
-        <div class="mb-2 md:mb-0">
-            <label for="districtInput" class="block text-sm font-medium text-gray-700">Landkreis</label>
-            <input type="text" id="districtInput" onkeyup="filterReports()" placeholder="Landkreis eingeben..."
-                class="w-full px-4 py-2 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
-        </div>
-    
-        <div class="mb-2 md:mb-0">
-            <label for= "cityInput" class= "block text-sm font-medium text-gray -700 ">Stadt</label >
-            <input type= "text" id= "cityInput" onkeyup= "filterReports()" placeholder= "Stadt eingeben..."
-                class=
-    "userInput" class="w-full px-4 py-2 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
-        </div>
-    
-        <div class="mb-2 md:mb-0">
-            <label for="typeInput" class="block text-sm font-medium text-gray-700">Art</label>
-            <select id="typeInput" onchange="filterReports()"
-                class="w-48 px-4 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                <option value="">Alle anzeigen</option>
-                <option value="männlich">Männlich</option>
-                <option value="weiblich">Weiblich</option>
-                <option value="nümphe">Nümphe</option>
-                <option value="oothek">Oothek</option>
-            </select>
-        </div>
-    
-        <div class="mb-2 md:mb-0">
-            <label for="locationInput" class="block text-sm font-medium text-gray-700">Fundort</label>
-            <select id="locationInput" onchange="filterReports()"
-                class="w-48 px-4 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                <option value="">Alle anzeigen</option>
-                <option value="Fundemeldung">Fundemeldung</option>
-                <option value="Exkursion">Exkursion</option>
-                <option value="Literatur">Literatur</option>
-            </select>
-        </div>
-    
-        <div class="flex items-center space-x-4 mb-2 md:mb-0">
-            <label for="dateFromInput" class="block text-sm font-medium text-gray-700">Datum Meldung von</label>
-            <input type="date" id="dateFromInput" onchange="filterReports()"
-                class="px-4 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
-            <label for="dateToInput" class="block text-sm font-medium text-gray-700">bis</label>
-            <input type="date" id="dateToInput" onchange="filterReports()"
-                class="px-4 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
-        </div>
-    
-        <div class="">
-            <label for= "pageSizeInput" class= "block text-sm font-medium text-gray -700 ">Anzahl pro Seite</label >
-            <select id= "pageSizeInput" onchange= "paginateReports()"
-                class= "w -48 px -4 py -2 text -sm rounded -lg shadow -sm focus :ring -2 focus :ring -green -500 focus :border -transparent ">
-                <option value="">Wählen Sie eine Option...</option>
-                <option value="30">30</option>
-                <option value="60">60</option>
-                <option value="90">90</option>
-                <option value="120">120</option>
-            </select>
-        </div>
-    </div>
-    
-    <div class="mb-2 md:mb-0">
-        <label for= "pageSizeInput" class= "block text-sm font-medium text-gray -700 ">Anzahl pro Seite</label >
-        <select id= "pageSizeInput" onchange= "loadData()"
-            class= "w -48 px -4 py -2 text -sm rounded -lg shadow -sm focus :ring -2 focus :ring -green -500 focus :border -transparent ">
-            <option value="">Wählen Sie eine Option...</option>
-            <option value="30">30</option>
-            <option value="60">60</option>
-            <option value="90">90</option>
-            <option value="120">120</option>
-        </select>
-    </div>
-    <div id="paginationControls">
-        <button id="prevPageButton" onclick="changePage(-1)">&lt; Previous</button>
-        <span id="currentPage"></span>
-        <button id="nextPageButton" onclick="changePage(1)">Next &gt;</button>
-    </div>
-    <div class="grid grid-cols-1 gap-6 mb-4 sm:grid-cols-2 lg:grid-cols-3" id="reportContainer">
-        <!-- Dynamically loaded content -->
-    </div>
 
-    <div class="grid grid-cols-1 gap-6 mb-4 sm:grid-cols-2 lg:grid-cols-3" id="reportContainer">
-        {% for sighting in reported_sightings %}
-        <div class="mb-4 overflow-hidden transition-shadow duration-200 ease-in-out bg-white rounded-lg shadow-lg hover:shadow-xl report-card"
-            data-report-id="{{sighting.id}}"
-            data-approved="{{ 'true' if sighting.dat_bear else 'false' }}"
-            data-deleted="{{ 'true' if sighting.deleted else 'false' }}"            
-            >
-            <div class="relative">
-                <img onclick="openImageModal('{{ url_for('admin.report_Img', filename=image_path + "/" +
-                    sighting.fundort.ablage) }}')"
-                    class="object-cover w-full h-48 transition-transform duration-200 ease-in-out rounded-t-lg cursor-pointer md:h-64 hover:scale-105"
-                    src="{{ url_for('admin.report_Img', filename=image_path + "/" + sighting.fundort.ablage)}}"
-                    alt="{{imagepath}}">
-                <div class="p-4 md:p-6">
-                    <div class="relative -mt-10 md:mt-0">
-                        <div class="p-4 rounded-lg shadow-lg {{ 'bg-green-100' if sighting.approved }} bg-white">
-                            <div class="flex flex-col items-baseline md:flex-row">
-                                <span
-                                    class="inline-block px-2 py-1 mb-2 text-xs font-semibold leading-none tracking-wide text-white uppercase bg-green-500 rounded-full md:mb-0">Report
-                                    ID: {{ sighting.id }}</span>
-                                {% if sighting.deleted %}
-                                <span
-                                    class="inline-block px-2 py-1 ml-2 text-xs font-semibold leading-none tracking-wide text-white uppercase bg-red-500 rounded-full">Deleted</span>
-                                {% endif %}
-                                {% if sighting.dat_bear %}
-                                <div class="ml-0 text-xs font-semibold tracking-wide text-gray-600 md:ml-2 md:text-sm md:right-0"
-                                title="BearbID: {{sighting.bearb_id}}&#13;&#10;BearbUsername: {{sighting.approver_username }}"
-                                >
-                                    <strong>Date Approved:</strong> {{ sighting.dat_bear }}<br>
-                                    <strong>Approved By:</strong> <span class="truncate" title="BearbUsername: {{sighting.approver_username }}">{{ sighting.approver_username }}</span>
+        <div class="grid grid-cols-1 gap-6 mb-4 sm:grid-cols-2 lg:grid-cols-3" id="reportContainer">
+            {% for sighting in reported_sightings %}
+            <div class="mb-4 overflow-hidden transition-shadow duration-200 ease-in-out bg-white rounded-lg shadow-lg hover:shadow-xl report-card"
+                data-report-id="{{sighting.id}}" data-approved="{{ 'true' if sighting.dat_bear else 'false' }}"
+                data-deleted="{{ 'true' if sighting.deleted else 'false' }}">
+                <div class="relative">
+                    <img onclick="openImageModal('{{ url_for('admin.report_Img', filename=image_path + " /" +
+                        sighting.fundort.ablage) }}')"
+                        class="object-cover w-full h-48 transition-transform duration-200 ease-in-out rounded-t-lg cursor-pointer md:h-64 hover:scale-105"
+                        src="{{ url_for('admin.report_Img', filename=image_path + " /" + sighting.fundort.ablage)}}"
+                        alt="{{imagepath}}">
+                    <div class="p-4 md:p-6">
+                        <div class="relative -mt-10 md:mt-0">
+                            <div class="p-4 rounded-lg shadow-lg {{ 'bg-green-100' if sighting.approved }} bg-white">
+                                <div class="flex flex-col items-baseline md:flex-row">
+                                    <span
+                                        class="inline-block px-2 py-1 mb-2 text-xs font-semibold leading-none tracking-wide text-white uppercase bg-green-500 rounded-full md:mb-0">Report
+                                        ID: {{ sighting.id }}</span>
+                                    {% if sighting.deleted %}
+                                    <span
+                                        class="inline-block px-2 py-1 ml-2 text-xs font-semibold leading-none tracking-wide text-white uppercase bg-red-500 rounded-full">Deleted</span>
+                                    {% endif %}
+                                    {% if sighting.dat_bear %}
+                                    <div class="ml-0 text-xs font-semibold tracking-wide text-gray-600 md:ml-2 md:text-sm md:right-0"
+                                        title="BearbID: {{sighting.bearb_id}}&#13;&#10;BearbUsername: {{sighting.approver_username }}">
+                                        <strong>Date Approved:</strong> {{ sighting.dat_bear }}<br>
+                                        <strong>Approved By:</strong> <span class="truncate"
+                                            title="BearbUsername: {{sighting.approver_username }}">{{
+                                            sighting.approver_username }}</span>
+                                    </div>
+                                    {% endif %}
                                 </div>
-                                {% endif %}
-                            </div>
-                            <h4 class="mt-2 text-lg font-semibold leading-tight truncate md:text-xl"
-                                title="Ort: {{sighting.ort}}&#13;&#10;Postleitzahl: {{sighting.plz}}&#13;&#10;Kreis: {{sighting.kreis}}&#13;&#10;Land: {{sighting.land}}">
-                                Ort: {{sighting.kreis}} | {{sighting.ort}}
-                            </h4>
-                            <div class="mt-2">
-                                <p class="text-sm"><strong>Melde-Datum:</strong> {{ sighting.dat_meld }}</p>
-                                {% if sighting.dat_fund_bis %}
-                                <p class="text-sm"><strong>Fund-Datum:</strong> {{ sighting.dat_fund_von }} - {{ sighting.dat_fund_bis}}</p>
-                                {% else %}
-                                <p class="text-sm"><strong>Fund-Datum:</strong> {{ sighting.dat_fund_von }}</p>
-                                {% endif %}
-                            </div>
-                            <div class="flex flex-wrap items-center mt-3">
-                                <button onclick="openModal({{sighting.id}})" style="min-width: 2 rem;"
-                                    class="p-1 transition-colors duration-200 rounded focus:outline-none hover:bg-green-200">
-                                    <img src="/static/images/svg/edit.svg" alt="Edit" class="w-4 h-4 md:w-5 md:h-5">
-                                </button>
-                                <button onclick="deleteSighting({{sighting.id}})"
-                                    class="p-1 ml-2 transition-colors duration-200 rounded md:ml-4 focus:outline-none hover:bg-red-200"
-                                    style="min-width: 2 rem;">
-                                    <img src="/static/images/svg/delete.svg" alt="Delete" class="w-4 h-4 md:w-5 md:h-5">
-                                </button>
-                                <div class="inline-flex flex-wrap items-center mt-2 ml-2 md:mt-0 md:ml-auto">
-                                    <div class="inline-flex flex-wrap items-center ml-auto">
-                                        {% set total = ((sighting.art_m or 0) + (sighting.art_w or 0) +
-                                        (sighting.art_n or 0) + (sighting.art_o or 0)) | int %}
-                                        <select id="gender-{{sighting.id}}"
-                                            class="px-2 py-2 mr-2 text-sm font-medium border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                                            onchange="changeGender({{sighting.id}})" {{ 'disabled' if sighting.dat_bear or
-                                            total> 1
-                                            }} >
-                                            <option value="0" {{ 'selected' if total==0 }}>Unbekannt</option>
-                                            <option value="M" {{ 'selected' if sighting.art_m==1 }}>Männchen</option>
-                                            <option value="W" {{ 'selected' if sighting.art_w==1 }}>Weiblich</option>
-                                            <option value="N" {{ 'selected' if sighting.art_n==1 }}>Nymphe</option>
-                                            <option value="O" {{ 'selected' if sighting.art_o==1 }}>Oothek</option>
-                                            <option value="F" {{ 'selected' if sighting.art_f==1 }}>Andere</option>
-                                        </select>
-                                        {% if sighting.dat_bear %}
-                                        <span
-                                            class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-800 bg-green-100 rounded-md">
-                                            Approved
-                                        </span>
-                                        {% else %}
-                                        <button onclick="toggleApprove({{sighting.id}})"
-                                            class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-500 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                                            Approve
-                                        </button>
-                                        {% endif %}
+                                <h4 class="mt-2 text-lg font-semibold leading-tight truncate md:text-xl"
+                                    title="Ort: {{sighting.ort}}&#13;&#10;Postleitzahl: {{sighting.plz}}&#13;&#10;Kreis: {{sighting.kreis}}&#13;&#10;Land: {{sighting.land}}">
+                                    Ort: {{sighting.kreis}} | {{sighting.ort}}
+                                </h4>
+                                <div class="mt-2">
+                                    <p class="text-sm"><strong>Melde-Datum:</strong> {{ sighting.dat_meld }}</p>
+                                    {% if sighting.dat_fund_bis %}
+                                    <p class="text-sm"><strong>Fund-Datum:</strong> {{ sighting.dat_fund_von }} - {{
+                                        sighting.dat_fund_bis}}</p>
+                                    {% else %}
+                                    <p class="text-sm"><strong>Fund-Datum:</strong> {{ sighting.dat_fund_von }}</p>
+                                    {% endif %}
+                                </div>
+                                <div class="flex flex-wrap items-center mt-3">
+                                    <button onclick="openModal({{sighting.id}})" style="min-width: 2 rem;"
+                                        class="p-1 transition-colors duration-200 rounded focus:outline-none hover:bg-green-200">
+                                        <img src="/static/images/svg/edit.svg" alt="Edit" class="w-4 h-4 md:w-5 md:h-5">
+                                    </button>
+                                    <button onclick="deleteSighting({{sighting.id}})"
+                                        class="p-1 ml-2 transition-colors duration-200 rounded md:ml-4 focus:outline-none hover:bg-red-200"
+                                        style="min-width: 2 rem;">
+                                        <img src="/static/images/svg/delete.svg" alt="Delete"
+                                            class="w-4 h-4 md:w-5 md:h-5">
+                                    </button>
+                                    <div class="inline-flex flex-wrap items-center mt-2 ml-2 md:mt-0 md:ml-auto">
+                                        <div class="inline-flex flex-wrap items-center ml-auto">
+                                            {% set total = ((sighting.art_m or 0) + (sighting.art_w or 0) +
+                                            (sighting.art_n or 0) + (sighting.art_o or 0)) | int %}
+                                            <select id="gender-{{sighting.id}}"
+                                                class="px-2 py-2 mr-2 text-sm font-medium border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                                                onchange="changeGender({{sighting.id}})" {{ 'disabled' if
+                                                sighting.dat_bear or total> 1
+                                                }} >
+                                                <option value="0" {{ 'selected' if total==0 }}>Unbekannt</option>
+                                                <option value="M" {{ 'selected' if sighting.art_m==1 }}>Männchen
+                                                </option>
+                                                <option value="W" {{ 'selected' if sighting.art_w==1 }}>Weiblich
+                                                </option>
+                                                <option value="N" {{ 'selected' if sighting.art_n==1 }}>Nymphe</option>
+                                                <option value="O" {{ 'selected' if sighting.art_o==1 }}>Oothek</option>
+                                                <option value="F" {{ 'selected' if sighting.art_f==1 }}>Andere</option>
+                                            </select>
+                                            {% if sighting.dat_bear %}
+                                            <span
+                                                class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-800 bg-green-100 rounded-md">
+                                                Approved
+                                            </span>
+                                            {% else %}
+                                            <button onclick="toggleApprove({{sighting.id}})"
+                                                class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-500 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                                Approve
+                                            </button>
+                                            {% endif %}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -344,87 +243,86 @@
                     </div>
                 </div>
             </div>
-        </div>
-        {% endfor %}
-    </div>
-</div>
-
-
-
-
-<div id="imageModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="imageModalLabel" tabindex="-1"
-    title="Um das Bild weiter zu vergrößern klicken sie auf den Button unten">
-    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        <div id="imageModalBackdrop" class="fixed inset-0 transition-opacity" aria-hidden="true">
-            <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
-        </div>
-        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-        <div
-            class="inline-block px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-full sm:w-11/12 md:w-3/4 lg:w-1/2 xl:w-1/3 sm:p-6">
-            <div class="flex justify-center mt-2">
-                <img id="modalImage" class="w-full max-h-[70vh] object-cover" src="" alt="Full Image View">
-            </div>
-            <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-                <button type="button" onclick="closeImageModal()"
-                    class="inline-flex justify-center w-full px-4 py-2 mb-2 text-base font-medium text-white bg-green-600 border border-transparent rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:mb-0 sm:ml-3 sm:w-auto sm:text-sm"
-                    title="Schließen Sie das Fenster">
-                    Close
-                </button>
-                <button type="button" onclick="openImageNewTab()"
-                    class="inline-flex justify-center w-full px-4 py-2 mb-2 text-base font-medium text-white bg-green-600 border border-transparent rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:mb-0 sm:ml-3 sm:w-auto sm:text-sm"
-                    title="Öffnen Sie das Bild in einem neuen Tab">
-                    <svg class="w-[16px] h-[16px] text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                        fill="none" viewBox="0 0 18 18">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M15 11v4.833A1.166 1.166 0 0 1 13.833 17H2.167A1.167 1.167 0 0 1 1 15.833V4.167A1.166 1.166 0 0 1 2.167 3h4.618m4.447-2H17v5.768M9.111 8.889l7.778-7.778" />
-                    </svg>
-                </button>
-            </div>
-            
+            {% endfor %}
         </div>
     </div>
-</div>
 
 
 
 
-<!-- Modal -->
-<div id="modal" class="fixed inset-0 z-10 hidden overflow-y-auto bg-gray-500 bg-opacity-75">
-    <div class="flex items-center justify-center min-h-screen">
-        <div class="w-full mx-4 bg-white rounded-lg shadow-xl md:max-w-3xl">
-            <div class="p-6">
-                <!-- Tab Buttons -->
-                <div class="flex justify-center mb-4 space-x-2 md:space-x-4">
-                    <button
-                        class="px-4 py-2 font-semibold text-green-700 bg-green-100 rounded-lg focus:outline-none hover:bg-green-600 hover:text-white"
-                        id="tab-general-info">General Information</button>
-                    <button
-                        class="px-4 py-2 font-semibold text-green-700 bg-green-100 rounded-lg focus:outline-none hover:bg-green-600 hover:text-white"
-                        id="tab-location-info">Position auf der Karte</button>
-                    <button
-                        class="px-4 py-2 font-semibold text-green-700 bg-green-100 rounded-lg focus:outline-none hover:bg-green-600 hover:text-white"
-                        id="tab-user-info">User Information</button>
+    <div id="imageModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="imageModalLabel"
+        tabindex="-1" title="Um das Bild weiter zu vergrößern klicken sie auf den Button unten">
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div id="imageModalBackdrop" class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div
+                class="inline-block px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-full sm:w-11/12 md:w-3/4 lg:w-1/2 xl:w-1/3 sm:p-6">
+                <div class="flex justify-center mt-2">
+                    <img id="modalImage" class="w-full max-h-[70vh] object-cover" src="" alt="Full Image View">
                 </div>
-                <!-- Tab Content -->
-                <div id="tab-content" class="overflow-y-auto" style="max-height: 450px;">
-                    <!-- Content will be loaded here -->
+                <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                    <button type="button" onclick="closeImageModal()"
+                        class="inline-flex justify-center w-full px-4 py-2 mb-2 text-base font-medium text-white bg-green-600 border border-transparent rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:mb-0 sm:ml-3 sm:w-auto sm:text-sm"
+                        title="Schließen Sie das Fenster">
+                        Close
+                    </button>
+                    <button type="button" onclick="openImageNewTab()"
+                        class="inline-flex justify-center w-full px-4 py-2 mb-2 text-base font-medium text-white bg-green-600 border border-transparent rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:mb-0 sm:ml-3 sm:w-auto sm:text-sm"
+                        title="Öffnen Sie das Bild in einem neuen Tab">
+                        <svg class="w-[16px] h-[16px] text-gray-200" aria-hidden="true"
+                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 11v4.833A1.166 1.166 0 0 1 13.833 17H2.167A1.167 1.167 0 0 1 1 15.833V4.167A1.166 1.166 0 0 1 2.167 3h4.618m4.447-2H17v5.768M9.111 8.889l7.778-7.778" />
+                        </svg>
+                    </button>
                 </div>
-                <!-- Actions -->
-                <div class="flex justify-end mt-4 space-x-2">
-                    <button type="button"
-                        class="px-4 py-2 font-semibold text-white bg-green-500 rounded-lg focus:outline-none hover:bg-green-600"
-                        onclick="saveChanges()">Speichern</button>
-                    <button type="button"
-                        class="px-4 py-2 font-semibold text-gray-700 bg-gray-200 rounded-lg focus:outline-none hover:bg-gray-300"
-                        onclick="closeModal()">Schließen</button>
-                </div>
+
             </div>
         </div>
     </div>
+
+
+
+
+    <!-- Modal -->
+    <div id="modal" class="fixed inset-0 z-10 hidden overflow-y-auto bg-gray-500 bg-opacity-75">
+        <div class="flex items-center justify-center min-h-screen">
+            <div class="w-full mx-4 bg-white rounded-lg shadow-xl md:max-w-3xl">
+                <div class="p-6">
+                    <!-- Tab Buttons -->
+                    <div class="flex justify-center mb-4 space-x-2 md:space-x-4">
+                        <button
+                            class="px-4 py-2 font-semibold text-green-700 bg-green-100 rounded-lg focus:outline-none hover:bg-green-600 hover:text-white"
+                            id="tab-general-info">General Information</button>
+                        <button
+                            class="px-4 py-2 font-semibold text-green-700 bg-green-100 rounded-lg focus:outline-none hover:bg-green-600 hover:text-white"
+                            id="tab-location-info">Position auf der Karte</button>
+                        <button
+                            class="px-4 py-2 font-semibold text-green-700 bg-green-100 rounded-lg focus:outline-none hover:bg-green-600 hover:text-white"
+                            id="tab-user-info">User Information</button>
+                    </div>
+                    <!-- Tab Content -->
+                    <div id="tab-content" class="overflow-y-auto" style="max-height: 450px;">
+                        <!-- Content will be loaded here -->
+                    </div>
+                    <!-- Actions -->
+                    <div class="flex justify-end mt-4 space-x-2">
+                        <button type="button"
+                            class="px-4 py-2 font-semibold text-white bg-green-500 rounded-lg focus:outline-none hover:bg-green-600"
+                            onclick="saveChanges()">Speichern</button>
+                        <button type="button"
+                            class="px-4 py-2 font-semibold text-gray-700 bg-gray-200 rounded-lg focus:outline-none hover:bg-gray-300"
+                            onclick="closeModal()">Schließen</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="/static/js/review.js"></script>
 </div>
-
-
-<script src="/static/js/review.js"></script>
-
 
 {% endblock content %}
