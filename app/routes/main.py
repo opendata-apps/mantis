@@ -68,7 +68,7 @@ def bestimmung():
 
 @main.route('/gallerie')
 def gallerie():
-    json_path = os.path.join(BASE_DIR, '..', 'database', 'gallerie', 'gallerie.json')
+    json_path = os.path.join(BASE_DIR, '..', 'datastore', 'gallerie', 'gallerie.json')
     with open(json_path, 'r', encoding='utf-8') as file:
         bilder = json.load(file)
         
@@ -78,7 +78,7 @@ def gallerie():
 
 @main.route('/gallerie-navigation/<direction>')
 def gallerie_navigation(direction):
-    json_path = os.path.join(BASE_DIR, '..', 'database', 'gallerie', 'gallerie.json')
+    json_path = os.path.join(BASE_DIR, '..', 'datastore', 'gallerie', 'gallerie.json')
     with open(json_path, 'r', encoding='utf-8') as file:
         bilder = json.load(file)
     
@@ -93,7 +93,7 @@ def gallerie_navigation(direction):
 
 @main.route('/gallerie-bilder/<filename>')
 def gallerie_bilder(filename):
-    bilder_directory = os.path.join(BASE_DIR, '..', 'database', 'gallerie')
+    bilder_directory = os.path.join(BASE_DIR, '..', 'datastore', 'gallerie')
     return send_from_directory(bilder_directory, filename)
 
 
