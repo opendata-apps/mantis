@@ -34,6 +34,20 @@ def login_required(f):
     return decorated_function
 
 
+#Join Querry für Filter:
+# SELECT 
+#     m.id, m.deleted, m.dat_fund_von, m.dat_fund_bis, m.dat_meld, m.dat_bear, 
+#     m.bearb_id, m.tiere, m.art_m, m.art_w, m.art_n, m.art_o, m.art_f, 
+#     m.fo_quelle, m.fo_beleg, m.anm_melder, m.anm_bearbeiter,
+#     f.plz, f.ort, f.strasse, f.kreis, f.land, f.amt, f.mtb, 
+#     f.beschreibung AS fundorte_beschreibung, f.longitude, f.latitude, f.ablage,
+#     b.beschreibung AS beschreibung
+# FROM meldungen AS m
+# JOIN fundorte AS f ON m.fo_zuordnung = f.id
+# JOIN beschreibung AS b ON f.beschreibung = b.id;
+    
+
+
 def apply_filters(query, filters):
 
     # filter art:
