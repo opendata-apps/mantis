@@ -34,18 +34,17 @@ def login_required(f):
     return decorated_function
 
 
-#Join Querry für Filter:
-# SELECT 
-#     m.id, m.deleted, m.dat_fund_von, m.dat_fund_bis, m.dat_meld, m.dat_bear, 
-#     m.bearb_id, m.tiere, m.art_m, m.art_w, m.art_n, m.art_o, m.art_f, 
+# Join Querry für Filter:
+# SELECT
+#     m.id, m.deleted, m.dat_fund_von, m.dat_fund_bis, m.dat_meld, m.dat_bear,
+#     m.bearb_id, m.tiere, m.art_m, m.art_w, m.art_n, m.art_o, m.art_f,
 #     m.fo_quelle, m.fo_beleg, m.anm_melder, m.anm_bearbeiter,
-#     f.plz, f.ort, f.strasse, f.kreis, f.land, f.amt, f.mtb, 
+#     f.plz, f.ort, f.strasse, f.kreis, f.land, f.amt, f.mtb,
 #     f.beschreibung AS fundorte_beschreibung, f.longitude, f.latitude, f.ablage,
 #     b.beschreibung AS beschreibung
 # FROM meldungen AS m
 # JOIN fundorte AS f ON m.fo_zuordnung = f.id
 # JOIN beschreibung AS b ON f.beschreibung = b.id;
-    
 
 
 def apply_filters(query, filters):
@@ -77,6 +76,21 @@ def apply_filters(query, filters):
     return query
 
 
+def execute_sql(sql_string):
+    # create a session
+    session = sessionmaker(bind=db.engine)()
+
+    try:
+        result = session.execute(text(sql_string)).fetchall()
+        session.commit()
+        return result
+    except Exception as e:
+        session.rollback()
+        print("Failed to execute SQL:", e)
+    finally:
+        session.close()
+
+
 @admin.route('/reviewer/<usrid>', methods=['GET', 'POST'])
 def admin_index2(usrid):
     print(usrid)
@@ -97,7 +111,8 @@ def admin_index2(usrid):
     session['user_id'] = usrid
 
     filters = {
-        "status": request.form.get('statusInput'), #! Achtung --> bearbeitet/offen sind in der DB Gleich bennant, geloescht ist ein Extre Feld  
+        # ! Achtung --> bearbeitet/offen sind in der DB Gleich bennant, geloescht ist ein Extre Feld
+        "status": request.form.get('statusInput'),
         "date_from": request.form.get('dateFromInput'),
         "date_to": request.form.get('dateToInput'),
         "district": request.form.get('districtInput'),
@@ -107,6 +122,19 @@ def admin_index2(usrid):
         "date_from_spotting": request.form.get('dateFromSpotting'),
         "date_to_spotting": request.form.get('dateToSpotting')
     }
+
+    query_all = """SELECT
+    m.id, m.deleted, m.dat_fund_von, m.dat_fund_bis, m.dat_meld, m.dat_bear,
+    m.bearb_id, m.tiere, m.art_m, m.art_w, m.art_n, m.art_o, m.art_f,
+    m.fo_quelle, m.fo_beleg, m.anm_melder, m.anm_bearbeiter,
+    f.plz, f.ort, f.strasse, f.kreis, f.land, f.amt, f.mtb,
+    f.beschreibung AS fundorte_beschreibung, f.longitude, f.latitude, f.ablage,
+    b.beschreibung AS beschreibung
+    FROM meldungen AS m
+    JOIN fundorte AS f ON m.fo_zuordnung = f.id
+    JOIN beschreibung AS b ON f.beschreibung = b.id;"""
+
+    print(execute_sql(query_all))
 
     image_path = Config.UPLOAD_FOLDER.replace("app/", "")
     inspector = inspect(db.engine)
