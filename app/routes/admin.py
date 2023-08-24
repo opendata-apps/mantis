@@ -51,29 +51,17 @@ def admin_index2(usrid):
     # Store the userid in session
     session['user_id'] = usrid
 
-
-    # get form information for filtering
-    # only get them if the submit button was pressed
-    # status = request.form.get('statusInput')
-    # date_from = request.form.get('dateFromInput')
-    # date_to = request.form.get('dateToInput')
-    # district = request.form.get('districtInput')
-    # city = request.form.get('cityInput')
-    # animal_type = request.form.get('typeInput')
-    # location = request.form.get('locationInput')
-    # date_from_spotting = request.form.get('dateFromSpotting')
-    # date_to_spotting = request.form.get('dateToSpotting')
-    # # test print if form information is fully received
-    # print(f"status: {status}")
-    # print(f"date_from: {date_from}")
-    # print(f"date_to: {date_to}")
-    # print(f"district: {district}")
-    # print(f"city: {city}")
-    # print(f"animal_type: {animal_type}")
-    # print(f"location: {location}")
-    # print(f"date_from_spotting: {date_from_spotting}")
-    # print(f"date_to_spotting: {date_to_spotting}")
-
+    filters = {
+        "status": request.form.get('statusInput'),
+        "date_from": request.form.get('dateFromInput'),
+        "date_to": request.form.get('dateToInput'),
+        "district": request.form.get('districtInput'),
+        "city": request.form.get('cityInput'),
+        "animal_type": request.form.get('typeInput'),
+        "location": request.form.get('locationInput'),
+        "date_from_spotting": request.form.get('dateFromSpotting'),
+        "date_to_spotting": request.form.get('dateToSpotting')
+    }
 
     image_path = Config.UPLOAD_FOLDER.replace("app/", "")
     inspector = inspect(db.engine)
