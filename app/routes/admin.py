@@ -47,33 +47,37 @@ def login_required(f):
 # JOIN beschreibung AS b ON f.beschreibung = b.id;
 
 
-def apply_filters(query, filters):
+def apply_filters(sql_base, filters):
 
-    # filter art:
+    # Initialize an empty list to hold the conditions
+    conditions = []
+
+    # Add conditions based on filters
     if filters["animal_type"]:
         match filters["animal_type"]:
             case "männlich":
-                query = query.filter(TblMeldungen.art_m == 1)
+                conditions.append("m.art_m = 1")
             case "weiblich":
-                query = query.filter(TblMeldungen.art_w == 1)
+                conditions.append("m.art_w = 1")
             case "nymphe":
-                query = query.filter(TblMeldungen.art_n == 1)
+                conditions.append("m.art_n = 1")
             case "oothek":
-                query = query.filter(TblMeldungen.art_o == 1)
+                conditions.append("m.art_o = 1")
 
-    # Filter by "Fundort" (Location):
     if filters["location"]:
         match filters["location"]:
             case "Fundemeldung":
-                query = query.filter(TblMeldungen.fo_quelle == 'F')
+                conditions.append("m.fo_quelle = 'F'")
             case "Exkursion":
-                # Assuming 'E' for Exkursion
-                query = query.filter(TblMeldungen.fo_quelle == 'E')
+                conditions.append("m.fo_quelle = 'E'")
             case "Literatur":
-                # Assuming 'L' for Literatur
-                query = query.filter(TblMeldungen.fo_quelle == 'L')
+                conditions.append("m.fo_quelle = 'L'")
 
-    return query
+    # Add the 'WHERE' clause to the query only if there are conditions
+    if conditions:
+        return sql_base + ' WHERE ' + ' AND '.join(conditions)
+    else:
+        return sql_base
 
 
 def execute_sql(sql_string):
@@ -134,7 +138,8 @@ def admin_index2(usrid):
     JOIN fundorte AS f ON m.fo_zuordnung = f.id
     JOIN beschreibung AS b ON f.beschreibung = b.id;"""
 
-    print(execute_sql(query_all))
+    filtered_query = apply_filters(query_all, filters)
+    print(execute_sql(filtered_query))
 
     image_path = Config.UPLOAD_FOLDER.replace("app/", "")
     inspector = inspect(db.engine)
