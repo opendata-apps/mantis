@@ -97,7 +97,7 @@ def admin_index2(usrid):
     session['user_id'] = usrid
 
     filters = {
-        "status": request.form.get('statusInput'),
+        "status": request.form.get('statusInput'), #! Achtung --> bearbeitet/offen sind in der DB Gleich bennant, geloescht ist ein Extre Feld  
         "date_from": request.form.get('dateFromInput'),
         "date_to": request.form.get('dateToInput'),
         "district": request.form.get('districtInput'),
