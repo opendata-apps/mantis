@@ -95,7 +95,10 @@ def admin_index2(usrid):
     image_path = Config.UPLOAD_FOLDER.replace("app/", "")
     inspector = inspect(db.engine)
     tables = inspector.get_table_names()
-    reported_sightings = TblMeldungen.query.all()
+
+    reported_sightings_query = TblMeldungen.query
+    filtered_query = apply_filters(reported_sightings_query, filters)
+    reported_sightings = filtered_query.all()
     for sighting in reported_sightings:
         sighting.fundort = TblFundorte.query.get(sighting.fo_zuordnung)
         sighting.beschreibung = TblFundortBeschreibung.query.get(
