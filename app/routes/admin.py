@@ -138,6 +138,13 @@ def admin_index2(usrid):
     JOIN fundorte AS f ON m.fo_zuordnung = f.id
     JOIN beschreibung AS b ON f.beschreibung = b.id;"""
 
+    
+    query = execute_sql(query_all)
+    
+    #print(query) # Beispielausgabe: (12799, None, datetime.date(2023, 6, 29), None, datetime.date(2023, 7, 27), None, '', None, 1, 0, 0, 1, 0, 'F', 'F', 'Wir haben die Gottesanbeterin für ein kleine Shooting gefangen und anschließend wieder in einer Wildwiese frei gelassen.', None, 14550, 'Groß Kreutz OT Schenkenberg', 'Bruchstraße 54', '', 'Brandenburg', None, None, 7, '12.69888', '52.388734', '2023/2023-07-27/Friedland-20230727235708-59d17a5d193ae5c3fe95e19271428aa78c2e0761-1.webp', 'Wiese/Weide')
+    #print(type(query)) # Typ: Liste
+
+
     filtered_query = apply_filters(query_all, filters)
     print(execute_sql(filtered_query))
 
