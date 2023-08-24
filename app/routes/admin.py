@@ -8,14 +8,16 @@ from io import BytesIO, StringIO
 
 # Import third-party libraries
 import pandas as pd
-from flask import (Blueprint, Response, abort, g, jsonify, redirect, render_template, render_template_string, request, send_file, send_from_directory, session, url_for)
+from flask import (Blueprint, Response, abort, g, jsonify, redirect, render_template,
+                   render_template_string, request, send_file, send_from_directory, session, url_for)
 from sqlalchemy import MetaData, Table, create_engine, inspect, or_, text
 from sqlalchemy.orm import joinedload, sessionmaker
 
 # Import local modules
 from app import db
 from app.config import Config
-from app.database.models import (TblFundortBeschreibung, TblFundorte, TblMeldungUser, TblMeldungen, TblUsers)
+from app.database.models import (
+    TblFundortBeschreibung, TblFundorte, TblMeldungUser, TblMeldungen, TblUsers)
 from app.forms import MantisSightingForm
 
 
@@ -65,7 +67,7 @@ def apply_filters(query, filters):
 def admin_index2(usrid):
     print(usrid)
     print(request.form)
-    
+
     # user = request.form.get('userid')
     # Fetch the user based on the 'usrid' parameter
     user = TblUsers.query.filter_by(user_id=usrid).first()
@@ -120,14 +122,11 @@ def admin_index2(usrid):
 @admin.route('/submit_form', methods=['POST'])
 def submit_form():
     # Retrieve form data
-    
 
     # Process the data as needed
     # ...
 
     return "Form data received and processed"
-
-
 
 
 @admin.route('/<path:filename>')
