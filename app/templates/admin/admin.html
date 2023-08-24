@@ -26,74 +26,69 @@
                 </svg>
             </button>
 
-            <div id="filterDropdown"
-                class="z-10 hidden w-64 sm:w-80 bg-white divide-y divide-gray-100 rounded-lg shadow-lg p-4 space-y-4">
+            <div id="filterDropdown" class="z-10 hidden w-64 sm:w-80 bg-white divide-y divide-gray-100 rounded-lg shadow-lg p-4 space-y-4">
                 <!--! Filter Dropdown Start-->
-                <form action="/reviewer/<usrid>" method="POST">
+                <form action="/reviewer/9999" method="POST">
                     <input type="hidden" name="userid" value="9999">
                     <div>
-                        <label for="statusInput" class="block text-sm font-medium text-gray-700">Bearbeitet oder
-                            offen</label>
-                        <select id="statusInput"
-                            class="w-full px-3 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        <label for="statusInput" class="block text-sm font-medium text-gray-700">Bearbeitet oder offen</label>
+                        <select id="statusInput" name="statusInput" class="w-full px-3 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
                             <option value="">Alle anzeigen</option>
-                            <option value="bearbeitet">Bearbeitet</option>
-                            <option value="offen">Offen</option>
+                            <option value="bearbeitet" {% if filters.status == "bearbeitet" %}selected{% endif %}>Bearbeitet</option>
+                            <option value="offen" {% if filters.status == "offen" %}selected{% endif %}>Offen</option>
                         </select>
                     </div>
                     <hr class="my-2">
                     <div class="flex items-center space-x-4">
-                        <label for="dateFromInput" class="block text-sm font-medium text-gray-700">Datum Einsendung
-                            von</label>
-                        <input type="date" id="dateFromInput"
+                        <label for="dateFromInput" class="block text-sm font-medium text-gray-700">Datum Einsendung von</label>
+                        <input type="date" id="dateFromInput" name="dateFromInput" value="{{ filters.date_from }}"
                             class="px-3 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
                         <label for="dateToInput" class="block text-sm font-medium text-gray-700">bis</label>
-                        <input type="date" id="dateToInput"
+                        <input type="date" id="dateToInput" name="dateToInput" value="{{ filters.date_to }}"
                             class="px-3 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
                     </div>
                     <hr class="my-2">
                     <div>
                         <label for="districtInput" class="block text-sm font-medium text-gray-700">Landkreis</label>
-                        <input type="text" id="districtInput" placeholder="Landkreis eingeben..."
+                        <input type="text" id="districtInput" name="districtInput" value="{{ filters.district }}" placeholder="Landkreis eingeben..."
                             class="w-full px-3 py-2 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
                     </div>
                     <hr class="my-2">
                     <div>
                         <label for="cityInput" class="block text-sm font-medium text-gray-700">Stadt</label>
-                        <input type="text" id="cityInput" placeholder="Stadt eingeben..."
+                        <input type="text" id="cityInput" name="cityInput" value="{{ filters.city }}" placeholder="Stadt eingeben..."
                             class="w-full px-3 py-2 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
                     </div>
                     <hr class="my-2">
                     <div>
                         <label for="typeInput" class="block text-sm font-medium text-gray-700">Art</label>
-                        <select id="typeInput"
+                        <select id="typeInput" name="typeInput"
                             class="w-full px-3 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
                             <option value="">Alle anzeigen</option>
-                            <option value="männlich">Männlich</option>
-                            <option value="weiblich">Weiblich</option>
-                            <option value="nümphe">Nümphe</option>
-                            <option value="oothek">Oothek</option>
+                            <option value="männlich" {% if filters.animal_type == "männlich" %}selected{% endif %}>Männlich</option>
+                            <option value="weiblich" {% if filters.animal_type == "weiblich" %}selected{% endif %}>Weiblich</option>
+                            <option value="nümphe" {% if filters.animal_type == "nümphe" %}selected{% endif %}>Nümphe</option>
+                            <option value="oothek" {% if filters.animal_type == "oothek" %}selected{% endif %}>Oothek</option>
                         </select>
                     </div>
                     <hr class="my-2">
                     <div>
                         <label for="locationInput" class="block text-sm font-medium text-gray-700">Fundort</label>
-                        <select id="locationInput"
+                        <select id="locationInput" name="locationInput"
                             class="w-full px-3 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
                             <option value="">Alle anzeigen</option>
-                            <option value="Fundemeldung">Fundemeldung</option>
-                            <option value="Exkursion">Exkursion</option>
-                            <option value="Literatur">Literatur</option>
+                            <option value="Fundemeldung" {% if filters.location == "Fundemeldung" %}selected{% endif %}>Fundemeldung</option>
+                            <option value="Exkursion" {% if filters.location == "Exkursion" %}selected{% endif %}>Exkursion</option>
+                            <option value="Literatur" {% if filters.location == "Literatur" %}selected{% endif %}>Literatur</option>
                         </select>
                     </div>
                     <hr class="my-2">
                     <div class="flex items-center space-x-4">
-                        <label for="dateFromSpotting" class="block text-sm font-medium text-gray-700">Datum Fund
-                            von</label>
-                        <input type="date" id="dateFromSpotting"
+                        <label for="dateFromSpotting" class="block text-sm font-medium text-gray-700">Datum Fund von</label>
+                        <input type="date" id="dateFromSpotting" name="dateFromSpotting" value="{{ filters.date_from_spotting }}"
                             class="px-3 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
                         <label for="dateToSpotting" class="block text-sm font-medium text-gray-700">bis</label>
-                        <input type="date" id="dateToSpotting"
+                        <input type="date" id="dateToSpotting" name="dateToSpotting" value="{{ filters.date_to_spotting }}"
                             class="px-3 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
                     </div>
                     <hr class="my-2">
