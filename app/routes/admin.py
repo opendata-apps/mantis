@@ -32,6 +32,35 @@ def login_required(f):
     return decorated_function
 
 
+def apply_filters(query, filters):
+
+    # filter art:
+    if filters["animal_type"]:
+        match filters["animal_type"]:
+            case "männlich":
+                query = query.filter(TblMeldungen.art_m == 1)
+            case "weiblich":
+                query = query.filter(TblMeldungen.art_w == 1)
+            case "nymphe":
+                query = query.filter(TblMeldungen.art_n == 1)
+            case "oothek":
+                query = query.filter(TblMeldungen.art_o == 1)
+
+    # Filter by "Fundort" (Location):
+    if filters["location"]:
+        match filters["location"]:
+            case "Fundemeldung":
+                query = query.filter(TblMeldungen.fo_quelle == 'F')
+            case "Exkursion":
+                # Assuming 'E' for Exkursion
+                query = query.filter(TblMeldungen.fo_quelle == 'E')
+            case "Literatur":
+                # Assuming 'L' for Literatur
+                query = query.filter(TblMeldungen.fo_quelle == 'L')
+
+    return query
+
+
 @admin.route('/reviewer/<usrid>', methods=['GET', 'POST'])
 def admin_index2(usrid):
     print(usrid)
