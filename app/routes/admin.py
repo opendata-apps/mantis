@@ -32,8 +32,12 @@ def login_required(f):
     return decorated_function
 
 
-@admin.route('/reviewer/<usrid>')
+@admin.route('/reviewer/<usrid>', methods=['GET', 'POST'])
 def admin_index2(usrid):
+    print(usrid)
+    print(request.form)
+    
+    # user = request.form.get('userid')
     # Fetch the user based on the 'usrid' parameter
     user = TblUsers.query.filter_by(user_id=usrid).first()
 
@@ -48,7 +52,27 @@ def admin_index2(usrid):
     session['user_id'] = usrid
 
 
-
+    # get form information for filtering
+    # only get them if the submit button was pressed
+    # status = request.form.get('statusInput')
+    # date_from = request.form.get('dateFromInput')
+    # date_to = request.form.get('dateToInput')
+    # district = request.form.get('districtInput')
+    # city = request.form.get('cityInput')
+    # animal_type = request.form.get('typeInput')
+    # location = request.form.get('locationInput')
+    # date_from_spotting = request.form.get('dateFromSpotting')
+    # date_to_spotting = request.form.get('dateToSpotting')
+    # # test print if form information is fully received
+    # print(f"status: {status}")
+    # print(f"date_from: {date_from}")
+    # print(f"date_to: {date_to}")
+    # print(f"district: {district}")
+    # print(f"city: {city}")
+    # print(f"animal_type: {animal_type}")
+    # print(f"location: {location}")
+    # print(f"date_from_spotting: {date_from_spotting}")
+    # print(f"date_to_spotting: {date_to_spotting}")
 
 
     image_path = Config.UPLOAD_FOLDER.replace("app/", "")
@@ -77,29 +101,19 @@ def admin_index2(usrid):
 @admin.route('/submit_form', methods=['POST'])
 def submit_form():
     # Retrieve form data
-    status = request.form.get('statusInput')
-    date_from = request.form.get('dateFromInput')
-    date_to = request.form.get('dateToInput')
-    district = request.form.get('districtInput')
-    city = request.form.get('cityInput')
-    animal_type = request.form.get('typeInput')
-    location = request.form.get('locationInput')
-    date_from_spotting = request.form.get('dateFromSpotting')
-    date_to_spotting = request.form.get('dateToSpotting')
+    
 
     # Process the data as needed
     # ...
 
     return "Form data received and processed"
 
-if __name__ == '__main__':
-    app.run(debug=True)
 
 
 
 @admin.route('/<path:filename>')
 def report_Img(filename):
-    print(f"report_Img filename: {filename}")
+    # print(f"report_Img filename: {filename}")
     return send_from_directory('', filename, mimetype='image/webp', as_attachment=False)
 
 

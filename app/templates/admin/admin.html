@@ -29,7 +29,8 @@
             <div id="filterDropdown"
                 class="z-10 hidden w-64 sm:w-80 bg-white divide-y divide-gray-100 rounded-lg shadow-lg p-4 space-y-4">
                 <!--! Filter Dropdown Start-->
-                <form action="/admin_index2" method="POST">
+                <form action="/reviewer/<usrid>" method="POST">
+                    <input type="hidden" name="userid" value="9999">
                     <div>
                         <label for="statusInput" class="block text-sm font-medium text-gray-700">Bearbeitet oder
                             offen</label>
