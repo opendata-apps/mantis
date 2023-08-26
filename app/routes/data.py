@@ -141,6 +141,7 @@ def _saveip(ip):
 @data.route('/report', methods=['GET', 'POST'])
 @data.route('/report/<usrid>', methods=['GET', 'POST'])
 def report(usrid=None):
+    
     finderid = get_new_id()
     existing_user = TblUsers.query.filter_by(
         user_id=usrid).first() if usrid else None
@@ -166,6 +167,7 @@ def report(usrid=None):
         if checklist.get(mark) > 2:
             return redirect(url_for('main.index'))
 
+   
     if form.validate_on_submit():
 
         honeypot_value = form.honeypot.data
@@ -190,7 +192,7 @@ def report(usrid=None):
         db.session.flush()
 
         genders = _set_gender_fields(form.gender.data)
-
+        
         new_meldung = TblMeldungen(dat_fund_von=form.sighting_date.data,
                                    dat_meld=datetime.now(),
                                    fo_zuordnung=new_fundort.id,
