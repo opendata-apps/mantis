@@ -106,23 +106,20 @@
   </div>
 </section>
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-    var counter = document.querySelector('.counter');
-    var target = parseInt(counter.getAttribute('data-target'));
-    var observer = new IntersectionObserver(function (entries) {
-      if (entries[0].isIntersecting === true) {
-        var interval = setInterval(function () {
-          var current = parseInt(counter.innerText);
-          if (current < target) {
-            counter.innerText = current + 1;
-          } else {
-            clearInterval(interval);
-          }
-        }, 100);
-      }
-    }, { threshold: [1] });
-    observer.observe(counter);
+    // Counter animation
+  const counter = document.querySelector('.counter');
+  const target = +counter.dataset.target;
+  const observer = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting) {
+      let count = 0;
+      const interval = setInterval(() => {
+        counter.innerText = count++;
+        if (count > target) clearInterval(interval);
+      }, Math.round(2000 / target));
+      observer.disconnect();
+    }
   });
+  observer.observe(counter);
 </script>
 
 {% endblock content %}
