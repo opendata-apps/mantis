@@ -56,6 +56,7 @@ def admin_index2(usrid):
     tables = inspector.get_table_names()
     reported_sightings = TblMeldungen.query.all()
     for sighting in reported_sightings:
+        print(dir(sighting))
         sighting.fundort = TblFundorte.query.get(sighting.fo_zuordnung)
         sighting.beschreibung = TblFundortBeschreibung.query.get(
             sighting.fundort.beschreibung)
@@ -182,17 +183,45 @@ def delete_sighting(id):
 @login_required
 def save_sighting_changes(id):
     # Find the report by id
+    
     sighting = TblMeldungen.query.get(id)
     if sighting:
         # Update sighting with data from request
         # This will depend on how you implement the saveChanges function in JavaScript
         # sighting.field = request.form['field']
-        sighting.bearb_id = session['user_id']
+        sighting = session['user_id']
         db.session.commit()
         return jsonify({'success': True})
     else:
         return jsonify({'error': 'Report not found'}), 404
 
+@admin.route("/change_mantis_meta_data/<int:id>", methods=["POST"])
+@login_required
+def change_mantis_meta_data(id):
+    # Find the report by id
+    new_data = request.form.get('new_data')
+    fieldname = request.form.get('type')
+    if fieldname in ['fo_quelle','anm_bearbeiter']:
+        sighting = TblMeldungen.query.get(id)
+    else:
+        sighting = TblFundorte.query.get(id)
+    if sighting:
+        # Update sighting with data from request
+        # This will depend on how you implement the saveChanges function in JavaScript
+        # sighting.field = request.form['field']
+        sighting.bearb_id = session['user_id']
+        if fieldname == 'fo_quelle':
+            sighting.fo_quelle = new_data
+        elif fieldname == 'anm_bearbeiter':
+            sighting.anm_bearbeiter = new_data
+        elif fieldname == 'amt':
+            sighting.amt = new_data
+        elif fieldname == 'mtb':
+            sighting.mtb = new_data
+        db.session.commit()
+        return jsonify({'success': True})
+    else:
+        return jsonify({'error': 'Report not found'}), 404
 
 @admin.route("/change_mantis_gender/<int:id>", methods=["POST"])
 @login_required
@@ -231,7 +260,8 @@ def change_gender(id):
 def change_mantis_count(id):
     new_count = request.form.get('new_count')
     mantis_type = request.form.get('type')
-
+    print(40*"#")
+    print(request.form)
     sighting = TblMeldungen.query.get(id)
 
     # Update the count for the specified mantis type
@@ -252,6 +282,7 @@ def change_mantis_count(id):
     db.session.commit()
 
     return jsonify(success=True)
+
 
 
 @admin.route('/admin/log')

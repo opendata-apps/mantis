@@ -11,7 +11,7 @@
             <!-- Filter button -->
             <button id="filterDropdownButton" data-dropdown-toggle="filterDropdown"
                 class="flex items-center justify-center w-full px-4 py-2 mb-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg md:w-auto md:mb-0 focus:outline-none hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200"
-                type="button">
+                type="button"> 
                 <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="w-4 h-4 mr-2 text-gray-400"
                     viewbox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd"
@@ -302,26 +302,6 @@
         });
     }
 
-    function changeGender(id) {
-        const selectElement = document.getElementById(`gender-${id}`);
-        const newGender = selectElement.value;
-
-        fetch(`/change_mantis_gender/${id}`, {
-            method: 'POST',
-            body: new URLSearchParams({ new_gender: newGender }),
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                } else {
-                    console.error('Failed to change gender:', data.error);
-                }
-            });
-    }
-
     function searchReports() {
         // Get input value
         let input = document.getElementById('searchInput').value.toLowerCase();
@@ -472,7 +452,10 @@
             });
     }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> reviewer
     function changeMetaData(id, type, newContent) {
         console.log(id,type,newContent)
         fetch(`/change_mantis_meta_data/${id}`, {
@@ -489,6 +472,7 @@
                 }
             });
     }
+
     function setActiveTab(tab) {
         // Remove 'active' class from all tabs
         let tabs = [document.getElementById('tab-general-info'), document.getElementById('tab-location-info')];
@@ -515,6 +499,7 @@
     }
 
     function generateGeneralInfo(data) {
+        console.log(data);
         let mantis_types = ['Männchen', 'Weiblich', 'Nymphe', 'Oothek', 'Andere', 'Anzahl'];
         let gender_counts = [data.art_m, data.art_w, data.art_n, data.art_o, data.art_f, data.tiere];
     
@@ -548,16 +533,11 @@
                         onchange="changeMetaData(${data.id_meldung},'fo_quelle', this.value)"
                         value=${data.fo_quelle}>
                     </div>
-
-                    <p class="mb-2 font-semibold">Amt:</p>
-                    <div class="px-3 py-2 bg-gray-100 rounded-lg mr-3">
-                          <input type="text" class="w-full bg-gray-100" style="border: none; outline: none;"
+                    <input type="text" class="w-full bg-gray-100" style="border: none; outline: none;"
                                  name="amt"
                                  onchange="changeMetaData(${data.id_meldung},'amt', this.value)"
                                  ${"value='" + (data.amt || "") + "'"}>
                     </div>
-                      
-
                     <p class="mb-2 font-semibold">Messtischblatt:</p>
                     <div class="px-3 py-2 bg-gray-100 rounded-lg mr-3">
                           <input type="text" class="w-full bg-gray-100" style="border: none; outline: none;"
@@ -583,6 +563,7 @@
         return `<p><strong>Location ID:</strong> ${data.fo_zuordnung}</p>
                 <div id="map" style="height: 400px; width: 100%;"></div>
                 <p class="border border-1 border-dotted border-green-700 m-2">  </p>
+
                 <p class="mb-2 font-semibold">Latitude:</p>
                     <div class="px-3 py-2 bg-gray-100 rounded-lg mr-3">
                           <input type="text" class="w-full bg-gray-100" style="border: none; outline: none;"
