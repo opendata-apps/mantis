@@ -71,6 +71,37 @@ def admin_index2(usrid):
             sighting.approver_username = approver.user_name if approver else 'Unknown'
     return render_template('admin/admin.html', reported_sightings=reported_sightings, tables=tables, image_path=image_path, user_name=user_name)
 
+@admin.route("/change_mantis_meta_data/<int:id>", methods=["POST"])
+@login_required
+def change_mantis_meta_data(id):
+    # Find the report by id
+    new_data = request.form.get('new_data')
+    fieldname = request.form.get('type')
+    if fieldname in ['fo_quelle','anm_bearbeiter']:
+        sighting = TblMeldungen.query.get(id)
+    else:
+        sighting = TblFundorte.query.get(id)
+    if sighting:
+        # Update sighting with data from request
+        # This will depend on how you implement the saveChanges function in JavaScript
+        # sighting.field = request.form['field']
+        sighting.bearb_id = session['user_id']
+        if fieldname == 'fo_quelle':
+            sighting.fo_quelle = new_data
+        elif fieldname == 'anm_bearbeiter':
+            sighting.anm_bearbeiter = new_data
+        elif fieldname == 'amt':
+            sighting.amt = new_data
+        elif fieldname == 'mtb':
+            sighting.mtb = new_data
+        elif fieldname == 'latitude':
+            sighting.latitude = new_data
+        elif fieldname == 'longitude':
+            sighting.longitude = new_data
+        db.session.commit()
+        return jsonify({'success': True})
+    else:
+        return jsonify({'error': 'Report not found'}), 404
 
 @admin.route('/<path:filename>')
 def report_Img(filename):
@@ -96,10 +127,12 @@ def toggle_approve_sighting(id):
         return jsonify({'error': 'Report not found'}), 404
 
 
-@admin.route('/get_sighting/<id>', methods=['GET'])
+@admin.route('/get_sighting/<id>', methods=['GET','POST'])
 @login_required
 def get_sighting(id):
     # Find the report by id
+    print("Hallo: in get_sightning", id)
+    
     sighting = db.session.query(
         TblMeldungen,
         TblFundorte,

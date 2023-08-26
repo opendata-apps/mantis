@@ -140,8 +140,8 @@
                                 <div class="ml-0 text-xs font-semibold tracking-wide text-gray-600 md:ml-2 md:text-sm md:right-0"
                                 title="BearbID: {{sighting.bearb_id}}&#13;&#10;BearbUsername: {{sighting.approver_username }}"
                                 >
-                                    <strong>Date Approved:</strong> {{ sighting.dat_bear }}<br>
-                                    <strong>Approved By:</strong> <span class="truncate" title="BearbUsername: {{sighting.approver_username }}">{{ sighting.approver_username }}</span>
+                                    <strong>Datum der Überprüfung:</strong> {{ sighting.dat_bear }}<br>
+                                    <strong>Überprüft von:</strong> <span class="truncate" title="BearbUsername: {{sighting.approver_username }}">{{ sighting.approver_username }}</span>
                                 </div>
                                 {% endif %}
                             </div>
@@ -171,27 +171,15 @@
                                     <div class="inline-flex flex-wrap items-center ml-auto">
                                         {% set total = ((sighting.art_m or 0) + (sighting.art_w or 0) +
                                         (sighting.art_n or 0) + (sighting.art_o or 0)) | int %}
-                                        <select id="gender-{{sighting.id}}"
-                                            class="px-2 py-2 mr-2 text-sm font-medium border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                                            onchange="changeGender({{sighting.id}})" {{ 'disabled' if sighting.dat_bear or
-                                            total> 1
-                                            }} >
-                                            <option value="0" {{ 'selected' if total==0 }}>Unbekannt</option>
-                                            <option value="M" {{ 'selected' if sighting.art_m==1 }}>Männchen</option>
-                                            <option value="W" {{ 'selected' if sighting.art_w==1 }}>Weiblich</option>
-                                            <option value="N" {{ 'selected' if sighting.art_n==1 }}>Nymphe</option>
-                                            <option value="O" {{ 'selected' if sighting.art_o==1 }}>Oothek</option>
-                                            <option value="F" {{ 'selected' if sighting.art_f==1 }}>Andere</option>
-                                        </select>
                                         {% if sighting.dat_bear %}
                                         <span
                                             class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-800 bg-green-100 rounded-md">
-                                            Approved
+                                            Überprüft
                                         </span>
                                         {% else %}
                                         <button onclick="toggleApprove({{sighting.id}})"
                                             class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-500 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                                            Approve
+                                            Überprüfen
                                         </button>
                                         {% endif %}
                                     </div>
@@ -258,9 +246,6 @@
                     <button
                         class="px-4 py-2 font-semibold text-green-700 bg-green-100 rounded-lg focus:outline-none hover:bg-green-600 hover:text-white"
                         id="tab-location-info">Position auf der Karte</button>
-                    <button
-                        class="px-4 py-2 font-semibold text-green-700 bg-green-100 rounded-lg focus:outline-none hover:bg-green-600 hover:text-white"
-                        id="tab-user-info">User Information</button>
                 </div>
                 <!-- Tab Content -->
                 <div id="tab-content" class="overflow-y-auto" style="max-height: 450px;">
@@ -399,7 +384,6 @@
             .then(data => {
                 let tabGeneralInfo = document.getElementById('tab-general-info');
                 let tabLocationInfo = document.getElementById('tab-location-info');
-                let tabUserInfo = document.getElementById('tab-user-info');
                 let tabContent = document.getElementById('tab-content');
     
                 // Set initial content
@@ -409,7 +393,6 @@
                 // Add click listeners to tab buttons
                 addTabClickListener(tabGeneralInfo, generateGeneralInfo, data);
                 addTabClickListener(tabLocationInfo, generateLocationInfo, data);
-                addTabClickListener(tabUserInfo, generateUserInfo, data);
     
                 // Show the modal
                 document.getElementById('modal').classList.remove('hidden');
@@ -449,11 +432,9 @@
     function clearTabClickListeners() {
         let tabGeneralInfo = document.getElementById('tab-general-info');
         let tabLocationInfo = document.getElementById('tab-location-info');
-        let tabUserInfo = document.getElementById('tab-user-info');
     
         tabGeneralInfo.onclick = null;
         tabLocationInfo.onclick = null;
-        tabUserInfo.onclick = null;
     }
     
     
@@ -492,10 +473,25 @@
     }
 
 
-
+    function changeMetaData(id, type, newContent) {
+        console.log(id,type,newContent)
+        fetch(`/change_mantis_meta_data/${id}`, {
+            
+            method: 'POST',
+            body: new URLSearchParams({ id:id, type: type, new_data: newContent }),
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                } else {
+                    console.error('Failed to change metadata:', data.error);
+                }
+            });
+    }
     function setActiveTab(tab) {
         // Remove 'active' class from all tabs
-        let tabs = [document.getElementById('tab-general-info'), document.getElementById('tab-location-info'), document.getElementById('tab-user-info')];
+        let tabs = [document.getElementById('tab-general-info'), document.getElementById('tab-location-info')];
         tabs.forEach(t => t.classList.remove('active'));
         // Add 'active' class to the selected tab
         tab.classList.add('active');
@@ -527,7 +523,9 @@
                             ${mantis_types.map((type, i) => `
                                 <div class="flex items-center">
                                     <label for="mantis-count-${type}" class="w-32 my-4 mr-2 font-semibold">${type}</label>
-                                    <input id="mantis-count-${type}" type="number" min="0" value="${gender_counts[i]}" onchange="changeGenderCount(${data.id_meldung}, '${type}', this.value)"
+                                    <input id="mantis-count-${type}" type="number" min="0"
+					   value="${gender_counts[i]}"
+					   onchange="changeGenderCount(${data.id_meldung}, '${type}', this.value)"
                                         class="input-field-admin" >
                                     
                                 </div>
@@ -539,25 +537,71 @@
                             <p class="mb-4"><strong>Date Reported:</strong> ${data.dat_meld.replace(/\d{2}:\d{2}:\d{2} GMT/, '')}</p>
                         </div>
                     </div>
-                    <p class="mt-6 mb-2 font-semibold">Details:</p>
-                    <div class="px-3 py-2 overflow-auto bg-gray-100 rounded-lg details-text" style="max-height: 150px;">${data.anm_melder.replace(/\n/g, '<br />')}</div>`;
-        return html;
-    }
+                    <p class="mt-6 mb-2 font-semibold">Kommentar (Melder):</p>
+                    <div class="px-3 py-2 overflow-auto bg-gray-100 rounded-lg details-text"
+			 style="max-height: 150px;">${data.anm_melder.replace(/\n/g, '<br />')}</div>
+
+                    <p class="mb-2 font-semibold">Fundortquelle:</p>
+                    <div class="px-3 py-2 bg-gray-100 rounded-lg w-24">
+                        <input type="text" class="w-full bg-gray-100" style="border: none; outline: none;"
+                        name="fo_quelle"
+                        onchange="changeMetaData(${data.id_meldung},'fo_quelle', this.value)"
+                        value=${data.fo_quelle}>
+                    </div>
+
+                    <p class="mb-2 font-semibold">Amt:</p>
+                    <div class="px-3 py-2 bg-gray-100 rounded-lg mr-3">
+                          <input type="text" class="w-full bg-gray-100" style="border: none; outline: none;"
+                                 name="amt"
+                                 onchange="changeMetaData(${data.id_meldung},'amt', this.value)"
+                                 ${"value='" + (data.amt || "") + "'"}>
+                    </div>
+                      
+
+                    <p class="mb-2 font-semibold">Messtischblatt:</p>
+                    <div class="px-3 py-2 bg-gray-100 rounded-lg mr-3">
+                          <input type="text" class="w-full bg-gray-100" style="border: none; outline: none;"
+                                 name="mtb"
+                                 onchange="changeMetaData(${data.id_meldung},'mtb', this.value)"
+                                 ${"value='" + (data.mtb || "") + "'"}>
+                     </div>
+                      
+                     <p class="mb-2 font-semibold">Kommentar (Reviewer):</p>
+                     <div class="px-3 py-2 overflow-auto bg-gray-100 rounded-lg details-text mr-3" style="max-height: 150px;">
+                          <textarea class="w-full h-full bg-transparent border-none outline-none resize-none"
+                                    name="anm_bearbeiter"
+                                    onchange="changeMetaData(${data.id_meldung},'anm_bearbeiter', this.value)"
+                                    >${data.anm_bearbeiter || ""}</textarea>
+                     </div></div>`;
+
+       return html;
+   }
     
     
-
-    function generateUserInfo(data) {
-        return `<p><strong>User Name:</strong> ${data.user_name}</p>
-                <p><strong>User Email:</strong> ${data.user_kontakt}</p>
-                <p><strong>User ID:</strong> ${data.user_id}</p>
-                <p><strong>User Role:</strong> ${data. user_rolle}</p>`;
-    }
-
-
-    function generateLocationInfo(data) {
+  function generateLocationInfo(data) {
         // Convert location info into HTML string
         return `<p><strong>Location ID:</strong> ${data.fo_zuordnung}</p>
-                <div id="map" style="height: 400px; width: 100%;"></div>`;
+                <div id="map" style="height: 400px; width: 100%;"></div>
+                <p class="border border-1 border-dotted border-green-700 m-2">  </p>
+                <p class="mb-2 font-semibold">Latitude:</p>
+                    <div class="px-3 py-2 bg-gray-100 rounded-lg mr-3">
+                          <input type="text" class="w-full bg-gray-100" style="border: none; outline: none;"
+                                 name="latitude"
+                                 onchange="changeMetaData(${data.id_meldung},'latitude', this.value)"
+                                 ${"value='" + (data.latitude || "") + "'"}>
+                    </div>
+		    <p class="mb-2 font-semibold">Longitude:</p>
+                    <div class="px-3 py-2 bg-gray-100 rounded-lg mr-3">
+                          <input type="text" class="w-full bg-gray-100" style="border: none; outline: none;"
+                                 name="longitude"
+                                 onchange="changeMetaData(${data.id_meldung},'longitude', this.value)"
+                                 ${"value='" + (data.longitude || "") + "'"}>
+                    </div>
+		    
+                <p><strong>Melder Name:</strong> ${data.user_name}</p>
+                <p><strong>Melder Email:</strong> ${data.user_kontakt}</p>
+                <p><strong>Melder ID:</strong> ${data.user_id}</p>
+                <p><strong>Melder Rolle:</strong> ${data.user_rolle}</p>`;
     }
 
 
