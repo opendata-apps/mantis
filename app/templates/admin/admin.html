@@ -247,6 +247,9 @@
                     <button
                         class="px-4 py-2 font-semibold text-green-700 bg-green-100 rounded-lg focus:outline-none hover:bg-green-600 hover:text-white"
                         id="tab-location-info">Position auf der Karte</button>
+                    <button
+                        class="px-4 py-2 font-semibold text-green-700 bg-green-100 rounded-lg focus:outline-none hover:bg-green-600 hover:text-white"
+                        id="tab-user-info">User Information</button>
                 </div>
                 <!-- Tab Content -->
                 <div id="tab-content" class="overflow-y-auto" style="max-height: 450px;">
@@ -265,6 +268,7 @@
         </div>
     </div>
 </div>
+
 
 
 <script>
@@ -385,6 +389,7 @@
             .then(data => {
                 let tabGeneralInfo = document.getElementById('tab-general-info');
                 let tabLocationInfo = document.getElementById('tab-location-info');
+                let tabUserInfo = document.getElementById('tab-user-info');
                 let tabContent = document.getElementById('tab-content');
     
                 // Set initial content
@@ -394,6 +399,7 @@
                 // Add click listeners to tab buttons
                 addTabClickListener(tabGeneralInfo, generateGeneralInfo, data);
                 addTabClickListener(tabLocationInfo, generateLocationInfo, data);
+                addTabClickListener(tabUserInfo, generateUserInfo, data);
     
                 // Show the modal
                 document.getElementById('modal').classList.remove('hidden');
@@ -405,6 +411,7 @@
             })
             .catch(error => console.error('Error:', error));
     }
+
     
     
     function disableInputsIfApproved(isApproved) {
@@ -430,13 +437,17 @@
         };
     }
 
+
     function clearTabClickListeners() {
         let tabGeneralInfo = document.getElementById('tab-general-info');
         let tabLocationInfo = document.getElementById('tab-location-info');
+        let tabUserInfo = document.getElementById('tab-user-info');
     
         tabGeneralInfo.onclick = null;
         tabLocationInfo.onclick = null;
+        tabUserInfo.onclick = null;
     }
+
     
     
     function initiateMap(data) {
@@ -492,11 +503,12 @@
     }
     function setActiveTab(tab) {
         // Remove 'active' class from all tabs
-        let tabs = [document.getElementById('tab-general-info'), document.getElementById('tab-location-info')];
+        let tabs = [document.getElementById('tab-general-info'), document.getElementById('tab-location-info'), document.getElementById('tab-user-info')];
         tabs.forEach(t => t.classList.remove('active'));
         // Add 'active' class to the selected tab
         tab.classList.add('active');
     }
+
 
 
     function openImageModal(imageUrl) {
@@ -527,7 +539,7 @@
                                     <input id="mantis-count-${type}" type="number" min="0"
 					   value="${gender_counts[i]}"
 					   onchange="changeGenderCount(${data.id_meldung}, '${type}', this.value)"
-                                        class="input-field-admin" >
+                                        class="w-24 input-field-admin" >
                                     
                                 </div>
                             `).join('')}
@@ -543,16 +555,14 @@
 			 style="max-height: 150px;">${data.anm_melder.replace(/\n/g, '<br />')}</div>
 
                     <p class="mb-2 font-semibold">Fundortquelle:</p>
-                    <div class="w-24 px-3 py-2 bg-gray-100 rounded-lg">
-                        <input type="text" class="w-full bg-gray-100" style="border: none; outline: none;"
+                        <input type="text" class="w-12 ml-2 input-field-admin"
                         name="fo_quelle"
                         onchange="changeMetaData(${data.id_meldung},'fo_quelle', this.value)"
                         value=${data.fo_quelle}>
                     </div>
 
                     <p class="mb-2 font-semibold">Amt:</p>
-                    <div class="px-3 py-2 mr-3 bg-gray-100 rounded-lg">
-                          <input type="text" class="w-full bg-gray-100" style="border: none; outline: none;"
+                          <input type="text" class="ml-2 input-field-admin"
                                  name="amt"
                                  onchange="changeMetaData(${data.id_meldung},'amt', this.value)"
                                  ${"value='" + (data.amt || "") + "'"}>
@@ -560,8 +570,7 @@
                       
 
                     <p class="mb-2 font-semibold">Messtischblatt:</p>
-                    <div class="px-3 py-2 mr-3 bg-gray-100 rounded-lg">
-                          <input type="text" class="w-full bg-gray-100" style="border: none; outline: none;"
+                          <input type="text" class="ml-2 input-field-admin"
                                  name="mtb"
                                  onchange="changeMetaData(${data.id_meldung},'mtb', this.value)"
                                  ${"value='" + (data.mtb || "") + "'"}>
@@ -569,7 +578,7 @@
                       
                      <p class="mb-2 font-semibold">Kommentar (Reviewer):</p>
                      <div class="px-3 py-2 mr-3 overflow-auto bg-gray-100 rounded-lg details-text" style="max-height: 150px;">
-                          <textarea class="w-full h-full bg-transparent border-none outline-none resize-none"
+                          <textarea class="w-full h-full bg-transparent border-none outline-none resize-none textInputAdmin"
                                     name="anm_bearbeiter"
                                     onchange="changeMetaData(${data.id_meldung},'anm_bearbeiter', this.value)"
                                     >${data.anm_bearbeiter || ""}</textarea>
@@ -586,24 +595,27 @@
                 <p class="m-2 border border-green-700 border-dotted border-1">  </p>
                 <p class="mb-2 font-semibold">Latitude:</p>
                     <div class="px-3 py-2 mr-3 bg-gray-100 rounded-lg">
-                          <input type="text" class="w-full bg-gray-100" style="border: none; outline: none;"
+                          <input type="text" class="input-field-admin"
                                  name="latitude"
                                  onchange="changeMetaData(${data.id_meldung},'latitude', this.value)"
                                  ${"value='" + (data.latitude || "") + "'"}>
                     </div>
 		    <p class="mb-2 font-semibold">Longitude:</p>
                     <div class="px-3 py-2 mr-3 bg-gray-100 rounded-lg">
-                          <input type="text" class="w-full bg-gray-100" style="border: none; outline: none;"
+                          <input type="text" class="input-field-admin"
                                  name="longitude"
                                  onchange="changeMetaData(${data.id_meldung},'longitude', this.value)"
                                  ${"value='" + (data.longitude || "") + "'"}>
-                    </div>
-		    
-                <p><strong>Melder Name:</strong> ${data.user_name}</p>
-                <p><strong>Melder Email:</strong> ${data.user_kontakt}</p>
-                <p><strong>Melder ID:</strong> ${data.user_id}</p>
-                <p><strong>Melder Rolle:</strong> ${data.user_rolle}</p>`;
+                    </div>`;
     }
+
+    function generateUserInfo(data) {
+        return `<p><strong>User Name:</strong> ${data.user_name}</p>
+                <p><strong>User Email:</strong> ${data.user_kontakt}</p>
+                <p><strong>User ID:</strong> ${data.user_id}</p>
+                <p><strong>User Role:</strong> ${data. user_rolle}</p>`;
+    }
+
 
 
     function closeModal() {
