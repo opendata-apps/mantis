@@ -117,7 +117,7 @@
         <div class="mb-4 overflow-hidden transition-shadow duration-200 ease-in-out bg-white rounded-lg shadow-lg hover:shadow-xl report-card"
             data-report-id="{{sighting.id}}"
             data-approved="{{ 'true' if sighting.dat_bear else 'false' }}"
-            data-deleted="{{ 'true' if sighting.deleted else 'false' }}"            
+            data-deleted="{{ 'true' if sighting.deleted else 'false' }}"
             >
             <div class="relative">
                 <img onclick="openImageModal('{{ url_for('admin.report_Img', filename=image_path + "/" +
@@ -157,31 +157,32 @@
                                 <p class="text-sm"><strong>Fund-Datum:</strong> {{ sighting.dat_fund_von }}</p>
                                 {% endif %}
                             </div>
-                            <div class="flex flex-wrap items-center mt-3">
-                                <button onclick="openModal({{sighting.id}})" style="min-width: 2 rem;"
-                                    class="p-1 transition-colors duration-200 rounded focus:outline-none hover:bg-green-200">
-                                    <img src="/static/images/svg/edit.svg" alt="Edit" class="w-4 h-4 md:w-5 md:h-5">
-                                </button>
-                                <button onclick="deleteSighting({{sighting.id}})"
-                                    class="p-1 ml-2 transition-colors duration-200 rounded md:ml-4 focus:outline-none hover:bg-red-200"
-                                    style="min-width: 2 rem;">
-                                    <img src="/static/images/svg/delete.svg" alt="Delete" class="w-4 h-4 md:w-5 md:h-5">
-                                </button>
-                                <div class="inline-flex flex-wrap items-center mt-2 ml-2 md:mt-0 md:ml-auto">
-                                    <div class="inline-flex flex-wrap items-center ml-auto">
-                                        {% set total = ((sighting.art_m or 0) + (sighting.art_w or 0) +
-                                        (sighting.art_n or 0) + (sighting.art_o or 0)) | int %}
-                                        {% if sighting.dat_bear %}
-                                        <span
-                                            class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-800 bg-green-100 rounded-md">
-                                            Überprüft
-                                        </span>
-                                        {% else %}
-                                        <button onclick="toggleApprove({{sighting.id}})"
-                                            class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-500 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                                            Überprüfen
-                                        </button>
-                                        {% endif %}
+                            <div class="flex flex-wrap items-center justify-between mt-3">
+                                <div class="flex items-center">
+                                    <button onclick="openModal({{sighting.id}})" style="min-width: 2 rem;"
+                                        class="p-1 transition-colors duration-200 rounded focus:outline-none hover:bg-green-200">
+                                        <img src="/static/images/svg/edit.svg" alt="Edit" class="w-4 h-4 md:w-5 md:h-5">
+                                    </button>
+                                    <button onclick="deleteSighting({{sighting.id}})"
+                                        class="p-1 ml-2 transition-colors duration-200 rounded md:ml-4 focus:outline-none hover:bg-red-200"
+                                        style="min-width: 2 rem;">
+                                        <img src="/static/images/svg/delete.svg" alt="Delete" class="w-4 h-4 md:w-5 md:h-5">
+                                    </button>
+                                </div>
+                                <div>
+                                    {% set total = ((sighting.art_m or 0) + (sighting.art_w or 0) +
+                                    (sighting.art_n or 0) + (sighting.art_o or 0)) | int %}
+                                    {% if sighting.dat_bear %}
+                                    <span
+                                        class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-800 bg-green-100 rounded-md">
+                                        Angenommen
+                                    </span>
+                                    {% else %}
+                                    <button onclick="toggleApprove({{sighting.id}})"
+                                        class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-500 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                        Annehmen
+                                    </button>
+                                    {% endif %}
                                     </div>
                                 </div>
                             </div>
@@ -542,7 +543,7 @@
 			 style="max-height: 150px;">${data.anm_melder.replace(/\n/g, '<br />')}</div>
 
                     <p class="mb-2 font-semibold">Fundortquelle:</p>
-                    <div class="px-3 py-2 bg-gray-100 rounded-lg w-24">
+                    <div class="w-24 px-3 py-2 bg-gray-100 rounded-lg">
                         <input type="text" class="w-full bg-gray-100" style="border: none; outline: none;"
                         name="fo_quelle"
                         onchange="changeMetaData(${data.id_meldung},'fo_quelle', this.value)"
@@ -550,7 +551,7 @@
                     </div>
 
                     <p class="mb-2 font-semibold">Amt:</p>
-                    <div class="px-3 py-2 bg-gray-100 rounded-lg mr-3">
+                    <div class="px-3 py-2 mr-3 bg-gray-100 rounded-lg">
                           <input type="text" class="w-full bg-gray-100" style="border: none; outline: none;"
                                  name="amt"
                                  onchange="changeMetaData(${data.id_meldung},'amt', this.value)"
@@ -559,7 +560,7 @@
                       
 
                     <p class="mb-2 font-semibold">Messtischblatt:</p>
-                    <div class="px-3 py-2 bg-gray-100 rounded-lg mr-3">
+                    <div class="px-3 py-2 mr-3 bg-gray-100 rounded-lg">
                           <input type="text" class="w-full bg-gray-100" style="border: none; outline: none;"
                                  name="mtb"
                                  onchange="changeMetaData(${data.id_meldung},'mtb', this.value)"
@@ -567,7 +568,7 @@
                      </div>
                       
                      <p class="mb-2 font-semibold">Kommentar (Reviewer):</p>
-                     <div class="px-3 py-2 overflow-auto bg-gray-100 rounded-lg details-text mr-3" style="max-height: 150px;">
+                     <div class="px-3 py-2 mr-3 overflow-auto bg-gray-100 rounded-lg details-text" style="max-height: 150px;">
                           <textarea class="w-full h-full bg-transparent border-none outline-none resize-none"
                                     name="anm_bearbeiter"
                                     onchange="changeMetaData(${data.id_meldung},'anm_bearbeiter', this.value)"
@@ -582,16 +583,16 @@
         // Convert location info into HTML string
         return `<p><strong>Location ID:</strong> ${data.fo_zuordnung}</p>
                 <div id="map" style="height: 400px; width: 100%;"></div>
-                <p class="border border-1 border-dotted border-green-700 m-2">  </p>
+                <p class="m-2 border border-green-700 border-dotted border-1">  </p>
                 <p class="mb-2 font-semibold">Latitude:</p>
-                    <div class="px-3 py-2 bg-gray-100 rounded-lg mr-3">
+                    <div class="px-3 py-2 mr-3 bg-gray-100 rounded-lg">
                           <input type="text" class="w-full bg-gray-100" style="border: none; outline: none;"
                                  name="latitude"
                                  onchange="changeMetaData(${data.id_meldung},'latitude', this.value)"
                                  ${"value='" + (data.latitude || "") + "'"}>
                     </div>
 		    <p class="mb-2 font-semibold">Longitude:</p>
-                    <div class="px-3 py-2 bg-gray-100 rounded-lg mr-3">
+                    <div class="px-3 py-2 mr-3 bg-gray-100 rounded-lg">
                           <input type="text" class="w-full bg-gray-100" style="border: none; outline: none;"
                                  name="longitude"
                                  onchange="changeMetaData(${data.id_meldung},'longitude', this.value)"
