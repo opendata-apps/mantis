@@ -588,26 +588,27 @@
    }
     
     
-  function generateLocationInfo(data) {
-        // Convert location info into HTML string
-        return `<p><strong>Location ID:</strong> ${data.fo_zuordnung}</p>
-                <div id="map" style="height: 400px; width: 100%;"></div>
-                <p class="m-2 border border-green-700 border-dotted border-1">  </p>
-                <p class="mb-2 font-semibold">Latitude:</p>
-                    <div class="px-3 py-2 mr-3 bg-gray-100 rounded-lg">
-                          <input type="text" class="input-field-admin"
-                                 name="latitude"
-                                 onchange="changeMetaData(${data.id_meldung},'latitude', this.value)"
-                                 ${"value='" + (data.latitude || "") + "'"}>
-                    </div>
-		    <p class="mb-2 font-semibold">Longitude:</p>
-                    <div class="px-3 py-2 mr-3 bg-gray-100 rounded-lg">
-                          <input type="text" class="input-field-admin"
-                                 name="longitude"
-                                 onchange="changeMetaData(${data.id_meldung},'longitude', this.value)"
-                                 ${"value='" + (data.longitude || "") + "'"}>
-                    </div>`;
-    }
+function generateLocationInfo(data) {
+    // Convert location info into HTML string
+    return `<p><strong>Location ID:</strong> ${data.fo_zuordnung}</p>
+            <div id="map" style="height: 400px; width: 100%;"></div>
+            <div class="flex">
+                <div class="mb-2 mr-2 font-semibold">
+                    <p>Latitude:</p>
+                    <input type="text" class="w-32 input-field-admin"
+                           name="latitude"
+                           onchange="changeMetaData(${data.id_meldung},'latitude', this.value)"
+                           ${"value='" + (data.latitude || "") + "'"}>
+                </div>
+                <div class="mb-2 font-semibold">
+                    <p>Longitude:</p>
+                    <input type="text" class="w-32 input-field-admin"
+                           name="longitude"
+                           onchange="changeMetaData(${data.id_meldung},'longitude', this.value)"
+                           ${"value='" + (data.longitude || "") + "'"}>
+                </div>
+            </div>`;
+}
 
     function generateUserInfo(data) {
         return `<p><strong>User Name:</strong> ${data.user_name}</p>
