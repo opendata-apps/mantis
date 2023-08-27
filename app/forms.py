@@ -19,6 +19,12 @@ def validate_zip_code(form, field):
             f"Die Postleitzahl ist ungültig: {len(str(field.data))}")
 
 
+def longLatValidator(form, field):
+    if form.longitude.data >= form.latitude.data:
+        raise ValidationError(
+            'Der Breitengrad muss größer als der Längengrad sein (Bitte die Werte tauschen).')
+
+
 class MantisSightingForm(FlaskForm):
     class Meta:
         locales = ['de_DE', 'de']
@@ -72,7 +78,7 @@ class MantisSightingForm(FlaskForm):
 
     longitude = FloatField('*Längengrad',
                            validators=[InputRequired('Pflichtfeld, das gefüllt wird, \
-                           wenn der Marker in der Karte gesetzt ist.'),
+                           wenn der Marker in der Karte gesetzt ist.'), longLatValidator,
                                        NumberRange(min=-180.0, max=180.0)],
                            render_kw={'placeholder': 'z.B. 13.12345',
                                       'title': 'Der Längengrad Ihres Standorts'},
