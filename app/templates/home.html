@@ -106,20 +106,42 @@
   </div>
 </section>
 <script>
-    // Counter animation
-  const counter = document.querySelector('.counter');
-  const target = +counter.dataset.target;
-  const observer = new IntersectionObserver(entries => {
-    if (entries[0].isIntersecting) {
-      let count = 0;
-      const interval = setInterval(() => {
-        counter.innerText = count++;
-        if (count > target) clearInterval(interval);
-      }, Math.round(2000 / target));
-      observer.disconnect();
-    }
-  });
-  observer.observe(counter);
+  // Counter animation with easing and fixed duration
+const counter = document.querySelector('.counter');
+const target = +counter.dataset.target;
+const duration = 2000; // Animation will last for 2 seconds
+
+let startTime = null;
+
+function animate(currentTime) {
+  if (startTime === null) startTime = currentTime;
+  const elapsedTime = currentTime - startTime;
+  const progress = Math.min(elapsedTime / duration, 1);
+
+  // Easing function: easeInOutCubic
+  const easedProgress = progress < 0.5 ? 4 * progress * progress * progress : (progress - 1) * (2 * progress - 2) * (2 * progress - 2) + 1;
+  
+  // Update counter
+  const count = Math.floor(easedProgress * target);
+  counter.innerText = count;
+
+  if (elapsedTime < duration) {
+    requestAnimationFrame(animate);
+  } else {
+    counter.innerText = target; // Make sure it ends on the target
+  }
+}
+
+// Initialize animation when the counter is visible
+const observer = new IntersectionObserver(entries => {
+  if (entries[0].isIntersecting) {
+    requestAnimationFrame(animate);
+    observer.disconnect();
+  }
+});
+
+observer.observe(counter);
+
 </script>
 
 {% endblock content %}
