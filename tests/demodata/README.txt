@@ -13,11 +13,15 @@
 -- flask db upgrade
 -- nun der Import aller Demodaten
 -- Vorzugsweise in Einzelschritten
+-- cd tests/demodata
+-- python fill-db.py > demodata.sql
+-- in der DB:
 
 \c mantis_tracker;
 
 -- Tabelle mit Beschreibungen füllen
 \i /pfad/zur/instanz/von/mantis/tests/demodata/beschreibung.sql
+\i /pfad/zur/instanz/von/mantis/tests/demodata/demodaten.sql
 
 -- Einen Reviewer definieren
 
@@ -49,3 +53,4 @@ select
   left join users us on mu.id_user = us.id
   left join fundorte fo on me.fo_zuordnung = fo.id
   left join beschreibung be on fo.beschreibung = be.id;
+
