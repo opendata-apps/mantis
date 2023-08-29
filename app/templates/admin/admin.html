@@ -146,8 +146,8 @@
                                 {% endif %}
                             </div>
                             <h4 class="mt-2 text-lg font-semibold leading-tight truncate md:text-xl"
-                                title="Ort: {{sighting.ort}}&#13;&#10;Postleitzahl: {{sighting.plz}}&#13;&#10;Kreis: {{sighting.kreis}}&#13;&#10;Land: {{sighting.land}}">
-                                Ort: {{sighting.kreis}} | {{sighting.ort}}
+                                title="{{sighting.ort}}&#13;&#10;Postleitzahl: {{sighting.plz}}&#13;&#10;Kreis: {{sighting.kreis}}&#13;&#10;Land: {{sighting.land}}">
+                                {{sighting.kreis}} | {{sighting.ort}}
                             </h4>
                             <div class="mt-2">
                                 <p class="text-sm"><strong>Melde-Datum:</strong> {{ sighting.dat_meld }}</p>
