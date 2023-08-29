@@ -36,6 +36,7 @@ def login_required(f):
     return decorated_function
 
 
+
 @admin.route('/reviewer/<usrid>')
 def admin_index2(usrid):
     # Fetch the user based on the 'usrid' parameter
@@ -47,14 +48,18 @@ def admin_index2(usrid):
 
     # Get the user_name of the logged in user_id
     user_name = user.user_name
-
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 20, type=int)
     # Store the userid in session
     session['user_id'] = usrid
 
     image_path = Config.UPLOAD_FOLDER.replace("app/", "")
     inspector = inspect(db.engine)
     tables = inspector.get_table_names()
-    reported_sightings = TblMeldungen.query.all()
+        # Use paginate method to fetch paginated results
+    paginated_sightings = TblMeldungen.query.order_by(TblMeldungen.id.desc()).paginate(page=page, per_page=per_page, error_out=False)
+
+    reported_sightings = paginated_sightings.items
     for sighting in reported_sightings:
         sighting.fundort = TblFundorte.query.get(sighting.fo_zuordnung)
         sighting.beschreibung = TblFundortBeschreibung.query.get(
@@ -69,8 +74,7 @@ def admin_index2(usrid):
             approver = TblUsers.query.filter_by(
                 user_id=sighting.bearb_id).first()
             sighting.approver_username = approver.user_name if approver else 'Unknown'
-    return render_template('admin/admin.html', reported_sightings=reported_sightings, tables=tables, image_path=image_path, user_name=user_name)
-
+    return render_template('admin/admin.html', paginated_sightings=paginated_sightings, reported_sightings=reported_sightings, tables=tables, image_path=image_path, user_name=user_name)
 
 @admin.route("/change_mantis_meta_data/<int:id>", methods=["POST"])
 @login_required

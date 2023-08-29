@@ -1,6 +1,7 @@
 {% extends "layout.html" %}
 {% block title %} Admin Panel {% endblock title%}
 {% block text %} {{user_name}} {% endblock text %}
+{% from "macro.html" import render_pagination %}
 {% block content %}
 
 
@@ -193,6 +194,7 @@
         </div>
         {% endfor %}
     </div>
+    {{ render_pagination(paginated_sightings, 'admin.admin_index2') }}
 </div>
 
 
