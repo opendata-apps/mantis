@@ -1,3 +1,4 @@
+import time
 from flask import jsonify, render_template, request, Blueprint, send_from_directory
 from app import db
 # from app.database.models import Mantis
@@ -18,8 +19,6 @@ main = Blueprint('main', __name__)
 def index():
     post_count = db.session.query(TblMeldungen).count()
     return render_template('home.html', post_count=post_count)
-
-import time
 
 
 def styles():
@@ -59,6 +58,11 @@ def mantis_religiosa():
 @main.route('/bestimmung')
 def bestimmung():
     return render_template('bestimmung.html')
+
+
+@main.route('/sitemap.xml')
+def sitemap():
+    return send_from_directory('static', 'sitemap.xml')
 
 
 def not_found(e):
