@@ -851,15 +851,22 @@
     }
 
 
-// Disable the submit button permanently after it is clicked
-document.getElementById('submitBtn').addEventListener('click', () => { 
-  var submitBtn = document.getElementById('submitBtn');
+    document.addEventListener('DOMContentLoaded', function () {
+      let myForm = document.getElementById('myForm');
+      let submitBtn = document.getElementById('submitBtn');
 
+      if (myForm && submitBtn) {
+        myForm.addEventListener('submit', function (e) {
+          // Disable the submit button
+          submitBtn.disabled = true;
 
-  // Disable the submit button and show loading message
-  submitBtn.disabled = true;
-});
-
+          // Re-enable the button after 5 seconds
+          setTimeout(function () {
+            submitBtn.disabled = false;
+          }, 5000);
+        });
+      }
+    });
 
 
     // Step 4: Zusammenfassung und Vorschau
