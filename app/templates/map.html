@@ -89,7 +89,7 @@ function initMap() {
   // Define map layers
   const openStreetMapLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-    maxZoom: 10,
+    maxZoom: 12,
   });
 
   const arcGISLayer = L.esri.Vector.vectorBasemapLayer("ArcGIS:Imagery", {
@@ -115,7 +115,7 @@ function initMap() {
   };
 
   // Add an event listener to the map to enforce maxZoom for all layers
-  const MAX_ZOOM_LEVEL = 10;
+  const MAX_ZOOM_LEVEL = 12;
   map.on('zoomend', function() {
     if (map.getZoom() > MAX_ZOOM_LEVEL) {
       map.setZoom(MAX_ZOOM_LEVEL);
