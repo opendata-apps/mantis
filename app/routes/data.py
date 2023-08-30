@@ -252,7 +252,7 @@ def validate():
 def show_map():
 
     # Summe aller Meldungen für den Counter
-    post_count = db.session.query(TblMeldungen).count()
+    post_count = db.session.query(TblMeldungen).filter(TblMeldungen.deleted == None).count()
 
     # Fetch the reports data from the database where dat_bear
     # is not null in TblMeldungen

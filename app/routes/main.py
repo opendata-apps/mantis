@@ -1,9 +1,17 @@
 import time
-from flask import jsonify, render_template, request, Blueprint, send_from_directory
+from flask import jsonify
+from flask import render_template
+from flask import request
+from flask import Blueprint
+from flask import send_from_directory
 from app import db
 # from app.database.models import Mantis
 import json
-from app.database.models import TblMeldungen, TblFundortBeschreibung, TblFundorte, TblMeldungUser, TblUsers
+from app.database.models import TblMeldungen
+from app.database.models import TblFundortBeschreibung
+from app.database.models import TblFundorte
+from app.database.models import TblMeldungUser
+from app.database.models import TblUsers
 from datetime import datetime
 from app.forms import MantisSightingForm
 from sqlalchemy import or_
@@ -17,7 +25,9 @@ main = Blueprint('main', __name__)
 @main.route('/start')
 @main.route('/')
 def index():
-    post_count = db.session.query(TblMeldungen).count()
+    post_count = db.session.query(TblMeldungen).filter(
+        TblMeldungen.deleted == None).count()
+
     return render_template('home.html', post_count=post_count)
 
 
