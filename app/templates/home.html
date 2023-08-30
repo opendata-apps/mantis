@@ -92,49 +92,49 @@
 </section>
 
 <!-- Animated counter section -->
+<!-- Animated counter section -->
 <section class="py-16 bg-gray-100">
   <div class="container px-4 mx-auto">
-    <div class="relative px-8 py-12 bg-green-800 rounded-lg shadow-2xl"> <!-- Made the shadows darker -->
+    <div class="relative px-8 py-12 bg-green-800 rounded-lg shadow-2xl">
       <h2 class="mb-8 text-3xl font-bold leading-tight text-center text-white">
         Wir haben bereits <br />
-        <span class="font-extrabold text-white text-7xl counter" data-target="{{ post_count }}">0</span> <br />
-        <!-- Increased the font size to make the count more prominent -->
+        <span class="font-extrabold text-white text-7xl counter" data-target="{{ post_count }}">0</span>
+        <br />
         Meldungen erhalten
       </h2>
-      <p class="mb-8 text-xl text-center text-white"> <!-- Increased the font size to make it more readable -->
+      <p class="mb-8 text-xl text-center text-white">
         Helfen Sie uns, diese Zahl zu erhöhen!
       </p>
     </div>
   </div>
 </section>
 <script>
-  // Counter animation with easing and fixed duration
   const counter = document.querySelector('.counter');
-  const target = +counter.dataset.target;
-  const duration = 2000; // Animation will last for 2 seconds
+  const target = Math.min(+counter.dataset.target, {{ post_count }});
+  const duration = 2500; 
 
   let startTime = null;
+
+  function easeOutExpo(time, b, c, d) {
+    return c * (-Math.pow(2, -10 * time / d) + 1) + b;
+  }
 
   function animate(currentTime) {
     if (startTime === null) startTime = currentTime;
     const elapsedTime = currentTime - startTime;
     const progress = Math.min(elapsedTime / duration, 1);
 
-    // Easing function: easeInOutCubic
-    const easedProgress = progress < 0.5 ? 4 * progress * progress * progress : (progress - 1) * (2 * progress - 2) * (2 * progress - 2) + 1;
-
-    // Update counter
-    const count = Math.floor(easedProgress * target);
+    
+    const count = Math.floor(easeOutExpo(progress, 0, target, 1));
     counter.innerText = count;
 
     if (elapsedTime < duration) {
       requestAnimationFrame(animate);
     } else {
-      counter.innerText = target; // Make sure it ends on the target
+      counter.innerText = target; // Ensure it ends on the target
     }
   }
 
-  // Initialize animation when the counter is visible
   const observer = new IntersectionObserver(entries => {
     if (entries[0].isIntersecting) {
       requestAnimationFrame(animate);
@@ -145,5 +145,6 @@
   observer.observe(counter);
 
 </script>
+
 
 {% endblock content %}
