@@ -75,7 +75,16 @@ let userMarker;
 mapApiKey = "{{apikey}}"
 
 function initMap() {
-  map = L.map('map').setView([51.991649, 13.080113], 9);
+  // Define the boundary box for Germany
+  const germanyBounds = [
+    [47.270111, 5.866342], // Southwest corner
+    [55.058347, 15.041896]  // Northeast corner
+  ];
+
+  map = L.map('map', {
+    maxBounds: germanyBounds,
+    maxBoundsViscosity: 1.0
+  }).setView([51.991649, 13.080113], 9);
 
   // Define map layers
   const openStreetMapLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -84,7 +93,8 @@ function initMap() {
   });
 
   const arcGISLayer = L.esri.Vector.vectorBasemapLayer("ArcGIS:Imagery", {
-    apikey: mapApiKey // Add your actual API key here
+    apikey: mapApiKey // API key for ArcGIS
+  
   });
 
   // Add default layer to the map
@@ -109,6 +119,13 @@ function initMap() {
   map.on('zoomend', function() {
     if (map.getZoom() > MAX_ZOOM_LEVEL) {
       map.setZoom(MAX_ZOOM_LEVEL);
+    }
+  });
+
+  const MIN_ZOOM_LEVEL = 6;  // adjust as needed
+  map.on('zoomend', function() {
+    if (map.getZoom() < MIN_ZOOM_LEVEL) {
+      map.setZoom(MIN_ZOOM_LEVEL);
     }
   });
 };
