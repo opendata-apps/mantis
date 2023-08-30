@@ -18,6 +18,7 @@ import os
 import json
 import copy
 from app.tools.send_email import send_email
+from random import uniform
 
 from ..config import Config
 # Blueprints
@@ -252,7 +253,8 @@ def validate():
 def show_map():
 
     # Summe aller Meldungen für den Counter
-    post_count = db.session.query(TblMeldungen).filter(TblMeldungen.deleted == None).count()
+    post_count = db.session.query(TblMeldungen).filter(
+        TblMeldungen.deleted == None).count()
 
     # Fetch the reports data from the database where dat_bear
     # is not null in TblMeldungen
@@ -263,12 +265,17 @@ def show_map():
     reports = TblFundorte.query.join(
         TblMeldungen, TblMeldungen.fo_zuordnung ==
         TblFundorte.id).filter(TblMeldungen.dat_bear != None).all()
+
     # Serialize the reports data as a JSON object
     koords = []
     for report in reports:
         try:
             lati = float(report.latitude.replace(',', '.'))
             long = float(report.longitude.replace(',', '.'))
+
+            # Obfuscate the location before appending
+            lati, long = obfuscate_location(lati, long)
+
             koords.append({'latitude': lati,
                            'longitude': long})
         except:
@@ -279,3 +286,11 @@ def show_map():
                            reportsJson=reportsJson,
                            apikey=Config.esri,
                            post_count=post_count)
+
+
+def obfuscate_location(lat, long):
+    """Add a small random offset to the given latitude and longitude."""
+    offset = 0.005  # Adjustable offset
+    lat += uniform(-offset, offset)
+    long += uniform(-offset, offset)
+    return lat, long

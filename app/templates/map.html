@@ -70,42 +70,50 @@ observer.observe(counter);
 
 
 
-  // First Map:
-  let map;
-  let userMarker;
-  mapApiKey = "{{apikey}}"
+let map;
+let userMarker;
+mapApiKey = "{{apikey}}"
 
-  function initMap() {
-    map = L.map('map').setView([51.991649, 13.080113], 9);
+function initMap() {
+  map = L.map('map').setView([51.991649, 13.080113], 9);
 
-    // Define map layers
-    const openStreetMapLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      maxZoom: 11,
-    });
+  // Define map layers
+  const openStreetMapLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: 10,
+  });
 
-    const arcGISLayer = L.esri.Vector.vectorBasemapLayer("ArcGIS:Imagery", {
-      apikey: mapApiKey // Add your actual API key here
-    });
+  const arcGISLayer = L.esri.Vector.vectorBasemapLayer("ArcGIS:Imagery", {
+    apikey: mapApiKey // Add your actual API key here
+  });
 
-    // Add default layer to the map
-    map.addLayer(openStreetMapLayer);
+  // Add default layer to the map
+  map.addLayer(openStreetMapLayer);
 
-    // Layer switcher control
-    var baseMaps = {
-      "Karte": openStreetMapLayer,
-      "Satellit": arcGISLayer
-    };
-
-    L.control.layers(baseMaps).addTo(map);
-
-    var reports = JSON.parse('{{ reportsJson | safe }}');
-    for (var i = 0; i < reports.length; i++) {
-      var report = reports[i];
-      const marker = L.marker([report.latitude, report.longitude]).addTo(map)
-    };
+  // Layer switcher control
+  var baseMaps = {
+    "Karte": openStreetMapLayer,
+    "Satellit": arcGISLayer
   };
-  initMap();
+
+  L.control.layers(baseMaps).addTo(map);
+
+  var reports = JSON.parse('{{ reportsJson | safe }}');
+  for (var i = 0; i < reports.length; i++) {
+    var report = reports[i];
+    const marker = L.marker([report.latitude, report.longitude]).addTo(map)
+  };
+
+  // Add an event listener to the map to enforce maxZoom for all layers
+  const MAX_ZOOM_LEVEL = 10;
+  map.on('zoomend', function() {
+    if (map.getZoom() > MAX_ZOOM_LEVEL) {
+      map.setZoom(MAX_ZOOM_LEVEL);
+    }
+  });
+};
+
+initMap();
 </script>
 
 {% endblock content %}
