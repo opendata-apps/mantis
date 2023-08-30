@@ -64,7 +64,7 @@ GRANT usage, create ON SCHEMA public TO mantis_user;
 \q
 ```
 
-### Step 5: 🔄 ONLY If database structure changed
+### Step 5: 🔄 Create database structure
 
 ```bash
 flask db init
@@ -79,12 +79,9 @@ flask db migrate -m "your comment"
 ```bash
 flask db upgrade
 ```
+### Step 7: 🎨 Prepare Tables
 
-### Step 7: 📈 Import Data
-
-```bash
-\copy plzort(plz, ort, bundesland, landkreis) FROM 'C:\home\mantis\app\database\ww-german-postal-codes.csv' WITH (FORMAT csv, DELIMITER ',', HEADER true, ENCODING 'utf-8')
-```
+See also: tests/demodata/README.txt
 
 ### Step 8: 🎨 Run the CSS watcher
 
