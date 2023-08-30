@@ -435,45 +435,61 @@
     let map;
     let userMarker;
     mapApiKey = "{{apikey}}"
-
+    
     function initMap() {
-      map = L.map('map').setView([52.5200, 13.4050], 7);
-
+      // Define the boundary box for Germany
+      const germanyBounds = [
+        [47.270111, 5.866342], // Southwest corner
+        [55.058347, 15.041896]  // Northeast corner
+      ];
+    
+      map = L.map('map', {
+        maxBounds: germanyBounds,
+        maxBoundsViscosity: 1.0
+      }).setView([52.5200, 13.4050], 7);
+    
       // Define map layers
       const openStreetMapLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         maxZoom: 18,
       });
-
+    
       const arcGISLayer = L.esri.Vector.vectorBasemapLayer("ArcGIS:Imagery", {
         apikey: mapApiKey // Add your actual API key here
       });
-
+    
       // Add default layer to the map
       map.addLayer(openStreetMapLayer);
-
+    
       // Layer switcher control
       var baseMaps = {
         "Karte": openStreetMapLayer,
         "Satellit": arcGISLayer
       };
-
+    
       L.control.layers(baseMaps).addTo(map);
-
-
+    
+      // Restrict zooming out too much
+      const MIN_ZOOM_LEVEL = 5;
+      map.on('zoomend', function() {
+        if (map.getZoom() < MIN_ZOOM_LEVEL) {
+          map.setZoom(MIN_ZOOM_LEVEL);
+        }
+      });
+    
       // Update form fields on map click
       map.on('click', function (e) {
         document.querySelector('#latitude').value = e.latlng.lat.toFixed(5);
         document.querySelector('#longitude').value = e.latlng.lng.toFixed(5);
-
+    
         getAddressFromCoordinates(e.latlng.lat, e.latlng.lng);
-
+    
         if (userMarker) {
           userMarker.remove();
         }
-
+    
         userMarker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map);
-
+    
         // Save form data to local storage
         let formData = {};
         document.querySelectorAll('input, select, textarea').forEach(function (input) {
@@ -481,12 +497,12 @@
         });
         localStorage.setItem('formData', JSON.stringify(formData));
         updateSummary();  // Also update the summary map right away
-
-        // add longitute and latitude to local storage
+    
+        // add longitude and latitude to local storage
         localStorage.setItem('latitude', e.latlng.lat.toFixed(5));
         localStorage.setItem('longitude', e.latlng.lng.toFixed(5));
       });
-
+    
     }
     document.addEventListener('DOMContentLoaded', initMap);
 
