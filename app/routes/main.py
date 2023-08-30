@@ -17,6 +17,8 @@ from app.forms import MantisSightingForm
 from sqlalchemy import or_
 from flask_sqlalchemy import SQLAlchemy
 from flask import flash, redirect, url_for
+from flask import current_app
+from flask import Response
 
 # Blueprints
 main = Blueprint('main', __name__)
@@ -72,7 +74,9 @@ def bestimmung():
 
 @main.route('/sitemap.xml')
 def sitemap():
-    return send_from_directory('static', 'sitemap.xml')
+    with current_app.open_resource('static/sitemap.xml') as f:
+        content = f.read()
+    return Response(content, mimetype='application/xml')
 
 
 def not_found(e):
