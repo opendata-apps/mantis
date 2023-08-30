@@ -4,41 +4,42 @@
 {% block content %}
 
 <!--Projektbeschreibung section -->
-<section id="Projektbeschreibung" class="relative pt-16">
-  <div class="grid grid-cols-1 gap-6 px-2 md:grid-cols-2 md:px-4 lg:grid-cols-3 xl:px-8">
+    <section id="Projektbeschreibung" class="relative pt-16 bg-blue-50">
+      <div class="grid grid-cols-1 gap-6 px-2 md:grid-cols-2 md:px-4 lg:grid-cols-3 xl:px-8">
+    
+        <!-- Card 1 -->
+        <a href="https://www.naturkundemuseum-potsdam.de/gottesanbeterin-gesucht" target="_blank"
+          class="flex flex-col p-6 transition-transform duration-500 ease-in-out transform bg-white rounded-lg shadow-md hover:-translate-y-1 hover:shadow-xl group card">
+          <img src="{{ url_for('static', filename='images/berger06.webp') }}" alt="Gottesanbeterin"
+            class="w-full h-auto mb-4 rounded-t-lg">
+          <h3 class="mb-2 text-xl font-semibold text-center text-gray-800 uppercase">
+            Über das Projekt
+          </h3>
+          <p class="flex-grow text-center text-gray-600">
+            Das Naturkundemuseum Potsdam und die Mantidenfreunde
+            Berlin-Brandenburg suchen nach der Europäischen Gottesanbeterin (<i>Mantis religiosa</i> L. 1758).
+            Bereits seit 2016 werden Fundmeldungen der Fangschrecke gesammelt. Dabei sind wir
+            auf die Unterstützung der Brandenburger und Berliner angewiesen. Jeder ist
+            aufgerufen seine Begegnungen mit der Lauerjägerin mitzuteilen. Hand in Hand mit
+            Wissenschaftlern und Wissenschaftlerinnen können wir so die Ausbreitung der
+            Gottesanbeterin in der Region erforschen.
+            <br>
+            Siehe auch:
+          </p>
+          <span class="block mt-4 text-sm font-semibold text-center text-blue-600 underline group-hover:text-blueGray-800">
+            Naturkundemuseum Potsdam
+          </span>
+        </a>
 
-    <div
-      class="mx-auto transition-transform duration-500 ease-in-out transform bg-white rounded-lg shadow-md hover:-translate-y-1 hover:shadow-lg card">
-      <img src="{{ url_for('static', filename='images/berger06.webp') }}" alt="Gottesanbeterin"
-        class="w-full h-auto rounded-t-lg">
-      <div class="px-4 py-6">
-        <h3 class="mb-2 text-xl font-semibold text-center text-gray-800 uppercase">
-          Über das Projekt
-        </h3>
-        <p class="text-center text-gray-600">
-          Das Naturkundemuseum Potsdam und die Mantidenfreunde
-          Berlin-Brandenburg suchen nach der Europäischen Gottesanbeterin (<i>Mantis religiosa</i> L. 1758).
-          Bereits seit 2016 werden Fundmeldungen der Fangschrecke gesammelt. Dabei sind wir
-          auf die Unterstützung der Brandenburger und Berliner angewiesen. Jeder ist
-          aufgerufen seine Begegnungen mit der Lauerjägerin mitzuteilen. Hand in Hand mit
-          Wissenschaftlern und Wissenschaftlerinnen können wir so die Ausbreitung der
-          Gottesanbeterin in der Region erforschen. Siehe auch:
-
-          <a class="block pt-2 text-sm font-semibold text-blue-600 underline hover:text-blueGray-800"
-            href="https://www.naturkundemuseum-potsdam.de/gottesanbeterin-gesucht" target="_blank">
-            Naturkundemuseum Potsdam</a>
-        </p>
-      </div>
-    </div>
-
-    <div
-      class="mx-auto transition-transform duration-500 ease-in-out transform bg-white rounded-lg shadow-md hover:-translate-y-1 hover:shadow-lg card">
+    <a href="/mantis-religiosa" target="_blank"
+      class="block mx-auto transition-transform duration-500 ease-in-out transform bg-white rounded-lg shadow-md cursor-pointer hover:-translate-y-1 hover:shadow-xl group card">
       <img src="{{ url_for('static', filename='images/berger03.webp') }}" alt="Gottesanbeterin"
         class="w-full h-auto rounded-t-lg">
-      <div class="px-4 py-6">
-        <p class="mb-2 text-xl font-semibold text-center text-gray-800">
+
+      <div class="relative px-4 py-6">
+        <h3 class="mb-2 text-xl font-semibold text-center text-gray-800 uppercase">
           ÜBER <i>Mantis religiosa</i> L. 1758
-        </p>
+        </h3>
         <p class="text-center text-gray-600">
           Die Europäische Gottesanbeterin ist die einzige von etwa
           2.400 Fangschrecken-Arten, die in Deutschland vorkommt. Mit
@@ -47,26 +48,26 @@
           unterscheiden. Die sehr geschickte und gut getarnte
           Lauerjägerin macht durch ihre Lebensweise die Suche nach ihr
           schwierig. Aus diesem Grunde sind wir auf Ihre Hilfe
-          angewiesen.Sie ernährt sich vor allem von anderen
+          angewiesen. Sie ernährt sich vor allem von anderen
           Kerbtieren. Die Unterstützung durch die Melder in den
           vergangenen Jahren weit über die Landesgrenzen hinaus war
           sehr überwältigend.
           <br />
           Mehr Informationen über die Gottesanbeterin finden Sie auf
           dem folgenden Link:
-          <a class="block pt-2 text-sm font-semibold text-blue-600 underline transition-transform duration-500 ease-in-out hover:text-blueGray-800"
-            href="/mantis-religiosa">
-            <i> Mantis religiosa </i> L. 1758</a>
 
+          <span class="block pt-2 text-sm font-semibold text-blue-600 underline group-hover:text-blueGray-800">
+            <i> Mantis religiosa </i> L. 1758
+          </span>
         </p>
       </div>
-    </div>
+    </a>
 
-    <div
-      class="mx-auto transition-transform duration-500 ease-in-out transform bg-white rounded-lg shadow-md hover:-translate-y-1 hover:shadow-lg card">
+    <a href="/faq" target="_blank"
+      class="block mx-auto transition-transform duration-500 ease-in-out transform bg-white rounded-lg shadow-md cursor-pointer hover:-translate-y-1 hover:shadow-xl group card">
       <img src="{{ url_for('static', filename='images/berger10.webp') }}" alt="Gottesanbeterin"
         class="w-full h-auto rounded-t-lg">
-      <div class="px-4 py-6">
+      <div class="relative px-4 py-6">
         <h3 class="mb-2 text-xl font-semibold text-center text-gray-800 uppercase">
           Was passiert mit meiner Meldung?
         </h3>
@@ -78,15 +79,16 @@
           Verbreitungskarten erstellt werden, die die aktuelle Verbreitung der
           Gottesanbeterin zeigen. Von Jahr zu Jahr können wir so gemeinsam die
           Ausbreitung der Gottesanbeterin nachverfolgen.
-        </p>
-        <p class="text-center text-gray-600">
+          <br />
+
           Weiterführende Hinweise finden Sie in der:
-          <a class="block pt-2 text-sm font-semibold text-blue-600 underline hover:text-blueGray-800" href="/faq">
-            FAQ (Häufig gestellte Fragen)</a>
+
+          <span class="block pt-2 text-sm font-semibold text-blue-600 underline group-hover:text-blueGray-800">
+            FAQ (Häufig gestellte Fragen)
+          </span>
         </p>
       </div>
-    </div>
-  </div>
+    </a>
 </section>
 
 <!-- Animated counter section -->
@@ -107,40 +109,40 @@
 </section>
 <script>
   // Counter animation with easing and fixed duration
-const counter = document.querySelector('.counter');
-const target = +counter.dataset.target;
-const duration = 2000; // Animation will last for 2 seconds
+  const counter = document.querySelector('.counter');
+  const target = +counter.dataset.target;
+  const duration = 2000; // Animation will last for 2 seconds
 
-let startTime = null;
+  let startTime = null;
 
-function animate(currentTime) {
-  if (startTime === null) startTime = currentTime;
-  const elapsedTime = currentTime - startTime;
-  const progress = Math.min(elapsedTime / duration, 1);
+  function animate(currentTime) {
+    if (startTime === null) startTime = currentTime;
+    const elapsedTime = currentTime - startTime;
+    const progress = Math.min(elapsedTime / duration, 1);
 
-  // Easing function: easeInOutCubic
-  const easedProgress = progress < 0.5 ? 4 * progress * progress * progress : (progress - 1) * (2 * progress - 2) * (2 * progress - 2) + 1;
-  
-  // Update counter
-  const count = Math.floor(easedProgress * target);
-  counter.innerText = count;
+    // Easing function: easeInOutCubic
+    const easedProgress = progress < 0.5 ? 4 * progress * progress * progress : (progress - 1) * (2 * progress - 2) * (2 * progress - 2) + 1;
 
-  if (elapsedTime < duration) {
-    requestAnimationFrame(animate);
-  } else {
-    counter.innerText = target; // Make sure it ends on the target
+    // Update counter
+    const count = Math.floor(easedProgress * target);
+    counter.innerText = count;
+
+    if (elapsedTime < duration) {
+      requestAnimationFrame(animate);
+    } else {
+      counter.innerText = target; // Make sure it ends on the target
+    }
   }
-}
 
-// Initialize animation when the counter is visible
-const observer = new IntersectionObserver(entries => {
-  if (entries[0].isIntersecting) {
-    requestAnimationFrame(animate);
-    observer.disconnect();
-  }
-});
+  // Initialize animation when the counter is visible
+  const observer = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting) {
+      requestAnimationFrame(animate);
+      observer.disconnect();
+    }
+  });
 
-observer.observe(counter);
+  observer.observe(counter);
 
 </script>
 
