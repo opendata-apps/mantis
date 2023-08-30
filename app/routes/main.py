@@ -79,5 +79,12 @@ def sitemap():
     return Response(content, mimetype='application/xml')
 
 
+@main.route('/robots.txt')
+def robots():
+    with current_app.open_resource('static/robots.txt') as f:
+        content = f.read()
+    return Response(content, mimetype='text/plain')
+
+
 def not_found(e):
     return render_template("404.html")
