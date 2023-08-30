@@ -34,8 +34,8 @@
     </button>
 
     <div data-popover id="{{ target }}" role="tooltip"
-        class="absolute z-10 invisible w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 group-hover:visible"
-        style="left: 100%; bottom: 0; transform: translateX(10px); animation: fadeIn 0.5s, fadeOut 0.5s 1s;">
+        class="absolute invisible w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 group-hover:visible"
+        style="left: 100%; bottom: 0; z-index: 2000; transform: translateX(10px); animation: fadeIn 0.5s, fadeOut 0.5s 1s;">
         <div class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg ">
             <h3 class="font-semibold text-gray-900 ">{{ title }}</h3>
         </div>
@@ -103,7 +103,7 @@
 </button>
 
 <div id="{{ id }}" tabindex="-1" aria-hidden="true"
-    class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    class="fixed top-0 left-0 right-0 hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
     <div class="relative w-full max-w-2xl max-h-full">
         <div class="relative bg-white rounded-lg shadow ">
             <div class="flex items-start justify-between p-4 border-b rounded-t ">
