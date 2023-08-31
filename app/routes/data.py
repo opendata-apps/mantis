@@ -173,7 +173,12 @@ def report(usrid=None):
         bildpfad = _handle_file_upload(request, form, usrid).replace(
             Config.UPLOAD_FOLDER + "/", "")
 
-        new_fundort = TblFundorte(plz=form.zip_code.data,
+        if not form.zip_code.data:
+            zipcode = "0"
+        else:
+            zipcode = form.zip_code.data
+
+        new_fundort = TblFundorte(plz=zipcode,
                                   ort=form.city.data,
                                   strasse=form.street.data,
                                   kreis=form.district.data,
