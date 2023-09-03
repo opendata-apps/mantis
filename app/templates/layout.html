@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="de">
-
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}"
+      alt="Gottesanbeterin Logo">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
   <title>{% block page_title %}Mantis Religiosa Beobachtungen | Mitmachprojekt | Gottesanbeterin Gesucht{% endblock
     page_title %}</title>
   <meta name="description"
@@ -42,8 +44,6 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/leaflet.css')}}" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/cluster/MarkerCluster.Default.css')}}" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/cluster/MarkerCluster.css')}}" />
-  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}"
-    alt="Gottesanbeterin Logo">
   <script src="{{ url_for('static', filename='js/flow/flowbite.min.js')}}" defer></script>
   <script src="{{ url_for('static', filename='js/leaflet.js')}}"></script>
   <script src="{{ url_for('static', filename='js/esri-leaflet.js')}}"></script>
@@ -62,13 +62,13 @@
       style="background-image: url('{{ url_for('static', filename='images/IMG_1899b_D_Berger.webp') }}');">
       <nav id="navbar" class="fixed top-0 left-0 z-50 w-full transition-all duration-500 ease-in-out transform">
         <div class="container flex items-center justify-between px-4 py-3 mx-auto">
-          <a href="/start" class="flex items-center font-extrabold text-white">
+          <a href="/" class="flex items-center font-extrabold text-white">
             <img src="{{ url_for('static', filename='images/favicon.ico') }}" alt="Logo des Mantis Religiosa Projekts"
               class="h-6 mr-2 sm:h-9" />
             <span class="text-2xl text-white link link-underline link-underline-black">Mitmachprojekt</span>
           </a>
           <div class="items-center hidden md:flex">
-            <a href="/start"
+            <a href="/"
               class="mr-5 text-base font-bold text-white transition-colors duration-300 hover:text-green-400 md:text-base"
               title="Startseite">
               <span class="text-white link link-underline link-underline-black">Start</span>
@@ -99,7 +99,7 @@
             </button>
             <div
               class="absolute left-0 w-full transition-all duration-500 origin-top transform scale-y-0 bg-green-700 rounded-lg opacity-0 top-full mobile-menu">
-              <a href="/start"
+              <a href="/"
                 class="block px-4 py-2 my-2 text-lg font-medium text-center text-white transition-colors duration-300 rounded-lg hover:bg-green-500"
                 title="Startseite des Mitmachprojekts Mantis">Start</a>
               <a href="/mantis-religiosa"
@@ -127,7 +127,7 @@
                 <h1 class="mb-6 font-bold text-white title md:text-6xl">
                   {% block title %}{% endblock title %}
                 </h1>
-                {% if request.path in ['/', '/start'] %}
+                {% if request.path in ['/'] %}
                 <a href="/report"
                   class="relative px-10 py-3 overflow-hidden font-medium text-white transition-all transition duration-300 ease-out bg-green-600 rounded-md group hover:bg-gradient-to-r hover:from-green-600 hover:to-green-500 hover:ring-2 hover:ring-offset-2 hover:ring-green-500">
                   <span class="absolute bottom-0 left-0 h-full -ml-2">

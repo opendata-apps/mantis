@@ -24,7 +24,6 @@ from flask import Response
 main = Blueprint('main', __name__)
 
 
-@main.route('/start')
 @main.route('/')
 def index():
     post_count = db.session.query(TblMeldungen).filter(
