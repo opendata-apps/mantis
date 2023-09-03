@@ -1010,24 +1010,7 @@
     // Initially update the summary
     document.addEventListener('DOMContentLoaded', updateSummary);
 
-    function copyToClipboard(id, el) {
-      if (id) {
-        var tempInput = document.createElement("input");
-        tempInput.value = id;
-        document.body.appendChild(tempInput);
-        tempInput.select();
-        document.execCommand("copy");
-        document.body.removeChild(tempInput);
-        // Show a success toast or something
-        el.innerText = 'Copied!';
-        setTimeout(function () {
-          el.innerText = 'Copy ID (URL)';
-        }, 2000);
-      }
-      else {
-        console.error("No ID provided: " + id);
-      }
-    }
+
 
   </script>
 </div>
