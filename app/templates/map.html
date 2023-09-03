@@ -66,67 +66,68 @@ Gottesanbeterin, Mantis religiosa Auswertungen {% endblock %}
 
 
 
-let map;
-let userMarker;
-mapApiKey = "{{apikey}}"
-
-function initMap() {
-  // Define the boundary box for Germany
-  const germanyBounds = [
-    [47.270111, 5.866342], // Southwest corner
-    [55.058347, 15.041896]  // Northeast corner
-  ];
-
-  map = L.map('map', {
-    maxBounds: germanyBounds,
-    maxBoundsViscosity: 1.0
-  }).setView([51.991649, 13.080113], 9);
-
-  // Define map layers
-  const openStreetMapLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-    maxZoom: 12,
-  });
-
-  const arcGISLayer = L.esri.Vector.vectorBasemapLayer("ArcGIS:Imagery", {
-    apikey: mapApiKey // API key for ArcGIS
+  let map;
+  let userMarker;
+  mapApiKey = "{{apikey}}"
   
-  });
+  function initMap() {
+    // Define the boundary box for Germany
+    const germanyBounds = [
+      [47.270111, 5.866342],
+      [55.058347, 15.041896]
+    ];
 
-  // Add default layer to the map
-  map.addLayer(openStreetMapLayer);
+    map = L.map('map', {
+      renderer: L.canvas(),
+      maxBounds: germanyBounds,
+      maxBoundsViscosity: 1.0
+    }).setView([51.991649, 13.080113], 9);
 
-  // Layer switcher control
-  var baseMaps = {
-    "Karte": openStreetMapLayer,
-    "Satellit": arcGISLayer
+    const openStreetMapLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 12,
+    });
+
+    const arcGISLayer = L.esri.Vector.vectorBasemapLayer("ArcGIS:Imagery", {
+      apikey: mapApiKey // API key for ArcGIS
+    });
+
+    map.addLayer(openStreetMapLayer);
+
+    var baseMaps = {
+      "Karte": openStreetMapLayer,
+      "Satellit": arcGISLayer
+    };
+
+    L.control.layers(baseMaps).addTo(map);
+
+    var markers = L.markerClusterGroup({
+      showCoverageOnHover: false,
+    });
+
+    var reports = JSON.parse('{{ reportsJson | safe }}');
+  
+    reports.forEach(report => {
+      const marker = L.marker([report.latitude, report.longitude]);
+      markers.addLayer(marker);
+    });
+
+    map.addLayer(markers);
+
+    // Zoom restrictions
+    const MAX_ZOOM_LEVEL = 12;
+    const MIN_ZOOM_LEVEL = 6;
+    map.on('zoomend', function() {
+      if (map.getZoom() > MAX_ZOOM_LEVEL) {
+        map.setZoom(MAX_ZOOM_LEVEL);
+      }
+      if (map.getZoom() < MIN_ZOOM_LEVEL) {
+        map.setZoom(MIN_ZOOM_LEVEL);
+      }
+    });
   };
 
-  L.control.layers(baseMaps).addTo(map);
-
-  var reports = JSON.parse('{{ reportsJson | safe }}');
-  for (var i = 0; i < reports.length; i++) {
-    var report = reports[i];
-    const marker = L.marker([report.latitude, report.longitude]).addTo(map)
-  };
-
-  // Add an event listener to the map to enforce maxZoom for all layers
-  const MAX_ZOOM_LEVEL = 12;
-  map.on('zoomend', function() {
-    if (map.getZoom() > MAX_ZOOM_LEVEL) {
-      map.setZoom(MAX_ZOOM_LEVEL);
-    }
-  });
-
-  const MIN_ZOOM_LEVEL = 6;  // adjust as needed
-  map.on('zoomend', function() {
-    if (map.getZoom() < MIN_ZOOM_LEVEL) {
-      map.setZoom(MIN_ZOOM_LEVEL);
-    }
-  });
-};
-
-initMap();
+  initMap();
 </script>
 
 {% endblock content %}
