@@ -440,10 +440,9 @@
       }
     };
 
-    // First Map:
     let map;
     let userMarker;
-    mapApiKey = "{{apikey}}"
+    mapApiKey = "{{apikey}}";
     
     function initMap() {
       // Define the boundary box for Germany
@@ -477,6 +476,7 @@
       };
     
       L.control.layers(baseMaps).addTo(map);
+      L.control.locate(baseMaps).addTo(map);
     
       // Restrict zooming out too much
       const MIN_ZOOM_LEVEL = 5;
@@ -511,7 +511,6 @@
         localStorage.setItem('latitude', e.latlng.lat.toFixed(5));
         localStorage.setItem('longitude', e.latlng.lng.toFixed(5));
       });
-    
     }
     document.addEventListener('DOMContentLoaded', initMap);
 
