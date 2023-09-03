@@ -27,21 +27,22 @@ def create_app(config_class=Config):
     from app.routes.admin import admin
     from app.routes.data import data
     from app.routes.reviewer import review
+    from app.routes.provider import provider
 
     csrf.exempt(main)
     csrf.exempt(admin)
     csrf.exempt(review)
-    # csrf.exempt(data)
+    csrf.exempt(provider)
 
     app.register_blueprint(main)
     app.register_blueprint(admin)
     app.register_blueprint(data)
     app.register_blueprint(review)
+    app.register_blueprint(provider)
     app.register_error_handler(404, page_not_found)
 
     return app
 
 
-
 def page_not_found(e):
-  return render_template('404.html'), 404
+    return render_template('404.html'), 404

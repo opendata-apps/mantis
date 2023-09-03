@@ -1,0 +1,103 @@
+{% extends "layout.html" %}
+{% block title %} Meine Sichtungen {% endblock title%}
+{% block text %} {{user_name}} {% endblock text %}
+{% block content %}
+<div class="container px-4 mx-auto my-10 md:px-12">
+  <h1 class="text-2xl text-black link link-underline link-underline-black my-1">Ihre bisherigen Meldung(en)</h1>
+
+  <div class="grid grid-cols-1 gap-6 mb-4 sm:grid-cols-2 lg:grid-cols-3" id="reportContainer">
+    {% for sighting in reported_sightings %}
+    <div class="mb-4 overflow-hidden transition-shadow duration-200 ease-in-out bg-white rounded-lg shadow-lg hover:shadow-xl report-card"
+         data-report-id="{{sighting.id}}"
+         data-approved="{{ 'true' if sighting.dat_bear else 'false' }}"
+         data-deleted="{{ 'true' if sighting.deleted else 'false' }}">
+      <div class="relative">
+        <div class="relative">
+          <img onclick="openImageModal('{{ url_for('provider.report_Img', filename=image_path + "/" + sighting['ablage']) }}')"
+	       class="object-cover w-full h-48 transition-transform duration-200 ease-in-out
+		      rounded-t-lg cursor-pointer md:h-64 hover:scale-105"
+               src="{{ url_for('provider.report_Img', filename=image_path + "/" + sighting['ablage'])}}"
+               alt="{{sighting['imagepath']}}">
+          <div class="p-4 md:p-6">
+            <div class="relative -mt-10 md:mt-0">
+              <div class="p-4 rounded-lg shadow-lg {{ 'bg-green-100' if sighting.approved }} bg-white">
+                <h4 class="mt-2 text-lg font-semibold leading-tight truncate md:text-xl">
+		  <p class="text-sm"><strong>Melde-ID:</strong> {{ sighting['id'] }}</p>
+		</h4>
+		<div class="mt-2">
+		  <p class="text-sm"><strong>Melde-Datum:</strong> {{ sighting['dat_meld'] }}</p>
+		  <p class="text-sm"><strong>Fund-Datum:</strong> {{ sighting['dat_fund_von'] }}</p>
+		  <p class="text-sm"><strong>Kreis:</strong> {{ sighting['kreis'] }}</p>
+		  <p class="text-sm"><strong>Längengrad:</strong> {{ sighting['longitude'] }}</p>
+		  <p class="text-sm"><strong>Breitengrad:</strong> {{ sighting['latitude'] }}</p>
+		  <p class="text-sm"><strong>User Name:</strong>  {{ sighting['user_name']}}</p>
+		  <p class="text-sm"><strong>User Email:</strong> {{  sighting['user_kontakt']}}</p>
+		  <p class="text-sm"><strong>User ID:</strong> {{  sighting['user_id']}}</p>
+		  <p class="text-sm"><strong>Datum der Überprüfung:</strong> {{ sighting['dat_bear'] }}</p>
+		</div>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+      </div>
+    </div>
+    {% endfor %}
+
+    <div id="imageModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="imageModalLabel" tabindex="-1"
+	 title="Um das Bild weiter zu vergrößern klicken sie auf den Button unten">
+      <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+        <div id="imageModalBackdrop" class="fixed inset-0 transition-opacity" aria-hidden="true">
+          <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+        </div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div
+          class="inline-block px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all
+		 transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-full sm:w-11/12 md:w-3/4 lg:w-1/2 xl:w-1/3 sm:p-6">
+          <div class="flex justify-center mt-2">
+            <img id="modalImage" class="w-full max-h-[70vh] object-cover" src="" alt="Full Image View">
+          </div>
+          <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+            <button type="button" onclick="closeImageModal()"
+		    class="inline-flex justify-center w-full px-4 py-2 mb-2 text-base font-medium text-white bg-green-600
+			   border border-transparent rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2
+			   focus:ring-offset-2 focus:ring-green-500 sm:mb-0 sm:ml-3 sm:w-auto sm:text-sm"
+		    title="Schließen Sie das Fenster">
+              Close
+            </button>
+            <button type="button" onclick="openImageNewTab()"
+		    class="inline-flex justify-center w-full px-4 py-2 mb-2 text-base font-medium text-white bg-green-600 border
+			   border-transparent rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2
+			   focus:ring-green-500 sm:mb-0 sm:ml-3 sm:w-auto sm:text-sm"
+                    title="Öffnen Sie das Bild in einem neuen Tab">
+              <svg class="w-[16px] h-[16px] text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                   fill="none" viewBox="0 0 18 18">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M15 11v4.833A1.166 1.166 0 0 1 13.833 17H2.167A1.167 1.167 0 0 1 1 15.833V4.167A1.166
+			 1.166 0 0 1 2.167 3h4.618m4.447-2H17v5.768M9.111 8.889l7.778-7.778" />
+              </svg>
+            </button>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="text-xl text-black link link-underline link-underline-black my-1">Vielen Dank für Ihre Unterstützung.</p>
+  <p class="text-xl text-black link link-underline link-underline-black my-1">-== Ihr Mantis-Team ==-</p>
+</div>
+<script>
+  function openImageModal(imageUrl) {
+      document.body.style.overflow = 'hidden';
+      document.getElementById('modalImage').src = imageUrl;
+      document.getElementById('imageModal').style.display = 'block';
+  }    
+  function closeImageModal() {
+      document.getElementById('imageModal').style.display = 'none';
+      document.body.style.overflow = 'auto';
+  }
+  function openImageNewTab() {
+      let modalImage = document.getElementById('modalImage');
+      window.open(modalImage.src, '_blank');
+  }
+</script>
+{% endblock content %}
