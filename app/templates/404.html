@@ -16,9 +16,17 @@
         width: 150px;
         height: auto;
         margin: 0 auto;
+        animation: mantis-search 5s ease-in-out infinite alternate;
+        position: relative;
       }
       .blink {
         animation: blink 1.5s linear infinite;
+      }
+      .magnifier{
+        position: absolute;
+        top: 29%;
+        left: 19%;
+        font-size: 1.5em;
       }
       @keyframes blink {
         0%,
@@ -27,6 +35,17 @@
         }
         50% {
           opacity: 0.5;
+        }
+      }
+      @keyframes mantis-search {
+        0% {
+          transform: rotate(0deg);
+        }
+        50% {
+          transform: rotate(-30deg);
+        }
+        100% {
+          transform: rotate(30deg);
         }
       }
     </style>
@@ -41,18 +60,19 @@
             src="https://www.svgrepo.com/show/481511/praying-mantis-2.svg"
             alt="Mantis Illustration"
           />
+          <span class="magnifier" role="img" aria-label="magnifying glass">🔍</span>
         </div>
         <h1 class="font-black text-green-300 text-9xl">404</h1>
 
         <p class="text-2xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-          Uh-oh! Even the mantis is lost!
+          Uh-oh! Even the mantis can't find the page!
         </p>
 
-        <p class="mt-4 mb-4 text-gray-500">We can't find that page.</p>
+        <p class="mt-4 mb-4 text-gray-500">Maybe it's hiding in the grass?</p>
 
         <a
           href="/"
-          class="relative px-10 py-3 overflow-hidden font-medium text-white transition-all transition duration-300 ease-out bg-green-600 rounded-md group hover:bg-gradient-to-r hover:from-green-600 hover:to-green-500 hover:ring-2 hover:ring-offset-2 hover:ring-green-500"
+          class="relative px-10 py-3 overflow-hidden font-medium text-white transition-all transition duration-300 ease-out bg-green-600 rounded-md group hover:bg-gradient-to-r hover:from-green-600 hover:to-green-500 hover:ring-2 hover:ring-offset-2 hover:ring-green-500 animate-bounce"
         >
           <span class="absolute bottom-0 left-0 h-full -ml-2">
             <svg
@@ -89,7 +109,6 @@
         </a>
       </div>
     </div>
-
     <script>
       // Add some JS to make mantis blink
       const mantis = document.getElementById("mantis");
