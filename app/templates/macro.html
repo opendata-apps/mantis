@@ -130,3 +130,32 @@
     </div>
 </div>
 {% endmacro %}
+
+{% macro render_pagination(pagination, endpoint, current_filter_status) %}  <!-- Centered Total Number -->
+  <div class="flex items-center justify-center my-2 text-xl font-semibold">
+    {{ pagination.first }} - {{ pagination.last }} of {{ pagination.total }}
+</div>
+
+<div class="flex items-center justify-center my-4">
+    <div class="flex space-x-2">
+      {% set usrid = session['user_id'] %}
+      {% for page in pagination.iter_pages() %}
+        {% if page %}
+          {% if page != pagination.page %}
+          <a href="{{ url_for(endpoint, page=page, usrid=usrid, statusInput=current_filter_status) }}" class="px-3 py-2 border border-gray-300 rounded hover:bg-gray-200">
+            {{ page }}
+          </a>
+          {% else %}
+            <span class="px-3 py-2 text-white bg-gray-500 border border-gray-500 rounded">
+              {{ page }}
+            </span>
+          {% endif %}
+        {% else %}
+          <span class="px-3 py-2 text-gray-500">
+            &hellip;
+          </span>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+{% endmacro %}

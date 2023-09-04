@@ -1,6 +1,7 @@
 {% extends "layout.html" %}
 {% block title %} Admin Panel {% endblock title%}
 {% block text %} {{user_name}} {% endblock text %}
+{% from "macro.html" import render_pagination %}
 {% block content %}
 
 
@@ -26,38 +27,31 @@
                 </svg>
             </button>
 
-            <!-- Filter dropdown menu -->
-            <div id="filterDropdown"
-                class="z-10 hidden w-48 bg-white divide-y divide-gray-100 rounded-lg shadow ">
-                <ul class="py-2 text-sm text-gray-700 " aria-labelledby="filterDropdownButton">
-                    <li>
-                        <label
-                            class="block w-full px-4 py-2 text-left hover:bg-gray-100 ">
-                            <div
-                                class="relative inline-block w-10 mr-2 align-middle transition duration-200 ease-in select-none">
-                                <input type="checkbox" name="toggle" id="toggle" onchange="toggleApprovedSightings()"
-                                    class="absolute block w-6 h-6 bg-white border-4 rounded-full appearance-none cursor-pointer toggle-checkbox"
-                                    checked />
-                                <label for="toggle"
-                                    class="block h-6 overflow-hidden bg-gray-300 rounded-full cursor-pointer toggle-label"></label>
-                            </div>
-                            <span id="checkbox-label" class="ml-2 text-sm text-gray-700">Unbestätigt</span>
-                        </label>
-                    </li>
-                    <!-- Add more filter options here -->
-                    <li>
-                        <label class="block w-full px-4 py-2 text-left hover:bg-gray-100">
-                            <div class="relative inline-block w-10 mr-2 align-middle transition duration-200 ease-in select-none">
-                                <input type="checkbox" name="toggleDeleted" id="toggleDeleted" onchange="toggleDeletedSightings()" class="absolute block w-6 h-6 bg-white border-4 rounded-full appearance-none cursor-pointer toggle-checkbox" />
-                                <label for="toggleDeleted" class="block h-6 overflow-hidden bg-gray-300 rounded-full cursor-pointer toggle-label"></label>
-                            </div>
-                            <span id="checkbox-label-deleted" class="ml-2 text-sm text-gray-700">Nicht Gelöscht</span>
-                        </label>
-                    </li>
-                    
-                </ul>
+            <div id="filterDropdown" class="z-10 hidden w-64 p-4 space-y-4 bg-white divide-y divide-gray-100 rounded-lg shadow-lg sm:w-80">
+            <!-- Filter Dropdown Start -->
+        <!-- Filter Dropdown Start -->
+        <form action="{{ url_for('admin.admin_index2', usrid=session['user_id']) }}" method="GET">
+            <div>
+                <label for="statusInput" class="block text-sm font-medium text-gray-700">Bearbeitet oder offen</label>
+                <select id="statusInput" name="statusInput" class="w-full px-3 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                    <option value="">Alle anzeigen</option>
+                    <option value="bearbeitet" {% if filters.status == "bearbeitet" %}selected{% endif %}>Bearbeitet</option>
+                    <option value="offen" {% if filters.status == "offen" %}selected{% endif %}>Offen</option>
+                    <option value="geloescht" {% if filters.status == "geloescht" %}selected{% endif %}>Gelöscht</option>
+                </select>
+            </div>
+            <div class="mt-4">
+                <button type="submit"
+                        class="px-4 py-2 text-white bg-green-500 rounded-md shadow-sm hover:bg-green-600 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:border-transparent">
+                    Filtern
+                </button>
+            </div>
+        </form>
+        <!-- Filter Dropdown end -->
+
             </div>
         </div>
+
 
         <div class="flex-grow mb-2 md:mb-0">
             <input type="text" id="searchInput" onkeyup="searchReports()" placeholder="Search for reports..."
@@ -194,6 +188,8 @@
         {% endfor %}
     </div>
 </div>
+{{ render_pagination(paginated_sightings, 'admin.admin_index2', current_filter_status) }}
+
 
 
 
