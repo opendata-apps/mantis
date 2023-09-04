@@ -1,11 +1,6 @@
-from wtforms import Form
-from wtforms import BooleanField
-from wtforms import StringField
-from wtforms import PasswordField
-from wtforms import validators
-from wtforms import IntegerField
-from wtforms import DateField
-from wtforms import SubmitField
+from wtforms import (BooleanField, DateField, Form, IntegerField,
+                     PasswordField, StringField, SubmitField, validators)
+
 
 class ReviewerForm(Form):
     css_input_field = """bg-gray-50 border border-gray-300 text-gray-900
@@ -14,7 +9,7 @@ class ReviewerForm(Form):
     dark:placeholder-gray-400 dark:text-white
     dark:focus:ring-blue-500 dark:focus:border-blue-500"""
     user_id = StringField("Benutzerkennung: ",
-                          render_kw={'style':'width:350px',
+                          render_kw={'style': 'width:350px',
                                      'class': css_input_field})
     longitude = StringField('Längengrad',
                             render_kw={'class': css_input_field + "w-32"})
@@ -23,16 +18,16 @@ class ReviewerForm(Form):
     user_name = StringField("Name (Melder)",
                             render_kw={'class': css_input_field + "w-80"})
     art_w = StringField("Anzahl (weiblich)",
-                        render_kw={'style':'width:50px',
+                        render_kw={'style': 'width:50px',
                                    'class': css_input_field})
     art_m = StringField("Anzahl (männlich)",
-                        render_kw={'style':'width:50px',
+                        render_kw={'style': 'width:50px',
                                    'class': css_input_field})
     art_n = StringField("Anzahl (Nyphe)",
-                        render_kw={'style':'width:50px',
-                         'class': css_input_field})
+                        render_kw={'style': 'width:50px',
+                                   'class': css_input_field})
     art_o = StringField("Anzahl (Oothek)",
-                        render_kw={'style':'width:50px',
+                        render_kw={'style': 'width:50px',
                                    'class': css_input_field})
     zip_code = IntegerField("PLZ")
     city = StringField("Ort")
@@ -41,10 +36,10 @@ class ReviewerForm(Form):
     district = StringField("Kreis")
     location_description = StringField("Fundort Beschreibung")
 
-    first_name = StringField("Vorname")#, validators=[DataRequired()])
-    last_name = StringField("Name")#, validators=[DataRequired()])
+    first_name = StringField("Vorname")  # , validators=[DataRequired()])
+    last_name = StringField("Name")  # , validators=[DataRequired()])
     sighting_date = DateField("Funddatum")
-    contact = StringField("Kontakt (Email/Telefonnummer)")#,
+    contact = StringField("Kontakt (Email/Telefonnummer)")  # ,
 #                          validators=[DataRequired()])
     feedback = BooleanField("Soll Rückmeldung bei Bearbeitung kommen?")
 

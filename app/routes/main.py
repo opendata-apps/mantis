@@ -1,24 +1,17 @@
-import time
-from flask import jsonify
-from flask import render_template
-from flask import request
-from flask import Blueprint
-from flask import send_from_directory
-from app import db
 # from app.database.models import Mantis
 import json
-from app.database.models import TblMeldungen
-from app.database.models import TblFundortBeschreibung
-from app.database.models import TblFundorte
-from app.database.models import TblMeldungUser
-from app.database.models import TblUsers
+import time
 from datetime import datetime
-from app.forms import MantisSightingForm
-from sqlalchemy import or_
+
+from flask import (Blueprint, Response, current_app, flash, jsonify, redirect,
+                   render_template, request, send_from_directory, url_for)
 from flask_sqlalchemy import SQLAlchemy
-from flask import flash, redirect, url_for
-from flask import current_app
-from flask import Response
+from sqlalchemy import or_
+
+from app import db
+from app.database.models import (TblFundortBeschreibung, TblFundorte,
+                                 TblMeldungen, TblMeldungUser, TblUsers)
+from app.forms import MantisSightingForm
 
 # Blueprints
 main = Blueprint('main', __name__)

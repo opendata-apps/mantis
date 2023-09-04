@@ -1,10 +1,9 @@
-from flask import render_template, request, Blueprint
-from app import config
-from app import db
-from flask import send_from_directory
+from flask import Blueprint, render_template, request, send_from_directory
 from sqlalchemy import text
-from app.routes.reviewer_form import ReviewerForm
 from werkzeug.datastructures import MultiDict
+
+from app import config, db
+from app.routes.reviewer_form import ReviewerForm
 
 # Blueprints
 review = Blueprint('reviewer', __name__)

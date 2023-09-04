@@ -1,27 +1,24 @@
-from flask import session  # import session
-from flask import jsonify, render_template, request, Blueprint, send_from_directory
-from app import db
+import csv
 # from app.database.models import Mantis
 import json
-from app.database.models import TblMeldungen, TblFundortBeschreibung, TblFundorte, TblMeldungUser, TblUsers
-from datetime import datetime
-from app.forms import MantisSightingForm
-from sqlalchemy import or_, MetaData
-from flask import render_template_string
-from sqlalchemy import inspect, text
-from sqlalchemy.orm import sessionmaker, joinedload
-import csv
-from flask import Response, redirect, url_for
-from io import StringIO, BytesIO
 import os
-import pandas as pd
-from io import BytesIO
-from flask import send_file
-from sqlalchemy import Table, create_engine
-from flask import abort, session
-from app.config import Config
+from datetime import datetime
 from functools import wraps
-from flask import g
+from io import BytesIO, StringIO
+
+import pandas as pd
+from flask import session  # import session
+from flask import (Blueprint, Response, abort, g, jsonify, redirect,
+                   render_template, render_template_string, request, send_file,
+                   send_from_directory, url_for)
+from sqlalchemy import MetaData, Table, create_engine, inspect, or_, text
+from sqlalchemy.orm import joinedload, sessionmaker
+
+from app import db
+from app.config import Config
+from app.database.models import (TblFundortBeschreibung, TblFundorte,
+                                 TblMeldungen, TblMeldungUser, TblUsers)
+from app.forms import MantisSightingForm
 
 # Blueprints
 admin = Blueprint('admin', __name__)
