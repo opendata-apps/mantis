@@ -14,6 +14,17 @@ Mantis Tracker allows users to report Mantis Religiosa sightings and view them o
 - 🗺️ View all mantis sightings on an interactive map
 - 📊 View insightful statistics and FAQs
 
+## 🚀 Roadmap
+
+Here are some of the features we plan to add in the future:
+
+- [ ] Gallery of photos of the Mantis Religiosa
+- [ ] Improved data visualization and analysis of the sighting data
+- [ ] More Animations and UI improvements to make the app more engaging
+- [ ] Improved performance and code quality
+
+Stay tuned for updates on these exciting new features!
+
 ## 🛠️ Technologies
 
 ![HTML](https://img.shields.io/badge/-HTML-000000?style=flat&logo=HTML5)
@@ -79,6 +90,7 @@ flask db migrate -m "your comment"
 ```bash
 flask db upgrade
 ```
+
 ### Step 7: 🎨 Prepare Tables
 
 See also: tests/demodata/README.txt
