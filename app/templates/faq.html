@@ -26,7 +26,7 @@ Gesucht{% endblock %}
       eine Registrierung oder
       Anmeldung nicht nötig."},
       {"title": "Wer kann mitmachen?", "content": "Mitmachen können Kinder, Jugendliche oder Erwachsene, die Interesse
-      haben, sich an diesem Forschungsprojekt zu beteiligen."},
+      haben, sich an diesem <a href='/'>Forschungsprojekt</a> zu beteiligen."},
       {"title": "Wie kann ich mitmachen?", "content": "
       Zuerst laden Sie bitte ein Foto des Tieres hoch. Markieren Sie
       auf der Karte den Fundort mit einem Doppelklick und prüfen die
@@ -36,30 +36,28 @@ Gesucht{% endblock %}
       Auswahlmenü und Füllen die Felder „Ort“, „Bildbeschreibung“ und
       „Fundort-Beschreibung“ aus. Wenn Sie mögen, können Sie sich mit
       dem Bestimmungsschlüssel das Geschlecht und das
-      Entwicklungsstadium Ihrer Gottesanbeterin selbst
+      Entwicklungsstadium Ihrer <a href='/mantis-religiosa'>Gottesanbeterin</a> selbst
       bestimmen. Geben Sie das Funddatum an. Sollten Finder und Melder unterschiedliche Personen sein, können Sie nun
       noch den
       Namen des Finders eintragen. Wenn Sie eine
-      Rückantwort wünschen, können Sie auch Ihre E- Mailadresse
+      Rückantwort wünschen, können Sie auch Ihre E-Mailadresse
       angeben. Mehr brauchen Sie nicht zu tun.
       "},
-      {"title": "Kann ich auch Gottesanbeterinnen außerhalb von Berlin und Brandenburg melden?",
-      "content": "
-      Ja. Der Fokus des Projektes liegt zwar auf Nachweisen der
-      Gottesanbeterin in Berlin und Brandenburg aber Meldungen
-      außerhalb von Berlin und Brandenburg sind auch möglich.
-      "},
+      {
+        "title": "Kann ich auch Gottesanbeterinnen außerhalb von Berlin und Brandenburg melden?",
+        "content": "Ja. Der Fokus des Projektes liegt zwar auf Nachweisen der <a href='/mantis-religiosa'>Gottesanbeterin</a> in Berlin und Brandenburg aber Meldungen außerhalb von Berlin und Brandenburg sind auch möglich."
+      },
       {"title": "Kann ich auch Beobachtungen aus vorherigen Jahren melden?",
       "content": "Sehr gerne. Wir freuen uns über jede Meldung. Schauen Sie gerne
       auch Ihre Fotoarchive durch und melden Sie uns Ihre bisherigen Funde.
       "},
       {"title": "Wonach soll ich suchen?",
       "content": "Jegliche Nachweise der gut getarnten Lauerjägerin,
-      wie Eigelege (Ootheken), Jungtiere (Nymphen) und erwachsene Tiere
+      wie Eigelege (<a href='/mantis-religiosa'>Ootheken</a>), Jungtiere (<a href='/mantis-religiosa'>Nymphen</a>) und erwachsene Tiere
       sind interessant und erwünscht.
       "},
       {"title": "Wo soll ich suchen?",
-      "content": "Die Europäische Gottesanbeterin ist eine Wärme und Sonne liebende Art. Sie kommt in gut
+      "content": "Die Europäische <a href='/mantis-religiosa'>Gottesanbeterin</a> ist eine Wärme und Sonne liebende Art. Sie kommt in gut
       besonntem Trockenrasenoffenland mit geringem Strauchbewuchs vor. Sie lebt im hohen
       Gras, an Stauden aber auch auf dem Boden z.B. auf Brachen, an stillgelegten
       Bahntrassen, auf Truppenübungsplätzen und auf alten Tagebauflächen wurde sie gefunden.
@@ -69,19 +67,19 @@ Gesucht{% endblock %}
       {"title": "Muss ich etwas unternehmen, wenn ich eine Gottesanbeterin finde?",
       "content": "
       Machen Sie ein Foto und melden Sie uns Ihren Fund. Ansonsten brauchen Sie nichts zu tun.
-      Die Gottesanbeterin ist eine geschützte Art. Lassen Sie sie bitte an Ort und Stelle sitzen.
-      Sollte sich eine Gottesanbeterin in Ihre Wohnung verirrt haben, setzen Sie sie bitte nach
+      Die <a href='/mantis-religiosa'>Gottesanbeterin</a> ist eine geschützte Art. Lassen Sie sie bitte an Ort und Stelle sitzen.
+      Sollte sich eine <a href='/mantis-religiosa'>Gottesanbeterin</a> in Ihre Wohnung verirrt haben, setzen Sie sie bitte nach
       draußen auf den Balkon, in den Hof oder in die Vegetation in der Nähe Ihres Hauses.
       "},
       {"title": "Was passiert mit meiner Meldung?",
       "content": "
-      Im Naturkundemuseum Potsdam werden die Meldungen in einer Datenbank erfasst. Aus den
+      Im <a href='https://www.naturkundemuseum-potsdam.de/gottesanbeterin-gesucht'>Naturkundemuseum Potsdam</a> werden die Meldungen in einer Datenbank erfasst. Aus den
       Meldungen werden anschließend Verbreitungskarten erstellt und die Ausbreitung der Art
       erforscht.
       "},
       {"title": "Was passiert mit meinen Daten?",
       "content": "Für die Auswertungen werden nur nur die geographischen Koordinaten ihres Fundes
-      und das Funddatum und keine persönlichen Daten gespeichert. Melderdaten werden vertraulich
+      und das Funddatum und keine persönlichen <a href='/datenschutz'>Daten</a> gespeichert. Melderdaten werden vertraulich
       behandelt und ausschließlich projektbezogen verwendet und nicht weitergegeben."},
       {"title": "Das passiert mit meinen Fotos?",
       "content": "Die Fotos dienen ausschließlich der Absicherung des Fundes.
@@ -108,7 +106,7 @@ Gesucht{% endblock %}
             class="overflow-hidden overflow-y-hidden duration-700 ease-in-out faq-content max-h-0 transition-max-height"
             style="max-height: 0;" id="faq{{ loop.index }}">
             <p class="px-6 pb-4 mt-3 text-lg leading-6 text-gray-800">
-              {{ faq.content }}
+              {{ faq.content|safe }}
             </p>
           </div>
         </div>
