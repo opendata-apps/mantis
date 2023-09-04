@@ -4,20 +4,24 @@ from flask_wtf.file import FileAllowed, FileRequired, FileSize
 from wtforms import StringField, IntegerField, DateField, SelectField, BooleanField, FloatField, FileField, SubmitField, HiddenField, validators
 from datetime import date
 import re
-
+from datetime import datetime, timedelta
 
 # translations_cache = {}
 
 
 def validate_past_date(form, field):
-    if field.data and field.data > date.today():
-        raise ValidationError("Das Datum muss heute oder früher sein.")
+    if field.data:
+        if field.data > datetime.today().date():
+            raise ValidationError("Das Datum muss heute oder früher sein.")
+        elif field.data < datetime.today().date() - timedelta(days=5*365):
+            raise ValidationError(
+                "Das Datum darf nicht älter als 5 Jahre sein.")
 
 
 def validate_zip_code(form, field):
     if field.data and (len(str(field.data)) > 5 or not str(field.data).isdigit()):
         raise ValidationError(
-            f"Die Postleitzahl ist ungültig: {len(str(field.data))}")
+            f"Die Postleitzahl ist ungültig. ")
 
 
 def longLatValidator(form, field):
@@ -97,8 +101,8 @@ class MantisSightingForm(FlaskForm):
                                      'title': 'Der Breitengrad Ihres Standorts'},
                           description='Bitte geben Sie den Breitengrad des Standorts ein, an dem Sie die Gottesanbeterin gesehen haben.')
 
-    zip_code = IntegerField("PLZ", validators=[Optional()], render_kw={
-                            'placeholder': 'PLZ'})
+    zip_code = IntegerField("PLZ", validators=[Optional(
+    ), validate_zip_code], render_kw={'placeholder': 'PLZ'})
     city = StringField("*Ort", validators=[DataRequired(message='Bitte geben Sie einen Ort ein.')], render_kw={
                        'placeholder': 'z.B. Berlin'})
     street = StringField("Straße", validators=[Optional()], render_kw={
@@ -120,8 +124,8 @@ class MantisSightingForm(FlaskForm):
     finder_last_name = StringField(
         "Nachname (Finder)", render_kw={'placeholder': 'z.B. Mustermann'})
 
-    sighting_date = DateField("*Funddatum", validators=[
-                              DataRequired(message='Das Funddatum ist erforderlich.'), validate_past_date], render_kw={'placeholder': 'z.B. 2023-05-14'})
+    sighting_date = DateField("*Funddatum", validators=[DataRequired(
+        message='Das Funddatum ist erforderlich.'), validate_past_date], render_kw={'placeholder': 'z.B. 2023-05-14'})
     contact = StringField("Kontakt (E-Mail)", validators=[validators.Optional(), validators.Email(message='Die Email Adresse ist ungültig.', check_deliverability=True)],
                           render_kw={'placeholder': 'z.B. max@example.de'})
     honeypot = StringField()
