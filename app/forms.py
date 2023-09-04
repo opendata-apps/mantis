@@ -21,6 +21,9 @@ def validate_zip_code(form, field):
 
 
 def longLatValidator(form, field):
+    if form.longitude.data is None or form.latitude.data is None:
+        raise ValidationError('Längen- und Breitengrad sind erforderlich.')
+
     if form.longitude.data >= form.latitude.data:
         raise ValidationError(
             'Der Breitengrad muss größer als der Längengrad sein (Bitte die Werte tauschen).')
@@ -84,7 +87,7 @@ class MantisSightingForm(FlaskForm):
                            render_kw={'placeholder': 'z.B. 13.12345',
                                       'title': 'Der Längengrad Ihres Standorts'},
                            description='Bitte geben Sie den Längengrad des Standorts ein, \
-                           an dem Sie die Mantis religiosa gesehen haben.')
+                           an dem Sie die Gottesanbeterin gesehen haben.')
 
     latitude = FloatField('*Breitengrad',
                           validators=[InputRequired('Pflichtfeld, das gefüllt wird, \
@@ -92,7 +95,8 @@ class MantisSightingForm(FlaskForm):
                                       NumberRange(min=-90.0, max=90.0)],
                           render_kw={'placeholder': 'z.B. 52.12345',
                                      'title': 'Der Breitengrad Ihres Standorts'},
-                          description='Bitte geben Sie den Breitengrad des Standorts ein, an dem Sie die Mantis religiosa gesehen haben.')
+                          description='Bitte geben Sie den Breitengrad des Standorts ein, an dem Sie die Gottesanbeterin gesehen haben.')
+
     zip_code = IntegerField("PLZ", validators=[Optional()], render_kw={
                             'placeholder': 'PLZ'})
     city = StringField("*Ort", validators=[DataRequired(message='Bitte geben Sie einen Ort ein.')], render_kw={
