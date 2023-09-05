@@ -1,7 +1,8 @@
 from app import db
 from random import choice
 from faker import Faker
-from app.database.models import TblFundorte, TblMeldungen, TblMeldungUser, TblUsers
+from app.database.models import (TblFundorte, TblMeldungen,
+                                 TblMeldungUser, TblUsers)
 from app.tools.gen_user_id import get_new_id
 from app import create_app
 
@@ -47,6 +48,10 @@ def generate_sample_reports():
             )
             db.session.add(finder)
 
+            # Simulating the file upload path
+            imagepath = "2023/2023-01-19/Trebbin_OT_Kleinbeuthen-"
+            imagepath += "20230803203653-e99986104029a483763138a3"
+            imagepath += "0385a1c77bfc5b57.webp"
             new_fundort = TblFundorte(
                 plz=fake.postcode(),
                 ort=fake.city(),
@@ -56,8 +61,7 @@ def generate_sample_reports():
                 longitude=fake.longitude(),
                 latitude=fake.latitude(),
                 beschreibung="1",
-                # Simulating the file upload path
-                ablage=f"2023/2023-01-19/Trebbin_OT_Kleinbeuthen-20230803203653-e99986104029a483763138a30385a1c77bfc5b57.webp"
+                ablage=imagepath
             )
             db.session.add(new_fundort)
             db.session.flush()

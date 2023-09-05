@@ -55,4 +55,4 @@ Demodaten:
 
    Die dort genannten Schritte nacheinander ausführen.
    
-   Siehe ``manits/tests/demaodata/demo-data-main.sql``
+   Siehe ``manits/tests/demaodata/README.txt``

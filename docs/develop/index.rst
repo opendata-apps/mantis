@@ -9,6 +9,6 @@ Entwicklung/technische Doku
    server-nginx
    database_schema.rst
    speicherschema-bilder.rst
-   workflow.rst
+
 
 
