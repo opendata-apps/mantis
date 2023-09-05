@@ -80,7 +80,8 @@ Schritt 8: 📈 Importieren Sie die Daten
 
 ::
 
-   \copy plzort(plz, ort, bundesland, landkreis) FROM 'C:\home\mantis\app\database\ww-german-postal-codes.csv' WITH (FORMAT csv, DELIMITER ',', HEADER true, ENCODING 'utf-8')
+   cd test/demodata
+   cat README.txt
 
 .. index:: CSS-Watcher; Tailwind
 .. index:: Tailwind; CSS-Watcher	   
@@ -111,7 +112,7 @@ Schritt 11: 🏢 Starten Sie den Produktions-Server
 ::
 
     # For Linux
-    gunicorn run:app    
+    gunicorn run:app  -c gunicorn_config.py
 
     # For Windows
     waitress-serve run:app
