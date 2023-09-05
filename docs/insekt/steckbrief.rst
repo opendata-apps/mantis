@@ -46,7 +46,7 @@ Erfassung
 
 Sie können sich zukünftig an der Erfassung der Sichtungen beteiligen:
 
-gottesanbeterin-gesucht.de
+https://gottesanbeterin-gesucht.de
 
 Bis zum regulären Einsatz nutzen Sie bitte den klassischen Weg der E-Mail.
 
