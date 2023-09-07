@@ -9,12 +9,12 @@
 
     <!-- Card 1 -->
     <a href="https://www.naturkundemuseum-potsdam.de/gottesanbeterin-gesucht" target="_blank"
-      class="block mx-auto transition-transform duration-500 ease-in-out transform bg-white rounded-lg shadow-md cursor-pointer hover:-translate-y-1 hover:shadow-xl group card">
+       class="block mx-auto transition-transform duration-500 ease-in-out transform bg-white
+	      rounded-lg shadow-md cursor-pointer hover:-translate-y-1 hover:shadow-xl group card">
       <img src="{{ url_for('static', filename='images/berger06.webp') }}" alt="Gottesanbeterin"
         class="w-full h-auto mb-4 rounded-t-lg">
-      <h3 class="mb-2 text-xl font-semibold text-center text-gray-800 uppercase">
-        Über das Gottesanbeterin gesucht Projekt
-      </h3>
+      <h3 class="mb-2 text-xl font-semibold text-center
+		 text-gray-800 uppercase"> Über das Gottesanbeterin gesucht Projekt</h3>
       <p class="flex-grow text-center text-gray-600">
         Das Naturkundemuseum Potsdam und die Mantidenfreunde Berlin-Brandenburg initiieren das Projekt "Gottesanbeterin
         gesucht!" mit dem Ziel, die Europäische Gottesanbeterin (<i>Mantis religiosa</i> L. 1758) in der Region
@@ -31,9 +31,9 @@
         Naturkundemuseum Potsdam
       </span>
     </a>
-
     <a href="/mantis-religiosa" target="_blank"
-      class="block mx-auto transition-transform duration-500 ease-in-out transform bg-white rounded-lg shadow-md cursor-pointer hover:-translate-y-1 hover:shadow-xl group card">
+       class="block mx-auto transition-transform duration-500 ease-in-out transform bg-white r
+	      ounded-lg shadow-md cursor-pointer hover:-translate-y-1 hover:shadow-xl group card">
       <img src="{{ url_for('static', filename='images/berger03.webp') }}" alt="Gottesanbeterin"
         class="w-full h-auto rounded-t-lg">
 
@@ -57,15 +57,13 @@
         </p>
       </div>
     </a>
-
     <a href="/faq" target="_blank"
-      class="block mx-auto transition-transform duration-500 ease-in-out transform bg-white rounded-lg shadow-md cursor-pointer hover:-translate-y-1 hover:shadow-xl group card">
+       class="block mx-auto transition-transform duration-500 ease-in-out transform bg-white
+	      rounded-lg shadow-md cursor-pointer hover:-translate-y-1 hover:shadow-xl group card">
       <img src="{{ url_for('static', filename='images/berger10.webp') }}" alt="Gottesanbeterin"
         class="w-full h-auto rounded-t-lg">
       <div class="relative px-4 py-6">
-        <h3 class="mb-2 text-xl font-semibold text-center text-gray-800 uppercase">
-          Was passiert mit meiner Meldung?
-        </h3>
+        <h3 class="mb-2 text-xl font-semibold text-center text-gray-800 uppercase">Was passiert mit meiner Meldung?</h3>
         <p class="text-center text-gray-600">
           Jede Meldung einer in Brandenburg gefundenen Gottesanbeterin wird überprüft und in einer Datenbank erfasst.
           Ihr Bild dient ausschließlich zur Bestätigung des Fundes und wird in keiner Form weiterverwendet oder
@@ -81,7 +79,6 @@
       </div>
     </a>
 </section>
-
 <!-- Animated counter section -->
 <section class="py-16 bg-gray-100">
   <div class="container px-4 mx-auto">
@@ -102,39 +99,28 @@
   const counter = document.querySelector('.counter');
   const target = Math.min(+counter.dataset.target, {{ post_count }});
   const duration = 2500;
-
   let startTime = null;
-
   function easeOutExpo(time, b, c, d) {
     return c * (-Math.pow(2, -10 * time / d) + 1) + b;
   }
-
   function animate(currentTime) {
     if (startTime === null) startTime = currentTime;
     const elapsedTime = currentTime - startTime;
     const progress = Math.min(elapsedTime / duration, 1);
-
-
     const count = Math.floor(easeOutExpo(progress, 0, target, 1));
     counter.innerText = count;
-
     if (elapsedTime < duration) {
       requestAnimationFrame(animate);
     } else {
       counter.innerText = target; // Ensure it ends on the target
     }
   }
-
   const observer = new IntersectionObserver(entries => {
     if (entries[0].isIntersecting) {
       requestAnimationFrame(animate);
       observer.disconnect();
     }
   });
-
   observer.observe(counter);
-
 </script>
-
-
 {% endblock content %}
