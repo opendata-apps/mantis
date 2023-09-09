@@ -41,6 +41,12 @@ gesichtet. Bis 2016 kamen Nachweise aus den Brandenburger Landkreisen
 Spreee-Neiße, Oberspreewald-Lausitz, Elbe-Elster, Dahme-Spreewald und
 Havelland hinzu. Auch in Berlin gibt es zwei Vorkommen.
 
+Momentaufnahme
+--------------
+Stand vom 08.09.2023
+
+.. image:: mantis-sichtungen-stand-2023-09-08.webp
+
 Erfassung
 =========
 
