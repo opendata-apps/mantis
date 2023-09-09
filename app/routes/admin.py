@@ -1,24 +1,27 @@
-import csv
+from flask import session  # import session
+from flask import jsonify, render_template, request, Blueprint, send_from_directory
+from app import db
 # from app.database.models import Mantis
 import json
-import os
+from app.database.models import TblMeldungen, TblFundortBeschreibung, TblFundorte, TblMeldungUser, TblUsers
 from datetime import datetime
-from functools import wraps
-from io import BytesIO, StringIO
-
-import pandas as pd
-from flask import session  # import session
-from flask import (Blueprint, Response, abort, g, jsonify, redirect,
-                   render_template, render_template_string, request, send_file,
-                   send_from_directory, url_for)
-from sqlalchemy import MetaData, Table, create_engine, inspect, or_, text
-from sqlalchemy.orm import joinedload, sessionmaker
-
-from app import db
-from app.config import Config
-from app.database.models import (TblFundortBeschreibung, TblFundorte,
-                                 TblMeldungen, TblMeldungUser, TblUsers)
 from app.forms import MantisSightingForm
+from sqlalchemy import or_, MetaData
+from flask import render_template_string
+from sqlalchemy import inspect, text
+from sqlalchemy.orm import sessionmaker, joinedload
+import csv
+from flask import Response, redirect, url_for
+from io import StringIO, BytesIO
+import os
+import pandas as pd
+from io import BytesIO
+from flask import send_file
+from sqlalchemy import Table, create_engine
+from flask import abort, session
+from app.config import Config
+from functools import wraps
+from flask import g
 
 # Blueprints
 admin = Blueprint('admin', __name__)
@@ -28,7 +31,7 @@ def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
-            abort(403)
+            abort(404)
         return f(*args, **kwargs)
     return decorated_function
 
@@ -40,18 +43,46 @@ def admin_index2(usrid):
 
     # If the user doesn't exist or the role isn't 9, return 404
     if not user or user.user_rolle != '9':
-        abort(403)
+        abort(404)
 
     # Get the user_name of the logged in user_id
     user_name = user.user_name
-
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 20, type=int)
     # Store the userid in session
     session['user_id'] = usrid
+    
+    filter_status = request.args.get('statusInput', 'all')
+    sort_order = request.args.get('sort_order', 'id_desc')
+    
+    filters = {
+    }
+    
 
+    
     image_path = Config.UPLOAD_FOLDER.replace("app/", "")
     inspector = inspect(db.engine)
     tables = inspector.get_table_names()
-    reported_sightings = TblMeldungen.query.all()
+    
+    query = TblMeldungen.query
+    
+    if sort_order == 'id_asc':
+        query = query.order_by(TblMeldungen.id.asc())
+    elif sort_order == 'id_desc':
+        query = query.order_by(TblMeldungen.id.desc())
+
+    # Apply filter conditions based on 'filter_status'
+    if filter_status == 'bearbeitet':
+        query = query.filter(TblMeldungen.dat_bear.isnot(None))
+    elif filter_status == 'offen':
+        query = query.filter(TblMeldungen.dat_bear.is_(None))
+    elif filter_status == 'geloescht':
+        query = query.filter(TblMeldungen.deleted == True)
+
+    paginated_sightings = query.paginate(page=page, per_page=per_page, error_out=False)
+
+
+    reported_sightings = paginated_sightings.items
     for sighting in reported_sightings:
         sighting.fundort = TblFundorte.query.get(sighting.fo_zuordnung)
         sighting.beschreibung = TblFundortBeschreibung.query.get(
@@ -66,7 +97,12 @@ def admin_index2(usrid):
             approver = TblUsers.query.filter_by(
                 user_id=sighting.bearb_id).first()
             sighting.approver_username = approver.user_name if approver else 'Unknown'
-    return render_template('admin/admin.html', reported_sightings=reported_sightings, tables=tables, image_path=image_path, user_name=user_name)
+    return render_template('admin/admin.html', paginated_sightings=paginated_sightings, 
+                       reported_sightings=reported_sightings, tables=tables, 
+                       image_path=image_path, user_name=user_name, 
+                       filters={"status": filter_status}, 
+                       current_filter_status=filter_status,
+                       current_sort_order=sort_order)
 
 
 @admin.route("/change_mantis_meta_data/<int:id>", methods=["POST"])
