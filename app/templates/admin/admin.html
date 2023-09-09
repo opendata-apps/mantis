@@ -59,11 +59,10 @@
         </div>
         
         <div class="mb-2 md:mb-0">
-            <select id="sortInput" onchange="sortReports()"
-                class="w-48 px-4 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
+            <select id="sortInput" onchange="updateSortOrder()" class="w-48 px-4 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
                 <option value="">Sort by...</option>
-                <option value="id_asc">ID Ascending</option>
-                <option value="id_desc">ID Descending</option>
+                <option value="id_asc" {% if current_sort_order == "id_asc" %}selected{% endif %}>ID Ascending </option>
+                <option value="id_desc" {% if current_sort_order == "id_desc" %}selected{% endif %}>ID Descending</option>
             </select>
         </div>
         <div class="flex items-center space-x-4">
@@ -184,11 +183,11 @@
                     </div>
                 </div>
             </div>
+            {% endfor %}
         </div>
-        {% endfor %}
     </div>
+    {{ render_pagination(paginated_sightings, 'admin.admin_index2', current_filter_status, current_sort_order) }}
 </div>
-{{ render_pagination(paginated_sightings, 'admin.admin_index2', current_filter_status) }}
 
 
 
@@ -271,36 +270,13 @@
     let map;
     let marker;
 
-
-
-    document.addEventListener("DOMContentLoaded", function () {
-        document.getElementById("sortInput").value = "id_asc";
-        sortReports();
-    });
-
-    function sortReports() {
-        let input = document.getElementById('sortInput').value;
-        let cards = Array.from(document.getElementsByClassName('report-card'));
-
-        cards.sort((a, b) => {
-            let idA = a.getAttribute('data-report-id');
-            let idB = b.getAttribute('data-report-id');
+    
+    function updateSortOrder() {
+        let sortInput = document.getElementById('sortInput');
+        let selectedSortOrder = sortInput.value;
         
-            switch (input) {
-                case 'id_asc':
-                    return idA - idB;
-                case 'id_desc':
-                    return idB - idA;
-                default:
-                    return 0; // Default case to handle unexpected values
-            }
-        });
-
-        let container = document.getElementById('reportContainer');
-
-        cards.forEach((card) => {
-            container.appendChild(card);
-        });
+        // Reload the page with the new sort order
+        window.location.search = `sort_order=${selectedSortOrder}`;
     }
 
     function changeGender(id) {
@@ -340,12 +316,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', function () {
-        document.getElementById("sortInput").value = "id_asc";
-        sortReports();
-
-        // Add click event listeners for the modal backdrops
         document.getElementById('imageModalBackdrop').addEventListener('click', closeImageModal);
-        //document.getElementById('modalBackdrop').addEventListener('click', closeModal);
     });
 
 
@@ -731,20 +702,6 @@ function generateLocationInfo(data) {
             }
         });
     }
-    
-
-    // Call the filterSightings function initially to apply the default filter
-    document.addEventListener('DOMContentLoaded', (event) => {
-        var label = document.getElementById("checkbox-label");
-
-        if (showApprovedSightings) {
-            label.innerHTML = "Bestätigt";
-        } else {
-            label.innerHTML = "Unbestätigt";
-        }
-
-        filterSightings();
-    });
 </script>
 
 

@@ -53,6 +53,7 @@ def admin_index2(usrid):
     session['user_id'] = usrid
     
     filter_status = request.args.get('statusInput', 'all')
+    sort_order = request.args.get('sort_order', 'id_desc')
     
     filters = {
     }
@@ -64,20 +65,21 @@ def admin_index2(usrid):
     tables = inspector.get_table_names()
     
     query = TblMeldungen.query
+    
+    if sort_order == 'id_asc':
+        query = query.order_by(TblMeldungen.id.asc())
+    elif sort_order == 'id_desc':
+        query = query.order_by(TblMeldungen.id.desc())
 
     # Apply filter conditions based on 'filter_status'
     if filter_status == 'bearbeitet':
         query = query.filter(TblMeldungen.dat_bear.isnot(None))
-        print(query)
     elif filter_status == 'offen':
         query = query.filter(TblMeldungen.dat_bear.is_(None))
-        print(query)
     elif filter_status == 'geloescht':
         query = query.filter(TblMeldungen.deleted == True)
-        print(query)
 
-    # Use paginate method to fetch paginated results based on the filtered query
-    paginated_sightings = query.order_by(TblMeldungen.id.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    paginated_sightings = query.paginate(page=page, per_page=per_page, error_out=False)
 
 
     reported_sightings = paginated_sightings.items
@@ -99,7 +101,8 @@ def admin_index2(usrid):
                        reported_sightings=reported_sightings, tables=tables, 
                        image_path=image_path, user_name=user_name, 
                        filters={"status": filter_status}, 
-                       current_filter_status=filter_status)  # <- Add this line
+                       current_filter_status=filter_status,
+                       current_sort_order=sort_order)
 
 
 @admin.route("/change_mantis_meta_data/<int:id>", methods=["POST"])
