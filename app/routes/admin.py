@@ -28,7 +28,7 @@ def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
-            abort(404)
+            abort(403)
         return f(*args, **kwargs)
     return decorated_function
 
@@ -40,7 +40,7 @@ def admin_index2(usrid):
 
     # If the user doesn't exist or the role isn't 9, return 404
     if not user or user.user_rolle != '9':
-        abort(404)
+        abort(403)
 
     # Get the user_name of the logged in user_id
     user_name = user.user_name

@@ -6,7 +6,7 @@ from pathlib import Path
 from random import uniform
 
 from flask import (Blueprint, flash, jsonify, redirect, render_template,
-                   request, url_for)
+                   request, url_for, abort)
 from PIL import Image
 from sqlalchemy import or_
 from werkzeug.datastructures import CombinedMultiDict
@@ -161,14 +161,14 @@ def report(usrid=None):
         mark = f"{ip}:{pid}"
         _saveip(mark)
         if checklist.get(mark) > 2:
-            return redirect(url_for('main.index'))
+            abort(429)
 
     if form.validate_on_submit():
 
         honeypot_value = form.honeypot.data
         if honeypot_value:  # If the honeypot field is filled out, redirect or return an error
             # Redirect to an error page or handle as needed
-            return redirect(url_for('main.index'))
+            abort(403)
 
         bildpfad = _handle_file_upload(request, form, usrid).replace(
             Config.UPLOAD_FOLDER + "/", "")
