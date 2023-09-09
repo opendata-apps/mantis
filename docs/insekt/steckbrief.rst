@@ -61,7 +61,7 @@ https://www.naturkundemuseum-potsdam.de/gottesanbeterin-gesucht
 Linkliste
 =========
 
-- `Info des Brandenburgischer IT-Dienstleister (ZIT-BB)
+- `Info des Brandenburgischen IT-Dienstleisters (ZIT-BB)
   <https://zit-bb.brandenburg.de/zit-bb/de/ueber-uns/aktuelles/detail/~11-08-2023-auszubildende-entwickeln-meldeportal-fuer-gottesanbeterin>`_
 - `Website »Permakultur in Beelitz«
   <https://permakulturgartenbeelitz.com/2023/08/27/gottesanbeterin-gefunden/#more-1245>`_
