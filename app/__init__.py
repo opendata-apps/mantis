@@ -6,6 +6,7 @@ from flask_wtf.csrf import CSRFProtect
 from werkzeug.middleware.proxy_fix import ProxyFix
 from flask import render_template
 
+
 csrf = CSRFProtect()
 db = SQLAlchemy()
 migrate = Migrate()

@@ -4,6 +4,7 @@ from app import db
 # from app.database.models import Mantis
 import json
 from app.database.models import TblMeldungen, TblFundortBeschreibung, TblFundorte, TblMeldungUser, TblUsers
+from app.database.full_text_search import FullTextSearch
 from datetime import datetime
 from app.forms import MantisSightingForm
 from sqlalchemy import or_, MetaData
@@ -22,6 +23,7 @@ from flask import abort, session
 from app.config import Config
 from functools import wraps
 from flask import g
+from sqlalchemy import text
 
 # Blueprints
 admin = Blueprint('admin', __name__)
@@ -52,35 +54,54 @@ def admin_index2(usrid):
     # Store the userid in session
     session['user_id'] = usrid
     
-    filter_status = request.args.get('statusInput', 'all')
+    filter_status = request.args.get('statusInput', 'offen')
     sort_order = request.args.get('sort_order', 'id_desc')
-    
-    filters = {
-    }
-    
-
+    search_query = request.args.get('q', None)
     
     image_path = Config.UPLOAD_FOLDER.replace("app/", "")
     inspector = inspect(db.engine)
     tables = inspector.get_table_names()
     
-    query = TblMeldungen.query
+    if 'statusInput' not in request.args and 'sort_order' not in request.args:
+        return redirect(url_for('admin.admin_index2', usrid=usrid, statusInput='offen', sort_order='id_asc'))
     
+    query = TblMeldungen.query
+
+    # Apply filter conditions based on 'filter_status'
+    if filter_status == 'bearbeitet':
+        query = query.filter(TblMeldungen.dat_bear.isnot(None), or_(TblMeldungen.deleted.is_(None), TblMeldungen.deleted == False))
+    elif filter_status == 'offen':
+        query = query.filter(TblMeldungen.dat_bear.is_(None), or_(TblMeldungen.deleted.is_(None), TblMeldungen.deleted == False))
+    elif filter_status == 'geloescht':
+        query = query.filter(TblMeldungen.deleted == True)
+    elif filter_status == 'all':
+        # If the filter is set to 'all', include both deleted and non-deleted items
+        query = query.filter(or_(TblMeldungen.deleted.is_(None), TblMeldungen.deleted == False, TblMeldungen.deleted == True))
+    elif search_query:
+        # If there's a search query, don't apply any deletion filter
+        pass
+    else:
+        # Default behavior: Exclude deleted items
+        query = query.filter(or_(TblMeldungen.deleted.is_(None), TblMeldungen.deleted == False))
+
+
+
+    # Apply sort order
     if sort_order == 'id_asc':
         query = query.order_by(TblMeldungen.id.asc())
     elif sort_order == 'id_desc':
         query = query.order_by(TblMeldungen.id.desc())
 
-    # Apply filter conditions based on 'filter_status'
-    if filter_status == 'bearbeitet':
-        query = query.filter(TblMeldungen.dat_bear.isnot(None))
-    elif filter_status == 'offen':
-        query = query.filter(TblMeldungen.dat_bear.is_(None))
-    elif filter_status == 'geloescht':
-        query = query.filter(TblMeldungen.deleted == True)
+    # Apply full-text search if there's a search query
+    if search_query:
+        search_vector = text('plainto_tsquery(:query)').bindparams(query=search_query)
+        search_results = FullTextSearch.query.filter(
+            FullTextSearch.doc.op('@@')(search_vector)
+        ).all()
+        reported_sightings_ids = [result.meldungen_id for result in search_results]
+        query = query.filter(TblMeldungen.id.in_(reported_sightings_ids))
 
     paginated_sightings = query.paginate(page=page, per_page=per_page, error_out=False)
-
 
     reported_sightings = paginated_sightings.items
     for sighting in reported_sightings:
@@ -97,12 +118,16 @@ def admin_index2(usrid):
             approver = TblUsers.query.filter_by(
                 user_id=sighting.bearb_id).first()
             sighting.approver_username = approver.user_name if approver else 'Unknown'
+    
     return render_template('admin/admin.html', paginated_sightings=paginated_sightings, 
-                       reported_sightings=reported_sightings, tables=tables, 
-                       image_path=image_path, user_name=user_name, 
-                       filters={"status": filter_status}, 
-                       current_filter_status=filter_status,
-                       current_sort_order=sort_order)
+                        reported_sightings=reported_sightings, tables=tables, 
+                        image_path=image_path, user_name=user_name, 
+                        filters={"status": filter_status}, 
+                        current_filter_status=filter_status,
+                        current_sort_order=sort_order,
+                        search_query=search_query)
+
+
 
 
 @admin.route("/change_mantis_meta_data/<int:id>", methods=["POST"])
