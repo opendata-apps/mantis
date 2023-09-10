@@ -49,13 +49,14 @@ def _allowed_file(filename):
            filename.rsplit('.', 1)[1].lower() in Config.ALLOWED_EXTENSIONS
 
 
-def _update_or_create_user(usrid, finderid, last_name, first_name, contact, finder_last_name, finder_first_name):
+def _update_or_create_user(usrid, last_name, first_name, contact, finder_last_name, finder_first_name):
     existing_user = TblUsers.query.filter_by(user_id=usrid).first()
     # existing_finder = TblUsers.query.filter_by(
     #     user_id=usrid).filter_by(user_rolle="2").first()
 
     new_finder = None
     if finder_first_name and finder_last_name:
+        finderid = get_new_id()
         new_finder = TblUsers(
             user_id=finderid,
             user_name=finder_last_name + " " + finder_first_name[0] + ".",
@@ -139,7 +140,6 @@ def _saveip(ip):
 @data.route('/melden/<usrid>', methods=['GET', 'POST'])
 def report(usrid=None):
 
-    finderid = get_new_id()
     existing_user = TblUsers.query.filter_by(
         user_id=usrid).first() if usrid else None
     if not existing_user:
@@ -205,7 +205,6 @@ def report(usrid=None):
         db.session.flush()
 
         updated_user, updated_finder = _update_or_create_user(usrid,
-                                                              finderid,
                                                               form.report_last_name.data,
                                                               form.report_first_name.data,
                                                               form.contact.data,
