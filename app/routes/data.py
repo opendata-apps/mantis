@@ -135,8 +135,8 @@ def _saveip(ip):
     return
 
 
-@data.route('/report', methods=['GET', 'POST'])
-@data.route('/report/<usrid>', methods=['GET', 'POST'])
+@data.route('/melden', methods=['GET', 'POST'])
+@data.route('/melden/<usrid>', methods=['GET', 'POST'])
 def report(usrid=None):
 
     finderid = get_new_id()

@@ -10,7 +10,8 @@ from sqlalchemy import text
 provider = Blueprint('provider', __name__)
 
 
-@provider.route('/melder/<usrid>')
+@provider.route('/report/<usrid>')
+@provider.route('/sichtungen/<usrid>')
 def melder_index(usrid):
     # Fetch the user based on the 'usrid' parameter
     user = TblUsers.query.filter_by(user_id=usrid).first()
@@ -54,5 +55,3 @@ def report_Img(filename):
                                filename,
                                mimetype='image/webp',
                                as_attachment=False)
-
-
