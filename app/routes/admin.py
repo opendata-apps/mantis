@@ -51,21 +51,19 @@ def admin_index2(usrid):
     per_page = request.args.get('per_page', 20, type=int)
     # Store the userid in session
     session['user_id'] = usrid
-    
-    filter_status = request.args.get('statusInput', 'all')
+
+    filter_status = request.args.get('statusInput', 'offen')
     sort_order = request.args.get('sort_order', 'id_desc')
-    
+
     filters = {
     }
-    
 
-    
     image_path = Config.UPLOAD_FOLDER.replace("app/", "")
     inspector = inspect(db.engine)
     tables = inspector.get_table_names()
-    
+
     query = TblMeldungen.query
-    
+
     if sort_order == 'id_asc':
         query = query.order_by(TblMeldungen.id.asc())
     elif sort_order == 'id_desc':
@@ -73,14 +71,20 @@ def admin_index2(usrid):
 
     # Apply filter conditions based on 'filter_status'
     if filter_status == 'bearbeitet':
-        query = query.filter(TblMeldungen.dat_bear.isnot(None))
+        query = query.filter(TblMeldungen.dat_bear.isnot(None), or_(
+            TblMeldungen.deleted.is_(None), TblMeldungen.deleted == False))
     elif filter_status == 'offen':
-        query = query.filter(TblMeldungen.dat_bear.is_(None))
+        query = query.filter(TblMeldungen.dat_bear.is_(None), or_(
+            TblMeldungen.deleted.is_(None), TblMeldungen.deleted == False))
     elif filter_status == 'geloescht':
         query = query.filter(TblMeldungen.deleted == True)
+    elif filter_status == 'all':
+        # If the filter is set to 'all', include both deleted and non-deleted items
+        query = query.filter(or_(TblMeldungen.deleted.is_(
+            None), TblMeldungen.deleted == False, TblMeldungen.deleted == True))
 
-    paginated_sightings = query.paginate(page=page, per_page=per_page, error_out=False)
-
+    paginated_sightings = query.paginate(
+        page=page, per_page=per_page, error_out=False)
 
     reported_sightings = paginated_sightings.items
     for sighting in reported_sightings:
@@ -97,12 +101,12 @@ def admin_index2(usrid):
             approver = TblUsers.query.filter_by(
                 user_id=sighting.bearb_id).first()
             sighting.approver_username = approver.user_name if approver else 'Unknown'
-    return render_template('admin/admin.html', paginated_sightings=paginated_sightings, 
-                       reported_sightings=reported_sightings, tables=tables, 
-                       image_path=image_path, user_name=user_name, 
-                       filters={"status": filter_status}, 
-                       current_filter_status=filter_status,
-                       current_sort_order=sort_order)
+    return render_template('admin/admin.html', paginated_sightings=paginated_sightings,
+                           reported_sightings=reported_sightings, tables=tables,
+                           image_path=image_path, user_name=user_name,
+                           filters={"status": filter_status},
+                           current_filter_status=filter_status,
+                           current_sort_order=sort_order)
 
 
 @admin.route("/change_mantis_meta_data/<int:id>", methods=["POST"])

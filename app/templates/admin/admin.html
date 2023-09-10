@@ -60,9 +60,9 @@
         
         <div class="mb-2 md:mb-0">
             <select id="sortInput" onchange="updateSortOrder()" class="w-48 px-4 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                <option value="">Sort by...</option>
-                <option value="id_asc" {% if current_sort_order == "id_asc" %}selected{% endif %}>ID Ascending </option>
-                <option value="id_desc" {% if current_sort_order == "id_desc" %}selected{% endif %}>ID Descending</option>
+                <option value="">Sortieren...</option>
+                <option value="id_asc" {% if current_sort_order == "id_asc" %}selected{% endif %}>Aufsteigend</option>
+                <option value="id_desc" {% if current_sort_order == "id_desc" %}selected{% endif %}>Absteigend</option>
             </select>
         </div>
         <div class="flex items-center space-x-4">
@@ -274,10 +274,15 @@
     function updateSortOrder() {
         let sortInput = document.getElementById('sortInput');
         let selectedSortOrder = sortInput.value;
-        
-        // Reload the page with the new sort order
-        window.location.search = `sort_order=${selectedSortOrder}`;
+    
+        // Get the current search query and filter status from the URL
+        let searchParams = new URLSearchParams(window.location.search);
+        let currentFilterStatus = searchParams.get('statusInput') || 'all';
+    
+        // Update the URL with the new sort order and the current search query and filter status
+        window.location.search = `statusInput=${currentFilterStatus}&sort_order=${selectedSortOrder}`;
     }
+
 
     function changeGender(id) {
         const selectElement = document.getElementById(`gender-${id}`);
