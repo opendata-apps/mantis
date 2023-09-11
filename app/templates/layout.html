@@ -1,22 +1,30 @@
 <!DOCTYPE html>
 <html lang="de">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>{% block page_title %}Mantis Religiosa Beobachtungen | Mitmachprojekt | Gottesanbeterin Gesucht{% endblock
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <title>{% block page_title %}Mantis Religiosa Beobachtungen | Mitmachprojekt | Gottesanbeterin Gesucht{% endblock
     page_title %}</title>
-    <meta name="description"
-	  content="Beobachtungen der Gottesanbeterin (Mantis religiosa) in Deutschland. Sie haben eine Gottesanbeterin gesichtet bzw. gefunden. Melden Sie Ihre Beobachtungen und unterstützen Sie die Forschung.">
-    <meta name="keywords"
-	  content="{% block meta_keywords %}Mantis religiosa, Gottesanbeterin, Mitmachprojekt, Beobachtungen, Meldung, Citizen Science, Naturkundemuseum, Potsdam, Deutschland, Gottesanbeterin gefunden , Gottesanbeterin gesichtet, Mantis entdeckt, Brandenburg, Berlin{% endblock %}">
+  <meta name="description"
+    content="Beobachtungen der Gottesanbeterin (Mantis religiosa) in Deutschland. Melden Sie Ihre Beobachtungen und unterstützen Sie unsere Forschung zur Verbreitung dieser Art.">
+    <meta name="keywords" content="{% block meta_keywords %}Mantis religiosa, Gottesanbeterin, Mitmachprojekt, Beobachtungen, Meldung, Citizen Science, Naturkundemuseum, Potsdam, Deutschland, Gottesanbeterin gefunden , Gottesanbeterin gesichtet, Brandenburg, Berlin{% endblock %}">
   <link rel="canonical" href="{{ request.url }}" />
   <!-- Schema.org markup for Google+ -->
   <meta itemprop="name" content="Gottesanbeterin Gesucht | Mitmachprojekt | Mantis Religiosa Beobachtungen">
   <meta itemprop="description"
-	content="Beobachtungen der Gottesanbeterin (Mantis religiosa) in Deutschland. Sie haben eine Gottesanbeterin gesichtet bzw. gefunden. Melden Sie Ihre Beobachtungen und unterstützen Sie die Forschung.">
+    content="Beobachtungen der Gottesanbeterin (Mantis religiosa) in Deutschland. Melden Sie Ihre Beobachtungen und unterstützen Sie unsere Forschung zur Verbreitung dieser Art.">
   <meta itemprop="image" content="{{ url_for('static', filename='images/berger08.webp') }}">
+
+  <!-- Twitter Card data -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@publisher_handle">
+  <meta name="twitter:title" content="Gottesanbeterin Gesucht | Mitmachprojekt | Mantis Religiosa Beobachtungen">
+  <meta name="twitter:description"
+    content="Beobachtungen der Gottesanbeterin (Mantis religiosa) in Deutschland. Melden Sie Ihre Beobachtungen und unterstützen Sie unsere Forschung zur Verbreitung dieser Art.">
+  <meta name="twitter:creator" content="@author_handle">
+  <meta name="twitter:image:src" content="{{ url_for('static', filename='images/berger08.webp') }}">
 
   <!-- Open Graph data -->
   <meta property="og:title" content="Gottesanbeterin Gesucht | Mitmachprojekt | Mantis Religiosa Beobachtungen" />
@@ -24,36 +32,39 @@
   <meta property="og:url" content="https://gottesanbeterin-gesucht.de/" />
   <meta property="og:image" content="{{ url_for('static', filename='images/IMG_1899b_D_Berger.webp') }}" />
   <meta property="og:description"
-	content="Beobachtungen der Gottesanbeterin (Mantis religiosa) in Deutschland. Melden Sie Ihre Beobachtungen und unterstützen Sie die Forschung zur Verbreitung dieser Art." />
+    content="Beobachtungen der Gottesanbeterin (Mantis religiosa) in Deutschland. Melden Sie Ihre Beobachtungen und unterstützen Sie unsere Forschung zur Verbreitung dieser Art." />
   <meta property="og:site_name" content="Gottesanbeterin Gesucht" />
   <meta property="fb:admins" content="Facebook numberic ID" />
+
+
   <link rel="stylesheet" href="{{ url_for('static', filename='build/theme.css') }}" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/leaflet.css')}}" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/cluster/MarkerCluster.Default.css')}}" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/cluster/MarkerCluster.css')}}" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/currentLocation/L.Control.Locate.min.css')}}" />
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.webp') }}"
+    alt="Gottesanbeterin Logo">
+
   <script src="{{ url_for('static', filename='js/flow/flowbite.min.js')}}" defer></script>
   <script src="{{ url_for('static', filename='js/leaflet.js')}}"></script>
   <script src="{{ url_for('static', filename='js/esri-leaflet.js')}}"></script>
   <script src="{{ url_for('static', filename='js/esri-leaflet-vector.js')}}"></script>
   <script src="{{ url_for('static', filename='js/exif-js.js')}}" defer></script>
-  <script src="{{url_for('static', filename='js/cluster/leaflet.markercluster.js')}}"></script>
-  <script src="{{url_for('static', filename='js/currentLocation/L.Control.Locate.min.js')}}"></script>
+
   {% block head %} {% endblock head %}
 </head>
+
+
 <body class="antialiased bg-gray-100">
   <div class="topContainer">
     <div class="relative bg-fixed bg-center bg-no-repeat bg-cover"
       style="background-image: url('{{ url_for('static', filename='images/IMG_1899b_D_Berger.webp') }}');">
       <nav id="navbar" class="fixed top-0 left-0 z-50 w-full transition-all duration-500 ease-in-out transform">
         <div class="container flex items-center justify-between px-4 py-3 mx-auto">
-          <a href="/" class="flex items-center font-extrabold text-white">
-            <img src="{{ url_for('static', filename='favicon.ico') }}" alt="Logo des Mantis Religiosa Projekts"
+          <a href="/start" class="flex items-center font-extrabold text-white">
+            <img src="{{ url_for('static', filename='images/favicon.ico') }}" alt="Logo des Mantis Religiosa Projekts"
               class="h-6 mr-2 sm:h-9" />
             <span class="text-2xl text-white link link-underline link-underline-black">Mitmachprojekt</span>
           </a>
           <div class="items-center hidden md:flex">
-            <a href="/"
+            <a href="/start"
               class="mr-5 text-base font-bold text-white transition-colors duration-300 hover:text-green-400 md:text-base"
               title="Startseite">
               <span class="text-white link link-underline link-underline-black">Start</span>
@@ -63,7 +74,7 @@
               title="Informationen zur Gottesanbeterin">
               <span class="text-white link link-underline link-underline-black">Gottesanbeterin</span>
             </a>
-            <a href="/melden"
+            <a href="/report"
               class="mr-5 text-base font-bold text-white transition-colors duration-300 hover:text-green-400 md:text-base"
               title="Melden Sie eine Gottesanbeterin-Sichtung">
               <span class="text-white link link-underline link-underline-black">Melden</span>
@@ -84,13 +95,13 @@
             </button>
             <div
               class="absolute left-0 w-full transition-all duration-500 origin-top transform scale-y-0 bg-green-700 rounded-lg opacity-0 top-full mobile-menu">
-              <a href="/"
+              <a href="/start"
                 class="block px-4 py-2 my-2 text-lg font-medium text-center text-white transition-colors duration-300 rounded-lg hover:bg-green-500"
                 title="Startseite des Mitmachprojekts Mantis">Start</a>
               <a href="/mantis-religiosa"
                 class="block px-4 py-2 my-2 text-lg font-medium text-center text-white transition-colors duration-300 rounded-lg hover:bg-green-500"
                 title="Informationen zur Gottesanbeterin Mantis">Gottesanbeterin</a>
-              <a href="/melden"
+              <a href="/report"
                 class="block px-4 py-2 my-2 text-lg font-medium text-center text-white transition-colors duration-300 rounded-lg hover:bg-green-500"
                 title="Melden Sie eine Sichtung der Gottesanbeterin Mantis">Melden</a>
               <a href="/auswertungen"
@@ -99,6 +110,7 @@
             </div>
           </div>
       </nav>
+
       <!-- Navbar End -->
       <!-- Content Start -->
       <div class="relative bg-fixed bg-center bg-no-repeat bg-cover">
@@ -109,10 +121,9 @@
               <div class="flex flex-col items-center justify-center w-full">
                 <!-- Change to flex-col and center items -->
                 <h1 class="mb-6 font-bold text-white title md:text-6xl">
-                  {% block title %}{% endblock title %}
-                </h1>
-                {% if request.path in ['/'] %}
-                <a href="/melden"
+		  {% block title %}{% endblock title %}</h1>
+                {% if request.path[:7] in ['/', '/start', '/report'] %}
+                <a href="/report"
                   class="relative px-10 py-3 overflow-hidden font-medium text-white transition-all transition duration-300 ease-out bg-green-600 rounded-md group hover:bg-gradient-to-r hover:from-green-600 hover:to-green-500 hover:ring-2 hover:ring-offset-2 hover:ring-green-500">
                   <span class="absolute bottom-0 left-0 h-full -ml-2">
                     <svg viewBox="0 0 487 487" class="w-auto h-full opacity-100 object-stretch"
@@ -141,6 +152,7 @@
         </div>
         <!-- Content End -->
       </div>
+
     </div>
     <div id="overlay"></div>
   </div>
@@ -168,23 +180,30 @@
       navbar.classList.toggle("sticky-nav", isScrolled || !mobileMenu.classList.contains("scale-y-0"));
     });
   </script>
+
+
+
+
+
   <!--! White Content Start-->
   <div class="z-10 flex flex-wrap mt-0 bg-gray-100" id="content-container">
     <div class="flex-auto">{% block content %} {% endblock content %}</div>
   </div>
   <!--! White Content End-->
+
   <!--! Start Footer -->
   <!--https://tailwindcomponents.com/component/footer-5-->
   <!--! Start Footer -->
   <footer id="links" class="bg-gray-200 footer ">
     <div class="max-w-5xl px-4 py-4 mx-auto sm:px-6 lg:px-8">
       <div class="flex justify-center text-green-600">
-        <a href="/" class="text-3xl font-bold">MITMACHPROJEKT</a>
+        <h2 class="text-3xl font-bold">MITMACHPROJEKT</h2>
       </div>
       <p class="max-w-md mx-auto mt-6 leading-relaxed text-center text-gray-500">
         Die Gottesanbeterin (<i>Mantis religiosa </i> L., 1758) ist eine faszinierende
         Insektenart mit einer einzigartigen Jagdstrategie.
       </p>
+
       <ul class="flex flex-wrap justify-center gap-6 mt-12 md:gap-8 lg:gap-12">
         <li>
           <a class="text-gray-700 transition hover:text-gray-800/75"
@@ -193,33 +212,39 @@
             Dokumentation
           </a>
         </li>
+
         <li>
           <a class="text-gray-700 transition hover:text-gray-800/75" href="https://gitlab.com/opendata-apps/mantis"
             target="_blank" rel="noreferrer noopener">
             Quellcode (GitLab)
           </a>
         </li>
+
         <li>
           <a class="text-gray-700 transition hover:text-gray-800/75" href="/faq">
             FAQ
           </a>
         </li>
+
         <li>
           <a class="text-gray-700 transition hover:text-gray-800/75" href="/impressum">
             Impressum
           </a>
         </li>
+
         <li>
           <a class="text-gray-700 transition hover:text-gray-800/75" href="/lizenz">
             Lizenz
           </a>
         </li>
+
         <li>
           <a class="text-gray-700 transition hover:text-gray-800/75" href="/datenschutz">
             Datenschutz
           </a>
         </li>
       </ul>
+
       <ul class="flex justify-center gap-6 mt-12 md:gap-8">
         <li>
           <a href="https://gitlab.com/opendata-apps/mantis" rel="noreferrer noopener" target="_blank"
@@ -246,31 +271,44 @@
           </a>
         </li>
       </ul>
+
       <p class="mt-12 text-center text-gray-600 ">✻ Python/Flask-App ✻ Lizenz: MIT ✻ P22 ✻ 2023 ✻</p>
     </div>
   </footer>
+
   <style>
     body {
       opacity: 0 !important;
       transition: opacity 0.5s ease-in !important;
     }
+
     body.loaded {
       opacity: 1 !important;
     }
+
+
   </style>
+
+
   <script>
+    
+
     window.addEventListener("DOMContentLoaded", (event) => {
       document.body.classList.add("loaded");
     });
+
     function adjustFooterPosition() {
       const contentContainer = document.getElementById("content-container");
       const footer = document.querySelector(".footer");
       const windowHeight = window.innerHeight;
+
       const contentRect = contentContainer.getBoundingClientRect();
       const footerRect = footer.getBoundingClientRect();
+
       const contentHeight = contentRect.height;
       const footerHeight = footerRect.height;
       const totalHeight = contentHeight + footerHeight;
+
       if (totalHeight < windowHeight) {
         const minHeight = windowHeight - footerHeight;
         contentContainer.style.minHeight = minHeight + "px";
@@ -278,8 +316,10 @@
         contentContainer.style.minHeight = "auto";
       }
     }
+
     window.addEventListener("DOMContentLoaded", adjustFooterPosition);
     window.addEventListener("resize", adjustFooterPosition);
+
     console.log(
       "%cGottesanbeterin Gesucht! 🦗",
       "background-color: #10B981; color: #FFF; font-size: 24px; padding: 10px 20px; border-radius: 5px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);"
@@ -295,7 +335,10 @@
       "%c🔗 https://gitlab.com/opendata-apps/mantis",
       "color: #3B82F6; font-size: 16px; font-weight: bold;"
     );
+
   </script>
   <!--! End Footer -->
 </body>
+
+
 </html>

@@ -18,6 +18,7 @@ main = Blueprint('main', __name__)
 
 
 @main.route('/')
+@main.route('/start')
 def index():
     post_count = db.session.query(TblMeldungen).filter(
         TblMeldungen.deleted == None).count()
