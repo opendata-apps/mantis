@@ -5,11 +5,14 @@
 {% endblock %}
 
 
+
 {% block content %}
 
 <div class="container px-4 mx-auto my-10 md:px-12">
-  <h1 class="my-1 text-2xl text-black link link-underline link-underline-black">Ihre bisherige(n) Meldung(en)</h1>
-
+  <div class="my-4 text-center">
+    <h1 class="my-1 text-4xl font-semibold text-gray-900">Ihre bisherigen Meldungen</h1>
+    <hr class="w-1/4 mx-auto my-4 border-t-2 border-green-600">
+  </div>
   <div class="grid grid-cols-1 gap-6 mb-4 sm:grid-cols-2 lg:grid-cols-3" id="reportContainer">
     {% for sighting in reported_sightings %}
     <div class="mb-4 overflow-hidden transition-shadow duration-200 ease-in-out bg-white rounded-lg shadow-lg hover:shadow-xl report-card"
@@ -35,8 +38,10 @@
 		  <p class="text-sm"><strong>Längengrad:</strong> {{ sighting['longitude'] }}</p>
 		  <p class="text-sm"><strong>Breitengrad:</strong> {{ sighting['latitude'] }}</p>
 		  <p class="text-sm"><strong>User Name:</strong>  {{ sighting['user_name']}}</p>
-		  <p class="text-sm"><strong>User Email:</strong> {{  sighting['user_kontakt']}}</p>
-		  <p class="text-sm"><strong>User ID:</strong> {{  sighting['user_id']}}</p>
+    {% if sighting['user_kontakt'] %}
+      <p class="text-sm"><strong>User Email:</strong> {{ sighting['user_kontakt'] }}</p>
+    {% endif %}
+      <p class="text-sm"><strong>User ID:</strong> {{ sighting['user_id'] }}</p>
 		  <p class="text-sm"><strong>Datum der Überprüfung:</strong> {{ sighting['dat_bear'] }}</p>
 		</div>
 	      </div>
@@ -81,10 +86,11 @@
       </div>
     </div>
   </div>
-  <p class="my-1 text-xl text-black link link-underline link-underline-black">Vielen Dank für Ihre Unterstützung.</p>
-  <p class="my-1 text-xl text-black link link-underline link-underline-black">-== Ihr Mantis-Team ==-</p>
-  <p class="my-1 text-xl text-black link link-underline link-underline-black">HINWEIS: Behandeln Sie diesen Link wie ein Passwort und geben Sie ihn nicht weiter!
-  </p>
+  <div class="p-5 mt-5 text-center bg-white shadow rounded-2xl">
+    <p class="text-lg font-medium text-gray-700">Vielen Dank für Ihre Unterstützung.</p>
+    <p class="text-lg font-bold text-green-600">-== Ihr Mantis-Team ==-</p>
+    <p class="mt-2 text-sm font-medium text-gray-500">HINWEIS: Behandeln Sie diesen Link wie ein Passwort und geben Sie ihn nicht weiter!</p>
+  </div>
 </div>
 <script>
   function openImageModal(imageUrl) {
@@ -100,5 +106,9 @@
       let modalImage = document.getElementById('modalImage');
       window.open(modalImage.src, '_blank');
   }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('imageModalBackdrop').addEventListener('click', closeImageModal);
+});
 </script>
 {% endblock content %}
