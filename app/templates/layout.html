@@ -59,7 +59,8 @@
       <nav id="navbar" class="fixed top-0 left-0 z-50 w-full transition-all duration-500 ease-in-out transform">
         <div class="container flex items-center justify-between px-4 py-3 mx-auto">
           <a href="/start" class="flex items-center font-extrabold text-white">
-            <img src="{{ url_for('static', filename='images/favicon.ico') }}" alt="Logo des Mantis Religiosa Projekts"
+            <img src="{{ url_for('static', filename='favicon.ico') }}"
+		 alt="Logo des Mantis Religiosa Projekts"
               class="h-6 mr-2 sm:h-9" />
             <span class="text-2xl text-white link link-underline link-underline-black">Mitmachprojekt</span>
           </a>
@@ -74,7 +75,7 @@
               title="Informationen zur Gottesanbeterin">
               <span class="text-white link link-underline link-underline-black">Gottesanbeterin</span>
             </a>
-            <a href="/report"
+            <a href="/melden"
               class="mr-5 text-base font-bold text-white transition-colors duration-300 hover:text-green-400 md:text-base"
               title="Melden Sie eine Gottesanbeterin-Sichtung">
               <span class="text-white link link-underline link-underline-black">Melden</span>
@@ -101,7 +102,7 @@
               <a href="/mantis-religiosa"
                 class="block px-4 py-2 my-2 text-lg font-medium text-center text-white transition-colors duration-300 rounded-lg hover:bg-green-500"
                 title="Informationen zur Gottesanbeterin Mantis">Gottesanbeterin</a>
-              <a href="/report"
+              <a href="/melden"
                 class="block px-4 py-2 my-2 text-lg font-medium text-center text-white transition-colors duration-300 rounded-lg hover:bg-green-500"
                 title="Melden Sie eine Sichtung der Gottesanbeterin Mantis">Melden</a>
               <a href="/auswertungen"
@@ -123,7 +124,7 @@
                 <h1 class="mb-6 font-bold text-white title md:text-6xl">
 		  {% block title %}{% endblock title %}</h1>
                 {% if request.path[:7] in ['/', '/start', '/report'] %}
-                <a href="/report"
+                <a href="/melden"
                   class="relative px-10 py-3 overflow-hidden font-medium text-white transition-all transition duration-300 ease-out bg-green-600 rounded-md group hover:bg-gradient-to-r hover:from-green-600 hover:to-green-500 hover:ring-2 hover:ring-offset-2 hover:ring-green-500">
                   <span class="absolute bottom-0 left-0 h-full -ml-2">
                     <svg viewBox="0 0 487 487" class="w-auto h-full opacity-100 object-stretch"
