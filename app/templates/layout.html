@@ -111,8 +111,10 @@
                 <h1 class="mb-6 font-bold text-white title md:text-6xl">
                   {% block title %}{% endblock title %}
                 </h1>
-                {% if request.path in ['/'] %}
-                <a href="/melden"
+                {% if request.path == '/' or request.path.startswith("/start") or request.path.startswith("/sichtungen") or request.path.startswith("/report") %}
+                <a href={% block button_ref %}
+                "/melden"
+                {% endblock %}            
                   class="relative px-10 py-3 overflow-hidden font-medium text-white transition-all transition duration-300 ease-out bg-green-600 rounded-md group hover:bg-gradient-to-r hover:from-green-600 hover:to-green-500 hover:ring-2 hover:ring-offset-2 hover:ring-green-500">
                   <span class="absolute bottom-0 left-0 h-full -ml-2">
                     <svg viewBox="0 0 487 487" class="w-auto h-full opacity-100 object-stretch"

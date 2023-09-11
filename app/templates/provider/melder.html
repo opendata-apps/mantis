@@ -1,36 +1,14 @@
 {% extends "layout.html" %}
 {% block title %} Meine Sichtungen {% endblock title%}
+{% block button_ref %}
+    "/melden/{{ reported_sightings[0]['user_id'] }}"
+{% endblock %}
 
-{% block text %}
-
-<a href="/melden/{{ reported_sightings[0]['user_id'] }}"
-                  class="relative px-10 py-3 overflow-hidden font-medium text-white transition-all transition duration-300 ease-out bg-green-600 rounded-md group hover:bg-gradient-to-r hover:from-green-600 hover:to-green-500 hover:ring-2 hover:ring-offset-2 hover:ring-green-500">
-                  <span class="absolute bottom-0 left-0 h-full -ml-2">
-                    <svg viewBox="0 0 487 487" class="w-auto h-full opacity-100 object-stretch"
-                      xmlns="http://www.w3.org/2000/svg">
-                      <path
-                        d="M0 .3c67 2.1 134.1 4.3 186.3 37 52.2 32.7 89.6 95.8 112.8 150.6 23.2 54.8 32.3 101.4 61.2 149.9 28.9 48.4 77.7 98.8 126.4 149.2H0V.3z"
-                        fill="#FFF" fill-rule="nonzero" fill-opacity=".1"></path>
-                    </svg>
-                  </span>
-                  <span class="absolute top-0 right-0 w-12 h-full -mr-3">
-                    <svg viewBox="0 0 487 487" class="object-cover w-full h-full" xmlns="http://www.w3.org/2000/svg">
-                      <path
-                        d="M487 486.7c-66.1-3.6-132.3-7.3-186.3-37s-95.9-85.3-126.2-137.2c-30.4-51.8-49.3-99.9-76.5-151.4C70.9 109.6 35.6 54.8.3 0H487v486.7z"
-                        fill="#FFF" fill-rule="nonzero" fill-opacity=".1"></path>
-                    </svg>
-                  </span>
-                  <span
-                    class="absolute right-0 w-8 h-32 -mt-12 transition-all duration-1000 transform translate-x-12 bg-white opacity-10 rotate-12 group-hover:-translate-x-40 ease"></span>
-                  <span class="relative text-lg">Neue Meldung</span>
-</a>
-
-{% endblock text %}
 
 {% block content %}
 
 <div class="container px-4 mx-auto my-10 md:px-12">
-  <h1 class="text-2xl text-black link link-underline link-underline-black my-1">Ihre bisherige(n) Meldung(en)</h1>
+  <h1 class="my-1 text-2xl text-black link link-underline link-underline-black">Ihre bisherige(n) Meldung(en)</h1>
 
   <div class="grid grid-cols-1 gap-6 mb-4 sm:grid-cols-2 lg:grid-cols-3" id="reportContainer">
     {% for sighting in reported_sightings %}
@@ -41,8 +19,7 @@
       <div class="relative">
         <div class="relative">
           <img onclick="openImageModal('{{ url_for('provider.report_Img', filename=image_path + "/" + sighting['ablage']) }}')"
-	       class="object-cover w-full h-48 transition-transform duration-200 ease-in-out
-		      rounded-t-lg cursor-pointer md:h-64 hover:scale-105"
+	       class="object-cover w-full h-48 transition-transform duration-200 ease-in-out rounded-t-lg cursor-pointer md:h-64 hover:scale-105"
                src="{{ url_for('provider.report_Img', filename=image_path + "/" + sighting['ablage'])}}"
                alt="{{sighting['imagepath']}}">
           <div class="p-4 md:p-6">
@@ -78,23 +55,18 @@
         </div>
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
         <div
-          class="inline-block px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all
-		 transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-full sm:w-11/12 md:w-3/4 lg:w-1/2 xl:w-1/3 sm:p-6">
+          class="inline-block px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-full sm:w-11/12 md:w-3/4 lg:w-1/2 xl:w-1/3 sm:p-6">
           <div class="flex justify-center mt-2">
             <img id="modalImage" class="w-full max-h-[70vh] object-cover" src="" alt="Full Image View">
           </div>
           <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
             <button type="button" onclick="closeImageModal()"
-		    class="inline-flex justify-center w-full px-4 py-2 mb-2 text-base font-medium text-white bg-green-600
-			   border border-transparent rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2
-			   focus:ring-offset-2 focus:ring-green-500 sm:mb-0 sm:ml-3 sm:w-auto sm:text-sm"
+		    class="inline-flex justify-center w-full px-4 py-2 mb-2 text-base font-medium text-white bg-green-600 border border-transparent rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:mb-0 sm:ml-3 sm:w-auto sm:text-sm"
 		    title="Schließen Sie das Fenster">
               Close
             </button>
             <button type="button" onclick="openImageNewTab()"
-		    class="inline-flex justify-center w-full px-4 py-2 mb-2 text-base font-medium text-white bg-green-600 border
-			   border-transparent rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2
-			   focus:ring-green-500 sm:mb-0 sm:ml-3 sm:w-auto sm:text-sm"
+		    class="inline-flex justify-center w-full px-4 py-2 mb-2 text-base font-medium text-white bg-green-600 border border-transparent rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:mb-0 sm:ml-3 sm:w-auto sm:text-sm"
                     title="Öffnen Sie das Bild in einem neuen Tab">
               <svg class="w-[16px] h-[16px] text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                    fill="none" viewBox="0 0 18 18">
@@ -109,9 +81,9 @@
       </div>
     </div>
   </div>
-  <p class="text-xl text-black link link-underline link-underline-black my-1">Vielen Dank für Ihre Unterstützung.</p>
-  <p class="text-xl text-black link link-underline link-underline-black my-1">-== Ihr Mantis-Team ==-</p>
-  <p class="text-xl text-black link link-underline link-underline-black my-1">HINWEIS: Behandeln Sie diesen Link wie ein Passwort und geben Sie ihn nicht weiter!
+  <p class="my-1 text-xl text-black link link-underline link-underline-black">Vielen Dank für Ihre Unterstützung.</p>
+  <p class="my-1 text-xl text-black link link-underline link-underline-black">-== Ihr Mantis-Team ==-</p>
+  <p class="my-1 text-xl text-black link link-underline link-underline-black">HINWEIS: Behandeln Sie diesen Link wie ein Passwort und geben Sie ihn nicht weiter!
   </p>
 </div>
 <script>
