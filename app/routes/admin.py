@@ -104,12 +104,13 @@ def admin_index2(usrid):
 
     # Apply full-text search if there's a search query
     if search_query:
-        search_vector = text('plainto_tsquery(:query)').bindparams(query=search_query)
+        search_vector = text('plainto_tsquery(\'german\', :query)').bindparams(query=search_query)
         search_results = FullTextSearch.query.filter(
             FullTextSearch.doc.op('@@')(search_vector)
         ).all()
         reported_sightings_ids = [result.meldungen_id for result in search_results]
         query = query.filter(TblMeldungen.id.in_(reported_sightings_ids))
+
 
     paginated_sightings = query.paginate(page=page, per_page=per_page, error_out=False)
 

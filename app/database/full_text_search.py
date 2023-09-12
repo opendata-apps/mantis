@@ -18,7 +18,7 @@ class FullTextSearch(db.Model):
             CREATE MATERIALIZED VIEW IF NOT EXISTS full_text_search AS
             SELECT 
                 m.id as meldungen_id,
-                to_tsvector(
+                to_tsvector('german',
                     COALESCE(m.bearb_id, '') || ' ' ||
                     COALESCE(m.anm_melder, '') || ' ' ||
                     COALESCE(m.anm_bearbeiter, '') || ' ' ||
