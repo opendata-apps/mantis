@@ -9,6 +9,7 @@ class FullTextSearch(db.Model):
 
     @staticmethod
     def create_materialized_view():
+        print("Creating materialized view...")
         """
         Create the materialized view if it doesn't exist.
         This function can be called during app initialization.
@@ -50,12 +51,18 @@ class FullTextSearch(db.Model):
         db.session.execute(text("""
             CREATE INDEX IF NOT EXISTS idx_full_text_search ON full_text_search USING gin(doc);
         """))
+        
+        db.session.commit()
 
     @staticmethod
     def refresh_materialized_view():
+        print("\n" + "="*50)
+        print("Updating...")
+        print("="*50 + "\n")
         """
         Refresh the materialized view.
         This function can be called after significant data changes.
         """
         db.session.execute(text("REFRESH MATERIALIZED VIEW full_text_search;"))
+        db.session.commit()
 

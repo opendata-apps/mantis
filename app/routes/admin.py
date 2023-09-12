@@ -5,7 +5,7 @@ from app import db
 import json
 from app.database.models import TblMeldungen, TblFundortBeschreibung, TblFundorte, TblMeldungUser, TblUsers
 from app.database.full_text_search import FullTextSearch
-from datetime import datetime
+from datetime import datetime, timedelta
 from app.forms import MantisSightingForm
 from sqlalchemy import or_, MetaData
 from flask import render_template_string
@@ -47,12 +47,22 @@ def admin_index2(usrid):
     if not user or user.user_rolle != '9':
         abort(404)
 
+    now = datetime.utcnow()
     # Get the user_name of the logged in user_id
     user_name = user.user_name
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 20, type=int)
+    last_updated = session.get('last_updated')
     # Store the userid in session
     session['user_id'] = usrid
+
+    # Convert last_updated to a timezone-naive datetime if it's timezone-aware
+    if last_updated and last_updated.tzinfo:
+        last_updated = last_updated.replace(tzinfo=None)
+
+    if last_updated is None or now - last_updated > timedelta(minutes=1):
+        FullTextSearch.refresh_materialized_view()
+        session['last_updated'] = now
     
     filter_status = request.args.get('statusInput', 'offen')
     sort_order = request.args.get('sort_order', 'id_desc')
