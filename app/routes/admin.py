@@ -73,7 +73,7 @@ def admin_index2(usrid):
     tables = inspector.get_table_names()
     
     if 'statusInput' not in request.args and 'sort_order' not in request.args:
-        return redirect(url_for('admin.admin_index2', usrid=usrid, statusInput='offen', sort_order='id_asc'))
+        return redirect(url_for('admin.admin_index2', usrid=usrid, statusInput='offen', sort_order='id_desc'))
     
     query = TblMeldungen.query
 
