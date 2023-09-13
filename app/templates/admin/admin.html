@@ -310,26 +310,9 @@
             });
     }
 
-    function searchReports() {
-        // Get input value
-        let input = document.getElementById('searchInput').value.toLowerCase();
-        let cards = document.getElementsByClassName('report-card');
-
-        // Hide or show cards based on input
-        for (let i = 0; i < cards.length; i++) {
-            let id = cards[i].getAttribute('data-report-id');
-            if (id.toLowerCase().includes(input)) {
-                cards[i].style.display = "";
-            } else {
-                cards[i].style.display = "none";
-            }
-        }
-    }
-
     document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('imageModalBackdrop').addEventListener('click', closeImageModal);
     });
-
 
 
     // Function to toggle approve a sighting
@@ -626,9 +609,9 @@ function generateLocationInfo(data) {
     function removeCardFromView(id) {
         let card = document.querySelector(`[data-report-id="${id}"]`);
         let followingCards = Array.from(document.querySelectorAll(`[data-report-id]`)).slice(Array.from(document.querySelectorAll(`[data-report-id]`)).indexOf(card) + 1);
-
+    
         card.classList.add('fade-out');
-
+    
         // Allow animation to complete before removing the card
         setTimeout(function () {
             card.remove();
@@ -639,8 +622,13 @@ function generateLocationInfo(data) {
                     followingCard.classList.remove('slide-in');
                 }, 500);
             });
+    
+            // Adjust the footer position after the card is removed
+            adjustFooterPosition();
+    
         }, 500); // matches the duration of the fade-out animation
     }
+    
 
     function exportData(exportType) {
         var exportButton = document.getElementById("dropdownExportButton");
