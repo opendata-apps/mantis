@@ -21,7 +21,7 @@
          data-deleted="{{ 'true' if sighting.deleted else 'false' }}">
       <div class="relative">
         <div class="relative">
-          <img onclick="openImageModal('{{ url_for('provider.report_Img', filename=image_path + "/" + sighting['ablage']) }}')"
+          <img loading="lazy"onclick="openImageModal('{{ url_for('provider.report_Img', filename=image_path + "/" + sighting['ablage']) }}')"
 	       class="object-cover w-full h-48 transition-transform duration-200 ease-in-out rounded-t-lg cursor-pointer md:h-64 hover:scale-105"
                src="{{ url_for('provider.report_Img', filename=image_path + "/" + sighting['ablage'])}}"
                alt="{{sighting['imagepath']}}">
@@ -62,7 +62,7 @@
         <div
           class="inline-block px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-full sm:w-11/12 md:w-3/4 lg:w-1/2 xl:w-1/3 sm:p-6">
           <div class="flex justify-center mt-2">
-            <img id="modalImage" class="w-full max-h-[70vh] object-cover" src="" alt="Full Image View">
+            <img loading="lazy"id="modalImage" class="w-full max-h-[70vh] object-cover" src="" alt="Full Image View">
           </div>
           <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
             <button type="button" onclick="closeImageModal()"

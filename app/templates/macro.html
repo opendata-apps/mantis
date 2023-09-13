@@ -98,7 +98,7 @@
 
 {% macro image_modal(id, alt, src, caption) %}
 <button data-modal-target="{{ id }}" data-modal-toggle="{{ id }}" class="mt-2" type="button">
-    <img alt="{{ alt }}" class="mx-2" src="{{ url_for('static', filename=src) }}">
+    <img loading="lazy"alt="{{ alt }}" class="mx-2" src="{{ url_for('static', filename=src) }}">
     {{ caption }}
 </button>
 
@@ -122,7 +122,7 @@
             </div>
             <div class="p-6 space-y-6">
                 <p class="text-base leading-relaxed text-gray-500 ">
-                    <img alt="{{ alt }}" class="mx-auto my-auto max-w-10" src="{{ url_for('static', filename=src) }}">
+                    <img loading="lazy"alt="{{ alt }}" class="mx-auto my-auto max-w-10" src="{{ url_for('static', filename=src) }}">
                 </p>
                 <p>{{ caption }}</p>
             </div>
