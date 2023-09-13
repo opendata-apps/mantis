@@ -181,7 +181,7 @@
             data-deleted="{{ 'true' if sighting.deleted else 'false' }}"
             >
             <div class="relative">
-                <img loading="lazy" loading="lazy" onclick="openImageModal('{{ url_for('admin.report_Img', filename=image_path + " /" +
+                <img loading="lazy" loading="lazy" onclick="openImageModal('{{ url_for('admin.report_Img', filename=image_path + "/" +
                     sighting.fundort.ablage) }}')"
                     class="object-cover w-full h-48 transition-transform duration-200 ease-in-out rounded-t-lg cursor-pointer md:h-64 hover:scale-105"
                     src="{{ url_for('admin.report_Img', filename=image_path + "/" + sighting.fundort.ablage)}}"
@@ -339,10 +339,10 @@
     let map;
     let marker;
 
-                                    function setSortOrder(value) {
-                                        document.getElementById('sortInput').value = value;
-                                        updateSortOrder();
-                                    }
+    function setSortOrder(value) {
+        document.getElementById('sortInput').value = value;
+        updateSortOrder();
+    }
 
     
     function updateSortOrder() {
@@ -381,12 +381,12 @@
             });
     }
 
-                                    function clearSearch() {
-                                        document.getElementById('searchInput').value = '';
-                                        // Submit the form or refresh the page to clear the search results
-                                        // location.reload();
-                                        document.getElementById('searchInput').form.submit();
-                                    }
+    function clearSearch() {
+        document.getElementById('searchInput').value = '';
+        // Submit the form or refresh the page to clear the search results
+        // location.reload();
+        document.getElementById('searchInput').form.submit();
+    }
 
     document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('imageModalBackdrop').addEventListener('click', closeImageModal);
