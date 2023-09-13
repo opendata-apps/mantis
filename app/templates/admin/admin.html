@@ -55,7 +55,7 @@
             <form action="{{ url_for('admin.admin_index2', usrid=session['user_id']) }}" method="GET">
                 <input type="hidden" name="statusInput" value="{{ request.args.get('statusInput', '') }}">
                 <input type="hidden" name="sort_order" value="{{ request.args.get('sort_order', '') }}">
-                <div class="relative rounded-lg shadow-md">
+                <div class="relative rounded-lg">
                     <input type="text" id="searchInput" name="q" placeholder="Suche nach Meldungen..."
                         value="{{ request.args.get('q', '') }}"
                         class="w-full py-2 pl-10 pr-10 transition-shadow duration-300 border border-gray-300 rounded-lg bg-gradient-to-r from-gray-100 to-gray-200 focus:ring-2 focus:ring-green-500 focus:border-transparent">
@@ -94,11 +94,11 @@
         
         
             <!-- Custom Dropdown Menu -->
-            <div id="sortDropdown"
-                class="z-10 hidden w-48 bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700">
+            <div id="sortDropdown" class="z-10 hidden w-48 bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700">
                 <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownSortButton">
-                    <li class="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                    <li id="id_asc" class="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white {% if current_sort_order=="id_asc" %} bg-gray-300 {% endif %}"
                         onclick="setSortOrder('id_asc')">
+                        <div class="h-2 w-2 bg-green-500 rounded-full mr-2 {% if current_sort_order!="id_asc" %} bg-transparent {% endif %}"></div>
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                             class="mr-2 bi bi-sort-numeric-up" viewBox="0 0 16 16">
                             <!-- SVG paths for Aufsteigend -->
@@ -110,8 +110,9 @@
                         </svg>
                         Aufsteigend
                     </li>
-                    <li class="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-                        onclick="setSortOrder('id_desc')">
+                    <li id="id_desc" class="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white {% if current_sort_order=="id_desc" %} bg-gray-300 {% endif %}"
+                    onclick="setSortOrder('id_desc')">
+                    <div class="h-2 w-2 bg-green-500 rounded-full mr-2 {% if current_sort_order!="id_desc" %} bg-transparent {% endif %}"></div>
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                             class="mr-2 bi bi-sort-numeric-down" viewBox="0 0 16 16">
                             <!-- SVG paths for Absteigend -->
