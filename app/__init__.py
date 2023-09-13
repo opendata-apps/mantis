@@ -6,6 +6,8 @@ from flask_wtf.csrf import CSRFProtect
 from werkzeug.middleware.proxy_fix import ProxyFix
 from flask import render_template
 
+
+
 csrf = CSRFProtect()
 db = SQLAlchemy()
 migrate = Migrate()
@@ -16,6 +18,11 @@ def create_app(config_class=Config):
     app.config.from_object(config_class)
     csrf.init_app(app)
     db.init_app(app)
+    
+    with app.app_context():
+        from app.database.full_text_search import FullTextSearch
+        FullTextSearch.create_materialized_view()
+    
     migrate.init_app(app, db)
     # If using Flask-App behind Nginx
     # https://flask.palletsprojects.com/en/2.3.x/deploying/proxy_fix/

@@ -106,6 +106,8 @@
     if (startTime === null) startTime = currentTime;
     const elapsedTime = currentTime - startTime;
     const progress = Math.min(elapsedTime / duration, 1);
+
+
     const count = Math.floor(easeOutExpo(progress, 0, target, 1));
     counter.innerText = count;
     if (elapsedTime < duration) {
