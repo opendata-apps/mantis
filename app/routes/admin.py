@@ -65,15 +65,16 @@ def admin_index2(usrid):
         session['last_updated'] = now
     
     filter_status = request.args.get('statusInput', 'offen')
-    sort_order = request.args.get('sort_order', 'id_desc')
+    sort_order = request.args.get('sort_order', 'id_asc')
     search_query = request.args.get('q', None)
+    search_type = request.args.get('search_type', 'full_text')
     
     image_path = Config.UPLOAD_FOLDER.replace("app/", "")
     inspector = inspect(db.engine)
     tables = inspector.get_table_names()
     
     if 'statusInput' not in request.args and 'sort_order' not in request.args:
-        return redirect(url_for('admin.admin_index2', usrid=usrid, statusInput='offen', sort_order='id_desc'))
+        return redirect(url_for('admin.admin_index2', usrid=usrid, statusInput='offen', sort_order='id_asc'))
     
     query = TblMeldungen.query
 
@@ -104,12 +105,19 @@ def admin_index2(usrid):
 
     # Apply full-text search if there's a search query
     if search_query:
-        search_vector = text('plainto_tsquery(\'german\', :query)').bindparams(query=search_query)
-        search_results = FullTextSearch.query.filter(
-            FullTextSearch.doc.op('@@')(search_vector)
-        ).all()
-        reported_sightings_ids = [result.meldungen_id for result in search_results]
-        query = query.filter(TblMeldungen.id.in_(reported_sightings_ids))
+        if search_type == 'id':  # New condition for ID search
+            try:
+                search_query = int(search_query)
+            except ValueError:
+                abort(400, "Invalid search query. ID search requires an integer.")
+            query = query.filter(TblMeldungen.id == search_query)
+        else:
+            search_vector = text('plainto_tsquery(\'german\', :query)').bindparams(query=search_query)
+            search_results = FullTextSearch.query.filter(
+                FullTextSearch.doc.op('@@')(search_vector)
+            ).all()
+            reported_sightings_ids = [result.meldungen_id for result in search_results]
+            query = query.filter(TblMeldungen.id.in_(reported_sightings_ids))
 
 
     paginated_sightings = query.paginate(page=page, per_page=per_page, error_out=False)
@@ -447,18 +455,21 @@ def perform_query(filter_value=None):
 # Route
 
 
+
 @admin.route('/admin/export/xlsx/<string:value>')
 @login_required
 def export_data(value):
+    current_time = datetime.now().strftime("%d.%m.%Y_%H%M")
+
     if value == 'all':
         data = perform_query()
-        filename = 'all_data.xlsx'
+        filename = f'Alle_Meldungen_{current_time}.xlsx'
     elif value == 'accepted':
         data = perform_query(filter_value=True)
-        filename = 'accepted_reports.xlsx'
+        filename = f'Akzeptierte_Meldungen_{current_time}.xlsx'
     elif value == 'non_accepted':
         data = perform_query(filter_value=False)
-        filename = 'non_accepted_reports.xlsx'
+        filename = f'Nicht_akzeptierte_Meldungen_{current_time}.xlsx'
     else:
         abort(404, description="Resource not found")
 
@@ -468,7 +479,7 @@ def export_data(value):
     # Write the DataFrame to an Excel file
     output = BytesIO()
     with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-        df.to_excel(writer, sheet_name='Data', index=False)
+        df.to_excel(writer, sheet_name='Daten', index=False)
 
     # Reset the file pointer to the beginning
     output.seek(0)

@@ -41,6 +41,7 @@
                 </div>
                 <input type="hidden" name="q" value="{{ request.args.get('q', '') }}">
                 <input type="hidden" name="sort_order" value="{{ request.args.get('sort_order', '') }}">
+                <input type="hidden" name="search_type" value="{{ request.args.get('search_type', '') }}">
                 <div class="mt-4">
                     <button type="submit"
                             class="px-4 py-2 text-white bg-green-500 rounded-md shadow-sm hover:bg-green-600 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:border-transparent">
@@ -51,24 +52,21 @@
             </div>
         </div>
 
-        <div class="relative flex-grow mb-2 md:mb-0">
-            <form action="{{ url_for('admin.admin_index2', usrid=session['user_id']) }}" method="GET">
-                <input type="hidden" name="statusInput" value="{{ request.args.get('statusInput', '') }}">
-                <input type="hidden" name="sort_order" value="{{ request.args.get('sort_order', '') }}">
-                <div class="relative rounded-lg">
+        <div class="relative flex items-center flex-grow mb-2 rounded-lg shadow-sm md:mb-0">
+            <form action="{{ url_for('admin.admin_index2', usrid=session['user_id']) }}" method="GET" class="flex items-center w-full bg-white rounded-lg focus-within:ring-2 focus-within:ring-green-500">
+                <!-- Search Bar -->
+                <div class="relative flex-grow">
+                    <button type="submit" class="absolute inset-y-0 left-0 flex items-center pl-3">
+                        <svg class="w-5 h-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
                     <input type="text" id="searchInput" name="q" placeholder="Suche nach Meldungen..."
                         value="{{ request.args.get('q', '') }}"
-                        class="w-full py-2 pl-10 pr-10 transition-shadow duration-300 border border-gray-300 rounded-lg bg-gradient-to-r from-gray-100 to-gray-200 focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                    <div class="absolute transform -translate-y-1/2 left-3 top-1/2">
-                        <svg class="w-5 h-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
-                            aria-hidden="true">
-                            <path fill-rule="evenodd"
-                                d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-                                clip-rule="evenodd" />
-                        </svg>
-                    </div>
+                        maxlength="50"
+                        class="w-full h-full py-2 pl-10 pr-4 transition-shadow duration-300 bg-transparent rounded-l-lg search focus:ring-0 focus:border-transparent">
                     <button type="button" onclick="clearSearch()" title="löschen"
-                        class="absolute p-1 transform -translate-y-1/2 bg-white rounded-full right-3 top-1/2 hover:bg-gray-200 focus:outline-none">
+                        class="absolute p-1 transform -translate-y-1/2 bg-white rounded-full right-14 top-1/2 hover:bg-gray-200 focus:outline-none">
                         <svg focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16">
                             <path
                                 d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z">
@@ -76,9 +74,22 @@
                         </svg>
                     </button>
                 </div>
+                <!-- Dropdown for search type -->
+                <div class="relative">
+                    <select name="search_type" class="block h-full px-4 py-2 leading-tight bg-transparent rounded-r-lg search focus:ring-0 focus:border-transparent">
+                        <option value="full_text" {% if request.args.get('search_type') == 'full_text' %}selected{% endif %}>Text</option>
+                        <option value="id" {% if request.args.get('search_type') == 'id' %}selected{% endif %}>ID</option>
+                    </select>
+                </div>
+                <input type="hidden" name="statusInput" value="{{ request.args.get('statusInput', '') }}">
+                <input type="hidden" name="sort_order" value="{{ request.args.get('sort_order', '') }}">
                 <button type="submit" class="hidden">Suchen</button>
-                </form>
+            </form>
         </div>
+        
+        
+        
+        
         
         <div class="relative mb-2 md:mb-0">
             <!-- Custom Dropdown Button -->
@@ -354,9 +365,10 @@
         let searchParams = new URLSearchParams(window.location.search);
         let currentSearchQuery = searchParams.get('q') || '';
         let currentFilterStatus = searchParams.get('statusInput') || 'all';
+        let searchType = searchParams.get('search_type') || 'full_text';
     
         // Update the URL with the new sort order and the current search query and filter status
-        window.location.search = `q=${currentSearchQuery}&statusInput=${currentFilterStatus}&sort_order=${selectedSortOrder}`;
+        window.location.search = `q=${currentSearchQuery}&statusInput=${currentFilterStatus}&sort_order=${selectedSortOrder}&search_type=${searchType}`;
     }
     
     
