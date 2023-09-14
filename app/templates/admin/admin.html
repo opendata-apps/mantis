@@ -20,16 +20,16 @@
                         clip-rule="evenodd" />
                 </svg>
                 Filter
-                <svg class="-mr-1 ml-1.5 w-5 h-5" fill="currentColor" viewbox="0 0 20 20"
-                    xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <svg class="-mr-1 ml-1.5 w-5 h-5" fill="currentColor" viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true">
                     <path clip-rule="evenodd" fill-rule="evenodd"
                         d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
                 </svg>
             </button>
-
+    
             <div id="filterDropdown"
                 class="z-10 hidden w-64 p-4 space-y-4 bg-white divide-y divide-gray-100 rounded-lg shadow-lg sm:w-80">
-
+    
                 <form action="{{ url_for('admin.admin_index2', usrid=session['user_id']) }}" method="GET">
                     <div>
                         <label for="statusInput" class="block text-sm font-medium text-gray-700">Bearbeitet oder
@@ -56,7 +56,7 @@
                 </form>
             </div>
         </div>
-
+    
         <div class="relative flex items-center flex-grow w-full mb-2 rounded-lg shadow-sm md:w-auto md:mb-0">
             <form action="{{ url_for('admin.admin_index2', usrid=session['user_id']) }}" method="GET"
                 class="flex items-center w-full bg-white rounded-lg focus-within:ring-2 focus-within:ring-green-500">
@@ -71,8 +71,8 @@
                         </svg>
                     </button>
                     <input type="text" id="searchInput" name="q" placeholder="Suche nach Meldungen..."
-                    value="{{ request.args.get('q', '') }}" maxlength="50"
-                    class="w-full h-full py-2 pl-10 pr-4 transition-shadow duration-300 bg-transparent rounded-l-lg search focus:ring-0 focus:border-transparent">
+                        value="{{ request.args.get('q', '') }}" maxlength="50"
+                        class="w-full h-full py-2 pl-10 pr-4 transition-shadow duration-300 bg-transparent rounded-l-lg search focus:ring-0 focus:border-transparent">
                     <button type="button" onclick="clearSearch()" title="löschen"
                         class="absolute p-1 transform -translate-y-1/2 bg-white rounded-full right-5 top-1/2 hover:bg-gray-200 focus:outline-none">
                         <svg focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16"
@@ -87,8 +87,8 @@
                 <div class="relative">
                     <select name="search_type"
                         class="block h-full px-4 py-2 leading-tight bg-transparent rounded-r-lg search focus:ring-0 focus:border-transparent">
-                        <option value="full_text" {% if request.args.get('search_type')=='full_text' %}selected{% endif
-                            %}>Text</option>
+                        <option value="full_text" {% if request.args.get('search_type')=='full_text' %}selected{% endif %}>
+                            Text</option>
                         <option value="id" {% if request.args.get('search_type')=='id' %}selected{% endif %}>ID</option>
                     </select>
                 </div>
@@ -97,24 +97,24 @@
                 <button type="submit" class="hidden">Suchen</button>
             </form>
         </div>
-
-
-
-
-
+    
+    
+    
+    
+    
         <div class="flex items-center w-full space-x-4 md:w-auto">
             <!-- Sortieren Button -->
             <button id="dropdownSortButton" data-dropdown-toggle="sortDropdown"
                 class="flex items-center justify-center flex-grow px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200">
                 <span id="sortText">Sortieren...</span>
-                <svg class="-mr-1 ml-1.5 w-5 h-5" fill="currentColor" viewbox="0 0 20 20"
-                    xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <svg class="-mr-1 ml-1.5 w-5 h-5" fill="currentColor" viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true">
                     <path clip-rule="evenodd" fill-rule="evenodd"
                         d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
                 </svg>
             </button>
-
-
+    
+    
             <!-- Custom Dropdown Menu -->
             <div id="sortDropdown" class="z-10 hidden w-48 bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700">
                 <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownSortButton">
@@ -148,15 +148,15 @@
                     </li>
                 </ul>
             </div>
-
+    
             <!-- Hidden actual select for form submission -->
             <select id="sortInput" class="hidden" onchange="updateSortOrder()">
                 <option value=""></option>
                 <option value="id_asc" {% if current_sort_order=="id_asc" %}selected{% endif %}></option>
                 <option value="id_desc" {% if current_sort_order=="id_desc" %}selected{% endif %}></option>
             </select>
-
-
+    
+    
             <div class="flex items-center w-full space-x-4 md:w-auto">
                 <!-- Dropdown button -->
                 <button id="dropdownExportButton" data-dropdown-toggle="dropdown"
@@ -168,13 +168,12 @@
                     </svg>
                     Export
                 </button>
-
+    
                 <!-- Dropdown menu -->
                 <div id="dropdown" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 ">
                     <ul class="py-2 text-sm text-gray-700 " aria-labelledby="dropdownExportButton">
                         <li>
-                            <button onclick="exportData('all')"
-                                class="block w-full px-4 py-2 text-left hover:bg-gray-100 ">
+                            <button onclick="exportData('all')" class="block w-full px-4 py-2 text-left hover:bg-gray-100 ">
                                 Export All Data
                             </button>
                         </li>
