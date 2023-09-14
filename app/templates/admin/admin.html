@@ -59,7 +59,7 @@
     
         <div class="relative flex items-center flex-grow w-full mb-2 rounded-lg shadow-sm md:w-auto md:mb-0">
             <form action="{{ url_for('admin.admin_index2', usrid=session['user_id']) }}" method="GET"
-                class="flex items-center w-full bg-white rounded-lg focus-within:ring-2 focus-within:ring-green-500">
+                class="flex items-center w-full transition-all duration-300 bg-white rounded-lg focus-within:ring-2 focus-within:ring-green-500">
                 <!-- Search Bar -->
                 <div class="relative flex-grow">
                     <button type="submit" class="absolute inset-y-0 left-0 flex items-center pl-3">
