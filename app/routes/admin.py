@@ -111,8 +111,12 @@ def admin_index2(usrid):
             except ValueError:
                 abort(400, "Invalid search query. ID search requires an integer.")
             query = query.filter(TblMeldungen.id == search_query)
+        elif "@" in search_query:  # Specific condition for email search
+            query = query.join(TblMeldungUser, TblMeldungen.id == TblMeldungUser.id_meldung)\
+                        .join(TblUsers, TblMeldungUser.id_user == TblUsers.id)\
+                        .filter(TblUsers.user_kontakt.ilike(f"%{search_query}%"))
         else:
-            search_vector = text('plainto_tsquery(\'german\', :query)').bindparams(query=search_query)
+            search_vector = text("to_tsquery('german', :query)").bindparams(query=f"{search_query}:*")
             search_results = FullTextSearch.query.filter(
                 FullTextSearch.doc.op('@@')(search_vector)
             ).all()
