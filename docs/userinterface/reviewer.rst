@@ -19,34 +19,43 @@ sichtbar.
 Suchfunktion
 ============
 
-Für die Diskussion unter den Reviewern und für den Vergleich
-unterschiedlicher Meldungen ist es notwendig, gezielt einzelne
-Datensätze auswählen zu können.
-
-Hierfür gibt es mehrere Möglichkeiten (Umschaltung zwischen »ID« und »Text« ist notwendig).
+Die Suchfunktion bietet verschiedene Methoden zur Identifizierung und Auswahl spezifischer Datensätze, die für die Diskussion und Vergleichbarkeit unter den Reviewern von Bedeutung sind.
 
 Suche über die ID
 -----------------
 
 .. image:: images/suche-id.webp
 
-Eine ID-Suche erlaubt die gezielte usgewahl eins Datensatzes.
+Die ID-Suche ermöglicht die direkte Auswahl eines Datensatzes durch Eingabe der eindeutigen Identifikationsnummer.
 
-
-Volltextsuche
--------------
+Erweiterte Volltextsuche
+------------------------
 
 .. image:: images/suche-textfelder.webp
-	   
-Bei der Suche nach einem Text (keine Teilzeichenkette) muss der Suchbegriff als ganzes Wort eingegeben werden. Der Suchbegriff »Ber« wird keine
-Suchergebnisse liefern, aber das Wort »Berlin« wird alle Datensätze finden die
-im Attribut Ort das gesuchte Wort enthalten.
 
-Welche Felder werden für die Volltextsuche verwendet?
+Die Volltextsuche wurde optimiert, um eine flexiblere Abfrage zu ermöglichen. Neben der Suche nach vollständigen Wörtern unterstützt sie nun auch die Suche nach Teilzeichenketten. Dies ist besonders nützlich, wenn der genaue Suchbegriff nicht bekannt ist.
 
-- todo...
+E-Mail-Spezifische Suche
+------------------------
 
+Bei Eingabe eines Suchbegriffs, der das "@"-Zeichen enthält, wird die Suche automatisch auf die E-Mail-Adressen im Datensatz angewendet. Dies verwendet den PostgreSQL `ILIKE` Operator für eine fallunempfindliche Mustersuche.
 
+Verwendete Datenbankfelder
+--------------------------
 
+Die Suchfunktion greift auf folgende Datenbankfelder zu:
 
-
+- Ort
+- Straße
+- Kreis
+- Land
+- Amt
+- MTB
+- Beschreibung
+- Bearbeiter-ID
+- Melder-Anmerkung
+- Bearbeiter-Anmerkung
+- User-ID
+- User Name
+- User E-Mail
+- Finder-ID
