@@ -22,8 +22,9 @@ from sqlalchemy import Table, create_engine
 from flask import abort, session
 from app.config import Config
 from functools import wraps
-from flask import g
+from flask import g, flash
 from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
 
 # Blueprints
 admin = Blueprint('admin', __name__)
@@ -105,28 +106,34 @@ def admin_index2(usrid):
 
     # Apply full-text search if there's a search query
     if search_query:
-        if search_type == 'id':  # New condition for ID search
-            try:
-                search_query = int(search_query)
-                query = query.filter(TblMeldungen.id == search_query)
-            except ValueError:
-                search_type = 'full_text'
-                # Skip to the next condition to handle full_text search
+        try:
+            if search_type == 'id':
+                try:
+                    search_query = int(search_query)
+                    query = query.filter(TblMeldungen.id == search_query)
+                except ValueError:
+                    search_type = 'full_text'
 
-        if search_type == 'full_text':
-            if "@" in search_query:  # Specific condition for email search
-                query = query.join(TblMeldungUser, TblMeldungen.id == TblMeldungUser.id_meldung)\
-                            .join(TblUsers, TblMeldungUser.id_user == TblUsers.id)\
-                            .filter(TblUsers.user_kontakt.ilike(f"%{search_query}%"))
-            else:
-                search_vector = text("to_tsquery('german', :query)").bindparams(query=f"{search_query}:*")
-                search_results = FullTextSearch.query.filter(
-                    FullTextSearch.doc.op('@@')(search_vector)
-                ).all()
-                reported_sightings_ids = [result.meldungen_id for result in search_results]
-                query = query.filter(TblMeldungen.id.in_(reported_sightings_ids))
-
-
+            if search_type == 'full_text':
+                if "@" in search_query:  
+                    query = query.join(TblMeldungUser, TblMeldungen.id == TblMeldungUser.id_meldung)\
+                                .join(TblUsers, TblMeldungUser.id_user == TblUsers.id)\
+                                .filter(TblUsers.user_kontakt.ilike(f"%{search_query}%"))
+                else:
+                    search_vector = text("to_tsquery('german', :query)").bindparams(query=f"{search_query}:*")
+                    search_results = FullTextSearch.query.filter(
+                        FullTextSearch.doc.op('@@')(search_vector)
+                    ).all()
+                    reported_sightings_ids = [result.meldungen_id for result in search_results]
+                    query = query.filter(TblMeldungen.id.in_(reported_sightings_ids))
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            print(f"SQLAlchemy Error: {e}")
+            flash('An internal error occurred. Please try again.', 'error')
+        except Exception as e:
+            db.session.rollback()
+            print(f"An error occurred: {e}")
+            flash('Your search could not be completed. Please try again.', 'error')
 
     paginated_sightings = query.paginate(page=page, per_page=per_page, error_out=False)
 

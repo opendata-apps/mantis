@@ -7,6 +7,25 @@
 
 
 <div class="container px-4 mx-auto my-10 md:px-12">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        {% if category == 'error' %}
+          <div class="flex items-center justify-between p-4 mb-4 text-red-700 bg-red-100 border-l-4 border-red-500 rounded-md" role="alert" id="errorAlert">
+            <div>
+              <strong class="font-bold">Error!</strong>
+              <span class="block sm:inline">{{ message }}</span>
+            </div>
+            <button onclick="document.getElementById('errorAlert').style.display='none'" class="text-red-700 hover:text-red-900">
+              <svg class="w-6 h-6 fill-current" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>Close</title><path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"></path></svg>
+            </button>
+          </div>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
     <div class="flex flex-wrap items-center justify-between mb-5 md:space-x-6 lg:space-x-8 xl:space-x-4">
         <div class="flex flex-wrap items-center w-full space-x-4 md:space-x-0 md:space-y-4 md:flex-col md:w-auto">
             <!-- Filter button -->
@@ -71,9 +90,8 @@
                         </svg>
                     </button>
                     <input type="text" id="searchInput" name="q" placeholder="Suche nach Meldungen..."
-                        value="{{ request.args.get('q', '') }}" maxlength="50"
-                        class="w-full h-full py-2 pl-10 pr-4 transition-shadow duration-300 bg-transparent rounded-l-lg search focus:ring-0 focus:border-transparent">
-                    <button type="button" onclick="clearSearch()" title="löschen"
+                            value="{{ request.args.get('q', '') }}" maxlength="50"
+        class="w-full h-full py-2 pl-10 pr-4 transition-shadow duration-300 bg-transparent rounded-l-lg search focus:ring-0 focus:border-transparent">                    <button type="button" onclick="clearSearch()" title="löschen"
                         class="absolute p-1 transform -translate-y-1/2 bg-white rounded-full right-5 top-1/2 hover:bg-gray-200 focus:outline-none">
                         <svg focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16"
                             height="16">
@@ -85,12 +103,12 @@
                 </div>
                 <!-- Dropdown for search type -->
                 <div class="relative">
-                    <select name="search_type"
-                    class="block h-full px-4 py-2 leading-tight bg-transparent rounded-r-lg search focus:ring-0 focus:border-transparent">
-                    <option value="full_text" {% if search_type=='full_text' %}selected{% endif %}>
-                        Text</option>
-                    <option value="id" {% if search_type=='id' %}selected{% endif %}>ID</option>
-                </select>                
+                    <select id="searchType" name="search_type" onchange="changeInputPattern()"
+                        class="block h-full px-4 py-2 leading-tight bg-transparent rounded-r-lg search focus:ring-0 focus:border-transparent">
+                        <option value="full_text" {% if search_type=='full_text' %}selected{% endif %}>
+                            Text</option>
+                        <option value="id" {% if search_type=='id' %}selected{% endif %}>ID</option>
+                    </select>
                 </div>
                 <input type="hidden" name="statusInput" value="{{ request.args.get('statusInput', '') }}">
                 <input type="hidden" name="sort_order" value="{{ request.args.get('sort_order', '') }}">
@@ -380,9 +398,25 @@
         // Update the URL with the new sort order and the current search query and filter status
         window.location.search = `q=${currentSearchQuery}&statusInput=${currentFilterStatus}&sort_order=${selectedSortOrder}&search_type=${searchType}`;
     }
-    
-    
 
+
+    function changeInputPattern() {
+        const searchType = document.getElementById('searchType').value;
+        const searchInput = document.getElementById('searchInput');
+
+        if (searchType === 'id') {
+            searchInput.setAttribute('pattern', '\\d+');
+            searchInput.setAttribute('title', 'Es sind nur IDs erlaubt.');
+        } else {
+            searchInput.removeAttribute('pattern');
+            searchInput.removeAttribute('title');
+        }
+    }
+
+    // Call the function on page load to set the initial pattern
+    window.addEventListener('load', (event) => {
+        changeInputPattern();
+    });
 
     function changeGender(id) {
         const selectElement = document.getElementById(`gender-${id}`);
