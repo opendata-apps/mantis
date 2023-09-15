@@ -120,7 +120,8 @@ def admin_index2(usrid):
                                 .join(TblUsers, TblMeldungUser.id_user == TblUsers.id)\
                                 .filter(TblUsers.user_kontakt.ilike(f"%{search_query}%"))
                 else:
-                    search_vector = text("to_tsquery('german', :query)").bindparams(query=f"{search_query}:*")
+                    search_query = search_query.replace(' ', ' & ')  # Option 1: Sanitize the query string
+                    search_vector = text("plainto_tsquery('german', :query)").bindparams(query=f"{search_query}")  # Option 2: Use plainto_tsquery
                     search_results = FullTextSearch.query.filter(
                         FullTextSearch.doc.op('@@')(search_vector)
                     ).all()
@@ -134,6 +135,7 @@ def admin_index2(usrid):
             db.session.rollback()
             print(f"An error occurred: {e}")
             flash('Your search could not be completed. Please try again.', 'error')
+
 
     paginated_sightings = query.paginate(page=page, per_page=per_page, error_out=False)
 
