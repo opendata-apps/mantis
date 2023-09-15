@@ -56,9 +56,6 @@ class FullTextSearch(db.Model):
 
     @staticmethod
     def refresh_materialized_view():
-        print("\n" + "="*50)
-        print("Updating...")
-        print("="*50 + "\n")
         """
         Refresh the materialized view.
         This function can be called after significant data changes.
