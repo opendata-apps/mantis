@@ -25,7 +25,7 @@ Zweiter Schritt
   (siehe Link zur Bestimmung).
   Dieser Schritt ist optional. 
 - Sollte die Auswahl für die Fundortbeschreibung nicht reichen, kann
-  nächsten Feld ergänzt werden.
+  im nächsten Feld ergänzt werden.
 
 Dritter Schritt
 ===============
@@ -43,9 +43,9 @@ Vierte Schritt
 
 .. image:: ./images/schritt04.webp
 
-- Eine Zusammenfassung wird gezeigt, der eine Kontrolle ermöglicht und
+- Eine Zusammenfassung wird gezeigt, die eine Kontrolle ermöglicht und
   im Zweifelsfall, über die Zurück-Button eine Korrektur erlaubt.
-- Mit dem Klick auf Senden werden die Daten endgültig übertragen.
+- Mit dem Klick auf »Senden«  werden die Daten endgültig übertragen.
 - Eine kleine Nachrichtebox zeigt die erfolgreiche Speicherung an.
 
   
