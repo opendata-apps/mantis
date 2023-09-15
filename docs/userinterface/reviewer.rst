@@ -51,19 +51,21 @@ angewendet.
 Verwendete Datenbankfelder
 --------------------------
 
-Die Suchfunktion greift auf folgende Datenbankfelder zu:
+Die Suchfunktion greift auf folgende Datenbankfelder (alphabetisch sortiert) zu:
 
-- Ort
-- Straße
+- Amt
+- Bearbeiter-Anmerkung
+- Bearbeiter-ID
+- Beschreibung
+- Finder-ID
+- ID der Meldung
 - Kreis
 - Land
-- Amt
 - MTB (Meßtischblatt) 
-- Beschreibung
-- Bearbeiter-ID
 - Melder-Anmerkung
-- Bearbeiter-Anmerkung
-- User-ID
-- User Name
+- Ort
+- Straße
 - User E-Mail
-- Finder-ID
+- User Name
+- User-ID
+  
