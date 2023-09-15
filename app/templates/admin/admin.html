@@ -86,11 +86,11 @@
                 <!-- Dropdown for search type -->
                 <div class="relative">
                     <select name="search_type"
-                        class="block h-full px-4 py-2 leading-tight bg-transparent rounded-r-lg search focus:ring-0 focus:border-transparent">
-                        <option value="full_text" {% if request.args.get('search_type')=='full_text' %}selected{% endif %}>
-                            Text</option>
-                        <option value="id" {% if request.args.get('search_type')=='id' %}selected{% endif %}>ID</option>
-                    </select>
+                    class="block h-full px-4 py-2 leading-tight bg-transparent rounded-r-lg search focus:ring-0 focus:border-transparent">
+                    <option value="full_text" {% if search_type=='full_text' %}selected{% endif %}>
+                        Text</option>
+                    <option value="id" {% if search_type=='id' %}selected{% endif %}>ID</option>
+                </select>                
                 </div>
                 <input type="hidden" name="statusInput" value="{{ request.args.get('statusInput', '') }}">
                 <input type="hidden" name="sort_order" value="{{ request.args.get('sort_order', '') }}">

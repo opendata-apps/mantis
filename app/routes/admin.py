@@ -108,20 +108,24 @@ def admin_index2(usrid):
         if search_type == 'id':  # New condition for ID search
             try:
                 search_query = int(search_query)
+                query = query.filter(TblMeldungen.id == search_query)
             except ValueError:
-                abort(400, "Invalid search query. ID search requires an integer.")
-            query = query.filter(TblMeldungen.id == search_query)
-        elif "@" in search_query:  # Specific condition for email search
-            query = query.join(TblMeldungUser, TblMeldungen.id == TblMeldungUser.id_meldung)\
-                        .join(TblUsers, TblMeldungUser.id_user == TblUsers.id)\
-                        .filter(TblUsers.user_kontakt.ilike(f"%{search_query}%"))
-        else:
-            search_vector = text("to_tsquery('german', :query)").bindparams(query=f"{search_query}:*")
-            search_results = FullTextSearch.query.filter(
-                FullTextSearch.doc.op('@@')(search_vector)
-            ).all()
-            reported_sightings_ids = [result.meldungen_id for result in search_results]
-            query = query.filter(TblMeldungen.id.in_(reported_sightings_ids))
+                search_type = 'full_text'
+                # Skip to the next condition to handle full_text search
+
+        if search_type == 'full_text':
+            if "@" in search_query:  # Specific condition for email search
+                query = query.join(TblMeldungUser, TblMeldungen.id == TblMeldungUser.id_meldung)\
+                            .join(TblUsers, TblMeldungUser.id_user == TblUsers.id)\
+                            .filter(TblUsers.user_kontakt.ilike(f"%{search_query}%"))
+            else:
+                search_vector = text("to_tsquery('german', :query)").bindparams(query=f"{search_query}:*")
+                search_results = FullTextSearch.query.filter(
+                    FullTextSearch.doc.op('@@')(search_vector)
+                ).all()
+                reported_sightings_ids = [result.meldungen_id for result in search_results]
+                query = query.filter(TblMeldungen.id.in_(reported_sightings_ids))
+
 
 
     paginated_sightings = query.paginate(page=page, per_page=per_page, error_out=False)
@@ -148,7 +152,9 @@ def admin_index2(usrid):
                         filters={"status": filter_status}, 
                         current_filter_status=filter_status,
                         current_sort_order=sort_order,
-                        search_query=search_query)
+                        search_query=search_query,
+                        search_type=search_type) 
+
 
 
 
