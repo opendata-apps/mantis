@@ -2,6 +2,7 @@ from app import db
 from sqlalchemy import text
 from sqlalchemy.dialects.postgresql import TSVECTOR
 
+
 class FullTextSearch(db.Model):
     __tablename__ = 'full_text_search'
     meldungen_id = db.Column(db.Integer, primary_key=True)
@@ -27,6 +28,7 @@ class FullTextSearch(db.Model):
                     COALESCE(f.kreis, '') || ' ' ||
                     COALESCE(f.land, '') || ' ' ||
                     COALESCE(f.amt, '') || ' ' ||
+                    COALESCE(f.plz::text, '') || ' ' ||
                     COALESCE(f.mtb, '') || ' ' ||
                     COALESCE(b.beschreibung, '') || ' ' ||
                     COALESCE(mu.id_user::text, '') || ' ' ||
@@ -51,7 +53,7 @@ class FullTextSearch(db.Model):
         db.session.execute(text("""
             CREATE INDEX IF NOT EXISTS idx_full_text_search ON full_text_search USING gin(doc);
         """))
-        
+
         db.session.commit()
 
     @staticmethod
@@ -62,4 +64,3 @@ class FullTextSearch(db.Model):
         """
         db.session.execute(text("REFRESH MATERIALIZED VIEW full_text_search;"))
         db.session.commit()
-

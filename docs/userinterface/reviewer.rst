@@ -64,6 +64,7 @@ Die Suchfunktion greift auf folgende Datenbankfelder (alphabetisch sortiert) zu:
 - MTB (Meßtischblatt) 
 - Melder-Anmerkung
 - Ort
+- Postleitzahl
 - Straße
 - User E-Mail
 - User Name
