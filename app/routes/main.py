@@ -66,36 +66,15 @@ def bestimmung():
 
 
 
-@main.route('/gallerie')
-def gallerie():
-    json_path = os.path.join(BASE_DIR, '..', 'static','images', 'gallerie', 'gallerie.json')
+@main.route('/galerie')
+def galerie():
+    json_path = os.path.join(BASE_DIR, '..', 'static','images', 'galerie', 'galerie.json')
     with open(json_path, 'r', encoding='utf-8') as file:
         bilder = json.load(file)
         
     current_index = int(request.args.get('current_index', random.randint(0, len(bilder) - 1)))
     
-    return render_template('gallerie.html', bilder=bilder, current_index=current_index)
-
-@main.route('/gallerie-navigation/<direction>')
-def gallerie_navigation(direction):
-    json_path = os.path.join(BASE_DIR, '..', 'datastore', 'gallerie', 'gallerie.json')
-    with open(json_path, 'r', encoding='utf-8') as file:
-        bilder = json.load(file)
-    
-    current_index = int(request.args.get('current_index', 0))
-    
-    if direction == 'left':
-        current_index = (current_index - 1) % len(bilder)
-    elif direction == 'right':
-        current_index = (current_index + 1) % len(bilder)
-    
-    return redirect(url_for('main.gallerie', current_index=current_index))
-
-@main.route('/gallerie-bilder/<filename>')
-def gallerie_bilder(filename):
-    bilder_directory = os.path.join(BASE_DIR, '..', 'datastore', 'gallerie')
-    return send_from_directory(bilder_directory, filename)
-
+    return render_template('galerie.html', bilder=bilder, current_index=current_index)
 
 def not_found(e):
     return render_template("404.html")

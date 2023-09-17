@@ -1,11 +1,6 @@
 {% extends "layout.html" %}
-
 {% block title %}Bildergalerie{% endblock title %}
-
 {% block meta_keywords %} Auswertungen, Bilder, Gottesanbeterin, Mantis religiosa Auswertungen {% endblock %}
-
-{% block text %} Bildergalerie {% endblock text %}
-
 {% block content %}
 <section class="container mx-auto mt-10">
   <h2 class="mb-6 text-3xl font-semibold text-center">Interessante Momentaufnahmen</h2>
@@ -25,17 +20,17 @@
       <span id="tag-cloud">
 	<a class="pl-1"
 	   rel="lightbox[Mantis]"
-	   title="Start der Bildserie Autor: Dr. Berger"
-	   href="{{ url_for('static', filename='images/gallerie/berger-start.webp')}}">
-	  <img src="{{ url_for('static', filename='images/gallerie/berger-start.webp')}}">
+	   title="Start der Bildserie -- Autor: Dr. Berger"
+	   href="{{ url_for('static', filename='images/galerie/berger-start.webp')}}">
+	  <img src="{{ url_for('static', filename='images/galerie/berger-start.webp')}}">
 	</a>
       </span>
       {% for slide in bilder %}
       <span id="tag-cloud"  class="items-stretch">
 	<a class="tag1"
 	   rel="lightbox[Mantis]"
-	   title="{{ slide.beschreibung }} Autor: {{ slide.fotograph }} Datum: {{ slide.datum }} <br />Lizenz: {{ slide.lizenz | safe}} "
-	   href="{{ url_for('static', filename='images/gallerie/' + slide.bildname)}}">
+	   title="{{ slide.beschreibung }} -- Autor: {{ slide.fotograph }} Datum: {{ slide.datum }} <br />Lizenz: {{ slide.lizenz | safe}} "
+	   href="{{ url_for('static', filename='images/galerie/' + slide.bildname)}}">
 	</a>
       </span>
       {% endfor %}
