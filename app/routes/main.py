@@ -68,7 +68,7 @@ def bestimmung():
 
 @main.route('/gallerie')
 def gallerie():
-    json_path = os.path.join(BASE_DIR, '..', 'datastore', 'gallerie', 'gallerie.json')
+    json_path = os.path.join(BASE_DIR, '..', 'static','images', 'gallerie', 'gallerie.json')
     with open(json_path, 'r', encoding='utf-8') as file:
         bilder = json.load(file)
         
