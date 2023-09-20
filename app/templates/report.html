@@ -4,9 +4,9 @@
 {% block head %}
 <meta name="csrf-token" content="{{ csrf_token() }}">
 {% endblock %}
-{% block page_title %}Mantis Religiosa Beobachtungen Melden{% endblock %}
+{% block page_title %}Melden Sie Ihre Beobachtung | Mantis Religiosa Mitmachprojekt | Gottesanbeterin Gesucht{% endblock %}
 {% block title %}Fund melden{% endblock %}
-{% block content %}
+{% block meta_description %} Melden Sie Ihre Beobachtungen von Mantis religiosa in Deutschland. Unterstützen Sie die Forschung. {% endblock %}{% block content %}
 {% with messages = get_flashed_messages() %}
 {% if messages %}
 {% for message in messages %}

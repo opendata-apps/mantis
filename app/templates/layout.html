@@ -8,15 +8,10 @@
     <title>{% block page_title %}Mantis Religiosa Beobachtungen | Mitmachprojekt | Gottesanbeterin Gesucht{% endblock
     page_title %}</title>
     <meta name="description"
-	  content="Beobachtungen der Gottesanbeterin (Mantis religiosa) in Deutschland. Sie haben eine Gottesanbeterin gesichtet bzw. gefunden. Melden Sie Ihre Beobachtungen und unterstützen Sie die Forschung.">
+	  content="{% block meta_description %} Gottesanbeterin in Deutschland gesichtet? Melden Sie Ihre Beobachtung, unterstützen Sie Forschung zu Mantis religiosa. {% endblock %}">
     <meta name="keywords"
-	  content="{% block meta_keywords %}Mantis religiosa, Gottesanbeterin, Mitmachprojekt, Beobachtungen, Meldung, Citizen Science, Naturkundemuseum, Potsdam, Deutschland, Gottesanbeterin gefunden , Gottesanbeterin gesichtet, Mantis entdeckt, Brandenburg, Berlin{% endblock %}">
+	  content="{% block meta_keywords %}Mantis religiosa, Gottesanbeterin, Mitmachprojekt, Beobachtungen, Meldung, Citizen Science, Naturkundemuseum, Potsdam, Deutschland, Gottesanbeterin gefunden , Gottesanbeterin gesichtet, Mantis entdeckt, Brandenburg, Berlin {% endblock %}">
   <link rel="canonical" href="{{ request.url }}" />
-  <!-- Schema.org markup for Google+ -->
-  <meta itemprop="name" content="Gottesanbeterin Gesucht | Mitmachprojekt | Mantis Religiosa Beobachtungen">
-  <meta itemprop="description"
-	content="Beobachtungen der Gottesanbeterin (Mantis religiosa) in Deutschland. Sie haben eine Gottesanbeterin gesichtet bzw. gefunden. Melden Sie Ihre Beobachtungen und unterstützen Sie die Forschung.">
-  <meta itemprop="image" content="{{ url_for('static', filename='images/berger08.webp') }}">
 
   <!-- Open Graph data -->
   <meta property="og:title" content="Gottesanbeterin Gesucht | Mitmachprojekt | Mantis Religiosa Beobachtungen" />

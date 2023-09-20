@@ -2,8 +2,8 @@
 {% block meta_keywords %}
 Häufig gestellte Fragen, Gottesanbeterin, Mantis religiosa FAQ, Projekt Fragen
 {% endblock %}
-{% block page_title %} Häufig gestellte Fragen (FAQ) | Mantis Religiosa Beobachtungen | Mitmachprojekt | Gottesanbeterin
-Gesucht{% endblock %}
+{% block page_title %}Häufig gestellte Fragen | Mantis Religiosa Mitmachprojekt | Gottesanbeterin Gesucht{% endblock %}
+{% block meta_description %} Haben Sie Fragen? Finden Sie Antworten auf häufig gestellte Fragen über Mantis religiosa. {% endblock %}
 {% block title %}Häufig gestellte Fragen (FAQ){% endblock title %}
 
 {% block content %}
@@ -121,7 +121,7 @@ Gesucht{% endblock %}
   {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    "name": "Mantis FAQPage"
+    "name": "Mantis FAQPage",
     "mainEntity": [{% for faq in faq_entries %}{
       "@type": "Question",
       "name": "{{ faq.title }}",
@@ -131,7 +131,9 @@ Gesucht{% endblock %}
       }}{% if not loop.last %},{% endif %}{% endfor %}
     ]
   }
-</script>
+  </script>
+
+
 
 
 <script>

@@ -25,3 +25,4 @@ class Config:
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
     PERMANENT_SESSION_LIFETIME = timedelta(hours=1)
     CHECKLIST = {}
+    PREFERRED_URL_SCHEME = 'https'
