@@ -46,34 +46,50 @@
                 </svg>
             </button>
     
-            <div id="filterDropdown"
-                class="z-10 hidden w-64 p-4 space-y-4 bg-white divide-y divide-gray-100 rounded-lg shadow-lg sm:w-80">
-    
-                <form action="{{ url_for('admin.admin_index2', usrid=session['user_id']) }}" method="GET">
-                    <div>
-                        <label for="statusInput" class="block text-sm font-medium text-gray-700">Bearbeitet oder
-                            offen</label>
-                        <select id="statusInput" name="statusInput"
-                            class="w-full px-3 py-2 text-sm rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                            <option value="all" {% if filters.status=="all" %}selected{% endif %}>Alle</option>
-                            <option value="bearbeitet" {% if filters.status=="bearbeitet" %}selected{% endif %}>
-                                Bearbeitet</option>
-                            <option value="offen" {% if filters.status=="offen" %}selected{% endif %}>Offen</option>
-                            <option value="geloescht" {% if filters.status=="geloescht" %}selected{% endif %}>Gelöscht
-                            </option>
-                        </select>
-                    </div>
-                    <input type="hidden" name="q" value="{{ request.args.get('q', '') }}">
-                    <input type="hidden" name="sort_order" value="{{ request.args.get('sort_order', '') }}">
-                    <input type="hidden" name="search_type" value="{{ request.args.get('search_type', '') }}">
-                    <div class="mt-4">
-                        <button type="submit"
-                            class="px-4 py-2 text-white bg-green-500 rounded-md shadow-sm hover:bg-green-600 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:border-transparent">
-                            Filtern
-                        </button>
-                    </div>
-                </form>
-            </div>
+        <div id="filterDropdown"
+            class="z-10 hidden w-64 p-4 space-y-3 bg-white divide-y divide-gray-100 rounded-lg shadow-lg sm:w-80">
+        
+            <form action="{{ url_for('admin.admin_index2', usrid=session['user_id']) }}" method="GET" class="space-y-3">
+                <div class="space-y-1">
+                    <label for="statusInput" class="block text-sm font-semibold text-gray-700">Bearbeitet oder offen</label>
+                    <select id="statusInput" name="statusInput"
+                        class="w-full p-2 text-sm rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        <option value="all" {% if filters.status=="all" %}selected{% endif %}>Alle</option>
+                        <option value="bearbeitet" {% if filters.status=="bearbeitet" %}selected{% endif %}>Bearbeitet</option>
+                        <option value="offen" {% if filters.status=="offen" %}selected{% endif %}>Offen</option>
+                        <option value="geloescht" {% if filters.status=="geloescht" %}selected{% endif %}>Gelöscht</option>
+                    </select>
+                </div>
+                <div class="space-y-1">
+                    <label for="dateFrom" class="block text-sm font-semibold text-gray-700">Datum von</label>
+                    <input type="date" id="dateFrom" name="dateFrom" value="{{ request.args.get('dateFrom', '') }}"
+                        class="w-full p-2 text-sm rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                </div>
+                <div class="space-y-1">
+                    <label for="dateTo" class="block text-sm font-semibold text-gray-700">Datum bis</label>
+                    <input type="date" id="dateTo" name="dateTo" value="{{ request.args.get('dateTo', '') }}"
+                        class="w-full p-2 text-sm rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                </div>
+                <div class="flex justify-between mt-4 space-x-4">
+                    <button id="clearFilters" type="button"
+                        class="flex items-center justify-center w-24 px-2 py-1 text-sm text-red-500 border border-red-500 rounded-md shadow-sm hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:border-transparent">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-4 h-4 mr-1">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                        Löschen
+                    </button>
+                    <button type="submit"
+                        class="w-1/2 px-4 py-2 text-white bg-green-500 rounded-md shadow-sm hover:bg-green-600 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:border-transparent">
+                        Filtern
+                    </button>
+                </div>
+                
+                <input type="hidden" name="q" value="{{ request.args.get('q', '') }}">
+                <input type="hidden" name="sort_order" value="{{ request.args.get('sort_order', '') }}">
+                <input type="hidden" name="search_type" value="{{ request.args.get('search_type', '') }}">
+            </form>
+        </div>
+        
         </div>
     
         <div class="relative flex items-center flex-grow w-full mb-2 rounded-lg shadow-sm md:w-auto md:mb-0">
@@ -90,8 +106,9 @@
                         </svg>
                     </button>
                     <input type="text" id="searchInput" name="q" placeholder="Suche nach Meldungen..."
-                            value="{{ request.args.get('q', '') }}" maxlength="50"
-        class="w-full h-full py-2 pl-10 pr-4 transition-shadow duration-300 bg-transparent rounded-l-lg search focus:ring-0 focus:border-transparent">                    <button type="button" onclick="clearSearch()" title="löschen"
+                        value="{{ request.args.get('q', '') }}" maxlength="50"
+                        class="w-full h-full py-2 pl-10 pr-4 transition-shadow duration-300 bg-transparent rounded-l-lg search focus:ring-0 focus:border-transparent">
+                    <button type="button" onclick="clearSearch()" title="löschen"
                         class="absolute p-1 transform -translate-y-1/2 bg-white rounded-full right-5 top-1/2 hover:bg-gray-200 focus:outline-none">
                         <svg focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16"
                             height="16">
@@ -112,6 +129,8 @@
                 </div>
                 <input type="hidden" name="statusInput" value="{{ request.args.get('statusInput', '') }}">
                 <input type="hidden" name="sort_order" value="{{ request.args.get('sort_order', '') }}">
+                <input type="hidden" id="hiddenDateFrom" name="dateFrom" value="{{ request.args.get('dateFrom', '') }}">
+                <input type="hidden" id="hiddenDateTo" name="dateTo" value="{{ request.args.get('dateTo', '') }}">
                 <button type="submit" class="hidden">Suchen</button>
             </form>
         </div>
@@ -134,11 +153,14 @@
     
     
             <!-- Custom Dropdown Menu -->
-            <div id="sortDropdown" class="z-10 hidden w-48 bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700">
+            <div id="sortDropdown"
+                class="z-10 hidden w-48 bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700">
                 <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownSortButton">
-                    <li id="id_asc" class="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white {% if current_sort_order=="id_asc" %} bg-gray-300 {% endif %}"
-                        onclick="setSortOrder('id_asc')">
-                        <div class="h-2 w-2 bg-green-500 rounded-full mr-2 {% if current_sort_order!="id_asc" %} bg-transparent {% endif %}"></div>
+                    <li id="id_asc"
+                        class="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white {% if current_sort_order=="
+                        id_asc" %} bg-gray-300 {% endif %}" onclick="setSortOrder('id_asc')">
+                        <div class="h-2 w-2 bg-green-500 rounded-full mr-2 {% if current_sort_order!="id_asc" %}
+                            bg-transparent {% endif %}"></div>
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                             class="mr-2 bi bi-sort-numeric-up" viewBox="0 0 16 16">
                             <!-- SVG paths for Aufsteigend -->
@@ -150,9 +172,11 @@
                         </svg>
                         Aufsteigend
                     </li>
-                    <li id="id_desc" class="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white {% if current_sort_order=="id_desc" %} bg-gray-300 {% endif %}"
-                    onclick="setSortOrder('id_desc')">
-                    <div class="h-2 w-2 bg-green-500 rounded-full mr-2 {% if current_sort_order!="id_desc" %} bg-transparent {% endif %}"></div>
+                    <li id="id_desc"
+                        class="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white {% if current_sort_order=="
+                        id_desc" %} bg-gray-300 {% endif %}" onclick="setSortOrder('id_desc')">
+                        <div class="h-2 w-2 bg-green-500 rounded-full mr-2 {% if current_sort_order!="id_desc" %}
+                            bg-transparent {% endif %}"></div>
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                             class="mr-2 bi bi-sort-numeric-down" viewBox="0 0 16 16">
                             <!-- SVG paths for Absteigend -->
@@ -294,7 +318,7 @@
             {% endfor %}
         </div>
     </div>
-    {{ render_pagination(paginated_sightings, 'admin.admin_index2', current_filter_status, current_sort_order, search_query) }}
+    {{ render_pagination(paginated_sightings, 'admin.admin_index2', current_filter_status, current_sort_order, search_query, request.args.get('dateFrom', ''), request.args.get('dateTo', '')) }}
 </div>
 
 
@@ -360,18 +384,17 @@
                     <!-- Content will be loaded here -->
                 </div>
                 <!-- Actions -->
-                <div class="flex justify-end mt-4 space-x-2">
-                    <button type="button"
-                        class="px-4 py-2 font-semibold text-white bg-green-500 rounded-lg focus:outline-none hover:bg-green-600"
-                        onclick="saveChanges()">Speichern</button>
+                <div class="flex justify-end mt-4 space-x-2 action-container">
+                    <!-- "Bearbeiten" button will be inserted here dynamically -->
                     <button type="button"
                         class="px-4 py-2 font-semibold text-gray-700 bg-gray-200 rounded-lg focus:outline-none hover:bg-gray-300"
                         onclick="closeModal()">Schließen</button>
-                </div>
+                </div>                
             </div>
         </div>
     </div>
 </div>
+
 
 
 
@@ -384,20 +407,23 @@
         updateSortOrder();
     }
 
-    
+    function updateURLParams(params) {
+        let searchParams = new URLSearchParams(window.location.search);
+
+        for (const [key, value] of Object.entries(params)) {
+            searchParams.set(key, value);
+        }
+
+        window.location.search = searchParams.toString();
+    }
+
+
     function updateSortOrder() {
         let sortInput = document.getElementById('sortInput');
         let selectedSortOrder = sortInput.value;
-    
-        // Get the current search query and filter status from the URL
-        let searchParams = new URLSearchParams(window.location.search);
-        let currentSearchQuery = searchParams.get('q') || '';
-        let currentFilterStatus = searchParams.get('statusInput') || 'all';
-        let searchType = searchParams.get('search_type') || 'full_text';
-    
-        // Update the URL with the new sort order and the current search query and filter status
-        window.location.search = `q=${currentSearchQuery}&statusInput=${currentFilterStatus}&sort_order=${selectedSortOrder}&search_type=${searchType}`;
+        updateURLParams({ 'sort_order': selectedSortOrder });
     }
+
 
 
     function changeInputPattern() {
@@ -449,6 +475,22 @@
         document.getElementById('imageModalBackdrop').addEventListener('click', closeImageModal);
     });
 
+    document.addEventListener("DOMContentLoaded", function () {
+        const clearFiltersButton = document.getElementById("clearFilters");
+
+        clearFiltersButton.addEventListener("click", function () {
+            const statusInput = document.getElementById("statusInput");
+            const dateFromInput = document.getElementById("dateFrom");
+            const dateToInput = document.getElementById("dateTo");
+
+            statusInput.value = "all";
+            dateFromInput.value = "";
+            dateToInput.value = "";
+
+            statusInput.closest("form").submit();
+        });
+    });
+
 
     // Function to toggle approve a sighting
     function toggleApprove(id) {
@@ -487,45 +529,98 @@
                 let tabLocationInfo = document.getElementById('tab-location-info');
                 let tabUserInfo = document.getElementById('tab-user-info');
                 let tabContent = document.getElementById('tab-content');
-    
+
                 // Set initial content
                 tabContent.innerHTML = generateGeneralInfo(data);
                 setActiveTab(tabGeneralInfo);
-    
+
                 // Add click listeners to tab buttons
                 addTabClickListener(tabGeneralInfo, generateGeneralInfo, data);
                 addTabClickListener(tabLocationInfo, generateLocationInfo, data);
                 addTabClickListener(tabUserInfo, generateUserInfo, data);
-    
+
                 // Show the modal
                 document.getElementById('modal').classList.remove('hidden');
-    
+
                 // Disable inputs if the sighting has been approved
                 let reportCard = document.querySelector(`[data-report-id="${id}"]`);
                 let isApproved = reportCard.getAttribute('data-approved') === 'true';
                 disableInputsIfApproved(isApproved);
+                addEditButtonIfApproved(isApproved);
             })
             .catch(error => console.error('Error:', error));
     }
 
+
+    // Existing function to add the edit button
+    function addEditButtonIfApproved(isApproved) {
+        const actionContainer = document.querySelector('.action-container');
+        let existingButton = document.getElementById('edit-button');
     
+        // Remove the existing button if there is one
+        if (existingButton) {
+            existingButton.remove();
+        }
     
+        // Create the button only if it is approved (i.e., editable)
+        if (isApproved) {
+            const editButton = document.createElement('button');
+            editButton.type = "button";
+            editButton.id = "edit-button";
+            editButton.onclick = toggleEdit;
+            editButton.style.minWidth = "2rem";
+            editButton.innerHTML = `
+                <img loading="lazy" src="/static/images/svg/edit.svg" alt="Edit" class="w-4 h-4 md:w-5 md:h-5">
+            `;
+            editButton.className = "p-1 transition-colors duration-200 rounded focus:outline-none hover:bg-green-200 relative";
+            actionContainer.insertBefore(editButton, actionContainer.firstChild);
+        }
+    }
+    
+
+    function toggleEdit() {
+        let inputs = document.querySelectorAll('.input-field-admin, .textInputAdmin');
+        let isDisabled = inputs[0].disabled;
+        let editButton = document.getElementById('edit-button');
+
+        if (isDisabled) {
+            if (confirm('Möchten Sie die Bearbeitung aktivieren? Änderungen werden gespeichert.')) {
+                inputs.forEach(input => {
+                    input.disabled = !isDisabled;
+                });
+                editButton.classList.remove('hover:bg-green-200');
+                editButton.classList.add('bg-green-200', 'hover:bg-red-200');
+            }
+        } else {
+            inputs.forEach(input => {
+                input.disabled = !isDisabled;
+            });
+            editButton.classList.remove('bg-green-200', 'hover:bg-red-200');
+            editButton.classList.add('hover:bg-green-200');
+        }
+    }
+
+
+
+
+
+
     function disableInputsIfApproved(isApproved) {
-        let inputs = document.querySelectorAll('.input-field-admin');
+        let inputs = document.querySelectorAll('.input-field-admin, .textInputAdmin');
         inputs.forEach(input => {
             input.disabled = isApproved;
         });
     }
-    
+
 
     function addTabClickListener(tabElement, contentGenerator, data) {
         let isApproved = document.querySelector(`[data-report-id="${data.id_meldung}"]`).getAttribute('data-approved') === 'true';
-        tabElement.onclick = function() {
+        tabElement.onclick = function () {
             if (!this.classList.contains('active')) {
                 document.getElementById('tab-content').innerHTML = contentGenerator(data);
                 setActiveTab(this);
                 disableInputsIfApproved(isApproved);
-    
+
                 if (contentGenerator === generateLocationInfo) {
                     initiateMap(data);
                 }
@@ -538,32 +633,32 @@
         let tabGeneralInfo = document.getElementById('tab-general-info');
         let tabLocationInfo = document.getElementById('tab-location-info');
         let tabUserInfo = document.getElementById('tab-user-info');
-    
+
         tabGeneralInfo.onclick = null;
         tabLocationInfo.onclick = null;
         tabUserInfo.onclick = null;
     }
 
-    
-    
+
+
     function initiateMap(data) {
         setTimeout(function () {
             let lat = parseFloat(data.latitude.replace(',', '.'));
             let lng = parseFloat(data.longitude.replace(',', '.'));
             let map = L.map('map').setView([lat, lng], 13);
-    
+
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 18,
                 tileSize: 512,
                 zoomOffset: -1
             }).addTo(map);
-    
+
             L.marker([lat, lng]).addTo(map);
-    
+
             // Redraw tiles after the modal is shown
             map.invalidateSize();
         }, 0);
-    }    
+    }
 
     function changeGenderCount(id, type, newCount) {
         fetch(`/change_mantis_count/${id}`, {
@@ -583,9 +678,9 @@
 
     function changeMetaData(id, type, newContent) {
         fetch(`/change_mantis_meta_data/${id}`, {
-            
+
             method: 'POST',
-            body: new URLSearchParams({ id:id, type: type, new_data: newContent }),
+            body: new URLSearchParams({ id: id, type: type, new_data: newContent }),
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
         })
             .then(response => response.json())
@@ -596,7 +691,7 @@
                 }
             });
     }
-    
+
     function setActiveTab(tab) {
         // Remove 'active' class from all tabs
         let tabs = [document.getElementById('tab-general-info'), document.getElementById('tab-location-info'), document.getElementById('tab-user-info')];
@@ -626,7 +721,7 @@
     function generateGeneralInfo(data) {
         let mantis_types = ['Männchen', 'Weiblich', 'Nymphe', 'Oothek', 'Andere', 'Anzahl'];
         let gender_counts = [data.art_m, data.art_w, data.art_n, data.art_o, data.art_f, data.tiere];
-    
+
         let html = `<div class="flex flex-col md:flex-row md:space-x-6">
                         <div class="md:w-1/2">
                             ${mantis_types.map((type, i) => `
@@ -680,13 +775,13 @@
                                     >${data.anm_bearbeiter || ""}</textarea>
                      </div></div>`;
 
-       return html;
-   }
-    
-    
-function generateLocationInfo(data) {
-    // Convert location info into HTML string
-    return `<p><strong>Location ID:</strong> ${data.fo_zuordnung}</p>
+        return html;
+    }
+
+
+    function generateLocationInfo(data) {
+        // Convert location info into HTML string
+        return `<p><strong>Location ID:</strong> ${data.fo_zuordnung}</p>
             <div id="map" style="height: 350px; width: 100%;"></div>
             <div class="flex">
                 <div class="mb-2 mr-2 font-semibold">
@@ -704,13 +799,13 @@ function generateLocationInfo(data) {
                            ${"value='" + (data.longitude || "") + "'"}>
                 </div>
             </div>`;
-}
+    }
 
     function generateUserInfo(data) {
         return `<p><strong>User Name:</strong> ${data.user_name}</p>
                 <p><strong>User Email:</strong> ${data.user_kontakt}</p>
                 <p><strong>User ID:</strong> ${data.user_id}</p>
-                <p><strong>User Role:</strong> ${data. user_rolle}</p>`;
+                <p><strong>User Role:</strong> ${data.user_rolle}</p>`;
     }
 
 
@@ -720,7 +815,7 @@ function generateLocationInfo(data) {
         document.body.style.overflow = 'auto';
         document.getElementById('modal').classList.add('hidden');
         clearTabClickListeners(); // Clear listeners when the modal is closed
-    }   
+    }
 
     function saveChanges() {
         // Save changes to report details
@@ -744,9 +839,9 @@ function generateLocationInfo(data) {
     function removeCardFromView(id) {
         let card = document.querySelector(`[data-report-id="${id}"]`);
         let followingCards = Array.from(document.querySelectorAll(`[data-report-id]`)).slice(Array.from(document.querySelectorAll(`[data-report-id]`)).indexOf(card) + 1);
-    
+
         card.classList.add('fade-out');
-    
+
         // Allow animation to complete before removing the card
         setTimeout(function () {
             card.remove();
@@ -757,13 +852,13 @@ function generateLocationInfo(data) {
                     followingCard.classList.remove('slide-in');
                 }, 500);
             });
-    
+
             // Adjust the footer position after the card is removed
             adjustFooterPosition();
-    
+
         }, 500); // matches the duration of the fade-out animation
     }
-    
+
 
     function exportData(exportType) {
         var exportButton = document.getElementById("dropdownExportButton");

@@ -39,6 +39,8 @@ def login_required(f):
     return decorated_function
 
 
+
+
 @admin.route('/reviewer/<usrid>')
 def admin_index2(usrid):
     # Fetch the user based on the 'usrid' parameter
@@ -69,7 +71,10 @@ def admin_index2(usrid):
     sort_order = request.args.get('sort_order', 'id_asc')
     search_query = request.args.get('q', None)
     search_type = request.args.get('search_type', 'full_text')
-    
+    date_from = request.args.get('dateFrom', None)
+    date_to = request.args.get('dateTo', None)
+
+
     image_path = Config.UPLOAD_FOLDER.replace("app/", "")
     inspector = inspect(db.engine)
     tables = inspector.get_table_names()
@@ -135,7 +140,17 @@ def admin_index2(usrid):
             db.session.rollback()
             print(f"An error occurred: {e}")
             flash('Your search could not be completed. Please try again.', 'error')
-
+            
+    if date_from and date_to:
+        date_from_obj = datetime.strptime(date_from, '%Y-%m-%d')
+        date_to_obj = datetime.strptime(date_to, '%Y-%m-%d')
+        query = query.filter(TblMeldungen.dat_fund_von.between(date_from_obj, date_to_obj))
+    elif date_from:
+        date_from_obj = datetime.strptime(date_from, '%Y-%m-%d')
+        query = query.filter(TblMeldungen.dat_fund_von >= date_from_obj)
+    elif date_to:
+        date_to_obj = datetime.strptime(date_to, '%Y-%m-%d')
+        query = query.filter(TblMeldungen.dat_fund_von <= date_to_obj)
 
     paginated_sightings = query.paginate(page=page, per_page=per_page, error_out=False)
 
