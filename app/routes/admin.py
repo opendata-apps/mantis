@@ -42,7 +42,7 @@ def login_required(f):
 
 
 @admin.route('/reviewer/<usrid>')
-def admin_index2(usrid):
+def reviewer(usrid):
     # Fetch the user based on the 'usrid' parameter
     user = TblUsers.query.filter_by(user_id=usrid).first()
 
@@ -80,7 +80,7 @@ def admin_index2(usrid):
     tables = inspector.get_table_names()
     
     if 'statusInput' not in request.args and 'sort_order' not in request.args:
-        return redirect(url_for('admin.admin_index2', usrid=usrid, statusInput='offen', sort_order='id_asc'))
+        return redirect(url_for('admin.reviewer', usrid=usrid, statusInput='offen', sort_order='id_asc'))
     
     query = TblMeldungen.query
 
@@ -365,17 +365,6 @@ def change_mantis_count(id):
     return jsonify(success=True)
 
 
-@admin.route('/admin/log')
-@login_required
-def admin_subsites_log():
-    return render_template('admin/log.html')
-
-
-@admin.route('/admin/userAdministration')
-@login_required
-def admin_subsites_users():
-    return render_template('admin/userAdministration.html')
-
 
 @admin.route('/admin/export/csv/<table_name>', methods=['GET'])
 @login_required
@@ -411,6 +400,35 @@ def export_csv(table_name):
     # Return the CSV data as a response
     return Response(si, mimetype='text/csv', headers={"Content-Disposition": "attachment; filename=data.csv"})
 
+
+@admin.route('/adminPanel', methods=['GET'])
+@login_required
+def admin_panel():
+    if 'user_id' in session:
+        inspector = inspect(db.engine)
+        tables = inspector.get_table_names()
+        return render_template('admin/adminPanel.html', tables=tables)
+    else:
+        return "Unauthorized", 403
+
+
+@admin.route('/update_value/<table_name>/<row_id>', methods=['POST'])
+@login_required
+def update_value(table_name, row_id):
+    data = request.json
+    column_name = data.get("column_name")
+    new_value = data.get("new_value")
+    
+    table = db.metadata.tables.get(table_name)
+    if table is None:
+        return jsonify({'error': 'Table not found'})
+        
+    # Assuming the primary key column is named 'id'
+    stmt = table.update().where(table.c.id == row_id).values({column_name: new_value})
+    db.session.execute(stmt)
+    db.session.commit()
+    
+    return jsonify({'status': 'success'})
 
 # Get all table names
 @admin.route('/get_tables', methods=['GET'])

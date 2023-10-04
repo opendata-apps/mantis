@@ -1,153 +1,220 @@
 {% extends "layout.html" %}
 {% block title %}
-<!-- Titel der Seite -->
+<!-- Title of the page -->
 <a class="p-2 duration-300 rounded-lg hover:bg-green-700" href="/admin">
   Admin- Center
 </a>
 {% endblock title %}
 {% block text %}
-<!-- Kommentar unter der Überschrift -->
-Willkomen im Admin-Center! <br />
-Hier können sie die Datenbank und alle Meldungen verwalten. <br />
-Klicken sie dazu auf die unten aufgeführten Optionen! <br />
+<!-- Comment under the header -->
+Welcome to the Admin Center! <br />
+Here you can manage the database and all reports. <br />
+Click on the options listed below! <br />
 {%endblock text %}
 {% block content %}
-<!-- Inhalt im weißen Feld -->
-<div class="grid h-screen grid-cols-5 grid-rows-6 gap-4 m-3">
-  <div
-    class="col-span-3 row-span-6 overflow-y-auto duration-500 bg-gray-200 border-4 border-gray-200 rounded-md hover:shadow-xl">
-    {% block reported_sightings %}
-    <!-- Übersicht über die Meldungen -->
-    <div class="mt-6 overflow-x-auto">
-      <table class="min-w-full divide-y divide-gray-200" id="data_table">
-        <thead class="bg-gray-100" id="table-head">
-          <tr>
-            <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-600 uppercase">ID</th>
-            <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-600 uppercase">Fund Datum</th>
-            <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-600 uppercase">Meldungsdatum
-            </th>
-            <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-600 uppercase">Anzahl</th>
-            <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-600 uppercase">Ort</th>
-            <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-600 uppercase">Beschreibung</th>
-          </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-gray-200" id="table-body">
-          {% for sighting in reported_sightings %}
-          <tr>
-            <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{{ sighting.id }}</td>
-            <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{{ sighting.dat_fund }}</td>
-            <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{{ sighting.dat_meld }}</td>
-            <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{{ sighting.anzahl }}</td>
-            <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{{ sighting.ort }}</td>
-            <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{{ sighting.beschreibung }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-    {% endblock reported_sightings %}
-  </div>
-  <div
-    class="sticky col-span-2 row-span-2 duration-500 bg-gray-200 border-4 border-gray-200 rounded-md top-3 hover:shadow-xl">
+<div class="flex flex-col h-full">
+  <div class="sticky top-0 z-50 w-full p-4 bg-white">
     <label for="tables" class="block text-sm font-medium text-gray-700">Select a table:</label>
-    <select id="tables" class="block w-full mt-1 p-1.5 border-gray-300 rounded-md" onchange="loadTableData(this.value)">
+    <select id="tables" class="block w-full max-w-xs mt-1 p-1.5 border-gray-300 rounded-md" onchange="handleTableSelection()">
       {% for table in tables %}
       <option value="{{ table }}">{{ table }}</option>
       {% endfor %}
     </select>
-
-    <label for="date_range" class="block text-sm font-medium text-gray-700">Date Range:</label>
-    <input type="date" name="start_date" class="block w-full mt-1 p-1.5 border-gray-300 rounded-md">
-    <input type="date" name="end_date" class="block w-full mt-1 p-1.5 border-gray-300 rounded-md">
-
-    <label for="location" class="block mt-4 text-sm font-medium text-gray-700">Location:</label>
-    <input type="text" name="location" class="block w-full mt-1 p-1.5 border-gray-300 rounded-md">
-
-    <button type="submit"
-      class="w-full mt-4 font-bold text-white duration-500 bg-green-900 rounded-md hover:shadow-xl hover:bg-green-700">
-      Apply Filters
-    </button>
   </div>
-  <div
-    class="sticky col-span-2 row-span-2 duration-500 bg-gray-200 border-4 border-gray-200 rounded-md top-3 hover:shadow-xl">
-    <!--   Optionen wie Export Selected, Export All, Bearbeiten, etc.  -->
-    <button
-      class="w-full mt-2 font-bold text-white duration-500 bg-green-900 rounded-md hover:shadow-xl hover:bg-green-700"
-      onclick="exportTableData()">
-      Export as CSV
-    </button>
-    <button
-      class="w-full mt-2 font-bold text-white duration-500 bg-green-900 rounded-md hover:shadow-xl hover:bg-green-700"
-      onclick="window.location.href = '/admin/export/xlsx';">
-      Export as Excel
-    </button>
-    <button
-      class="w-full mt-2 font-bold text-white duration-500 bg-green-900 rounded-md hover:shadow-xl hover:bg-green-700"
-      onclick="window.location.href = '/admin/export/selected';">
-      Export Selected
-    </button>
-    <!-- Add other action buttons here -->
+  <div class="flex-grow overflow-hidden">
+    <div class="w-full h-full overflow-x-auto">
+      <table id="dynamic-table" class="min-w-full divide-y divide-gray-200">
+        <thead id="table-head">
+          <!-- Dynamic Headers will be inserted here -->
+        </thead>
+        <tbody id="table-body" class="bg-white divide-y divide-gray-200">
+          <!-- Dynamic Data will be inserted here -->
+        </tbody>
+      </table>
+    </div>
   </div>
-  <button class="font-bold text-white duration-500 bg-green-900 rounded-md hover:shadow-xl hover:bg-green-700"
-    onclick="window.location.href = '/admin/userAdministration';">
-    Benutzerverwaltung anzeigen
-  </button>
-  <button class="font-bold text-white duration-500 bg-green-900 rounded-md hover:shadow-xl hover:bg-green-700"
-    onclick="window.location.href = '/admin/log';">
-    Letzte Änderungen anzeigen
-  </button>
-  <script>
-    function exportTableData() {
-      let selectedTable = document.getElementById('tables').value;
-      window.location.href = '/admin/export/csv/' + selectedTable;
-    }
+</div>
 
-    window.onload = function () {
-      document.getElementById("tables").addEventListener("change", function () {
-        loadTableData(this.value);
-      });
-    }
 
-    function loadTableData(table_name) {
-      fetch('/table/' + table_name)
+
+
+
+
+
+
+<script>
+  function loadTableData(table_name) {
+    fetch('/table/' + table_name)
         .then(response => response.json())
         .then(data => {
-          let tableBody = document.getElementById('table-body');
-          let tableHead = document.getElementById('table-head');
+            let tableBody = document.getElementById('table-body');
+            let tableHead = document.getElementById('table-head');
 
-          // Clear previous data
-          tableBody.innerHTML = "";
-          tableHead.innerHTML = "";
+            // Clear previous data
+            tableBody.innerHTML = "";
+            tableHead.innerHTML = "";
 
-          if (data.length > 0) {
-            // Create table headers
-            let headerRow = document.createElement('tr');
-            for (let key in data[0]) {
-              let th = document.createElement('th');
-              th.classList.add('px-6', 'py-3', 'text-xs', 'font-medium', 'tracking-wider', 'text-left', 'text-gray-600', 'uppercase'); // Add the same styles
-              th.innerText = key;
-              headerRow.appendChild(th);
+            if (data.length > 0) {
+                // Create table headers
+                let headerRow = document.createElement('tr');
+                for (let key in data[0]) {
+                    let th = document.createElement('th');
+                    th.classList.add('px-6', 'py-3', 'text-xs', 'font-medium', 'tracking-wider', 'text-left', 'text-gray-600', 'uppercase');
+                    th.innerText = key;
+                    headerRow.appendChild(th);
+                }
+                tableHead.appendChild(headerRow);
+
+                // Create table rows
+                for (let row of data) {
+                    let tr = document.createElement('tr');
+                    for (let key in row) {
+                        let td = document.createElement('td');
+                        td.classList.add('px-6', 'py-4', 'text-sm', 'text-gray-600', 'whitespace-nowrap');
+                        td.innerText = row[key];
+                        td.onclick = function(event) {
+                            convertToInput(this, table_name, row['id'], key, event);
+                        };
+                        tr.appendChild(td);
+                    }
+                    tableBody.appendChild(tr);
+                }
             }
-            tableHead.appendChild(headerRow);
-
-            // Create table rows
-            for (let row of data) {
-              let tr = document.createElement('tr');
-              for (let key in row) {
-                let td = document.createElement('td');
-                td.classList.add('px-6', 'py-4', 'text-sm', 'text-gray-600', 'whitespace-nowrap'); // Add the same styles
-                td.innerText = row[key];
-                tr.appendChild(td);
-              }
-              tableBody.appendChild(tr);
-            }
-          }
         })
         .catch(error => console.error('Error:', error));
+}
+
+function handleTableSelection() {
+    const selectedTable = document.getElementById("tables").value;
+    if (selectedTable) {
+        loadTableData(selectedTable);
     }
+}
+
+let activeEditButton = null;
+let activeCell = null;
+
+function convertToInput(tdElem, table_name, row_id, column_name, event) {
+  const originalText = tdElem.innerText;
+  
+  // Stop the event from bubbling up
+  event.stopPropagation();
+  
+  // If this element already has an edit button, we should return
+  if(tdElem.querySelector('.edit-button')) {
+      return;
+  }
+
+  if (activeCell) {
+    resetToBefore(activeCell.tdElem, activeCell.originalText, activeCell.table_name, activeCell.row_id, activeCell.column_name);
+  }
+  
+  // Reset the previous cell content before changing the current cell
+  if (activeEditButton && activeEditButton.parentNode) {
+    const parentTd = activeEditButton.parentNode;
+    parentTd.innerHTML = parentTd.firstChild.nodeValue;
+    activeEditButton.remove();
+    activeEditButton = null;
+  }
+
+  const editButton = document.createElement('button');
+  editButton.className = "bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded edit-button";
+  editButton.innerText = 'Edit';
+  editButton.onclick = function() {
+      const inputDiv = document.createElement('div');
+      inputDiv.className = "relative";
+
+      const inputElem = document.createElement('input');
+      inputElem.type = 'text';
+      inputElem.className = 'w-full p-1 rounded border-2 border-blue-500';
+      inputElem.value = originalText;
+
+      inputElem.addEventListener("keydown", function(event) {
+          if (event.key === "Escape") {
+              resetToBefore(tdElem, originalText, table_name, row_id, column_name);
+          }
+      });
+
+      const updateButton = document.createElement('button');
+      updateButton.innerText = 'Update';
+      updateButton.className = "absolute right-0 top-0 bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-2 rounded";
+
+      updateButton.onclick = function() {
+          convertToText(inputDiv, table_name, row_id, column_name);
+      };
+
+      inputDiv.appendChild(inputElem);
+      inputDiv.appendChild(updateButton);
+      tdElem.innerHTML = '';
+      tdElem.appendChild(inputDiv);
+      inputElem.focus();
+
+      // Remove the onclick event to avoid multiple event binding
+      tdElem.onclick = null;
+
+      // Listen for clicks outside the input
+      document.addEventListener('click', function(event) {
+          if (!inputDiv.contains(event.target) && event.target !== editButton) {
+              resetToBefore(tdElem, originalText, table_name, row_id, column_name);
+          }
+      }, { once: true });
+  };
+
+  tdElem.innerHTML = '';
+  tdElem.appendChild(document.createTextNode(originalText));
+  tdElem.appendChild(editButton);
+  
+  // Update the activeEditButton
+  activeEditButton = editButton;
+
+  activeCell = {
+    tdElem,
+    originalText,
+    table_name,
+    row_id,
+    column_name,
+  };
+}
 
 
-  </script>
+function resetToBefore(tdElem, originalText, table_name, row_id, column_name) {
+    // Reset current cell to its original state
+    tdElem.innerHTML = originalText;
+    tdElem.onclick = function(event) { 
+        convertToInput(this, table_name, row_id, column_name, event); 
+    };
+}
 
-</div>
-{% endblock content %}
+function convertToText(divElem, table_name, row_id, column_name) {
+    const inputElem = divElem.querySelector('input');
+    const newValue = inputElem.value;
+
+    fetch(`/update_value/${table_name}/${row_id}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ column_name, new_value: newValue }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            activeCell = null;
+            const td = divElem.parentElement;
+            td.innerText = newValue;
+            td.onclick = function(event) { 
+                convertToInput(this, table_name, row_id, column_name, event); 
+            };
+        } else {
+            console.error('Update failed');
+        }
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+        resetToBefore(tdElem, originalText, table_name, row_id, column_name);
+    });
+}
+
+</script>
+  
+  {% endblock content %}
