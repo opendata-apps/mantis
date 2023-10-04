@@ -1,21 +1,15 @@
 {% extends "layout.html" %}
 {% block title %}
-<!-- Title of the page -->
-<a class="p-2 duration-300 rounded-lg hover:bg-green-700" href="/admin">
-  Admin- Center
-</a>
+Admin Panel
 {% endblock title %}
 {% block text %}
-<!-- Comment under the header -->
-Welcome to the Admin Center! <br />
-Here you can manage the database and all reports. <br />
-Click on the options listed below! <br />
-{%endblock text %}
+Willkommen im Admin Panel
+{% endblock text %}
 {% block content %}
 <div class="flex flex-col h-full">
-  <div class="sticky top-0 z-50 w-full p-4 bg-white">
+  <div class="sticky top-0 z-50 p-4 bg-gray-100 border-b border-gray-300">
     <label for="tables" class="block text-sm font-medium text-gray-700">Select a table:</label>
-    <select id="tables" class="block w-full max-w-xs mt-1 p-1.5 border-gray-300 rounded-md" onchange="handleTableSelection()">
+    <select id="tables" class="block w-full max-w-xs p-2 mt-1 bg-white border rounded-md shadow-sm" onchange="handleTableSelection()">
       {% for table in tables %}
       <option value="{{ table }}">{{ table }}</option>
       {% endfor %}
@@ -23,11 +17,11 @@ Click on the options listed below! <br />
   </div>
   <div class="flex-grow overflow-hidden">
     <div class="w-full h-full overflow-x-auto">
-      <table id="dynamic-table" class="min-w-full divide-y divide-gray-200">
-        <thead id="table-head">
+      <table id="dynamic-table" class="min-w-full bg-white divide-y divide-gray-200 rounded-lg shadow-md">
+        <thead id="table-head" class="bg-gray-300">
           <!-- Dynamic Headers will be inserted here -->
         </thead>
-        <tbody id="table-body" class="bg-white divide-y divide-gray-200">
+        <tbody id="table-body" class="divide-y divide-gray-200">
           <!-- Dynamic Data will be inserted here -->
         </tbody>
       </table>
@@ -40,179 +34,142 @@ Click on the options listed below! <br />
 
 
 
-
-
 <script>
-  function loadTableData(table_name) {
-    fetch('/table/' + table_name)
-        .then(response => response.json())
-        .then(data => {
-            let tableBody = document.getElementById('table-body');
-            let tableHead = document.getElementById('table-head');
-
-            // Clear previous data
-            tableBody.innerHTML = "";
-            tableHead.innerHTML = "";
-
-            if (data.length > 0) {
-                // Create table headers
-                let headerRow = document.createElement('tr');
-                for (let key in data[0]) {
-                    let th = document.createElement('th');
-                    th.classList.add('px-6', 'py-3', 'text-xs', 'font-medium', 'tracking-wider', 'text-left', 'text-gray-600', 'uppercase');
-                    th.innerText = key;
-                    headerRow.appendChild(th);
-                }
-                tableHead.appendChild(headerRow);
-
-                // Create table rows
-                for (let row of data) {
-                    let tr = document.createElement('tr');
-                    for (let key in row) {
-                        let td = document.createElement('td');
-                        td.classList.add('px-6', 'py-4', 'text-sm', 'text-gray-600', 'whitespace-nowrap');
-                        td.innerText = row[key];
-                        td.onclick = function(event) {
-                            convertToInput(this, table_name, row['id'], key, event);
-                        };
-                        tr.appendChild(td);
-                    }
-                    tableBody.appendChild(tr);
-                }
-            }
-        })
-        .catch(error => console.error('Error:', error));
+// Declare re-usable functions
+function clearTable(tableBody, tableHead) {
+  tableBody.innerHTML = "";
+  tableHead.innerHTML = "";
 }
 
+function createElement(tagName, classes, innerText) {
+  const elem = document.createElement(tagName);
+  elem.className = classes;
+  elem.innerText = innerText;
+  return elem;
+}
+
+async function fetchAndUpdate(url, method, body) {
+  try {
+    const response = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    return await response.json();
+  } catch (error) {
+    console.error('Error:', error);
+    return null;
+  }
+}
+
+// Load Table Data
+async function loadTableData(table_name) {
+  const tableBody = document.getElementById('table-body');
+  const tableHead = document.getElementById('table-head');
+  clearTable(tableBody, tableHead);
+  
+  const data = await fetchAndUpdate(`/table/${table_name}`, 'GET');
+
+  if (data && data.length > 0) {
+    const headerRow = createElement('tr', '', '');
+    Object.keys(data[0]).forEach(key => {
+      const th = createElement('th', 'px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-600 uppercase', key);
+      headerRow.appendChild(th);
+    });
+    tableHead.appendChild(headerRow);
+
+    data.forEach(row => {
+      const tr = createElement('tr', '', '');
+      Object.keys(row).forEach(key => {
+        const td = createElement('td', 'px-6 py-4 text-sm text-gray-600 whitespace-nowrap', row[key]);
+        td.onclick = (event) => convertToInput(td, table_name, row.id, key, event);
+        tr.appendChild(td);
+      });
+      tableBody.appendChild(tr);
+    });
+  }
+};
+
+// Handle Table Selection
 function handleTableSelection() {
-    const selectedTable = document.getElementById("tables").value;
-    if (selectedTable) {
-        loadTableData(selectedTable);
-    }
+  const selectedTable = document.querySelector("#tables").value;
+  if (selectedTable) loadTableData(selectedTable);
 }
 
-let activeEditButton = null;
 let activeCell = null;
 
+// Helper function to remove event listeners
+function removeEventListenerById(id, event, listener) {
+  const elem = document.getElementById(id);
+  if (elem) elem.removeEventListener(event, listener);
+}
+
+// Create input element with attributes
+function createInputElem(originalText) {
+  const inputElem = createElement('input', 'w-full p-1 rounded border-2 border-blue-500', '');
+  inputElem.type = 'text';
+  inputElem.value = originalText;
+  return inputElem;
+}
+
+// Convert TD to Input
 function convertToInput(tdElem, table_name, row_id, column_name, event) {
-  const originalText = tdElem.innerText;
-  
-  // Stop the event from bubbling up
   event.stopPropagation();
-  
-  // If this element already has an edit button, we should return
-  if(tdElem.querySelector('.edit-button')) {
-      return;
-  }
+  if (tdElem.querySelector('.edit-button')) return;
+  if (activeCell) resetToBefore(activeCell);
 
-  if (activeCell) {
-    resetToBefore(activeCell.tdElem, activeCell.originalText, activeCell.table_name, activeCell.row_id, activeCell.column_name);
-  }
-  
-  // Reset the previous cell content before changing the current cell
-  if (activeEditButton && activeEditButton.parentNode) {
-    const parentTd = activeEditButton.parentNode;
-    parentTd.innerHTML = parentTd.firstChild.nodeValue;
-    activeEditButton.remove();
-    activeEditButton = null;
-  }
+  const originalText = tdElem.innerText;
+  const editButton = createElement('button', 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded edit-button ml-2', 'Edit');
+  editButton.onclick = () => {
+    const inputDiv = createElement('div', 'relative flex items-center', ''); // <-- Added flex and items-center
+    const inputElem = createInputElem(originalText);
+    const updateButton = createElement('button', 'absolute right-3 top-1/2 transform -translate-y-1/2 bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-2 rounded focus:outline-none', 'Update'); // <-- Modified right positioning
+        
+    inputElem.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") resetToBefore({ tdElem, originalText, table_name, row_id, column_name });
+    });
 
-  const editButton = document.createElement('button');
-  editButton.className = "bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded edit-button";
-  editButton.innerText = 'Edit';
-  editButton.onclick = function() {
-      const inputDiv = document.createElement('div');
-      inputDiv.className = "relative";
+    inputDiv.appendChild(inputElem);
+    inputDiv.appendChild(updateButton);
+    tdElem.innerHTML = '';
+    tdElem.appendChild(inputDiv);
+    inputElem.focus();
+    tdElem.onclick = null;
 
-      const inputElem = document.createElement('input');
-      inputElem.type = 'text';
-      inputElem.className = 'w-full p-1 rounded border-2 border-blue-500';
-      inputElem.value = originalText;
-
-      inputElem.addEventListener("keydown", function(event) {
-          if (event.key === "Escape") {
-              resetToBefore(tdElem, originalText, table_name, row_id, column_name);
-          }
-      });
-
-      const updateButton = document.createElement('button');
-      updateButton.innerText = 'Update';
-      updateButton.className = "absolute right-0 top-0 bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-2 rounded";
-
-      updateButton.onclick = function() {
-          convertToText(inputDiv, table_name, row_id, column_name);
-      };
-
-      inputDiv.appendChild(inputElem);
-      inputDiv.appendChild(updateButton);
-      tdElem.innerHTML = '';
-      tdElem.appendChild(inputDiv);
-      inputElem.focus();
-
-      // Remove the onclick event to avoid multiple event binding
-      tdElem.onclick = null;
-
-      // Listen for clicks outside the input
-      document.addEventListener('click', function(event) {
-          if (!inputDiv.contains(event.target) && event.target !== editButton) {
-              resetToBefore(tdElem, originalText, table_name, row_id, column_name);
-          }
-      }, { once: true });
+    document.addEventListener('click', (event) => {
+      if (!inputDiv.contains(event.target) && event.target !== editButton) {
+        resetToBefore({ tdElem, originalText, table_name, row_id, column_name });
+      }
+    }, { once: true });
   };
 
   tdElem.innerHTML = '';
   tdElem.appendChild(document.createTextNode(originalText));
   tdElem.appendChild(editButton);
-  
-  // Update the activeEditButton
-  activeEditButton = editButton;
 
-  activeCell = {
-    tdElem,
-    originalText,
-    table_name,
-    row_id,
-    column_name,
-  };
+  activeCell = { tdElem, originalText, table_name, row_id, column_name };
+};
+
+// Reset to Before
+function resetToBefore({ tdElem, originalText, table_name, row_id, column_name }) {
+  tdElem.innerHTML = originalText;
+  tdElem.onclick = (event) => convertToInput(tdElem, table_name, row_id, column_name, event);
+  activeCell = null;
 }
 
 
-function resetToBefore(tdElem, originalText, table_name, row_id, column_name) {
-    // Reset current cell to its original state
-    tdElem.innerHTML = originalText;
-    tdElem.onclick = function(event) { 
-        convertToInput(this, table_name, row_id, column_name, event); 
-    };
-}
+// Convert Div to Text and Update
+async function convertToText(divElem, table_name, row_id, column_name) {
+  const inputElem = divElem.querySelector('input');
+  const newValue = inputElem.value;
+  const updateResponse = await fetchAndUpdate(`/update_value/${table_name}/${row_id}`, 'POST', { column_name, new_value: newValue });
 
-function convertToText(divElem, table_name, row_id, column_name) {
-    const inputElem = divElem.querySelector('input');
-    const newValue = inputElem.value;
-
-    fetch(`/update_value/${table_name}/${row_id}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ column_name, new_value: newValue }),
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            activeCell = null;
-            const td = divElem.parentElement;
-            td.innerText = newValue;
-            td.onclick = function(event) { 
-                convertToInput(this, table_name, row_id, column_name, event); 
-            };
-        } else {
-            console.error('Update failed');
-        }
-    })
-    .catch((error) => {
-        console.error('Error:', error);
-        resetToBefore(tdElem, originalText, table_name, row_id, column_name);
-    });
+  if (updateResponse && updateResponse.status === 'success') {
+      const td = divElem.parentElement;
+      resetToBefore({ tdElem: td, originalText: newValue, table_name, row_id, column_name });
+  } else {
+      console.error('Update failed');
+  }
 }
 
 </script>
