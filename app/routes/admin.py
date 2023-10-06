@@ -457,13 +457,16 @@ def get_tables():
 @admin.route('/table/<table_name>')
 @login_required
 def get_table_data(table_name):
+    limit = 20
+    offset = request.args.get('offset', default=0, type=int) # Get the offset parameter from the request
     table = db.metadata.tables.get(table_name)
     if table is None:
         return jsonify({'error': 'Table not found'})
-    result = db.session.execute(table.select().order_by(table.c.id))  # Sorted by id
+    result = db.session.execute(table.select().order_by(table.c.id).limit(limit).offset(offset))  # Add limit and offset to the query
     column_names = result.keys()
     data = [{column: value for column, value in zip(column_names, row)} for row in result]
     return jsonify(data)
+
 
 
 # Define a function to convert a row to a dictionary

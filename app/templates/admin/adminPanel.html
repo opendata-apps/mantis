@@ -59,20 +59,31 @@ async function fetchAndUpdate(url, method, body) {
 }
 
 // Load Table Data
-async function loadTableData(table_name) {
+let offset = 0; // Global variable to track the current offset
+const limit = 20; // The number of records to fetch in a single request
+
+async function loadTableData(table_name, append = false) {
   const tableBody = document.getElementById('table-body');
   const tableHead = document.getElementById('table-head');
-  clearTable(tableBody, tableHead);
+
+  // Only clear the table if not appending new data
+  if (!append) {
+    clearTable(tableBody, tableHead);
+    offset = 0; // Reset offset if we're starting fresh
+  }
   
-  const data = await fetchAndUpdate(`/table/${table_name}`, 'GET');
+  const data = await fetchAndUpdate(`/table/${table_name}?offset=${offset}`, 'GET');
 
   if (data && data.length > 0) {
-    const headerRow = createElement('tr', '', '');
-    Object.keys(data[0]).forEach(key => {
-      const th = createElement('th', 'px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-600 uppercase', key);
-      headerRow.appendChild(th);
-    });
-    tableHead.appendChild(headerRow);
+    // Only append headers if not appending new data
+    if (!append) {
+      const headerRow = createElement('tr', '', '');
+      Object.keys(data[0]).forEach(key => {
+        const th = createElement('th', 'px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-600 uppercase', key);
+        headerRow.appendChild(th);
+      });
+      tableHead.appendChild(headerRow);
+    }
 
     data.forEach(row => {
       const tr = createElement('tr', 'hover:bg-gray-100', ''); 
@@ -83,8 +94,20 @@ async function loadTableData(table_name) {
       });
       tableBody.appendChild(tr);
     });
+
+    offset += limit; // Increase the offset by the limit
   }
 };
+
+document.querySelector(".flex-grow > div").addEventListener('scroll', function() {
+  if (this.scrollTop + this.clientHeight >= this.scrollHeight) {
+      const selectedTable = document.querySelector("#tables").value;
+      if (selectedTable) loadTableData(selectedTable, true);
+  }
+});
+
+
+
 
 // Handle Table Selection
 function handleTableSelection() {
