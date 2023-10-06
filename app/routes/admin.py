@@ -413,11 +413,24 @@ def admin_panel():
         return "Unauthorized", 403
 
 
+NON_EDITABLE_FIELDS = {
+  'meldungen': ['id', 'fo_zuordnung'],
+  'beschreibung': ['id'],
+  'fundorte': ['id', 'ablage', 'beschreibung'],
+  'melduser': ['id', 'id_finder', 'id_meldung', 'id_user'],
+  'users': ['id', 'user_id']
+} 
+
+
 @admin.route('/update_value/<table_name>/<row_id>', methods=['POST'])
 @login_required
 def update_value(table_name, row_id):
     data = request.json
     column_name = data.get("column_name")
+    
+    # Check if field is non-editable
+    if column_name in NON_EDITABLE_FIELDS.get(table_name, []):
+        return jsonify({'error': 'Field is non-editable'}), 400
     new_value = data.get("new_value")
     
     table = db.metadata.tables.get(table_name)

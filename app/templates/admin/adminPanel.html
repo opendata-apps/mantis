@@ -108,8 +108,24 @@ function createInputElem(originalText) {
   return inputElem;
 }
 
+const nonEditableFields = {
+  'meldungen': ['id', 'fo_zuordnung'],
+  'beschreibung': ['id'],
+  'fundorte': ['id', 'ablage', 'beschreibung'],
+  'melduser': ['id', 'id_finder', 'id_meldung', 'id_user'],
+  'users': ['id', 'user_id']
+};
+
 // Convert TD to Input
 function convertToInput(tdElem, table_name, row_id, column_name, event) {
+  console.log(`Table: ${table_name}, Column: ${column_name}`); // Debugging output
+  event.stopPropagation();
+
+  // Check if the field is non-editable and return without doing anything if it is
+  if (nonEditableFields[table_name] && nonEditableFields[table_name].includes(column_name)) {
+    console.log(`Editing prevented for ${table_name} -> ${column_name}`); // Debugging output
+    return;
+  }
   event.stopPropagation();
   if (tdElem.querySelector('.edit-button')) return;
   if (activeCell) resetToBefore(activeCell);
