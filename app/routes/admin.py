@@ -407,6 +407,7 @@ def admin_panel():
     if 'user_id' in session:
         inspector = inspect(db.engine)
         tables = inspector.get_table_names()
+        tables = [table for table in tables if table != 'alembic_version']
         return render_template('admin/adminPanel.html', tables=tables)
     else:
         return "Unauthorized", 403
@@ -436,27 +437,19 @@ def update_value(table_name, row_id):
 def get_tables():
     inspector = inspect(db.engine)
     tables = inspector.get_table_names()
+    tables = [table for table in tables if table != 'alembic_version']
     return jsonify({"tables": tables})
 
 
 @admin.route('/table/<table_name>')
 @login_required
 def get_table_data(table_name):
-    # Get the table object from the database
     table = db.metadata.tables.get(table_name)
-
     if table is None:
         return jsonify({'error': 'Table not found'})
-
-    # Execute a select statement on the table
-    result = db.session.execute(table.select())
-
-    # Get the names of the columns
+    result = db.session.execute(table.select().order_by(table.c.id))  # Sorted by id
     column_names = result.keys()
-
-    # Serialize the result as a JSON object
-    data = [{column: value for column, value in zip(
-        column_names, row)} for row in result]
+    data = [{column: value for column, value in zip(column_names, row)} for row in result]
     return jsonify(data)
 
 
@@ -492,15 +485,7 @@ def perform_query(filter_value=None):
     ).join(
         TblUsers, TblMeldungUser.id_user == TblUsers.id
     )
-
-    # Apply the filter if necessary
-    if filter_value is not None:
-        if filter_value:
-            # rows where dat_bear is not null
-            query = query.filter(TblMeldungen.dat_bear.isnot(None))
-        else:
-            # rows where dat_bear is null
-            query = query.filter(TblMeldungen.dat_bear.is_(None))
+    
 
     return query.all()
 

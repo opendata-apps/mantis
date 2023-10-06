@@ -6,18 +6,19 @@ Admin Panel
 Willkommen im Admin Panel
 {% endblock text %}
 {% block content %}
-<div class="flex flex-col h-full">
-  <div class="sticky top-0 z-50 p-4 bg-gray-100 border-b border-gray-300">
-    <label for="tables" class="block text-sm font-medium text-gray-700">Select a table:</label>
-    <select id="tables" class="block w-full max-w-xs p-2 mt-1 bg-white border rounded-md shadow-sm" onchange="handleTableSelection()">
+<div class="flex flex-col h-screen">
+  <div class="sticky top-0 z-50 p-4 bg-gray-200 border-b border-gray-300"> 
+    <label for="tables" class="block text-sm font-semibold text-gray-700">Select a table:</label> 
+    <select id="tables" class="block w-full px-4 py-2 text-base text-gray-700 transition-colors bg-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200" onchange="handleTableSelection()">
+      <option value="">Select table</option>
       {% for table in tables %}
       <option value="{{ table }}">{{ table }}</option>
       {% endfor %}
     </select>
   </div>
-  <div class="flex-grow overflow-hidden">
+  <div class="flex-grow overflow-hidden bg-gray-50">
     <div class="w-full h-full overflow-x-auto">
-      <table id="dynamic-table" class="min-w-full bg-white divide-y divide-gray-200 rounded-lg shadow-md">
+      <table id="dynamic-table" class="min-w-full bg-white divide-y divide-gray-200 rounded-lg shadow-lg"> 
         <thead id="table-head" class="bg-gray-300">
           <!-- Dynamic Headers will be inserted here -->
         </thead>
@@ -30,12 +31,7 @@ Willkommen im Admin Panel
 </div>
 
 
-
-
-
-
 <script>
-// Declare re-usable functions
 function clearTable(tableBody, tableHead) {
   tableBody.innerHTML = "";
   tableHead.innerHTML = "";
@@ -79,7 +75,7 @@ async function loadTableData(table_name) {
     tableHead.appendChild(headerRow);
 
     data.forEach(row => {
-      const tr = createElement('tr', '', '');
+      const tr = createElement('tr', 'hover:bg-gray-100', ''); 
       Object.keys(row).forEach(key => {
         const td = createElement('td', 'px-6 py-4 text-sm text-gray-600 whitespace-nowrap', row[key]);
         td.onclick = (event) => convertToInput(td, table_name, row.id, key, event);
@@ -106,7 +102,7 @@ function removeEventListenerById(id, event, listener) {
 
 // Create input element with attributes
 function createInputElem(originalText) {
-  const inputElem = createElement('input', 'w-full p-1 rounded border-2 border-blue-500', '');
+  const inputElem = createElement('input', 'input-field ', '');
   inputElem.type = 'text';
   inputElem.value = originalText;
   return inputElem;
@@ -121,7 +117,7 @@ function convertToInput(tdElem, table_name, row_id, column_name, event) {
   const originalText = tdElem.innerText;
   const editButton = createElement('button', 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded edit-button ml-2', 'Edit');
   editButton.onclick = () => {
-    const inputDiv = createElement('div', 'relative flex items-center', ''); // <-- Added flex and items-center
+    const inputDiv = createElement('div', 'relative flex items-center', '');
     const inputElem = createInputElem(originalText);
     const updateButton = createElement('button', 'absolute right-3 top-1/2 transform -translate-y-1/2 bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-2 rounded focus:outline-none', 'Update'); // <-- Modified right positioning
         
@@ -135,6 +131,8 @@ function convertToInput(tdElem, table_name, row_id, column_name, event) {
     tdElem.appendChild(inputDiv);
     inputElem.focus();
     tdElem.onclick = null;
+
+    updateButton.onclick = () => convertToText(inputDiv, table_name, row_id, column_name);
 
     document.addEventListener('click', (event) => {
       if (!inputDiv.contains(event.target) && event.target !== editButton) {
