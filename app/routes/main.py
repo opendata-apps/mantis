@@ -1,15 +1,20 @@
 # from app.database.models import Mantis
+import os
 import json
-import time
-from datetime import datetime
+import random
+from flask import jsonify, render_template, request, Blueprint, send_from_directory
+from app import db
+# from app.database.models import Mantis
 
-from flask import (Blueprint, Response, current_app, flash, jsonify, redirect,
-                   render_template, request, send_from_directory, url_for)
+from app.forms import MantisSightingForm
+from app.database.models import TblMeldungen
+from sqlalchemy import or_
 from flask_sqlalchemy import SQLAlchemy
 from flask import flash, redirect, url_for
 from flask import render_template, send_from_directory
-import random
-import os
+from flask import (Blueprint, Response, current_app, flash, jsonify, redirect,
+                   render_template, request, send_from_directory, url_for)
+from flask_sqlalchemy import SQLAlchemy
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Blueprints

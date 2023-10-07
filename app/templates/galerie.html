@@ -1,64 +1,49 @@
 {% extends "layout.html" %}
 {% block title %}Bildergalerie{% endblock title %}
 {% block meta_keywords %} Auswertungen, Bilder, Gottesanbeterin, Mantis religiosa Auswertungen {% endblock %}
-{% from "macro.html" import popover %}
 {% block content %}
-
-<section class="max-w-2xl p-6 mx-auto my-10">
+<section class="container mx-auto mt-10">
   <h2 class="mb-6 text-3xl font-semibold text-center">Interessante Momentaufnahmen</h2>
-
-  <div>
-
-    <div class="relative aspect-w-4 aspect-h-3">
-      <div class="absolute top-0 left-0 z-10 w-full h-full">
-        <a id="cover-image" class="z-10 block w-full h-full" rel="lightbox[Mantis]" title="Start der Bildserie -- Autor: Dr. Berger" href="{{ url_for('static', filename='images/galerie/berger-start.webp')}}"></a>
-    
-        <div class="absolute z-20 top-2 right-2">
-            {{ popover('usage-notes', '', 
-                '<ul><li>Das Bild anklicken, Bilderserie startet...</li><li>Maus und Tastatur: Pfeil nach rechts, bl&auml;ttert vor…</li><li>Maus und Tastatur: Pfeil nach links, bl&auml;ttert zur&uuml;ck…</li><li>Mausbedienung: ESC-Taste, beendet die Bilderschau…</li></ul>')
-            }}
-        </div>
+  <div class="grid grid-cols-1 gap-6 px-2 md:grid-cols-2 md:px-4 lg:grid-cols-3 xl:px-8" >
+    <div>
+      <link href="{{ url_for('static', filename='lb/css/lightbox.min.css')}}" rel="stylesheet">
+      <p>Hinweise zur Bedienung 
+	<ul style="list-style-type:disc; padding-left:60px">
+	  <li>Das Bild anklicken, Bilderserie startet...</li>
+	  <li>Maus und Tastatur: Pfeil nach rechts, bl&auml;ttert vor…</li>
+	  <li>Maus und Tastatur: Pfeil nach links, bl&auml;ttert zur&uuml;ck…</li>
+	  <li>Mausbedienung: ESC-Taste, beendet die Bilderschau…</li>
+	</ul>
+      </p>
     </div>
-    
-    
-
-    <div id="cover-container" class="overflow-hidden rounded-lg shadow-lg aspect-content">
-      <a id="cover-image-link" class="block w-full h-full" rel="lightbox[Mantis]" title="Start der Bildserie -- Autor: Dr. Berger" href="{{ url_for('static', filename='images/galerie/berger-start.webp')}}">
-          <img src="{{ url_for('static', filename='images/galerie/berger-start.webp')}}" class="object-cover w-full h-full">
-      </a>
-  </div>
-  
-
-    <div class="hidden">
-      {% for slide in bilder %}
+    <div class="pl-5">
       <span id="tag-cloud">
-        <a class="tag1" rel="lightbox[Mantis]" title="{{ slide.beschreibung }} -- Autor: {{ slide.fotograph }} Datum: {{ slide.datum }} <br />Lizenz: {{ slide.lizenz | safe}}" href="{{ url_for('static', filename='images/galerie/' + slide.bildname)}}"></a>
+	<a class="pl-1"
+	   rel="lightbox[Mantis]"
+	   title="Start der Bildserie -- Autor: Dr. Berger"
+	   href="{{ url_for('static', filename='images/galerie/berger-start.webp')}}">
+	  <img src="{{ url_for('static', filename='images/galerie/berger-start.webp')}}">
+	</a>
+      </span>
+      {% for slide in bilder %}
+      <span id="tag-cloud"  class="items-stretch">
+	<a class="tag1"
+	   rel="lightbox[Mantis]"
+	   title="{{ slide.beschreibung }} -- Autor: {{ slide.fotograph }} Datum: {{ slide.datum }} <br />Lizenz: {{ slide.lizenz | safe}} "
+	   href="{{ url_for('static', filename='images/galerie/' + slide.bildname)}}">
+	</a>
       </span>
       {% endfor %}
     </div>
-    
   </div>
 </section>
 
-<link href="{{ url_for('static', filename='lb/css/lightbox.min.css')}}" rel="stylesheet">
-<script src="{{ url_for('static', filename='lb/jquery-3.3.1.slim.min.js')}}"></script>
-<script src="{{ url_for('static', filename='lb/js/lightbox-plus-jquery.js')}}"></script>
-
-<script>
-  let currentIndex = 0;
-  const images = [{% for slide in bilder %}"{{ url_for('static', filename='images/galerie/' + slide.bildname)}}", {% endfor %}];
-  const coverImageElement = document.getElementById('cover-image-link');
-
-  setInterval(() => {
-    if (!currentIndex || currentIndex >= images.length) {
-      currentIndex = 0;
-    }
-
-    coverImageElement.href = images[currentIndex];
-    coverImageElement.children[0].src = images[currentIndex];
-
-    currentIndex++;
-  }, 5000); // 5 seconds
+<script
+  src="{{ url_for('static', filename='lb/jquery-3.3.1.slim.min.js')}}">
 </script>
+<script
+  src="{{ url_for('static', filename='lb/js/lightbox-plus-jquery.js')}}">
+</script>
+</div>
 
 {% endblock content %}
