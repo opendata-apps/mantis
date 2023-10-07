@@ -6,20 +6,11 @@ from datetime import datetime
 from flask import (Blueprint, Response, current_app, flash, jsonify, redirect,
                    render_template, request, send_from_directory, url_for)
 from flask_sqlalchemy import SQLAlchemy
-<<<<<<< HEAD
-from sqlalchemy import or_
-
-from app import db
-from app.database.models import (TblFundortBeschreibung, TblFundorte,
-                                 TblMeldungen, TblMeldungUser, TblUsers)
-from app.forms import MantisSightingForm
-=======
 from flask import flash, redirect, url_for
 from flask import render_template, send_from_directory
 import random
 import os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
->>>>>>> origin/galerie
 
 # Blueprints
 main = Blueprint('main', __name__)
