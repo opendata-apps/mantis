@@ -23,7 +23,6 @@
     }
 </style>
 
-
 <div class="relative inline-block group">
     <button data-popover-target="{{ target }}" type="button" class="pl-2 pr-1 text-black" title="Hilfe">
         <svg class="w-4 h-4 text-gray-600 " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -40,7 +39,7 @@
             <h3 class="font-semibold text-gray-900 ">{{ title }}</h3>
         </div>
         <div class="px-3 py-2 bg-green-100">
-            <p>{{ content }}</p>
+            <p>{{ content | safe }}</p> <!-- This is where the change was made! -->
             {% if link_url and link_text %}
             <p><a href="{{ link_url }}" class="text-blue-500 underline">{{ link_text }}</a></p>
             {% endif %}

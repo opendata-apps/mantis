@@ -1,37 +1,29 @@
+from flask import jsonify, render_template, request, Blueprint, send_from_directory
+from app import db
 # from app.database.models import Mantis
 import json
-import time
+from app.database.models import TblMeldungen, TblFundortBeschreibung, TblFundorte, TblMeldungUser, TblUsers
 from datetime import datetime
-
-from flask import (Blueprint, Response, current_app, flash, jsonify, redirect,
-                   render_template, request, send_from_directory, url_for)
-from flask_sqlalchemy import SQLAlchemy
-<<<<<<< HEAD
-from sqlalchemy import or_
-
-from app import db
-from app.database.models import (TblFundortBeschreibung, TblFundorte,
-                                 TblMeldungen, TblMeldungUser, TblUsers)
 from app.forms import MantisSightingForm
-=======
+from sqlalchemy import or_
+from flask_sqlalchemy import SQLAlchemy
 from flask import flash, redirect, url_for
 from flask import render_template, send_from_directory
 import random
 import os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
->>>>>>> origin/galerie
 
 # Blueprints
 main = Blueprint('main', __name__)
 
 
-@main.route('/')
 @main.route('/start')
+@main.route('/')
 def index():
-    post_count = db.session.query(TblMeldungen).filter(
-        TblMeldungen.deleted == None).count()
-
+    post_count = db.session.query(TblMeldungen).count()
     return render_template('home.html', post_count=post_count)
+
+import time
 
 
 def styles():
@@ -74,29 +66,21 @@ def bestimmung():
 
 
 
-@main.route('/sitemap.xml')
-def sitemap():
-    with current_app.open_resource('static/sitemap.xml') as f:
-        content = f.read()
-    return Response(content, mimetype='application/xml')
-
-
-@main.route('/robots.txt')
-def robots():
-    with current_app.open_resource('static/robots.txt') as f:
-        content = f.read()
-    return Response(content, mimetype='text/plain')
-
-
-@main.route('/galerie')
-def galerie():
-    json_path = os.path.join(BASE_DIR, '..', 'static','images', 'galerie', 'galerie.json')
+@main.route('/gallerie')
+def gallerie():
+    json_path = os.path.join(BASE_DIR, '..', 'database', 'gallerie', 'gallerie.json')
     with open(json_path, 'r', encoding='utf-8') as file:
         bilder = json.load(file)
         
-    current_index = int(request.args.get('current_index', random.randint(0, len(bilder) - 1)))
+    zufall_bild = random.choice(bilder)
     
-    return render_template('galerie.html', bilder=bilder, current_index=current_index)
+    return render_template('gallerie.html', bild=zufall_bild)
+
+@main.route('/gallerie-bilder/<filename>')
+def gallerie_bilder(filename):
+    bilder_directory = os.path.join(BASE_DIR, '..', 'database', 'gallerie')
+    return send_from_directory(bilder_directory, filename)
+
 
 def not_found(e):
     return render_template("404.html")
