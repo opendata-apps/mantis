@@ -18,14 +18,25 @@
    </div>
    <script>
      var daten = {{ values|tojson }};
-     console.log(daten);
-     var xValue = daten.x;
-     var yValue = daten.y;
+     var xValues = [];
+     var yValues = [];
+
+     //separate keys and values in two lists
+     for (var key in daten) {
+	 if (daten.hasOwnProperty(key)) {
+	     xValues.push(key);
+	     yValues.push(daten[key]);
+	 }
+     };
+
+//     console.log(daten);
+//     var xValue = daten.x;
+//     var yValue = daten.y;
      var trace1 = {
-	 x: xValue,
-	 y: yValue,
+	 x: xValues,
+	 y: yValues,
 	 type: 'bar',
-	 text: yValue.map(String),
+	 text: yValues.map(String),
 	 textposition: 'auto',
 	 hoverinfo: 'none',
 	 marker: {
