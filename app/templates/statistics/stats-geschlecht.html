@@ -1,0 +1,80 @@
+{% extends "layout.html" %}
+{% block title %}Statistiken{% endblock title %}
+{% block meta_keywords %}Auswertungen, Statistik{% endblock %}
+{% block content %}
+<script
+  src="{{ url_for('static', filename='plotly/plotly-2.26.0.min.js')}}"
+  charset="utf-8">
+</script>
+<section class="container mx-auto mt-10">
+  <p>Anzahl Meldungen nach Entwicklungsstadium und Geschlecht</p>
+ <div
+   class="sticky col-span-2 row-span-2 duration-500 bg-gray-200 border-4
+	  border-gray-200 rounded-md top-3 hover:shadow-xl">
+   <label for="tables" class="block text-sm font-medium text-gray-700">Wähle eine Auswertung</label>
+   <select id="tables" class="block w-64 mt-1 p-1.5 border-gray-300 rounded-md"
+	   onchange="loadTableData(this.value)">
+     {% for statistik in menu.items() %}
+      <option value="{{ statistik[0] }}">{{ statistik[1] }}</option>
+      {% endfor %}
+   </select>
+   
+   <div id='myDiv'
+	class="wx-92">
+   <!-- Grafik -->
+   </div>
+   <script>
+     var daten = {{ values|tojson }};
+     console.log(daten);
+     var xValue = daten.x;
+     var yValue = daten.y;
+     var trace1 = {
+	 x: xValue,
+	 y: yValue,
+	 type: 'bar',
+	 text: yValue.map(String),
+	 textposition: 'auto',
+	 hoverinfo: 'none',
+	 marker: {
+	     color: '#5bae31', //'rgb(158,202,225)',
+	     opacity: 0.6,
+	     line: {
+		 color: 'rgb(8,48,107)',
+		 width: 1.5
+	     }
+	 }
+     };
+
+
+     var data = [trace1];
+     var layout = {
+	 title: 'Summen Geschlecht/Entwicklungsstadium',
+	 barmode: 'stack'
+     };
+
+
+     Plotly.newPlot('myDiv', data, layout, {displayModeBar: false});
+/*     
+     var data = [{
+	 x: 
+	 y: 
+	 name: 'Richtig',
+	 type: 'bar',
+	 textposition: 'auto',
+	 marker: {
+	     color: '#5bae31',
+	 },
+     }];
+     
+     var layout = {
+	 automargin:true,
+     };	    
+     Plotly.newPlot('myDiv', data, layout,
+		    {displayModeBar: false});
+     
+     
+     //Plotly.newPlot('myDiv', data);
+  */   
+   </script>
+</section>
+{% endblock content %}
