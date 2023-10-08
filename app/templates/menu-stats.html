@@ -1,0 +1,10 @@
+{% macro StatsAuswahl() -%}
+   <label for="tables" class="block text-sm font-medium text-gray-700 ml-5">Wähle eine Auswertung</label>
+   <select id="tables"
+	   class="block w-92 mt-1 p-1.5 border-gray-300 rounded-md ml-5 mb-5"
+	   onchange="loadTableData(this.value)">
+     {% for statistik in menu.items() %}
+      <option value="{{ statistik[0] }}">{{ statistik[1] }}</option>
+      {% endfor %}
+    </select>
+  {%- endmacro %}
