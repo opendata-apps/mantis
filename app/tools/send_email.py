@@ -48,7 +48,7 @@ def rendertextmsg(formdata):
     Straße:  {data['strasse']}
     Bundesland: {data['state']}
     Kreis: {data['kreis']}
-    Beschreibung: {data['fundortbeschreibung']}
+    Fundortbeschreibung: {data['fundortbeschreibung']}
     Funddatum: {data['datum']}
     """.format(data)
 

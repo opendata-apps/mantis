@@ -229,8 +229,24 @@ def report(usrid=None):
         addresse = form.contact.data
 
         if Config.send_emails and addresse:
-            send_email(formdata=form)
 
+            location = {
+                '1': 'Im Haus',
+                '2': 'Im Garten',
+                '3': 'Auf dem Balkon/auf der Terrasse',
+                '4': 'Am Fenster/an der Hauswand',
+                '5': 'Industriebrache',
+                '6': 'Im Wald',
+                '7': 'Wiese/Weide',
+                '8': 'Heidelandschaft',
+                '9': 'Straßengraben/Wegesrand/Ruderalflur',
+                '10': 'Gewerbegebiet',
+                '11': 'Im oder am Auto',
+                '99': 'anderer Fundort',
+            }
+            form.location_description.data = location[form.location_description.data]
+            
+            send_email(formdata=form)
         return redirect(url_for('data.report', usrid=usrid))
 
     if existing_user is not None:
