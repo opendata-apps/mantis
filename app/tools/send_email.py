@@ -49,7 +49,7 @@ def rendertextmsg(formdata):
     Bundesland: {data['state']}
     Kreis: {data['kreis']}
     Beschreibung: {data['fundortbeschreibung']}
-    Meldedatum: {data['datum']}
+    Funddatum: {data['datum']}
     """.format(data)
 
 
