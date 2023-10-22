@@ -19,7 +19,7 @@ import pandas as pd
 from io import BytesIO
 from flask import send_file
 from sqlalchemy import Table, create_engine
-from flask import abort, session
+from flask import abort
 from app.config import Config
 from functools import wraps
 from flask import g, flash
@@ -37,8 +37,6 @@ def login_required(f):
             abort(403)
         return f(*args, **kwargs)
     return decorated_function
-
-
 
 
 @admin.route('/reviewer/<usrid>')
@@ -486,9 +484,6 @@ def perform_query(filter_value=None):
 
     return query.all()
 
-# Route
-
-
 
 @admin.route('/admin/export/xlsx/<string:value>')
 @login_required
@@ -519,4 +514,7 @@ def export_data(value):
     output.seek(0)
 
     # Send the file
-    return send_file(output, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', as_attachment=True, download_name=filename)
+
+    return send_file(output,
+                     mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                     as_attachment=True, download_name=filename)

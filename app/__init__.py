@@ -41,7 +41,8 @@ def create_app(config_class=Config):
     csrf.exempt(admin)
     csrf.exempt(review)
     csrf.exempt(provider)
-
+    csrf.exempt(stats)
+    
     app.register_blueprint(main)
     app.register_blueprint(admin)
     app.register_blueprint(data)
