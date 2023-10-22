@@ -22,7 +22,7 @@ def rendertextmsg(formdata):
             'datum': md.sighting_date.data
             }
     return f"""
-    Liebe/r Mantis-Freund*In,
+    Liebe Mantis-Freundin, lieber Mantis-Freund,
 
     Vielen Dank, dass Sie sich am Gottesanbeterinnen-Monitoring beteiligt
     haben. Seit 2016 wurden uns bereits über 2.500 Meldungen aus
