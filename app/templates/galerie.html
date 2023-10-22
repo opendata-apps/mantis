@@ -29,7 +29,7 @@
       <span id="tag-cloud"  class="items-stretch">
 	<a class="tag1"
 	   rel="lightbox[Mantis]"
-	   title="{{ slide.beschreibung }} -- Autor: {{ slide.fotograph }} Datum: {{ slide.datum }} <br />Lizenz: {{ slide.lizenz | safe}} "
+	   title="{{ slide.beschreibung }} <br />Autor: {{ slide.fotograph }}, <br />{{ slide.datum }}, <br />Lizenz: {{ slide.lizenz | safe}} "
 	   href="{{ url_for('static', filename='images/galerie/' + slide.bildname)}}">
 	</a>
       </span>
