@@ -908,6 +908,11 @@
       }
     }
 
+    document.getElementById('submitBtn').addEventListener('click', (event) => {
+      event.target.disabled = true;
+      console.log("Button disabled");
+    });
+    
 
     document.getElementById('mainForm').addEventListener('submit', (event) => {
       event.preventDefault();  // Prevent the form from submitting immediately
@@ -928,6 +933,7 @@
       // Now submit the form manually if needed
       event.target.submit();
     });
+
 
 
 
