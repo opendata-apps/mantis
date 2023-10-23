@@ -1,9 +1,7 @@
 from flask_wtf import FlaskForm
-from wtforms.validators import DataRequired, Length, NumberRange, Email, ValidationError, InputRequired, Optional, Regexp
+from wtforms.validators import DataRequired, Length, NumberRange, ValidationError, InputRequired, Optional
 from flask_wtf.file import FileAllowed, FileRequired, FileSize
-from wtforms import StringField, IntegerField, DateField, SelectField, BooleanField, FloatField, FileField, SubmitField, HiddenField, validators
-from datetime import date
-import re
+from wtforms import StringField, IntegerField, DateField, SelectField, BooleanField, FloatField, FileField, SubmitField, validators
 from datetime import datetime, timedelta
 
 # translations_cache = {}

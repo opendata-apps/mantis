@@ -1,4 +1,3 @@
-import copy
 import json
 import os
 from datetime import datetime, timedelta
@@ -8,13 +7,12 @@ from random import uniform
 from flask import (Blueprint, flash, jsonify, redirect, render_template,
                    request, url_for, abort)
 from PIL import Image
-from sqlalchemy import or_
 from werkzeug.datastructures import CombinedMultiDict
 from werkzeug.utils import secure_filename
 
 from app import db
-from app.database.models import (TblFundortBeschreibung, TblFundorte,
-                                 TblMeldungen, TblMeldungUser, TblUsers)
+from app.database.models import (TblFundorte, TblMeldungen,
+                                 TblMeldungUser, TblUsers)
 from app.forms import MantisSightingForm
 from app.tools.gen_user_id import get_new_id
 from app.tools.send_email import send_email

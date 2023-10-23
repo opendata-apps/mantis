@@ -1,30 +1,21 @@
-from flask import session  # import session
-from flask import jsonify, render_template, request, Blueprint, send_from_directory
-from app import db
-# from app.database.models import Mantis
-import json
-from app.database.models import TblMeldungen, TblFundortBeschreibung, TblFundorte, TblMeldungUser, TblUsers
-from app.database.full_text_search import FullTextSearch
-from datetime import datetime, timedelta
-from app.forms import MantisSightingForm
-from sqlalchemy import or_, MetaData
-from flask import render_template_string
-from sqlalchemy import inspect, text
-from sqlalchemy.orm import sessionmaker, joinedload
 import csv
-from flask import Response, redirect, url_for
-from io import StringIO, BytesIO
-import os
-import pandas as pd
-from io import BytesIO
-from flask import send_file
-from sqlalchemy import Table, create_engine
-from flask import abort, session
-from app.config import Config
+# from app.database.models import Mantis
+from datetime import datetime, timedelta
 from functools import wraps
-from flask import g, flash
-from sqlalchemy import text
+from io import BytesIO, StringIO
+
+import pandas as pd
+from app import db
+from app.config import Config
+from app.database.full_text_search import FullTextSearch
+from app.database.models import (TblFundortBeschreibung, TblFundorte,
+                                 TblMeldungen, TblMeldungUser, TblUsers)
+from flask import session  # import session
+from flask import (Blueprint, Response, abort, flash, jsonify, redirect, render_template,
+                   request, send_file, send_from_directory, url_for)
+from sqlalchemy import inspect, or_, text
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import sessionmaker
 
 # Blueprints
 admin = Blueprint('admin', __name__)
