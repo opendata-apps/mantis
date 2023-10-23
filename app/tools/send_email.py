@@ -72,7 +72,7 @@ def renderhtmlmsg(formdata):
     <h3>Liebe Mantis-Freundin, lieber Mantis-Freund,</h3>
     
     <p>
-    Vielen Dank, dass Sie sich am Gottesanbeterinnen-Monitoring beteiligt
+    vielen Dank, dass Sie sich am Gottesanbeterinnen-Monitoring beteiligt
     haben. Seit 2016 wurden uns bereits über 2.500 Meldungen aus
     Brandenburg und Berlin gemeldet. Vor allem aus dem Süden
     Brandenburgs. Im Norden wird die Art viel seltener gesichtet. Auch in
