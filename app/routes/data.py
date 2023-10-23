@@ -255,6 +255,7 @@ def report(usrid=None):
                            apikey=Config.esri,)
 
 
+
 @data.route('/validate', methods=['POST'])
 def validate():
     form_data = CombinedMultiDict(
@@ -265,6 +266,7 @@ def validate():
         return jsonify({'success': True})
     else:
         return jsonify({'errors': form.errors}), 333
+
 
 
 @data.route('/auswertungen')
