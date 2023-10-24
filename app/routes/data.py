@@ -276,12 +276,6 @@ def show_map():
     post_count = db.session.query(TblMeldungen).filter(
         TblMeldungen.deleted == None).count()
 
-    # Fetch the reports data from the database where dat_bear
-    # is not null in TblMeldungen
-    # TblMeldungen, TblMeldungen.fo_zuordnung == \
-    # TblFundorte.id).filter(TblMeldungen.dat_bear != None).all()
-    # Im Testmodus alle Meldungen anzeigen
-
     reports = TblFundorte.query.join(
         TblMeldungen, TblMeldungen.fo_zuordnung ==
         TblFundorte.id).filter(TblMeldungen.dat_bear != None).all()
@@ -296,8 +290,11 @@ def show_map():
             # Obfuscate the location before appending
             lati, long = obfuscate_location(lati, long)
 
-            koords.append({'latitude': lati,
-                           'longitude': long})
+            koords.append({
+                'id': report.id,  # Include the ID
+                'latitude': lati,
+                'longitude': long
+            })
         except:
             pass
 
@@ -306,6 +303,26 @@ def show_map():
                            reportsJson=reportsJson,
                            apikey=Config.esri,
                            post_count=post_count)
+    
+@data.route('/get_marker_data/<int:report_id>')
+def get_marker_data(report_id):
+    report = (db.session.query(TblMeldungen.id, TblMeldungen.dat_meld, TblMeldungen.dat_fund_von,
+                               TblFundorte.ort, TblFundorte.kreis)
+              .join(TblFundorte, TblMeldungen.fo_zuordnung == TblFundorte.id)
+              .filter(TblMeldungen.id == report_id).first())
+
+    if report:
+        return jsonify({
+            'id': report.id,
+            'dat_meld': str(report.dat_meld),
+            'dat_fund_von': str(report.dat_fund_von),
+            'ort': report.ort,
+            'kreis': report.kreis
+        })
+    else:
+        return jsonify({'error': 'Report not found'}), 404
+
+
 
 
 def obfuscate_location(lat, long):

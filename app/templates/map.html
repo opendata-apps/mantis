@@ -7,11 +7,21 @@ Gottesanbeterin, Mantis religiosa Auswertungen {% endblock %}
 {% block text %} Übersicht zu allen bestätigten Meldungen. {% endblock text %}
 {% block content %}
 <section class="container mx-auto mt-10">
-  <p class="text-center">Die Position der Marker kann von den gemeldeten Koordinaten abweichen (Datenschutz).</p>
+  <div class="flex justify-center">
+    <p class="flex items-center inline-block p-4 my-4 space-x-2 text-black bg-white border border-gray-200 rounded-lg shadow-lg">
+      <span class="flex items-center text-2xl">
+        🔒
+        <span class="w-px h-5 mx-3 bg-gray-300"></span>
+      </span>
+      Die Position der Marker kann von den gemeldeten Koordinaten abweichen (Datenschutz).
+    </p>
+  </div>
+
   <div class="container flex flex-row p-6">
     <div id="map" class="object-fill h-screen bg-white rounded-lg shadow-md grow auto-rows-max"></div>
   </div>
 </section>
+
 
 <!-- Animated counter section -->
 <section class="py-16 bg-gray-100">
@@ -29,6 +39,53 @@ Gottesanbeterin, Mantis religiosa Auswertungen {% endblock %}
     </div>
   </div>
 </section>
+
+<style>
+  /* css to customize Leaflet default styles  */
+/* Adjust the popup wrapper */
+.leaflet-popup-content-wrapper {
+  background: rgba(22, 101, 52, 0.8);  /* semi-transparent background */
+  border-radius: 12px;  /* rounded corners */
+  color: #ffffff;  /* text color */
+  font-family: 'Arial', sans-serif;  /* font style */
+  opacity: 0;  /* start with transparent */
+  animation: fadeIn ease 1s;  /* fade-in animation */
+  animation-fill-mode: forwards;  /* keep the end state */
+}
+
+
+/* Adjust the popup tip */
+.leaflet-popup-tip {
+  background: rgba(22, 101, 52, 0.8);  /* semi-transparent background */
+}
+
+/* Add some padding to the popup content */
+.leaflet-popup-content {
+  padding: 10px;  /* internal padding */
+}
+
+/* Make strong text stand out */
+.leaflet-popup-content strong {
+  display: block;  /* make it block-level */
+  margin-bottom: 10px;  /* add some margin at the bottom */
+  font-size: 1.2em;  /* increase the font size */
+}
+
+/* Add some spacing between lines */
+.leaflet-popup-content br {
+  margin-bottom: 5px;
+  display: block;  /* make it block-level */
+  
+}
+
+
+/* Fade-in animation */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+  </style>
+  
 
 
 <script>
@@ -79,6 +136,17 @@ Gottesanbeterin, Mantis religiosa Auswertungen {% endblock %}
       [55.058347, 15.041896]
     ];
 
+    const customIcon = new L.Icon({
+      iconUrl: '/static/css/images/custom-marker-icon.png',
+      iconRetinaUrl: '/static/css/images/custom-marker-icon-2x.png',
+      shadowUrl: '/static/css/images/marker-shadow.png',
+      iconSize: [25, 41],
+      shadowSize: [50, 64],
+      iconAnchor: [12, 41],  
+      shadowAnchor: [13, 62],  
+      popupAnchor: [2, -34] 
+  });
+
     map = L.map('map', {
       renderer: L.canvas(),
       maxBounds: germanyBounds,
@@ -110,8 +178,41 @@ Gottesanbeterin, Mantis religiosa Auswertungen {% endblock %}
     var reports = JSON.parse('{{ reportsJson | safe }}');
   
     reports.forEach(report => {
-      const marker = L.marker([report.latitude, report.longitude]);
-      markers.addLayer(marker);
+      const marker = L.marker([report.latitude, report.longitude], { icon: customIcon });  // Use the custom icon
+
+marker.bindPopup("Loading..."); // initial message
+
+marker.on('popupopen', function(e) {
+  // Fetch data dynamically
+  fetch(`/get_marker_data/${report.id}`)
+  .then(response => response.json())
+  .then(data => {
+      let popupContent = `<strong>Melde ID: ${data.id}</strong>`;
+      
+      if (data.dat_meld) {
+          popupContent += `<br>Melde Datum: ${data.dat_meld}`;
+      }
+      
+      if (data.dat_fund_von) {
+          popupContent += `<br>Fund Datum: ${data.dat_fund_von}`;
+      }
+      
+      if (data.ort) {
+          popupContent += `<br>Ort: ${data.ort}`;
+      }
+      
+      if (data.kreis) {
+          popupContent += `<br>Kreis: ${data.kreis}`;
+      }
+
+      e.popup.setContent(popupContent);
+  })
+  .catch(error => {
+      e.popup.setContent("Failed to load data");
+  });
+});
+
+markers.addLayer(marker);
     });
 
     map.addLayer(markers);
