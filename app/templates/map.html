@@ -135,17 +135,7 @@ Gottesanbeterin, Mantis religiosa Auswertungen {% endblock %}
       [47.270111, 5.866342],
       [55.058347, 15.041896]
     ];
-
-    const customIcon = new L.Icon({
-      iconUrl: '/static/css/images/custom-marker-icon.png',
-      iconRetinaUrl: '/static/css/images/custom-marker-icon-2x.png',
-      shadowUrl: '/static/css/images/marker-shadow.png',
-      iconSize: [25, 41],
-      shadowSize: [50, 64],
-      iconAnchor: [12, 41],  
-      shadowAnchor: [13, 62],  
-      popupAnchor: [2, -34] 
-  });
+    
 
     map = L.map('map', {
       renderer: L.canvas(),
@@ -178,7 +168,7 @@ Gottesanbeterin, Mantis religiosa Auswertungen {% endblock %}
     var reports = JSON.parse('{{ reportsJson | safe }}');
   
     reports.forEach(report => {
-      const marker = L.marker([report.latitude, report.longitude], { icon: customIcon });  // Use the custom icon
+      const marker = L.marker([report.latitude, report.longitude]);
 
 marker.bindPopup("Loading..."); // initial message
 
