@@ -167,22 +167,26 @@
   </script>
   <!--! White Content Start-->
   <div class="z-10 flex flex-wrap mt-0 bg-gray-100" id="content-container">
-    <div class="flex-auto">{% block content %} {% endblock content %}</div>
+    <div class="flex-auto overflow-hidden">
+      {% block content %} 
+      {% endblock content %}
+    </div>
   </div>
+  
   <!--! White Content End-->
   <!--! Start Footer -->
   <!--https://tailwindcomponents.com/component/footer-5-->
   <!--! Start Footer -->
-  <footer id="links" class="bg-gray-200 footer ">
-    <div class="max-w-5xl px-4 py-4 mx-auto sm:px-6 lg:px-8">
-      <div class="flex justify-center text-green-600">
-        <a href="/" class="text-3xl font-bold">MITMACHPROJEKT</a>
-      </div>
-      <p class="max-w-md mx-auto mt-6 leading-relaxed text-center text-gray-500">
-        Die Gottesanbeterin (<i>Mantis religiosa </i> L., 1758) ist eine faszinierende
-        Insektenart mit einer einzigartigen Jagdstrategie.
-      </p>
-      <ul class="flex flex-wrap justify-center gap-6 mt-12 md:gap-8 lg:gap-12">
+  <footer id="links" class="bg-gray-200 border-t border-gray-300 footer">
+    <div class="max-w-5xl px-4 py-8 mx-auto space-y-6 sm:px-6 lg:px-8 sm:space-y-8">
+        <div class="flex justify-center mb-5 text-green-600">
+            <a href="/" class="text-2xl tracking-wider transition-colors font- sm:text-3xl hover:text-green-700">MITMACHPROJEKT</a>
+        </div>
+        <p class="max-w-xl mx-auto mb-6 text-sm leading-relaxed text-center text-gray-500 sm:text-base">
+            Die Gottesanbeterin (<i>Mantis religiosa </i> L., 1758) ist eine faszinierende
+            Insektenart mit einer einzigartigen Jagdstrategie.
+        </p>
+        <ul class="flex flex-wrap justify-center gap-6 sm:gap-8">
         <li>
           <a class="text-gray-700 transition hover:text-gray-800/75"
             href="https://mantis-religiosa.readthedocs.io/de/latest/index.html" target="_blank"
@@ -217,7 +221,7 @@
           </a>
         </li>
       </ul>
-      <ul class="flex justify-center gap-6 mt-12 md:gap-8">
+      <ul class="flex flex-wrap justify-center gap-6 mt-6 sm:gap-8">
         <li>
           <a href="https://gitlab.com/opendata-apps/mantis" rel="noreferrer noopener" target="_blank"
             class="text-gray-700 transition-transform transform hover:text-gray-700/75 hover:scale-110">
@@ -243,9 +247,18 @@
           </a>
         </li>
       </ul>
-      <p class="mt-12 text-center text-gray-600 ">✻ Python/Flask-App ✻ Lizenz: MIT ✻ P22 ✻ 2023 ✻</p>
-    </div>
-  </footer>
+      <div class="flex flex-col justify-center pt-8 mt-8 space-y-4 text-center text-gray-600 border-t border-gray-300 sm:space-y-0 sm:mt-10 sm:flex-row sm:space-x-10 sm:text-left">
+          <span>Python/Flask-App: 
+              <a href="https://gitlab.com/opendata-apps/mantis/-/commits/v0.9.1" class="font-medium text-green-600 hover:underline">v0.9.1</a>
+          </span>
+          <span>Lizenz: 
+              <a href="/lizenz" class="font-medium text-green-600 hover:underline">MIT</a>
+          </span>
+          <span>© 2023</span>
+          <span>P22</span>
+      </div>
+  </div>
+</footer>
   <style>
     body {
       opacity: 0 !important;

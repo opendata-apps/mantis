@@ -1,4 +1,3 @@
-import copy
 import json
 import os
 from datetime import datetime, timedelta
@@ -8,13 +7,12 @@ from random import uniform
 from flask import (Blueprint, flash, jsonify, redirect, render_template,
                    request, url_for, abort)
 from PIL import Image
-from sqlalchemy import or_
 from werkzeug.datastructures import CombinedMultiDict
 from werkzeug.utils import secure_filename
 
 from app import db
-from app.database.models import (TblFundortBeschreibung, TblFundorte,
-                                 TblMeldungen, TblMeldungUser, TblUsers)
+from app.database.models import (TblFundorte, TblMeldungen,
+                                 TblMeldungUser, TblUsers)
 from app.forms import MantisSightingForm
 from app.tools.gen_user_id import get_new_id
 from app.tools.send_email import send_email
@@ -229,8 +227,24 @@ def report(usrid=None):
         addresse = form.contact.data
 
         if Config.send_emails and addresse:
-            send_email(formdata=form)
 
+            location = {
+                '1': 'Im Haus',
+                '2': 'Im Garten',
+                '3': 'Auf dem Balkon/auf der Terrasse',
+                '4': 'Am Fenster/an der Hauswand',
+                '5': 'Industriebrache',
+                '6': 'Im Wald',
+                '7': 'Wiese/Weide',
+                '8': 'Heidelandschaft',
+                '9': 'Straßengraben/Wegesrand/Ruderalflur',
+                '10': 'Gewerbegebiet',
+                '11': 'Im oder am Auto',
+                '99': 'anderer Fundort',
+            }
+            form.location_description.data = location[form.location_description.data]
+            
+            send_email(formdata=form)
         return redirect(url_for('data.report', usrid=usrid))
 
     if existing_user is not None:
@@ -239,6 +253,7 @@ def report(usrid=None):
                            form=form,
                            existing_user=existing_user,
                            apikey=Config.esri,)
+
 
 
 @data.route('/validate', methods=['POST'])
@@ -253,18 +268,13 @@ def validate():
         return jsonify({'errors': form.errors}), 333
 
 
+
 @data.route('/auswertungen')
 def show_map():
 
     # Summe aller Meldungen für den Counter
     post_count = db.session.query(TblMeldungen).filter(
         TblMeldungen.deleted == None).count()
-
-    # Fetch the reports data from the database where dat_bear
-    # is not null in TblMeldungen
-    # TblMeldungen, TblMeldungen.fo_zuordnung == \
-    # TblFundorte.id).filter(TblMeldungen.dat_bear != None).all()
-    # Im Testmodus alle Meldungen anzeigen
 
     reports = TblFundorte.query.join(
         TblMeldungen, TblMeldungen.fo_zuordnung ==
@@ -280,8 +290,11 @@ def show_map():
             # Obfuscate the location before appending
             lati, long = obfuscate_location(lati, long)
 
-            koords.append({'latitude': lati,
-                           'longitude': long})
+            koords.append({
+                'id': report.id,  # Include the ID
+                'latitude': lati,
+                'longitude': long
+            })
         except:
             pass
 
@@ -290,6 +303,26 @@ def show_map():
                            reportsJson=reportsJson,
                            apikey=Config.esri,
                            post_count=post_count)
+    
+@data.route('/get_marker_data/<int:report_id>')
+def get_marker_data(report_id):
+    report = (db.session.query(TblMeldungen.id, TblMeldungen.dat_meld, TblMeldungen.dat_fund_von,
+                               TblFundorte.ort, TblFundorte.kreis)
+              .join(TblFundorte, TblMeldungen.fo_zuordnung == TblFundorte.id)
+              .filter(TblMeldungen.id == report_id).first())
+
+    if report:
+        return jsonify({
+            'id': report.id,
+            'dat_meld': str(report.dat_meld),
+            'dat_fund_von': str(report.dat_fund_von),
+            'ort': report.ort,
+            'kreis': report.kreis
+        })
+    else:
+        return jsonify({'error': 'Report not found'}), 404
+
+
 
 
 def obfuscate_location(lat, long):

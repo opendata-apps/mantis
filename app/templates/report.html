@@ -701,8 +701,23 @@
     function validateForm(event, nextStepIndex) {
       event.preventDefault();
       const form = event.target.closest('form');
-      const formData = new FormData(form);
-
+      const formData = new FormData();
+      
+      // Add the current step index to the FormData
+      formData.append('stepIndex', nextStepIndex);
+      
+      // Only append form elements that are relevant to the current step
+      for (const element of form.elements) {
+        if (element.name === 'picture' && nextStepIndex !== 1) {
+          continue; // Skip appending the picture for steps other than the first
+        }
+        if (element.type === 'file') {
+          formData.append(element.name, element.files[0]);
+        } else {
+          formData.append(element.name, element.value);
+        }
+      }
+      
       let csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
       const button = event.target.closest('a');
@@ -893,6 +908,11 @@
       }
     }
 
+    document.getElementById('submitBtn').addEventListener('click', (event) => {
+      event.target.disabled = true;
+      console.log("Button disabled");
+    });
+    
 
     document.getElementById('mainForm').addEventListener('submit', (event) => {
       event.preventDefault();  // Prevent the form from submitting immediately
@@ -913,6 +933,7 @@
       // Now submit the form manually if needed
       event.target.submit();
     });
+
 
 
 

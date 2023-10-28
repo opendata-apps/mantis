@@ -1,5 +1,5 @@
 from wtforms import (BooleanField, DateField, Form, IntegerField,
-                     PasswordField, StringField, SubmitField, validators)
+                     StringField, SubmitField)
 
 
 class ReviewerForm(Form):
