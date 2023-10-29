@@ -40,7 +40,9 @@ def rendertextmsg(formdata):
     ==================================
 
     Kontakt: { data['Kontakt'] }
-    Ihr Link für neue Meldungen:  https://gottesanbeterin-gesucht.de/report/{ data['link'] }
+    Ihr Link für neue Meldungen:
+    https://gottesanbeterin-gesucht.de/report/{ data['link'] }
+    
     Latitude:  {data['latitude']}
     Longitude:  {data['longitude']}
     PLZ:  {data['plz']}
