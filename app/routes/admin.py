@@ -120,6 +120,8 @@ def admin_index2(usrid):
                     query = query.join(TblMeldungUser, TblMeldungen.id == TblMeldungUser.id_meldung)\
                                 .join(TblUsers, TblMeldungUser.id_user == TblUsers.id)\
                                 .filter(TblUsers.user_kontakt.ilike(f"%{search_query}%"))
+                if "statistik" == search_query.lower():
+                    flash('<a class="underline text-blue-900" href="/statistik/'+ user.user_id +'">Link zur Statistik</a>', 'info')
                 else:
                     search_query = search_query.replace(' ', ' & ')  # Option 1: Sanitize the query string
                     search_vector = text("plainto_tsquery('german', :query)").bindparams(query=f"{search_query}")  # Option 2: Use plainto_tsquery
