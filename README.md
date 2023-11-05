@@ -2,7 +2,7 @@
 
 ![Header Banner](https://i.ibb.co/QrjJ7NM/berger03.webp)
 
-An interactive web application to track Mantis Religiosa sightings in Brandenburg, presented by the Naturkunde Museum Potsdam.
+An interactive web application to track Mantis Religiosa sightings in Brandenburg, presented by the Naturkundemuseum Potsdam.
 
 Mantis Tracker allows users to report Mantis Religiosa sightings and view them on an interactive map, along with insightful statistics and helpful FAQs.
 
@@ -20,7 +20,7 @@ Here are some of the features we plan to add in the future:
 
 - [ ] Gallery of photos of the Mantis Religiosa
 - [ ] Improved data visualization and analysis of the sighting data
-- [ ] More Animations and UI improvements to make the app more engaging
+- [ ] More animations and UI improvements to make the app more engaging
 - [ ] Improved performance and code quality
 
 Stay tuned for updates on these exciting new features!
@@ -91,7 +91,7 @@ flask db migrate -m "your comment"
 flask db upgrade
 ```
 
-### Step 7: 🎨 Prepare Tables
+### Step 7: 🎨 Prepare tables
 
 See also: tests/demodata/README.txt
 
