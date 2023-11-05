@@ -3,8 +3,8 @@ from datetime import datetime
 from random import randint
 
 
-def get_new_id(organisation="Naturkundemusum-Potsdam"):
-    "Construct an id with ramndom values"
+def get_new_id(organisation="Naturkundemuseum-Potsdam"):
+    "Construct an id with random values"
 
     randomint = randint(0, 1000000)
     randomsom = str(randomint)
