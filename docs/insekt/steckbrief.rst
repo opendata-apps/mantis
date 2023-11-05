@@ -22,11 +22,11 @@ sind.
 Ausbreitung
 ===========
 
-In Süderuopa ist die Europäische Gottesanbeterin häufig anzutreffen,
+In Südeuropa ist die Europäische Gottesanbeterin häufig anzutreffen,
 wohingegen sie in Deutschland immer selten war. Historische Nachweise
 in Deutschland gibt es aus Frankfurt am Main, Bad Dürkheim und um
 Passau. Bekannt ist das Vorkommen am Kaiserstuhl. Kleine lokale
-Vorkommen überlebten in Rheinland-Pfalz, Baden Würtemberg und dem
+Vorkommen überlebten in Rheinland-Pfalz, Baden-Württemberg und dem
 Saarland, von wo aus sich die Lauerjägerin seit Mitte der 1990er Jahre
 nordwärts ausbreitet.
 
