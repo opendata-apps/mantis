@@ -20,7 +20,7 @@ def login_required(f):
 
 
 list_of_stats = {
-    "xxx": "Bitte eine Wahl treffen...",
+    "xxx": "Bitte eine Wahl treffen ...",
     "start": "Statistik: Startseite",
     "geschlecht": "Entwicklungsstadium/Geschlecht",
     "meldungen_pro_woche": "Meldungen nach Datum",
@@ -65,7 +65,7 @@ def stats_geschlecht(request=None):
             , sum(art_w) as "Weibchen"
             , sum(art_m) as "Männchen"
             , sum(art_f) as "Andere"
-            , sum(tiere) as "tiere"
+            , sum(tiere) as "Tiere"
       from meldungen
       where deleted is NULL;
     ''')
