@@ -119,7 +119,7 @@ def _user_to_dict(user):
 
 
 def _saveip(ip):
-    "Manage IP's to control allow only one report/day"
+    "Manage IPs to allow only one report/day"
     global checklist
     today = datetime.now()
     nextday = checklist.get('datum', None)
@@ -240,7 +240,7 @@ def report(usrid=None):
                 '9': 'Straßengraben/Wegesrand/Ruderalflur',
                 '10': 'Gewerbegebiet',
                 '11': 'Im oder am Auto',
-                '99': 'anderer Fundort',
+                '99': 'Anderer Fundort',
             }
             form.location_description.data = location[form.location_description.data]
             
