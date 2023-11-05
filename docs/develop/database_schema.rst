@@ -24,14 +24,14 @@ Demodaten
 .. index:: Datenbank; Demodaten
 .. index:: Demodaten; Datenbank
 	   
-Demodaten befinden sich im Ornder:
+Demodaten befinden sich im Ordner:
 
   ``manits/tests/demaodata``
 
 Neuanlage
 ---------
 
-Die Schritten für eine Neuanlage der Datenbank und der Inport der
+Die Schritte für eine Neuanlage der Datenbank und der Import der
 Demodaten:
 
 1. In der Datenbank
@@ -42,7 +42,7 @@ Demodaten:
       drop database mantis_tracker;
       create database mantis_tracker;
 
-2. In der virutellen Umgebung (env)
+2. In der virtuellen Umgebung (env)
 
    ::
 
@@ -55,4 +55,4 @@ Demodaten:
 
    Die dort genannten Schritte nacheinander ausführen.
    
-   Siehe ``manits/tests/demaodata/README.txt``
+   Siehe ``mantis/tests/demodata/README.txt``
