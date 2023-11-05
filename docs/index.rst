@@ -16,8 +16,8 @@ Berlin-Brandenburg das Mitmachprojekt »Gottesanbeterin gesucht!«.
 
 Machen Sie mit und werden Sie zum Insektenforscher.
 
-Sie finden hier die Dokumentation zum Projekt. Die wichtigsten Todo's
-werden in einm Backlog verwaltet.
+Sie finden hier die Dokumentation zum Projekt. Die wichtigsten Todos
+werden in einem Backlog verwaltet.
 
 🌟 Funktionen
 -------------
