@@ -71,7 +71,7 @@
                 </svg>
                 <p class="mb-2 text-sm text-gray-500 "><span class="font-semibold">Click to upload
                     image...</span></p>
-                <p class="text-xs text-gray-500 ">PNG, JPG, JPEG oder WEBP (Max. 10MB)</p>
+                <p class="text-xs text-gray-500 ">PNG, JPG, JPEG oder WEBP (max. 10 MB)</p>
               </div>
               {{ form.picture(class="hidden", id=form.picture.id, accept="image/*") }}
             </label>
@@ -109,17 +109,17 @@
           <label for="map" class="block mt-1 text-sm font-semibold text-gray-600">
             <div class="flex justify-between">
               {{ "Karte: Setzen Sie den Marker in der Karte, die Koordinaten werden automatisch übernommen. Umschaltung
-              zw. Satelitenbild und Kartenansicht (siehe Symbol am rechten Rand)." }}
+              zw. Satellitenbild und Kartenansicht via Symbol am rechten Rand." }}
               {{ popover("popover-map", "Karte",
               " Benutzen Sie die Zoom-Funktion (+ und - Button oder
-              mittleres Mausrad),sezten Sie mit einem Klick die
+              mittleres Mausrad), setzen Sie mit einem Klick die
               Marke. Die linke Maustaste verschiebt die Karte. Die
               Koordinaten werden dann automatisch ins Formular
               übernommen.
               Sie können die Koordinaten auch ganz
               einfach in Google Maps ermitteln. Wechselns Sie zu
               Google Maps. Suchen Sie die Stelle in der Karte und
-              markieren Sie diese mit einem Rechtsklick ihrer Mouse.
+              markieren Sie diese mit einem Rechtsklick ihrer Maus.
               Es öffnet sich ein Fenster, in dem ganz oben die
               Koordinaten angezeigt werden, z.B. 52.395952,
               13.050901. Wählen Sie die Koordinaten mit einem
@@ -201,14 +201,14 @@
                 <div class="px-3 py-2 bg-green-100">
                   <p>
                     Dieses Feld ist eine kleine Herausforderung für
-                    den Melder. Traun Sie sich zu, das Geschlecht
+                    den Melder. Trauen Sie sich zu, das Geschlecht
                     oder das Entwicklungsstadium zu bestimmen?
                     Die Merkmale für die Bestimmung sind auf
                     folgender Seite genau beschrieben:
                     <a class="block pb-2 text-sm font-semibold text-blue-600 hover:text-blueGray-800" href="/bestimmung"
                       target="_blank">
                       Link: Hilfe zur Bestimmung <br />(öffnet neuen Tab)</a>
-                    In jedem Fall werden sie nach einer Bewertung
+                    In jedem Fall werden Sie nach einer Bewertung
                     durch Fachleute über das Ergebnis informiert.
                     <br />
                     Versuchen Sie es!
@@ -225,7 +225,7 @@
               <div class="flex justify-between">
                 {{ form.zip_code.label.text }}
                 {{ popover("popover-zip", "Postleitzahl",
-                "Falls der Wert nicht korrekt eingelesen wurde, geben Sie bitte die Postleitzahl ein..") }}
+                "Falls der Wert nicht korrekt eingelesen wurde, geben Sie bitte die Postleitzahl ein.") }}
               </div>
 
             </label>
@@ -246,7 +246,7 @@
               <div class="flex justify-between">
                 {{ form.location_description.label.text }}
                 {{ popover("popover-fundort", "Ergänzungen Ort",
-                "Wählen sie die passende Option, ergänzen sie eventuell im Feld sonstige Angaben.)") }}
+                "Wählen Sie die passende Option, ergänzen Sie eventuell im Feld sonstige Angaben.)") }}
               </div>
               <div class="relative">
                 {{ form.location_description(id=form.location_description.id, class="input-field") }}
@@ -257,7 +257,7 @@
               <div class="flex justify-between">
                 {{ form.picture_description.label.text }}
                 {{ popover("popover-beschreibung", "Ergänzungen zum Fund",
-                "Ergänzende Angaben zum Bild (maximal 500 Zeichen)") }}
+                "Ergänzende Angaben zum Bild (max. 500 Zeichen)") }}
               </div>
               <div class="relative">
                 {{ form.picture_description(
@@ -365,7 +365,7 @@
       <!-- Step 4: Zusammenfassung -->
       <div id="step4" class="hidden">
         <h2 class="mb-4 text-3xl font-semibold text-gray-800">Zusammenfassung</h2>
-	<p>Wenn alle Angabe korrekt sind, nicht vergessen auf »Senden« zu klicken!</p>
+	<p>Wenn alle Angaben korrekt sind, nicht vergessen auf »Senden« zu klicken!</p>
         <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
           <div class="p-5 bg-white rounded-lg shadow-md">
             <h3 class="mb-2 text-xl font-semibold text-gray-800">Bild</h3>
@@ -399,7 +399,7 @@
         <ul class="text-lg list-disc list-inside">
           <li><strong class="text-gray-800">Vorname:</strong> <span id="summaryFirstName"></span></li>
           <li><strong class="text-gray-800">Nachname:</strong> <span id="summaryLastName"></span></li>
-          <li><strong class="text-gray-800">Fund Datum:</strong> <span id="summarySightingDate"></span></li>
+          <li><strong class="text-gray-800">Funddatum:</strong> <span id="summarySightingDate"></span></li>
           <li><strong class="text-gray-800">E-Mail:</strong> <span id="summaryContact"></span></li>
         </ul>
         <div class="flex justify-between mt-6 space-x-4">
@@ -640,7 +640,7 @@
         // Check if the file type is valid
         if (!validFileTypes.includes(file.type.toLowerCase())) {
           // Call your error function here
-          showErrors({ picture: ["Ungültiger Datentyp erlaubt sind PNG, JPG, JPEG, JFIF, WEBP, oder HEIC Datein."] }, 0);
+          showErrors({ picture: ["Ungültiger Dateityp, erlaubt sind PNG, JPG, JPEG, JFIF, WEBP oder HEIC-Dateien."] }, 0);
           e.target.value = ''; // Clear the input
           return;
         }
