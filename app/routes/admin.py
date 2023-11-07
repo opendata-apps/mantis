@@ -1,16 +1,8 @@
 import csv
-from flask import Response, redirect, url_for
-from io import StringIO, BytesIO
-import os
-import pandas as pd
-from io import BytesIO
-from flask import send_file
-from sqlalchemy import Table, create_engine
-from flask import abort
-from app.config import Config
+from datetime import datetime, timedelta
 from functools import wraps
 from io import BytesIO, StringIO
-from datetime import datetime, timedelta
+
 import pandas as pd
 from app import db
 from app.config import Config
@@ -18,8 +10,9 @@ from app.database.full_text_search import FullTextSearch
 from app.database.models import (TblFundortBeschreibung, TblFundorte,
                                  TblMeldungen, TblMeldungUser, TblUsers)
 from flask import session  # import session
-from flask import (Blueprint, Response, abort, flash, jsonify, redirect, render_template,
-                   request, send_file, send_from_directory, url_for)
+from flask import (Blueprint, Response, abort, flash, jsonify, redirect,
+                   render_template, request, send_file, send_from_directory,
+                   url_for)
 from sqlalchemy import inspect, or_, text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker
@@ -62,7 +55,7 @@ def admin_index2(usrid):
     if last_updated is None or now - last_updated > timedelta(minutes=1):
         FullTextSearch.refresh_materialized_view()
         session['last_updated'] = now
-    
+
     filter_status = request.args.get('statusInput', 'offen')
     sort_order = request.args.get('sort_order', 'id_asc')
     search_query = request.args.get('q', None)
@@ -70,34 +63,35 @@ def admin_index2(usrid):
     date_from = request.args.get('dateFrom', None)
     date_to = request.args.get('dateTo', None)
 
-
     image_path = Config.UPLOAD_FOLDER.replace("app/", "")
     inspector = inspect(db.engine)
     tables = inspector.get_table_names()
-    
+
     if 'statusInput' not in request.args and 'sort_order' not in request.args:
         return redirect(url_for('admin.admin_index2', usrid=usrid, statusInput='offen', sort_order='id_asc'))
-    
+
     query = TblMeldungen.query
 
     # Apply filter conditions based on 'filter_status'
     if filter_status == 'bearbeitet':
-        query = query.filter(TblMeldungen.dat_bear.isnot(None), or_(TblMeldungen.deleted.is_(None), TblMeldungen.deleted == False))
+        query = query.filter(TblMeldungen.dat_bear.isnot(None), or_(
+            TblMeldungen.deleted.is_(None), TblMeldungen.deleted == False))
     elif filter_status == 'offen':
-        query = query.filter(TblMeldungen.dat_bear.is_(None), or_(TblMeldungen.deleted.is_(None), TblMeldungen.deleted == False))
+        query = query.filter(TblMeldungen.dat_bear.is_(None), or_(
+            TblMeldungen.deleted.is_(None), TblMeldungen.deleted == False))
     elif filter_status == 'geloescht':
         query = query.filter(TblMeldungen.deleted == True)
     elif filter_status == 'all':
         # If the filter is set to 'all', include both deleted and non-deleted items
-        query = query.filter(or_(TblMeldungen.deleted.is_(None), TblMeldungen.deleted == False, TblMeldungen.deleted == True))
+        query = query.filter(or_(TblMeldungen.deleted.is_(
+            None), TblMeldungen.deleted == False, TblMeldungen.deleted == True))
     elif search_query:
         # If there's a search query, don't apply any deletion filter
         pass
     else:
         # Default behavior: Exclude deleted items
-        query = query.filter(or_(TblMeldungen.deleted.is_(None), TblMeldungen.deleted == False))
-
-
+        query = query.filter(or_(TblMeldungen.deleted.is_(
+            None), TblMeldungen.deleted == False))
 
     # Apply sort order
     if sort_order == 'id_asc':
@@ -116,20 +110,26 @@ def admin_index2(usrid):
                     search_type = 'full_text'
 
             if search_type == 'full_text':
-                if "@" in search_query:  
+                if "@" in search_query:
                     query = query.join(TblMeldungUser, TblMeldungen.id == TblMeldungUser.id_meldung)\
-                                .join(TblUsers, TblMeldungUser.id_user == TblUsers.id)\
-                                .filter(TblUsers.user_kontakt.ilike(f"%{search_query}%"))
+                        .join(TblUsers, TblMeldungUser.id_user == TblUsers.id)\
+                        .filter(TblUsers.user_kontakt.ilike(f"%{search_query}%"))
                 if "statistik" == search_query.lower():
-                    flash('<a class="underline text-blue-900" href="/statistik/'+ user.user_id +'">Link zur Statistik</a>', 'info')
+                    flash('<a class="text-blue-900 underline" href="/statistik/' +
+                          user.user_id + '">Link zur Statistik</a>', 'info')
                 else:
-                    search_query = search_query.replace(' ', ' & ')  # Option 1: Sanitize the query string
-                    search_vector = text("plainto_tsquery('german', :query)").bindparams(query=f"{search_query}")  # Option 2: Use plainto_tsquery
+                    # Option 1: Sanitize the query string
+                    search_query = search_query.replace(' ', ' & ')
+                    search_vector = text("plainto_tsquery('german', :query)").bindparams(
+                        # Option 2: Use plainto_tsquery
+                        query=f"{search_query}")
                     search_results = FullTextSearch.query.filter(
                         FullTextSearch.doc.op('@@')(search_vector)
                     ).all()
-                    reported_sightings_ids = [result.meldungen_id for result in search_results]
-                    query = query.filter(TblMeldungen.id.in_(reported_sightings_ids))
+                    reported_sightings_ids = [
+                        result.meldungen_id for result in search_results]
+                    query = query.filter(
+                        TblMeldungen.id.in_(reported_sightings_ids))
         except SQLAlchemyError as e:
             db.session.rollback()
             print(f"SQLAlchemy Error: {e}")
@@ -138,11 +138,12 @@ def admin_index2(usrid):
             db.session.rollback()
             print(f"An error occurred: {e}")
             flash('Your search could not be completed. Please try again.', 'error')
-            
+
     if date_from and date_to:
         date_from_obj = datetime.strptime(date_from, '%Y-%m-%d')
         date_to_obj = datetime.strptime(date_to, '%Y-%m-%d')
-        query = query.filter(TblMeldungen.dat_fund_von.between(date_from_obj, date_to_obj))
+        query = query.filter(TblMeldungen.dat_fund_von.between(
+            date_from_obj, date_to_obj))
     elif date_from:
         date_from_obj = datetime.strptime(date_from, '%Y-%m-%d')
         query = query.filter(TblMeldungen.dat_fund_von >= date_from_obj)
@@ -150,7 +151,8 @@ def admin_index2(usrid):
         date_to_obj = datetime.strptime(date_to, '%Y-%m-%d')
         query = query.filter(TblMeldungen.dat_fund_von <= date_to_obj)
 
-    paginated_sightings = query.paginate(page=page, per_page=per_page, error_out=False)
+    paginated_sightings = query.paginate(
+        page=page, per_page=per_page, error_out=False)
 
     reported_sightings = paginated_sightings.items
     for sighting in reported_sightings:
@@ -167,18 +169,15 @@ def admin_index2(usrid):
             approver = TblUsers.query.filter_by(
                 user_id=sighting.bearb_id).first()
             sighting.approver_username = approver.user_name if approver else 'Unknown'
-    
-    return render_template('admin/admin.html', paginated_sightings=paginated_sightings, 
-                        reported_sightings=reported_sightings, tables=tables, 
-                        image_path=image_path, user_name=user_name, 
-                        filters={"status": filter_status}, 
-                        current_filter_status=filter_status,
-                        current_sort_order=sort_order,
-                        search_query=search_query,
-                        search_type=search_type) 
 
-
-
+    return render_template('admin/admin.html', paginated_sightings=paginated_sightings,
+                           reported_sightings=reported_sightings, tables=tables,
+                           image_path=image_path, user_name=user_name,
+                           filters={"status": filter_status},
+                           current_filter_status=filter_status,
+                           current_sort_order=sort_order,
+                           search_query=search_query,
+                           search_type=search_type)
 
 
 @admin.route("/change_mantis_meta_data/<int:id>", methods=["POST"])

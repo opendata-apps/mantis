@@ -80,7 +80,7 @@ def stats_geschlecht(request=None):
 #                      'Männchen', 'Andere', 'Summe'],
 #                'y': [10, 1000, 1100, 2000, 20, 4140]
 #                }
-        
+
     return render_template("statistics/stats-geschlecht.html",
                            menu=list_of_stats,
                            marker="geschlecht",
