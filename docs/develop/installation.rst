@@ -54,7 +54,7 @@ Schritt 4: 🗄️ Erstellen Sie eine PostgreSQL-Datenbank
    \q
 
 
-Schritt 5: 📝 Initilisieren der Almebic-Versionsverwaltung
+Schritt 5: 📝 Initialisieren der Almebic-Versionsverwaltung
 
 Es wird der Ordner »``Migration``« angelegt.
 
@@ -62,7 +62,7 @@ Es wird der Ordner »``Migration``« angelegt.
 
    flask db init
 
-Schritt 6: 🔄 Nur wenn sich die Datenbankstruktur geändert hat.
+Schritt 6: 🔄 Nur, wenn sich die Datenbankstruktur geändert hat.
 
 ::
 
@@ -87,7 +87,7 @@ Schritt 8: 📈 Importieren Sie die Daten
 .. index:: Tailwind; CSS-Watcher	   
 	   
 Schritt 9: 🎨 Starten Sie den CSS-Watcher
-Der Einsatz von Tailwind für das CSS, erfordet den Einsatz von Node.js.
+Der Einsatz von Tailwind für das CSS erfordet den Einsatz von Node.js.
 Die Abhängigkeiten sind in der Datei ``package.json`` festgehalten.
 
 ::

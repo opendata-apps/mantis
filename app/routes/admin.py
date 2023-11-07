@@ -1,16 +1,3 @@
-from flask import session  # import session
-from flask import jsonify, render_template, request, Blueprint, send_from_directory
-from app import db
-# from app.database.models import Mantis
-import json
-from app.database.models import TblMeldungen, TblFundortBeschreibung, TblFundorte, TblMeldungUser, TblUsers
-from app.database.full_text_search import FullTextSearch
-from datetime import datetime, timedelta
-from app.forms import MantisSightingForm
-from sqlalchemy import or_, MetaData
-from flask import render_template_string
-from sqlalchemy import inspect, text
-from sqlalchemy.orm import sessionmaker, joinedload
 import csv
 from flask import Response, redirect, url_for
 from io import StringIO, BytesIO
@@ -19,12 +6,23 @@ import pandas as pd
 from io import BytesIO
 from flask import send_file
 from sqlalchemy import Table, create_engine
-from flask import abort, session
+from flask import abort
 from app.config import Config
 from functools import wraps
-from flask import g, flash
-from sqlalchemy import text
+from io import BytesIO, StringIO
+from datetime import datetime, timedelta
+import pandas as pd
+from app import db
+from app.config import Config
+from app.database.full_text_search import FullTextSearch
+from app.database.models import (TblFundortBeschreibung, TblFundorte,
+                                 TblMeldungen, TblMeldungUser, TblUsers)
+from flask import session  # import session
+from flask import (Blueprint, Response, abort, flash, jsonify, redirect, render_template,
+                   request, send_file, send_from_directory, url_for)
+from sqlalchemy import inspect, or_, text
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import sessionmaker
 
 # Blueprints
 admin = Blueprint('admin', __name__)
@@ -37,8 +35,6 @@ def login_required(f):
             abort(403)
         return f(*args, **kwargs)
     return decorated_function
-
-
 
 
 @admin.route('/reviewer/<usrid>')
@@ -124,6 +120,8 @@ def admin_index2(usrid):
                     query = query.join(TblMeldungUser, TblMeldungen.id == TblMeldungUser.id_meldung)\
                                 .join(TblUsers, TblMeldungUser.id_user == TblUsers.id)\
                                 .filter(TblUsers.user_kontakt.ilike(f"%{search_query}%"))
+                if "statistik" == search_query.lower():
+                    flash('<a class="underline text-blue-900" href="/statistik/'+ user.user_id +'">Link zur Statistik</a>', 'info')
                 else:
                     search_query = search_query.replace(' ', ' & ')  # Option 1: Sanitize the query string
                     search_vector = text("plainto_tsquery('german', :query)").bindparams(query=f"{search_query}")  # Option 2: Use plainto_tsquery
@@ -486,9 +484,6 @@ def perform_query(filter_value=None):
 
     return query.all()
 
-# Route
-
-
 
 @admin.route('/admin/export/xlsx/<string:value>')
 @login_required
@@ -519,4 +514,7 @@ def export_data(value):
     output.seek(0)
 
     # Send the file
-    return send_file(output, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', as_attachment=True, download_name=filename)
+
+    return send_file(output,
+                     mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                     as_attachment=True, download_name=filename)

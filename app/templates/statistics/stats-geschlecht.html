@@ -1,0 +1,63 @@
+{% extends "layout.html" %}
+{% block title %}Statistiken{% endblock title %}
+{% block meta_keywords %}Auswertungen, Statistik{% endblock %}
+{% block content %}
+{% from 'statistics/menu-stats.html' import StatsAuswahl with context %}
+<script
+  src="{{ url_for('static', filename='plotly/plotly-2.26.0.min.js')}}"
+  charset="utf-8">
+</script>
+<section class="container mx-auto mt-10">
+ <div
+   class="sticky col-span-2 row-span-2 duration-500 bg-gray-200 border-4 border-gray-200 rounded-md top-3 hover:shadow-xl">
+   {{StatsAuswahl() }}
+   <div id='myDiv'
+	class="wx-92">
+   <!-- Grafik -->
+   </div>
+   <script>
+     var daten = {{ values|tojson }};
+     var xValues = [];
+     var yValues = [];
+
+     //separate keys and values in two lists
+     for (var key in daten) {
+	 if (daten.hasOwnProperty(key)) {
+	     xValues.push(key);
+	     yValues.push(daten[key]);
+	 }
+     };
+
+//     console.log(daten);
+//     var xValue = daten.x;
+//     var yValue = daten.y;
+     var trace1 = {
+	 x: xValues,
+	 y: yValues,
+	 type: 'bar',
+	 text: yValues.map(String),
+	 textposition: 'auto',
+	 hoverinfo: 'none',
+	 marker: {
+	     color: '#5bae31', //'rgb(158,202,225)',
+	     opacity: 0.6,
+	     line: {
+		 color: 'rgb(8,48,107)',
+		 width: 1.5
+	     }
+	 }
+     };
+
+
+     var data = [trace1];
+     var layout = {
+	 title: 'Summen Geschlecht/Entwicklungsstadium',
+	 barmode: 'stack'
+     };
+
+
+     Plotly.newPlot('myDiv', data, layout, {displayModeBar: false});
+
+   </script>
+</section>
+{% endblock content %}

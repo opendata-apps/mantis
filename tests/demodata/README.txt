@@ -5,7 +5,7 @@
 -- in Flask Alembic vorbereiten:
 -- migrations-Ordner löschen
 -- Aus der README.md die drei Kommandos für die
--- Initalisierung ausführen
+-- Initialisierung ausführen
 -- Alle Tabellen werden neu angelegt
 -- 
 -- flask db init
@@ -28,7 +28,7 @@
 insert into users (id, user_id, user_name, user_rolle, user_kontakt) 
            values (1, '9999','Reviewer R.', '9', 'reviewer@example.de');
 	   
---  Max-Wert für die ID's justieren (falls notwendig)
+--  Max-Wert für die IDs justieren (falls notwendig)
 
 SELECT setval('beschreibung_id_seq', (SELECT MAX(id) FROM beschreibung));
 SELECT setval('fundorte_id_seq', (SELECT MAX(id) FROM fundorte));

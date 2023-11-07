@@ -9,4 +9,4 @@ insert into beschreibung (id, beschreibung) values ('8', 'Heidelandschaft');
 insert into beschreibung (id, beschreibung) values ('9', 'Straßengraben/Wegesrand/Ruderalflur');
 insert into beschreibung (id, beschreibung) values ('10', 'Gewerbegebiet');
 insert into beschreibung (id, beschreibung) values ('11', 'Im oder am Auto');
-insert into beschreibung (id, beschreibung) values ('99', 'anderer Fundort');
+insert into beschreibung (id, beschreibung) values ('99', 'Anderer Fundort');

@@ -1,5 +1,5 @@
 from wtforms import (BooleanField, DateField, Form, IntegerField,
-                     PasswordField, StringField, SubmitField, validators)
+                     StringField, SubmitField)
 
 
 class ReviewerForm(Form):
@@ -23,7 +23,7 @@ class ReviewerForm(Form):
     art_m = StringField("Anzahl (männlich)",
                         render_kw={'style': 'width:50px',
                                    'class': css_input_field})
-    art_n = StringField("Anzahl (Nyphe)",
+    art_n = StringField("Anzahl (Nymphe)",
                         render_kw={'style': 'width:50px',
                                    'class': css_input_field})
     art_o = StringField("Anzahl (Oothek)",
@@ -34,12 +34,12 @@ class ReviewerForm(Form):
     street = StringField("Straße")
     state = StringField("Bundesland")
     district = StringField("Kreis")
-    location_description = StringField("Fundort Beschreibung")
+    location_description = StringField("Fundort-Beschreibung")
 
     first_name = StringField("Vorname")  # , validators=[DataRequired()])
     last_name = StringField("Name")  # , validators=[DataRequired()])
     sighting_date = DateField("Funddatum")
-    contact = StringField("Kontakt (Email/Telefonnummer)")  # ,
+    contact = StringField("Kontakt (E-Mail/Telefonnummer)")  # ,
 #                          validators=[DataRequired()])
     feedback = BooleanField("Soll Rückmeldung bei Bearbeitung kommen?")
 

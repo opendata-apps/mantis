@@ -41,7 +41,7 @@ ermöglichen. Neben der Suche nach vollständigen Wörtern unterstützt
 sie nun auch die Suche nach Teilzeichenketten. Dies ist besonders
 nützlich, wenn der genaue Suchbegriff nicht bekannt ist.
 
-E-Mail-Spezifische Suche
+E-Mail-spezifische Suche
 ------------------------
 
 Bei Eingabe eines Suchbegriffs, der das "@"-Zeichen enthält, wird die
@@ -61,7 +61,7 @@ Die Suchfunktion greift auf folgende Datenbankfelder (alphabetisch sortiert) zu:
 - ID der Meldung
 - Kreis
 - Land
-- MTB (Meßtischblatt) 
+- MTB (Messtischblatt) 
 - Melder-Anmerkung
 - Ort
 - Postleitzahl

@@ -12,7 +12,7 @@ Erster Schritt
 
 
 - Auswahl eines Fotos, das den Körper und die Fühler gut sichtbar abbildet.
-- Auswahl des Fundortes auf der Karte, durch setzen eines Marker.
+- Auswahl des Fundortes auf der Karte durch Setzen eines Markers.
 
 Zweiter Schritt
 ===============
@@ -44,9 +44,9 @@ Vierte Schritt
 .. image:: ./images/schritt04.webp
 
 - Eine Zusammenfassung wird gezeigt, die eine Kontrolle ermöglicht und
-  im Zweifelsfall, über die Zurück-Button eine Korrektur erlaubt.
-- Mit dem Klick auf »Senden«  werden die Daten endgültig übertragen.
-- Eine kleine Nachrichtebox zeigt die erfolgreiche Speicherung an.
+  im Zweifelsfall über den Zurück-Button eine Korrektur erlaubt.
+- Mit dem Klick auf »Senden« werden die Daten endgültig übertragen.
+- Eine kleine Nachrichtenbox zeigt die erfolgreiche Speicherung an.
 
   
   
