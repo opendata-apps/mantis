@@ -1,49 +1,37 @@
+{% from "macro.html" import popover %}
+
 {% extends "layout.html" %}
 {% block title %}Bildergalerie{% endblock title %}
-{% block meta_keywords %} Auswertungen, Bilder, Gottesanbeterin, Mantis religiosa Auswertungen {% endblock %}
+{% block meta_keywords %}Auswertungen, Bilder, Gottesanbeterin, Mantis religiosa Auswertungen{% endblock %}
 {% block content %}
 <section class="container mx-auto mt-10">
-  <h2 class="mb-6 text-3xl font-semibold text-center">Interessante Momentaufnahmen</h2>
-  <div class="grid grid-cols-1 gap-6 px-2 md:grid-cols-2 md:px-4 lg:grid-cols-3 xl:px-8" >
-    <div>
-      <link href="{{ url_for('static', filename='lb/css/lightbox.min.css')}}" rel="stylesheet">
-      <p>Hinweise zur Bedienung 
-	<ul style="list-style-type:disc; padding-left:60px">
-	  <li>Das Bild anklicken, Bilderserie startet...</li>
-	  <li>Maus und Tastatur: Pfeil nach rechts, bl&auml;ttert vor…</li>
-	  <li>Maus und Tastatur: Pfeil nach links, bl&auml;ttert zur&uuml;ck…</li>
-	  <li>Mausbedienung: ESC-Taste, beendet die Bilderschau…</li>
-	</ul>
-      </p>
+  <div class="flex items-center justify-center mb-6">
+    <h2 class="text-4xl font-extrabold text-center text-gray-900 sm:flex sm:flex-col sm:items-center">
+      <span class="sm:hidden">Interessante<br> Momentaufnahmen</span>
+      <span class="hidden sm:block">Interessante Momentaufnahmen</span>
+    </h2>
+    {{ popover('hinweise-popover', 'Hinweise zur Bedienung', '<ul><li>Das Bild anklicken, Bilderserie startet...</li><li>Mit Pfeil nach rechts, vorblättern...</li><li>Mit Pfeil nach links, zurückblättern...</li><li>Mit ESC-Taste, die Bilderschau beenden...</li></ul>') }}
+  </div>
+  <div class="grid grid-cols-1 gap-4 px-2 md:grid-cols-3 lg:grid-cols-4 xl:px-8 auto-rows-[1fr]">
+    <link href="{{ url_for('static', filename='lb/css/lightbox.min.css')}}" rel="stylesheet">
+    
+    {% for slide in bilder %}
+    <div class="aspect-w-16 aspect-h-9">
+      <a href="{{ url_for('static', filename='images/galerie/' + slide.bildname)}}"
+         rel="lightbox[Mantis]"
+         title="{{ slide.beschreibung }} -- Autor: {{ slide.fotograph }} Datum: {{ slide.datum }} <br />Lizenz: {{ slide.lizenz | safe }}"
+         class="transition-opacity duration-300 hover:opacity-75">
+        <img src="{{ url_for('static', filename='images/galerie/' + slide.bildname)}}"
+             alt="Gallery Image"
+             class="object-cover w-full h-full rounded-lg shadow-lg">
+      </a>
     </div>
-    <div class="pl-5">
-      <span id="tag-cloud">
-	<a class="pl-1"
-	   rel="lightbox[Mantis]"
-	   title="Start der Bildserie -- Autor: Dr. Berger"
-	   href="{{ url_for('static', filename='images/galerie/berger-start.webp')}}">
-	  <img src="{{ url_for('static', filename='images/galerie/berger-start.webp')}}">
-	</a>
-      </span>
-      {% for slide in bilder %}
-      <span id="tag-cloud"  class="items-stretch">
-	<a class="tag1"
-	   rel="lightbox[Mantis]"
-	   title="{{ slide.beschreibung }} <br />Autor: {{ slide.fotograph }}, <br />{{ slide.datum }}, <br />Lizenz: {{ slide.lizenz | safe}} "
-	   href="{{ url_for('static', filename='images/galerie/' + slide.bildname)}}">
-	</a>
-      </span>
-      {% endfor %}
-    </div>
+    {% endfor %}
+    
   </div>
 </section>
 
-<script
-  src="{{ url_for('static', filename='lb/jquery-3.3.1.slim.min.js')}}">
-</script>
-<script
-  src="{{ url_for('static', filename='lb/js/lightbox-plus-jquery.js')}}">
-</script>
-</div>
+<script src="{{ url_for('static', filename='lb/jquery-3.3.1.slim.min.js')}}"></script>
+<script src="{{ url_for('static', filename='lb/js/lightbox-plus-jquery.js')}}"></script>
 
 {% endblock content %}
