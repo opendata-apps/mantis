@@ -19,7 +19,7 @@
     <div class="aspect-w-16 aspect-h-9">
       <a href="{{ url_for('static', filename='images/galerie/' + slide.bildname)}}"
          rel="lightbox[Mantis]"
-         title="{{ slide.beschreibung }} -- Autor: {{ slide.fotograph }} Datum: {{ slide.datum }} <br />Lizenz: {{ slide.lizenz | safe }}"
+         title="{{ slide.beschreibung }} <br />Autor: {{ slide.fotograph }} <br />Funddatum: {{ slide.funddatum }} <br />Lizenz: {{ slide.lizenz | safe }}"
          class="transition-opacity duration-300 hover:opacity-75">
         <img src="{{ url_for('static', filename='images/galerie/' + slide.bildname)}}"
              alt="Gallery Image"
