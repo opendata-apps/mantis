@@ -5,6 +5,7 @@ from .config import Config
 from flask_wtf.csrf import CSRFProtect
 from werkzeug.middleware.proxy_fix import ProxyFix
 from flask import render_template
+import random
 
 
 csrf = CSRFProtect()
@@ -20,6 +21,7 @@ def create_app(config_class=Config):
 
     with app.app_context():
         from app.database.full_text_search import FullTextSearch
+        app.jinja_env.filters['shuffle'] = shuffle
 
         FullTextSearch.create_materialized_view()
 
@@ -35,13 +37,13 @@ def create_app(config_class=Config):
     from app.routes.reviewer import review
     from app.routes.provider import provider
     from app.routes.statistics import stats
-    
+
     csrf.exempt(main)
     csrf.exempt(admin)
     csrf.exempt(review)
     csrf.exempt(provider)
     csrf.exempt(stats)
-    
+
     app.register_blueprint(main)
     app.register_blueprint(admin)
     app.register_blueprint(data)
@@ -53,6 +55,18 @@ def create_app(config_class=Config):
     app.register_error_handler(429, too_many_requests)
 
     return app
+
+
+# Define the shuffle function
+def shuffle(seq):
+    try:
+        result = list(seq)
+        random.shuffle(result)
+        return result
+    except:
+        return seq
+
+# Add the shuffle function to Jinja environment filters
 
 
 def page_not_found(e):
