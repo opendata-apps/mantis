@@ -75,7 +75,7 @@ GRANT usage, create ON SCHEMA public TO mantis_user;
 \q
 ```
 
-### Step 5: 🔄 Create database structure
+> ⚠️: Only if there are any Database changes:
 
 ```bash
 flask db init
@@ -85,11 +85,12 @@ flask db init
 flask db migrate -m "your comment"
 ```
 
-### Step 6: 🏗️ Create the database tables
+### Step 5: 🏗️ Create the database tables
 
 ```bash
 flask db upgrade
 ```
+### Step 6: ☕ Fill the database tables 
 
 ```bash
 flask create-mview
@@ -99,11 +100,8 @@ flask create-mview
 flask insert-initial-data
 ```
 
-### Step 7: 🎨 Prepare tables
 
-See also: tests/demodata/README.txt
-
-### Step 8: 🎨 Run the CSS watcher
+### Step 7: 🎨 Run the CSS watcher
 
 ```bash
 npm --proxy <your-proxy> install tailwindcss
@@ -113,19 +111,19 @@ npm --proxy <your-proxy> install tailwindcss
 npx tailwindcss -i app/static/css/theme.css -o app/static/build/theme.css --watch
 ```
 
-### Step 9: 🚀 Run the development server
+### Step 8: 🚀 Run the development server
 
 ```bash
 python run.py
 ```
 
-### Step 10: 🏢 Run production server
+### Step 9: 🏢 Run production server
 
 ```bash
 gunicorn run:app    # For Windows: waitress-serve --listen=*:8000 run:app
 ```
 
-### Step 11: 🌐 Open http://localhost:5000 in your browser
+### Step 10: 🌐 Open http://localhost:5000 in your browser
 
 ### Meldung id error fix
 
