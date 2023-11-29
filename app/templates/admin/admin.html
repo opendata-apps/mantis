@@ -21,17 +21,6 @@
               <svg class="w-6 h-6 fill-current" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>Close</title><path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"></path></svg>
             </button>
           </div>
-          {% endif %}
-	  {% if category == 'info' %}
-          <div class="flex items-center justify-between p-4 mb-4 text-red-700 bg-red-100 border-l-4 border-red-500 rounded-md" role="alert" id="errorAlert">
-            <div>
-              <strong class="font-bold">Info: </strong>
-              <span class="block sm:inline">{{ message | safe}}</span>
-            </div>
-            <button onclick="document.getElementById('errorAlert').style.display='none'" class="text-red-700 hover:text-red-900">
-              <svg class="w-6 h-6 fill-current" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>Close</title><path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"></path></svg>
-            </button>
-          </div>
         {% endif %}
       {% endfor %}
     {% endif %}
@@ -60,16 +49,32 @@
         <div id="filterDropdown"
             class="z-10 hidden w-64 p-4 space-y-3 bg-white divide-y divide-gray-100 rounded-lg shadow-lg sm:w-80">
         
-            <form action="{{ url_for('admin.admin_index2', usrid=session['user_id']) }}" method="GET" class="space-y-3">
-                <div class="space-y-1">
-                    <label for="statusInput" class="block text-sm font-semibold text-gray-700">Bearbeitet oder offen</label>
-                    <select id="statusInput" name="statusInput"
-                        class="w-full p-2 text-sm rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                        <option value="all" {% if filters.status=="all" %}selected{% endif %}>Alle</option>
-                        <option value="bearbeitet" {% if filters.status=="bearbeitet" %}selected{% endif %}>Bearbeitet</option>
-                        <option value="offen" {% if filters.status=="offen" %}selected{% endif %}>Offen</option>
-                        <option value="geloescht" {% if filters.status=="geloescht" %}selected{% endif %}>Gelöscht</option>
-                    </select>
+            <form action="{{ url_for('admin.reviewer', usrid=session['user_id']) }}" method="GET" class="space-y-3">
+                <div class="flex space-x-2">
+                    <div class="w-1/2 space-y-1">
+                        <label for="statusInput" class="block text-sm font-semibold text-center text-gray-700">Status</label>
+                        <select id="statusInput" name="statusInput"
+                            class="w-full p-2 text-sm rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                            <option value="all" {% if filters.status=="all" %}selected{% endif %}>Alle</option>
+                            <option value="bearbeitet" {% if filters.status=="bearbeitet" %}selected{% endif %}>Bearbeitet</option>
+                            <option value="offen" {% if filters.status=="offen" %}selected{% endif %}>Offen</option>
+                            <option value="geloescht" {% if filters.status=="geloescht" %}selected{% endif %}>Gelöscht</option>
+                        </select>
+                    </div>
+                    <div class="w-1/2 space-y-1">
+                        <label for="typeInput" class="block text-sm font-semibold text-center text-gray-700">Typ</label>
+                        <select id="typeInput" name="typeInput"
+                            class="w-full p-2 text-sm rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                            <option value="all" {% if filters.type=="all" %}selected{% endif %}>Alle</option>
+                            <option value="maennlich" {% if filters.type=="maennlich" %}selected{% endif %}>männlich</option>
+                            <option value="weiblich" {% if filters.type=="weiblich" %}selected{% endif %}>weiblich</option>
+                            <option value="oothek" {% if filters.type=="oothek" %}selected{% endif %}>oothek</option>
+                            <option value="nymhe" {% if filters.type=="nymhe" %}selected{% endif %}>nymhe</option>
+                            <option value="andere" {% if filters.type=="andere" %}selected{% endif %}>andere</option>
+                            <option value="nicht_bestimmt" {% if filters.type=="nicht_bestimmt" %}selected{% endif %}>nicht bestimmt
+                            </option>
+                        </select>
+                    </div>
                 </div>
                 <div class="space-y-1">
                     <label for="dateFrom" class="block text-sm font-semibold text-gray-700">Datum von</label>
@@ -84,17 +89,18 @@
                 <div class="flex justify-between mt-4 space-x-4">
                     <button id="clearFilters" type="button"
                         class="flex items-center justify-center w-24 px-2 py-1 text-sm text-red-500 border border-red-500 rounded-md shadow-sm hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:border-transparent">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-4 h-4 mr-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                            class="w-4 h-4 mr-1">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
-                        Reset
+                        Löschen
                     </button>
                     <button type="submit"
                         class="w-1/2 px-4 py-2 text-white bg-green-500 rounded-md shadow-sm hover:bg-green-600 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:border-transparent">
                         Filtern
                     </button>
                 </div>
-                
+            
                 <input type="hidden" name="q" value="{{ request.args.get('q', '') }}">
                 <input type="hidden" name="sort_order" value="{{ request.args.get('sort_order', '') }}">
                 <input type="hidden" name="search_type" value="{{ request.args.get('search_type', '') }}">
@@ -104,7 +110,7 @@
         </div>
     
         <div class="relative flex items-center flex-grow w-full mb-2 rounded-lg shadow-sm md:w-auto md:mb-0">
-            <form action="{{ url_for('admin.admin_index2', usrid=session['user_id']) }}" method="GET"
+            <form action="{{ url_for('admin.reviewer', usrid=session['user_id']) }}" method="GET"
                 class="flex items-center w-full transition-all duration-300 bg-white rounded-lg focus-within:ring-2 focus-within:ring-green-500">
                 <!-- Search Bar -->
                 <div class="relative flex-grow">
@@ -329,7 +335,7 @@
             {% endfor %}
         </div>
     </div>
-    {{ render_pagination(paginated_sightings, 'admin.admin_index2', current_filter_status, current_sort_order, search_query, request.args.get('dateFrom', ''), request.args.get('dateTo', '')) }}
+    {{ render_pagination(paginated_sightings, 'admin.reviewer', current_filter_status, current_sort_order, search_query, request.args.get('dateFrom', ''), request.args.get('dateTo', '')) }}
 </div>
 
 
@@ -493,10 +499,12 @@
             const statusInput = document.getElementById("statusInput");
             const dateFromInput = document.getElementById("dateFrom");
             const dateToInput = document.getElementById("dateTo");
+            const typeInput = document.getElementById("typeInput");
 
             statusInput.value = "all";
             dateFromInput.value = "";
             dateToInput.value = "";
+            typeInput.value = "all";
 
             statusInput.closest("form").submit();
         });
@@ -610,11 +618,6 @@
             editButton.classList.add('hover:bg-green-200');
         }
     }
-
-
-
-
-
 
     function disableInputsIfApproved(isApproved) {
         let inputs = document.querySelectorAll('.input-field-admin, .textInputAdmin');

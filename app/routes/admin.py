@@ -31,7 +31,7 @@ def login_required(f):
 
 
 @admin.route('/reviewer/<usrid>')
-def admin_index2(usrid):
+def reviewer(usrid):
     # Fetch the user based on the 'usrid' parameter
     user = TblUsers.query.filter_by(user_id=usrid).first()
 
@@ -57,6 +57,7 @@ def admin_index2(usrid):
         session['last_updated'] = now
 
     filter_status = request.args.get('statusInput', 'offen')
+    filter_type = request.args.get('typeInput', None)
     sort_order = request.args.get('sort_order', 'id_asc')
     search_query = request.args.get('q', None)
     search_type = request.args.get('search_type', 'full_text')
@@ -68,7 +69,7 @@ def admin_index2(usrid):
     tables = inspector.get_table_names()
 
     if 'statusInput' not in request.args and 'sort_order' not in request.args:
-        return redirect(url_for('admin.admin_index2', usrid=usrid, statusInput='offen', sort_order='id_asc'))
+        return redirect(url_for('admin.reviewer', usrid=usrid, statusInput='offen', sort_order='id_asc'))
 
     query = TblMeldungen.query
 
@@ -93,6 +94,24 @@ def admin_index2(usrid):
         query = query.filter(or_(TblMeldungen.deleted.is_(
             None), TblMeldungen.deleted == False))
 
+    if filter_type:
+        if filter_type == 'maennlich':
+            query = query.filter(TblMeldungen.art_m == 1)
+        elif filter_type == 'weiblich':
+            query = query.filter(TblMeldungen.art_w == 1)
+        elif filter_type == 'oothek':
+            query = query.filter(TblMeldungen.art_o == 1)
+        elif filter_type == 'nymhe':
+            query = query.filter(TblMeldungen.art_n == 1)
+        elif filter_type == 'andere':
+            query = query.filter(TblMeldungen.art_f == 1)
+        elif filter_type == 'nicht_bestimmt':
+            query = query.filter(TblMeldungen.art_m.is_(None),
+                                 TblMeldungen.art_w.is_(None),
+                                 TblMeldungen.art_o.is_(None),
+                                 TblMeldungen.art_n.is_(None),
+                                 TblMeldungen.art_f.is_(None))
+
     # Apply sort order
     if sort_order == 'id_asc':
         query = query.order_by(TblMeldungen.id.asc())
@@ -114,9 +133,6 @@ def admin_index2(usrid):
                     query = query.join(TblMeldungUser, TblMeldungen.id == TblMeldungUser.id_meldung)\
                         .join(TblUsers, TblMeldungUser.id_user == TblUsers.id)\
                         .filter(TblUsers.user_kontakt.ilike(f"%{search_query}%"))
-                if "statistik" == search_query.lower():
-                    flash('<a class="text-blue-900 underline" href="/statistik/' +
-                          user.user_id + '">Link zur Statistik</a>', 'info')
                 else:
                     # Option 1: Sanitize the query string
                     search_query = search_query.replace(' ', ' & ')
@@ -173,7 +189,8 @@ def admin_index2(usrid):
     return render_template('admin/admin.html', paginated_sightings=paginated_sightings,
                            reported_sightings=reported_sightings, tables=tables,
                            image_path=image_path, user_name=user_name,
-                           filters={"status": filter_status},
+                           filters={"status": filter_status,
+                                    "type": filter_type},
                            current_filter_status=filter_status,
                            current_sort_order=sort_order,
                            search_query=search_query,
