@@ -91,6 +91,14 @@ flask db migrate -m "your comment"
 flask db upgrade
 ```
 
+```bash
+flask create-mview
+```
+
+```bash
+flask insert-initial-data
+```
+
 ### Step 7: 🎨 Prepare tables
 
 See also: tests/demodata/README.txt
