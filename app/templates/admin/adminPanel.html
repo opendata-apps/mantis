@@ -7,7 +7,7 @@ Willkommen im Admin Panel
 {% endblock text %}
 {% block content %}
 <div class="flex flex-col h-screen">
-  <div class="sticky top-0 z-50 p-4 bg-gray-200 border-b border-gray-300"> 
+  <div class="sticky top-0 z-50 p-4 "> 
     <label for="tables" class="block text-sm font-semibold text-gray-700">Select a table:</label> 
     <select id="tables" class="block w-full px-4 py-2 text-base text-gray-700 transition-colors bg-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200" onchange="handleTableSelection()">
       <option value="">Select table</option>
@@ -16,6 +16,216 @@ Willkommen im Admin Panel
       {% endfor %}
     </select>
   </div>
+  <div class="flex flex-wrap items-center justify-between mb-2 md:space-x-6 lg:space-x-8 xl:space-x-4">
+    <div class="flex flex-wrap items-center w-full space-x-4 md:space-x-0 md:space-y-4 md:flex-col md:w-auto">
+        <!-- Filter button -->
+        <button id="filterDropdownButton" data-dropdown-toggle="filterDropdown"
+            class="flex items-center justify-center w-full px-4 py-2 mb-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg md:w-auto md:mb-0 focus:outline-none hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200"
+            type="button">
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="w-4 h-4 mr-2 text-gray-400"
+                viewbox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd"
+                    d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"
+                    clip-rule="evenodd" />
+            </svg>
+            Filter
+            <svg class="-mr-1 ml-1.5 w-5 h-5" fill="currentColor" viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true">
+                <path clip-rule="evenodd" fill-rule="evenodd"
+                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+            </svg>
+        </button>
+
+    <div id="filterDropdown"
+        class="z-10 hidden w-64 p-4 space-y-3 bg-white divide-y divide-gray-100 rounded-lg shadow-lg sm:w-80">
+    
+        <form action="{{ url_for('admin.reviewer', usrid=session['user_id']) }}" method="GET" class="space-y-3">
+            <div class="space-y-1">
+                <label for="statusInput" class="block text-sm font-semibold text-gray-700">Bearbeitet oder offen</label>
+                <select id="statusInput" name="statusInput"
+                    class="w-full p-2 text-sm rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                    <option value="all" >Alle</option>
+                    <option value="bearbeitet" >Bearbeitet</option>
+                    <option value="offen" >Offen</option>
+                    <option value="geloescht">Gelöscht</option>
+                </select>
+            </div>
+            <div class="space-y-1">
+                <label for="dateFrom" class="block text-sm font-semibold text-gray-700">Datum von</label>
+                <input type="date" id="dateFrom" name="dateFrom" value="{{ request.args.get('dateFrom', '') }}"
+                    class="w-full p-2 text-sm rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
+            </div>
+            <div class="space-y-1">
+                <label for="dateTo" class="block text-sm font-semibold text-gray-700">Datum bis</label>
+                <input type="date" id="dateTo" name="dateTo" value="{{ request.args.get('dateTo', '') }}"
+                    class="w-full p-2 text-sm rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
+            </div>
+            <div class="flex justify-between mt-4 space-x-4">
+                <button id="clearFilters" type="button"
+                    class="flex items-center justify-center w-24 px-2 py-1 text-sm text-red-500 border border-red-500 rounded-md shadow-sm hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:border-transparent">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-4 h-4 mr-1">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    Löschen
+                </button>
+                <button type="submit"
+                    class="w-1/2 px-4 py-2 text-white bg-green-500 rounded-md shadow-sm hover:bg-green-600 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:border-transparent">
+                    Filtern
+                </button>
+            </div>
+            
+            <input type="hidden" name="q" value="{{ request.args.get('q', '') }}">
+            <input type="hidden" name="sort_order" value="{{ request.args.get('sort_order', '') }}">
+            <input type="hidden" name="search_type" value="{{ request.args.get('search_type', '') }}">
+        </form>
+    </div>
+    
+    </div>
+
+    <div class="relative flex items-center flex-grow w-full mb-2 rounded-lg shadow-sm md:w-auto md:mb-0">
+        <form action="{{ url_for('admin.reviewer', usrid=session['user_id']) }}" method="GET"
+            class="flex items-center w-full transition-all duration-300 bg-white rounded-lg focus-within:ring-2 focus-within:ring-green-500">
+            <!-- Search Bar -->
+            <div class="relative flex-grow">
+                <button type="submit" class="absolute inset-y-0 left-0 flex items-center pl-3">
+                    <svg class="w-5 h-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                        fill="currentColor" aria-hidden="true">
+                        <path fill-rule="evenodd"
+                            d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                            clip-rule="evenodd" />
+                    </svg>
+                </button>
+                <input type="text" id="searchInput" name="q" placeholder="Suche nach Meldungen..."
+                    value="{{ request.args.get('q', '') }}" maxlength="50"
+                    class="w-full h-full py-2 pl-10 pr-4 transition-shadow duration-300 bg-transparent rounded-l-lg search focus:ring-0 focus:border-transparent">
+                <button type="button" onclick="clearSearch()" title="löschen"
+                    class="absolute p-1 transform -translate-y-1/2 bg-white rounded-full right-5 top-1/2 hover:bg-gray-200 focus:outline-none">
+                    <svg focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16"
+                        height="16">
+                        <path
+                            d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+            <!-- Dropdown for search type -->
+            <div class="relative">
+                <select id="searchType" name="search_type" onchange="changeInputPattern()"
+                    class="block h-full px-4 py-2 leading-tight bg-transparent rounded-r-lg search focus:ring-0 focus:border-transparent">
+                    <option value="full_text" {% if search_type=='full_text' %}selected{% endif %}>
+                        Text</option>
+                    <option value="id" {% if search_type=='id' %}selected{% endif %}>ID</option>
+                </select>
+            </div>
+            <input type="hidden" name="statusInput" value="{{ request.args.get('statusInput', '') }}">
+            <input type="hidden" name="sort_order" value="{{ request.args.get('sort_order', '') }}">
+            <input type="hidden" id="hiddenDateFrom" name="dateFrom" value="{{ request.args.get('dateFrom', '') }}">
+            <input type="hidden" id="hiddenDateTo" name="dateTo" value="{{ request.args.get('dateTo', '') }}">
+            <button type="submit" class="hidden">Suchen</button>
+        </form>
+    </div>
+
+
+
+
+
+    <div class="flex items-center w-full space-x-4 md:w-auto">
+        <!-- Sortieren Button -->
+        <button id="dropdownSortButton" data-dropdown-toggle="sortDropdown"
+            class="flex items-center justify-center flex-grow px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200">
+            <span id="sortText">Sortieren...</span>
+            <svg class="-mr-1 ml-1.5 w-5 h-5" fill="currentColor" viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true">
+                <path clip-rule="evenodd" fill-rule="evenodd"
+                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+            </svg>
+        </button>
+
+
+        <!-- Custom Dropdown Menu -->
+        <div id="sortDropdown"
+            class="z-10 hidden w-48 bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700">
+            <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownSortButton">
+                <li id="id_asc"
+                    class="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white {% if current_sort_order=="
+                    id_asc" %} bg-gray-300 {% endif %}" onclick="setSortOrder('id_asc')">
+                    <div class="h-2 w-2 bg-green-500 rounded-full mr-2 {% if current_sort_order!="id_asc" %}
+                        bg-transparent {% endif %}"></div>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                        class="mr-2 bi bi-sort-numeric-up" viewBox="0 0 16 16">
+                        <!-- SVG paths for Aufsteigend -->
+                        <path d="M12.438 1.668V7H11.39V2.684h-.051l-1.211.859v-.969l1.262-.906h1.046z" />
+                        <path fill-rule="evenodd"
+                            d="M11.36 14.098c-1.137 0-1.708-.657-1.762-1.278h1.004c.058.223.343.45.773.45.824 0 1.164-.829 1.133-1.856h-.059c-.148.39-.57.742-1.261.742-.91 0-1.72-.613-1.72-1.758 0-1.148.848-1.835 1.973-1.835 1.09 0 2.063.636 2.063 2.687 0 1.867-.723 2.848-2.145 2.848zm.062-2.735c.504 0 .933-.336.933-.972 0-.633-.398-1.008-.94-1.008-.52 0-.927.375-.927 1 0 .64.418.98.934.98z" />
+                        <path
+                            d="M4.5 13.5a.5.5 0 0 1-1 0V3.707L2.354 4.854a.5.5 0 1 1-.708-.708l2-1.999.007-.007a.498.498 0 0 1 .7.006l2 2a.5.5 0 1 1-.707.708L4.5 3.707V13.5z" />
+                    </svg>
+                    Aufsteigend
+                </li>
+                <li id="id_desc"
+                    class="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white {% if current_sort_order=="
+                    id_desc" %} bg-gray-300 {% endif %}" onclick="setSortOrder('id_desc')">
+                    <div class="h-2 w-2 bg-green-500 rounded-full mr-2 {% if current_sort_order!="id_desc" %}
+                        bg-transparent {% endif %}"></div>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                        class="mr-2 bi bi-sort-numeric-down" viewBox="0 0 16 16">
+                        <!-- SVG paths for Absteigend -->
+                        <path d="M12.438 1.668V7H11.39V2.684h-.051l-1.211.859v-.969l1.262-.906h1.046z" />
+                        <path fill-rule="evenodd"
+                            d="M11.36 14.098c-1.137 0-1.708-.657-1.762-1.278h1.004c.058.223.343.45.773.45.824 0 1.164-.829 1.133-1.856h-.059c-.148.39-.57.742-1.261.742-.91 0-1.72-.613-1.72-1.758 0-1.148.848-1.835 1.973-1.835 1.09 0 2.063.636 2.063 2.687 0 1.867-.723 2.848-2.145 2.848zm.062-2.735c.504 0 .933-.336.933-.972 0-.633-.398-1.008-.94-1.008-.52 0-.927.375-.927 1 0 .64.418.98.934.98z" />
+                        <path
+                            d="M4.5 2.5a.5.5 0 0 0-1 0v9.793l-1.146-1.147a.5.5 0 0 0-.708.708l2 1.999.007.007a.497.497 0 0 0 .7-.006l2-2a.5.5 0 0 0-.707-.708L4.5 12.293V2.5z" />
+                    </svg>
+                    Absteigend
+                </li>
+            </ul>
+        </div>
+
+        <!-- Hidden actual select for form submission -->
+        <select id="sortInput" class="hidden" onchange="updateSortOrder()">
+            <option value=""></option>
+            <option value="id_asc" {% if current_sort_order=="id_asc" %}selected{% endif %}></option>
+            <option value="id_desc" {% if current_sort_order=="id_desc" %}selected{% endif %}></option>
+        </select>
+
+
+        <div class="flex items-center w-full space-x-4 md:w-auto">
+            <!-- Dropdown button -->
+            <button id="dropdownExportButton" data-dropdown-toggle="dropdown"
+                class="flex items-center justify-center flex-grow px-4 py-2 text-sm font-medium text-white bg-green-600 border border-green-400 rounded-lg focus:outline-none hover:bg-green-600 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200">
+                <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24"
+                    stroke-width="2" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                </svg>
+                Export
+            </button>
+
+            <!-- Dropdown menu -->
+            <div id="dropdown" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 ">
+                <ul class="py-2 text-sm text-gray-700 " aria-labelledby="dropdownExportButton">
+                    <li>
+                        <button onclick="exportData('all')" class="block w-full px-4 py-2 text-left hover:bg-gray-100 ">
+                            Export All Data
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="exportData('accepted')"
+                            class="block w-full px-4 py-2 text-left hover:bg-gray-100 ">
+                            Export Accepted Reports
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="exportData('non_accepted')"
+                            class="block w-full px-4 py-2 text-left hover:bg-gray-100 ">
+                            Export Non-Accepted Reports
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
   <div class="flex-grow overflow-hidden bg-gray-50">
     <div class="w-full h-full overflow-x-auto">
       <table id="dynamic-table" class="min-w-full bg-white divide-y divide-gray-200 rounded-lg shadow-lg"> 
@@ -99,6 +309,8 @@ async function loadTableData(table_name, append = false) {
   }
 };
 
+
+
 document.querySelector(".flex-grow > div").addEventListener('scroll', function() {
   if (this.scrollTop + this.clientHeight >= this.scrollHeight) {
       const selectedTable = document.querySelector("#tables").value;
@@ -139,7 +351,10 @@ const nonEditableFields = {
   'users': ['id', 'user_id']
 };
 
-// Convert TD to Input
+// Identify date fields
+const dateFields = ['dat_fund_von', 'dat_fund_bis', 'dat_meld', 'dat_bear'];
+
+// Updated convertToInput function
 function convertToInput(tdElem, table_name, row_id, column_name, event) {
   console.log(`Table: ${table_name}, Column: ${column_name}`); // Debugging output
   event.stopPropagation();
@@ -149,17 +364,23 @@ function convertToInput(tdElem, table_name, row_id, column_name, event) {
     console.log(`Editing prevented for ${table_name} -> ${column_name}`); // Debugging output
     return;
   }
-  event.stopPropagation();
   if (tdElem.querySelector('.edit-button')) return;
   if (activeCell) resetToBefore(activeCell);
 
-  const originalText = tdElem.innerText;
-  const editButton = createElement('button', 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded edit-button ml-2', 'Edit');
+  const originalText = tdElem.innerText.trim();
+  const isDateField = dateFields.includes(column_name);
+  const inputElem = isDateField ? createElement('input', 'input-field', '') : createInputElem(originalText);
+  if (isDateField) {
+    const formattedDate = originalText ? new Date(originalText).toISOString().split('T')[0] : '';
+    inputElem.type = 'date';
+    inputElem.value = formattedDate;
+  }
+
+  const editButton = createElement('button', 'bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-2 rounded edit-button ml-2', 'Edit');
   editButton.onclick = () => {
     const inputDiv = createElement('div', 'relative flex items-center', '');
-    const inputElem = createInputElem(originalText);
-    const updateButton = createElement('button', 'absolute right-3 top-1/2 transform -translate-y-1/2 bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-2 rounded focus:outline-none', 'Update'); // <-- Modified right positioning
-        
+    const updateButton = createElement('button', 'absolute right-3 top-1/2 transform -translate-y-1/2 bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-2 rounded focus:outline-none', 'Update');
+
     inputElem.addEventListener("keydown", (event) => {
       if (event.key === "Escape") resetToBefore({ tdElem, originalText, table_name, row_id, column_name });
     });
