@@ -28,24 +28,10 @@ def create_materialized_view_command():
 
 @click.command('insert-initial-data')
 @with_appcontext
+
 def insert_initial_data_command():
     """Insert initial data into the beschreibung table."""
-    initial_data = [
-        (1, 'Im Haus'),
-        (2, 'Im Garten'),
-        (3, 'Auf dem Balkon/auf der Terrasse'),
-        (4, 'Am Fenster/an der Hauswand'),
-        (5, 'Industriebrache'),
-        (6, 'Im Wald'),
-        (7, 'Wiese/Weide'),
-        (8, 'Heidelandschaft'),
-        (9, 'Straßengraben/Wegesrand/Ruderalflur'),
-        (10, 'Gewerbegebiet'),
-        (11, 'Im oder am Auto'),
-        (99, 'Anderer Fundort')
-    ]
-
-    for id, beschreibung in initial_data:
+    for id, beschreibung in Config.INITIAL_DATA:
         db.session.execute(
             text("INSERT INTO beschreibung (id, beschreibung) VALUES (:id, :beschreibung)"),
             {'id': id, 'beschreibung': beschreibung}
