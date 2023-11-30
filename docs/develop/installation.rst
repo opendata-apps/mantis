@@ -51,6 +51,8 @@ Schritt 4: 🗄️ Erstellen Sie eine PostgreSQL-Datenbank
    CREATE DATABASE mantis_tracker;
    CREATE USER mantis_user WITH PASSWORD 'mantis';
    GRANT ALL PRIVILEGES ON DATABASE mantis_tracker TO mantis_user;
+   # MacOS only:
+   GRANT usage, create ON SCHEMA public TO mantis_user;
    \q
 
 
@@ -76,7 +78,14 @@ Schritt 7: 🏗️ Erstellen Sie die Datenbanktabellen
 
    flask db upgrade
 
-Schritt 8: 📈 Importieren Sie die Daten
+Schritt 8: ☕ materialized view erstellen
+
+::
+
+   flask create-mview
+   flask insert-initial-data
+
+Schritt 9: 📈 Importieren Sie die Daten
 
 ::
 
@@ -118,6 +127,11 @@ Schritt 11: 🏢 Starten Sie den Produktions-Server
     waitress-serve run:app
 
 Schritt 12: 🌐 Öffnen Sie http://localhost:5000 in Ihrem Browser.
+
+
+::
+    # Meldung id error fix
+    SELECT setval('[TableName]_id_seq', (SELECT MAX(id) FROM [TableName]))
 
 Liste der verwendeten Pakete
 ----------------------------
