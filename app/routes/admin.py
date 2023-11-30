@@ -25,6 +25,10 @@ from functools import wraps
 from flask import g, flash
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
+import shutil
+from werkzeug.utils import secure_filename
+from pathlib import Path
+from flask import current_app
 
 # Blueprints
 admin = Blueprint('admin', __name__)
@@ -427,22 +431,93 @@ NON_EDITABLE_FIELDS = {
 def update_value(table_name, row_id):
     data = request.json
     column_name = data.get("column_name")
-    
+
     # Check if field is non-editable
     if column_name in NON_EDITABLE_FIELDS.get(table_name, []):
         return jsonify({'error': 'Field is non-editable'}), 400
+
     new_value = data.get("new_value")
-    
+
     table = db.metadata.tables.get(table_name)
     if table is None:
         return jsonify({'error': 'Table not found'})
-        
+
+    # If the updated field is 'dat_meld', call the image update function
+    if table_name == 'meldungen' and column_name == 'dat_meld':
+        response, status = update_report_image_date(row_id, new_value)
+        if status != 200:
+            return jsonify(response), status
+
     # Assuming the primary key column is named 'id'
     stmt = table.update().where(table.c.id == row_id).values({column_name: new_value})
     db.session.execute(stmt)
     db.session.commit()
-    
+
     return jsonify({'status': 'success'})
+
+
+def update_report_image_date(report_id, new_date):
+    print("Debugging: Inside update_report_image_date function")
+    new_date_obj = datetime.strptime(new_date, '%Y-%m-%d')
+
+    # Fetch the report
+    report = db.session.query(TblMeldungen).filter_by(id=report_id).first()
+    if not report:
+        print("Debugging: Report not found")
+        return {'error': 'Report not found'}, 404
+
+    # Fetch the corresponding fundorte record
+    fundorte_record = db.session.query(
+        TblFundorte).filter_by(id=report.fo_zuordnung).first()
+    if not fundorte_record:
+        print("Debugging: Fundorte record not found")
+        return {'error': 'Fundorte record not found'}, 404
+
+    base_dir = Path(current_app.config['UPLOAD_FOLDER'])
+    old_image_path = base_dir / fundorte_record.ablage
+    print(f"Debugging: Old image path - {old_image_path}")
+
+    old_dir, old_filename = os.path.split(old_image_path)
+    location, _, usrid = old_filename.rsplit('-', 2)
+
+    new_dir_path = _create_directory(new_date_obj.strftime('%Y-%m-%d'))
+    new_filename = _create_filename(
+        location, usrid, new_date_obj)  # Pass the new_date_obj here
+    new_file_path = new_dir_path / new_filename
+
+    try:
+        print(f"Debugging: Moving file from {
+              old_image_path} to {new_file_path}")
+        shutil.move(str(old_image_path), str(new_file_path))
+    except IOError as e:
+        print(f"Debugging: Failed to move file: {e}")
+        return {'error': f'Failed to move file: {e}'}, 500
+
+    # Update the path in fundorte table
+    fundorte_record.ablage = str(new_file_path.relative_to(base_dir))
+    db.session.commit()
+
+    print("Debugging: File moved successfully")
+    return {'status': 'success'}, 200
+
+
+def _create_directory(date):
+    current_year = datetime.now().strftime("%Y")
+    base_dir = Path(current_app.config['UPLOAD_FOLDER'])
+    print("Creating directory in %s" % base_dir)
+    dir_path = base_dir / current_year / date
+    dir_path.mkdir(parents=True, exist_ok=True)
+    ablage_path = str(dir_path.relative_to(base_dir))
+    return dir_path
+
+
+def _create_filename(location, usrid, new_date):
+    new_timestamp = new_date.strftime("%Y%m%d%H%M%S")
+    # Generate the filename without the .webp extension
+    return '{}-{}-{}'.format(secure_filename(location),
+                             new_timestamp,
+                             secure_filename(usrid))
+
 
 # Get all table names
 @admin.route('/get_tables', methods=['GET'])
