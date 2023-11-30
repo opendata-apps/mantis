@@ -133,6 +133,9 @@ def reviewer(usrid):
                     query = query.join(TblMeldungUser, TblMeldungen.id == TblMeldungUser.id_meldung)\
                         .join(TblUsers, TblMeldungUser.id_user == TblUsers.id)\
                         .filter(TblUsers.user_kontakt.ilike(f"%{search_query}%"))
+                if "statistik" == search_query.lower():
+                    flash('<a class="text-blue-900 underline" href="/statistik/' +
+                          user.user_id + '">Link zur Statistik</a>', 'info')
                 else:
                     # Option 1: Sanitize the query string
                     search_query = search_query.replace(' ', ' & ')
