@@ -31,7 +31,7 @@ def login_required(f):
 
 
 @admin.route('/reviewer/<usrid>')
-def reviewer(usrid):
+def admin_index2(usrid):
     # Fetch the user based on the 'usrid' parameter
     user = TblUsers.query.filter_by(user_id=usrid).first()
 
@@ -69,7 +69,7 @@ def reviewer(usrid):
     tables = inspector.get_table_names()
 
     if 'statusInput' not in request.args and 'sort_order' not in request.args:
-        return redirect(url_for('admin.reviewer', usrid=usrid, statusInput='offen', sort_order='id_asc'))
+        return redirect(url_for('admin.admin_index2', usrid=usrid, statusInput='offen', sort_order='id_asc'))
 
     query = TblMeldungen.query
 
@@ -130,12 +130,15 @@ def reviewer(usrid):
 
             if search_type == 'full_text':
                 if "@" in search_query:
+                    print("searching for email")
                     query = query.join(TblMeldungUser, TblMeldungen.id == TblMeldungUser.id_meldung)\
                         .join(TblUsers, TblMeldungUser.id_user == TblUsers.id)\
                         .filter(TblUsers.user_kontakt.ilike(f"%{search_query}%"))
                 if "statistik" == search_query.lower():
+                    print("searching for statistik")
                     flash('<a class="text-blue-900 underline" href="/statistik/' +
                           user.user_id + '">Link zur Statistik</a>', 'info')
+                    print("flash")
                 else:
                     # Option 1: Sanitize the query string
                     search_query = search_query.replace(' ', ' & ')
