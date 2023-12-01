@@ -243,7 +243,7 @@ def report(usrid=None):
                 '99': 'Anderer Fundort',
             }
             form.location_description.data = location[form.location_description.data]
-            
+
             send_email(formdata=form)
         return redirect(url_for('data.report', usrid=usrid))
 
@@ -253,7 +253,6 @@ def report(usrid=None):
                            form=form,
                            existing_user=existing_user,
                            apikey=Config.esri,)
-
 
 
 @data.route('/validate', methods=['POST'])
@@ -268,17 +267,29 @@ def validate():
         return jsonify({'errors': form.errors}), 333
 
 
-
-@data.route('/auswertungen')
-def show_map():
-
+@data.route('/auswertungen', defaults={'selected_year': None})
+@data.route('/auswertungen/<int:selected_year>')
+def show_map(selected_year):
     # Summe aller Meldungen für den Counter
     post_count = db.session.query(TblMeldungen).filter(
         TblMeldungen.deleted == None).count()
 
-    reports = TblFundorte.query.join(
-        TblMeldungen, TblMeldungen.fo_zuordnung ==
-        TblFundorte.id).filter(TblMeldungen.dat_bear != None).all()
+    # Get distinct years from dat_fund_von
+    years = db.session.query(db.func.extract('year', TblMeldungen.dat_fund_von).label(
+        'year')).distinct().order_by('year').all()
+    years = [year[0] for year in years]  # Convert to a list of integers
+
+    # Query for reports, optionally filtering by the selected year
+    reports_query = db.session.query(TblFundorte).join(
+        TblMeldungen, TblMeldungen.fo_zuordnung == TblFundorte.id
+    ).filter(TblMeldungen.dat_bear != None)
+
+    if selected_year is not None and str(selected_year).isdigit():
+        selected_year = int(selected_year)
+        reports_query = reports_query.filter(db.func.extract(
+            'year', TblMeldungen.dat_fund_von) == selected_year)
+
+    reports = reports_query.all()
 
     # Serialize the reports data as a JSON object
     koords = []
@@ -299,11 +310,15 @@ def show_map():
             pass
 
     reportsJson = json.dumps(koords)
+
     return render_template('map.html',
                            reportsJson=reportsJson,
                            apikey=Config.esri,
-                           post_count=post_count)
-    
+                           post_count=post_count,
+                           years=years,
+                           selected_year=selected_year)
+
+
 @data.route('/get_marker_data/<int:report_id>')
 def get_marker_data(report_id):
     report = (db.session.query(TblMeldungen.id, TblMeldungen.dat_meld, TblMeldungen.dat_fund_von,
@@ -321,8 +336,6 @@ def get_marker_data(report_id):
         })
     else:
         return jsonify({'error': 'Report not found'}), 404
-
-
 
 
 def obfuscate_location(lat, long):

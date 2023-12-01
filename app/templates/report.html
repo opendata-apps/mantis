@@ -521,11 +521,13 @@
       fetch(nominatimUrl)
         .then(response => {
           if (!response.ok) {
+            
             throw new Error(`HTTP error! status: ${response.status}`);
           }
           return response.json();
         })
         .then(data => {
+          console.log(data);
           const address = data.address;
 
           document.querySelector("#zip_code").value = address.postcode ? address.postcode.split(";")[0] : "";

@@ -1,14 +1,18 @@
 {% extends "layout.html" %}
 {% block title %}Fundmeldungen 2023{% endblock title %}
-{% block page_title %}Auswertungen der Beobachtungen | Mantis Religiosa Mitmachprojekt | Gottesanbeterin Gesucht{% endblock %}
+{% block page_title %}Auswertungen der Beobachtungen | Mantis Religiosa Mitmachprojekt | Gottesanbeterin Gesucht{%
+endblock %}
 {% block meta_keywords %} Auswertungen, Karte,
 Gottesanbeterin, Mantis religiosa Auswertungen {% endblock %}
-{% block meta_description %} Schauen Sie sich die Auswertungen von Gottesanbeterin-Beobachtungen in Deutschland an. {% endblock %}
+{% block meta_description %} Schauen Sie sich die Auswertungen von Gottesanbeterin-Beobachtungen in Deutschland an. {%
+endblock %}
 {% block text %} Übersicht zu allen bestätigten Meldungen. {% endblock text %}
 {% block content %}
-<section class="container mx-auto mt-10">
+<section class="container relative mx-auto mt-10">
+  <!-- Year Selector on Map -->
   <div class="flex justify-center">
-    <p class="flex items-center inline-block p-4 my-4 space-x-2 text-black bg-white border border-gray-200 rounded-lg shadow-lg">
+    <p
+      class="flex items-center inline-block p-4 my-4 space-x-2 text-black bg-white border border-gray-200 rounded-lg shadow-lg">
       <span class="flex items-center text-2xl">
         🔒
         <span class="w-px h-5 mx-3 bg-gray-300"></span>
@@ -17,9 +21,19 @@ Gottesanbeterin, Mantis religiosa Auswertungen {% endblock %}
     </p>
   </div>
 
-  <div class="container flex flex-row p-6">
-    <div id="map" class="object-fill h-screen bg-white rounded-lg shadow-md grow auto-rows-max"></div>
+  <div id="map" class="relative h-screen rounded-lg shadow-md">
+    <div class="absolute inset-x-0 top-4" style="z-index: 100000000; text-align: center;">
+      <label for="yearSelect" class="sr-only">Jahr auswählen:</label>
+      <select id="yearSelect" name="year" onchange="filterByYear(this.value)"
+        class="inline-block w-40 lg:w-48 px-3 py-1.5 text-sm lg:text-base text-gray-700 bg-white bg-opacity-90 rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200 transition" style="z-index: 100000000;">
+        <option value="">Alle Jahre</option>
+        {% for year in years %}
+        <option value="{{ year }}" {% if year==selected_year %}selected{% endif %}>{{ year }}</option>
+        {% endfor %}
+      </select>
+    </div>
   </div>
+  
 </section>
 
 
@@ -40,58 +54,11 @@ Gottesanbeterin, Mantis religiosa Auswertungen {% endblock %}
   </div>
 </section>
 
-<style>
-  /* css to customize Leaflet default styles  */
-/* Adjust the popup wrapper */
-.leaflet-popup-content-wrapper {
-  background: rgba(22, 101, 52, 0.8);  /* semi-transparent background */
-  border-radius: 12px;  /* rounded corners */
-  color: #ffffff;  /* text color */
-  font-family: 'Arial', sans-serif;  /* font style */
-  opacity: 0;  /* start with transparent */
-  animation: fadeIn ease 1s;  /* fade-in animation */
-  animation-fill-mode: forwards;  /* keep the end state */
-}
-
-
-/* Adjust the popup tip */
-.leaflet-popup-tip {
-  background: rgba(22, 101, 52, 0.8);  /* semi-transparent background */
-}
-
-/* Add some padding to the popup content */
-.leaflet-popup-content {
-  padding: 10px;  /* internal padding */
-}
-
-/* Make strong text stand out */
-.leaflet-popup-content strong {
-  display: block;  /* make it block-level */
-  margin-bottom: 10px;  /* add some margin at the bottom */
-  font-size: 1.2em;  /* increase the font size */
-}
-
-/* Add some spacing between lines */
-.leaflet-popup-content br {
-  margin-bottom: 5px;
-  display: block;  /* make it block-level */
-  
-}
-
-
-/* Fade-in animation */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-  </style>
-  
-
 
 <script>
   const counter = document.querySelector('.counter');
   const target = Math.min(+counter.dataset.target, {{ post_count }});
-  const duration = 2500; 
+  const duration = 2500;
 
   let startTime = null;
 
@@ -128,14 +95,14 @@ Gottesanbeterin, Mantis religiosa Auswertungen {% endblock %}
   let map;
   let userMarker;
   mapApiKey = "{{apikey}}"
-  
+
   function initMap() {
     // Define the boundary box for Germany
     const germanyBounds = [
       [47.270111, 5.866342],
       [55.058347, 15.041896]
     ];
-    
+
 
     map = L.map('map', {
       renderer: L.canvas(),
@@ -166,43 +133,43 @@ Gottesanbeterin, Mantis religiosa Auswertungen {% endblock %}
     });
 
     var reports = JSON.parse('{{ reportsJson | safe }}');
-  
+
     reports.forEach(report => {
       const marker = L.marker([report.latitude, report.longitude]);
 
-marker.bindPopup("Loading..."); // initial message
+      marker.bindPopup("Loading..."); // initial message
 
-marker.on('popupopen', function(e) {
-  // Fetch data dynamically
-  fetch(`/get_marker_data/${report.id}`)
-  .then(response => response.json())
-  .then(data => {
-      let popupContent = `<strong>Melde ID: ${data.id}</strong>`;
-      
-      if (data.dat_meld) {
-          popupContent += `<br>Melde Datum: ${data.dat_meld}`;
-      }
-      
-      if (data.dat_fund_von) {
-          popupContent += `<br>Fund Datum: ${data.dat_fund_von}`;
-      }
-      
-      if (data.ort) {
-          popupContent += `<br>Ort: ${data.ort}`;
-      }
-      
-      if (data.kreis) {
-          popupContent += `<br>Kreis: ${data.kreis}`;
-      }
+      marker.on('popupopen', function (e) {
+        // Fetch data dynamically
+        fetch(`/get_marker_data/${report.id}`)
+          .then(response => response.json())
+          .then(data => {
+            let popupContent = `<strong>Melde ID: ${data.id}</strong>`;
 
-      e.popup.setContent(popupContent);
-  })
-  .catch(error => {
-      e.popup.setContent("Failed to load data");
-  });
-});
+            if (data.dat_meld) {
+              popupContent += `<br>Melde Datum: ${data.dat_meld}`;
+            }
 
-markers.addLayer(marker);
+            if (data.dat_fund_von) {
+              popupContent += `<br>Fund Datum: ${data.dat_fund_von}`;
+            }
+
+            if (data.ort) {
+              popupContent += `<br>Ort: ${data.ort}`;
+            }
+
+            if (data.kreis) {
+              popupContent += `<br>Kreis: ${data.kreis}`;
+            }
+
+            e.popup.setContent(popupContent);
+          })
+          .catch(error => {
+            e.popup.setContent("Failed to load data");
+          });
+      });
+
+      markers.addLayer(marker);
     });
 
     map.addLayer(markers);
@@ -210,7 +177,7 @@ markers.addLayer(marker);
     // Zoom restrictions
     const MAX_ZOOM_LEVEL = 12;
     const MIN_ZOOM_LEVEL = 6;
-    map.on('zoomend', function() {
+    map.on('zoomend', function () {
       if (map.getZoom() > MAX_ZOOM_LEVEL) {
         map.setZoom(MAX_ZOOM_LEVEL);
       }
@@ -221,7 +188,88 @@ markers.addLayer(marker);
   };
 
   initMap();
+
+  function filterByYear(year) {
+    if (year === '') {
+      window.location.href = '/auswertungen'; // Redirect to the default route
+    } else {
+      window.location.href = `/auswertungen/${year}`;
+    }
+  }
+
 </script>
 
-{% endblock content %}
 
+<style>
+/* Styles for the dropdown */
+#map .absolute {
+  padding-top: 10px !important; /* Padding on top */
+  margin: 0 auto !important; /* Centering the container */
+  width: max-content !important; /* Adjust width to content */
+  margin-left: 80px !important; /* Adjust margin left to content */
+}
+
+
+  /* css to customize Leaflet default styles  */
+  /* Adjust the popup wrapper */
+  .leaflet-popup-content-wrapper {
+    background: rgba(22, 101, 52, 0.8);
+    /* semi-transparent background */
+    border-radius: 12px;
+    /* rounded corners */
+    color: #ffffff;
+    /* text color */
+    font-family: 'Arial', sans-serif;
+    /* font style */
+    opacity: 0;
+    /* start with transparent */
+    animation: fadeIn ease 1s;
+    /* fade-in animation */
+    animation-fill-mode: forwards;
+    /* keep the end state */
+  }
+
+
+  /* Adjust the popup tip */
+  .leaflet-popup-tip {
+    background: rgba(22, 101, 52, 0.8);
+    /* semi-transparent background */
+  }
+
+  /* Add some padding to the popup content */
+  .leaflet-popup-content {
+    padding: 10px;
+    /* internal padding */
+  }
+
+  /* Make strong text stand out */
+  .leaflet-popup-content strong {
+    display: block;
+    /* make it block-level */
+    margin-bottom: 10px;
+    /* add some margin at the bottom */
+    font-size: 1.2em;
+    /* increase the font size */
+  }
+
+  /* Add some spacing between lines */
+  .leaflet-popup-content br {
+    margin-bottom: 5px;
+    display: block;
+    /* make it block-level */
+
+  }
+
+
+  /* Fade-in animation */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+</style>
+{% endblock content %}
