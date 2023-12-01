@@ -96,15 +96,15 @@ def admin_index2(usrid):
 
     if filter_type:
         if filter_type == 'maennlich':
-            query = query.filter(TblMeldungen.art_m == 1)
+            query = query.filter(TblMeldungen.art_m >= 1)
         elif filter_type == 'weiblich':
-            query = query.filter(TblMeldungen.art_w == 1)
+            query = query.filter(TblMeldungen.art_w >= 1)
         elif filter_type == 'oothek':
-            query = query.filter(TblMeldungen.art_o == 1)
+            query = query.filter(TblMeldungen.art_o >= 1)
         elif filter_type == 'nymhe':
-            query = query.filter(TblMeldungen.art_n == 1)
+            query = query.filter(TblMeldungen.art_n >= 1)
         elif filter_type == 'andere':
-            query = query.filter(TblMeldungen.art_f == 1)
+            query = query.filter(TblMeldungen.art_f >= 1)
         elif filter_type == 'nicht_bestimmt':
             query = query.filter(TblMeldungen.art_m.is_(None),
                                  TblMeldungen.art_w.is_(None),
