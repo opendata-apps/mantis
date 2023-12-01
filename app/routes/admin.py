@@ -480,15 +480,23 @@ def update_report_image_date(report_id, new_date):
     old_dir, old_filename = os.path.split(old_image_path)
     location, _, usrid = old_filename.rsplit('-', 2)
 
-    new_dir_path = _create_directory(new_date_obj.strftime('%Y-%m-%d'))
-    new_filename = _create_filename(
-        location, usrid, new_date_obj)  # Pass the new_date_obj here
-    new_file_path = new_dir_path / new_filename
+    old_dir, old_filename = os.path.split(old_image_path)
+    location, _, usrid = old_filename.rsplit('-', 2)
+
+    new_dir_path = _create_directory(new_date_obj)
+    new_filename = _create_filename(location, usrid, new_date_obj)
+    new_file_path = new_dir_path / (new_filename + ".webp")
 
     try:
         print(f"Debugging: Moving file from {
               old_image_path} to {new_file_path}")
         shutil.move(str(old_image_path), str(new_file_path))
+
+        # Check if old directory is empty, if yes, delete it
+        if not os.listdir(old_dir):
+            print(f"Debugging: Deleting empty directory {old_dir}")
+            os.rmdir(old_dir)
+
     except IOError as e:
         print(f"Debugging: Failed to move file: {e}")
         return {'error': f'Failed to move file: {e}'}, 500
@@ -501,14 +509,14 @@ def update_report_image_date(report_id, new_date):
     return {'status': 'success'}, 200
 
 
-def _create_directory(date):
-    current_year = datetime.now().strftime("%Y")
+def _create_directory(new_date):
+    year = new_date.strftime("%Y")
     base_dir = Path(current_app.config['UPLOAD_FOLDER'])
     print("Creating directory in %s" % base_dir)
-    dir_path = base_dir / current_year / date
+    dir_path = base_dir / year / new_date.strftime('%Y-%m-%d')
     dir_path.mkdir(parents=True, exist_ok=True)
-    ablage_path = str(dir_path.relative_to(base_dir))
     return dir_path
+
 
 
 def _create_filename(location, usrid, new_date):
