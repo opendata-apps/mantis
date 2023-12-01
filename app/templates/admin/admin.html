@@ -245,7 +245,7 @@
             data-deleted="{{ 'true' if sighting.deleted else 'false' }}"
             >
             <div class="relative">
-                <img loading="lazy" loading="lazy" onclick="openImageModal('{{ url_for('admin.report_Img', filename=image_path + "/" +
+                <img loading="lazy" onclick="openImageModal('{{ url_for('admin.report_Img', filename=image_path + "/" +
                     sighting.fundort.ablage) }}')"
                     class="object-cover w-full h-48 transition-transform duration-200 ease-in-out rounded-t-lg cursor-pointer md:h-64 hover:scale-105"
                     src="{{ url_for('admin.report_Img', filename=image_path + "/" + sighting.fundort.ablage)}}"
