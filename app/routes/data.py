@@ -277,7 +277,7 @@ def show_map(selected_year):
     # Get distinct years from dat_fund_von
     years = db.session.query(db.func.extract('year', TblMeldungen.dat_fund_von).label(
         'year')).distinct().order_by('year').all()
-    years = [year[0] for year in years]  # Convert to a list of integers
+    years = [int(year[0]) for year in years]  # Convert to a list of integers
 
     # Query for reports, optionally filtering by the selected year
     reports_query = db.session.query(TblFundorte).join(
@@ -310,7 +310,7 @@ def show_map(selected_year):
             pass
 
     reportsJson = json.dumps(koords)
-
+    print(years)
     return render_template('map.html',
                            reportsJson=reportsJson,
                            apikey=Config.esri,
