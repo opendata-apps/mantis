@@ -76,39 +76,12 @@
     </a>
 </section>
 
-<!-- Gallery -->
-<section class="container mx-auto mt-10">
-  <div class="flex items-center justify-center mb-6">
-    <h2 class="text-4xl font-extrabold text-center text-gray-900 sm:flex sm:flex-col sm:items-center">
-      <span class="sm:hidden">Interessante<br> Momentaufnahmen</span>
-      <span class="hidden sm:block">Interessante Momentaufnahmen</span>
-    </h2>
-    {{ popover('hinweise-popover', 'Hinweise zur Bedienung', '<ul><li>Das Bild anklicken, Bilderserie startet …</li><li>Mit Pfeil nach rechts, vorblättern …</li><li>Mit Pfeil nach links, zurückblättern …</li><li>Mit ESC-Taste, die Bilderschau beenden …</li></ul>') }}
-  </div>
-  <div class="grid grid-cols-1 gap-4 px-2 md:grid-cols-3 lg:grid-cols-4 xl:px-8 auto-rows-[1fr]">
-    <link href="{{ url_for('static', filename='lb/css/lightbox.min.css')}}" rel="stylesheet">
-    {% set bilder_random = bilder|shuffle %}
-    {% for slide in bilder_random[:8] %}
-    <div class="aspect-w-16 aspect-h-9">
-      <a href="{{ url_for('static', filename='images/galerie/' + slide.bildname)}}"
-         rel="lightbox[Mantis]"
-         title="{{ slide.beschreibung }} <br />Autor: {{ slide.fotograph }} <br />Funddatum: {{ slide.funddatum }} <br />Lizenz: {{ slide.lizenz | safe }}"
-         class="transition-opacity duration-300 hover:opacity-75">
-        <img src="{{ url_for('static', filename='images/galerie/' + slide.bildname)}}"
-             alt="Gallery Image"
-             class="object-cover w-full h-full rounded-lg shadow-lg">
-      </a>
-    </div>
-    {% endfor %}
-    
-  </div>
-</section>
 <!-- Animated counter section -->
 <section class="py-16 bg-gray-100">
   <div class="container px-4 mx-auto">
     <div class="relative px-8 py-12 bg-green-800 rounded-lg shadow-2xl">
       <h2 class="mb-8 text-3xl font-bold leading-tight text-center text-white">
-        Wir haben bereits <br />
+        Wir haben insgesamt <br />
         <span class="font-extrabold text-white text-7xl counter" data-target="{{ post_count }}">0</span>
         <br />
         Meldungen erhalten

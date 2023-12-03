@@ -42,7 +42,12 @@ endblock %}
   <div class="container px-4 mx-auto">
     <div class="relative px-8 py-12 bg-green-800 rounded-lg shadow-2xl">
       <h2 class="mb-8 text-3xl font-bold leading-tight text-center text-white">
-        Wir haben bereits <br />
+	{% if not selected_year %}
+          Wir haben insgesamt <br />
+	{% endif %}
+	{% if selected_year %}
+          Wir haben für das Jahr  {{selected_year}} <br />
+	{% endif %}
         <span class="font-extrabold text-white text-7xl counter" data-target="{{ post_count }}">0</span>
         <br />
         Meldungen erhalten.
