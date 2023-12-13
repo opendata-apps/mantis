@@ -1,12 +1,21 @@
 {% extends "layout.html" %}
-{% block title %}Fundmeldungen 2023{% endblock title %}
-{% block page_title %}Auswertungen der Beobachtungen | Mantis Religiosa Mitmachprojekt | Gottesanbeterin Gesucht{%
-endblock %}
-{% block meta_keywords %} Auswertungen, Karte,
-Gottesanbeterin, Mantis religiosa Auswertungen {% endblock %}
-{% block meta_description %} Schauen Sie sich die Auswertungen von Gottesanbeterin-Beobachtungen in Deutschland an. {%
-endblock %}
-{% block text %} Übersicht zu allen bestätigten Meldungen. {% endblock text %}
+{% block title %}
+  {% if selected_year %}
+    Fundmeldungen {{ selected_year }}
+  {% else %}
+    Fundmeldungen gesamt
+  {% endif %}
+{% endblock title %}
+{% block page_title %}Auswertungen der Beobachtungen | Mantis Religiosa Mitmachprojekt | Gottesanbeterin Gesucht{% endblock %}
+{% block meta_keywords %} Auswertungen, Karte, Gottesanbeterin, Mantis religiosa Auswertungen {% endblock %}
+{% block meta_description %} Schauen Sie sich die Auswertungen von Gottesanbeterin-Beobachtungen in Deutschland an. {% endblock %}
+{% block text %}
+  {% if selected_year %}
+    Übersicht zu allen bestätigten Meldungen im Jahr {{ selected_year }}.
+  {% else %}
+    Übersicht zu allen bestätigten Meldungen.
+  {% endif %}
+{% endblock text %}
 {% block content %}
 <section class="container relative mx-auto mt-10">
   <!-- Year Selector on Map -->
