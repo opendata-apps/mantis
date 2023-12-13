@@ -12,7 +12,7 @@
     content="{% block meta_description %} Gottesanbeterin in Deutschland gesichtet? Melden Sie Ihre Beobachtung, unterstützen Sie Forschung zu Mantis religiosa. {% endblock %}">
   <meta name="keywords"
     content="{% block meta_keywords %}Mantis religiosa, Gottesanbeterin, Mitmachprojekt, Beobachtungen, Meldung, Citizen Science, Naturkundemuseum, Potsdam, Deutschland, Gottesanbeterin gefunden, Gottesanbeterin gesichtet, Mantis entdeckt, Brandenburg, Berlin {% endblock %}">
-  <link rel="canonical" href="{{ request.url }}" />
+  <link rel="canonical" href="{{ request.url | replace('http:', 'https:') }}" />
 
   <!-- Open Graph data -->
   <meta property="og:title" content="Gottesanbeterin Gesucht | Mitmachprojekt | Mantis Religiosa Beobachtungen" />
