@@ -75,28 +75,29 @@
             <div class="relative">
               <button id="dropdownReviewerButton" data-dropdown-toggle="dropdownReviewer"
                 class="text-white bg-green-600 hover:bg-green-500 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-4 py-2.5 text-center inline-flex items-center"
-                type="button">Switch <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor"
-                  viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                </svg></button>
+                type="button" aria-expanded="false" aria-haspopup="true">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+              </button>
               <div id="dropdownReviewer"
-                class="z-10 hidden bg-white divide-y divide-gray-100 rounded shadow w-44 dark:bg-gray-700">
+                class="hidden bg-white divide-y divide-gray-100 rounded shadow w-44 dark:bg-gray-700">
                 <ul class="py-1 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownReviewerButton">
                   <li>
-                    <a href="{{ url_for('main.index') }}"
-                      class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Reviewer</a>
+                    <a href="/reviewer"
+                      class="block px-4 py-2 hover:bg-gray-100">Reviewer</a>
                   </li>
                   <li>
-                    <a href="{{ url_for('main.index') }}"
-                      class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Statistics</a>
+                    <a href="/statistics"
+                      class="block px-4 py-2 hover:bg-gray-100">Statistics</a>
                   </li>
                   <li>
-                    <a href="{{ url_for('main.index') }}"
-                      class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Superuser</a>
+                    <a href="/superuser"
+                      class="block px-4 py-2 hover:bg-gray-100">Superuser</a>
                   </li>
                   <li>
-                    <a href="{{ url_for('main.index') }}"
-                      class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Gallerie</a>
+                    <a href="/gallerie"
+                      class="block px-4 py-2 hover:bg-gray-100">Gallerie</a>
                   </li>
                 </ul>
               </div>
