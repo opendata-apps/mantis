@@ -61,7 +61,7 @@ def admin_index2(usrid):
 
     if 'statusInput' not in request.args and 'sort_order' not in request.args:
         return redirect(url_for('admin.admin_index2',
-                                user_id=usrid,
+                                usrid=usrid,
                                 statusInput='offen',
                                 sort_order='id_asc'))
 
