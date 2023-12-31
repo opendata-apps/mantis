@@ -5,19 +5,9 @@ from flask import session, abort
 from sqlalchemy import text
 from app import db
 from app.database.models import TblUsers
-from functools import wraps
+from app.tools.check_reviewer import login_required
 
 stats = Blueprint("statistics", __name__)
-
-
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'user_id' not in session:
-            abort(403)
-        return f(*args, **kwargs)
-    return decorated_function
-
 
 list_of_stats = {
     "xxx": "Bitte eine Wahl treffen ...",
@@ -29,6 +19,7 @@ list_of_stats = {
 
 @stats.route("/statistik", methods=["POST"])
 @stats.route("/statistik/<usrid>", methods=["GET"])
+@login_required
 def stats_start(usrid=None):
     "Startseite für alle Statistiken"
 
@@ -48,10 +39,12 @@ def stats_start(usrid=None):
         return stats_meldungen_woche()
     elif value == "start":
         return render_template("statistics/statistiken.html",
+                               user_id=session['user_id'],
                                menu=list_of_stats,
                                marker="start")
     else:
         return render_template("statistics/statistiken.html",
+                               user_id=session['user_id'],
                                menu=list_of_stats,
                                marker="start")
 

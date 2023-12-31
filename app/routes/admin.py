@@ -9,26 +9,17 @@ from app.config import Config
 from app.database.full_text_search import FullTextSearch
 from app.database.models import (TblFundortBeschreibung, TblFundorte,
                                  TblMeldungen, TblMeldungUser, TblUsers)
-from flask import session  # import session
+from flask import session
 from flask import (Blueprint, Response, abort, flash, jsonify, redirect,
                    render_template, request, send_file, send_from_directory,
                    url_for)
 from sqlalchemy import inspect, or_, text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker
+from app.tools.check_reviewer import login_required
 
 # Blueprints
 admin = Blueprint('admin', __name__)
-
-
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'user_id' not in session:
-            abort(403)
-        return f(*args, **kwargs)
-    return decorated_function
-
 
 @admin.route('/reviewer/<usrid>')
 def admin_index2(usrid):
@@ -69,25 +60,33 @@ def admin_index2(usrid):
     tables = inspector.get_table_names()
 
     if 'statusInput' not in request.args and 'sort_order' not in request.args:
-        return redirect(url_for('admin.admin_index2', usrid=usrid, statusInput='offen', sort_order='id_asc'))
+        return redirect(url_for('admin.admin_index2',
+                                user_id=usrid,
+                                statusInput='offen',
+                                sort_order='id_asc'))
 
     query = TblMeldungen.query
 
     # Apply filter conditions based on 'filter_status'
     if filter_status == 'bearbeitet':
         query = query.filter(TblMeldungen.dat_bear.isnot(None), or_(
-            TblMeldungen.deleted.is_(None), TblMeldungen.deleted == False))
+            TblMeldungen.deleted.is_(None),
+            TblMeldungen.deleted == False))
     elif filter_status == 'offen':
         query = query.filter(TblMeldungen.dat_bear.is_(None), or_(
-            TblMeldungen.deleted.is_(None), TblMeldungen.deleted == False))
+            TblMeldungen.deleted.is_(None),
+            TblMeldungen.deleted == False))
     elif filter_status == 'geloescht':
         query = query.filter(TblMeldungen.deleted == True)
     elif filter_status == 'all':
-        # If the filter is set to 'all', include both deleted and non-deleted items
-        query = query.filter(or_(TblMeldungen.deleted.is_(
-            None), TblMeldungen.deleted == False, TblMeldungen.deleted == True))
+        # If the filter is set to 'all',
+        # include both deleted and non-deleted items
+        query = query.filter(or_(TblMeldungen.deleted.is_(None),
+                                 TblMeldungen.deleted == False,
+                                 TblMeldungen.deleted == True))
     elif search_query:
-        # If there's a search query, don't apply any deletion filter
+        # If there's a search query,
+        # don't apply any deletion filter
         pass
     else:
         # Default behavior: Exclude deleted items
@@ -130,15 +129,10 @@ def admin_index2(usrid):
 
             if search_type == 'full_text':
                 if "@" in search_query:
-                    print("searching for email")
-                    query = query.join(TblMeldungUser, TblMeldungen.id == TblMeldungUser.id_meldung)\
+                    query = query.join(TblMeldungUser,
+                                       TblMeldungen.id == TblMeldungUser.id_meldung)\
                         .join(TblUsers, TblMeldungUser.id_user == TblUsers.id)\
                         .filter(TblUsers.user_kontakt.ilike(f"%{search_query}%"))
-                if "statistik" == search_query.lower():
-                    print("searching for statistik")
-                    flash('<a class="text-blue-900 underline" href="/statistik/' +
-                          user.user_id + '">Link zur Statistik</a>', 'info')
-                    print("flash")
                 else:
                     # Option 1: Sanitize the query string
                     search_query = search_query.replace(' ', ' & ')
@@ -155,11 +149,13 @@ def admin_index2(usrid):
         except SQLAlchemyError as e:
             db.session.rollback()
             print(f"SQLAlchemy Error: {e}")
-            flash('An internal error occurred. Please try again.', 'error')
+            flash('An internal error occurred. Please try again.',
+                  'error')
         except Exception as e:
             db.session.rollback()
             print(f"An error occurred: {e}")
-            flash('Your search could not be completed. Please try again.', 'error')
+            flash('Your search could not be completed. Please try again.',
+                  'error')
 
     if date_from and date_to:
         date_from_obj = datetime.strptime(date_from, '%Y-%m-%d')
@@ -191,10 +187,14 @@ def admin_index2(usrid):
             approver = TblUsers.query.filter_by(
                 user_id=sighting.bearb_id).first()
             sighting.approver_username = approver.user_name if approver else 'Unknown'
-
-    return render_template('admin/admin.html', paginated_sightings=paginated_sightings,
-                           reported_sightings=reported_sightings, tables=tables,
-                           image_path=image_path, user_name=user_name,
+    print(usrid)
+    return render_template('admin/admin.html',
+                           user_id=usrid,
+                           paginated_sightings=paginated_sightings,
+                           reported_sightings=reported_sightings,
+                           tables=tables,
+                           image_path=image_path,
+                           user_name=user_name,
                            filters={"status": filter_status,
                                     "type": filter_type},
                            current_filter_status=filter_status,
@@ -216,7 +216,8 @@ def change_mantis_meta_data(id):
         sighting = TblFundorte.query.get(fo_id)
     if sighting:
         # Update sighting with data from request
-        # This will depend on how you implement the saveChanges function in JavaScript
+        # This will depend on how you implement
+        # the saveChanges function in JavaScript
         # sighting.field = request.form['field']
         sighting.bearb_id = session['user_id']
         if fieldname == 'fo_quelle':
@@ -239,7 +240,9 @@ def change_mantis_meta_data(id):
 
 @admin.route('/<path:filename>')
 def report_Img(filename):
-    return send_from_directory('', filename, mimetype='image/webp', as_attachment=False)
+    return send_from_directory('',
+                               filename, mimetype='image/webp',
+                               as_attachment=False)
 
 
 @admin.route('/toggle_approve_sighting/<id>', methods=['POST'])
@@ -248,11 +251,13 @@ def toggle_approve_sighting(id):
     # Find the report by id
     sighting = TblMeldungen.query.get(id)
     if sighting:
-        # Set the dat_bear value to the current datetime if it is not already set
+        # Set the dat_bear value to the current
+        # datetime if it is not already set
         if not sighting.dat_bear:
             sighting.dat_bear = datetime.now()
         else:
-            sighting.dat_bear = None  # Clear the dat_bear value if it is already set
+            # Clear the dat_bear value if it is already set
+            sighting.dat_bear = None
         sighting.bearb_id = session['user_id']
         db.session.commit()
         return jsonify({'success': True})
@@ -271,13 +276,17 @@ def get_sighting(id):
         TblMeldungUser,
         TblUsers
     ).join(
-        TblFundorte, TblMeldungen.fo_zuordnung == TblFundorte.id
+        TblFundorte,
+        TblMeldungen.fo_zuordnung == TblFundorte.id
     ).join(
-        TblFundortBeschreibung, TblFundorte.beschreibung == TblFundortBeschreibung.id
+        TblFundortBeschreibung,
+        TblFundorte.beschreibung == TblFundortBeschreibung.id
     ).join(
-        TblMeldungUser, TblMeldungen.id == TblMeldungUser.id_meldung
+        TblMeldungUser,
+        TblMeldungen.id == TblMeldungUser.id_meldung
     ).join(
-        TblUsers, TblMeldungUser.id_user == TblUsers.id
+        TblUsers,
+        TblMeldungUser.id_user == TblUsers.id
     ).filter(
         TblMeldungen.id == id
     ).first()
@@ -317,7 +326,8 @@ def save_sighting_changes(id):
     sighting = TblMeldungen.query.get(id)
     if sighting:
         # Update sighting with data from request
-        # This will depend on how you implement the saveChanges function in JavaScript
+        # This will depend on how you implement
+        # the saveChanges function in JavaScript
         # sighting.field = request.form['field']
         sighting = session['user_id']
         db.session.commit()
@@ -429,7 +439,10 @@ def export_csv(table_name):
     si.seek(0)
 
     # Return the CSV data as a response
-    return Response(si, mimetype='text/csv', headers={"Content-Disposition": "attachment; filename=data.csv"})
+    headers = {"Content-Disposition": "attachment; filename=data.csv"}
+    return Response(si,
+                    mimetype='text/csv',
+                    headers=headers)
 
 
 # Get all table names
@@ -486,13 +499,17 @@ def perform_query(filter_value=None):
         TblMeldungUser,
         TblUsers
     ).join(
-        TblFundorte, TblMeldungen.fo_zuordnung == TblFundorte.id
+        TblFundorte,
+        TblMeldungen.fo_zuordnung == TblFundorte.id
     ).join(
-        TblFundortBeschreibung, TblFundorte.beschreibung == TblFundortBeschreibung.id
+        TblFundortBeschreibung,
+        TblFundorte.beschreibung == TblFundortBeschreibung.id
     ).join(
-        TblMeldungUser, TblMeldungen.id == TblMeldungUser.id_meldung
+        TblMeldungUser,
+        TblMeldungen.id == TblMeldungUser.id_meldung
     ).join(
-        TblUsers, TblMeldungUser.id_user == TblUsers.id
+        TblUsers,
+        TblMeldungUser.id_user == TblUsers.id
     )
 
     # Apply the filter if necessary
@@ -536,7 +553,7 @@ def export_data(value):
     output.seek(0)
 
     # Send the file
-
+    mime = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     return send_file(output,
-                     mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                     mimetype=mime,
                      as_attachment=True, download_name=filename)
