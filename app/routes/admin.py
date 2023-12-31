@@ -540,3 +540,68 @@ def export_data(value):
     return send_file(output,
                      mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                      as_attachment=True, download_name=filename)
+
+@admin.route('/admin/users')
+@login_required
+def admin_users():
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+    search_query = request.args.get('q', None)  
+    search_type = request.args.get('search_type', None)
+
+    query = TblUsers.query
+
+    if search_query:
+        if search_type == 'name':
+            query = query.filter(TblUsers.user_name.ilike(f'%{search_query}%'))
+        elif search_type == 'userID':
+            query = query.filter(TblUsers.user_id.ilike(f'%{search_query}%'))
+        elif search_type == 'email':
+            query = query.filter(TblUsers.user_kontakt.ilike(f'%{search_query}%'))
+        elif search_type == 'Rolle':
+            query = query.filter(TblUsers.user_rolle.ilike(f'%{search_query}%'))
+
+    paginated_users = query.paginate(page=page, per_page=per_page, error_out=False)
+    return render_template('admin/adminUser.html', users=paginated_users.items, pagination=paginated_users)
+
+
+@admin.route('/update_user/<int:user_id>', methods=['POST'])
+@login_required
+def update_user(user_id):
+    user = TblUsers.query.get(user_id)
+    if user:
+        data = request.get_json()
+        user.user_name = data.get('user_name', user.user_name)
+        user.user_rolle = data.get('user_rolle', user.user_rolle)
+        user.user_kontakt = data.get('user_kontakt', user.user_kontakt)
+        db.session.commit()
+        return jsonify({'success': True})
+    else:
+        return jsonify({'success': False, 'error': 'User not found.'}), 404
+
+@admin.route('/delete_user/<int:user_id>', methods=['POST'])
+@login_required
+def delete_user(user_id):
+    user = TblUsers.query.get(user_id)
+    if user:
+        db.session.delete(user)
+        db.session.commit()
+        flash('User deleted successfully.', 'success')
+    else:
+        flash('User not found.', 'error')
+    return redirect(url_for('admin.admin_users'))
+
+
+@admin.route('/create_user', methods=['POST'])
+@login_required
+def create_user():
+    data = request.get_json()
+    user = TblUsers(
+        user_name=data.get('user_name'),
+        user_rolle=data.get('user_rolle'),
+        user_kontakt=data.get('user_kontakt')
+    )
+    db.session.add(user)
+    db.session.commit()
+    return jsonify({'success': True})
+
