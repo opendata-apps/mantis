@@ -17,12 +17,16 @@ from sqlalchemy import inspect, or_, text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker
 from app.tools.check_reviewer import login_required
+import shutil
+from werkzeug.utils import secure_filename
+from pathlib import Path
+from flask import current_app
 
 # Blueprints
 admin = Blueprint('admin', __name__)
 
 @admin.route('/reviewer/<usrid>')
-def admin_index2(usrid):
+def reviewer(usrid):
     # Fetch the user based on the 'usrid' parameter
     user = TblUsers.query.filter_by(user_id=usrid).first()
 
@@ -395,17 +399,6 @@ def change_mantis_count(id):
     return jsonify(success=True)
 
 
-@admin.route('/admin/log')
-@login_required
-def admin_subsites_log():
-    return render_template('admin/log.html')
-
-
-@admin.route('/admin/userAdministration')
-@login_required
-def admin_subsites_users():
-    return render_template('admin/userAdministration.html')
-
 
 @admin.route('/admin/export/csv/<table_name>', methods=['GET'])
 @login_required
@@ -445,34 +438,151 @@ def export_csv(table_name):
                     headers=headers)
 
 
+@admin.route('/adminPanel', methods=['GET'])
+@login_required
+def admin_panel():
+    if 'user_id' in session:
+        inspector = inspect(db.engine)
+        tables = inspector.get_table_names()
+        tables = [table for table in tables if table != 'alembic_version']
+        return render_template('admin/adminPanel.html', tables=tables)
+    else:
+        return "Unauthorized", 403
+
+
+NON_EDITABLE_FIELDS = {
+  'meldungen': ['id', 'fo_zuordnung'],
+  'beschreibung': ['id'],
+  'fundorte': ['id', 'ablage', 'beschreibung'],
+  'melduser': ['id', 'id_finder', 'id_meldung', 'id_user'],
+  'users': ['id', 'user_id']
+} 
+
+
+@admin.route('/update_value/<table_name>/<row_id>', methods=['POST'])
+@login_required
+def update_value(table_name, row_id):
+    data = request.json
+    column_name = data.get("column_name")
+
+    # Check if field is non-editable
+    if column_name in NON_EDITABLE_FIELDS.get(table_name, []):
+        return jsonify({'error': 'Field is non-editable'}), 400
+
+    new_value = data.get("new_value")
+
+    table = db.metadata.tables.get(table_name)
+    if table is None:
+        return jsonify({'error': 'Table not found'})
+
+    # If the updated field is 'dat_meld', call the image update function
+    if table_name == 'meldungen' and column_name == 'dat_meld':
+        response, status = update_report_image_date(row_id, new_value)
+        if status != 200:
+            return jsonify(response), status
+
+    # Assuming the primary key column is named 'id'
+    stmt = table.update().where(table.c.id == row_id).values({column_name: new_value})
+    db.session.execute(stmt)
+    db.session.commit()
+
+    return jsonify({'status': 'success'})
+
+
+def update_report_image_date(report_id, new_date):
+    print("Debugging: Inside update_report_image_date function")
+    new_date_obj = datetime.strptime(new_date, '%Y-%m-%d')
+
+    # Fetch the report
+    report = db.session.query(TblMeldungen).filter_by(id=report_id).first()
+    if not report:
+        print("Debugging: Report not found")
+        return {'error': 'Report not found'}, 404
+
+    # Fetch the corresponding fundorte record
+    fundorte_record = db.session.query(
+        TblFundorte).filter_by(id=report.fo_zuordnung).first()
+    if not fundorte_record:
+        print("Debugging: Fundorte record not found")
+        return {'error': 'Fundorte record not found'}, 404
+
+    base_dir = Path(current_app.config['UPLOAD_FOLDER'])
+    old_image_path = base_dir / fundorte_record.ablage
+    print(f"Debugging: Old image path - {old_image_path}")
+
+    old_dir, old_filename = os.path.split(old_image_path)
+    location, _, usrid = old_filename.rsplit('-', 2)
+
+    old_dir, old_filename = os.path.split(old_image_path)
+    location, _, usrid = old_filename.rsplit('-', 2)
+
+    new_dir_path = _create_directory(new_date_obj)
+    new_filename = _create_filename(location, usrid, new_date_obj)
+    new_file_path = new_dir_path / (new_filename + ".webp")
+
+    try:
+        print(f"Debugging: Moving file from {
+              old_image_path} to {new_file_path}")
+        shutil.move(str(old_image_path), str(new_file_path))
+
+        # Check if old directory is empty, if yes, delete it
+        if not os.listdir(old_dir):
+            print(f"Debugging: Deleting empty directory {old_dir}")
+            os.rmdir(old_dir)
+
+    except IOError as e:
+        print(f"Debugging: Failed to move file: {e}")
+        return {'error': f'Failed to move file: {e}'}, 500
+
+    # Update the path in fundorte table
+    fundorte_record.ablage = str(new_file_path.relative_to(base_dir))
+    db.session.commit()
+
+    print("Debugging: File moved successfully")
+    return {'status': 'success'}, 200
+
+
+def _create_directory(new_date):
+    year = new_date.strftime("%Y")
+    base_dir = Path(current_app.config['UPLOAD_FOLDER'])
+    print("Creating directory in %s" % base_dir)
+    dir_path = base_dir / year / new_date.strftime('%Y-%m-%d')
+    dir_path.mkdir(parents=True, exist_ok=True)
+    return dir_path
+
+
+
+def _create_filename(location, usrid, new_date):
+    new_timestamp = new_date.strftime("%Y%m%d%H%M%S")
+    # Generate the filename without the .webp extension
+    return '{}-{}-{}'.format(secure_filename(location),
+                             new_timestamp,
+                             secure_filename(usrid))
+
+
 # Get all table names
 @admin.route('/get_tables', methods=['GET'])
 @login_required
 def get_tables():
     inspector = inspect(db.engine)
     tables = inspector.get_table_names()
+    tables = [table for table in tables if table != 'alembic_version']
     return jsonify({"tables": tables})
 
 
 @admin.route('/table/<table_name>')
 @login_required
 def get_table_data(table_name):
-    # Get the table object from the database
+    limit = 20
+    offset = request.args.get('offset', default=0, type=int) # Get the offset parameter from the request
     table = db.metadata.tables.get(table_name)
-
     if table is None:
         return jsonify({'error': 'Table not found'})
-
-    # Execute a select statement on the table
-    result = db.session.execute(table.select())
-
-    # Get the names of the columns
+    result = db.session.execute(table.select().order_by(table.c.id).limit(limit).offset(offset))  # Add limit and offset to the query
     column_names = result.keys()
-
-    # Serialize the result as a JSON object
-    data = [{column: value for column, value in zip(
-        column_names, row)} for row in result]
+    data = [{column: value for column, value in zip(column_names, row)} for row in result]
     return jsonify(data)
+
 
 
 # Define a function to convert a row to a dictionary
@@ -511,15 +621,7 @@ def perform_query(filter_value=None):
         TblUsers,
         TblMeldungUser.id_user == TblUsers.id
     )
-
-    # Apply the filter if necessary
-    if filter_value is not None:
-        if filter_value:
-            # rows where dat_bear is not null
-            query = query.filter(TblMeldungen.dat_bear.isnot(None))
-        else:
-            # rows where dat_bear is null
-            query = query.filter(TblMeldungen.dat_bear.is_(None))
+    
 
     return query.all()
 
