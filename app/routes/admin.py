@@ -64,7 +64,7 @@ def reviewer(usrid):
     tables = inspector.get_table_names()
 
     if 'statusInput' not in request.args and 'sort_order' not in request.args:
-        return redirect(url_for('admin.admin_index2',
+        return redirect(url_for('admin.reviewer',
                                 usrid=usrid,
                                 statusInput='offen',
                                 sort_order='id_asc'))
@@ -445,7 +445,7 @@ def admin_panel():
         inspector = inspect(db.engine)
         tables = inspector.get_table_names()
         tables = [table for table in tables if table != 'alembic_version']
-        return render_template('admin/adminPanel.html', tables=tables)
+        return render_template('admin/adminPanel.html', tables=tables, user_id=session['user_id'])
     else:
         return "Unauthorized", 403
 

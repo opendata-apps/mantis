@@ -71,12 +71,14 @@
               <span class="text-white link link-underline link-underline-black">Auswertungen</span>
             </a>
             {% if request.path.startswith('/reviewer') or request.path.startswith('/statistik') or
-            request.path.startswith('/superuser') or request.path.startswith('/galerie') %}
+            request.path.startswith('/superuser') or request.path.startswith('/galerie') or
+            request.path.startswith('/adminPanel') %}
             <div class="relative">
               <button id="dropdownReviewerButton" data-dropdown-toggle="dropdownReviewer"
                 class="text-white bg-green-600 hover:bg-green-500 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-4 py-2.5 text-center inline-flex items-center"
                 type="button" aria-expanded="false" aria-haspopup="true">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                 </svg>
               </button>
@@ -84,22 +86,51 @@
                 class="hidden bg-white divide-y divide-gray-100 rounded shadow w-44 dark:bg-gray-700">
                 <ul class="py-1 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownReviewerButton">
                   <li>
-		     <a href="{{'/reviewer/'+ user_id }}"
-                      class="block px-4 py-2 hover:bg-gray-100">Reviewer</a>
+                    <a href="{{'/reviewer/'+ user_id }}" class="block px-4 py-2 hover:bg-gray-100">Reviewer</a>
                   </li>
                   <li>
-                     <a href="{{'/statistik/'+ user_id }}"
-                      class="block px-4 py-2 hover:bg-gray-100">Statistics</a>
+                    <a href="{{'/statistik/'+ user_id }}" class="block px-4 py-2 hover:bg-gray-100">Statistics</a>
                   </li>
                   <li>
-                    <a href="/galerie"
-                      class="block px-4 py-2 hover:bg-gray-100">Galerie</a>
+                    <a href="/galerie" class="block px-4 py-2 hover:bg-gray-100">Galerie</a>
+                  </li>
+                  <li>
+                    <a href="/adminPanel" class="block px-4 py-2 hover:bg-gray-100">Superuser</a>
                   </li>
                 </ul>
               </div>
             </div>
             {% endif %}
           </div>
+          <div class="md:hidden">
+            <button class="mobile-menu-button">
+              <svg class="w-6 h-6 text-white transition-transform duration-200 transform" fill="currentColor"
+                viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" clip-rule="evenodd"
+                  d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" />
+              </svg>
+            </button>
+            <div
+              class="absolute left-0 w-full transition-all duration-500 origin-top transform scale-y-0 bg-green-700 rounded-lg opacity-0 top-full mobile-menu">
+              <a href="{{ url_for('main.index') }}"
+                class="block px-4 py-2 my-2 text-lg font-medium text-center text-white transition-colors duration-300 rounded-lg hover:bg-green-500"
+                title="Startseite des Mitmachprojekts Mantis">Start</a>
+              <a href="{{ url_for('main.mantis_religiosa') }}"
+                class="block px-4 py-2 my-2 text-lg font-medium text-center text-white transition-colors duration-300 rounded-lg hover:bg-green-500"
+                title="Informationen zur Gottesanbeterin Mantis">Gottesanbeterin</a>
+              <a href="{{ url_for('data.report') }}"
+                class="block px-4 py-2 my-2 text-lg font-medium text-center text-white transition-colors duration-300 rounded-lg hover:bg-green-500"
+                title="Melden Sie eine Sichtung der Gottesanbeterin Mantis">Melden</a>
+              <a href="{{ url_for('data.show_map') }}"
+                class="block px-4 py-2 my-2 text-lg font-medium text-center text-white transition-colors duration-300 rounded-lg hover:bg-green-500"
+                title="Auswertungen der Mantis-Meldungen">Auswertungen</a>
+              {% if request.path.startswith('/reviewer') or request.path.startswith('/statistics') or
+              request.path.startswith('/superuser') or request.path.startswith('/gallerie')%}
+              <!--TODO-->
+              {% endif %}
+            </div>
+          </div>
+
       </nav>
       <!-- Navbar End -->
       <!-- Content Start -->
@@ -174,11 +205,11 @@
   <!--! White Content Start-->
   <div class="z-10 flex flex-wrap mt-0 bg-gray-100" id="content-container">
     <div class="flex-auto overflow-hidden">
-      {% block content %} 
+      {% block content %}
       {% endblock content %}
     </div>
   </div>
-  
+
   <!--! White Content End-->
   <!--! Start Footer -->
   <!--https://tailwindcomponents.com/component/footer-5-->
@@ -298,6 +329,8 @@
         contentContainer.style.minHeight = "auto";
       }
     }
+    
+
     window.addEventListener("DOMContentLoaded", adjustFooterPosition);
     window.addEventListener("resize", adjustFooterPosition);
     console.log(
