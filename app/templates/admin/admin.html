@@ -121,7 +121,7 @@
         </div>
     
         <div class="relative flex items-center flex-grow w-full mb-2 rounded-lg shadow-sm md:w-auto md:mb-0">
-            <form action="{{ url_for('admin.admin_index2', usrid=session['user_id']) }}" method="GET"
+            <form action="{{ url_for('admin.reviewer', usrid=session['user_id']) }}" method="GET"
                 class="flex items-center w-full transition-all duration-300 bg-white rounded-lg focus-within:ring-2 focus-within:ring-green-500">
                 <!-- Search Bar -->
                 <div class="relative flex-grow">
@@ -271,7 +271,7 @@
             data-deleted="{{ 'true' if sighting.deleted else 'false' }}"
             >
             <div class="relative">
-                <img loading="lazy" loading="lazy" onclick="openImageModal('{{ url_for('admin.report_Img', filename=image_path + "/" +
+                <img loading="lazy" onclick="openImageModal('{{ url_for('admin.report_Img', filename=image_path + "/" +
                     sighting.fundort.ablage) }}')"
                     class="object-cover w-full h-48 transition-transform duration-200 ease-in-out rounded-t-lg cursor-pointer md:h-64 hover:scale-105"
                     src="{{ url_for('admin.report_Img', filename=image_path + "/" + sighting.fundort.ablage)}}"
@@ -344,7 +344,7 @@
             {% endfor %}
         </div>
     </div>
-    {{ render_pagination(paginated_sightings, 'admin.admin_index2', current_filter_status, current_sort_order, search_query, request.args.get('dateFrom', ''), request.args.get('dateTo', '')) }}
+    {{ render_pagination(paginated_sightings, 'admin.reviewer', current_filter_status, current_sort_order, search_query, request.args.get('dateFrom', ''), request.args.get('dateTo', '')) }}
 </div>
 
 
