@@ -783,11 +783,14 @@
                     </div>
                       
 
-                    <p class="mb-2 font-semibold">Messtischblatt:</p>
+                    <p class="mb-2 font-semibold">Messtischblatt:  <a href="${'https://susudata.de/messtisch/tk25.html?lat='+(data.latitude)+'&lng='+(data.longitude)+'&zoom=15&marker=Fundort'}" target="_blank">
+                     <u style="color:blue;">Karte</u>
+                     </a></p>
                           <input type="text" class="ml-2 input-field-admin"
                                  name="mtb"
                                  onchange="changeMetaData(${data.id_meldung},'mtb', this.value)"
                                  ${"value='" + (data.mtb || "") + "'"}>
+                    
                      </div>
                       
                      <p class="mb-2 font-semibold">Kommentar (Reviewer):</p>
