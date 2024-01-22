@@ -564,20 +564,24 @@ def admin_users():
     paginated_users = query.paginate(page=page, per_page=per_page, error_out=False)
     return render_template('admin/adminUser.html', users=paginated_users.items, pagination=paginated_users)
 
-
 @admin.route('/update_user/<int:user_id>', methods=['POST'])
 @login_required
 def update_user(user_id):
     user = TblUsers.query.get(user_id)
     if user:
         data = request.get_json()
+
         user.user_name = data.get('user_name', user.user_name)
-        user.user_rolle = data.get('user_rolle', user.user_rolle)
-        user.user_kontakt = data.get('user_kontakt', user.user_kontakt)
+        user.user_kontakt = data.get('user_email', user.user_kontakt)
+        user.user_rolle = data.get('user_role', user.user_rolle)
+        # user.user_id = data.get('user_id', user.user_id)
+
         db.session.commit()
-        return jsonify({'success': True})
+        return jsonify({'success': True, 'message': 'User updated successfully.'})
     else:
-        return jsonify({'success': False, 'error': 'User not found.'}), 404
+        return jsonify({'success': False, 'message': 'User not found.'}), 404
+
+
 
 @admin.route('/delete_user/<int:user_id>', methods=['POST'])
 @login_required

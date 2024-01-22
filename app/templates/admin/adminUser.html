@@ -74,33 +74,56 @@
         </thead>
         <tbody>
             {% for user in users %}
-            <tr class="transition-colors duration-300 ease-in-out hover:bg-green-100">
+            <tr class="transition-colors duration-300 ease-in-out hover:bg-green-100" data-userid="{{ user.id }}">
                 <td class="px-5 py-5 text-sm border-b border-gray-200">
                     <p class="text-gray-900 whitespace-no-wrap">{{ user.id }}</p>
                 </td>
                 <td class="px-5 py-5 text-sm border-b border-gray-200">
-                    <p class="text-gray-900 whitespace-no-wrap">{{ user.user_name }}</p>
+                    <div contenteditable="false" class="editable" data-id="{{ user.id }}" data-field="user_name">{{ user.user_name }}</div>
                 </td>
                 <td class="px-5 py-5 text-sm border-b border-gray-200">
-                    <p class="text-gray-900 whitespace-no-wrap">{{ user.user_rolle }}</p>
+                    <div id="role-display-{{ user.id }}" class="editable" data-id="{{ user.id }}" data-field="user_rolle">{{ user.user_rolle }}</div>
+                    <select id="role-select-{{ user.id }}" class="hidden">
+                        <option value="1" {% if user.user_rolle == '1' %}selected{% endif %}>Melder</option>
+                        <option value="2" {% if user.user_rolle == '2' %}selected{% endif %}>Finder</option>
+                        <option value="9" {% if user.user_rolle == '9' %}selected{% endif %}>Reviewer</option>
+                    </select>
                 </td>
                 <td class="px-5 py-5 text-sm border-b border-gray-200">
-                    <p class="text-gray-900 whitespace-no-wrap">{{ user.user_kontakt }}</p>
+                    <div contenteditable="false" class="editable" data-id="{{ user.id }}" data-field="user_kontakt">{{ user.user_kontakt }}</div>
                 </td>
                 <td class="px-5 py-5 text-sm border-b border-gray-200">
-                    <p class="text-gray-900 whitespace-no-wrap">{{ user.user_id }}</p>
+                    <div contenteditable="false" class="editable" data-id="{{ user.id }}" data-field="user_id">{{ user.user_id }}</div>
                 </td>
                 <td class="px-5 py-5 text-sm border-b border-gray-200">
-                    <button aria-label="Edit user" class="px-4 py-2 font-bold text-white bg-green-500 rounded-l icon-button hover:bg-green-700"
-                    onclick="toggleEditMode(this, {{ user.id }})">
-                Bearbeiten
-                        <svg fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z"></path><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd"></path></svg>
-                      </button>
+                    <button id="edit-button-{{ user.id }}" aria-label="Edit user"
+                    class="px-4 py-2 font-bold text-white bg-green-500 rounded-l icon-button hover:bg-green-700"
+                    onclick="makeEditable({{ user.id }})">
+                    Bearbeiten
+                        <svg fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z">
+                            </path>
+                            <path fill-rule="evenodd"
+                                d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"
+                                clip-rule="evenodd"></path>
+                        </svg>
+                    </button>
+                    <button id="save-button-{{ user.id }}" class="save-button" onclick="saveChanges({{ user.id }})">
+                        ✓
+                    </button>
+                    <button id="cancel-button-{{ user.id }}" class="cancel-button" onclick="cancelChanges({{ user.id }})">
+                        X
+                    </button>
                     <form action="{{ url_for('admin.delete_user', user_id=user.id) }}" method="post" class="inline">
-                        <button aria-label="Delete user" class="px-4 py-2 font-bold text-white bg-red-600 rounded-r icon-button hover:bg-red-800">
+                        <button aria-label="Delete user"
+                            class="px-4 py-2 font-bold text-white bg-red-600 rounded-r icon-button hover:bg-red-800">
                             User Löschen
-                            <svg fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
-                          </button>
+                            <svg fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd"
+                                    d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                                    clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
                     </form>
                 </td>
             </tr>
@@ -109,25 +132,115 @@
     </table>
 
     <div class="py-4">
-        {{ render_users_pagination(pagination, 'admin.admin_users', request.args.get('q', ''), request.args.get('search_type', '')) }}
+        {{ render_users_pagination(pagination, 'admin.admin_users', request.args.get('q', ''),
+        request.args.get('search_type', '')) }}
     </div>
 </div>
 
 <style>
     /* Additional styles if needed */
     .icon-button svg {
-      display: inline-block !important;
-      width: 1em !important;
-      height: 1em !important;
-      fill: currentColor !important;
-      vertical-align: middle !important;
+        display: inline-block !important;
+        width: 1em !important;
+        height: 1em !important;
+        fill: currentColor !important;
+        vertical-align: middle !important;
     }
-  </style>
+
+    .save-button, .cancel-button {
+        display: none;
+        cursor: pointer;
+        padding: 0.5rem;
+        margin-left: 0.25rem;
+        font-size: 0.875rem;
+        line-height: 1.25rem;
+        border-radius: 9999px;
+    }
+    .save-button {
+        color: white;
+        background-color: #10b981; /* green-500 */
+    }
+    .cancel-button {
+        color: white;
+        background-color: #ef4444; /* red-500 */
+    }
+</style>
 
 <script>
     function clearSearch() {
         document.getElementById('searchInput').value = '';
         document.getElementById('searchInput').form.submit();
+    }
+
+    function makeEditable(userId) {
+        // Toggle visibility of the display div and the select dropdown
+        document.getElementById(`role-display-${userId}`).classList.add('hidden');
+        document.getElementById(`role-select-${userId}`).classList.remove('hidden');
+
+        // Make other fields editable
+        document.querySelectorAll(`[data-id="${userId}"]`).forEach(function(element) {
+            if (element.hasAttribute('contenteditable')) {
+                element.setAttribute('contenteditable', 'true');
+                element.classList.add('input-field');
+            }
+        });
+
+        // Add input-field class to the select dropdown
+        document.getElementById(`role-select-${userId}`).classList.add('input-field');
+
+        document.querySelector(`tr[data-userid="${userId}"]`).classList.add('bg-green-200');
+
+        document.getElementById(`edit-button-${userId}`).style.display = 'none';
+        document.getElementById(`save-button-${userId}`).style.display = 'inline';
+        document.getElementById(`cancel-button-${userId}`).style.display = 'inline';
+    }
+
+    function saveChanges(userId) {
+        // Collect data from editable fields
+        let userName = document.querySelector(`[data-id="${userId}"][data-field="user_name"]`).innerText;
+        let userEmail = document.querySelector(`[data-id="${userId}"][data-field="user_kontakt"]`).innerText;
+        let userIdValue = document.querySelector(`[data-id="${userId}"][data-field="user_id"]`).innerText;
+        let userRole = document.getElementById(`role-select-${userId}`).value;
+
+        // AJAX request to update user data
+        fetch(`/update_user/${userId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                user_name: userName,
+                user_email: userEmail,
+                user_id: userIdValue,
+                user_role: userRole
+            }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.success) {
+                // Update UI to reflect saved changes
+                document.getElementById(`role-display-${userId}`).innerText = userRole;
+                document.getElementById(`role-display-${userId}`).classList.remove('hidden');
+                document.getElementById(`role-select-${userId}`).classList.add('hidden');
+                document.querySelectorAll(`[data-id="${userId}"]`).forEach(function(element) {
+                    element.setAttribute('contenteditable', 'false');
+                    element.classList.remove('input-field');
+                });
+                document.querySelector(`tr[data-userid="${userId}"]`).classList.remove('bg-green-200');
+            } else {
+                // Optionally, handle errors
+            }
+            // Hide the save and cancel buttons and show the edit button
+            document.getElementById(`edit-button-${userId}`).style.display = 'inline';
+            document.getElementById(`save-button-${userId}`).style.display = 'none';
+            document.getElementById(`cancel-button-${userId}`).style.display = 'none';
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+
+    function cancelChanges(userId) {
+        location.reload();
     }
 </script>
 {% endblock %}
