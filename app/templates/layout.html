@@ -126,7 +126,20 @@
                 title="Auswertungen der Mantis-Meldungen">Auswertungen</a>
               {% if request.path.startswith('/reviewer') or request.path.startswith('/statistics') or
               request.path.startswith('/superuser') or request.path.startswith('/gallerie')%}
-              <!--TODO-->
+              <div class="relative group">
+                <button id="mobileDropdownButton" data-dropdown-toggle="mobileDropdownContent" class="transition-colors duration-300 rounded-lg hover:bg-green-500 text-white bg-green-700 focus:ring-4 focus:ring-green-300 font-medium text-lg px-4 py-2.5 text-center inline-flex items-center w-full justify-center">
+                    Extra
+                    <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <div id="mobileDropdownContent" class="absolute z-10 hidden w-full text-white bg-green-700 divide-y divide-gray-100 rounded oben dark:bg-gray-700 group-focus:block">
+                    <ul class="py-1 text-lg text-center" aria-labelledby="mobileDropdownButton">
+                        <li><a href="{{'/reviewer/'+ user_id }}" class="block px-4 py-2 transition-colors duration-300 rounded-lg hover:bg-green-500">Reviewer</a></li>
+                        <li><a href="{{'/statistik/'+ user_id }}" class="block px-4 py-2 transition-colors duration-300 rounded-lg hover:bg-green-500">Statistics</a></li>
+                        <li><a href="/galerie" class="block px-4 py-2 transition-colors duration-300 rounded-lg hover:bg-green-500">Galerie</a></li>
+                        <li><a href="/adminPanel" class="block px-4 py-2 transition-colors duration-300 rounded-lg hover:bg-green-500">Superuser</a></li>
+                    </ul>
+                </div>
+            </div>
               {% endif %}
             </div>
           </div>
