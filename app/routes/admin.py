@@ -16,6 +16,8 @@ from flask import (Blueprint, Response, abort, flash, jsonify, redirect,
 from sqlalchemy import inspect, or_, text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker
+from app.tools.gen_user_id import get_new_id
+
 
 # Blueprints
 admin = Blueprint('admin', __name__)
@@ -580,6 +582,16 @@ def update_user(user_id):
         return jsonify({'success': True, 'message': 'User updated successfully.'})
     else:
         return jsonify({'success': False, 'message': 'User not found.'}), 404
+    
+
+@admin.route('/regenerate_user_id', methods=['POST'])
+@login_required
+def regenerate_user_id():
+    # Generate a new id
+    new_id = get_new_id()
+
+    return jsonify({'message': 'User id regenerated', 'new_id': new_id}), 200
+
 
 
 
