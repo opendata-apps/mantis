@@ -164,8 +164,7 @@ def report(usrid=None):
     if form.validate_on_submit():
 
         honeypot_value = form.honeypot.data
-        if honeypot_value:  # If the honeypot field is filled out, redirect or return an error
-            # Redirect to an error page or handle as needed
+        if honeypot_value: 
             abort(403)
 
         bildpfad = _handle_file_upload(request, form, usrid).replace(
