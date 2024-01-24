@@ -6,6 +6,7 @@ An interactive web application to track Mantis Religiosa sightings in Brandenbur
 
 Mantis Tracker allows users to report Mantis Religiosa sightings and view them on an interactive map, along with insightful statistics and helpful FAQs.
 
+
 ## 🌟 Features
 
 - 📚 Learn about the Mantis Religiosa
