@@ -11,12 +11,13 @@
  <div
    class="sticky col-span-2 row-span-2 duration-500 bg-gray-200 border-4 border-gray-200 rounded-md top-3 hover:shadow-xl">
    {{StatsAuswahl() }}
-   <h1 class="pt-2 pb-2 text-lg text-center">Meldungen pro Woche</h1>
+   <h1 class="pt-2 pb-2 text-lg text-center">Meldungen nach Datum</h1>
    <div id='myDiv'
 	class="wx-92">
    <!-- Grafik -->
    </div>
-   <script>
+    
+  <script>
      var daten = {{ values|tojson }};
      var xValues = daten.x;
      
@@ -35,7 +36,18 @@
      const trace1 = {
      	 x: xValues,
      	 y: yValues,
-     	 type: "scatter",
+     	 type: "bar",
+	 text: yValues.map(String),
+	 textposition: 'auto',
+	 hoverinfo: 'none',
+	 marker: {
+	     color: '#5bae31', //'rgb(158,202,225)',
+	     opacity: 0.6,
+	     line: {
+		 color: 'rgb(8,48,107)',
+		 width: 1.5
+	     }
+	 }
      };
      const data = [trace1];
      const layout = {
@@ -53,7 +65,6 @@
      Plotly.newPlot("myDiv", data, layout, config);
      
    </script>
-
    
 </section>
 {% endblock content %}

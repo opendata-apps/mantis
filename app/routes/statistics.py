@@ -22,11 +22,8 @@ list_of_stats = {
 @login_required
 def stats_start(usrid=None):
     "Startseite für alle Statistiken"
-
-    if request.form:
-        usrid = request.form.get('userId', '0')
-
-    user = TblUsers.query.filter_by(user_id=usrid).first()
+    user_id = session['user_id']
+    user = TblUsers.query.filter_by(user_id=user_id).first()
 
     # If the user doesn't exist or the role isn't 9, return 404
     if not user or user.user_rolle != '9':
@@ -69,13 +66,9 @@ def stats_geschlecht(request=None):
             row = row._mapping
             res = dict((name, val) for name, val in row.items())
 
-#        rows = {'x': ['Ootheken', 'Nymphen', 'Weibchen',
-#                      'Männchen', 'Andere', 'Summe'],
-#                'y': [10, 1000, 1100, 2000, 20, 4140]
-#                }
-
     return render_template("statistics/stats-geschlecht.html",
                            menu=list_of_stats,
+                           user_id=session['user_id'],
                            marker="geschlecht",
                            values=res)
 
@@ -84,11 +77,11 @@ def stats_meldungen_woche(request=None):
     "Cluster messages per week"
 
 #    dbsession = db.engine.connect()
-    sql = text(""" SELECT extract(week from dat_meld) as Week,
+    sql = text(""" SELECT dat_meld as Tag,
                    count(dat_meld) as Anzahl
                    FROM meldungen
-                   GROUP BY Week
-                   ORDER by Week;""")
+                   GROUP BY Tag
+                   ORDER by Tag;""")
     with db.engine.connect() as conn:
         result = conn.execute(sql)
 
@@ -97,13 +90,15 @@ def stats_meldungen_woche(request=None):
 
     if result:
         for record in result:
-            trace1['x'].append(record[0])
+            trace1['x'].append(str(record[0]))
             trace1['y'].append(record[1])
         else:
             pass
+    print(trace1)
     res = json.loads(json.dumps(trace1))
 
     return render_template("statistics/stats-wochen.html",
                            menu=list_of_stats,
                            marker="meldungen_pro_woche",
+                           user_id=session['user_id'],
                            values=res)
