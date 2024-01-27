@@ -55,7 +55,6 @@ def stats_geschlecht(request=None):
             , sum(art_w) as "Weibchen"
             , sum(art_m) as "Männchen"
             , sum(art_f) as "Andere"
-            , sum(tiere) as "Tiere"
       from meldungen
       where deleted is NULL;
     ''')
@@ -94,7 +93,6 @@ def stats_meldungen_woche(request=None):
             trace1['y'].append(record[1])
         else:
             pass
-    print(trace1)
     res = json.loads(json.dumps(trace1))
 
     return render_template("statistics/stats-wochen.html",
