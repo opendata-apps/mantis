@@ -153,12 +153,10 @@ def reviewer(usrid):
                         TblMeldungen.id.in_(reported_sightings_ids))
         except SQLAlchemyError as e:
             db.session.rollback()
-            print(f"SQLAlchemy Error: {e}")
             flash('An internal error occurred. Please try again.',
                   'error')
         except Exception as e:
             db.session.rollback()
-            print(f"An error occurred: {e}")
             flash('Your search could not be completed. Please try again.',
                   'error')
 
@@ -492,25 +490,21 @@ def update_value(table_name, row_id):
 
 
 def update_report_image_date(report_id, new_date):
-    print("Debugging: Inside update_report_image_date function")
     new_date_obj = datetime.strptime(new_date, '%Y-%m-%d')
 
     # Fetch the report
     report = db.session.query(TblMeldungen).filter_by(id=report_id).first()
     if not report:
-        print("Debugging: Report not found")
         return {'error': 'Report not found'}, 404
 
     # Fetch the corresponding fundorte record
     fundorte_record = db.session.query(
         TblFundorte).filter_by(id=report.fo_zuordnung).first()
     if not fundorte_record:
-        print("Debugging: Fundorte record not found")
         return {'error': 'Fundorte record not found'}, 404
 
     base_dir = Path(current_app.config['UPLOAD_FOLDER'])
     old_image_path = base_dir / fundorte_record.ablage
-    print(f"Debugging: Old image path - {old_image_path}")
 
     old_dir, old_filename = os.path.split(old_image_path)
     location, _, usrid = old_filename.rsplit('-', 2)
@@ -523,31 +517,25 @@ def update_report_image_date(report_id, new_date):
     new_file_path = new_dir_path / (new_filename + ".webp")
 
     try:
-        print(f"Debugging: Moving file from {
-              old_image_path} to {new_file_path}")
         shutil.move(str(old_image_path), str(new_file_path))
 
         # Check if old directory is empty, if yes, delete it
         if not os.listdir(old_dir):
-            print(f"Debugging: Deleting empty directory {old_dir}")
             os.rmdir(old_dir)
 
     except IOError as e:
-        print(f"Debugging: Failed to move file: {e}")
         return {'error': f'Failed to move file: {e}'}, 500
 
     # Update the path in fundorte table
     fundorte_record.ablage = str(new_file_path.relative_to(base_dir))
     db.session.commit()
 
-    print("Debugging: File moved successfully")
     return {'status': 'success'}, 200
 
 
 def _create_directory(new_date):
     year = new_date.strftime("%Y")
     base_dir = Path(current_app.config['UPLOAD_FOLDER'])
-    print("Creating directory in %s" % base_dir)
     dir_path = base_dir / year / new_date.strftime('%Y-%m-%d')
     dir_path.mkdir(parents=True, exist_ok=True)
     return dir_path
