@@ -28,10 +28,10 @@ checklist['datum'] = datetime.now() + timedelta(days=1)
 
 
 def _create_directory(date):
-    current_year = datetime.now().strftime("%Y")
-    dir_path = Path(Config.UPLOAD_FOLDER + "/" + current_year + "/" + date)
+    year= date[:4]
+    dir_path = Path(Config.UPLOAD_FOLDER + "/" + year + "/" + date)
     dir_path.mkdir(parents=True, exist_ok=True)
-    ablage_path = current_year + "/" + date
+    ablage_path = year + "/" + date
     return dir_path
 
 
@@ -47,7 +47,9 @@ def _allowed_file(filename):
            filename.rsplit('.', 1)[1].lower() in Config.ALLOWED_EXTENSIONS
 
 
-def _update_or_create_user(usrid, last_name, first_name, contact, finder_last_name, finder_first_name):
+def _update_or_create_user(usrid, last_name, first_name,
+                           contact, finder_last_name,
+                           finder_first_name):
     existing_user = TblUsers.query.filter_by(user_id=usrid).first()
     # existing_finder = TblUsers.query.filter_by(
     #     user_id=usrid).filter_by(user_rolle="2").first()
@@ -164,7 +166,8 @@ def report(usrid=None):
     if form.validate_on_submit():
 
         honeypot_value = form.honeypot.data
-        if honeypot_value:  # If the honeypot field is filled out, redirect or return an error
+        # If the honeypot field is filled out, redirect or return an error
+        if honeypot_value:  
             # Redirect to an error page or handle as needed
             abort(403)
 
@@ -202,17 +205,20 @@ def report(usrid=None):
         db.session.add(new_meldung)
         db.session.flush()
 
-        updated_user, updated_finder = _update_or_create_user(usrid,
-                                                              form.report_last_name.data,
-                                                              form.report_first_name.data,
-                                                              form.contact.data,
-                                                              form.finder_first_name.data,
-                                                              form.finder_last_name.data,
-                                                              )
+        updated_user, updated_finder = _update_or_create_user(
+            usrid,
+            form.report_last_name.data,
+            form.report_first_name.data,
+            form.contact.data,
+            form.finder_first_name.data,
+            form.finder_last_name.data,
+        )
 
         if updated_finder:
             new_meldung_user = TblMeldungUser(
-                id_meldung=new_meldung.id, id_user=updated_user.id, id_finder=updated_finder.id)
+                id_meldung=new_meldung.id,
+                id_user=updated_user.id,
+                id_finder=updated_finder.id)
         else:
             new_meldung_user = TblMeldungUser(
                 id_meldung=new_meldung.id, id_user=updated_user.id)
@@ -275,7 +281,8 @@ def show_map(selected_year):
         TblMeldungen.deleted == None).count()
 
     # Get distinct years from dat_fund_von
-    years = db.session.query(db.func.extract('year', TblMeldungen.dat_fund_von).label(
+    years = db.session.query(db.func.extract('year',
+                                             TblMeldungen.dat_fund_von).label(
         'year')).distinct().order_by('year').all()
     years = [int(year[0]) for year in years]  # Convert to a list of integers
 
@@ -310,7 +317,6 @@ def show_map(selected_year):
             pass
 
     reportsJson = json.dumps(koords)
-    print(years)
     return render_template('map.html',
                            reportsJson=reportsJson,
                            apikey=Config.esri,
@@ -321,7 +327,9 @@ def show_map(selected_year):
 
 @data.route('/get_marker_data/<int:report_id>')
 def get_marker_data(report_id):
-    report = (db.session.query(TblMeldungen.id, TblMeldungen.dat_meld, TblMeldungen.dat_fund_von,
+    report = (db.session.query(TblMeldungen.id,
+                               TblMeldungen.dat_meld,
+                               TblMeldungen.dat_fund_von,
                                TblFundorte.ort, TblFundorte.kreis)
               .join(TblFundorte, TblMeldungen.fo_zuordnung == TblFundorte.id)
               .filter(TblMeldungen.id == report_id).first())

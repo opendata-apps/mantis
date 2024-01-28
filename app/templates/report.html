@@ -633,7 +633,8 @@
 
     input.addEventListener('change', function (e) {
       const file = e.target.files[0];
-      const validFileTypes = ["image/png", "image/jpeg", "image/jfif", "image/webp", "image/heic"];
+	const validFileTypes = ["image/png", "image/jpeg",
+				"image/jfif", "image/webp", "image/heic"];
 
       // Clear previous error messages
       clearErrorsForField('picture');
@@ -641,10 +642,11 @@
       if (file) {
         // Check if the file type is valid
         if (!validFileTypes.includes(file.type.toLowerCase())) {
-          // Call your error function here
-          showErrors({ picture: ["Ungültiger Dateityp, erlaubt sind PNG, JPG, JPEG, JFIF, WEBP oder HEIC-Dateien."] }, 0);
-          e.target.value = ''; // Clear the input
-          return;
+            // Call your error function here
+	    msg = "Erlaubt sind PNG, JPG, JPEG, JFIF, WEBP oder HEIC-Dateien."
+            showErrors({ picture: [msg] }, 0);
+            e.target.value = ''; // Clear the input
+            return;
         }
 
         const reader = new FileReader();
@@ -867,11 +869,13 @@
       step3.classList.toggle('hidden', index !== 2);
       step4.classList.toggle('hidden', index !== 3);
 
-      // Call invalidateSize after the step containing the map becomes visible
+	// Call invalidateSize after the step containing the map becomes visible
+	// This delay is to ensure that the DOM has finished updating before
+	// invalidateSize is called
       if (index === 3) {  // If this is the step number of the summary step
         setTimeout(() => {
           summaryMap.invalidateSize();
-        }, 400);  // This delay is to ensure that the DOM has finished updating before invalidateSize is called
+        }, 400);  
       }
 
       if (index === 2) {
