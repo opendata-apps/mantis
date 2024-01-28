@@ -42,6 +42,11 @@ def rendertextmsg(formdata):
     Kontakt: { data['Kontakt'] }
     Ihr Link für neue Meldungen:
     https://gottesanbeterin-gesucht.de/report/{ data['link'] }
+
+    WICHTIGER HINWEIS:
+
+    - Behandeln Sie den Link wie ein Passwort!
+    - Publizieren Sie den Link nicht in Foren, Messengern, ...
     
     Latitude:  {data['latitude']}
     Longitude:  {data['longitude']}
@@ -135,6 +140,17 @@ def renderhtmlmsg(formdata):
     <td>Meldedatum</td>
     <td>{data['datum']}</td>
     </tr>
+    <tr>    
+     <td>WICHTIGER HINWEIS:</td>
+    </tr>    
+    <tr>
+     <td>
+       <ol>
+         <li>Behandeln Sie den Link wie ein Passwort</li>
+         <li>Publizieren Sie den Link nicht in Foren, Messengern, ...</li>
+       </ol>
+     <td>
+    </tr>    
     </table>
     """.format(data)
 
