@@ -25,6 +25,7 @@ from flask import current_app
 # Blueprints
 admin = Blueprint('admin', __name__)
 
+
 @admin.route('/reviewer/<usrid>')
 def reviewer(usrid):
     # Fetch the user based on the 'usrid' parameter
@@ -191,7 +192,6 @@ def reviewer(usrid):
             approver = TblUsers.query.filter_by(
                 user_id=sighting.bearb_id).first()
             sighting.approver_username = approver.user_name if approver else 'Unknown'
-    print(usrid)
     return render_template('admin/admin.html',
                            user_id=usrid,
                            paginated_sightings=paginated_sightings,
@@ -445,7 +445,9 @@ def admin_panel():
         inspector = inspect(db.engine)
         tables = inspector.get_table_names()
         tables = [table for table in tables if table != 'alembic_version']
-        return render_template('admin/adminPanel.html', tables=tables, user_id=session['user_id'])
+        return render_template('admin/adminPanel.html',
+                               tables=tables,
+                               user_id=session['user_id'])
     else:
         return "Unauthorized", 403
 
