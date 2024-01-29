@@ -28,7 +28,7 @@ checklist['datum'] = datetime.now() + timedelta(days=1)
 
 
 def _create_directory(date):
-    year= date[:4]
+    year = date[:4]
     dir_path = Path(Config.UPLOAD_FOLDER + "/" + year + "/" + date)
     dir_path.mkdir(parents=True, exist_ok=True)
     ablage_path = year + "/" + date
@@ -167,7 +167,7 @@ def report(usrid=None):
 
         honeypot_value = form.honeypot.data
         # If the honeypot field is filled out, redirect or return an error
-        if honeypot_value:  
+        if honeypot_value:
             # Redirect to an error page or handle as needed
             abort(403)
 
@@ -276,10 +276,6 @@ def validate():
 @data.route('/auswertungen', defaults={'selected_year': None})
 @data.route('/auswertungen/<int:selected_year>')
 def show_map(selected_year):
-    # Summe aller Meldungen für den Counter
-    post_count = db.session.query(TblMeldungen).filter(
-        TblMeldungen.deleted == None).count()
-
     # Get distinct years from dat_fund_von
     years = db.session.query(db.func.extract('year',
                                              TblMeldungen.dat_fund_von).label(
@@ -295,6 +291,12 @@ def show_map(selected_year):
         selected_year = int(selected_year)
         reports_query = reports_query.filter(db.func.extract(
             'year', TblMeldungen.dat_fund_von) == selected_year)
+        # Count should be based on the selected year
+        post_count = reports_query.count()
+    else:
+        # Summe aller Meldungen für den Counter
+        post_count = db.session.query(TblMeldungen).filter(
+            TblMeldungen.deleted == None).count()
 
     reports = reports_query.all()
 
