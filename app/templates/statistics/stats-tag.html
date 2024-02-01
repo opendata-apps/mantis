@@ -20,19 +20,8 @@
   <script>
      var daten = {{ values|tojson }};
      var xValues = daten.x;
-     
      var yValues = daten.y;
-     console.log(xValues);
-     console.log(yValues);
-     //separate keys and values in two lists
-/*     for (var key in daten) {
-	 if (daten.hasOwnProperty(key)) {
-	     xValues.push(key);
-	     yValues.push(daten[key]);
-	 }
-	 };
-*/	 
-     
+
      const trace1 = {
      	 x: xValues,
      	 y: yValues,
@@ -51,7 +40,7 @@
      };
      const data = [trace1];
      const layout = {
-         showlegend: false,
+        showlegend: false,
      	margin: {
      	    l: 30,
      	    r: 10,

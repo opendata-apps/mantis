@@ -16,21 +16,19 @@
    <!-- Grafik -->
    </div>
    <script>
+     let keys = ['Männchen', 'Weibchen', 'Nymphen', 'Ootheken', 'Andere'];
      var daten = {{ values|tojson }};
      var xValues = [];
      var yValues = [];
-
      //separate keys and values in two lists
-     for (var key in daten) {
+     for (let i in keys) {
+	 key = keys[i];
 	 if (daten.hasOwnProperty(key)) {
 	     xValues.push(key);
 	     yValues.push(daten[key]);
 	 }
      };
 
-//     console.log(daten);
-//     var xValue = daten.x;
-//     var yValue = daten.y;
      var trace1 = {
 	 x: xValues,
 	 y: yValues,
