@@ -13,7 +13,7 @@ list_of_stats = {
     "xxx": "Bitte eine Wahl treffen ...",
     "start": "Statistik: Startseite",
     "geschlecht": "Entwicklungsstadium/Geschlecht",
-    "meldungen_pro_woche": "Meldungen nach Datum",
+    "meldungen_pro_tag": "Meldungen nach Datum",
 }
 
 
@@ -32,8 +32,8 @@ def stats_start(usrid=None):
     value = request.form.get('stats', 'start')
     if value == "geschlecht":
         return stats_geschlecht()
-    elif value == "meldungen_pro_woche":
-        return stats_meldungen_woche()
+    elif value == "meldungen_pro_tag":
+        return stats_meldungen_tag()
     elif value == "start":
         return render_template("statistics/statistiken.html",
                                user_id=session['user_id'],
@@ -50,10 +50,10 @@ def stats_geschlecht(request=None):
     "Count sum of all kategories"
 
     sql = text('''
-      select  sum(art_o) as "Ootheken"
-            , sum(art_n) as "Nymphen"
+      select sum(art_m) as "Männchen"
             , sum(art_w) as "Weibchen"
-            , sum(art_m) as "Männchen"
+            , sum(art_n) as "Nymphen"
+            , sum(art_o) as "Ootheken"
             , sum(art_f) as "Andere"
       from meldungen
       where deleted is NULL;
@@ -61,6 +61,7 @@ def stats_geschlecht(request=None):
 
     with db.engine.connect() as conn:
         result = conn.execute(sql)
+        res = []
         for row in result:
             row = row._mapping
             res = dict((name, val) for name, val in row.items())
@@ -72,8 +73,8 @@ def stats_geschlecht(request=None):
                            values=res)
 
 
-def stats_meldungen_woche(request=None):
-    "Cluster messages per week"
+def stats_meldungen_tag(request=None):
+    "Cluster messages per day"
 
 #    dbsession = db.engine.connect()
     sql = text(""" SELECT dat_meld as Tag,
@@ -95,8 +96,8 @@ def stats_meldungen_woche(request=None):
             pass
     res = json.loads(json.dumps(trace1))
 
-    return render_template("statistics/stats-wochen.html",
+    return render_template("statistics/stats-tag.html",
                            menu=list_of_stats,
-                           marker="meldungen_pro_woche",
+                           marker="meldungen_pro_tag",
                            user_id=session['user_id'],
                            values=res)
