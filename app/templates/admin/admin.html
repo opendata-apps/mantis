@@ -266,86 +266,71 @@
     <div class="grid grid-cols-1 gap-6 mb-4 sm:grid-cols-2 lg:grid-cols-3" id="reportContainer">
         {% for sighting in reported_sightings %}
         <div class="mb-4 overflow-hidden transition-shadow duration-200 ease-in-out bg-white rounded-lg shadow-lg hover:shadow-xl report-card"
-            data-report-id="{{sighting.id}}"
-            data-approved="{{ 'true' if sighting.dat_bear else 'false' }}"
-            data-deleted="{{ 'true' if sighting.deleted else 'false' }}"
-            >
+            data-report-id="{{sighting.id}}" data-approved="{{ 'true' if sighting.dat_bear else 'false' }}"
+            data-deleted="{{ 'true' if sighting.deleted else 'false' }}">
             <div class="relative">
-                <img loading="lazy" onclick="openImageModal('{{ url_for('admin.report_Img', filename=image_path + "/" +
-                    sighting.fundort.ablage) }}')"
+                <img loading="lazy" onclick="openImageModal('{{ url_for('admin.report_Img', filename=image_path + "/" + sighting.fundort.ablage) }}')"
                     class="object-cover w-full h-48 transition-transform duration-200 ease-in-out rounded-t-lg cursor-pointer md:h-64 hover:scale-105"
                     src="{{ url_for('admin.report_Img', filename=image_path + "/" + sighting.fundort.ablage)}}"
-                    alt="{{imagepath}}">
-                <div class="p-4 md:p-6">
-                    <div class="relative -mt-10 md:mt-0">
-                        <div class="p-4 rounded-lg shadow-lg {{ 'bg-green-100' if sighting.approved }} bg-white">
-                            <div class="flex flex-col items-baseline md:flex-row">
-                                <span
-                                    class="inline-block px-2 py-1 mb-2 text-xs font-semibold leading-none tracking-wide text-white uppercase bg-green-500 rounded-full md:mb-0">
-                                    ID: {{ sighting.id }}</span>
-                                {% if sighting.deleted %}
-                                <span
-                                    class="inline-block px-2 py-1 ml-2 text-xs font-semibold leading-none tracking-wide text-white uppercase bg-red-500 rounded-full">Deleted</span>
-                                {% endif %}
-                                {% if sighting.dat_bear %}
-                                <div class="ml-0 text-xs font-semibold tracking-wide text-gray-600 md:ml-2 md:text-sm md:right-0"
-                                title="BearbID: {{sighting.bearb_id}}&#13;&#10;BearbUsername: {{sighting.approver_username }}"
-                                >
-                                    <strong>Datum der Überprüfung:</strong> {{ sighting.dat_bear }}<br>
-                                    <strong>Überprüft von:</strong> <span class="truncate" title="BearbUsername: {{sighting.approver_username }}">{{ sighting.approver_username }}</span>
-                                </div>
-                                {% endif %}
-                            </div>
-                            <h4 class="mt-2 text-lg font-semibold leading-tight truncate md:text-xl"
-                                title="{{sighting.ort}}&#13;&#10;Postleitzahl: {{sighting.plz}}&#13;&#10;Kreis: {{sighting.kreis}}&#13;&#10;Land: {{sighting.land}}">
-                                {{sighting.kreis}} | {{sighting.ort}}
-                            </h4>
-                            <div class="mt-2">
-                                <p class="text-sm"><strong>Melde-Datum:</strong> {{ sighting.dat_meld }}</p>
-                                {% if sighting.dat_fund_bis %}
-                                <p class="text-sm"><strong>Fund-Datum:</strong> {{ sighting.dat_fund_von }} - {{ sighting.dat_fund_bis}}</p>
-                                {% else %}
-                                <p class="text-sm"><strong>Fund-Datum:</strong> {{ sighting.dat_fund_von }}</p>
-                                {% endif %}
-                            </div>
-                            <div class="flex flex-wrap items-center justify-between mt-3">
-                                <div class="flex items-center">
-                                    <button onclick="openModal({{sighting.id}})" style="min-width: 2 rem;"
-                                        class="p-1 transition-colors duration-200 rounded focus:outline-none hover:bg-green-200">
-                                        <img loading="lazy" src="/static/images/svg/edit.svg" alt="Edit" class="w-4 h-4 md:w-5 md:h-5">
-                                    </button>
-                                    <button onclick="deleteSighting({{sighting.id}})"
-                                        class="p-1 ml-2 transition-colors duration-200 rounded md:ml-4 focus:outline-none hover:bg-red-200"
-                                        style="min-width: 2 rem;">
-                                        <img loading="lazy" src="/static/images/svg/delete.svg" alt="Delete" class="w-4 h-4 md:w-5 md:h-5">
-                                    </button>
-                                </div>
-                                <div>
-                                    {% set total = ((sighting.art_m or 0) + (sighting.art_w or 0) +
-                                    (sighting.art_n or 0) + (sighting.art_o or 0)) | int %}
-                                    {% if sighting.dat_bear %}
-                                    <span
-                                        class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-800 bg-green-100 rounded-md">
-                                        Angenommen
-                                    </span>
-                                    {% else %}
-                                    <button onclick="toggleApprove({{sighting.id}})"
-                                        class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-500 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                                        Annehmen
-                                    </button>
-                                    {% endif %}
-                                    </div>
-                                </div>
-                            </div>
+                    alt="Image not found">
+                    <!--mb-4 ml-4 zu ml-2 -mb-4 -->
+                <div title="{{sighting.ort}}&#13;&#10;Postleitzahl: {{sighting.plz}}&#13;&#10;Kreis: {{sighting.kreis}}&#13;&#10;Land: {{sighting.land}}" class="absolute bottom-0 px-3 py-1 mb-4 ml-4 font-semibold text-gray-800 rounded-full bg-white/80 backdrop-blur-md">{{ sighting.kreis }} | {{ sighting.ort }}</div>
+                <span class="absolute inline-block px-2 py-1 font-semibold leading-none tracking-wide text-white uppercase bg-green-500 rounded-full top-2 left-2">{{ sighting.id }}</span>
+            </div>
+            <div class="p-4 bg-white rounded-lg">
+                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div>
+                        <p class="text-sm"><strong>Melde-Datum:</strong> {{ sighting.dat_meld }}</p>
+                        <p class="text-sm"><strong>Fund-Datum:</strong> {{ sighting.dat_fund_von }}{% if sighting.dat_fund_bis %} - {{ sighting.dat_fund_bis}}{% endif %}</p>
+                    </div>
+                    {% if sighting.dat_bear %}
+                    <div class="text-xs font-semibold text-gray-600 md:text-sm">
+                        <div class="mb-2">
+                            <p class="mb-1"><strong>Geprüft am:</strong> {{ sighting.dat_bear }}</p>
+                            <p><strong>Bearbeitet von:</strong> {{ sighting.approver_username | default('Unknown') }}</p>
                         </div>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="flex flex-wrap items-center justify-between mt-3">
+                    <div class="flex items-center">
+                        <button onclick="openModal({{sighting.id}})" style="min-width: 2 rem;"
+                            class="p-1 transition-colors duration-200 rounded focus:outline-none hover:bg-green-200">
+                            <img loading="lazy" src="/static/images/svg/edit.svg" alt="Edit"
+                                class="w-4 h-4 md:w-5 md:h-5">
+                        </button>
+                        <button onclick="deleteSighting({{sighting.id}})"
+                            class="p-1 ml-2 transition-colors duration-200 rounded md:ml-4 focus:outline-none hover:bg-red-200"
+                            style="min-width: 2 rem;">
+                            <img loading="lazy" src="/static/images/svg/delete.svg" alt="Delete"
+                                class="w-4 h-4 md:w-5 md:h-5">
+                        </button>
+                    </div>
+                    <div>
+                        {% set total = ((sighting.art_m or 0) + (sighting.art_w or 0) +
+                        (sighting.art_n or 0) + (sighting.art_o or 0)) | int %}
+                        {% if sighting.dat_bear %}
+                        <span
+                            class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-800 bg-green-100 rounded-md">
+                            Angenommen
+                        </span>
+                        {% else %}
+                        <button onclick="toggleApprove({{sighting.id}})"
+                            class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-500 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                            Annehmen
+                        </button>
+                        {% endif %}
                     </div>
                 </div>
             </div>
-            {% endfor %}
         </div>
+        {% endfor %}
     </div>
-    {{ render_pagination(paginated_sightings, 'admin.reviewer', current_filter_status, current_sort_order, search_query, request.args.get('dateFrom', ''), request.args.get('dateTo', '')) }}
-</div>
+    
+    {{ render_pagination(paginated_sightings, 'admin.reviewer', current_filter_status, current_sort_order, search_query,
+    request.args.get('dateFrom', ''), request.args.get('dateTo', '')) }}
+    </div>
 
 
 
