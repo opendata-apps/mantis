@@ -39,7 +39,7 @@ def reviewer(usrid):
     # Get the user_name of the logged in user_id
     user_name = user.user_name
     page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('per_page', 20, type=int)
+    per_page = request.args.get('per_page', 21, type=int)
     last_updated = session.get('last_updated')
     # Store the userid in session
     session['user_id'] = usrid
