@@ -13,7 +13,9 @@ list_of_stats = {
     "xxx": "Bitte eine Wahl treffen ...",
     "start": "Statistik: Startseite",
     "geschlecht": "Entwicklungsstadium/Geschlecht",
-    "meldungen_pro_tag": "Meldungen nach Datum",
+    "meldungen_funddatum": "Meldungen: Funddatum",
+    "meldungen_meldedatum": "Meldungen: Meledatum",
+    "meldungen_meld_fund": "Meldungen: Fund- und Meldedatum",
 }
 
 
@@ -32,8 +34,12 @@ def stats_start(usrid=None):
     value = request.form.get('stats', 'start')
     if value == "geschlecht":
         return stats_geschlecht()
-    elif value == "meldungen_pro_tag":
-        return stats_meldungen_tag()
+    elif value == "meldungen_meldedatum":
+        return stats_meldungen_meldedatum()
+    elif value == "meldungen_funddatum":
+        return stats_meldungen_funddatum()
+    elif value == "meldungen_meld_fund":
+        return stats_meldungen_meld_fund()
     elif value == "start":
         return render_template("statistics/statistiken.html",
                                user_id=session['user_id'],
@@ -73,7 +79,65 @@ def stats_geschlecht(request=None):
                            values=res)
 
 
-def stats_meldungen_tag(request=None):
+def stats_meldungen_meldedatum(request=None):
+    "Cluster messages per dat_meld"
+
+    sql = text(""" SELECT dat_meld as Tag,
+                   count(dat_meld) as Anzahl
+                   FROM meldungen
+                   GROUP BY Tag
+                   ORDER by Tag;""")
+    with db.engine.connect() as conn:
+        result = conn.execute(sql)
+
+    trace1 = {"x": [],
+              "y": []}
+
+    if result:
+        for record in result:
+            trace1['x'].append(str(record[0]))
+            trace1['y'].append(record[1])
+        else:
+            pass
+    res = json.loads(json.dumps(trace1))
+
+    return render_template("statistics/stats-meldedatum.html",
+                           menu=list_of_stats,
+                           marker="medlungen_meldedatum",
+                           user_id=session['user_id'],
+                           values=res)
+
+
+def stats_meldungen_funddatum(request=None):
+    "Cluster messages per dat_fund"
+
+    sql = text(""" SELECT dat_fund_von as Tag,
+                   count(dat_fund_von) as Anzahl
+                   FROM meldungen
+                   GROUP BY Tag
+                   ORDER by Tag;""")
+    with db.engine.connect() as conn:
+        result = conn.execute(sql)
+
+    trace1 = {"x": [],
+              "y": []}
+
+    if result:
+        for record in result:
+            trace1['x'].append(str(record[0]))
+            trace1['y'].append(record[1])
+        else:
+            pass
+    res = json.loads(json.dumps(trace1))
+
+    return render_template("statistics/stats-funddatum.html",
+                           menu=list_of_stats,
+                           marker="meldungen_funddatum",
+                           user_id=session['user_id'],
+                           values=res)
+
+
+def stats_meldungen_meld_fund(request=None):
     "Cluster messages per day"
 
 #    dbsession = db.engine.connect()
@@ -94,10 +158,32 @@ def stats_meldungen_tag(request=None):
             trace1['y'].append(record[1])
         else:
             pass
-    res = json.loads(json.dumps(trace1))
+    res_trace1 = json.loads(json.dumps(trace1))
 
-    return render_template("statistics/stats-tag.html",
+    sql = text(""" SELECT dat_fund_von as Tag,
+                   count(dat_fund_von) as Anzahl
+                   FROM meldungen
+                   GROUP BY Tag
+                   ORDER by Tag;""")
+    with db.engine.connect() as conn:
+        result = conn.execute(sql)
+
+    trace2 = {"x": [],
+              "y": []}
+
+    if result:
+        for record in result:
+            trace2['x'].append(str(record[0]))
+            trace2['y'].append(record[1])
+        else:
+            pass
+    res_trace2 = json.loads(json.dumps(trace2))
+    print(res_trace1)
+    print(res_trace2)
+    return render_template("statistics/stats-meld-fund.html",
                            menu=list_of_stats,
-                           marker="meldungen_pro_tag",
+                           marker="meldungen_meld_fund",
                            user_id=session['user_id'],
-                           values=res)
+                           trace1=res_trace1,
+                           trace2=res_trace2
+                           )
