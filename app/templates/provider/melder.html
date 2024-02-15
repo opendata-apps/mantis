@@ -14,9 +14,7 @@
   <div class="grid grid-cols-1 gap-6 mb-4 sm:grid-cols-2 lg:grid-cols-3" id="reportContainer">
     {% for sighting in reported_sightings %}
     <div
-      class="mb-4 overflow-hidden transition-shadow duration-200 ease-in-out bg-white rounded-lg shadow-lg hover:shadow-xl report-card"
-      data-report-id="{{sighting.id}}" data-approved="{{'true' if sighting.dat_bear else 'false'}}"
-      data-deleted="{{'true' if sighting.deleted else 'false'}}">
+      class="mb-8 overflow-hidden transition-shadow duration-300 ease-in-out bg-white rounded-lg shadow-lg hover:shadow-2xl report-card">
       <div class="relative">
         <img loading="lazy" onclick="openImageModal('{{ url_for('provider.report_Img', filename=image_path + "/" + sighting.ablage)}}')"
           class="object-cover w-full h-48 transition-transform duration-200 ease-in-out rounded-t-lg cursor-pointer md:h-64 hover:scale-105"
@@ -60,9 +58,6 @@
             <strong>User Email:</strong> {{sighting.user_kontakt}}
           </p>
           {% endif %}
-          <p class="text-sm">
-            <strong>User ID:</strong> {{sighting.user_id}}
-          </p>
           <p class="text-sm">
             <strong>Datum der Überprüfung:</strong> {{sighting.dat_bear}}
           </p>
