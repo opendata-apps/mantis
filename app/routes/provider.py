@@ -72,8 +72,7 @@ def melder_index(usrid):
 
     sichtungen = []
     for sighting in sichtungen_query:
-        sighting_dict = sighting._asdict()  # Convert result to dictionary
-        # Check if 'dat_bear' is None and replace it with 'noch nicht geprüft'
+        sighting_dict = sighting._asdict()
         if sighting_dict["dat_bear"] is None:
             sighting_dict["dat_bear"] = "noch nicht geprüft"
         sichtungen.append(sighting_dict)
