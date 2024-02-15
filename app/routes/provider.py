@@ -3,8 +3,13 @@ from flask import render_template, Blueprint, send_from_directory
 from app import db
 from flask import abort
 from app.config import Config
-from app.database.models import TblUsers
-from sqlalchemy import text
+from app.database.models import (
+    TblFundorte,
+    TblMeldungen,
+    TblUsers,
+    TblFundortBeschreibung,
+    TblMeldungUser,
+)
 
 # Blueprints
 provider = Blueprint("provider", __name__)
@@ -15,6 +20,7 @@ provider = Blueprint("provider", __name__)
 def melder_index(usrid):
     # Fetch the user based on the 'usrid' parameter
     user = TblUsers.query.filter_by(user_id=usrid).first()
+    print(user)
     # If the user doesn't exist or the role isn't 9, return 404
     if not user or (user.user_rolle != "1" and user.user_rolle != "9"):
         abort(404)
@@ -23,29 +29,55 @@ def melder_index(usrid):
     session["user_id"] = usrid
 
     image_path = Config.UPLOAD_FOLDER.replace("app/", "")
-    sql = text(
-        f"""
-    select
-      me.id, dat_fund_von, dat_fund_bis, dat_meld,
-      coalesce(dat_bear::text, 'noch nicht geprüft') as dat_bear,
-      tiere, fo_quelle, art_m, art_w, art_n, art_o, art_f,
-      anm_melder, be.beschreibung, user_id,  user_name, user_kontakt,
-      plz, ort, strasse, land, kreis, longitude, latitude, ablage
-    from melduser mu
-      left join meldungen me on mu.id_meldung = me.id
-      left join users us on mu.id_user = us.id
-      left join fundorte fo on me.fo_zuordnung = fo.id
-     left join beschreibung be on fo.beschreibung = be.id
-    where us.user_id = '{usrid}';
-    """
+
+    # Using SQLAlchemy syntax for querying
+    sichtungen_query = (
+        db.session.query(
+            TblMeldungen.id,
+            TblMeldungen.dat_fund_von,
+            TblMeldungen.dat_fund_bis,
+            TblMeldungen.dat_meld,
+            TblMeldungen.dat_bear,
+            TblMeldungen.tiere,
+            TblMeldungen.fo_quelle,
+            TblMeldungen.art_m,
+            TblMeldungen.art_w,
+            TblMeldungen.art_n,
+            TblMeldungen.art_o,
+            TblMeldungen.art_f,
+            TblMeldungen.anm_melder,
+            TblFundortBeschreibung.beschreibung,
+            TblUsers.user_id,
+            TblUsers.user_name,
+            TblUsers.user_kontakt,
+            TblFundorte.plz,
+            TblFundorte.ort,
+            TblFundorte.strasse,
+            TblFundorte.land,
+            TblFundorte.kreis,
+            TblFundorte.longitude,
+            TblFundorte.latitude,
+            TblFundorte.ablage,
+        )
+        .join(TblMeldungUser, TblMeldungen.id == TblMeldungUser.id_meldung)
+        .join(TblUsers, TblMeldungUser.id_user == TblUsers.id)
+        .join(TblFundorte, TblMeldungen.fo_zuordnung == TblFundorte.id)
+        .join(
+            TblFundortBeschreibung,
+            TblFundorte.beschreibung == TblFundortBeschreibung.id,
+        )
+        .filter(TblUsers.user_id == usrid)
+        .all()
     )
+
     sichtungen = []
-    with db.engine.connect() as conn:
-        result = conn.execute(sql)
-        for row in result:
-            row = row._mapping
-            res = dict((name, val) for name, val in row.items())
-            sichtungen.append(res)
+    for sighting in sichtungen_query:
+        sighting_dict = sighting._asdict()  # Convert result to dictionary
+        # Check if 'dat_bear' is None and replace it with 'noch nicht geprüft'
+        if sighting_dict["dat_bear"] is None:
+            sighting_dict["dat_bear"] = "noch nicht geprüft"
+        sichtungen.append(sighting_dict)
+
     return render_template(
         "provider/melder.html", reported_sightings=sichtungen, image_path=image_path
     )
