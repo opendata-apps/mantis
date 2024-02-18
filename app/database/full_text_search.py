@@ -4,7 +4,7 @@ from sqlalchemy.dialects.postgresql import TSVECTOR
 
 
 class FullTextSearch(db.Model):
-    __tablename__ = 'full_text_search'
+    __tablename__ = "full_text_search"
     meldungen_id = db.Column(db.Integer, primary_key=True)
     doc = db.Column(TSVECTOR)
 
@@ -15,7 +15,9 @@ class FullTextSearch(db.Model):
         Create the materialized view if it doesn't exist.
         This function can be called during app initialization.
         """
-        db.session.execute(text("""
+        db.session.execute(
+            text(
+                """
             CREATE MATERIALIZED VIEW IF NOT EXISTS full_text_search AS
             SELECT 
                 m.id as meldungen_id,
@@ -47,12 +49,18 @@ class FullTextSearch(db.Model):
                 melduser mu ON m.id = mu.id_meldung
             LEFT JOIN 
                 users u ON mu.id_user = u.id;
-        """))
+        """
+            )
+        )
 
         # Create an index for faster search
-        db.session.execute(text("""
+        db.session.execute(
+            text(
+                """
             CREATE INDEX IF NOT EXISTS idx_full_text_search ON full_text_search USING gin(doc);
-        """))
+        """
+            )
+        )
 
         db.session.commit()
 
