@@ -4,8 +4,14 @@ import os
 import random
 from app import db
 from app.database.models import TblMeldungen
-from flask import (Blueprint, Response, current_app,
-                   render_template, request, send_from_directory)
+from flask import (
+    Blueprint,
+    Response,
+    current_app,
+    render_template,
+    request,
+    send_from_directory,
+)
 from app.tools.check_reviewer import login_required
 from flask import session
 
@@ -20,8 +26,7 @@ main = Blueprint("main", __name__)
 @main.route("/start")
 def index():
     post_count = (
-        db.session.query(TblMeldungen).filter(
-            TblMeldungen.deleted == None).count()
+        db.session.query(TblMeldungen).filter(TblMeldungen.deleted == None).count()
     )
     json_path = os.path.join(
         BASE_DIR, "..", "static", "images", "galerie", "galerie.json"
@@ -30,15 +35,11 @@ def index():
         bilder = json.load(file)
 
     current_index = int(
-        request.args.get("current_index",
-                         random.randint(0, len(bilder) - 1))
+        request.args.get("current_index", random.randint(0, len(bilder) - 1))
     )
 
     return render_template(
-        "home.html",
-        post_count=post_count,
-        bilder=bilder,
-        current_index=current_index
+        "home.html", post_count=post_count, bilder=bilder, current_index=current_index
     )
 
 
@@ -108,10 +109,12 @@ def galerie():
         request.args.get("current_index", random.randint(0, len(bilder) - 1))
     )
 
-    return render_template("galerie.html",
-                           user_id=session['user_id'],
-                           bilder=bilder,
-                           current_index=current_index)
+    return render_template(
+        "galerie.html",
+        user_id=session["user_id"],
+        bilder=bilder,
+        current_index=current_index,
+    )
 
 
 def not_found(e):

@@ -1,8 +1,7 @@
 from app import db
 from random import choice
 from faker import Faker
-from app.database.models import (TblFundorte, TblMeldungen,
-                                 TblMeldungUser, TblUsers)
+from app.database.models import TblFundorte, TblMeldungen, TblMeldungUser, TblUsers
 from app.tools.gen_user_id import get_new_id
 from app import create_app
 
@@ -13,9 +12,13 @@ fake = Faker("de_DE")
 
 
 def _set_gender_fields(selected_gender):
-    genders = {'art_m': 0, 'art_w': 0, 'art_n': 0, 'art_o': 0}
-    gender_mapping = {'Männchen': 'art_m', 'Weibchen': 'art_w',
-                      'Nymphe': 'art_n', 'Oothek': 'art_o'}
+    genders = {"art_m": 0, "art_w": 0, "art_n": 0, "art_o": 0}
+    gender_mapping = {
+        "Männchen": "art_m",
+        "Weibchen": "art_w",
+        "Nymphe": "art_n",
+        "Oothek": "art_o",
+    }
     gender_field = gender_mapping.get(selected_gender)
 
     if gender_field:
@@ -25,7 +28,7 @@ def _set_gender_fields(selected_gender):
 
 
 def generate_sample_reports():
-    genders = ['Männchen', 'Weibchen', 'Nymphe', 'Oothek']
+    genders = ["Männchen", "Weibchen", "Nymphe", "Oothek"]
 
     with app.app_context():
         for _ in range(600):
@@ -61,7 +64,7 @@ def generate_sample_reports():
                 longitude=fake.longitude(),
                 latitude=fake.latitude(),
                 beschreibung="1",
-                ablage=imagepath
+                ablage=imagepath,
             )
             db.session.add(new_fundort)
             db.session.flush()
@@ -73,8 +76,8 @@ def generate_sample_reports():
                 dat_meld=fake.date_time_this_month(),
                 fo_zuordnung=new_fundort.id,
                 fo_quelle="F",
-                art_f='0',
-                tiere='1',
+                art_f="0",
+                tiere="1",
                 **gender_fields,
                 anm_melder=fake.text()
             )
@@ -82,9 +85,7 @@ def generate_sample_reports():
             db.session.flush()
 
             new_meldung_user = TblMeldungUser(
-                id_meldung=new_meldung.id,
-                id_user=user.id,
-                id_finder=finder.id
+                id_meldung=new_meldung.id, id_user=user.id, id_finder=finder.id
             )
 
             db.session.add(new_meldung_user)

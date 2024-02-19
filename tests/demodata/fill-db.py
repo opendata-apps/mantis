@@ -1,5 +1,5 @@
-for i in range(100,600):
-    num = i  
+for i in range(100, 600):
+    num = i
     template = f"""
 -- {num} ----------------
 insert into users (id, user_id, user_name, user_rolle, user_kontakt)
