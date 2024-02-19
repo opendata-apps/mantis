@@ -9,18 +9,19 @@ from app.config import Config
 
 def rendertextmsg(formdata):
     md = formdata
-    data = {'Kontakt': md.contact.data,
-            'link': md.userid,
-            'latitude': md.latitude.data,
-            'longitude': md.longitude.data,
-            'plz': md.zip_code.data,
-            'ort': md.city.data,
-            'strasse': md.street.data,
-            'state': md.state.data,
-            'kreis': md.district.data,
-            'fundortbeschreibung': md.location_description.data,
-            'datum': md.sighting_date.data
-            }
+    data = {
+        "Kontakt": md.contact.data,
+        "link": md.userid,
+        "latitude": md.latitude.data,
+        "longitude": md.longitude.data,
+        "plz": md.zip_code.data,
+        "ort": md.city.data,
+        "strasse": md.street.data,
+        "state": md.state.data,
+        "kreis": md.district.data,
+        "fundortbeschreibung": md.location_description.data,
+        "datum": md.sighting_date.data,
+    }
     return f"""
     Liebe Mantis-Freundin, lieber Mantis-Freund,
 
@@ -57,23 +58,26 @@ def rendertextmsg(formdata):
     Kreis: {data['kreis']}
     Fundortbeschreibung: {data['fundortbeschreibung']}
     Funddatum: {data['datum']}
-    """.format(data)
+    """.format(
+        data
+    )
 
 
 def renderhtmlmsg(formdata):
     md = formdata
-    data = {'Kontakt': md.contact.data,
-            'link': md.userid,
-            'latitude': md.latitude.data,
-            'longitude': md.longitude.data,
-            'plz': md.zip_code.data,
-            'ort': md.city.data,
-            'strasse': md.street.data,
-            'state': md.state.data,
-            'kreis': md.district.data,
-            'fundortbeschreibung': md.location_description.data,
-            'datum': md.sighting_date.data
-            }
+    data = {
+        "Kontakt": md.contact.data,
+        "link": md.userid,
+        "latitude": md.latitude.data,
+        "longitude": md.longitude.data,
+        "plz": md.zip_code.data,
+        "ort": md.city.data,
+        "strasse": md.street.data,
+        "state": md.state.data,
+        "kreis": md.district.data,
+        "fundortbeschreibung": md.location_description.data,
+        "datum": md.sighting_date.data,
+    }
 
     return f"""
     <h3>Liebe Mantis-Freundin, lieber Mantis-Freund,</h3>
@@ -152,11 +156,13 @@ def renderhtmlmsg(formdata):
      <td>
     </tr>    
     </table>
-    """.format(data)
+    """.format(
+        data
+    )
 
 
 def send_email(formdata):
-    """ Send a multipart email """
+    """Send a multipart email"""
 
     subject = "Meldebestätigung"
     smtp_server = Config.host
@@ -183,7 +189,6 @@ def send_email(formdata):
         with smtplib.SMTP(Config.host, Config.port) as server:
             server.starttls(context=context)
             server.login(Config.sender_email, Config.sender_pass)
-            server.sendmail(Config.sender_email,
-                            receiver_email, message.as_string())
+            server.sendmail(Config.sender_email, receiver_email, message.as_string())
     except Exception as ex:
         raise ex
