@@ -211,10 +211,10 @@ class MantisSightingForm(FlaskForm):
     honeypot = StringField()
     submit = SubmitField("Absenden")
 
-    def _get_translations(self):
-        languages = (
-            tuple(self.LANGUAGES) if self.LANGUAGES else (self.meta.locales or None)
-        )
-        if languages not in translations_cache:
-            translations_cache[languages] = get_translations(languages)
-        return translations_cache[languages]
+    # def _get_translations(self):
+    #     languages = (
+    #         tuple(self.LANGUAGES) if self.LANGUAGES else (self.meta.locales or None)
+    #     )
+    #     if languages not in translations_cache:
+    #         translations_cache[languages] = get_translations(languages)
+    #     return translations_cache[languages]

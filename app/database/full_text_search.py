@@ -2,7 +2,7 @@ from app import db
 from sqlalchemy import text
 
 
-class FullTextSearch():
+class FullTextSearch:
 
     @staticmethod
     def create_materialized_view():
