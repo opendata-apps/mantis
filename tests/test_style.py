@@ -5,7 +5,7 @@ import pytest
 @pytest.mark.style
 def test_black_formatting():
     # Define paths to check
-    paths_to_check = ["app", "tests", "manage.py", "run.py", "base.py "]
+    paths_to_check = ["app", "tests", "manage.py", "run.py", "base.py"]
     formatting_issues = []
 
     # Run Black in check mode for each path
