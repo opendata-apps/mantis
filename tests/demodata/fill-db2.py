@@ -1,3 +1,4 @@
+# before running this script, make sure to put in root
 from app import db
 from random import choice
 from faker import Faker
