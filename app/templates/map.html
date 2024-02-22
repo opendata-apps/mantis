@@ -155,7 +155,7 @@
 
       marker.on('popupopen', function (e) {
         // Fetch data dynamically
-        fetch(`/get_marker_data/${report.id}`)
+        fetch(`/get_marker_data/${report.report_id}`)
           .then(response => response.json())
           .then(data => {
             let popupContent = `<strong>Melde ID: ${data.id}</strong>`;

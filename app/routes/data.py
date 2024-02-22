@@ -305,12 +305,11 @@ def show_map(selected_year):
         .order_by("year")
         .all()
     )
-    years = [int(year[0]) for year in years]  # Convert to a list of integers
+    years = [int(year[0]) for year in years]
 
-    # Query for reports, optionally filtering by the selected year
     reports_query = (
-        db.session.query(TblFundorte)
-        .join(TblMeldungen, TblMeldungen.fo_zuordnung == TblFundorte.id)
+        db.session.query(TblMeldungen.id, TblFundorte.latitude, TblFundorte.longitude)
+        .join(TblFundorte, TblMeldungen.fo_zuordnung == TblFundorte.id)
         .filter(TblMeldungen.dat_bear != None)
     )
 
@@ -331,17 +330,14 @@ def show_map(selected_year):
 
     # Serialize the reports data as a JSON object
     koords = []
-    for report in reports:
+    for report_id, latitude, longitude in reports:
         try:
-            lati = float(report.latitude.replace(",", "."))
-            long = float(report.longitude.replace(",", "."))
+            lati = float(latitude.replace(",", "."))
+            long = float(longitude.replace(",", "."))
 
-            # Obfuscate the location before appending
             lati, long = obfuscate_location(lati, long)
 
-            koords.append(
-                {"id": report.id, "latitude": lati, "longitude": long}  # Include the ID
-            )
+            koords.append({"report_id": report_id, "latitude": lati, "longitude": long})
         except:
             pass
 
