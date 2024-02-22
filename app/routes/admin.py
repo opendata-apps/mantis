@@ -185,9 +185,11 @@ def reviewer(usrid):
         except SQLAlchemyError as e:
             db.session.rollback()
             flash("An internal error occurred. Please try again.", "error")
+            print(e)
         except Exception as e:
             db.session.rollback()
             flash("Your search could not be completed. Please try again.", "error")
+            print(e)
 
     if date_from and date_to:
         date_from_obj = datetime.strptime(date_from, "%Y-%m-%d")
