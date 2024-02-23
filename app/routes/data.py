@@ -16,6 +16,7 @@ from app.database.models import (TblFundorte, TblMeldungen,
 from app.forms import MantisSightingForm
 from app.tools.gen_user_id import get_new_id
 from app.tools.send_email import send_email
+from app.routes.admin import get_sighting
 
 from ..config import Config
 
@@ -276,6 +277,8 @@ def validate():
 @data.route('/auswertungen', defaults={'selected_year': None})
 @data.route('/auswertungen/<int:selected_year>')
 def show_map(selected_year):
+    "Select data for one selected year" 
+
     # Get distinct years from dat_fund_von
     years = db.session.query(db.func.extract('year',
                                              TblMeldungen.dat_fund_von).label(

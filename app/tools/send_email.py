@@ -3,24 +3,11 @@ import smtplib
 import ssl
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-
 from app.config import Config
 
 
 def rendertextmsg(formdata):
     md = formdata
-    data = {'Kontakt': md.contact.data,
-            'link': md.userid,
-            'latitude': md.latitude.data,
-            'longitude': md.longitude.data,
-            'plz': md.zip_code.data,
-            'ort': md.city.data,
-            'strasse': md.street.data,
-            'state': md.state.data,
-            'kreis': md.district.data,
-            'fundortbeschreibung': md.location_description.data,
-            'datum': md.sighting_date.data
-            }
     return f"""
     Liebe Mantis-Freundin, lieber Mantis-Freund,
 
@@ -39,41 +26,28 @@ def rendertextmsg(formdata):
     Folgende Daten haben wir erhalten:
     ==================================
 
-    Kontakt: { data['Kontakt'] }
+    Kontakt: { md['Kontakt'] }
     Ihr Link für neue Meldungen:
-    https://gottesanbeterin-gesucht.de/report/{ data['link'] }
+    https://gottesanbeterin-gesucht.de/report/{ md['link'] }
 
     WICHTIGER HINWEIS:
 
     - Behandeln Sie den Link wie ein Passwort!
     - Publizieren Sie den Link nicht in Foren, Messengern, ...
     
-    Latitude:  {data['latitude']}
-    Longitude:  {data['longitude']}
-    PLZ:  {data['plz']}
-    Ort:  {data['ort']}
-    Straße:  {data['strasse']}
-    Bundesland: {data['state']}
-    Kreis: {data['kreis']}
-    Fundortbeschreibung: {data['fundortbeschreibung']}
-    Funddatum: {data['datum']}
-    """.format(data)
+    Latitude:  {md['latitude']}
+    Longitude:  {md['longitude']}
+    PLZ:  {md['plz']}
+    Ort:  {md['ort']}
+    Straße:  {md['strasse']}
+    Bundesland: {md['state']}
+    Kreis: {md['kreis']}
+    Funddatum: {md['datum']}
+    """.format(md)
 
 
 def renderhtmlmsg(formdata):
     md = formdata
-    data = {'Kontakt': md.contact.data,
-            'link': md.userid,
-            'latitude': md.latitude.data,
-            'longitude': md.longitude.data,
-            'plz': md.zip_code.data,
-            'ort': md.city.data,
-            'strasse': md.street.data,
-            'state': md.state.data,
-            'kreis': md.district.data,
-            'fundortbeschreibung': md.location_description.data,
-            'datum': md.sighting_date.data
-            }
 
     return f"""
     <h3>Liebe Mantis-Freundin, lieber Mantis-Freund,</h3>
@@ -98,47 +72,43 @@ def renderhtmlmsg(formdata):
     <p>Folgende Daten haben wir erhalten:</p>
     <table>
     <tr>    
-    <td>Kontakt:</td><td>{ data['Kontakt'] }</td>
+    <td>Kontakt:</td><td>{ md['Kontakt'] }</td>
     </tr>
     <tr>    
     <td>Ihr Link für weitere Meldungen</td>
-    <td>https://gottesanbeterin-gesucht.de/report/{ data['link'] }</td>
+    <td>https://gottesanbeterin-gesucht.de/report/{ md['link'] }</td>
     </tr>
     <tr>    
     <td>Latitude</td>
-    <td>{data['latitude']}</td>
+    <td>{md['latitude']}</td>
     </tr>
     <tr>    
     <td>Longitude</td>
-    <td>{data['longitude']}</td>
+    <td>{md['longitude']}</td>
     </tr>
     <tr>    
     <td>PLZ</td>
-    <td>{data['plz']}</td>
+    <td>{md['plz']}</td>
     </tr>
     <tr>    
     <td>Ort</td>
-    <td>{data['ort']}</td>
+    <td>{md['ort']}</td>
     </tr>
     <tr>    
     <td>Straße</td>
-    <td>{data['strasse']}</td>
+    <td>{md['strasse']}</td>
     </tr>
     <tr>    
     <td>Bundesland</td>
-    <td>{data['state']}</td>
+    <td>{md['state']}</td>
     </tr>
     <tr>    
     <td>Kreis</td>
-    <td>{data['kreis']}</td>
-    </tr>
-    <tr>    
-    <td>Beschreibung</td>
-    <td>{data['fundortbeschreibung']}</td>
+    <td>{md['kreis']}</td>
     </tr>
     <tr>    
     <td>Meldedatum</td>
-    <td>{data['datum']}</td>
+    <td>{md['datum']}</td>
     </tr>
     <tr>    
      <td>WICHTIGER HINWEIS:</td>
@@ -152,7 +122,7 @@ def renderhtmlmsg(formdata):
      <td>
     </tr>    
     </table>
-    """.format(data)
+    """.format(md)
 
 
 def send_email(formdata):

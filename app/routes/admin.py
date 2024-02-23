@@ -21,6 +21,7 @@ import shutil
 from werkzeug.utils import secure_filename
 from pathlib import Path
 from flask import current_app
+from app.tools.send_reviewer_email import send_email
 
 # Blueprints
 admin = Blueprint('admin', __name__)
@@ -250,6 +251,8 @@ def report_Img(filename):
 @admin.route('/toggle_approve_sighting/<id>', methods=['POST'])
 @login_required
 def toggle_approve_sighting(id):
+    "Find ID and mark as edited with a date in column dat_bear"
+
     # Find the report by id
     sighting = TblMeldungen.query.get(id)
     if sighting:
@@ -262,6 +265,8 @@ def toggle_approve_sighting(id):
             sighting.dat_bear = None
         sighting.bearb_id = session['user_id']
         db.session.commit()
+        dbdata = get_sighting(id)
+        send_email(dbdata)
         return jsonify({'success': True})
     else:
         return jsonify({'error': 'Report not found'}), 404
