@@ -244,4 +244,3 @@ def send_email(data):
                             receiver_email, message.as_string())
     except Exception as ex:
         raise ex
-    """
