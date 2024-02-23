@@ -7,7 +7,9 @@ from app.config import Config
 
 
 def rendertextmsg(formdata):
-    md = formdata
+    md = formdata.json
+    datum = md['dat_fund_von'].split(' ')[1:4]
+    md['formdat'] = f"{datum[0]}. {datum[1]}. {datum[2]}"
     return f"""
     Liebe Mantis-Freundin, lieber Mantis-Freund,
 
@@ -26,9 +28,9 @@ def rendertextmsg(formdata):
     Folgende Daten haben wir erhalten:
     ==================================
 
-    Kontakt: { md['Kontakt'] }
+    Kontakt: { md['user_kontakt'] }
     Ihr Link für neue Meldungen:
-    https://gottesanbeterin-gesucht.de/report/{ md['link'] }
+    https://gottesanbeterin-gesucht.de/report/{ md['id'] }
 
     WICHTIGER HINWEIS:
 
@@ -40,15 +42,16 @@ def rendertextmsg(formdata):
     PLZ:  {md['plz']}
     Ort:  {md['ort']}
     Straße:  {md['strasse']}
-    Bundesland: {md['state']}
+    Bundesland: {md['land']}
     Kreis: {md['kreis']}
-    Funddatum: {md['datum']}
+    Funddatum: {md['formdat']}
     """.format(md)
 
 
 def renderhtmlmsg(formdata):
     md = formdata
-
+    datum = md['dat_fund_von'].split(' ')[1:4]
+    md['formdat'] = f"{datum[0]}. {datum[1]}. {datum[2]}"
     return f"""
     <h3>Liebe Mantis-Freundin, lieber Mantis-Freund,</h3>
     
@@ -72,11 +75,11 @@ def renderhtmlmsg(formdata):
     <p>Folgende Daten haben wir erhalten:</p>
     <table>
     <tr>    
-    <td>Kontakt:</td><td>{ md['Kontakt'] }</td>
+    <td>Kontakt:</td><td>{ md['user_kontakt'] }</td>
     </tr>
     <tr>    
     <td>Ihr Link für weitere Meldungen</td>
-    <td>https://gottesanbeterin-gesucht.de/report/{ md['link'] }</td>
+    <td>https://gottesanbeterin-gesucht.de/report/{ md['id'] }</td>
     </tr>
     <tr>    
     <td>Latitude</td>
@@ -108,7 +111,7 @@ def renderhtmlmsg(formdata):
     </tr>
     <tr>    
     <td>Meldedatum</td>
-    <td>{md['datum']}</td>
+    <td>{md['formdat']}</td>
     </tr>
     <tr>    
      <td>WICHTIGER HINWEIS:</td>
