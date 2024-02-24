@@ -51,22 +51,22 @@
           </a>
           <div class="items-center hidden md:flex">
             <a href="{{ url_for('main.index') }}"
-              class="mr-5 text-base font-bold text-white transition-colors duration-300 hover:text-green-400 md:text-base"
+              class="mantis-top-menu"
               title="Startseite">
               <span class="text-white link link-underline link-underline-black">Start</span>
             </a>
             <a href="{{ url_for('main.mantis_religiosa') }}"
-              class="mr-5 text-base font-bold text-white transition-colors duration-300 hover:text-green-400 md:text-base"
+              class="mantis-top-menu"
               title="Informationen zur Gottesanbeterin">
               <span class="text-white link link-underline link-underline-black">Gottesanbeterin</span>
             </a>
             <a href="{{ url_for('data.report') }}"
-              class="mr-5 text-base font-bold text-white transition-colors duration-300 hover:text-green-400 md:text-base"
+              class="mantis-top-menu"
               title="Melden Sie eine Gottesanbeterin-Sichtung">
               <span class="text-white link link-underline link-underline-black">Melden</span>
             </a>
             <a href="{{ url_for('data.show_map') }}"
-              class="mr-5 text-base font-bold text-white transition-colors duration-300 hover:text-green-400 md:text-base"
+              class="mantis-top-menu"
               title="Statistiken und Auswertungen">
               <span class="text-white link link-underline link-underline-black">Auswertungen</span>
             </a>
@@ -113,21 +113,22 @@
             <div
               class="absolute left-0 w-full transition-all duration-500 origin-top transform scale-y-0 bg-green-700 rounded-lg opacity-0 top-full mobile-menu">
               <a href="{{ url_for('main.index') }}"
-                class="block px-4 py-2 my-2 text-lg font-medium text-center text-white transition-colors duration-300 rounded-lg hover:bg-green-500"
+                class="mantis-top-mobile"
                 title="Startseite des Mitmachprojekts Mantis">Start</a>
               <a href="{{ url_for('main.mantis_religiosa') }}"
-                class="block px-4 py-2 my-2 text-lg font-medium text-center text-white transition-colors duration-300 rounded-lg hover:bg-green-500"
+                class="mantis-top-mobile"
                 title="Informationen zur Gottesanbeterin Mantis">Gottesanbeterin</a>
               <a href="{{ url_for('data.report') }}"
-                class="block px-4 py-2 my-2 text-lg font-medium text-center text-white transition-colors duration-300 rounded-lg hover:bg-green-500"
+                class="mantis-top-mobile"
                 title="Melden Sie eine Sichtung der Gottesanbeterin Mantis">Melden</a>
               <a href="{{ url_for('data.show_map') }}"
-                class="block px-4 py-2 my-2 text-lg font-medium text-center text-white transition-colors duration-300 rounded-lg hover:bg-green-500"
+                class="mantis-top-mobile"
                 title="Auswertungen der Mantis-Meldungen">Auswertungen</a>
               {% if request.path.startswith('/reviewer') or request.path.startswith('/statistics') or
               request.path.startswith('/superuser') or request.path.startswith('/gallerie')%}
               <div class="relative group">
-                <button id="mobileDropdownButton" data-dropdown-toggle="mobileDropdownContent" class="transition-colors duration-300 rounded-lg hover:bg-green-500 text-white bg-green-700 focus:ring-4 focus:ring-green-300 font-medium text-lg px-4 py-2.5 text-center inline-flex items-center w-full justify-center">
+                <button id="mobileDropdownButton" data-dropdown-toggle="mobileDropdownContent"
+			class="transition-colors duration-300 rounded-lg hover:bg-green-500 text-white bg-green-700 focus:ring-4 focus:ring-green-300 font-medium text-lg px-4 py-2.5 text-center inline-flex items-center w-full justify-center">
                     Extra
                     <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
@@ -246,28 +247,28 @@
           </a>
         </li>
         <li>
-          <a class="text-gray-700 transition hover:text-gray-800/75" href="https://gitlab.com/opendata-apps/mantis"
+          <a class="mantis-footer-link" href="https://gitlab.com/opendata-apps/mantis"
             target="_blank" rel="noreferrer noopener">
             Quellcode (GitLab)
           </a>
         </li>
         <li>
-          <a class="text-gray-700 transition hover:text-gray-800/75" href="/faq">
+          <a class="mantis-footer-link" href="/faq">
             FAQ
           </a>
         </li>
         <li>
-          <a class="text-gray-700 transition hover:text-gray-800/75" href="/impressum">
+          <a class="mantis-footer-link" href="/impressum">
             Impressum
           </a>
         </li>
         <li>
-          <a class="text-gray-700 transition hover:text-gray-800/75" href="/lizenz">
+          <a class="mantis-footer-link" href="/lizenz">
             Lizenz
           </a>
         </li>
         <li>
-          <a class="text-gray-700 transition hover:text-gray-800/75" href="/datenschutz">
+          <a class="mantis-footer-link" href="/datenschutz">
             Datenschutz
           </a>
         </li>
