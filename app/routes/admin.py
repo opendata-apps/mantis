@@ -295,7 +295,9 @@ def toggle_approve_sighting(id):
                 part_dict = {c.name: getattr(part, c.name)
                              for c in part.__table__.columns}
                 dbdata.update(part_dict)
-            send_email(dbdata)
+
+            if dbdata['user_kontakt']:
+                send_email(dbdata)
         return jsonify({'success': True})
     else:
         return jsonify({'error': 'Report not found'}), 404
