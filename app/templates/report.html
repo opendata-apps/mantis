@@ -2,6 +2,17 @@
 {% from "macro.html" import popover %}
 {% from "macro.html" import formButton %}
 {% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/leaflet.css')}}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/cluster/MarkerCluster.Default.css')}}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/cluster/MarkerCluster.css')}}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/currentLocation/L.Control.Locate.min.css')}}" />
+<script src="{{ url_for('static', filename='js/flow/flowbite.min.js')}}" defer></script>
+<script src="{{ url_for('static', filename='js/leaflet.js')}}"></script>
+<script src="{{ url_for('static', filename='js/esri-leaflet.js')}}"></script>
+<script src="{{ url_for('static', filename='js/esri-leaflet-vector.js')}}"></script>
+<script src="{{ url_for('static', filename='js/exif-js.js')}}" defer></script>
+<script src="{{url_for('static', filename='js/cluster/leaflet.markercluster.js')}}"></script>
+<script src="{{url_for('static', filename='js/currentLocation/L.Control.Locate.min.js')}}"></script>
 <meta name="csrf-token" content="{{ csrf_token() }}">
 {% endblock %}
 {% block page_title %}Melden Sie Ihre Beobachtung | Mantis Religiosa Mitmachprojekt | Gottesanbeterin Gesucht{% endblock
