@@ -47,28 +47,28 @@
           <a href="/" class="flex items-center font-extrabold text-white">
             <img loading="lazy" src="{{ url_for('static', filename='favicon.ico') }}"
               alt="Logo des Mantis-Religiosa-Projekts" class="h-6 mr-2 sm:h-9" />
-            <span class="text-2xl text-white link link-underline link-underline-black">Mitmachprojekt</span>
+            <span class="text-2xl text-white link link-underline ">Mitmachprojekt</span>
           </a>
           <div class="items-center hidden md:flex">
             <a href="{{ url_for('main.index') }}"
               class="mr-5 text-base font-bold text-white transition-colors duration-300 hover:text-green-400 md:text-base"
               title="Startseite">
-              <span class="text-white link link-underline link-underline-black">Start</span>
+              <span class="text-white link link-underline ">Start</span>
             </a>
             <a href="{{ url_for('main.mantis_religiosa') }}"
               class="mr-5 text-base font-bold text-white transition-colors duration-300 hover:text-green-400 md:text-base"
               title="Informationen zur Gottesanbeterin">
-              <span class="text-white link link-underline link-underline-black">Gottesanbeterin</span>
+              <span class="text-white link link-underline ">Gottesanbeterin</span>
             </a>
             <a href="{{ url_for('data.report') }}"
               class="mr-5 text-base font-bold text-white transition-colors duration-300 hover:text-green-400 md:text-base"
               title="Melden Sie eine Gottesanbeterin-Sichtung">
-              <span class="text-white link link-underline link-underline-black">Melden</span>
+              <span class="text-white link link-underline ">Melden</span>
             </a>
             <a href="{{ url_for('data.show_map') }}"
               class="mr-5 text-base font-bold text-white transition-colors duration-300 hover:text-green-400 md:text-base"
               title="Statistiken und Auswertungen">
-              <span class="text-white link link-underline link-underline-black">Auswertungen</span>
+              <span class="text-white link link-underline ">Auswertungen</span>
             </a>
             {% if request.path.startswith('/reviewer') or request.path.startswith('/statistik') or
             request.path.startswith('/superuser') or request.path.startswith('/galerie') or
