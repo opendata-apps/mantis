@@ -2,6 +2,19 @@
 {% block title %} Admin Panel {% endblock title%}
 {% block text %} {{user_name}} {% endblock text %}
 {% from "macro.html" import render_pagination %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/leaflet.css')}}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/cluster/MarkerCluster.Default.css')}}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/cluster/MarkerCluster.css')}}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/currentLocation/L.Control.Locate.min.css')}}" />
+<script src="{{ url_for('static', filename='js/flow/flowbite.min.js')}}" defer></script>
+<script src="{{ url_for('static', filename='js/leaflet.js')}}"></script>
+<script src="{{ url_for('static', filename='js/esri-leaflet.js')}}"></script>
+<script src="{{ url_for('static', filename='js/esri-leaflet-vector.js')}}"></script>
+<script src="{{ url_for('static', filename='js/exif-js.js')}}" defer></script>
+<script src="{{url_for('static', filename='js/cluster/leaflet.markercluster.js')}}"></script>
+<script src="{{url_for('static', filename='js/currentLocation/L.Control.Locate.min.js')}}"></script>
+{% endblock %}
 {% block content %}
 
 
