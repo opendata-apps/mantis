@@ -22,7 +22,7 @@ Vielen Dank für Ihre Meldung.
             </svg>
             <h2 class="mb-2 text-xl font-semibold text-gray-800 md:text-2xl">Meldung Erfolgreich!</h2>
             <p class="mb-4 text-sm text-gray-600 md:text-base">
-                {% if addresse %}
+                {% if addresse == 'true' %}
                 Ihre Meldung wurde erfolgreich übermittelt. Vielen
                 Dank für Ihren Beitrag! In Kürze erhalten Sie eine Bestätigungsmail.
                 {% else %}
@@ -78,4 +78,12 @@ Vielen Dank für Ihre Meldung.
         </div>
     </div>
 </div>
+
+<script>
+    window.history.replaceState(null, null, window.location.href);
+    window.onpopstate = function() {
+        window.history.go(1);
+    };
+    </script>
+    
 {% endblock content %}
