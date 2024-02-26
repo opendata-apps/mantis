@@ -13,6 +13,7 @@ from flask import (
     request,
     url_for,
     abort,
+    session,
 )
 from PIL import Image
 from werkzeug.datastructures import CombinedMultiDict
@@ -265,7 +266,7 @@ def report(usrid=None):
 
             send_email(formdata=form)
             
-        print("Meldung erfolgreich gesendet redirect to" + "userid:" + usrid)
+        session['submission_successful'] = True
         return redirect(url_for("data.success", usrid=usrid, addresse=str(bool(addresse))))
 
     if existing_user is not None:
@@ -279,8 +280,14 @@ def report(usrid=None):
     
 @data.route("/success/<usrid>")
 def success(usrid):
+    if not session.get('submission_successful'):
+        return redirect(url_for('main.index'))
+    
+    session['submission_successful'] = False
+
     addresse = request.args.get('addresse', None)
     return render_template("success.html", usrid=usrid, addresse=addresse)
+
 
 @data.route("/validate", methods=["POST"])
 def validate():
