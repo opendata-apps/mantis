@@ -243,12 +243,6 @@ def report(usrid=None):
         db.session.add(new_meldung_user)
         db.session.commit()
 
-        flash(
-            {
-                "title": "Daten wurden gesendet.",
-                "message": "Vielen Dank für Ihre Meldung!",
-            }
-        )
         addresse = form.contact.data
 
         if Config.send_emails and addresse:
@@ -270,7 +264,9 @@ def report(usrid=None):
             form.location_description.data = location[form.location_description.data]
 
             send_email(formdata=form)
-        return redirect(url_for("data.report", usrid=usrid))
+            
+        print("Meldung erfolgreich gesendet redirect to" + "userid:" + usrid)
+        return redirect(url_for("data.success", usrid=usrid, addresse=str(bool(addresse))))
 
     if existing_user is not None:
         existing_user = _user_to_dict(existing_user)
@@ -280,7 +276,11 @@ def report(usrid=None):
         existing_user=existing_user,
         apikey=Config.esri,
     )
-
+    
+@data.route("/success/<usrid>")
+def success(usrid):
+    addresse = request.args.get('addresse', None)
+    return render_template("success.html", usrid=usrid, addresse=addresse)
 
 @data.route("/validate", methods=["POST"])
 def validate():
