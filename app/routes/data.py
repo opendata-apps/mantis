@@ -15,7 +15,7 @@ from app.database.models import (TblFundorte, TblMeldungen,
                                  TblMeldungUser, TblUsers)
 from app.forms import MantisSightingForm
 from app.tools.gen_user_id import get_new_id
-from app.tools.send_email import send_email
+from app.routes.admin import get_sighting
 
 from ..config import Config
 
@@ -230,27 +230,6 @@ def report(usrid=None):
             'title': 'Daten wurden gesendet.',
             'message': 'Vielen Dank für Ihre Meldung!',
         })
-        addresse = form.contact.data
-
-        if Config.send_emails and addresse:
-
-            location = {
-                '1': 'Im Haus',
-                '2': 'Im Garten',
-                '3': 'Auf dem Balkon/auf der Terrasse',
-                '4': 'Am Fenster/an der Hauswand',
-                '5': 'Industriebrache',
-                '6': 'Im Wald',
-                '7': 'Wiese/Weide',
-                '8': 'Heidelandschaft',
-                '9': 'Straßengraben/Wegesrand/Ruderalflur',
-                '10': 'Gewerbegebiet',
-                '11': 'Im oder am Auto',
-                '99': 'Anderer Fundort',
-            }
-            form.location_description.data = location[form.location_description.data]
-
-            send_email(formdata=form)
         return redirect(url_for('data.report', usrid=usrid))
 
     if existing_user is not None:
@@ -276,6 +255,8 @@ def validate():
 @data.route('/auswertungen', defaults={'selected_year': None})
 @data.route('/auswertungen/<int:selected_year>')
 def show_map(selected_year):
+    "Select data for one selected year" 
+
     # Get distinct years from dat_fund_von
     years = db.session.query(db.func.extract('year',
                                              TblMeldungen.dat_fund_von).label(

@@ -21,6 +21,7 @@ import shutil
 from werkzeug.utils import secure_filename
 from pathlib import Path
 from flask import current_app
+from app.tools.send_reviewer_email import send_email
 
 # Blueprints
 admin = Blueprint('admin', __name__)
@@ -250,6 +251,8 @@ def report_Img(filename):
 @admin.route('/toggle_approve_sighting/<id>', methods=['POST'])
 @login_required
 def toggle_approve_sighting(id):
+    "Find ID and mark as edited with a date in column dat_bear"
+
     # Find the report by id
     sighting = TblMeldungen.query.get(id)
     if sighting:
@@ -262,6 +265,39 @@ def toggle_approve_sighting(id):
             sighting.dat_bear = None
         sighting.bearb_id = session['user_id']
         db.session.commit()
+    if Config.send_emails:
+        # get data for E-Mail if send_email is True      
+        sighting = db.session.query(
+            TblMeldungen,
+            TblFundorte,
+            TblFundortBeschreibung,
+            TblMeldungUser,
+            TblUsers
+        ).join(
+            TblFundorte,
+            TblMeldungen.fo_zuordnung == TblFundorte.id
+        ).join(
+            TblFundortBeschreibung,
+            TblFundorte.beschreibung == TblFundortBeschreibung.id
+        ).join(
+            TblMeldungUser,
+            TblMeldungen.id == TblMeldungUser.id_meldung
+        ).join(
+            TblUsers,
+            TblMeldungUser.id_user == TblUsers.id
+        ).filter(
+            TblMeldungen.id == id
+        ).first()
+        
+        if sighting:
+            dbdata = {}
+            for part in sighting:
+                part_dict = {c.name: getattr(part, c.name)
+                             for c in part.__table__.columns}
+                dbdata.update(part_dict)
+
+            if dbdata['user_kontakt']:
+                send_email(dbdata)
         return jsonify({'success': True})
     else:
         return jsonify({'error': 'Report not found'}), 404
