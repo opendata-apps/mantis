@@ -281,15 +281,6 @@ def validate():
 @data.route("/auswertungen/<int:selected_year>")
 def show_map(selected_year):
     "Select data for one selected year" 
-<<<<<<< HEAD
-=======
-
-    # Get distinct years from dat_fund_von
-    years = db.session.query(db.func.extract('year',
-                                             TblMeldungen.dat_fund_von).label(
-        'year')).distinct().order_by('year').all()
-    years = [int(year[0]) for year in years]  # Convert to a list of integers
->>>>>>> new-statistics
 
     # Get distinct years from dat_fund_von
     years = (
