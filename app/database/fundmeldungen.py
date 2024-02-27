@@ -19,34 +19,33 @@ class TblMeldungen(db.Model):
     art_o = db.Column(db.Integer, nullable=True)
     art_f = db.Column(db.Integer, nullable=True)
 
-    fo_zuordnung = db.Column(
-        db.Integer,  db.ForeignKey("fundorte.id"), nullable=True)
+    fo_zuordnung = db.Column(db.Integer, db.ForeignKey("fundorte.id"), nullable=True)
     fo_quelle = db.Column(db.String(1), nullable=True)
     fo_beleg = db.Column(db.String(1), nullable=True)
     anm_melder = db.Column(db.String(500), nullable=True)
     anm_bearbeiter = db.Column(db.String(500), nullable=True)
 
     def __repr__(self):
-        return f'<Report {self.id}>'
+        return f"<Report {self.id}>"
 
     def to_dict(self):
         return {
-            'id': self.id,
-            'deleted': self.deleted,
-            'dat_fund_von': self.dat_fund,
-            'dat_fund_bis': self.dat_fund,
-            'dat_meld': self.dat_meld,
-            'dat_bear': self.dat_bear,
-            'bearb_id': self.bearb_id,
-            'tiere': self.tiere,
-            'art_m': self.art_m,
-            'art_w': self.art_w,
-            'art_n': self.art_n,
-            'art_o': self.art_o,
-            'art_f': self.art_f,
-            'fo_zuordung': self.fo_zuordnung,
-            'fo_quelle': self.fo_quelle,
-            'fo_beleg': self.fo_beleg,
-            'anm_melder': self.anmerkung,
-            'anm_bearbeiter': self.anmerkung,
+            "id": self.id,
+            "deleted": self.deleted,
+            "dat_fund_von": self.dat_fund,
+            "dat_fund_bis": self.dat_fund,
+            "dat_meld": self.dat_meld,
+            "dat_bear": self.dat_bear,
+            "bearb_id": self.bearb_id,
+            "tiere": self.tiere,
+            "art_m": self.art_m,
+            "art_w": self.art_w,
+            "art_n": self.art_n,
+            "art_o": self.art_o,
+            "art_f": self.art_f,
+            "fo_zuordung": self.fo_zuordnung,
+            "fo_quelle": self.fo_quelle,
+            "fo_beleg": self.fo_beleg,
+            "anm_melder": self.anmerkung,
+            "anm_bearbeiter": self.anmerkung,
         }

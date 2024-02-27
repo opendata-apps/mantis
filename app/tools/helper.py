@@ -4,15 +4,15 @@ from email.mime.text import MIMEText
 
 
 def send_email(subject, body, recipient):
-    sender = 'email'
-    password = 'pass'
+    sender = "email"
+    password = "pass"
 
     message = MIMEMultipart()
-    message['Subject'] = subject
-    message['From'] = sender
-    message['To'] = recipient
+    message["Subject"] = subject
+    message["From"] = sender
+    message["To"] = recipient
 
-#     # Attach the plain text body
+    #     # Attach the plain text body
     html_body = f"""\
 <html>
   <head>
@@ -48,7 +48,7 @@ def send_email(subject, body, recipient):
 """
 
     # Attach the HTML body to the email message
-    message.attach(MIMEText(html_body, 'html'))
+    message.attach(MIMEText(html_body, "html"))
 
     # Attach any additional images to the email message (optional)
     # with open('path/to/image.jpg', 'rb') as image:
@@ -56,7 +56,7 @@ def send_email(subject, body, recipient):
     #     message.attach(img)
 
     # Send the email using SMTP
-    server = smtplib.SMTP('smtp.gmail.com', 587)
+    server = smtplib.SMTP("smtp.gmail.com", 587)
     server.starttls()
     server.login(sender, password)
     server.sendmail(sender, recipient, message.as_string())
@@ -64,4 +64,4 @@ def send_email(subject, body, recipient):
 
 
 # Example usage
-send_email('Report Successful', '', 'email')
+send_email("Report Successful", "", "email")

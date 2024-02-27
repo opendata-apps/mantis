@@ -18,57 +18,46 @@
   <meta property="og:title" content="Gottesanbeterin Gesucht | Mitmachprojekt | Mantis Religiosa Beobachtungen" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://gottesanbeterin-gesucht.de/" />
-  <meta property="og:image" content="{{ url_for('static', filename='images/IMG_1899b_D_Berger.webp') }}" />
+  <meta property="og:image" content="{{ url_for('static', filename='images/berger03.avif') }}" />
   <meta property="og:description"
     content="Beobachtungen der Gottesanbeterin (Mantis religiosa) in Deutschland. Melden Sie Ihre Beobachtungen und unterstützen Sie die Forschung zur Verbreitung dieser Art." />
   <meta property="og:site_name" content="Gottesanbeterin Gesucht" />
   <meta property="fb:admins" content="Facebook numberic ID" />
   <link rel="stylesheet" href="{{ url_for('static', filename='build/theme.css') }}" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/leaflet.css')}}" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/cluster/MarkerCluster.Default.css')}}" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/cluster/MarkerCluster.css')}}" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/currentLocation/L.Control.Locate.min.css')}}" />
-  <script src="{{ url_for('static', filename='js/flow/flowbite.min.js')}}" defer></script>
-  <script src="{{ url_for('static', filename='js/leaflet.js')}}"></script>
-  <script src="{{ url_for('static', filename='js/esri-leaflet.js')}}"></script>
-  <script src="{{ url_for('static', filename='js/esri-leaflet-vector.js')}}"></script>
-  <script src="{{ url_for('static', filename='js/exif-js.js')}}" defer></script>
-  <script src="{{url_for('static', filename='js/cluster/leaflet.markercluster.js')}}"></script>
-  <script src="{{url_for('static', filename='js/currentLocation/L.Control.Locate.min.js')}}"></script>
   {% block head %} {% endblock head %}
 </head>
 
 <body class="antialiased bg-gray-100">
   <div class="topContainer">
     <div class="relative bg-fixed bg-center bg-no-repeat bg-cover"
-      style="background-image: url('{{ url_for('static', filename='images/IMG_1899b_D_Berger.webp') }}');">
+      style="background-image: url('{{ url_for('static', filename='images/berger03.avif') }}');">
       <nav id="navbar" class="fixed top-0 left-0 z-50 w-full transition-all duration-500 ease-in-out transform">
         <div class="container flex items-center justify-between px-4 py-3 mx-auto">
           <a href="/" class="flex items-center font-extrabold text-white">
             <img loading="lazy" src="{{ url_for('static', filename='favicon.ico') }}"
               alt="Logo des Mantis-Religiosa-Projekts" class="h-6 mr-2 sm:h-9" />
-            <span class="text-2xl text-white link link-underline link-underline-black">Mitmachprojekt</span>
+            <span class="text-2xl text-white link link-underline ">Mitmachprojekt</span>
           </a>
           <div class="items-center hidden md:flex">
             <a href="{{ url_for('main.index') }}"
               class="mantis-top-menu"
               title="Startseite">
-              <span class="text-white link link-underline link-underline-black">Start</span>
+              <span class="text-white link link-underline ">Start</span>
             </a>
             <a href="{{ url_for('main.mantis_religiosa') }}"
               class="mantis-top-menu"
               title="Informationen zur Gottesanbeterin">
-              <span class="text-white link link-underline link-underline-black">Gottesanbeterin</span>
+              <span class="text-white link link-underline ">Gottesanbeterin</span>
             </a>
             <a href="{{ url_for('data.report') }}"
               class="mantis-top-menu"
               title="Melden Sie eine Gottesanbeterin-Sichtung">
-              <span class="text-white link link-underline link-underline-black">Melden</span>
+              <span class="text-white link link-underline ">Melden</span>
             </a>
             <a href="{{ url_for('data.show_map') }}"
               class="mantis-top-menu"
               title="Statistiken und Auswertungen">
-              <span class="text-white link link-underline link-underline-black">Auswertungen</span>
+              <span class="text-white link link-underline ">Auswertungen</span>
             </a>
             {% if request.path.startswith('/reviewer') or request.path.startswith('/statistik') or
             request.path.startswith('/superuser') or request.path.startswith('/galerie') or
