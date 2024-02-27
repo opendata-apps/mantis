@@ -1,8 +1,12 @@
 from app import db
 from sqlalchemy import text
+from sqlalchemy.dialects.postgresql import TSVECTOR
 
-
-class FullTextSearch():
+    
+class FullTextSearch(db.model):
+    __tablename__ = 'full_text_dummy'
+    meldungen_id = db.Column(db.Integer, primary_key=True)
+    doc = db.Column(TSVECTOR)
 
     @staticmethod
     def create_materialized_view():
