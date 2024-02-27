@@ -34,9 +34,7 @@ def rendertextmsg(md):
     Folgende Daten haben wir erhalten:
     ==================================
     Kontakt: {md['user_kontakt']}
-    Ihr Link für neue Meldungen:
-    https://gottesanbeterin-gesucht.de/report/{ md['user_id'] }
-    
+        
     {'Latitude:':<21}  {md['latitude']:>22}
     {'Longitude:':<21}  {md['longitude']:>22}
     {'PLZ:':<21}  {str(md['plz']):>22}
@@ -58,6 +56,9 @@ def rendertextmsg(md):
     {'Oothek(n):':<10} {str(md['art_o']) + " ":<10}
     {md['anm_bearbeiter']}
 
+    Ihr Link für neue Meldungen:
+    https://gottesanbeterin-gesucht.de/report/{ md['user_id'] }
+    
     WICHTIGER HINWEIS:
 
     - Behandeln Sie den Link wie ein Passwort!
@@ -97,10 +98,6 @@ def renderhtmlmsg(md):
     <table>
     <tr>    
     <td>Kontakt:</td><td>{ md['user_kontakt'] }</td>
-    </tr>
-    <tr>    
-    <td>Ihr Link für weitere Meldungen</td>
-    <td>https://gottesanbeterin-gesucht.de/report/{ md['user_id'] }</td>
     </tr>
     <tr>    
     <td>Latitude</td>
@@ -182,7 +179,11 @@ def renderhtmlmsg(md):
     </td>
     </tr>
     <tr>    
-     <td>WICHTIGER HINWEIS:</td>
+    <td>Ihr Link für weitere Meldungen</td>
+    <td>https://gottesanbeterin-gesucht.de/report/{ md['user_id'] }</td>
+    </tr>
+    <tr>    
+     <td><b>WICHTIGER HINWEIS:</b></td>
     </tr>    
     <tr>
      <td>
