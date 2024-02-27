@@ -13,10 +13,10 @@ browser = Firefox(options=opts)
 def test_links():
     try:
 
-        browser.get('http://localhost:5000')
-        elements = browser.find_elements(By.TAG_NAME, 'a')
+        browser.get("http://localhost:5000")
+        elements = browser.find_elements(By.TAG_NAME, "a")
         for e in elements:
-            gesucht = 'Problem melder'
+            gesucht = "Problem melder"
             gefunden = e.text
             if gesucht in gefunden:  # and (len(gefunden) == len(gesucht)):
                 assert e.text == gefunden

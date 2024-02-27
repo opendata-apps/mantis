@@ -2,43 +2,25 @@
 {% from "macro.html" import popover %}
 {% from "macro.html" import formButton %}
 {% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/leaflet.css')}}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/cluster/MarkerCluster.Default.css')}}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/cluster/MarkerCluster.css')}}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/currentLocation/L.Control.Locate.min.css')}}" />
+<script src="{{ url_for('static', filename='js/flow/flowbite.min.js')}}" defer></script>
+<script src="{{ url_for('static', filename='js/leaflet.js')}}"></script>
+<script src="{{ url_for('static', filename='js/esri-leaflet.js')}}"></script>
+<script src="{{ url_for('static', filename='js/esri-leaflet-vector.js')}}"></script>
+<script src="{{ url_for('static', filename='js/exif-js.js')}}" defer></script>
+<script src="{{url_for('static', filename='js/cluster/leaflet.markercluster.js')}}"></script>
+<script src="{{url_for('static', filename='js/currentLocation/L.Control.Locate.min.js')}}"></script>
 <meta name="csrf-token" content="{{ csrf_token() }}">
 {% endblock %}
 {% block page_title %}Melden Sie Ihre Beobachtung | Mantis Religiosa Mitmachprojekt | Gottesanbeterin Gesucht{% endblock
 %}
 {% block title %}Fund melden{% endblock %}
-{% block meta_description %} Melden Sie Ihre Beobachtungen von Mantis religiosa in Deutschland. Unterstützen Sie die
-Forschung. {% endblock %}{% block content %}
-{% with messages = get_flashed_messages() %}
-{% if messages %}
-{% for message in messages %}
-<div style="z-index: 999" id="toast-interactive-{{ loop.index }}"
-  class="fixed max-w-full px-4 py-2 text-xs text-gray-500 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow sm:max-w-2xl sm:text-sm toast top-1/4 left-1/2 min-h-16"
-  role="alert">
-  <div class="flex">
-    <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-green-500 bg-green-100 rounded-lg ">
-      <span class="sr-only">Notification icon</span>
-    </div>
-    <div class="ml-3 overflow-auto text-sm font-normal max-h-24">
-      <p class="mb-1 text-xs font-semibold text-gray-900 break-all sm:text-sm ">{{ message.title }}</p>
-      <p class="text-gray-800 ">{{ message.message }}</p>
-    </div>
-    <button type="button"
-      class="ml-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex h-8 w-8 "
-      data-dismiss-target="#toast-interactive-{{ loop.index }}" aria-label="Close" id="close-button">
-      <span class="sr-only">Close</span>
-      <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
-        xmlns="http://www.w3.org/2000/svg">
-        <path fill-rule="evenodd"
-          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-          clip-rule="evenodd"></path>
-      </svg>
-    </button>
-  </div>
-</div>
-{% endfor %}
-{% endif %}
-{% endwith %}
+{% block meta_description %} Melden Sie Ihre Beobachtungen von Mantis religiosa in Deutschland. Unterstützen Sie die Forschung. {% endblock %}
+{% block content %}
+
 
 <div class="flex items-center justify-center min-h-screen bg-gray-100">
   <div class="w-full p-4 mx-auto max-w-7xl">
@@ -687,14 +669,6 @@ const validFileTypes = ["image/png", "image/jpeg",
   }
 
 
-  // Check if a success message is being flashed
-  {% with messages = get_flashed_messages() %}
-  {% if messages %}
-  // If there is a success message, clear local storage
-  localStorage.clear();
-  {% endif %}
-  {% endwith %}
-
   function toDecimal(coord, ref) {
     const [degrees, minutes, seconds] = coord;
     let decimal = degrees + minutes / 60 + seconds / (60 * 60);
@@ -940,7 +914,8 @@ const validFileTypes = ["image/png", "image/jpeg",
     loadingMsg.classList.remove('hidden');
     console.log('Loading shown');
   
-    // Now submit the form manually if needed
+    localStorage.clear();
+    
     event.target.submit();
   });
 

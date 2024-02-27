@@ -9,10 +9,10 @@ class TblFundortBeschreibung(db.Model):
     beschreibung = db.Column(db.String(45), nullable=False)
 
     def __repr__(self):
-        return f'<Report {self.id}>'
+        return f"<Report {self.id}>"
 
     def to_dict(self):
         return {
-            'id': self.id,
-            'beschreibung': self.beschreibung,
+            "id": self.id,
+            "beschreibung": self.beschreibung,
         }

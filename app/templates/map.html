@@ -6,6 +6,19 @@
     Fundmeldungen gesamt
   {% endif %}
 {% endblock title %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/leaflet.css')}}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/cluster/MarkerCluster.Default.css')}}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/cluster/MarkerCluster.css')}}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/currentLocation/L.Control.Locate.min.css')}}" />
+<script src="{{ url_for('static', filename='js/flow/flowbite.min.js')}}" defer></script>
+<script src="{{ url_for('static', filename='js/leaflet.js')}}"></script>
+<script src="{{ url_for('static', filename='js/esri-leaflet.js')}}"></script>
+<script src="{{ url_for('static', filename='js/esri-leaflet-vector.js')}}"></script>
+<script src="{{ url_for('static', filename='js/exif-js.js')}}" defer></script>
+<script src="{{url_for('static', filename='js/cluster/leaflet.markercluster.js')}}"></script>
+<script src="{{url_for('static', filename='js/currentLocation/L.Control.Locate.min.js')}}"></script>
+{% endblock %}
 {% block page_title %}Auswertungen der Beobachtungen | Mantis Religiosa Mitmachprojekt | Gottesanbeterin Gesucht{% endblock %}
 {% block meta_keywords %} Auswertungen, Karte, Gottesanbeterin, Mantis religiosa Auswertungen {% endblock %}
 {% block meta_description %} Schauen Sie sich die Auswertungen von Gottesanbeterin-Beobachtungen in Deutschland an. {% endblock %}
@@ -155,7 +168,7 @@
 
       marker.on('popupopen', function (e) {
         // Fetch data dynamically
-        fetch(`/get_marker_data/${report.id}`)
+        fetch(`/get_marker_data/${report.report_id}`)
           .then(response => response.json())
           .then(data => {
             let popupContent = `<strong>Melde ID: ${data.id}</strong>`;

@@ -27,6 +27,7 @@ def create_materialized_view_command():
     click.echo("Materialized view created.")
 
 
+# Define the custom command for inserting initial data
 @click.command("insert-initial-data")
 @with_appcontext
 def insert_initial_data_command():
@@ -60,6 +61,7 @@ def create_app(config_class=Config):
     # https://flask.palletsprojects.com/en/2.3.x/deploying/proxy_fix/
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
+    # Import the routes
     from app.routes.main import main
     from app.routes.admin import admin
     from app.routes.data import data
@@ -83,7 +85,8 @@ def create_app(config_class=Config):
     return app
 
 
-# Define the shuffle function
+# Define the shuffle function for images
+# Add the shuffle function to Jinja environment filters
 def shuffle(seq):
     try:
         result = list(seq)
@@ -91,9 +94,6 @@ def shuffle(seq):
         return result
     except:
         return seq
-
-
-# Add the shuffle function to Jinja environment filters
 
 
 def page_not_found(e):

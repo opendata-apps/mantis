@@ -12,7 +12,7 @@
 @apply block px-4 py-2 my-2 text-lg font-medium text-center text-white transition-colors duration-300 rounded-lg hover:bg-green-500
 }
 .input-field {
-  @apply block w-full px-4 py-2  text-base text-gray-700 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200 transition-colors;
+  @apply block w-full px-4 py-2 text-base text-gray-700 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200 transition ease-in-out duration-300;
 }
 
 .input-field-admin {
@@ -146,10 +146,7 @@ html {
   transition: background-size 0.5s ease-in-out !important;
 }
 
-.link-underline-black {
-  background-image: linear-gradient(transparent, transparent),
-    linear-gradient(rgb(240, 255, 255), rgb(240, 255, 255)) !important;
-}
+
 
 .link-underline:hover {
   background-size: 100% 3px !important;
