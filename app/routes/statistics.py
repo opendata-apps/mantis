@@ -117,6 +117,51 @@ def stats_meldungen_meldedatum(request=None):
                            values=res)
 
 
+<<<<<<< HEAD
+def stats_meldungen_funddatum(request=None):
+    "Cluster messages per dat_fund"
+
+    sql = text(""" SELECT dat_fund_von as Tag,
+                   count(dat_fund_von) as Anzahl
+=======
+def stats_meldungen_meldedatum(request=None):
+    "Cluster messages per dat_meld"
+
+    sql = text(""" SELECT dat_meld as Tag,
+                   count(dat_meld) as Anzahl
+>>>>>>> new-statistics
+                   FROM meldungen
+                   GROUP BY Tag
+                   ORDER by Tag;""")
+    with db.engine.connect() as conn:
+        result = conn.execute(sql)
+
+    trace1 = {"x": [],
+              "y": []}
+
+    if result:
+        for record in result:
+            trace1['x'].append(str(record[0]))
+            trace1['y'].append(record[1])
+        else:
+            pass
+    res = json.loads(json.dumps(trace1))
+
+<<<<<<< HEAD
+    return render_template("statistics/stats-funddatum.html",
+                           menu=list_of_stats,
+                           marker="meldungen_funddatum",
+=======
+    return render_template("statistics/stats-meldedatum.html",
+                           menu=list_of_stats,
+                           marker="medlungen_meldedatum",
+>>>>>>> new-statistics
+                           user_id=session['user_id'],
+                           values=res)
+
+
+<<<<<<< HEAD
+=======
 def stats_meldungen_funddatum(request=None):
     "Cluster messages per dat_fund"
 
@@ -146,6 +191,7 @@ def stats_meldungen_funddatum(request=None):
                            values=res)
 
 
+>>>>>>> new-statistics
 def stats_meldungen_meld_fund(request=None):
     "Cluster messages per day"
 
@@ -187,6 +233,7 @@ def stats_meldungen_meld_fund(request=None):
         else:
             pass
     res_trace2 = json.loads(json.dumps(trace2))
+<<<<<<< HEAD
 
     return render_template(
         "statistics/stats-tag.html",
@@ -196,3 +243,14 @@ def stats_meldungen_meld_fund(request=None):
         values=res,
     )
 
+=======
+    print(res_trace1)
+    print(res_trace2)
+    return render_template("statistics/stats-meld-fund.html",
+                           menu=list_of_stats,
+                           marker="meldungen_meld_fund",
+                           user_id=session['user_id'],
+                           trace1=res_trace1,
+                           trace2=res_trace2
+                           )
+>>>>>>> new-statistics

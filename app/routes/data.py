@@ -244,30 +244,7 @@ def report(usrid=None):
         db.session.add(new_meldung_user)
         db.session.commit()
 
-        addresse = form.contact.data
-
-        if Config.send_emails and addresse:
-
-            location = {
-                "1": "Im Haus",
-                "2": "Im Garten",
-                "3": "Auf dem Balkon/auf der Terrasse",
-                "4": "Am Fenster/an der Hauswand",
-                "5": "Industriebrache",
-                "6": "Im Wald",
-                "7": "Wiese/Weide",
-                "8": "Heidelandschaft",
-                "9": "Straßengraben/Wegesrand/Ruderalflur",
-                "10": "Gewerbegebiet",
-                "11": "Im oder am Auto",
-                "99": "Anderer Fundort",
-            }
-            form.location_description.data = location[form.location_description.data]
-
-            send_email(formdata=form)
-            
-        session['submission_successful'] = True
-        return redirect(url_for("data.success", usrid=usrid, addresse=str(bool(addresse))))
+        return redirect(url_for('data.report', usrid=usrid))
 
     if existing_user is not None:
         existing_user = _user_to_dict(existing_user)
@@ -304,6 +281,15 @@ def validate():
 @data.route("/auswertungen/<int:selected_year>")
 def show_map(selected_year):
     "Select data for one selected year" 
+<<<<<<< HEAD
+=======
+
+    # Get distinct years from dat_fund_von
+    years = db.session.query(db.func.extract('year',
+                                             TblMeldungen.dat_fund_von).label(
+        'year')).distinct().order_by('year').all()
+    years = [int(year[0]) for year in years]  # Convert to a list of integers
+>>>>>>> new-statistics
 
     # Get distinct years from dat_fund_von
     years = (
