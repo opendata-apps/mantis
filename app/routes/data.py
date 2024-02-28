@@ -244,6 +244,7 @@ def report(usrid=None):
         db.session.add(new_meldung_user)
         db.session.commit()
         addresse = form.contact.data
+        session['submission_successful'] = True
         return redirect(url_for("data.success", usrid=usrid, addresse=str(bool(addresse))))
 
     if existing_user is not None:
