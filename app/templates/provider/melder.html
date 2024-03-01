@@ -25,10 +25,10 @@
           class="absolute bottom-0 px-3 py-1 mb-4 ml-4 font-semibold text-gray-800 rounded-full bg-white/80 backdrop-blur-md">
           {{sighting.kreis}} | {{sighting.ort}}</div>
         <span
-          class="absolute inline-block px-2 py-1 font-semibold leading-none tracking-wide text-white uppercase bg-green-500 rounded-full top-2 left-2">
+          class="absolute inline-block px-2 py-1 font-semibold leading-none tracking-wide text-gray-100 uppercase bg-green-500 rounded-full top-2 left-2">
           {{sighting.id}}</span>
       </div>
-      <div class="p-4 rounded-lg shadow-lg {{'bg-green-100' if sighting.approved}} bg-white">
+      <div class="p-4 bg-white rounded-lg shadow-lg">
         <h4 class="mt-2 text-lg font-semibold leading-tight truncate md:text-xl">
           <p class="text-sm">
             <strong>Melde-ID:</strong> {{sighting.id}}
@@ -87,14 +87,14 @@
       </div>
       <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
         <button type="button" onclick="closeImageModal()"
-          class="inline-flex justify-center w-full px-4 py-2 mb-2 text-base font-medium text-white bg-green-600 border border-transparent rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:mb-0 sm:ml-3 sm:w-auto sm:text-sm"
+          class="inline-flex justify-center w-full px-4 py-2 mb-2 text-base font-medium text-gray-100 bg-green-600 border border-transparent rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:mb-0 sm:ml-3 sm:w-auto sm:text-sm"
           title="Schließen Sie das Fenster">
           Close
         </button>
         <button type="button" onclick="openImageNewTab()"
-          class="inline-flex justify-center w-full px-4 py-2 mb-2 text-base font-medium text-white bg-green-600 border border-transparent rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:mb-0 sm:ml-3 sm:w-auto sm:text-sm"
+          class="inline-flex justify-center w-full px-4 py-2 mb-2 text-base font-medium text-gray-100 bg-green-600 border border-transparent rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:mb-0 sm:ml-3 sm:w-auto sm:text-sm"
           title="Öffnen Sie das Bild in einem neuen Tab">
-          <svg class="w-[16px] h-[16px] text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
+          <svg class="w-[16px] h-[16px] text-gray-100" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
             viewBox="0 0 18 18">
             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11v4.833A1.166 1.166 0 0 1 13.833 17H2.167A1.167 1.167 0 0 1 1 15.833V4.167A1.166
 			 1.166 0 0 1 2.167 3h4.618m4.447-2H17v5.768M9.111 8.889l7.778-7.778" />

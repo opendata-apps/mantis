@@ -120,7 +120,7 @@
                         Löschen
                     </button>
                     <button type="submit"
-                        class="w-1/2 px-4 py-2 text-white bg-green-500 rounded-md shadow-sm hover:bg-green-600 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:border-transparent">
+                        class="w-1/2 px-4 py-2 text-gray-100 bg-green-500 rounded-md shadow-sm hover:bg-green-600 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:border-transparent">
                         Filtern
                     </button>
                 </div>
@@ -193,10 +193,10 @@
     
             <!-- Custom Dropdown Menu -->
             <div id="sortDropdown"
-                class="z-10 hidden w-48 bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700">
-                <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownSortButton">
+                class="z-10 hidden w-48 bg-white divide-y divide-gray-100 rounded-lg shadow ">
+                <ul class="py-2 text-sm text-gray-700 " aria-labelledby="dropdownSortButton">
                     <li id="id_asc"
-                        class="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white {% if current_sort_order=="
+                        class="flex items-center px-4 py-2 hover:bg-gray-100  {% if current_sort_order=="
                         id_asc" %} bg-gray-300 {% endif %}" onclick="setSortOrder('id_asc')">
                         <div class="h-2 w-2 bg-green-500 rounded-full mr-2 {% if current_sort_order!="id_asc" %}
                             bg-transparent {% endif %}"></div>
@@ -212,7 +212,7 @@
                         Aufsteigend
                     </li>
                     <li id="id_desc"
-                        class="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white {% if current_sort_order=="
+                        class="flex items-center px-4 py-2 hover:bg-gray-100  {% if current_sort_order=="
                         id_desc" %} bg-gray-300 {% endif %}" onclick="setSortOrder('id_desc')">
                         <div class="h-2 w-2 bg-green-500 rounded-full mr-2 {% if current_sort_order!="id_desc" %}
                             bg-transparent {% endif %}"></div>
@@ -241,7 +241,7 @@
             <div class="flex items-center w-full space-x-4 md:w-auto">
                 <!-- Dropdown button -->
                 <button id="dropdownExportButton" data-dropdown-toggle="dropdown"
-                    class="flex items-center justify-center flex-grow px-4 py-2 text-sm font-medium text-white bg-green-600 border border-green-400 rounded-lg focus:outline-none hover:bg-green-600 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200">
+                    class="flex items-center justify-center flex-grow px-4 py-2 text-sm font-medium text-gray-100 bg-green-600 border border-green-400 rounded-lg focus:outline-none hover:bg-green-600 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200">
                     <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24"
                         stroke-width="2" stroke="currentColor" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -288,7 +288,7 @@
                     alt="Image not found">
                     <!--mb-4 ml-4 zu ml-2 -mb-4 -->
                 <div title="{{sighting.ort}}&#13;&#10;Postleitzahl: {{sighting.plz}}&#13;&#10;Kreis: {{sighting.kreis}}&#13;&#10;Land: {{sighting.land}}" class="absolute bottom-0 px-3 py-1 mb-4 ml-4 font-semibold text-gray-800 rounded-full bg-white/80 backdrop-blur-md">{{ sighting.kreis }} | {{ sighting.ort }}</div>
-                <span class="absolute inline-block px-2 py-1 font-semibold leading-none tracking-wide text-white uppercase bg-green-500 rounded-full top-2 left-2">{{ sighting.id }}</span>
+                <span class="absolute inline-block px-2 py-1 font-semibold leading-none tracking-wide text-gray-100 uppercase bg-green-500 rounded-full top-2 left-2">{{ sighting.id }}</span>
             </div>
             <div class="p-4 bg-white rounded-lg">
                 <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -330,7 +330,7 @@
                         </span>
                         {% else %}
                         <button onclick="toggleApprove({{sighting.id}})"
-                            class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-500 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                            class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-100 bg-green-500 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                             Annehmen
                         </button>
                         {% endif %}
@@ -364,14 +364,14 @@
             </div>
             <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
                 <button type="button" onclick="closeImageModal()"
-                    class="inline-flex justify-center w-full px-4 py-2 mb-2 text-base font-medium text-white bg-green-600 border border-transparent rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:mb-0 sm:ml-3 sm:w-auto sm:text-sm"
+                    class="inline-flex justify-center w-full px-4 py-2 mb-2 text-base font-medium text-gray-100 bg-green-600 border border-transparent rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:mb-0 sm:ml-3 sm:w-auto sm:text-sm"
                     title="Schließen Sie das Fenster">
                     Close
                 </button>
                 <button type="button" onclick="openImageNewTab()"
-                    class="inline-flex justify-center w-full px-4 py-2 mb-2 text-base font-medium text-white bg-green-600 border border-transparent rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:mb-0 sm:ml-3 sm:w-auto sm:text-sm"
+                    class="inline-flex justify-center w-full px-4 py-2 mb-2 text-base font-medium text-gray-100 bg-green-600 border border-transparent rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:mb-0 sm:ml-3 sm:w-auto sm:text-sm"
                     title="Öffnen Sie das Bild in einem neuen Tab">
-                    <svg class="w-[16px] h-[16px] text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                    <svg class="w-[16px] h-[16px] text-gray-100" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                         fill="none" viewBox="0 0 18 18">
                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M15 11v4.833A1.166 1.166 0 0 1 13.833 17H2.167A1.167 1.167 0 0 1 1 15.833V4.167A1.166 1.166 0 0 1 2.167 3h4.618m4.447-2H17v5.768M9.111 8.889l7.778-7.778" />
@@ -394,13 +394,13 @@
                 <!-- Tab Buttons -->
                 <div class="flex justify-center mb-4 space-x-2 md:space-x-4">
                     <button
-                        class="px-4 py-2 font-semibold text-green-700 bg-green-100 rounded-lg focus:outline-none hover:bg-green-600 hover:text-white"
+                        class="px-4 py-2 font-semibold text-green-700 bg-green-100 rounded-lg focus:outline-none hover:bg-green-600 hover:text-gray-100"
                         id="tab-general-info">General Information</button>
                     <button
-                        class="px-4 py-2 font-semibold text-green-700 bg-green-100 rounded-lg focus:outline-none hover:bg-green-600 hover:text-white"
+                        class="px-4 py-2 font-semibold text-green-700 bg-green-100 rounded-lg focus:outline-none hover:bg-green-600 hover:text-gray-100"
                         id="tab-location-info">Position auf der Karte</button>
                     <button
-                        class="px-4 py-2 font-semibold text-green-700 bg-green-100 rounded-lg focus:outline-none hover:bg-green-600 hover:text-white"
+                        class="px-4 py-2 font-semibold text-green-700 bg-green-100 rounded-lg focus:outline-none hover:bg-green-600 hover:text-gray-100"
                         id="tab-user-info">User Information</button>
                 </div>
                 <!-- Tab Content -->
@@ -887,7 +887,7 @@
     function exportData(exportType) {
         var exportButton = document.getElementById("dropdownExportButton");
         // Add loading animation to the button
-        exportButton.innerHTML = '<svg class="w-5 h-5 mx-auto text-white animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+        exportButton.innerHTML = '<svg class="w-5 h-5 mx-auto text-gray-100 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
         var url = "/admin/export/xlsx/" + exportType;
         window.location.href = url;
 
