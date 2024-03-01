@@ -39,7 +39,11 @@ def index():
     )
 
     return render_template(
-        "home.html", post_count=post_count, bilder=bilder, current_index=current_index
+        "home.html",
+        post_count=post_count,
+        bilder=bilder,
+        current_index=current_index,
+        current_year=current_app.config["CURRENT_YEAR"],
     )
 
 
