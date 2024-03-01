@@ -2,7 +2,6 @@ import csv
 from datetime import datetime, timedelta
 from functools import wraps
 from io import BytesIO, StringIO
-
 import pandas as pd
 from app import db
 from app.config import Config
@@ -37,6 +36,7 @@ from werkzeug.utils import secure_filename
 from pathlib import Path
 from flask import current_app
 from app.tools.send_reviewer_email import send_email
+import os
 
 # Blueprints
 admin = Blueprint("admin", __name__)
@@ -296,39 +296,37 @@ def toggle_approve_sighting(id):
         sighting.bearb_id = session["user_id"]
         db.session.commit()
     if Config.send_emails:
-        # get data for E-Mail if send_email is True      
-        sighting = db.session.query(
-            TblMeldungen,
-            TblFundorte,
-            TblFundortBeschreibung,
-            TblMeldungUser,
-            TblUsers
-        ).join(
-            TblFundorte,
-            TblMeldungen.fo_zuordnung == TblFundorte.id
-        ).join(
-            TblFundortBeschreibung,
-            TblFundorte.beschreibung == TblFundortBeschreibung.id
-        ).join(
-            TblMeldungUser,
-            TblMeldungen.id == TblMeldungUser.id_meldung
-        ).join(
-            TblUsers,
-            TblMeldungUser.id_user == TblUsers.id
-        ).filter(
-            TblMeldungen.id == id
-        ).first()
-        
+        # get data for E-Mail if send_email is True
+        sighting = (
+            db.session.query(
+                TblMeldungen,
+                TblFundorte,
+                TblFundortBeschreibung,
+                TblMeldungUser,
+                TblUsers,
+            )
+            .join(TblFundorte, TblMeldungen.fo_zuordnung == TblFundorte.id)
+            .join(
+                TblFundortBeschreibung,
+                TblFundorte.beschreibung == TblFundortBeschreibung.id,
+            )
+            .join(TblMeldungUser, TblMeldungen.id == TblMeldungUser.id_meldung)
+            .join(TblUsers, TblMeldungUser.id_user == TblUsers.id)
+            .filter(TblMeldungen.id == id)
+            .first()
+        )
+
         if sighting:
             dbdata = {}
             for part in sighting:
-                part_dict = {c.name: getattr(part, c.name)
-                             for c in part.__table__.columns}
+                part_dict = {
+                    c.name: getattr(part, c.name) for c in part.__table__.columns
+                }
                 dbdata.update(part_dict)
 
-            if dbdata['user_kontakt']:
+            if dbdata["user_kontakt"]:
                 send_email(dbdata)
-        return jsonify({'success': True})
+        return jsonify({"success": True})
     else:
         return jsonify({"error": "Report not found"}), 404
 
