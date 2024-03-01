@@ -281,9 +281,9 @@ def validate():
         return jsonify({"errors": form.errors}), 333
 
 
-@data.route("/auswertungen", defaults={"selected_year": None})
-@data.route("/auswertungen/<int:selected_year>")
-def show_map(selected_year):
+@data.route("/auswertungen")
+def show_map():
+    selected_year = request.args.get("year", None, type=int)
     "Select data for one selected year"
 
     # Get distinct years from dat_fund_von
@@ -304,8 +304,7 @@ def show_map(selected_year):
         .filter(TblMeldungen.deleted.is_(None))
     )
 
-    if selected_year is not None and str(selected_year).isdigit():
-        selected_year = int(selected_year)
+    if selected_year is not None:
         reports_query = reports_query.filter(
             db.func.extract("year", TblMeldungen.dat_fund_von) == selected_year
         )
