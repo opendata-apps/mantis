@@ -164,35 +164,38 @@
     reports.forEach(report => {
       const marker = L.marker([report.latitude, report.longitude]);
 
-      marker.bindPopup("Loading..."); // initial message
+      marker.bindPopup("<div class='popup-loading'>Loading...</div>");
 
       marker.on('popupopen', function (e) {
-        // Fetch data dynamically
         fetch(`/get_marker_data/${report.report_id}`)
           .then(response => response.json())
           .then(data => {
-            let popupContent = `<strong>Melde ID: ${data.id}</strong>`;
+            let popupContent = `<div class="popup-content">
+                                  <h2>Melde ID: ${data.id}</h2>
+                                  <ul class="popup-list">`;
 
             if (data.dat_meld) {
-              popupContent += `<br>Melde Datum: ${data.dat_meld}`;
+              popupContent += `<li><strong>Melde Datum:</strong> ${data.dat_meld}</li>`;
             }
 
             if (data.dat_fund_von) {
-              popupContent += `<br>Fund Datum: ${data.dat_fund_von}`;
+              popupContent += `<li><strong>Fund Datum:</strong> ${data.dat_fund_von}</li>`;
             }
 
             if (data.ort) {
-              popupContent += `<br>${data.ort}`;
+              popupContent += `<li><strong>Ort:</strong> ${data.ort}</li>`;
             }
 
             if (data.kreis) {
-              popupContent += `<br>${data.kreis}`;
+              popupContent += `<li><strong>Kreis:</strong> ${data.kreis}</li>`;
             }
+
+            popupContent += `</ul></div>`;
 
             e.popup.setContent(popupContent);
           })
           .catch(error => {
-            e.popup.setContent("Failed to load data");
+            e.popup.setContent("<div class='popup-error'>Failed to load data</div>");
           });
       });
 
@@ -218,9 +221,9 @@
 
   function filterByYear(year) {
     if (year === '') {
-      window.location.href = '/auswertungen'; // Redirect to the default route
+      window.location.href = '/auswertungen';
     } else {
-      window.location.href = `/auswertungen/${year}`;
+      window.location.href = `/auswertungen?year=${year}`;
     }
   }
 
@@ -228,75 +231,63 @@
 
 
 <style>
-/* Styles for the dropdown */
 #map .absolute {
-  padding-top: 10px !important; /* Padding on top */
-  margin: 0 auto !important; /* Centering the container */
-  width: max-content !important; /* Adjust width to content */
-  margin-left: 80px !important; /* Adjust margin left to content */
+  padding-top: 10px !important;
+  margin: 0 auto !important;
+  width: max-content !important; 
+  margin-left: 80px !important;
 }
 
+.leaflet-popup-content-wrapper {
+  background: rgba(22, 101, 52, 0.8);
+  border-radius: 12px;
+  color: #ffffff;
+  font-family: 'Arial', sans-serif;
+  opacity: 0;
+  animation: fadeIn ease 1s;
+  animation-fill-mode: forwards;
+}
 
-  /* css to customize Leaflet default styles  */
-  /* Adjust the popup wrapper */
-  .leaflet-popup-content-wrapper {
-    background: rgba(22, 101, 52, 0.8);
-    /* semi-transparent background */
-    border-radius: 12px;
-    /* rounded corners */
-    color: #ffffff;
-    /* text color */
-    font-family: 'Arial', sans-serif;
-    /* font style */
+.leaflet-popup-tip {
+  background: rgba(22, 101, 52, 0.8);
+}
+
+.leaflet-popup-content {
+  padding: 10px;
+}
+
+.popup-content h2 {
+  margin-bottom: 10px;
+  font-size: 1.3em;
+  color: #f3f4f6;
+}
+
+.popup-list {
+  list-style-type: none;
+  padding: 0;
+}
+
+.popup-list li {
+  margin-bottom: 5px;
+}
+
+.popup-loading, .popup-error {
+  text-align: center;
+  font-weight: bold;
+}
+
+.popup-error {
+  color: #FF6347;
+}
+
+@keyframes fadeIn {
+  from {
     opacity: 0;
-    /* start with transparent */
-    animation: fadeIn ease 1s;
-    /* fade-in animation */
-    animation-fill-mode: forwards;
-    /* keep the end state */
   }
 
-
-  /* Adjust the popup tip */
-  .leaflet-popup-tip {
-    background: rgba(22, 101, 52, 0.8);
-    /* semi-transparent background */
+  to {
+    opacity: 1;
   }
-
-  /* Add some padding to the popup content */
-  .leaflet-popup-content {
-    padding: 10px;
-    /* internal padding */
-  }
-
-  /* Make strong text stand out */
-  .leaflet-popup-content strong {
-    display: block;
-    /* make it block-level */
-    margin-bottom: 10px;
-    /* add some margin at the bottom */
-    font-size: 1.2em;
-    /* increase the font size */
-  }
-
-  /* Add some spacing between lines */
-  .leaflet-popup-content br {
-    margin-bottom: 5px;
-    display: block;
-    /* make it block-level */
-
-  }
-
-
-  /* Fade-in animation */
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-    }
-
-    to {
-      opacity: 1;
-    }
-  }
+}
 </style>
 {% endblock content %}
