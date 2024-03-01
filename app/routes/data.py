@@ -244,8 +244,10 @@ def report(usrid=None):
         db.session.add(new_meldung_user)
         db.session.commit()
         addresse = form.contact.data
-        session['submission_successful'] = True
-        return redirect(url_for("data.success", usrid=usrid, addresse=str(bool(addresse))))
+        session["submission_successful"] = True
+        return redirect(
+            url_for("data.success", usrid=usrid, addresse=str(bool(addresse)))
+        )
 
     if existing_user is not None:
         existing_user = _user_to_dict(existing_user)
@@ -255,15 +257,16 @@ def report(usrid=None):
         existing_user=existing_user,
         apikey=Config.esri,
     )
-    
+
+
 @data.route("/success/<usrid>")
 def success(usrid):
-    if not session.get('submission_successful'):
-        return redirect(url_for('main.index'))
-    
-    session['submission_successful'] = False
+    if not session.get("submission_successful"):
+        return redirect(url_for("main.index"))
 
-    addresse = request.args.get('addresse', None)
+    session["submission_successful"] = False
+
+    addresse = request.args.get("addresse", None)
     return render_template("success.html", usrid=usrid, addresse=addresse)
 
 
@@ -281,7 +284,7 @@ def validate():
 @data.route("/auswertungen", defaults={"selected_year": None})
 @data.route("/auswertungen/<int:selected_year>")
 def show_map(selected_year):
-    "Select data for one selected year" 
+    "Select data for one selected year"
 
     # Get distinct years from dat_fund_von
     years = (
@@ -298,6 +301,7 @@ def show_map(selected_year):
         db.session.query(TblMeldungen.id, TblFundorte.latitude, TblFundorte.longitude)
         .join(TblFundorte, TblMeldungen.fo_zuordnung == TblFundorte.id)
         .filter(TblMeldungen.dat_bear != None)
+        .filter(TblMeldungen.deleted.is_(None))
     )
 
     if selected_year is not None and str(selected_year).isdigit():
