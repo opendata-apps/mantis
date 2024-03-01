@@ -6,10 +6,10 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'Mantis'
-copyright = '2023, zit-team'
-author = 'zit-team'
-release = '1'
+project = "Mantis"
+copyright = "2024, zit-team"
+author = "zit-team"
+release = "1"
 html_title = " "
 
 # -- General configuration ---------------------------------------------------
@@ -17,13 +17,13 @@ html_title = " "
 
 extensions = []
 
-templates_path = ['_templates']
+templates_path = ["_templates"]
 exclude_patterns = []
 
-language = 'de'
+language = "de"
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'sphinx_rtd_theme'
-html_static_path = ['_static']
+html_theme = "sphinx_rtd_theme"
+html_static_path = ["_static"]
