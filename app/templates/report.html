@@ -39,7 +39,9 @@
           </div>
           <div class="flex items-center justify-center w-full">
             <label for="{{ form.picture.id }}"
-              class="flex flex-col items-center justify-center w-full h-64 transition-all duration-500 ease-in-out border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 ">
+              class="flex flex-col items-center justify-center w-full h-64 transition-all duration-500 ease-in-out border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
+              ondragover="event.preventDefault();" 
+              ondrop="dropHandler(event);">
               <div id="imagePreview"
                 class="flex-col items-center justify-center hidden w-full h-64 overflow-hidden transition-all duration-500 ease-in-out fade-in">
                 <img id="previewImage" class="object-scale-down w-full h-full" src="#"
@@ -52,15 +54,17 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                 </svg>
-                <p class="mb-2 text-sm text-gray-500 "><span class="font-semibold">Click to upload
-                    image...</span></p>
+                <p class="mb-2 text-sm text-gray-500 "><span class="font-semibold">Click or drop image here...</span></p>
                 <p class="text-xs text-gray-500 ">PNG, JPG, JPEG oder WEBP (max. 10 MB)</p>
               </div>
               {{ form.picture(class="hidden", id=form.picture.id, accept="image/*") }}
             </label>
           </div>
         </div>
-        <div class="grid grid-cols-2 gap-4 mb-4">
+        <script>
+
+        </script>
+        <div class="grid grid-cols-2 mb-4 dragOverHandlergap-4">
           <div>
             <label for="{{ form.longitude.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
@@ -616,40 +620,50 @@
   const preview = document.getElementById('previewImage');
   const previewContainer = document.getElementById('imagePreview');
   const uploadText = document.getElementById('uploadText');
+  const validFileTypes = ["image/png", "image/jpeg", "image/jfif", "image/webp", "image/heic"];
 
-  input.addEventListener('change', function (e) {
-    const file = e.target.files[0];
-const validFileTypes = ["image/png", "image/jpeg",
-      "image/jfif", "image/webp", "image/heic"];
+  function handleFile(file) {
+    if (!validFileTypes.includes(file.type.toLowerCase())) {
+      const msg = "Erlaubt sind PNG, JPG, JPEG, JFIF, WEBP oder HEIC-Dateien.";
+      showErrors({ picture: [msg] }, 0);
+      input.value = '';
+      return false;
+    }
 
-    // Clear previous error messages
-    clearErrorsForField('picture');
-
-    if (file) {
-      // Check if the file type is valid
-      if (!validFileTypes.includes(file.type.toLowerCase())) {
-          // Call your error function here
-    msg = "Erlaubt sind PNG, JPG, JPEG, JFIF, WEBP oder HEIC-Dateien."
-          showErrors({ picture: [msg] }, 0);
-          e.target.value = ''; // Clear the input
-          return;
-      }
-
-      const reader = new FileReader();
-
-      reader.addEventListener('load', function () {
-        preview.setAttribute('src', reader.result);
-      });
-
-      reader.readAsDataURL(file);
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      preview.setAttribute('src', e.target.result);
       previewContainer.classList.remove('hidden');
       uploadText.classList.add('hidden');
+    };
+    reader.readAsDataURL(file);
+    return true;
+  }
+
+  input.addEventListener('change', function(e) {
+    clearErrorsForField('picture');
+    const file = e.target.files[0];
+    if (file) {
+      handleFile(file);
     } else {
       preview.setAttribute('src', '#');
       previewContainer.classList.add('hidden');
       uploadText.classList.remove('hidden');
     }
   });
+
+  function dropHandler(ev) {
+    ev.preventDefault();
+    if (ev.dataTransfer.items) {
+      for (let i = 0; i < ev.dataTransfer.items.length; i++) {
+        if (ev.dataTransfer.items[i].kind === 'file') {
+          const file = ev.dataTransfer.items[i].getAsFile();
+          input.files = ev.dataTransfer.files;
+          if (!handleFile(file)) break;
+        }
+      }
+    }
+  }
 
   function clearErrorsForField(fieldName) {
     // Remove error styling from picture label
