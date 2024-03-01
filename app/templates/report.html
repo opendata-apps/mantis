@@ -477,18 +477,18 @@
       }
     });
   
-    // Update form fields on map click
-    map.on('click', function (e) {
-      document.querySelector('#latitude').value = e.latlng.lat.toFixed(5);
-      document.querySelector('#longitude').value = e.latlng.lng.toFixed(5);
+    // Update form fields on map click or manual input
+    function updateMapAndFormData(lat, lng) {
+      document.querySelector('#latitude').value = lat.toFixed(5);
+      document.querySelector('#longitude').value = lng.toFixed(5);
   
-      getAddressFromCoordinates(e.latlng.lat, e.latlng.lng);
+      getAddressFromCoordinates(lat, lng);
   
       if (userMarker) {
         userMarker.remove();
       }
   
-      userMarker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map);
+      userMarker = L.marker([lat, lng]).addTo(map);
   
       // Save form data to local storage
       let formData = {};
@@ -499,10 +499,32 @@
       updateSummary();  // Also update the summary map right away
   
       // add longitude and latitude to local storage
-      localStorage.setItem('latitude', e.latlng.lat.toFixed(5));
-      localStorage.setItem('longitude', e.latlng.lng.toFixed(5));
+      localStorage.setItem('latitude', lat.toFixed(5));
+      localStorage.setItem('longitude', lng.toFixed(5));
+    }
+  
+    map.on('click', function (e) {
+      updateMapAndFormData(e.latlng.lat, e.latlng.lng);
+    });
+  
+    // Listen for manual coordinate input
+    document.querySelector('#latitude').addEventListener('change', function () {
+      const lat = parseFloat(this.value);
+      const lng = parseFloat(document.querySelector('#longitude').value);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        updateMapAndFormData(lat, lng);
+      }
+    });
+  
+    document.querySelector('#longitude').addEventListener('change', function () {
+      const lng = parseFloat(this.value);
+      const lat = parseFloat(document.querySelector('#latitude').value);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        updateMapAndFormData(lat, lng);
+      }
     });
   }
+  
   document.addEventListener('DOMContentLoaded', initMap);
 
   function getAddressFromCoordinates(latitude, longitude) {
@@ -592,7 +614,6 @@
       if (!file) return;
 
       EXIF.getData(file, function () {
-        // Read metadata from the image
         const lat = EXIF.getTag(this, 'GPSLatitude');
         const lng = EXIF.getTag(this, 'GPSLongitude');
         const latRef = EXIF.getTag(this, 'GPSLatitudeRef');
@@ -603,13 +624,19 @@
           const latitude = toDecimal(lat, latRef);
           const longitude = toDecimal(lng, lngRef);
 
+          // if values are nan or 0, do not set the form fields
+          if (isNaN(latitude) || isNaN(longitude) || latitude === 0 || longitude === 0) {
+            return;
+          }
           // Set the values to the form fields
           document.querySelector('#latitude').value = latitude;
           document.querySelector('#longitude').value = longitude;
 
-          getAddressFromCoordinates(latitude, longitude);
+          if (window.userMarker) window.userMarker.remove();
+          window.userMarker = L.marker([latitude, longitude]).addTo(map);
+          map.setView([latitude, longitude], 13); 
         } else {
-          // Handle the case when GPS data is not available in the image
+          return;
         }
       });
     });
@@ -620,31 +647,34 @@
   const preview = document.getElementById('previewImage');
   const previewContainer = document.getElementById('imagePreview');
   const uploadText = document.getElementById('uploadText');
-  const validFileTypes = ["image/png", "image/jpeg", "image/jfif", "image/webp", "image/heic"];
 
-  function handleFile(file) {
-    if (!validFileTypes.includes(file.type.toLowerCase())) {
-      const msg = "Erlaubt sind PNG, JPG, JPEG, JFIF, WEBP oder HEIC-Dateien.";
-      showErrors({ picture: [msg] }, 0);
-      input.value = '';
-      return false;
-    }
+  input.addEventListener('change', function (e) {
+    const file = e.target.files[0];
+    const validFileTypes = ["image/png", "image/jpeg",
+      "image/jfif", "image/webp", "image/heic"];
 
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      preview.setAttribute('src', e.target.result);
+    // Clear previous error messages
+    clearErrorsForField('picture');
+
+    if (file) {
+      // Check if the file type is valid
+      if (!validFileTypes.includes(file.type.toLowerCase())) {
+          // Call your error function here
+          msg = "Erlaubt sind PNG, JPG, JPEG, JFIF, WEBP oder HEIC-Dateien."
+          showErrors({ picture: [msg] }, 0);
+          e.target.value = ''; // Clear the input
+          return;
+      }
+
+      const reader = new FileReader();
+
+      reader.addEventListener('load', function () {
+        preview.setAttribute('src', reader.result);
+      });
+
+      reader.readAsDataURL(file);
       previewContainer.classList.remove('hidden');
       uploadText.classList.add('hidden');
-    };
-    reader.readAsDataURL(file);
-    return true;
-  }
-
-  input.addEventListener('change', function(e) {
-    clearErrorsForField('picture');
-    const file = e.target.files[0];
-    if (file) {
-      handleFile(file);
     } else {
       preview.setAttribute('src', '#');
       previewContainer.classList.add('hidden');
@@ -653,14 +683,27 @@
   });
 
   function dropHandler(ev) {
+    //console.log('File(s) dropped');
     ev.preventDefault();
     if (ev.dataTransfer.items) {
-      for (let i = 0; i < ev.dataTransfer.items.length; i++) {
+      for (var i = 0; i < ev.dataTransfer.items.length; i++) {
         if (ev.dataTransfer.items[i].kind === 'file') {
-          const file = ev.dataTransfer.items[i].getAsFile();
+          var file = ev.dataTransfer.items[i].getAsFile();
+          //console.log('... file[' + i + '].name = ' + file.name);
+          var input = document.getElementById('{{ form.picture.id }}');
           input.files = ev.dataTransfer.files;
-          if (!handleFile(file)) break;
+          var reader = new FileReader();
+          reader.onload = function(e) {
+            document.getElementById('imagePreview').style.display = 'flex';
+            document.getElementById('previewImage').src = e.target.result;
+            document.getElementById('uploadText').style.display = 'none';
+          }
+          reader.readAsDataURL(file);
         }
+      }
+    } else {
+      for (var i = 0; i < ev.dataTransfer.files.length; i++) {
+        //console.log('... file[' + i + '].name = ' + ev.dataTransfer.files[i].name);
       }
     }
   }
