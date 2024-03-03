@@ -24,7 +24,7 @@ from app.database.models import TblFundorte, TblMeldungen, TblMeldungUser, TblUs
 from app.forms import MantisSightingForm
 from app.tools.gen_user_id import get_new_id
 from app.routes.admin import get_sighting
-
+from app.tools.mtb_calc import get_mtb
 from ..config import Config
 
 # Blueprints
@@ -200,6 +200,7 @@ def report(usrid=None):
             land=form.state.data,
             longitude=form.longitude.data,
             latitude=form.latitude.data,
+            mtb=get_mtb(form.latitude.data,form.longitude.data),
             beschreibung=int(form.location_description.data),
             ablage=bildpfad,
         )

@@ -15,6 +15,7 @@ from flask import (
 from app.tools.check_reviewer import login_required
 from flask import session
 
+from ..config import Config
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -43,7 +44,7 @@ def index():
         post_count=post_count,
         bilder=bilder,
         current_index=current_index,
-        current_year=current_app.config["CURRENT_YEAR"],
+        current_year=Config.CURRENT_YEAR
     )
 
 
