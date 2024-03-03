@@ -98,7 +98,8 @@ def _handle_file_upload(request, form, usrid):
         flash("No selected file")
         return None
 
-    date_folder = _create_directory(form.sighting_date.data.strftime("%Y-%m-%d"))
+    date_folder = _create_directory(
+        form.sighting_date.data.strftime("%Y-%m-%d"))
     filename = _create_filename(form.city.data, usrid)
     full_file_path = date_folder / filename
 
@@ -153,7 +154,8 @@ def _saveip(ip):
 @data.route("/melden/<usrid>", methods=["GET", "POST"])
 def report(usrid=None):
 
-    existing_user = TblUsers.query.filter_by(user_id=usrid).first() if usrid else None
+    existing_user = TblUsers.query.filter_by(
+        user_id=usrid).first() if usrid else None
     if not existing_user:
         usrid = get_new_id()
 
@@ -200,7 +202,7 @@ def report(usrid=None):
             land=form.state.data,
             longitude=form.longitude.data,
             latitude=form.latitude.data,
-            mtb=get_mtb(form.latitude.data,form.longitude.data),
+            mtb=get_mtb(form.latitude.data, form.longitude.data),
             beschreibung=int(form.location_description.data),
             ablage=bildpfad,
         )
@@ -245,6 +247,7 @@ def report(usrid=None):
         db.session.add(new_meldung_user)
         db.session.commit()
         addresse = form.contact.data
+        # set submission_successfull to True
         session["submission_successful"] = True
         return redirect(
             url_for("data.success", usrid=usrid, addresse=str(bool(addresse)))
@@ -262,6 +265,8 @@ def report(usrid=None):
 
 @data.route("/success/<usrid>")
 def success(usrid):
+    "Prevent reloading of success route after first submission."
+
     if not session.get("submission_successful"):
         return redirect(url_for("main.index"))
 
@@ -273,7 +278,10 @@ def success(usrid):
 
 @data.route("/validate", methods=["POST"])
 def validate():
-    form_data = CombinedMultiDict((request.form, request.files))  # type: ignore
+    "Validate user input in report with the errors from forms.py"
+
+    form_data = CombinedMultiDict(
+        (request.form, request.files))  # type: ignore
     form = MantisSightingForm(form_data)
 
     if form.validate():
@@ -299,7 +307,8 @@ def show_map():
     years = [int(year[0]) for year in years]
 
     reports_query = (
-        db.session.query(TblMeldungen.id, TblFundorte.latitude, TblFundorte.longitude)
+        db.session.query(TblMeldungen.id, TblFundorte.latitude,
+                         TblFundorte.longitude)
         .join(TblFundorte, TblMeldungen.fo_zuordnung == TblFundorte.id)
         .filter(TblMeldungen.dat_bear != None)
         .filter(TblMeldungen.deleted.is_(None))
@@ -314,7 +323,8 @@ def show_map():
     else:
         # Summe aller Meldungen für den Counter
         post_count = (
-            db.session.query(TblMeldungen).filter(TblMeldungen.deleted == None).count()
+            db.session.query(TblMeldungen).filter(
+                TblMeldungen.deleted == None).count()
         )
 
     reports = reports_query.all()
@@ -328,7 +338,8 @@ def show_map():
 
             lati, long = obfuscate_location(lati, long)
 
-            koords.append({"report_id": report_id, "latitude": lati, "longitude": long})
+            koords.append(
+                {"report_id": report_id, "latitude": lati, "longitude": long})
         except:
             pass
 

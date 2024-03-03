@@ -194,8 +194,6 @@ def stats_meldungen_meld_fund(request=None):
         else:
             pass
     res_trace2 = json.loads(json.dumps(trace2))
-    print(res_trace1)
-    print(res_trace2)
     return render_template(
         "statistics/stats-meld-fund.html",
         menu=list_of_stats,

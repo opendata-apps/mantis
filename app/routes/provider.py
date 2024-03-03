@@ -20,7 +20,6 @@ provider = Blueprint("provider", __name__)
 def melder_index(usrid):
     # Fetch the user based on the 'usrid' parameter
     user = TblUsers.query.filter_by(user_id=usrid).first()
-    print(user)
     # If the user doesn't exist or the role isn't 9, return 404
     if not user or (user.user_rolle != "1" and user.user_rolle != "9"):
         abort(404)
