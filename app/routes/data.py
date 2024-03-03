@@ -295,14 +295,14 @@ def show_map():
     selected_year = request.args.get("year", None, type=int)
     "Select data for one selected year"
 
-    # Get distinct years from dat_fund_von
+    # Get distinct years from dat_fund_von begginning with MIN_MAP_YEAR
     years = (
         db.session.query(
             db.func.extract("year", TblMeldungen.dat_fund_von).label("year")
         )
         .distinct()
         .order_by("year")
-        .all()
+        .filter(TblMeldungen.dat_fund_von >= f"{Config.MIN_MAP_YEAR}-01-01")
     )
     years = [int(year[0]) for year in years]
 
