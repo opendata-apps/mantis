@@ -7,7 +7,6 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/cluster/MarkerCluster.Default.css')}}" />
 <link rel="stylesheet" href="{{ url_for('static', filename='css/cluster/MarkerCluster.css')}}" />
 <link rel="stylesheet" href="{{ url_for('static', filename='css/currentLocation/L.Control.Locate.min.css')}}" />
-<script src="{{ url_for('static', filename='js/flow/flowbite.min.js')}}" defer></script>
 <script src="{{ url_for('static', filename='js/leaflet.js')}}"></script>
 <script src="{{ url_for('static', filename='js/esri-leaflet.js')}}"></script>
 <script src="{{ url_for('static', filename='js/esri-leaflet-vector.js')}}"></script>
@@ -16,6 +15,7 @@
 <script src="{{url_for('static', filename='js/currentLocation/L.Control.Locate.min.js')}}"></script>
 {% endblock %}
 {% block content %}
+<script src="{{ url_for('static', filename='js/flow/flowbite.min.js')}}" defer></script>
 
 
 
@@ -542,6 +542,7 @@
             })
             .catch(error => console.error('Error:', error));
     }
+
 
     function fetchReport(id) {
         fetch('/get_sighting/' + id)

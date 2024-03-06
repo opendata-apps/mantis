@@ -11,7 +11,6 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/cluster/MarkerCluster.Default.css')}}" />
 <link rel="stylesheet" href="{{ url_for('static', filename='css/cluster/MarkerCluster.css')}}" />
 <link rel="stylesheet" href="{{ url_for('static', filename='css/currentLocation/L.Control.Locate.min.css')}}" />
-<script src="{{ url_for('static', filename='js/flow/flowbite.min.js')}}" defer></script>
 <script src="{{ url_for('static', filename='js/leaflet.js')}}"></script>
 <script src="{{ url_for('static', filename='js/esri-leaflet.js')}}"></script>
 <script src="{{ url_for('static', filename='js/esri-leaflet-vector.js')}}"></script>
@@ -23,14 +22,15 @@
 {% block meta_keywords %} Auswertungen, Karte, Gottesanbeterin, Mantis religiosa Auswertungen {% endblock %}
 {% block meta_description %} Schauen Sie sich die Auswertungen von Gottesanbeterin-Beobachtungen in Deutschland an. {% endblock %}
 {% block text %}
-  {% if selected_year %}
-    Übersicht zu allen bestätigten Meldungen im Jahr {{ selected_year }}.
-  {% else %}
-    Übersicht zu allen bestätigten Meldungen.
+{% if selected_year %}
+Übersicht zu allen bestätigten Meldungen im Jahr {{ selected_year }}.
+{% else %}
+Übersicht zu allen bestätigten Meldungen.
   {% endif %}
-{% endblock text %}
-{% block content %}
-<section class="container relative mx-auto mt-10">
+  {% endblock text %}
+  {% block content %}
+  <script src="{{ url_for('static', filename='js/flow/flowbite.min.js')}}" defer></script>
+  <section class="container relative mx-auto mt-10">
   <!-- Year Selector on Map -->
   <div class="flex justify-center">
     <p
