@@ -142,7 +142,7 @@ class MantisSightingForm(FlaskForm):
         description="Bitte geben Sie den Breitengrad des Standorts ein, an dem Sie die Gottesanbeterin gesehen haben.",
     )
 
-    zip_code = IntegerField(
+    zip_code = StringField(
         "PLZ",
         validators=[Optional(), validate_zip_code],
         render_kw={"placeholder": "PLZ"},
