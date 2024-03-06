@@ -286,8 +286,10 @@
                     class="object-cover w-full h-48 transition-transform duration-200 ease-in-out rounded-t-lg cursor-pointer md:h-64 hover:scale-105"
                     src="{{ url_for('admin.report_Img', filename=image_path + "/" + sighting.fundort.ablage)}}"
                     alt="Image not found">
-                    <!--mb-4 ml-4 zu ml-2 -mb-4 -->
                 <div title="{{sighting.ort}}&#13;&#10;Postleitzahl: {{sighting.plz}}&#13;&#10;Kreis: {{sighting.kreis}}&#13;&#10;Land: {{sighting.land}}" class="absolute bottom-0 px-3 py-1 mb-4 ml-4 font-semibold text-gray-800 rounded-full bg-white/80 backdrop-blur-md">{{ sighting.kreis }} | {{ sighting.ort }}</div>
+                {% if sighting.deleted %}
+                <div class="absolute bottom-0 right-0 px-3 py-1 mb-4 mr-4 font-semibold text-gray-800 rounded-full bg-red-500/80 backdrop-blur-md">Gelöscht</div>
+                {% endif %}
                 <span class="absolute inline-block px-2 py-1 font-semibold leading-none tracking-wide text-gray-100 uppercase bg-green-500 rounded-full top-2 left-2">{{ sighting.id }}</span>
             </div>
             <div class="p-4 bg-white rounded-lg">
