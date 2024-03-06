@@ -6,7 +6,6 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/cluster/MarkerCluster.Default.css')}}" />
 <link rel="stylesheet" href="{{ url_for('static', filename='css/cluster/MarkerCluster.css')}}" />
 <link rel="stylesheet" href="{{ url_for('static', filename='css/currentLocation/L.Control.Locate.min.css')}}" />
-<script src="{{ url_for('static', filename='js/flow/flowbite.min.js')}}" defer></script>
 <script src="{{ url_for('static', filename='js/leaflet.js')}}"></script>
 <script src="{{ url_for('static', filename='js/esri-leaflet.js')}}"></script>
 <script src="{{ url_for('static', filename='js/esri-leaflet-vector.js')}}"></script>
@@ -16,10 +15,11 @@
 <meta name="csrf-token" content="{{ csrf_token() }}">
 {% endblock %}
 {% block page_title %}Melden Sie Ihre Beobachtung | Mantis Religiosa Mitmachprojekt | Gottesanbeterin Gesucht{% endblock
-%}
-{% block title %}Fund melden{% endblock %}
-{% block meta_description %} Melden Sie Ihre Beobachtungen von Mantis religiosa in Deutschland. Unterstützen Sie die Forschung. {% endblock %}
-{% block content %}
+  %}
+  {% block title %}Fund melden{% endblock %}
+  {% block meta_description %} Melden Sie Ihre Beobachtungen von Mantis religiosa in Deutschland. Unterstützen Sie die Forschung. {% endblock %}
+  {% block content %}
+  <script src="{{ url_for('static', filename='js/flow/flowbite.min.js')}}" defer></script>
 
 
 <div class="flex items-center justify-center min-h-screen bg-gray-100">
