@@ -98,8 +98,7 @@ def _handle_file_upload(request, form, usrid):
         flash("No selected file")
         return None
 
-    date_folder = _create_directory(
-        form.sighting_date.data.strftime("%Y-%m-%d"))
+    date_folder = _create_directory(form.sighting_date.data.strftime("%Y-%m-%d"))
     filename = _create_filename(form.city.data, usrid)
     full_file_path = date_folder / filename
 
@@ -154,8 +153,7 @@ def _saveip(ip):
 @data.route("/melden/<usrid>", methods=["GET", "POST"])
 def report(usrid=None):
 
-    existing_user = TblUsers.query.filter_by(
-        user_id=usrid).first() if usrid else None
+    existing_user = TblUsers.query.filter_by(user_id=usrid).first() if usrid else None
     if not existing_user:
         usrid = get_new_id()
 
@@ -193,11 +191,11 @@ def report(usrid=None):
             zipcode = "0"
         else:
             zipcode = form.zip_code.data
-        # get number of Messtischblatt    
+        # get number of Messtischblatt
         if pointInRect((form.latitude.data, form.longitude.data)):
             mtb = get_mtb(form.latitude.data, form.longitude.data)
         else:
-            mtb = ''
+            mtb = ""
         new_fundort = TblFundorte(
             plz=zipcode,
             ort=form.city.data,
@@ -284,8 +282,7 @@ def success(usrid):
 def validate():
     "Validate user input in report with the errors from forms.py"
 
-    form_data = CombinedMultiDict(
-        (request.form, request.files))  # type: ignore
+    form_data = CombinedMultiDict((request.form, request.files))  # type: ignore
     form = MantisSightingForm(form_data)
 
     if form.validate():
@@ -311,8 +308,7 @@ def show_map():
     years = [int(year[0]) for year in years]
 
     reports_query = (
-        db.session.query(TblMeldungen.id, TblFundorte.latitude,
-                         TblFundorte.longitude)
+        db.session.query(TblMeldungen.id, TblFundorte.latitude, TblFundorte.longitude)
         .join(TblFundorte, TblMeldungen.fo_zuordnung == TblFundorte.id)
         .filter(TblMeldungen.dat_bear != None)
         .filter(TblMeldungen.deleted.is_(None))
@@ -327,8 +323,7 @@ def show_map():
     else:
         # Summe aller Meldungen für den Counter
         post_count = (
-            db.session.query(TblMeldungen).filter(
-                TblMeldungen.deleted == None).count()
+            db.session.query(TblMeldungen).filter(TblMeldungen.deleted == None).count()
         )
 
     reports = reports_query.all()
@@ -342,8 +337,7 @@ def show_map():
 
             lati, long = obfuscate_location(lati, long)
 
-            koords.append(
-                {"report_id": report_id, "latitude": lati, "longitude": long})
+            koords.append({"report_id": report_id, "latitude": lati, "longitude": long})
         except:
             pass
 
@@ -360,6 +354,7 @@ def show_map():
 
 @data.route("/get_marker_data/<int:report_id>")
 def get_marker_data(report_id):
+    "Get the data for a single marker on the map."
     report = (
         db.session.query(
             TblMeldungen.id,
@@ -388,7 +383,7 @@ def get_marker_data(report_id):
 
 
 def obfuscate_location(lat, long):
-    """Add a small random offset to the given latitude and longitude."""
+    "Add a small random offset to the given latitude and longitude."
     offset = 0.005  # Adjustable offset
     lat += uniform(-offset, offset)
     long += uniform(-offset, offset)

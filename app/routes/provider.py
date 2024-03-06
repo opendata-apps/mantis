@@ -18,6 +18,7 @@ provider = Blueprint("provider", __name__)
 @provider.route("/report/<usrid>")
 @provider.route("/sichtungen/<usrid>")
 def melder_index(usrid):
+    "Index page for the provider. The users reports are displayed here."
     # Fetch the user based on the 'usrid' parameter
     user = TblUsers.query.filter_by(user_id=usrid).first()
     # If the user doesn't exist or the role isn't 9, return 404
@@ -83,6 +84,7 @@ def melder_index(usrid):
 
 @provider.route("/<path:filename>")
 def report_Img(filename):
+    "Return the image file for the report with the given filename."
     return send_from_directory(
         Config["UPLOAD_PATH"], filename, mimetype="image/webp", as_attachment=False
     )
