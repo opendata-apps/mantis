@@ -376,6 +376,21 @@ def delete_sighting(id):
         return jsonify({"error": "Report not found"}), 404
 
 
+@admin.route("/undelete_sighting/<id>", methods=["POST"])
+@login_required
+def undelete_sighting(id):
+    # Find the report by id
+    sighting = TblMeldungen.query.get(id)
+    if sighting:
+        # Set the deleted value to False
+        sighting.deleted = False
+        sighting.bearb_id = session["user_id"]
+        db.session.commit()
+        return jsonify({"message": "Report successfully undeleted"}), 200
+    else:
+        return jsonify({"error": "Report not found"}), 404
+
+
 @admin.route("/save_sighting_changes/<id>", methods=["POST"])
 @login_required
 def save_sighting_changes(id):
@@ -383,10 +398,6 @@ def save_sighting_changes(id):
 
     sighting = TblMeldungen.query.get(id)
     if sighting:
-        # Update sighting with data from request
-        # This will depend on how you implement
-        # the saveChanges function in JavaScript
-        # sighting.field = request.form['field']
         sighting = session["user_id"]
         db.session.commit()
         return jsonify({"success": True})
