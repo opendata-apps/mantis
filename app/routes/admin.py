@@ -27,7 +27,7 @@ from flask import (
     send_from_directory,
     url_for,
 )
-from sqlalchemy import inspect, or_, text
+from sqlalchemy import inspect, or_, text, and_
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker
 from app.tools.check_reviewer import login_required
@@ -44,124 +44,188 @@ admin = Blueprint("admin", __name__)
 
 @admin.route("/reviewer/<usrid>")
 def reviewer(usrid):
-    "This function is used to display the reviewer page"
-    # Fetch the user based on the 'usrid' parameter
-    user = TblUsers.query.filter_by(user_id=usrid).first()
+    try:
+        # Fetch the user based on the 'usrid' parameter
+        user = TblUsers.query.filter_by(user_id=usrid).first()
 
-    # If the user doesn't exist or the role isn't 9, return 404
-    if not user or user.user_rolle != "9":
-        abort(403)
+        # If the user doesn't exist or the role isn't 9, return 404
+        if not user or user.user_rolle != "9":
+            flash("Unauthorized access.", "error")
+            abort(403)
 
-    now = datetime.utcnow()
-    # Get the user_name of the logged in user_id
-    user_name = user.user_name
-    page = request.args.get("page", 1, type=int)
-    per_page = request.args.get("per_page", 21, type=int)
-    last_updated = session.get("last_updated")
-    # Store the userid in session
-    session["user_id"] = usrid
+        now = datetime.utcnow()
+        user_name = user.user_name
+        page = request.args.get("page", 1, type=int)
+        per_page = request.args.get("per_page", 21, type=int)
+        last_updated = session.get("last_updated")
+        session["user_id"] = usrid
 
-    # Convert last_updated to a timezone-naive datetime if it's timezone-aware
-    if last_updated and last_updated.tzinfo:
-        last_updated = last_updated.replace(tzinfo=None)
+        if last_updated and last_updated.tzinfo:
+            last_updated = last_updated.replace(tzinfo=None)
 
-    if last_updated is None or now - last_updated > timedelta(minutes=1):
-        FullTextSearch.refresh_materialized_view()
-        session["last_updated"] = now
+        if last_updated is None or now - last_updated > timedelta(minutes=1):
+            FullTextSearch.refresh_materialized_view()
+            current_app.logger.info("Materialized view refreshed")
+            session["last_updated"] = now
 
-    filter_status = request.args.get("statusInput", "offen")
-    filter_type = request.args.get("typeInput", None)
-    sort_order = request.args.get("sort_order", "id_asc")
-    search_query = request.args.get("q", None)
-    search_type = request.args.get("search_type", "full_text")
-    date_from = request.args.get("dateFrom", None)
-    date_to = request.args.get("dateTo", None)
+        filter_status = request.args.get("statusInput", "offen")
+        filter_type = request.args.get("typeInput", None)
+        sort_order = request.args.get("sort_order", "id_asc")
+        search_query = request.args.get("q", None)
+        search_type = request.args.get("search_type", "full_text")
+        date_from = request.args.get("dateFrom", None)
+        date_to = request.args.get("dateTo", None)
 
-    image_path = Config.UPLOAD_FOLDER.replace("app/", "")
-    inspector = inspect(db.engine)
-    tables = inspector.get_table_names()
+        image_path = Config.UPLOAD_FOLDER.replace("app/", "")
+        inspector = inspect(db.engine)
+        tables = inspector.get_table_names()
 
-    if "statusInput" not in request.args and "sort_order" not in request.args:
-        return redirect(
-            url_for(
-                "admin.reviewer", usrid=usrid, statusInput="offen", sort_order="id_asc"
+        if "statusInput" not in request.args and "sort_order" not in request.args:
+            return redirect(
+                url_for(
+                    "admin.reviewer",
+                    usrid=usrid,
+                    statusInput="offen",
+                    sort_order="id_asc",
+                )
             )
+
+        query = TblMeldungen.query
+
+        query = apply_filters(
+            query,
+            filter_status,
+            filter_type,
+            search_query,
+            search_type,
+            date_from,
+            date_to,
+        )
+        query = apply_sort_order(query, sort_order)
+        query = apply_search(query, search_query, search_type)
+
+        paginated_sightings = query.paginate(
+            page=page, per_page=per_page, error_out=False
+        )
+        reported_sightings = enrich_sightings(paginated_sightings.items)
+
+        return render_template(
+            "admin/admin.html",
+            user_id=usrid,
+            paginated_sightings=paginated_sightings,
+            reported_sightings=reported_sightings,
+            tables=tables,
+            image_path=image_path,
+            user_name=user_name,
+            filters={"status": filter_status, "type": filter_type},
+            current_filter_status=filter_status,
+            current_sort_order=sort_order,
+            search_query=search_query,
+            search_type=search_type,
+        )
+    except Exception as e:
+        db.session.rollback()
+        flash(f"An error occurred: {str(e)}", "error")
+        return redirect(url_for("admin.reviewer", usrid=usrid))
+
+
+def apply_filters(
+    query, filter_status, filter_type, search_query, search_type, date_from, date_to
+):
+    try:
+        "Apply status filter with consideration for 'geloescht' reports based on the filter_status"
+        if filter_status in ["bearbeitet", "offen"]:
+            status_filters = {
+                "bearbeitet": and_(
+                    TblMeldungen.dat_bear.isnot(None), TblMeldungen.deleted.isnot(True)
+                ),
+                "offen": and_(
+                    TblMeldungen.dat_bear.is_(None), TblMeldungen.deleted.isnot(True)
+                ),
+            }
+        elif filter_status == "geloescht":
+            status_filters = {
+                "geloescht": TblMeldungen.deleted == True,
+            }
+        else:
+            status_filters = {
+                "all": or_(
+                    TblMeldungen.deleted.is_(None),
+                    TblMeldungen.deleted == False,
+                    TblMeldungen.deleted == True,
+                ),
+            }
+
+        query = query.filter(
+            status_filters.get(filter_status, TblMeldungen.deleted.is_(None))
         )
 
-    query = TblMeldungen.query
-
-    # Apply filter conditions based on 'filter_status'
-    if filter_status == "bearbeitet":
-        query = query.filter(
-            TblMeldungen.dat_bear.isnot(None),
-            or_(TblMeldungen.deleted.is_(None), TblMeldungen.deleted == False),
-        )
-    elif filter_status == "offen":
-        query = query.filter(
-            TblMeldungen.dat_bear.is_(None),
-            or_(TblMeldungen.deleted.is_(None), TblMeldungen.deleted == False),
-        )
-    elif filter_status == "geloescht":
-        query = query.filter(TblMeldungen.deleted == True)
-    elif filter_status == "all":
-        # If the filter is set to 'all',
-        # include both deleted and non-deleted items
-        query = query.filter(
-            or_(
-                TblMeldungen.deleted.is_(None),
-                TblMeldungen.deleted == False,
-                TblMeldungen.deleted == True,
-            )
-        )
-    elif search_query:
-        # If there's a search query,
-        # don't apply any deletion filter
-        pass
-    else:
-        # Default behavior: Exclude deleted items
-        query = query.filter(
-            or_(TblMeldungen.deleted.is_(None), TblMeldungen.deleted == False)
-        )
-
-    if filter_type:
-        if filter_type == "maennlich":
-            query = query.filter(TblMeldungen.art_m >= 1)
-        elif filter_type == "weiblich":
-            query = query.filter(TblMeldungen.art_w >= 1)
-        elif filter_type == "oothek":
-            query = query.filter(TblMeldungen.art_o >= 1)
-        elif filter_type == "nymhe":
-            query = query.filter(TblMeldungen.art_n >= 1)
-        elif filter_type == "andere":
-            query = query.filter(TblMeldungen.art_f >= 1)
-        elif filter_type == "nicht_bestimmt":
-            query = query.filter(
+        # Apply type filter
+        type_filters = {
+            "maennlich": TblMeldungen.art_m >= 1,
+            "weiblich": TblMeldungen.art_w >= 1,
+            "oothek": TblMeldungen.art_o >= 1,
+            "nymhe": TblMeldungen.art_n >= 1,
+            "andere": TblMeldungen.art_f >= 1,
+            "nicht_bestimmt": and_(
                 TblMeldungen.art_m.is_(None),
                 TblMeldungen.art_w.is_(None),
                 TblMeldungen.art_o.is_(None),
                 TblMeldungen.art_n.is_(None),
                 TblMeldungen.art_f.is_(None),
+            ),
+        }
+        if filter_type in type_filters:
+            query = query.filter(type_filters[filter_type])
+
+        # Apply date filters
+        if date_from and date_to:
+            date_from_obj = datetime.strptime(date_from, "%Y-%m-%d")
+            date_to_obj = datetime.strptime(date_to, "%Y-%m-%d")
+            query = query.filter(
+                TblMeldungen.dat_fund_von.between(date_from_obj, date_to_obj)
             )
+        elif date_from:
+            date_from_obj = datetime.strptime(date_from, "%Y-%m-%d")
+            query = query.filter(TblMeldungen.dat_fund_von >= date_from_obj)
+        elif date_to:
+            date_to_obj = datetime.strptime(date_to, "%Y-%m-%d")
+            query = query.filter(TblMeldungen.dat_fund_von <= date_to_obj)
 
-    # Apply sort order
-    if sort_order == "id_asc":
-        query = query.order_by(TblMeldungen.id.asc())
-    elif sort_order == "id_desc":
-        query = query.order_by(TblMeldungen.id.desc())
+        return query
+    except Exception as e:
+        db.session.rollback()
+        flash(f"An error occurred while applying filters: {str(e)}", "error")
+        return None
 
-    # Apply full-text search if there's a search query
-    if search_query:
-        try:
+
+def apply_sort_order(query, sort_order):
+    try:
+        "Apply sort order to the database"
+        sort_options = {
+            "id_asc": TblMeldungen.id.asc(),
+            "id_desc": TblMeldungen.id.desc(),
+        }
+        return query.order_by(sort_options.get(sort_order, TblMeldungen.id.asc()))
+    except Exception as e:
+        db.session.rollback()
+        flash(f"An error occurred while applying sort order: {str(e)}", "error")
+        return None
+
+
+def apply_search(query, search_query, search_type):
+    try:
+        "Apply search query to the database"
+        if search_query:
             if search_type == "id":
                 try:
                     search_query = int(search_query)
-                    query = query.filter(TblMeldungen.id == search_query)
+                    return query.filter(TblMeldungen.id == search_query)
                 except ValueError:
-                    search_type = "full_text"
-
-            if search_type == "full_text":
+                    pass  # Fallback to full-text search if conversion fails
+            elif search_type == "full_text":
                 if "@" in search_query:
-                    query = (
+                    return (
                         query.join(
                             TblMeldungUser, TblMeldungen.id == TblMeldungUser.id_meldung
                         )
@@ -169,74 +233,48 @@ def reviewer(usrid):
                         .filter(TblUsers.user_kontakt.ilike(f"%{search_query}%"))
                     )
                 else:
-                    # Option 1: Sanitize the query string
                     search_query = search_query.replace(" ", " & ")
                     search_vector = text(
                         "plainto_tsquery('german', :query)"
-                    ).bindparams(
-                        # Option 2: Use plainto_tsquery
-                        query=f"{search_query}"
-                    )
+                    ).bindparams(query=f"{search_query}")
                     search_results = FullTextSearch.query.filter(
                         FullTextSearch.doc.op("@@")(search_vector)
                     ).all()
                     reported_sightings_ids = [
                         result.meldungen_id for result in search_results
                     ]
-                    query = query.filter(TblMeldungen.id.in_(reported_sightings_ids))
-        except SQLAlchemyError as e:
-            db.session.rollback()
-            flash("An internal error occurred. Please try again.", "error")
-            print(e)
-        except Exception as e:
-            db.session.rollback()
-            flash("Your search could not be completed. Please try again.", "error")
-            print(e)
+                    return query.filter(TblMeldungen.id.in_(reported_sightings_ids))
+        return query
+    except Exception as e:
+        db.session.rollback()
+        flash(f"An error occurred while applying search: {str(e)}", "error")
+        return None
 
-    if date_from and date_to:
-        date_from_obj = datetime.strptime(date_from, "%Y-%m-%d")
-        date_to_obj = datetime.strptime(date_to, "%Y-%m-%d")
-        query = query.filter(
-            TblMeldungen.dat_fund_von.between(date_from_obj, date_to_obj)
-        )
-    elif date_from:
-        date_from_obj = datetime.strptime(date_from, "%Y-%m-%d")
-        query = query.filter(TblMeldungen.dat_fund_von >= date_from_obj)
-    elif date_to:
-        date_to_obj = datetime.strptime(date_to, "%Y-%m-%d")
-        query = query.filter(TblMeldungen.dat_fund_von <= date_to_obj)
 
-    paginated_sightings = query.paginate(page=page, per_page=per_page, error_out=False)
-
-    reported_sightings = paginated_sightings.items
-    for sighting in reported_sightings:
-        sighting.fundort = TblFundorte.query.get(sighting.fo_zuordnung)
-        sighting.beschreibung = TblFundortBeschreibung.query.get(
-            sighting.fundort.beschreibung
-        )
-        sighting.ort = sighting.fundort.ort
-        sighting.plz = sighting.fundort.plz
-        sighting.kreis = sighting.fundort.kreis
-        sighting.land = sighting.fundort.land
-        sighting.deleted = sighting.deleted
-        sighting.dat_bear = sighting.dat_bear
-        if sighting.bearb_id:
-            approver = TblUsers.query.filter_by(user_id=sighting.bearb_id).first()
-            sighting.approver_username = approver.user_name if approver else "Unknown"
-    return render_template(
-        "admin/admin.html",
-        user_id=usrid,
-        paginated_sightings=paginated_sightings,
-        reported_sightings=reported_sightings,
-        tables=tables,
-        image_path=image_path,
-        user_name=user_name,
-        filters={"status": filter_status, "type": filter_type},
-        current_filter_status=filter_status,
-        current_sort_order=sort_order,
-        search_query=search_query,
-        search_type=search_type,
-    )
+def enrich_sightings(sightings):
+    try:
+        "Enrich the sightings with additional data from the database"
+        for sighting in sightings:
+            sighting.fundort = TblFundorte.query.get(sighting.fo_zuordnung)
+            sighting.beschreibung = TblFundortBeschreibung.query.get(
+                sighting.fundort.beschreibung
+            )
+            sighting.ort = sighting.fundort.ort
+            sighting.plz = sighting.fundort.plz
+            sighting.kreis = sighting.fundort.kreis
+            sighting.land = sighting.fundort.land
+            sighting.deleted = sighting.deleted
+            sighting.dat_bear = sighting.dat_bear
+            if sighting.bearb_id:
+                approver = TblUsers.query.filter_by(user_id=sighting.bearb_id).first()
+                sighting.approver_username = (
+                    approver.user_name if approver else "Unknown"
+                )
+        return sightings
+    except Exception as e:
+        db.session.rollback()
+        flash(f"An error occurred while enriching sightings: {str(e)}", "error")
+        return []
 
 
 @admin.route("/change_mantis_meta_data/<int:id>", methods=["POST"])
