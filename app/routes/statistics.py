@@ -2,7 +2,7 @@ import json
 from flask import Blueprint
 from flask import render_template, request
 from flask import session, abort
-from sqlalchemy import func
+from sqlalchemy import func, text
 from app import db
 from app.database.models import TblUsers
 from app.tools.check_reviewer import login_required
@@ -64,18 +64,18 @@ def stats_start(usrid=None):
 def stats_mtb(request=None):
     "Messtischblattauswertung für eine Grafik"
 
-    dbanswers=[]
-    stmt = "select mtb, count(mtb) from fundorte group by mtb;"
+    dbanswers = []
     res = db.session.query(
         TblFundorte.mtb,
         func.count(TblFundorte.mtb)).group_by(TblFundorte.mtb).all()
-        
+
     for row in res:
-        try:
-            mtb = int(row[0])
-            dbanswers.append((mtb, row[1]))
-        except:
-            pass
+        if row[0]:
+            try:
+                mtb = int(row[0])
+                dbanswers.append((mtb, row[1]))
+            except ValueError as e:
+                print(e)
     xml = create_measure_sheet(dataset=dbanswers)
     return render_template(
         "statistics/stats-messtischblatt.html",
@@ -85,13 +85,11 @@ def stats_mtb(request=None):
         svg=xml
     )
 
-    
 
 def stats_geschlecht(request=None):
     "Count sum of all kategories"
 
-    sql = text(
-        """
+    sql = text("""
       select sum(art_m) as "Männchen"
             , sum(art_w) as "Weibchen"
             , sum(art_n) as "Nymphen"
@@ -99,8 +97,7 @@ def stats_geschlecht(request=None):
             , sum(art_f) as "Andere"
       from meldungen
       where deleted is NULL;
-    """
-    )
+    """)
 
     with db.engine.connect() as conn:
         result = conn.execute(sql)
