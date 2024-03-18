@@ -180,13 +180,17 @@ def renderhtmlmsg(md):
     </tr>
     <tr>    
     <td>Ihr Link für weitere Meldungen</td>
-    <td>https://gottesanbeterin-gesucht.de/report/{ md['user_id'] }</td>
+    <td></td>
+    </tr>
+    <tr>    
+    <td colspan="2">https://gottesanbeterin-gesucht.de/report/{ md['user_id'] }</td>
     </tr>
     <tr>    
      <td><b>WICHTIGER HINWEIS:</b></td>
+     <td></td>
     </tr>    
     <tr>
-     <td>
+     <td colspan="2">
        <ol>
          <li>Behandeln Sie den Link wie ein Passwort</li>
          <li>Publizieren Sie den Link nicht in Foren, Messengern, ...</li>
