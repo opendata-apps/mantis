@@ -15,7 +15,7 @@ def test_impressum():
         title = driver.title
         content = driver.page_source
         assert (
-            """<h1 class="mb-6 font-bold text-white title md:text-6xl">
+            """<h1 class="mb-6 font-bold text-gray-100 title md:text-6xl">
                   Impressum
                 </h1>"""
             in content

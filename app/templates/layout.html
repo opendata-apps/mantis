@@ -33,38 +33,38 @@
       style="background-image: url('{{ url_for('static', filename='images/berger03.avif') }}');">
       <nav id="navbar" class="fixed top-0 left-0 z-50 w-full transition-all duration-500 ease-in-out transform">
         <div class="container flex items-center justify-between px-4 py-3 mx-auto">
-          <a href="/" class="flex items-center font-extrabold text-white">
+          <a href="/" class="flex items-center font-extrabold text-gray-100">
             <img loading="lazy" src="{{ url_for('static', filename='favicon.ico') }}"
               alt="Logo des Mantis-Religiosa-Projekts" class="h-6 mr-2 sm:h-9" />
-            <span class="text-2xl text-white link link-underline ">Mitmachprojekt</span>
+            <span class="text-2xl text-gray-100 link link-underline ">Mitmachprojekt</span>
           </a>
           <div class="items-center hidden md:flex">
             <a href="{{ url_for('main.index') }}"
               class="mantis-top-menu"
               title="Startseite">
-              <span class="text-white link link-underline ">Start</span>
+              <span class="text-gray-100 link link-underline ">Start</span>
             </a>
             <a href="{{ url_for('main.mantis_religiosa') }}"
               class="mantis-top-menu"
               title="Informationen zur Gottesanbeterin">
-              <span class="text-white link link-underline ">Gottesanbeterin</span>
+              <span class="text-gray-100 link link-underline ">Gottesanbeterin</span>
             </a>
             <a href="{{ url_for('data.report') }}"
               class="mantis-top-menu"
               title="Melden Sie eine Gottesanbeterin-Sichtung">
-              <span class="text-white link link-underline ">Melden</span>
+              <span class="text-gray-100 link link-underline ">Melden</span>
             </a>
-            <a href="{{ url_for('data.show_map') }}"
+            <a href="{{ url_for('data.show_map', year=current_year) }}"
               class="mantis-top-menu"
               title="Statistiken und Auswertungen">
-              <span class="text-white link link-underline ">Auswertungen</span>
+              <span class="text-gray-100 link link-underline ">Auswertungen</span>
             </a>
             {% if request.path.startswith('/reviewer') or request.path.startswith('/statistik') or
             request.path.startswith('/superuser') or request.path.startswith('/galerie') or
             request.path.startswith('/adminPanel') %}
             <div class="relative">
               <button id="dropdownReviewerButton" data-dropdown-toggle="dropdownReviewer"
-                class="text-white bg-green-600 hover:bg-green-500 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-4 py-2.5 text-center inline-flex items-center"
+                class="text-gray-100 bg-green-600 hover:bg-green-500 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-4 py-2.5 text-center inline-flex items-center"
                 type="button" aria-expanded="false" aria-haspopup="true">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                   xmlns="http://www.w3.org/2000/svg">
@@ -72,8 +72,8 @@
                 </svg>
               </button>
               <div id="dropdownReviewer"
-                class="hidden bg-white divide-y divide-gray-100 rounded shadow w-44 dark:bg-gray-700">
-                <ul class="py-1 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownReviewerButton">
+                class="hidden bg-white divide-y divide-gray-100 rounded shadow w-44 ">
+                <ul class="py-1 text-sm text-gray-700 " aria-labelledby="dropdownReviewerButton">
                   <li>
                     <a href="{{'/reviewer/'+ user_id }}" class="block px-4 py-2 hover:bg-gray-100">Reviewer</a>
                   </li>
@@ -83,9 +83,10 @@
                   <li>
                     <a href="/galerie" class="block px-4 py-2 hover:bg-gray-100">Galerie</a>
                   </li>
-                  <li>
+                  <!--TODO-->
+                  <!-- <li>
                     <a href="/adminPanel" class="block px-4 py-2 hover:bg-gray-100">Superuser</a>
-                  </li>
+                  </li> -->
                 </ul>
               </div>
             </div>
@@ -93,8 +94,8 @@
           </div>
           <!-- Mobile Menu -->
           <div class="md:hidden">
-            <button class="mobile-menu-button">
-              <svg class="w-6 h-6 text-white transition-transform duration-200 transform" fill="currentColor"
+            <button class="mobile-menu-button" aria-label="Open mobile menu">
+              <svg class="w-6 h-6 text-gray-100 transition-transform duration-200 transform" fill="currentColor"
                 viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                 <path fill-rule="evenodd" clip-rule="evenodd"
                   d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" />
@@ -118,11 +119,11 @@
               request.path.startswith('/superuser') or request.path.startswith('/gallerie')%}
               <div class="relative group">
                 <button id="mobileDropdownButton" data-dropdown-toggle="mobileDropdownContent"
-			class="transition-colors duration-300 rounded-lg hover:bg-green-500 text-white bg-green-700 focus:ring-4 focus:ring-green-300 font-medium text-lg px-4 py-2.5 text-center inline-flex items-center w-full justify-center">
+			                class="transition-colors duration-300 rounded-lg hover:bg-green-500 text-gray-100 bg-green-700 focus:ring-4 focus:ring-green-300 font-medium text-lg px-4 py-2.5 text-center inline-flex items-center w-full justify-center" aria-label="Open extra menu">
                     Extra
                     <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
-                <div id="mobileDropdownContent" class="absolute z-10 hidden w-full text-white bg-green-700 divide-y divide-gray-100 rounded oben dark:bg-gray-700 group-focus:block">
+                <div id="mobileDropdownContent" class="absolute z-10 hidden w-full text-gray-100 bg-green-700 divide-y divide-gray-100 rounded oben group-focus:block">
                     <ul class="py-1 text-lg text-center" aria-labelledby="mobileDropdownButton">
                         <li><a href="{{'/reviewer/'+ user_id }}" class="block px-4 py-2 transition-colors duration-300 rounded-lg hover:bg-green-500">Reviewer</a></li>
                         <li><a href="{{'/statistik/'+ user_id }}" class="block px-4 py-2 transition-colors duration-300 rounded-lg hover:bg-green-500">Statistics</a></li>
@@ -145,13 +146,13 @@
             <div class="flex flex-col items-center justify-center">
               <div class="flex flex-col items-center justify-center w-full">
                 <!-- Change to flex-col and center items -->
-                <h1 class="mb-6 font-bold text-white title md:text-6xl">
+                <h1 class="mb-6 font-bold text-gray-100 title md:text-6xl">
                   {% block title %}{% endblock title %}
                 </h1>
                 {% if request.path == '/' or request.path.startswith("/start") or request.path.startswith("/sichtungen")
                 or request.path.startswith("/report") %}
                 <a href={% block button_ref %} "/melden" {% endblock %}
-                  class="relative px-10 py-3 overflow-hidden font-medium text-white transition-all transition duration-300 ease-out bg-green-600 rounded-md group hover:bg-gradient-to-r hover:from-green-600 hover:to-green-500 hover:ring-2 hover:ring-offset-2 hover:ring-green-500">
+                  class="relative px-10 py-3 overflow-hidden font-medium text-gray-100 transition-all transition duration-300 ease-out bg-green-600 rounded-md group hover:bg-gradient-to-r hover:from-green-600 hover:to-green-500 hover:ring-2 hover:ring-offset-2 hover:ring-green-500">
                   <span class="absolute bottom-0 left-0 h-full -ml-2">
                     <svg viewBox="0 0 487 487" class="w-auto h-full opacity-100 object-stretch"
                       xmlns="http://www.w3.org/2000/svg">
@@ -173,7 +174,7 @@
                 </a>
                 {% endif %}
               </div>
-              <p class="mb-8 text-lg text-white">{% block text %}{% endblock text %}</p>
+              <p class="mb-8 text-lg text-gray-100">{% block text %}{% endblock text %}</p>
             </div>
           </div>
         </div>
@@ -273,6 +274,14 @@
           </a>
         </li>
         <li>
+          <a href="https://github.com/opendata-apps/mantis" rel="noreferrer noopener" target="_blank"
+            class="text-gray-700 transition-transform transform hover:text-gray-700/75 hover:scale-110">
+            <span class="sr-only">GitHub</span>
+            <img loading="lazy" src="/static/images/svg/github.svg" alt="GitHub (Code)" title="GitHub"
+              class="w-8 h-8 transition-transform transform hover:scale-110">
+          </a>
+        </li>
+        <li>
           <a href="https://www.naturkundemuseum-potsdam.de/gottesanbeterin-gesucht" rel="noreferrer noopener"
             target="_blank" class="text-gray-700 transition-transform transform hover:text-gray-700/75 hover:scale-110">
             <span class="sr-only">Naturkundemuseum Potsdam</span>
@@ -292,13 +301,13 @@
       <div
         class="flex flex-col justify-center pt-8 mt-8 space-y-4 text-center text-gray-600 border-t border-gray-300 sm:space-y-0 sm:mt-10 sm:flex-row sm:space-x-10 sm:text-left">
         <span>Python/Flask-App:
-          <a href="https://gitlab.com/opendata-apps/mantis/-/commits/v0.9.1"
-            class="font-medium text-green-600 hover:underline">v0.9.1</a>
+          <a href="https://gitlab.com/opendata-apps/mantis/-/commits/v0.11.0"
+            class="font-medium text-green-600 hover:underline">v0.11.0</a>
         </span>
         <span>Lizenz:
           <a href="/lizenz" class="font-medium text-green-600 hover:underline">MIT</a>
         </span>
-        <span>© 2023</span>
+        <span>© 2024</span>
         <span>P22</span>
       </div>
     </div>

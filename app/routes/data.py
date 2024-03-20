@@ -24,7 +24,7 @@ from app.database.models import TblFundorte, TblMeldungen, TblMeldungUser, TblUs
 from app.forms import MantisSightingForm
 from app.tools.gen_user_id import get_new_id
 from app.routes.admin import get_sighting
-
+from app.tools.mtb_calc import get_mtb, pointInRect
 from ..config import Config
 
 # Blueprints
@@ -191,7 +191,11 @@ def report(usrid=None):
             zipcode = "0"
         else:
             zipcode = form.zip_code.data
-
+        # get number of Messtischblatt
+        if pointInRect((form.latitude.data, form.longitude.data)):
+            mtb = get_mtb(form.latitude.data, form.longitude.data)
+        else:
+            mtb = ""
         new_fundort = TblFundorte(
             plz=zipcode,
             ort=form.city.data,
@@ -200,6 +204,7 @@ def report(usrid=None):
             land=form.state.data,
             longitude=form.longitude.data,
             latitude=form.latitude.data,
+            mtb=mtb,
             beschreibung=int(form.location_description.data),
             ablage=bildpfad,
         )
@@ -244,8 +249,11 @@ def report(usrid=None):
         db.session.add(new_meldung_user)
         db.session.commit()
         addresse = form.contact.data
-        session['submission_successful'] = True
-        return redirect(url_for("data.success", usrid=usrid, addresse=str(bool(addresse))))
+        # set submission_successfull to True
+        session["submission_successful"] = True
+        return redirect(
+            url_for("data.success", usrid=usrid, addresse=str(bool(addresse)))
+        )
 
     if existing_user is not None:
         existing_user = _user_to_dict(existing_user)
@@ -255,20 +263,25 @@ def report(usrid=None):
         existing_user=existing_user,
         apikey=Config.esri,
     )
-    
+
+
 @data.route("/success/<usrid>")
 def success(usrid):
-    if not session.get('submission_successful'):
-        return redirect(url_for('main.index'))
-    
-    session['submission_successful'] = False
+    "Prevent reloading of success route after first submission."
 
-    addresse = request.args.get('addresse', None)
+    if not session.get("submission_successful"):
+        return redirect(url_for("main.index"))
+
+    session["submission_successful"] = False
+
+    addresse = request.args.get("addresse", None)
     return render_template("success.html", usrid=usrid, addresse=addresse)
 
 
 @data.route("/validate", methods=["POST"])
 def validate():
+    "Validate user input in report with the errors from forms.py"
+
     form_data = CombinedMultiDict((request.form, request.files))  # type: ignore
     form = MantisSightingForm(form_data)
 
@@ -278,19 +291,19 @@ def validate():
         return jsonify({"errors": form.errors}), 333
 
 
-@data.route("/auswertungen", defaults={"selected_year": None})
-@data.route("/auswertungen/<int:selected_year>")
-def show_map(selected_year):
-    "Select data for one selected year" 
+@data.route("/auswertungen")
+def show_map():
+    selected_year = request.args.get("year", None, type=int)
+    "Select data for one selected year"
 
-    # Get distinct years from dat_fund_von
+    # Get distinct years from dat_fund_von begginning with MIN_MAP_YEAR
     years = (
         db.session.query(
             db.func.extract("year", TblMeldungen.dat_fund_von).label("year")
         )
         .distinct()
         .order_by("year")
-        .all()
+        .filter(TblMeldungen.dat_fund_von >= f"{Config.MIN_MAP_YEAR}-01-01")
     )
     years = [int(year[0]) for year in years]
 
@@ -298,10 +311,10 @@ def show_map(selected_year):
         db.session.query(TblMeldungen.id, TblFundorte.latitude, TblFundorte.longitude)
         .join(TblFundorte, TblMeldungen.fo_zuordnung == TblFundorte.id)
         .filter(TblMeldungen.dat_bear != None)
+        .filter(TblMeldungen.deleted.is_(None))
     )
 
-    if selected_year is not None and str(selected_year).isdigit():
-        selected_year = int(selected_year)
+    if selected_year is not None:
         reports_query = reports_query.filter(
             db.func.extract("year", TblMeldungen.dat_fund_von) == selected_year
         )
@@ -341,6 +354,7 @@ def show_map(selected_year):
 
 @data.route("/get_marker_data/<int:report_id>")
 def get_marker_data(report_id):
+    "Get the data for a single marker on the map."
     report = (
         db.session.query(
             TblMeldungen.id,
@@ -369,7 +383,7 @@ def get_marker_data(report_id):
 
 
 def obfuscate_location(lat, long):
-    """Add a small random offset to the given latitude and longitude."""
+    "Add a small random offset to the given latitude and longitude."
     offset = 0.005  # Adjustable offset
     lat += uniform(-offset, offset)
     long += uniform(-offset, offset)

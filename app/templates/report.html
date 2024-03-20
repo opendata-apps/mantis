@@ -6,7 +6,6 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/cluster/MarkerCluster.Default.css')}}" />
 <link rel="stylesheet" href="{{ url_for('static', filename='css/cluster/MarkerCluster.css')}}" />
 <link rel="stylesheet" href="{{ url_for('static', filename='css/currentLocation/L.Control.Locate.min.css')}}" />
-<script src="{{ url_for('static', filename='js/flow/flowbite.min.js')}}" defer></script>
 <script src="{{ url_for('static', filename='js/leaflet.js')}}"></script>
 <script src="{{ url_for('static', filename='js/esri-leaflet.js')}}"></script>
 <script src="{{ url_for('static', filename='js/esri-leaflet-vector.js')}}"></script>
@@ -16,10 +15,11 @@
 <meta name="csrf-token" content="{{ csrf_token() }}">
 {% endblock %}
 {% block page_title %}Melden Sie Ihre Beobachtung | Mantis Religiosa Mitmachprojekt | Gottesanbeterin Gesucht{% endblock
-%}
-{% block title %}Fund melden{% endblock %}
-{% block meta_description %} Melden Sie Ihre Beobachtungen von Mantis religiosa in Deutschland. Unterstützen Sie die Forschung. {% endblock %}
-{% block content %}
+  %}
+  {% block title %}Fund melden{% endblock %}
+  {% block meta_description %} Melden Sie Ihre Beobachtungen von Mantis religiosa in Deutschland. Unterstützen Sie die Forschung. {% endblock %}
+  {% block content %}
+  <script src="{{ url_for('static', filename='js/flow/flowbite.min.js')}}" defer></script>
 
 
 <div class="flex items-center justify-center min-h-screen bg-gray-100">
@@ -39,7 +39,9 @@
           </div>
           <div class="flex items-center justify-center w-full">
             <label for="{{ form.picture.id }}"
-              class="flex flex-col items-center justify-center w-full h-64 transition-all duration-500 ease-in-out border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 ">
+              class="flex flex-col items-center justify-center w-full h-64 transition-all duration-500 ease-in-out border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
+              ondragover="event.preventDefault();" 
+              ondrop="dropHandler(event);">
               <div id="imagePreview"
                 class="flex-col items-center justify-center hidden w-full h-64 overflow-hidden transition-all duration-500 ease-in-out fade-in">
                 <img id="previewImage" class="object-scale-down w-full h-full" src="#"
@@ -52,14 +54,16 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                 </svg>
-                <p class="mb-2 text-sm text-gray-500 "><span class="font-semibold">Click to upload
-                    image...</span></p>
+                <p class="mb-2 text-sm text-gray-500 "><span class="font-semibold">Click or drop image here...</span></p>
                 <p class="text-xs text-gray-500 ">PNG, JPG, JPEG oder WEBP (max. 10 MB)</p>
               </div>
               {{ form.picture(class="hidden", id=form.picture.id, accept="image/*") }}
             </label>
           </div>
         </div>
+        <script>
+
+        </script>
         <div class="grid grid-cols-2 gap-4 mb-4">
           <div>
             <label for="{{ form.longitude.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
@@ -211,7 +215,7 @@
               </div>
 
             </label>
-            <div class="relative">
+            <div class="relative font-semibold">
               {{ form.zip_code(id="zip_code", class="input-field") }}
             </div>
             <label for="{{ form.city.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
@@ -387,7 +391,7 @@
         <div class="flex justify-between mt-6 space-x-4">
           {{ formButton('step4Prev', 'Zurück') }}
           <button id="submitBtn" type="submit"
-            class="relative px-6 py-2 text-sm font-medium text-white transition duration-300 bg-green-400 rounded-md hover:bg-green-500 ease">
+            class="relative px-6 py-2 text-sm font-medium text-gray-100 transition duration-300 bg-green-400 rounded-md hover:bg-green-500 ease">
             <span class="absolute bottom-0 left-0 h-full -ml-2">
               <svg viewBox="0 0 487 487" class="w-auto h-full opacity-100 object-stretch"
                 xmlns="http://www.w3.org/2000/svg">
@@ -404,7 +408,7 @@
               </svg>
             </span>
             <span id="send" class="relative">Senden</span>
-            <svg id="loadSend" class="hidden w-5 h-5 mx-auto text-white animate-spin" xmlns="http://www.w3.org/2000/svg"
+            <svg id="loadSend" class="hidden w-5 h-5 mx-auto text-gray-100 animate-spin" xmlns="http://www.w3.org/2000/svg"
               fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor"
@@ -473,18 +477,18 @@
       }
     });
   
-    // Update form fields on map click
-    map.on('click', function (e) {
-      document.querySelector('#latitude').value = e.latlng.lat.toFixed(5);
-      document.querySelector('#longitude').value = e.latlng.lng.toFixed(5);
+    // Update form fields on map click or manual input
+    function updateMapAndFormData(lat, lng) {
+      document.querySelector('#latitude').value = lat.toFixed(5);
+      document.querySelector('#longitude').value = lng.toFixed(5);
   
-      getAddressFromCoordinates(e.latlng.lat, e.latlng.lng);
+      getAddressFromCoordinates(lat, lng);
   
       if (userMarker) {
         userMarker.remove();
       }
   
-      userMarker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map);
+      userMarker = L.marker([lat, lng]).addTo(map);
   
       // Save form data to local storage
       let formData = {};
@@ -495,10 +499,32 @@
       updateSummary();  // Also update the summary map right away
   
       // add longitude and latitude to local storage
-      localStorage.setItem('latitude', e.latlng.lat.toFixed(5));
-      localStorage.setItem('longitude', e.latlng.lng.toFixed(5));
+      localStorage.setItem('latitude', lat.toFixed(5));
+      localStorage.setItem('longitude', lng.toFixed(5));
+    }
+  
+    map.on('click', function (e) {
+      updateMapAndFormData(e.latlng.lat, e.latlng.lng);
+    });
+  
+    // Listen for manual coordinate input
+    document.querySelector('#latitude').addEventListener('change', function () {
+      const lat = parseFloat(this.value);
+      const lng = parseFloat(document.querySelector('#longitude').value);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        updateMapAndFormData(lat, lng);
+      }
+    });
+  
+    document.querySelector('#longitude').addEventListener('change', function () {
+      const lng = parseFloat(this.value);
+      const lat = parseFloat(document.querySelector('#latitude').value);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        updateMapAndFormData(lat, lng);
+      }
     });
   }
+  
   document.addEventListener('DOMContentLoaded', initMap);
 
   function getAddressFromCoordinates(latitude, longitude) {
@@ -588,7 +614,6 @@
       if (!file) return;
 
       EXIF.getData(file, function () {
-        // Read metadata from the image
         const lat = EXIF.getTag(this, 'GPSLatitude');
         const lng = EXIF.getTag(this, 'GPSLongitude');
         const latRef = EXIF.getTag(this, 'GPSLatitudeRef');
@@ -599,13 +624,19 @@
           const latitude = toDecimal(lat, latRef);
           const longitude = toDecimal(lng, lngRef);
 
+          // if values are nan or 0, do not set the form fields
+          if (isNaN(latitude) || isNaN(longitude) || latitude === 0 || longitude === 0) {
+            return;
+          }
           // Set the values to the form fields
           document.querySelector('#latitude').value = latitude;
           document.querySelector('#longitude').value = longitude;
 
-          getAddressFromCoordinates(latitude, longitude);
+          if (window.userMarker) window.userMarker.remove();
+          window.userMarker = L.marker([latitude, longitude]).addTo(map);
+          map.setView([latitude, longitude], 13); 
         } else {
-          // Handle the case when GPS data is not available in the image
+          return;
         }
       });
     });
@@ -619,7 +650,7 @@
 
   input.addEventListener('change', function (e) {
     const file = e.target.files[0];
-const validFileTypes = ["image/png", "image/jpeg",
+    const validFileTypes = ["image/png", "image/jpeg",
       "image/jfif", "image/webp", "image/heic"];
 
     // Clear previous error messages
@@ -629,7 +660,7 @@ const validFileTypes = ["image/png", "image/jpeg",
       // Check if the file type is valid
       if (!validFileTypes.includes(file.type.toLowerCase())) {
           // Call your error function here
-    msg = "Erlaubt sind PNG, JPG, JPEG, JFIF, WEBP oder HEIC-Dateien."
+          msg = "Erlaubt sind PNG, JPG, JPEG, JFIF, WEBP oder HEIC-Dateien."
           showErrors({ picture: [msg] }, 0);
           e.target.value = ''; // Clear the input
           return;
@@ -650,6 +681,32 @@ const validFileTypes = ["image/png", "image/jpeg",
       uploadText.classList.remove('hidden');
     }
   });
+
+  function dropHandler(ev) {
+    //console.log('File(s) dropped');
+    ev.preventDefault();
+    if (ev.dataTransfer.items) {
+      for (var i = 0; i < ev.dataTransfer.items.length; i++) {
+        if (ev.dataTransfer.items[i].kind === 'file') {
+          var file = ev.dataTransfer.items[i].getAsFile();
+          //console.log('... file[' + i + '].name = ' + file.name);
+          var input = document.getElementById('{{ form.picture.id }}');
+          input.files = ev.dataTransfer.files;
+          var reader = new FileReader();
+          reader.onload = function(e) {
+            document.getElementById('imagePreview').style.display = 'flex';
+            document.getElementById('previewImage').src = e.target.result;
+            document.getElementById('uploadText').style.display = 'none';
+          }
+          reader.readAsDataURL(file);
+        }
+      }
+    } else {
+      for (var i = 0; i < ev.dataTransfer.files.length; i++) {
+        //console.log('... file[' + i + '].name = ' + ev.dataTransfer.files[i].name);
+      }
+    }
+  }
 
   function clearErrorsForField(fieldName) {
     // Remove error styling from picture label
@@ -892,10 +949,10 @@ const validFileTypes = ["image/png", "image/jpeg",
     }
   }
 
-  document.getElementById('submitBtn').addEventListener('click', (event) => {
-    event.target.disabled = true;
-    console.log("Button disabled");
-  });
+  //document.getElementById('submitBtn').addEventListener('click', (event) => {
+  //event.target.disabled = true;
+  //console.log("Button disabled");
+  //});
   
 
   document.getElementById('mainForm').addEventListener('submit', (event) => {

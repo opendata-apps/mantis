@@ -86,7 +86,7 @@ class MantisSightingForm(FlaskForm):
         "*Benutzerkennung:", render_kw={"placeholder": "Benutzerkennung"}
     )
     picture = FileField(
-        "*Bild laden",
+        "Bild (max. 10MB) *",
         validators=[
             FileRequired(message="Das Bild ist erforderlich, maximal 10MB."),
             FileAllowed(ALLOWED_EXTENSIONS, message="Nur Bilder sind zulässig!"),
@@ -109,7 +109,7 @@ class MantisSightingForm(FlaskForm):
     )
 
     longitude = FloatField(
-        "*Längengrad",
+        "Längengrad *",
         validators=[
             InputRequired(
                 "Pflichtfeld, das gefüllt wird, \
@@ -127,7 +127,7 @@ class MantisSightingForm(FlaskForm):
     )
 
     latitude = FloatField(
-        "*Breitengrad",
+        "Breitengrad *",
         validators=[
             InputRequired(
                 "Pflichtfeld, das gefüllt wird, \
@@ -142,13 +142,13 @@ class MantisSightingForm(FlaskForm):
         description="Bitte geben Sie den Breitengrad des Standorts ein, an dem Sie die Gottesanbeterin gesehen haben.",
     )
 
-    zip_code = IntegerField(
+    zip_code = StringField(
         "PLZ",
         validators=[Optional(), validate_zip_code],
         render_kw={"placeholder": "PLZ"},
     )
     city = StringField(
-        "*Ort",
+        "Ort *",
         validators=[DataRequired(message="Bitte geben Sie einen Ort ein.")],
         render_kw={"placeholder": "z.B. Berlin"},
     )
@@ -158,7 +158,7 @@ class MantisSightingForm(FlaskForm):
         render_kw={"placeholder": "z.B. Musterstraße"},
     )
     state = StringField(
-        "*Bundesland",
+        "Bundesland *",
         validators=[DataRequired(message="Das Bundesland ist erforderlich.")],
         render_kw={"placeholder": "Bundesland"},
     )
@@ -173,12 +173,12 @@ class MantisSightingForm(FlaskForm):
     )
 
     report_first_name = StringField(
-        "*Vorname (Melder)",
+        "Vorname (Melder) *",
         validators=[DataRequired(message="Der Vorname ist erforderlich.")],
         render_kw={"placeholder": "Erster Buchstabe z.B. M."},
     )
     report_last_name = StringField(
-        "*Nachname (Melder)",
+        "Nachname (Melder) *",
         validators=[DataRequired(message="Der Nachname ist erforderlich.")],
         render_kw={"placeholder": "z.B. Mustermann"},
     )
@@ -191,7 +191,7 @@ class MantisSightingForm(FlaskForm):
     )
 
     sighting_date = DateField(
-        "*Funddatum",
+        "Funddatum *",
         validators=[
             DataRequired(message="Das Funddatum ist erforderlich."),
             validate_past_date,
