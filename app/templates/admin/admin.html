@@ -70,66 +70,57 @@
                 </svg>
             </button>
     
-        <div id="filterDropdown"
-            class="z-10 hidden w-64 p-4 space-y-3 bg-white divide-y divide-gray-100 rounded-lg shadow-lg sm:w-80">
-        
-            <form action="{{ url_for('admin.reviewer', usrid=session['user_id']) }}" method="GET" class="space-y-3">
-                <div class="flex space-x-2">
-                    <div class="w-1/2 space-y-1">
-                        <label for="statusInput" class="block text-sm font-semibold text-center text-gray-700">Status</label>
-                        <select id="statusInput" name="statusInput"
-                            class="w-full p-2 text-sm rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                            <option value="all" {% if filters.status=="all" %}selected{% endif %}>Alle</option>
-                            <option value="bearbeitet" {% if filters.status=="bearbeitet" %}selected{% endif %}>Bearbeitet</option>
-                            <option value="offen" {% if filters.status=="offen" %}selected{% endif %}>Offen</option>
-                            <option value="geloescht" {% if filters.status=="geloescht" %}selected{% endif %}>Gelöscht</option>
-                        </select>
+            <div id="filterDropdown" class="z-10 hidden w-64 p-4 space-y-3 bg-white divide-y divide-gray-100 rounded-lg shadow-lg sm:w-80">
+                <form action="{{ url_for('admin.reviewer', usrid=session['user_id']) }}" method="GET" class="space-y-3">
+                    <div class="flex space-x-2">
+                        <div class="w-1/2 space-y-1">
+                            <label for="statusInput" class="block text-sm font-semibold text-left text-gray-700">Status</label>
+                            <select id="statusInput" name="statusInput" class="w-full p-2 text-sm rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                <option value="all" {% if filters.status=="all" %}selected{% endif %}>Alle</option>
+                                <option value="bearbeitet" {% if filters.status=="bearbeitet" %}selected{% endif %}>Bearbeitet</option>
+                                <option value="offen" {% if filters.status=="offen" %}selected{% endif %}>Offen</option>
+                                <option value="geloescht" {% if filters.status=="geloescht" %}selected{% endif %}>Gelöscht</option>
+                            </select>
+                        </div>
+                        <div class="w-1/2 space-y-1">
+                            <label for="typeInput" class="block text-sm font-semibold text-left text-gray-700">Typ</label>
+                            <select id="typeInput" name="typeInput" class="w-full p-2 text-sm rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                <option value="all" {% if filters.type=="all" %}selected{% endif %}>Alle</option>
+                                <option value="maennlich" {% if filters.type=="maennlich" %}selected{% endif %}>Männlich</option>
+                                <option value="weiblich" {% if filters.type=="weiblich" %}selected{% endif %}>Weiblich</option>
+                                <option value="oothek" {% if filters.type=="oothek" %}selected{% endif %}>Oothek</option>
+                                <option value="nymhe" {% if filters.type=="nymhe" %}selected{% endif %}>Nymhe</option>
+                                <option value="andere" {% if filters.type=="andere" %}selected{% endif %}>Andere</option>
+                                <option value="nicht_bestimmt" {% if filters.type=="nicht_bestimmt" %}selected{% endif %}>Nicht bestimmt</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="w-1/2 space-y-1">
-                        <label for="typeInput" class="block text-sm font-semibold text-center text-gray-700">Typ</label>
-                        <select id="typeInput" name="typeInput"
-                            class="w-full p-2 text-sm rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                            <option value="all" {% if filters.type=="all" %}selected{% endif %}>Alle</option>
-                            <option value="maennlich" {% if filters.type=="maennlich" %}selected{% endif %}>Männlich</option>
-                            <option value="weiblich" {% if filters.type=="weiblich" %}selected{% endif %}>Weiblich</option>
-                            <option value="oothek" {% if filters.type=="oothek" %}selected{% endif %}>Oothek</option>
-                            <option value="nymhe" {% if filters.type=="nymhe" %}selected{% endif %}>Nymhe</option>
-                            <option value="andere" {% if filters.type=="andere" %}selected{% endif %}>Andere</option>
-                            <option value="nicht_bestimmt" {% if filters.type=="nicht_bestimmt" %}selected{% endif %}>Nicht bestimmt
-                            </option>
-                        </select>
+                    <div class="flex items-center space-x-2">
+                        <div class="flex-1">
+                            <label for="dateFrom" class="block text-sm font-semibold text-gray-700">Datum fund von</label>
+                            <input type="date" id="dateFrom" name="dateFrom" value="{{ request.args.get('dateFrom', '') }}" class="w-full p-2 text-sm rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        </div>
+                        <div class="flex-1">
+                            <label for="dateTo" class="block text-sm font-semibold text-gray-700">Datum fund bis</label>
+                            <input type="date" id="dateTo" name="dateTo" value="{{ request.args.get('dateTo', '') }}" class="w-full p-2 text-sm rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        </div>
                     </div>
-                </div>
-                <div class="space-y-1">
-                    <label for="dateFrom" class="block text-sm font-semibold text-gray-700">Datum von</label>
-                    <input type="date" id="dateFrom" name="dateFrom" value="{{ request.args.get('dateFrom', '') }}"
-                        class="w-full p-2 text-sm rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                </div>
-                <div class="space-y-1">
-                    <label for="dateTo" class="block text-sm font-semibold text-gray-700">Datum bis</label>
-                    <input type="date" id="dateTo" name="dateTo" value="{{ request.args.get('dateTo', '') }}"
-                        class="w-full p-2 text-sm rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                </div>
-                <div class="flex justify-between mt-4 space-x-4">
-                    <button id="clearFilters" type="button"
-                        class="flex items-center justify-center w-24 px-2 py-1 text-sm text-red-500 border border-red-500 rounded-md shadow-sm hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:border-transparent">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                            class="w-4 h-4 mr-1">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                        Löschen
-                    </button>
-                    <button type="submit"
-                        class="w-1/2 px-4 py-2 text-white bg-green-500 rounded-md shadow-sm hover:bg-green-600 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:border-transparent">
-                        Filtern
-                    </button>
-                </div>
-            
-                <input type="hidden" name="q" value="{{ request.args.get('q', '') }}">
-                <input type="hidden" name="sort_order" value="{{ request.args.get('sort_order', '') }}">
-                <input type="hidden" name="search_type" value="{{ request.args.get('search_type', '') }}">
-            </form>
-        </div>
+                    <div class="flex justify-between mt-4 space-x-4">
+                        <button id="clearFilters" type="button" class="flex items-center justify-center w-24 px-2 py-1 text-sm text-red-500 border border-red-500 rounded-md shadow-sm hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:border-transparent">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-4 h-4 mr-1">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                            Löschen
+                        </button>
+                        <button type="submit" class="w-1/2 px-4 py-2 text-white bg-green-500 rounded-md shadow-sm hover:bg-green-600 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:border-transparent">
+                            Filtern
+                        </button>
+                    </div>
+                    <input type="hidden" name="q" value="{{ request.args.get('q', '') }}">
+                    <input type="hidden" name="sort_order" value="{{ request.args.get('sort_order', '') }}">
+                    <input type="hidden" name="search_type" value="{{ request.args.get('search_type', '') }}">
+                </form>
+            </div>
         
         </div>
     
