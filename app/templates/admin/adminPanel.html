@@ -6,6 +6,7 @@ Admin Panel
 Willkommen im Admin Panel
 {% endblock text %}
 {% block content %}
+<script src="{{ url_for('static', filename='js/flow/flowbite.min.js')}}" defer></script>
 <div class="flex flex-col h-screen">
   <div class="sticky top-0 z-50 p-4 "> 
     <label for="tables" class="block text-sm font-semibold text-gray-700">Select a table:</label> 
@@ -69,7 +70,7 @@ Willkommen im Admin Panel
                     Löschen
                 </button>
                 <button type="submit"
-                    class="w-1/2 px-4 py-2 text-white bg-green-500 rounded-md shadow-sm hover:bg-green-600 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:border-transparent">
+                    class="w-1/2 px-4 py-2 text-gray-100 bg-green-500 rounded-md shadow-sm hover:bg-green-600 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:border-transparent">
                     Filtern
                 </button>
             </div>
@@ -144,10 +145,10 @@ Willkommen im Admin Panel
 
         <!-- Custom Dropdown Menu -->
         <div id="sortDropdown"
-            class="z-10 hidden w-48 bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700">
-            <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownSortButton">
+            class="z-10 hidden w-48 bg-white divide-y divide-gray-100 rounded-lg shadow ">
+            <ul class="py-2 text-sm text-gray-700 " aria-labelledby="dropdownSortButton">
                 <li id="id_asc"
-                    class="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white {% if current_sort_order=="
+                    class="flex items-center px-4 py-2 hover:bg-gray-100  {% if current_sort_order=="
                     id_asc" %} bg-gray-300 {% endif %}" onclick="setSortOrder('id_asc')">
                     <div class="h-2 w-2 bg-green-500 rounded-full mr-2 {% if current_sort_order!="id_asc" %}
                         bg-transparent {% endif %}"></div>
@@ -163,7 +164,7 @@ Willkommen im Admin Panel
                     Aufsteigend
                 </li>
                 <li id="id_desc"
-                    class="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white {% if current_sort_order=="
+                    class="flex items-center px-4 py-2 hover:bg-gray-100  {% if current_sort_order=="
                     id_desc" %} bg-gray-300 {% endif %}" onclick="setSortOrder('id_desc')">
                     <div class="h-2 w-2 bg-green-500 rounded-full mr-2 {% if current_sort_order!="id_desc" %}
                         bg-transparent {% endif %}"></div>
@@ -192,7 +193,7 @@ Willkommen im Admin Panel
         <div class="flex items-center w-full space-x-4 md:w-auto">
             <!-- Dropdown button -->
             <button id="dropdownExportButton" data-dropdown-toggle="dropdown"
-                class="flex items-center justify-center flex-grow px-4 py-2 text-sm font-medium text-white bg-green-600 border border-green-400 rounded-lg focus:outline-none hover:bg-green-600 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200">
+                class="flex items-center justify-center flex-grow px-4 py-2 text-sm font-medium text-gray-100 bg-green-600 border border-green-400 rounded-lg focus:outline-none hover:bg-green-600 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200">
                 <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24"
                     stroke-width="2" stroke="currentColor" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -376,10 +377,10 @@ function convertToInput(tdElem, table_name, row_id, column_name, event) {
     inputElem.value = formattedDate;
   }
 
-  const editButton = createElement('button', 'bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-2 rounded edit-button ml-2', 'Edit');
+  const editButton = createElement('button', 'bg-green-500 hover:bg-green-700 text-gray-100 font-bold py-1 px-2 rounded edit-button ml-2', 'Edit');
   editButton.onclick = () => {
     const inputDiv = createElement('div', 'relative flex items-center', '');
-    const updateButton = createElement('button', 'absolute right-3 top-1/2 transform -translate-y-1/2 bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-2 rounded focus:outline-none', 'Update');
+    const updateButton = createElement('button', 'absolute right-3 top-1/2 transform -translate-y-1/2 bg-green-500 hover:bg-green-700 text-gray-100 font-bold py-1 px-2 rounded focus:outline-none', 'Update');
 
     inputElem.addEventListener("keydown", (event) => {
       if (event.key === "Escape") resetToBefore({ tdElem, originalText, table_name, row_id, column_name });

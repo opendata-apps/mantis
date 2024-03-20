@@ -15,6 +15,7 @@ from flask import (
 from app.tools.check_reviewer import login_required
 from flask import session
 
+from ..config import Config
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -25,6 +26,7 @@ main = Blueprint("main", __name__)
 @main.route("/")
 @main.route("/start")
 def index():
+    "Index page."
     post_count = (
         db.session.query(TblMeldungen).filter(TblMeldungen.deleted == None).count()
     )
@@ -39,51 +41,58 @@ def index():
     )
 
     return render_template(
-        "home.html", post_count=post_count, bilder=bilder, current_index=current_index
+        "home.html",
+        post_count=post_count,
+        bilder=bilder,
+        current_index=current_index,
+        current_year=Config.CURRENT_YEAR,
     )
 
 
 def styles():
+    "Return the theme.css file."
     return send_from_directory("static/build", "theme.css")
-
-
-@main.route("/projekt")
-def projekt():
-    return render_template("projekt.html")
 
 
 @main.route("/faq")
 def faq():
+    "Frequently asked questions."
     return render_template("faq.html")
 
 
 @main.route("/impressum")
 def impressum():
+    "Impressum."
     return render_template("impressum.html")
 
 
 @main.route("/lizenz")
 def lizenz():
+    "Lizenz."
     return render_template("lizenz.html")
 
 
 @main.route("/datenschutz")
 def datenschutz():
+    "Datenschutz."
     return render_template("datenschutz.html")
 
 
 @main.route("/mantis-religiosa")
 def mantis_religiosa():
+    "Mantis religiosa info Page."
     return render_template("mantis_religiosa.html")
 
 
 @main.route("/bestimmung")
 def bestimmung():
+    "Help for Bestimmung."
     return render_template("bestimmung.html")
 
 
 @main.route("/sitemap.xml")
 def sitemap():
+    "Return the sitemap.xml file."
     with current_app.open_resource("static/sitemap.xml") as f:
         content = f.read()
     return Response(content, mimetype="application/xml")
@@ -91,6 +100,7 @@ def sitemap():
 
 @main.route("/robots.txt")
 def robots():
+    "Return the robots.txt file."
     with current_app.open_resource("static/robots.txt") as f:
         content = f.read()
     return Response(content, mimetype="text/plain")
@@ -99,6 +109,7 @@ def robots():
 @main.route("/galerie")
 @login_required
 def galerie():
+    "Galerie."
     json_path = os.path.join(
         BASE_DIR, "..", "static", "images", "galerie", "galerie.json"
     )
@@ -118,4 +129,5 @@ def galerie():
 
 
 def not_found(e):
+    "404 error page."
     return render_template("404.html")

@@ -2,7 +2,6 @@ import csv
 from datetime import datetime, timedelta
 from functools import wraps
 from io import BytesIO, StringIO
-
 import pandas as pd
 from app import db
 from app.config import Config
@@ -37,6 +36,7 @@ from werkzeug.utils import secure_filename
 from pathlib import Path
 from flask import current_app
 from app.tools.send_reviewer_email import send_email
+import os
 
 # Blueprints
 admin = Blueprint("admin", __name__)
@@ -44,6 +44,7 @@ admin = Blueprint("admin", __name__)
 
 @admin.route("/reviewer/<usrid>")
 def reviewer(usrid):
+    "This function is used to display the reviewer page"
     # Fetch the user based on the 'usrid' parameter
     user = TblUsers.query.filter_by(user_id=usrid).first()
 
@@ -241,6 +242,7 @@ def reviewer(usrid):
 @admin.route("/change_mantis_meta_data/<int:id>", methods=["POST"])
 @login_required
 def change_mantis_meta_data(id):
+    "Change mantis report metadata"
     # Find the report by id
     new_data = request.form.get("new_data")
     fieldname = request.form.get("type")
@@ -275,6 +277,7 @@ def change_mantis_meta_data(id):
 
 @admin.route("/<path:filename>")
 def report_Img(filename):
+    "This function is used to serve the image of the report"
     return send_from_directory("", filename, mimetype="image/webp", as_attachment=False)
 
 
@@ -295,47 +298,64 @@ def toggle_approve_sighting(id):
             sighting.dat_bear = None
         sighting.bearb_id = session["user_id"]
         db.session.commit()
+        current_app.logger.debug(
+            f"Sighting {id} approval toggled. dat_bear set to {sighting.dat_bear}"
+        )
+    else:
+        current_app.logger.error(f"Sighting {id} not found for approval toggle.")
+        return jsonify({"error": "Report not found"}), 404
+
     if Config.send_emails:
-        # get data for E-Mail if send_email is True      
-        sighting = db.session.query(
-            TblMeldungen,
-            TblFundorte,
-            TblFundortBeschreibung,
-            TblMeldungUser,
-            TblUsers
-        ).join(
-            TblFundorte,
-            TblMeldungen.fo_zuordnung == TblFundorte.id
-        ).join(
-            TblFundortBeschreibung,
-            TblFundorte.beschreibung == TblFundortBeschreibung.id
-        ).join(
-            TblMeldungUser,
-            TblMeldungen.id == TblMeldungUser.id_meldung
-        ).join(
-            TblUsers,
-            TblMeldungUser.id_user == TblUsers.id
-        ).filter(
-            TblMeldungen.id == id
-        ).first()
-        
+        # get data for E-Mail if send_email is True
+        sighting = (
+            db.session.query(
+                TblMeldungen,
+                TblFundorte,
+                TblFundortBeschreibung,
+                TblMeldungUser,
+                TblUsers,
+            )
+            .join(TblFundorte, TblMeldungen.fo_zuordnung == TblFundorte.id)
+            .join(
+                TblFundortBeschreibung,
+                TblFundorte.beschreibung == TblFundortBeschreibung.id,
+            )
+            .join(TblMeldungUser, TblMeldungen.id == TblMeldungUser.id_meldung)
+            .join(TblUsers, TblMeldungUser.id_user == TblUsers.id)
+            .filter(TblMeldungen.id == id)
+            .first()
+        )
+
         if sighting:
             dbdata = {}
             for part in sighting:
-                part_dict = {c.name: getattr(part, c.name)
-                             for c in part.__table__.columns}
+                part_dict = {
+                    c.name: getattr(part, c.name) for c in part.__table__.columns
+                }
                 dbdata.update(part_dict)
 
-            if dbdata['user_kontakt']:
-                send_email(dbdata)
-        return jsonify({'success': True})
+            if dbdata["user_kontakt"]:
+                try:
+                    send_email(dbdata)
+                except Exception as e:
+                    current_app.logger.error(
+                        f"Email not sent for sighting {id}. Error: {e}"
+                    )
+            else:
+                current_app.logger.error(
+                    f"Email not sent for sighting {id}. No email address found."
+                )
+            return jsonify({"success": True})
+        else:
+            return jsonify({"error": "Sighting not found for email sending."}), 404
     else:
-        return jsonify({"error": "Report not found"}), 404
+        return jsonify({"success": True})
 
 
 @admin.route("/get_sighting/<id>", methods=["GET", "POST"])
 @login_required
 def get_sighting(id):
+    "Find the sighting by id and return it as a JSON object"
     # Find the report by id
     sighting = (
         db.session.query(
@@ -366,6 +386,7 @@ def get_sighting(id):
 @admin.route("/delete_sighting/<id>", methods=["POST"])
 @login_required
 def delete_sighting(id):
+    "Delete sighting based on id"
     # Find the report by id
     sighting = TblMeldungen.query.get(id)
     if sighting:
@@ -378,17 +399,30 @@ def delete_sighting(id):
         return jsonify({"error": "Report not found"}), 404
 
 
+@admin.route("/undelete_sighting/<id>", methods=["POST"])
+@login_required
+def undelete_sighting(id):
+    "Undelete sighting based on id"
+    # Find the report by id
+    sighting = TblMeldungen.query.get(id)
+    if sighting:
+        # Set the deleted value to False
+        sighting.deleted = False
+        sighting.bearb_id = session["user_id"]
+        db.session.commit()
+        return jsonify({"message": "Report successfully undeleted"}), 200
+    else:
+        return jsonify({"error": "Report not found"}), 404
+
+
 @admin.route("/save_sighting_changes/<id>", methods=["POST"])
 @login_required
 def save_sighting_changes(id):
+    "Save changes to sighting based on id"
     # Find the report by id
 
     sighting = TblMeldungen.query.get(id)
     if sighting:
-        # Update sighting with data from request
-        # This will depend on how you implement
-        # the saveChanges function in JavaScript
-        # sighting.field = request.form['field']
         sighting = session["user_id"]
         db.session.commit()
         return jsonify({"success": True})
@@ -399,6 +433,7 @@ def save_sighting_changes(id):
 @admin.route("/change_mantis_gender/<int:id>", methods=["POST"])
 @login_required
 def change_gender(id):
+    "Change mantis gender or type"
     new_gender = request.form.get("new_gender")
 
     sighting = TblMeldungen.query.get(id)
@@ -431,6 +466,7 @@ def change_gender(id):
 @admin.route("/change_mantis_count/<int:id>", methods=["POST"])
 @login_required
 def change_mantis_count(id):
+    "Change mantis count for a specific type"
     new_count = request.form.get("new_count")
     mantis_type = request.form.get("type")
     sighting = TblMeldungen.query.get(id)
@@ -458,32 +494,21 @@ def change_mantis_count(id):
 @admin.route("/admin/export/csv/<table_name>", methods=["GET"])
 @login_required
 def export_csv(table_name):
+    "Export the data from the specified table as a CSV file"
     # Get the table object from the database
     table = db.metadata.tables.get(table_name)
 
     if table is None:
         return jsonify({"error": "Table not found"})
 
-    # Execute a select statement on the table
     result = db.session.execute(table.select())
-
-    # Get the names of the columns
     column_names = result.keys()
-
-    # Create an in-memory text stream
     si = StringIO()
-
-    # Create a CSV writer
     writer = csv.writer(si)
-
-    # Write column names
     writer.writerow(column_names)
-
-    # Write data rows
     for row in result:
         writer.writerow(row)
 
-    # Set the position of the stream to the beginning
     si.seek(0)
 
     # Return the CSV data as a response
@@ -494,6 +519,7 @@ def export_csv(table_name):
 @admin.route("/adminPanel", methods=["GET"])
 @login_required
 def admin_panel():
+    "Display the admin panel super admin page"
     if "user_id" in session:
         inspector = inspect(db.engine)
         tables = inspector.get_table_names()
@@ -505,6 +531,7 @@ def admin_panel():
         return "Unauthorized", 403
 
 
+# Define a dictionary of non-editable fields for each table
 NON_EDITABLE_FIELDS = {
     "meldungen": ["id", "fo_zuordnung"],
     "beschreibung": ["id"],
@@ -517,6 +544,7 @@ NON_EDITABLE_FIELDS = {
 @admin.route("/update_value/<table_name>/<row_id>", methods=["POST"])
 @login_required
 def update_value(table_name, row_id):
+    "Update the value of a field in the specified table and row"
     data = request.json
     column_name = data.get("column_name")
 
@@ -545,6 +573,7 @@ def update_value(table_name, row_id):
 
 
 def update_report_image_date(report_id, new_date):
+    "Update the date in the image filename and the database"
     new_date_obj = datetime.strptime(new_date, "%Y-%m-%d")
 
     # Fetch the report
@@ -590,6 +619,7 @@ def update_report_image_date(report_id, new_date):
 
 
 def _create_directory(new_date):
+    "Create a directory for the new image if it doesn't exist yet"
     year = new_date.strftime("%Y")
     base_dir = Path(current_app.config["UPLOAD_FOLDER"])
     dir_path = base_dir / year / new_date.strftime("%Y-%m-%d")
@@ -598,6 +628,7 @@ def _create_directory(new_date):
 
 
 def _create_filename(location, usrid, new_date):
+    "Create a filename for the new image and location"
     new_timestamp = new_date.strftime("%Y%m%d%H%M%S")
     # Generate the filename without the .webp extension
     return "{}-{}-{}".format(
@@ -609,6 +640,7 @@ def _create_filename(location, usrid, new_date):
 @admin.route("/get_tables", methods=["GET"])
 @login_required
 def get_tables():
+    "Get all table names from the database and return them as a JSON object"
     inspector = inspect(db.engine)
     tables = inspector.get_table_names()
     tables = [table for table in tables if table != "alembic_version"]
@@ -618,6 +650,7 @@ def get_tables():
 @admin.route("/table/<table_name>")
 @login_required
 def get_table_data(table_name):
+    "Get the data from the specified table and return it as a JSON object"
     limit = 20
     offset = request.args.get(
         "offset", default=0, type=int
@@ -637,6 +670,7 @@ def get_table_data(table_name):
 
 # Define a function to convert a row to a dictionary
 def row2dict(row):
+    "Convert a row to a dictionary"
     d = {}
     for item in row:
         for column in item.__table__.columns:
@@ -645,10 +679,8 @@ def row2dict(row):
     return d
 
 
-# Function to perform the query
-
-
 def perform_query(filter_value=None):
+    "Perform a query to get all data from the database"
     # Create a session
     Session = sessionmaker(bind=db.engine)
     session = Session()
@@ -672,6 +704,8 @@ def perform_query(filter_value=None):
 @admin.route("/admin/export/xlsx/<string:value>")
 @login_required
 def export_data(value):
+    "Export the data from the database as an Excel file"
+    # TODO: not perfect, but works for now
     current_time = datetime.now().strftime("%d.%m.%Y_%H%M")
 
     if value == "all":

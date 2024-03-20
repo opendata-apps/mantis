@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 load_dotenv(dotenv_path="app/.env")
 
@@ -39,3 +39,5 @@ class Config:
         (11, "Im oder am Auto"),
         (99, "Anderer Fundort"),
     ]
+    CURRENT_YEAR = datetime.now().year
+    MIN_MAP_YEAR = 2023

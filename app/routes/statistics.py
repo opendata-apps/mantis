@@ -2,10 +2,12 @@ import json
 from flask import Blueprint
 from flask import render_template, request
 from flask import session, abort
-from sqlalchemy import text
+from sqlalchemy import func, text
 from app import db
 from app.database.models import TblUsers
 from app.tools.check_reviewer import login_required
+from app.tools.gen_messtisch_svg import create_measure_sheet
+from app.database.models import TblFundorte
 
 stats = Blueprint("statistics", __name__)
 
@@ -16,6 +18,7 @@ list_of_stats = {
     "meldungen_funddatum": "Meldungen: Funddatum",
     "meldungen_meldedatum": "Meldungen: Meldedatum",
     "meldungen_meld_fund": "Meldungen: Fund- und Meldedatum",
+    "meldungen_mtb": "Grafik: Messtischblatt",
 }
 
 
@@ -40,6 +43,8 @@ def stats_start(usrid=None):
         return stats_meldungen_funddatum()
     elif value == "meldungen_meld_fund":
         return stats_meldungen_meld_fund()
+    elif value == "meldungen_mtb":
+        return stats_mtb()
     elif value == "start":
         return render_template(
             "statistics/statistiken.html",
@@ -56,11 +61,35 @@ def stats_start(usrid=None):
         )
 
 
+def stats_mtb(request=None):
+    "Messtischblattauswertung für eine Grafik"
+
+    dbanswers = []
+    res = db.session.query(
+        TblFundorte.mtb,
+        func.count(TblFundorte.mtb)).group_by(TblFundorte.mtb).all()
+
+    for row in res:
+        if row[0]:
+            try:
+                mtb = int(row[0])
+                dbanswers.append((mtb, row[1]))
+            except ValueError as e:
+                print(e)
+    xml = create_measure_sheet(dataset=dbanswers)
+    return render_template(
+        "statistics/stats-messtischblatt.html",
+        user_id=session["user_id"],
+        menu=list_of_stats,
+        marker="start",
+        svg=xml
+    )
+
+
 def stats_geschlecht(request=None):
     "Count sum of all kategories"
 
-    sql = text(
-        """
+    sql = text("""
       select sum(art_m) as "Männchen"
             , sum(art_w) as "Weibchen"
             , sum(art_n) as "Nymphen"
@@ -68,8 +97,7 @@ def stats_geschlecht(request=None):
             , sum(art_f) as "Andere"
       from meldungen
       where deleted is NULL;
-    """
-    )
+    """)
 
     with db.engine.connect() as conn:
         result = conn.execute(sql)
@@ -194,8 +222,6 @@ def stats_meldungen_meld_fund(request=None):
         else:
             pass
     res_trace2 = json.loads(json.dumps(trace2))
-    print(res_trace1)
-    print(res_trace2)
     return render_template(
         "statistics/stats-meld-fund.html",
         menu=list_of_stats,

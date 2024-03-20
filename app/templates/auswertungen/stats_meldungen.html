@@ -1,8 +1,10 @@
 {% extends "layout.html" %}
-{% block title %}Auswertungen{% endblock title %}
+{% block title %}Auswertungen{% endblock title %} 
+
+
 {% block content %}
-<div class="container flex p-6 flex-col
-	    mx-auto lg:flex-row lg:mb-0 lg:max-w-6xl">
+<script src="{{ url_for('static', filename='js/flow/flowbite.min.js')}}" defer></script>
+<div class="container flex flex-col p-6 mx-auto lg:flex-row lg:mb-0 lg:max-w-6xl">
   <h1  class="mb-4 text-2xl font-semibold">{{header}}</h1>
   <div id="chart" class="chart"></div>
   <div>{{description}}</div>
