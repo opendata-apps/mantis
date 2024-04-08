@@ -5,9 +5,6 @@ import
 \#*
 db-import.sh
 \.mantis
-\.flantis
-\.1flantis
-\.migrations
 app\static\build\theme.css
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -165,6 +162,7 @@ cython_debug/
 
 # node
 node_modules/
+AI/
 
 # PyCharm
 #  JetBrains specific template is maintainted in a separate JetBrains.gitignore that can

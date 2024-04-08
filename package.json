@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "flowbite": "^2.2.1",
-    "tailwindcss": "^3.3.3"
+    "tailwindcss": "^3.4.3"
   },
   "devDependencies": {
     "@tailwindcss/aspect-ratio": "^0.4.2",
