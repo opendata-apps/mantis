@@ -1,3 +1,8 @@
+"""
+Generate 500 uniqe datasets for testing as SQL statements.
+See also fill-db2.py for better testdata.
+"""
+
 for i in range(100, 600):
     num = i
     template = f"""

@@ -1,14 +1,20 @@
-# before running this script, make sure to put in root
+"""
+Fill sample data into the database.
+The image is not visible because of a
+static not existing imagepath
+"""
+
 from app import db
 from random import choice
 from faker import Faker
-from app.database.models import TblFundorte, TblMeldungen, TblMeldungUser, TblUsers
+from app.database.models import TblFundorte
+from app.database.models import TblMeldungen
+from app.database.models import TblMeldungUser
+from app.database.models import TblUsers
 from app.tools.gen_user_id import get_new_id
 from app import create_app
 
 app = create_app()
-
-
 fake = Faker("de_DE")
 
 
@@ -95,4 +101,11 @@ def generate_sample_reports():
     print("Sample reports created!")
 
 
-generate_sample_reports()
+if __name__ == '__main__':
+    import sys
+    import os
+    from pathlib import Path
+    approot = Path(os.path.dirname(os.path.abspath(__file__)))
+    mantisstart = approot.parent.parent
+    sys.path.append(str(mantisstart))
+    generate_sample_reports()
