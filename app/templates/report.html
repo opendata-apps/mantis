@@ -61,9 +61,6 @@
             </label>
           </div>
         </div>
-        <script>
-
-        </script>
         <div class="grid grid-cols-2 gap-4 mb-4">
           <div>
             <label for="{{ form.longitude.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
@@ -643,15 +640,18 @@
   });
 
 
+
   const input = document.getElementById('{{ form.picture.id }}');
   const preview = document.getElementById('previewImage');
   const previewContainer = document.getElementById('imagePreview');
   const uploadText = document.getElementById('uploadText');
 
-  input.addEventListener('change', function (e) {
+  input.addEventListener('change', handleImageUpload);
+  document.addEventListener('drop', dropHandler);
+
+  function handleImageUpload(e) {
     const file = e.target.files[0];
-    const validFileTypes = ["image/png", "image/jpeg",
-      "image/jfif", "image/webp", "image/heic"];
+    const validFileTypes = ["image/png", "image/jpeg", "image/jfif", "image/webp", "image/heic"];
 
     // Clear previous error messages
     clearErrorsForField('picture');
@@ -659,54 +659,66 @@
     if (file) {
       // Check if the file type is valid
       if (!validFileTypes.includes(file.type.toLowerCase())) {
-          // Call your error function here
-          msg = "Erlaubt sind PNG, JPG, JPEG, JFIF, WEBP oder HEIC-Dateien."
-          showErrors({ picture: [msg] }, 0);
-          e.target.value = ''; // Clear the input
-          return;
+        const msg = "Erlaubt sind PNG, JPG, JPEG, JFIF, WEBP oder HEIC-Dateien.";
+        showErrors({ picture: [msg] }, 0);
+        e.target.value = ''; // Clear the input
+        return;
       }
 
-      const reader = new FileReader();
-
-      reader.addEventListener('load', function () {
-        preview.setAttribute('src', reader.result);
-      });
-
-      reader.readAsDataURL(file);
-      previewContainer.classList.remove('hidden');
-      uploadText.classList.add('hidden');
+      convertImageToWebP(file);
     } else {
-      preview.setAttribute('src', '#');
-      previewContainer.classList.add('hidden');
-      uploadText.classList.remove('hidden');
+      resetPreview();
     }
-  });
+  }
 
   function dropHandler(ev) {
-    //console.log('File(s) dropped');
     ev.preventDefault();
     if (ev.dataTransfer.items) {
       for (var i = 0; i < ev.dataTransfer.items.length; i++) {
         if (ev.dataTransfer.items[i].kind === 'file') {
           var file = ev.dataTransfer.items[i].getAsFile();
-          //console.log('... file[' + i + '].name = ' + file.name);
           var input = document.getElementById('{{ form.picture.id }}');
-          input.files = ev.dataTransfer.files;
-          var reader = new FileReader();
-          reader.onload = function(e) {
-            document.getElementById('imagePreview').style.display = 'flex';
-            document.getElementById('previewImage').src = e.target.result;
-            document.getElementById('uploadText').style.display = 'none';
-          }
-          reader.readAsDataURL(file);
+          convertImageToWebP(file);
         }
-      }
-    } else {
-      for (var i = 0; i < ev.dataTransfer.files.length; i++) {
-        //console.log('... file[' + i + '].name = ' + ev.dataTransfer.files[i].name);
       }
     }
   }
+
+  function convertImageToWebP(file) {
+    var img = new Image();
+    img.onload = function() {
+      var canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      var ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, img.width, img.height);
+      canvas.toBlob(function(blob) {
+        var convertedFile = new File([blob], 'image.webp', { type: 'image/webp' });
+        var dataTransfer = new DataTransfer();
+        dataTransfer.items.add(convertedFile);
+        input.files = dataTransfer.files;
+        updatePreview(convertedFile);
+      }, 'image/webp', 0.8); // 80% quality, can be adjusted
+    };
+    img.src = URL.createObjectURL(file);
+  }
+
+  function updatePreview(file) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      previewContainer.style.display = 'flex';
+      preview.src = e.target.result;
+      uploadText.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function resetPreview() {
+    preview.src = '#';
+    previewContainer.style.display = 'none';
+    uploadText.style.display = 'block';
+  }
+
 
   function clearErrorsForField(fieldName) {
     // Remove error styling from picture label
@@ -973,7 +985,11 @@
   
     localStorage.clear();
     
-    event.target.submit();
+    // Use a flag to ensure the form is submitted only once
+    if (!submitBtn.classList.contains('form-submitted')) {
+      submitBtn.classList.add('form-submitted');
+      event.target.submit();
+    }
   });
 
 
@@ -1015,7 +1031,7 @@
 
     if (data) {
       // Update the location on the map
-      newLatLng = new L.LatLng(data.latitude, data.longitude);
+      const newLatLng = new L.LatLng(data.latitude, data.longitude);
       summaryMarker.setLatLng(newLatLng);
       summaryMap.setView(newLatLng, 13);
 
@@ -1024,12 +1040,14 @@
         summaryMap.invalidateSize();
       }, 400); // Adjust delay as needed
 
-      // Update the popup content
-      const popupContent = `<strong>Straße:</strong> ${data.street}<br>
-<strong>Postleitzahl:</strong> ${data.zip_code}<br>
-<strong>Ort:</strong> ${data.city}<br>
-<strong>Landkreis/Stadt:</strong> ${data.district}<br>
-<strong>Bundesland:</strong> ${data.state}`;
+      // Update the popup content using template literals for better readability
+      const popupContent = `
+        <strong>Straße:</strong> ${data.street}<br>
+        <strong>Postleitzahl:</strong> ${data.zip_code}<br>
+        <strong>Ort:</strong> ${data.city}<br>
+        <strong>Landkreis/Stadt:</strong> ${data.district}<br>
+        <strong>Bundesland:</strong> ${data.state}
+      `;
       summaryMarkerPopup.setContent(popupContent);
 
       // Picture is loaded directly from input as per your request, not from localStorage
@@ -1046,8 +1064,8 @@
       }
 
       // Get the selected text from the location_description dropdown
-      var selectLocationDescriptionElement = document.getElementById('location_description');
-      var selectedLocationDescriptionText = selectLocationDescriptionElement.options[selectLocationDescriptionElement.selectedIndex].text;
+      const selectLocationDescriptionElement = document.getElementById('location_description');
+      const selectedLocationDescriptionText = selectLocationDescriptionElement.options[selectLocationDescriptionElement.selectedIndex].text;
 
       summaryLongitude.textContent = data.longitude;
       summaryLatitude.textContent = data.latitude;
@@ -1081,8 +1099,6 @@
 
   // Initially update the summary
   document.addEventListener('DOMContentLoaded', updateSummary);
-
-
 
 </script>
 {% endblock content %}

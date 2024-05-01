@@ -102,11 +102,9 @@ def _handle_file_upload(request, form, usrid):
     filename = _create_filename(form.city.data, usrid)
     full_file_path = date_folder / filename
 
-    # Convert image to webp and save
-    img = Image.open(file)
-    img.save(str(full_file_path), "WEBP")
+    # Save the uploaded WebP image directly
+    file.save(str(full_file_path))
 
-    # return the path as string with forward slashes
     return str(full_file_path.as_posix())
 
 
