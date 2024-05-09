@@ -96,31 +96,28 @@
   const counter = document.querySelector('.counter');
   const target = Math.min(+counter.dataset.target, {{ post_count }});
   const duration = 2500;
-  let startTime = null;
-  function easeOutExpo(time, b, c, d) {
-    return c * (-Math.pow(2, -10 * time / d) + 1) + b;
+
+  function easeOutExpo(t, b, c, d) {
+    return c * (-Math.pow(2, -10 * t / d) + 1) + b;
   }
-  function animate(currentTime) {
-    if (startTime === null) startTime = currentTime;
-    const elapsedTime = currentTime - startTime;
+
+  function animateCounter(timestamp, startTime) {
+    const elapsedTime = timestamp - startTime;
     const progress = Math.min(elapsedTime / duration, 1);
-
-
     const count = Math.floor(easeOutExpo(progress, 0, target, 1));
+    
     counter.innerText = count;
-    if (elapsedTime < duration) {
-      requestAnimationFrame(animate);
-    } else {
-      counter.innerText = target; // Ensure it ends on the target
+    
+    if (progress < 1) {
+      requestAnimationFrame(ts => animateCounter(ts, startTime));
     }
   }
-  const observer = new IntersectionObserver(entries => {
+
+  new IntersectionObserver(entries => {
     if (entries[0].isIntersecting) {
-      requestAnimationFrame(animate);
-      observer.disconnect();
+      requestAnimationFrame(ts => animateCounter(ts, ts));
     }
-  });
-  observer.observe(counter);
+  }, { threshold: 1 }).observe(counter);
 </script>
 
 {% endblock content %}
