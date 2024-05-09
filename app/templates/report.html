@@ -530,7 +530,6 @@
     fetch(nominatimUrl)
       .then(response => {
         if (!response.ok) {
-          
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         return response.json();
@@ -545,55 +544,41 @@
         document.querySelector("#state").value = address.state || address.city || "";
         document.querySelector("#district").value = address.county || address.suburb || address.borough || "";
 
+        const addressData = {
+          state: address.state || address.city || "",
+          district: address.county || address.suburb || address.borough || "",
+          city: address.city || address.town || address.village || ""
+        };
+
+        function checkAddressData(formData, nextStepIndex) {
+          const userState = formData.get('state');
+          const userDistrict = formData.get('district');
+          const userCity = formData.get('city');
+
+          const errors = {};
+
+          if (addressData.state && userState !== addressData.state) {
+            errors.state = ['Das eingegebene Bundesland stimmt nicht mit den Koordinaten überein.'];
+          }
+          if (addressData.district && userDistrict !== addressData.district) {
+            errors.district = ['Der eingegebene Landkreis stimmt nicht mit den Koordinaten überein.'];
+          }
+          if (addressData.city && userCity !== addressData.city) {
+            errors.city = ['Der eingegebene Ort stimmt nicht mit den Koordinaten überein.'];
+          }
+
+          if (Object.keys(errors).length > 0) {
+            showErrors(errors, 1);
+          } else {
+            showStep(nextStepIndex);
+          }
+        }
+
+        // Attach the modified checkAddressData function to the global scope
+        window.checkAddressData = checkAddressData;
       })
       .catch(error => {
         console.error("Error fetching address data:", error);
-      });
-  }
-
-  function checkAddressData(formData, nextStepIndex) {
-    const latitude = formData.get('latitude');
-    const longitude = formData.get('longitude');
-    const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`;
-
-    fetch(nominatimUrl)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then(data => {
-        const address = data.address;
-        const state = address.state || address.city || "";
-        const district = address.county || address.suburb || address.borough || "";
-        const city = address.city || address.town || address.village || "";
-
-        const userState = formData.get('state');
-        const userDistrict = formData.get('district');
-        const userCity = formData.get('city');
-
-        const errors = {};
-
-        if (state && userState !== state) {
-          errors.state = ['Das eingegebene Bundesland stimmt nicht mit den Koordinaten überein.'];
-        }
-        if (district && userDistrict !== district) {
-          errors.district = ['Der eingegebene Landkreis stimmt nicht mit den Koordinaten überein.'];
-        }
-        if (city && userCity !== city) {
-          errors.city = ['Der eingegebene Ort stimmt nicht mit den Koordinaten überein.'];
-        }
-
-        if (Object.keys(errors).length > 0) {
-          showErrors(errors, 1);
-        } else {
-          showStep(nextStepIndex);
-        }
-      })
-      .catch(error => {
-        console.error("Error fetching address data:", error);
-        showStep(nextStepIndex);
       });
   }
 
