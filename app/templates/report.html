@@ -575,13 +575,13 @@
 
         const errors = {};
 
-        if (userState !== state) {
+        if (state && userState !== state) {
           errors.state = ['Das eingegebene Bundesland stimmt nicht mit den Koordinaten überein.'];
         }
-        if (userDistrict !== district) {
+        if (district && userDistrict !== district) {
           errors.district = ['Der eingegebene Landkreis stimmt nicht mit den Koordinaten überein.'];
         }
-        if (userCity !== city) {
+        if (city && userCity !== city) {
           errors.city = ['Der eingegebene Ort stimmt nicht mit den Koordinaten überein.'];
         }
 
