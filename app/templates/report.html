@@ -599,19 +599,21 @@
 
 
   // Use Jinja2 to pass the Python variables to JavaScript
-  let existing_user = {{ existing_user | tojson | safe }};
+  const existingUser = {{ existing_user | tojson | safe }};
 
-  // Check if the existing_user is not null
-  if (existing_user) {
-    // Prefill and lock the fields
-    document.getElementById("report_first_name").value = existing_user.user_name.split(" ")[1];
-    document.getElementById("report_last_name").value = existing_user.user_name.split(" ")[0];
-    document.getElementById("contact").value = existing_user.user_kontakt;
+  // Check if the existingUser is not null
+  if (existingUser) {
+    const fields = [
+      { id: "report_first_name", value: existingUser.user_name.split(" ")[1] },
+      { id: "report_last_name", value: existingUser.user_name.split(" ")[0] },
+      { id: "contact", value: existingUser.user_kontakt }
+    ];
 
-    // Make the fields readonly
-    document.getElementById("report_first_name").readOnly = true;
-    document.getElementById("report_last_name").readOnly = true;
-    document.getElementById("contact").readOnly = true;
+    fields.forEach(field => {
+      const element = document.getElementById(field.id);
+      element.value = field.value;
+      element.readOnly = true;
+    });
   }
 
 
