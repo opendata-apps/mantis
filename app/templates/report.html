@@ -937,40 +937,34 @@
   }
 
 
-  const step1 = document.getElementById('step1');
-  const step2 = document.getElementById('step2');
-  const step3 = document.getElementById('step3');
-  const step4 = document.getElementById('step4');
-  const step1Next = document.getElementById('step1Next');
-  const step2Prev = document.getElementById('step2Prev');
-  const step2Next = document.getElementById('step2Next');
-  const step3Prev = document.getElementById('step3Prev');
-  const step3Next = document.getElementById('step3Next');
-  const step4Prev = document.getElementById('step4Prev');
+  const steps = ['step1', 'step2', 'step3', 'step4'];
+  const stepElements = steps.map(step => document.getElementById(step));
+  const [step1, step2, step3, step4] = stepElements;
+
+  const stepButtons = [
+    { element: document.getElementById('step1Next'), action: (event) => validateForm(event, 1) },
+    { element: document.getElementById('step2Prev'), action: () => showStep(0) },
+    { element: document.getElementById('step2Next'), action: (event) => validateForm(event, 2) },
+    { element: document.getElementById('step3Prev'), action: () => showStep(1) },
+    { element: document.getElementById('step3Next'), action: (event) => validateForm(event, 3) },
+    { element: document.getElementById('step4Prev'), action: () => showStep(2) },
+  ];
+
+  stepButtons.forEach(({ element, action }) => {
+    element.addEventListener('click', action);
+  });
+
   const additionalFields = document.getElementById('additionalFields');
   const form = document.getElementById('mainForm');
 
-  step1Next.addEventListener('click', (event) => validateForm(event, 1));
-  step2Prev.addEventListener('click', () => showStep(0));
-  step2Next.addEventListener('click', (event) => validateForm(event, 2));
-  step3Prev.addEventListener('click', () => showStep(1));
-  step3Next.addEventListener('click', (event) => validateForm(event, 3));
-  step4Prev.addEventListener('click', () => showStep(2));
-
-
   function showStep(index) {
-    // Update the current step attribute
     form.dataset.currentStep = index;
 
-    step1.classList.toggle('hidden', index !== 0);
-    step2.classList.toggle('hidden', index !== 1);
-    step3.classList.toggle('hidden', index !== 2);
-    step4.classList.toggle('hidden', index !== 3);
+    stepElements.forEach((step, i) => {
+      step.classList.toggle('hidden', index !== i);
+    });
 
-    // Call invalidateSize after the step containing the map becomes visible
-    // This delay is to ensure that the DOM has finished updating before
-    // invalidateSize is called
-    if (index === 3) {  // If this is the step number of the summary step
+    if (index === 3) {
       setTimeout(() => {
         summaryMap.invalidateSize();
       }, 400);  
