@@ -27,10 +27,9 @@
           <div class="w-full space-y-1 md:w-1/2">
             <label for="statusInput" class="block text-sm font-semibold text-left text-gray-700">Status</label>
             <select id="statusInput" name="statusInput" class="w-full p-2 text-sm rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
-              <option value="all" selected="selected">Alle</option>
-              <option value="bearbeitet">Bearbeitet</option>
-              <option value="offen">Offen</option>
+              <option value="all" selected="selected">Bearbeitet</option>
             </select>
+	     <!--input type="hidden" name="qstatusInput" value="bearteitet"-->
           </div>
           <div class="w-full space-y-1 md:w-1/2">
             <label for="typeInput" class="block text-sm font-semibold text-left text-gray-700">Typ</label>
@@ -39,7 +38,7 @@
               <option value="maennlich">Männlich</option>
               <option value="weiblich">Weiblich</option>
               <option value="oothek">Oothek</option>
-              <option value="nymphe">Nymhe</option>
+              <option value="nymhe">Nymhe</option>
               <option value="andere">Andere</option>
               <option value="nicht_bestimmt">Nicht bestimmt</option>
             </select>
@@ -48,6 +47,7 @@
         <div class="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
           <div class="w-full md:w-1/2">
             <label for="dateFrom" class="block text-sm font-semibold text-gray-700">Funddatum von</label>
+	    
             <input type="date" id="dateFrom" name="dateFrom" value="{{ dateFrom }}" class="w-full p-2 text-sm rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
           </div>
           <div class="w-full md:w-1/2">
@@ -66,9 +66,6 @@
             Filtern
           </button>
         </div>
-        <!--input type="hidden" name="q" value="{{ request.args.get('q', '') }}">
-        <input type="hidden" name="sort_order" value="{{ request.args.get('sort_order', '') }}">
-        <input type="hidden" name="search_type" value="{{ request.args.get('search_type', '') }}"-->
     </div>
   </div>
   <div class="flex text-sm mx-4 font-medium text-gray-900 bg-white
@@ -92,7 +89,5 @@
   </div>
 </div>
 <form>
-  #{{dateFrom}}#
 </div>
-
 {%- endmacro %}
