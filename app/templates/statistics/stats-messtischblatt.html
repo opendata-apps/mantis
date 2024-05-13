@@ -2,7 +2,7 @@
 {% block title %}Statistiken{% endblock title %}
 {% block meta_keywords %}Auswertungen, Meßtischblatt{% endblock %}
 {% block content %}
-{% from 'statistics/menu-stats.html' import StatsAuswahl with context %}
+{% from 'statistics/filter-datum-typ.html' import StatsAuswahl with context %}
 <script src="{{ url_for('static', filename='js/flow/flowbite.min.js')}}" defer></script>
 
 <script
