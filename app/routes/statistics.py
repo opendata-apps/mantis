@@ -37,6 +37,7 @@ def get_date_interval(request=None):
         end_date = now
     if not start_date:
         start_date = last_year
+
     return (start_date[:10], end_date[:10])
 
 
@@ -137,8 +138,8 @@ def stats_mtb(request, dateFrom, dateTo, marker):
                  func.COALESCE(TblMeldungen.art_n, 0) +
                  func.COALESCE(TblMeldungen.art_f, 0)).label('gesamt')
     ).join(TblMeldungen).filter(
-        TblMeldungen.dat_meld >= dateFrom,
-        TblMeldungen.dat_meld <= dateTo
+        func.age(TblMeldungen.dat_meld, dateFrom) >= '0 days',
+        func.age(TblMeldungen.dat_meld, dateTo) < '1 day'
     ).group_by(
         TblFundorte.mtb
     )
@@ -173,16 +174,16 @@ def stats_bardiagram_datum(request, dbfields,
     results = {0: '', 1: ''}
     for idx, dbfield in enumerate(dbfields):
         stm = f"""
-            SELECT {dbfield} as Tag,
-                   count({dbfield}) as Anzahl
-            FROM (select {dbfield}
-                  from meldungen
-                  where {dbfield} >= to_date('{dateFrom}', 'YYYY-MM-DD')
-                  and {dbfield} <= to_date('{dateTo}', 'YYYY-MM-DD')
-                  and deleted is NULL or 'f') as filtered
+           SELECT {dbfield} as Tag,
+           count({dbfield}) as Anzahl
+           FROM (select {dbfield}
+                from meldungen
+                where {dbfield} BETWEEN '{dateFrom}'::date
+                                AND ('{dateTo}'::date)
+                and (deleted IS NULL or deleted != 'f')) as filtered
            GROUP BY filtered.{dbfield}
-           ORDER by Tag;"""
-
+           ORDER by Tag;
+        """
         sql = text(stm)
         with db.engine.connect() as conn:
             result = conn.execute(sql)
@@ -194,6 +195,7 @@ def stats_bardiagram_datum(request, dbfields,
                 trace["x"].append(str(record[0]))
                 trace["y"].append(record[1])
         results[idx] = trace
+
     return render_template(
         "statistics/" + page,
         menu=list_of_stats,

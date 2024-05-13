@@ -1,98 +1,31 @@
 {% macro StatsAuswahl() -%}
 <div class="flex flex-wrap ">
-  <div class="flex items-center justify-center text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200">
-    <!-- Filter button -->
-    <button id="filterDropdownButton" data-dropdown-toggle="filterDropdown"
-            class="flex items-center justify-center w-full px-4 py-2 mb-2 text-sm font-medium text-gray-900
-		   bg-white border border-gray-200 rounded-lg md:w-auto md:mb-0 focus:outline-none
-		   hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200"
-            type="button">
-      <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="w-4 h-4 mr-2 text-gray-400"
-           viewbox="0 0 20 20" fill="currentColor">
-        <path fill-rule="evenodd"
-              d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"
-              clip-rule="evenodd" />
-      </svg>
-      Filter
-      <svg class="-mr-1 ml-1.5 w-5 h-5" fill="currentColor" viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"
-           aria-hidden="true">
-        <path clip-rule="evenodd" fill-rule="evenodd"
-              d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
-      </svg>
-    </button>
-    
-    <div id="filterDropdown" class=" z-50 hidden w-64 p-4 space-y-3 bg-white divide-y divide-gray-100 rounded-lg shadow-lg sm:w-80">
-      <form action="" method="POST" class="space-y-3">
-        <div class="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
-          <div class="w-full space-y-1 md:w-1/2">
-            <label for="statusInput" class="block text-sm font-semibold text-left text-gray-700">Status</label>
-            <select id="statusInput" name="statusInput" class="w-full p-2 text-sm rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
-              <option value="all" selected="selected">Alle</option>
-              <option value="bearbeitet">Bearbeitet</option>
-              <option value="offen">Offen</option>
-            </select>
-          </div>
-          <div class="w-full space-y-1 md:w-1/2">
-            <label for="typeInput" class="block text-sm font-semibold text-left text-gray-700">Typ</label>
-            <select id="typeInput" name="typeInput" class="w-full p-2 text-sm rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
-              <option value="all" selected="selected">Alle</option>
-              <option value="maennlich">Männlich</option>
-              <option value="weiblich">Weiblich</option>
-              <option value="oothek">Oothek</option>
-              <option value="nymphe">Nymhe</option>
-              <option value="andere">Andere</option>
-              <option value="nicht_bestimmt">Nicht bestimmt</option>
-            </select>
-          </div>
-        </div>
-        <div class="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
-          <div class="w-full md:w-1/2">
-            <label for="dateFrom" class="block text-sm font-semibold text-gray-700">Funddatum von</label>
-            <input type="date" id="dateFrom" name="dateFrom" value="{{ dateFrom }}" class="w-full p-2 text-sm rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
-          </div>
-          <div class="w-full md:w-1/2">
-            <label for="dateTo" class="block text-sm font-semibold text-gray-700">Funddatum bis</label>
-            <input type="date" id="dateTo" name="dateTo" value="{{ dateTo }}" class="w-full p-2 text-sm rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
-          </div>
-        </div>
-        <div class="flex justify-between mt-4 space-x-4">
-          <button id="clearFilters" type="button" class="flex items-center justify-center w-24 px-2 py-1 text-sm text-red-500 border border-red-500 rounded-md shadow-sm hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:border-transparent">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-4 h-4 mr-1">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-            Löschen
-          </button>
-          <button type="submit" class="w-1/2 px-4 py-2 text-white bg-green-500 rounded-md shadow-sm hover:bg-green-600 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:border-transparent">
-            Filtern
-          </button>
-        </div>
-        <!--input type="hidden" name="q" value="{{ request.args.get('q', '') }}">
-        <input type="hidden" name="sort_order" value="{{ request.args.get('sort_order', '') }}">
-        <input type="hidden" name="search_type" value="{{ request.args.get('search_type', '') }}"-->
-    </div>
+  <div class="flex items-center justify-center text-sm font-medium text-gray-900
+	      pt-5 border border-gray-200 focus:outline-none
+	      hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4
+	      focus:ring-gray-200">
+    <form action="" method="POST" class="space-y-3">
+      <div class="flex text-sm mx-4 font-medium text-gray-900 bg-white
+		  border border-gray-200 rounded-lg focus:outline-none hover:bg-gray-100
+		  hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200">
+	<input type="hidden" id="usertId"
+	       name="userId"
+	       value="{{session['user_id']}}"
+	       class="rounded-lg">
+	<select id="stats"
+		name="stats"
+		class="rounded-lg"
+		onchange="this.form.submit()">
+	  {% for statistik in menu.items() %}
+	  <option value="{{ statistik[0] }}"
+		  {% if statistik[0] == marker %} selected = "selected" {% endif %}>
+	    {{ statistik[1] }}
+	  </option>
+	  {% endfor %}
+	</select>
+      </div>
+    </form>
   </div>
-  <div class="flex text-sm mx-4 font-medium text-gray-900 bg-white
-	      border border-gray-200 rounded-lg focus:outline-none hover:bg-gray-100
-	      hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200">
-    <input type="hidden" id="usertId"
-	   name="userId"
-	   value="{{session['user_id']}}"
-	   class="rounded-lg">
-    <select id="stats"
-	    name="stats"
-	    class="rounded-lg"
-	    onchange="this.form.submit()">
-      {% for statistik in menu.items() %}
-      <option value="{{ statistik[0] }}"
-	      {% if statistik[0] == marker %} selected = "selected" {% endif %}>
-	{{ statistik[1] }}
-      </option>
-      {% endfor %}
-    </select>
-  </div>
-</div>
-<form>
-  #{{dateFrom}}#
 </div>
 
 {%- endmacro %}
