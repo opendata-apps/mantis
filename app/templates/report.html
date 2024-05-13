@@ -125,6 +125,7 @@
 
       <!-- Step 2: Beschreibung Ort und Fund -->
       <div id="step2" class="hidden step" data-step-index="1">
+      <h2 class="mb-2 text-2xl font-bold text-gray-800">Fundortbeschreibung zu den Koordinaten</h2>
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
             <label for="{{ form.street.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
@@ -558,13 +559,13 @@
           const errors = {};
 
           if (addressData.state && userState !== addressData.state) {
-            errors.state = ['Das eingegebene Bundesland stimmt nicht mit den Koordinaten überein.'];
+            errors.state = ['Das eingegebene Bundesland stimmt nicht mit den Fundort-Koordinaten überein.'];
           }
           if (addressData.district && userDistrict !== addressData.district) {
-            errors.district = ['Der eingegebene Landkreis stimmt nicht mit den Koordinaten überein.'];
+            errors.district = ['Der eingegebene Landkreis stimmt nicht mit den Fundort-Koordinaten überein.'];
           }
           if (addressData.city && userCity !== addressData.city) {
-            errors.city = ['Der eingegebene Ort stimmt nicht mit den Koordinaten überein.'];
+            errors.city = ['Der eingegebene Ort stimmt nicht mit den Fundort-Koordinaten überein.'];
           }
 
           if (Object.keys(errors).length > 0) {
