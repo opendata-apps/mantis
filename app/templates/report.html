@@ -125,6 +125,7 @@
 
       <!-- Step 2: Beschreibung Ort und Fund -->
       <div id="step2" class="hidden step" data-step-index="1">
+      <h2 class="mb-2 text-2xl font-bold text-gray-800">Fundortbeschreibung zu den Koordinaten</h2>
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
             <label for="{{ form.street.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
@@ -530,7 +531,6 @@
     fetch(nominatimUrl)
       .then(response => {
         if (!response.ok) {
-          
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         return response.json();
@@ -545,26 +545,61 @@
         document.querySelector("#state").value = address.state || address.city || "";
         document.querySelector("#district").value = address.county || address.suburb || address.borough || "";
 
+        const addressData = {
+          state: address.state || address.city || "",
+          district: address.county || address.suburb || address.borough || "",
+          city: address.city || address.town || address.village || ""
+        };
+
+        function checkAddressData(formData, nextStepIndex) {
+          const userState = formData.get('state');
+          const userDistrict = formData.get('district');
+          const userCity = formData.get('city');
+
+          const errors = {};
+
+          if (addressData.state && userState !== addressData.state) {
+            errors.state = ['Das eingegebene Bundesland stimmt nicht mit den Fundort-Koordinaten überein.'];
+          }
+          if (addressData.district && userDistrict !== addressData.district) {
+            errors.district = ['Der eingegebene Landkreis stimmt nicht mit den Fundort-Koordinaten überein.'];
+          }
+          if (addressData.city && userCity !== addressData.city) {
+            errors.city = ['Der eingegebene Ort stimmt nicht mit den Fundort-Koordinaten überein.'];
+          }
+
+          if (Object.keys(errors).length > 0) {
+            showErrors(errors, 1);
+          } else {
+            showStep(nextStepIndex);
+          }
+        }
+
+        // Attach the modified checkAddressData function to the global scope
+        window.checkAddressData = checkAddressData;
       })
       .catch(error => {
         console.error("Error fetching address data:", error);
       });
   }
 
+
   // Use Jinja2 to pass the Python variables to JavaScript
-  let existing_user = {{ existing_user | tojson | safe }};
+  const existingUser = {{ existing_user | tojson | safe }};
 
-  // Check if the existing_user is not null
-  if (existing_user) {
-    // Prefill and lock the fields
-    document.getElementById("report_first_name").value = existing_user.user_name.split(" ")[1];
-    document.getElementById("report_last_name").value = existing_user.user_name.split(" ")[0];
-    document.getElementById("contact").value = existing_user.user_kontakt;
+  // Check if the existingUser is not null
+  if (existingUser) {
+    const fields = [
+      { id: "report_first_name", value: existingUser.user_name.split(" ")[1] },
+      { id: "report_last_name", value: existingUser.user_name.split(" ")[0] },
+      { id: "contact", value: existingUser.user_kontakt }
+    ];
 
-    // Make the fields readonly
-    document.getElementById("report_first_name").readOnly = true;
-    document.getElementById("report_last_name").readOnly = true;
-    document.getElementById("contact").readOnly = true;
+    fields.forEach(field => {
+      const element = document.getElementById(field.id);
+      element.value = field.value;
+      element.readOnly = true;
+    });
   }
 
 
@@ -816,7 +851,11 @@
       .then(data => {
         const currentStepErrors = showErrors(data.errors, form.dataset.currentStep);
         if (currentStepErrors.length === 0) {
-          showStep(nextStepIndex);
+          if (nextStepIndex === 2) {
+            checkAddressData(formData, nextStepIndex);
+          } else {
+            showStep(nextStepIndex);
+          }
         }
       })
       .catch(error => {
@@ -886,40 +925,34 @@
   }
 
 
-  const step1 = document.getElementById('step1');
-  const step2 = document.getElementById('step2');
-  const step3 = document.getElementById('step3');
-  const step4 = document.getElementById('step4');
-  const step1Next = document.getElementById('step1Next');
-  const step2Prev = document.getElementById('step2Prev');
-  const step2Next = document.getElementById('step2Next');
-  const step3Prev = document.getElementById('step3Prev');
-  const step3Next = document.getElementById('step3Next');
-  const step4Prev = document.getElementById('step4Prev');
+  const steps = ['step1', 'step2', 'step3', 'step4'];
+  const stepElements = steps.map(step => document.getElementById(step));
+  const [step1, step2, step3, step4] = stepElements;
+
+  const stepButtons = [
+    { element: document.getElementById('step1Next'), action: (event) => validateForm(event, 1) },
+    { element: document.getElementById('step2Prev'), action: () => showStep(0) },
+    { element: document.getElementById('step2Next'), action: (event) => validateForm(event, 2) },
+    { element: document.getElementById('step3Prev'), action: () => showStep(1) },
+    { element: document.getElementById('step3Next'), action: (event) => validateForm(event, 3) },
+    { element: document.getElementById('step4Prev'), action: () => showStep(2) },
+  ];
+
+  stepButtons.forEach(({ element, action }) => {
+    element.addEventListener('click', action);
+  });
+
   const additionalFields = document.getElementById('additionalFields');
   const form = document.getElementById('mainForm');
 
-  step1Next.addEventListener('click', (event) => validateForm(event, 1));
-  step2Prev.addEventListener('click', () => showStep(0));
-  step2Next.addEventListener('click', (event) => validateForm(event, 2));
-  step3Prev.addEventListener('click', () => showStep(1));
-  step3Next.addEventListener('click', (event) => validateForm(event, 3));
-  step4Prev.addEventListener('click', () => showStep(2));
-
-
   function showStep(index) {
-    // Update the current step attribute
     form.dataset.currentStep = index;
 
-    step1.classList.toggle('hidden', index !== 0);
-    step2.classList.toggle('hidden', index !== 1);
-    step3.classList.toggle('hidden', index !== 2);
-    step4.classList.toggle('hidden', index !== 3);
+    stepElements.forEach((step, i) => {
+      step.classList.toggle('hidden', index !== i);
+    });
 
-// Call invalidateSize after the step containing the map becomes visible
-// This delay is to ensure that the DOM has finished updating before
-// invalidateSize is called
-    if (index === 3) {  // If this is the step number of the summary step
+    if (index === 3) {
       setTimeout(() => {
         summaryMap.invalidateSize();
       }, 400);  
