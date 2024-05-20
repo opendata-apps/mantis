@@ -223,7 +223,7 @@ def send_email(data):
     receiver_email = md['user_kontakt']
     message = MIMEMultipart("alternative")
     message["Subject"] = subject
-    message["From"] = formataddr(('Gottesanbeterin gesucht', 'gottesanbeterin.gesucht.de'))
+    message["From"] = formataddr(('Gottesanbeterin gesucht', Config.sender_email))
     message["To"] = formataddr((user_name, receiver_email))
 
     text = rendertextmsg(data)
