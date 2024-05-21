@@ -94,30 +94,37 @@
 </section>
 <script>
   const counter = document.querySelector('.counter');
-  const target = Math.min(+counter.dataset.target, {{ post_count }});
+  const target = +counter.dataset.target;
+  console.log(target);
   const duration = 2500;
+  let startTime = null;
 
-  function easeOutExpo(t, b, c, d) {
-    return c * (-Math.pow(2, -10 * t / d) + 1) + b;
+  function easeOutExpo(time, b, c, d) {
+    return c * (-Math.pow(2, -10 * time / d) + 1) + b;
   }
 
-  function animateCounter(timestamp, startTime) {
-    const elapsedTime = timestamp - startTime;
+  function animate(currentTime) {
+    if (startTime === null) startTime = currentTime;
+    const elapsedTime = currentTime - startTime;
     const progress = Math.min(elapsedTime / duration, 1);
-    const count = Math.floor(easeOutExpo(progress, 0, target, 1));
-    
-    counter.innerText = count;
-    
-    if (progress < 1) {
-      requestAnimationFrame(ts => animateCounter(ts, startTime));
+    const count = easeOutExpo(progress, 0, target, 1);
+
+    counter.innerText = Math.floor(count);
+    if (elapsedTime < duration) {
+      requestAnimationFrame(animate);
+    } else {
+      counter.innerText = target;
     }
   }
 
-  new IntersectionObserver(entries => {
+  const observer = new IntersectionObserver(entries => {
     if (entries[0].isIntersecting) {
-      requestAnimationFrame(ts => animateCounter(ts, ts));
+      requestAnimationFrame(animate);
+      observer.disconnect();
     }
-  }, { threshold: 1 }).observe(counter);
+  });
+
+  observer.observe(counter);
 </script>
 
 {% endblock content %}

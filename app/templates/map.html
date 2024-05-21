@@ -84,9 +84,9 @@
 
 <script>
   const counter = document.querySelector('.counter');
-  const target = Math.min(+counter.dataset.target, {{ post_count }});
+  const target = +counter.dataset.target;
+  console.log(target);
   const duration = 2500;
-
   let startTime = null;
 
   function easeOutExpo(time, b, c, d) {
@@ -97,14 +97,13 @@
     if (startTime === null) startTime = currentTime;
     const elapsedTime = currentTime - startTime;
     const progress = Math.min(elapsedTime / duration, 1);
+    const count = easeOutExpo(progress, 0, target, 1);
 
-    const count = Math.floor(easeOutExpo(progress, 0, target, 1));
-    counter.innerText = count;
-
+    counter.innerText = Math.floor(count);
     if (elapsedTime < duration) {
       requestAnimationFrame(animate);
     } else {
-      counter.innerText = target; // Ensure it ends on the target
+      counter.innerText = target;
     }
   }
 
@@ -116,8 +115,6 @@
   });
 
   observer.observe(counter);
-
-
 
   let map;
   let userMarker;
