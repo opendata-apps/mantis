@@ -321,7 +321,11 @@ def show_map():
     else:
         # Summe aller Meldungen für den Counter
         post_count = (
-            db.session.query(TblMeldungen).filter(TblMeldungen.deleted == None).count()
+            db.session.query(TblMeldungen)
+            .filter(TblMeldungen.dat_fund_von >= f"{Config.MIN_MAP_YEAR}-01-01")
+            .filter(TblMeldungen.dat_bear != None)
+            .filter(TblMeldungen.deleted.is_(None))
+            .count()
         )
 
     reports = reports_query.all()

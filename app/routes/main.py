@@ -28,7 +28,11 @@ main = Blueprint("main", __name__)
 def index():
     "Index page."
     post_count = (
-        db.session.query(TblMeldungen).filter(TblMeldungen.deleted == None).count()
+        db.session.query(TblMeldungen)
+        .filter(TblMeldungen.dat_fund_von >= f"{Config.MIN_MAP_YEAR}-01-01")
+        .filter(TblMeldungen.dat_bear != None)
+        .filter(TblMeldungen.deleted.is_(None))
+        .count()
     )
     json_path = os.path.join(
         BASE_DIR, "..", "static", "images", "galerie", "galerie.json"
