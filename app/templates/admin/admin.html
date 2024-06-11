@@ -821,6 +821,7 @@
     function generateLocationInfo(data) {
         return `<div class="p-6 bg-white rounded-lg shadow-md">
                     <p><strong>Location ID:</strong> ${data.fo_zuordnung}</p>
+                    <p><strong>Address:</strong> ${data.strasse}, ${data.plz} ${data.ort}, ${data.land}</p>
                     <div id="map" class="mt-4 overflow-hidden rounded-lg" style="height: 350px; width: 100%;"></div>
                     <div class="grid grid-cols-2 gap-4 mt-4">
                         <div>
