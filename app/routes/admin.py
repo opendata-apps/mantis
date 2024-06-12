@@ -194,16 +194,16 @@ def reviewer(usrid):
             print(e)
 
     if date_from and date_to:
-        date_from_obj = datetime.strptime(date_from, "%Y-%m-%d")
-        date_to_obj = datetime.strptime(date_to, "%Y-%m-%d")
+        date_from_obj = datetime.strptime(date_from, "%d.%m.%Y")
+        date_to_obj = datetime.strptime(date_to, "%d.%m.%Y")
         query = query.filter(
             TblMeldungen.dat_fund_von.between(date_from_obj, date_to_obj)
         )
     elif date_from:
-        date_from_obj = datetime.strptime(date_from, "%Y-%m-%d")
+        date_from_obj = datetime.strptime(date_from, "%d.%m.%Y")
         query = query.filter(TblMeldungen.dat_fund_von >= date_from_obj)
     elif date_to:
-        date_to_obj = datetime.strptime(date_to, "%Y-%m-%d")
+        date_to_obj = datetime.strptime(date_to, "%d.%m.%Y")
         query = query.filter(TblMeldungen.dat_fund_von <= date_to_obj)
 
     paginated_sightings = query.paginate(page=page, per_page=per_page, error_out=False)

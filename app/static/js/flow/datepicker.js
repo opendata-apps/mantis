@@ -3075,6 +3075,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var getDatepickerOptions = function getDatepickerOptions(datepickerEl) {
   var buttons = datepickerEl.hasAttribute('datepicker-buttons');
+  var autoselectToday = datepickerEl.hasAttribute('datepicker-autoselect-today');
   var autohide = datepickerEl.hasAttribute('datepicker-autohide');
   var format = datepickerEl.hasAttribute('datepicker-format');
   var orientation = datepickerEl.hasAttribute('datepicker-orientation');
@@ -3083,6 +3084,9 @@ var getDatepickerOptions = function getDatepickerOptions(datepickerEl) {
   if (buttons) {
     options.todayBtn = true;
     options.clearBtn = true;
+    if (autoselectToday) {
+      options.todayBtnMode = 1;
+    }
   }
   if (autohide) {
     options.autohide = true;

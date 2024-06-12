@@ -4,19 +4,13 @@
 {% from "macro.html" import render_pagination %}
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/leaflet.css')}}" />
-<link rel="stylesheet" href="{{ url_for('static', filename='css/cluster/MarkerCluster.Default.css')}}" />
-<link rel="stylesheet" href="{{ url_for('static', filename='css/cluster/MarkerCluster.css')}}" />
-<link rel="stylesheet" href="{{ url_for('static', filename='css/currentLocation/L.Control.Locate.min.css')}}" />
 <script src="{{ url_for('static', filename='js/leaflet.js')}}"></script>
 <script src="{{ url_for('static', filename='js/esri-leaflet.js')}}"></script>
 <script src="{{ url_for('static', filename='js/esri-leaflet-vector.js')}}"></script>
-<script src="{{ url_for('static', filename='js/exif-js.js')}}" defer></script>
-<script src="{{url_for('static', filename='js/cluster/leaflet.markercluster.js')}}"></script>
-<script src="{{url_for('static', filename='js/currentLocation/L.Control.Locate.min.js')}}"></script>
 {% endblock %}
 {% block content %}
 <script src="{{ url_for('static', filename='js/flow/flowbite.min.js')}}" defer></script>
-
+<script src="{{ url_for('static', filename='js/flow/datepicker.min.js')}}" defer></script>
 
 
 <div class="container px-4 mx-auto my-10 md:px-12">
@@ -53,7 +47,7 @@
     <div class="flex flex-wrap items-center justify-between mb-5 md:space-x-6 lg:space-x-8 xl:space-x-4">
         <div class="flex flex-wrap items-center w-full space-x-4 md:space-x-0 md:space-y-4 md:flex-col md:w-auto">
             <!-- Filter button -->
-            <button id="filterDropdownButton" data-dropdown-toggle="filterDropdown"
+            <button id="filterDropdownButton" data-dropdown-toggle="filterDropdown" data-dropdown-ignore-click-outside-class="datepicker"
                 class="flex items-center justify-center w-full px-4 py-2 mb-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg md:w-auto md:mb-0 focus:outline-none hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200"
                 type="button">
                 <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="w-4 h-4 mr-2 text-gray-400"
@@ -95,16 +89,27 @@
                             </select>
                         </div>
                     </div>
-                    <div class="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
-                        <div class="w-full md:w-1/2">
+                    <div date-rangepicker datepicker-buttons datepicker-autoselect-today datepicker-format="dd.mm.yyyy" class="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
+                        <div class="relative w-full md:w-1/2">
                             <label for="dateFrom" class="block text-sm font-semibold text-gray-700">Funddatum von</label>
-                            <input type="date" id="dateFrom" name="dateFrom" value="{{ request.args.get('dateFrom', '') }}" class="w-full p-2 text-sm rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                            <input name="dateFrom" id="dateFrom" type="text" value="{{ request.args.get('dateFrom', '') }}" class="w-full p-2 text-sm rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent" placeholder="von">
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-3 mt-4 pointer-events-none">
+                                <svg class="w-5 h-5 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z"/>
+                                </svg>
+                            </div>
                         </div>
-                        <div class="w-full md:w-1/2">
+                        <div class="relative w-full md:w-1/2">
                             <label for="dateTo" class="block text-sm font-semibold text-gray-700">Funddatum bis</label>
-                            <input type="date" id="dateTo" name="dateTo" value="{{ request.args.get('dateTo', '') }}" class="w-full p-2 text-sm rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                            <input name="dateTo" id="dateTo" type="text" value="{{ request.args.get('dateTo', '') }}" class="w-full p-2 text-sm rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent" placeholder="bis">
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-3 mt-4 pointer-events-none">
+                                <svg class="w-5 h-5 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z"/>
+                                </svg>
+                            </div>
                         </div>
                     </div>
+                    
                     <div class="flex justify-between mt-4 space-x-4">
                         <button id="clearFilters" type="button" class="flex items-center justify-center w-24 px-2 py-1 text-sm text-red-500 border border-red-500 rounded-md shadow-sm hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:border-transparent">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-4 h-4 mr-1">
@@ -121,9 +126,7 @@
                     <input type="hidden" name="search_type" value="{{ request.args.get('search_type', '') }}">
                 </form>
             </div>
-        
         </div>
-    
         <div class="relative flex items-center flex-grow w-full mb-2 rounded-lg shadow-sm md:w-auto md:mb-0">
             <form action="{{ url_for('admin.reviewer', usrid=session['user_id']) }}" method="GET"
                 class="flex items-center w-full transition-all duration-300 bg-white rounded-lg focus-within:ring-2 focus-within:ring-green-500">
@@ -422,6 +425,66 @@
     </div>
 </div>
 
+<style>
+    #map .absolute {
+      padding-top: 10px !important;
+      margin: 0 auto !important;
+      width: max-content !important; 
+      margin-left: 80px !important;
+    }
+    
+    .leaflet-popup-content-wrapper {
+      background: rgba(22, 101, 52, 0.8);
+      border-radius: 12px;
+      color: #ffffff;
+      font-family: 'Arial', sans-serif;
+      opacity: 0;
+      animation: fadeIn ease 1s;
+      animation-fill-mode: forwards;
+    }
+    
+    .leaflet-popup-tip {
+      background: rgba(22, 101, 52, 0.8);
+    }
+    
+    .leaflet-popup-content {
+      padding: 10px;
+    }
+    
+    .popup-content h2 {
+      margin-bottom: 10px;
+      font-size: 1.3em;
+      color: #f3f4f6;
+    }
+    
+    .popup-list {
+      list-style-type: none;
+      padding: 0;
+    }
+    
+    .popup-list li {
+      margin-bottom: 5px;
+    }
+    
+    .popup-loading, .popup-error {
+      text-align: center;
+      font-weight: bold;
+    }
+    
+    .popup-error {
+      color: #FF6347;
+    }
+    
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+    
+      to {
+        opacity: 1;
+      }
+    }
+    </style>
 
 
 
@@ -637,7 +700,7 @@
     function addTabClickListener(tabElement, contentGenerator, data) {
         let isApproved = document.querySelector(`[data-report-id="${data.id_meldung}"]`).getAttribute('data-approved') === 'true';
         tabElement.onclick = function () {
-            if (!this.classList.contains('active')) {
+            if (!this.classList.contains('active-tab')) {
                 document.getElementById('tab-content').innerHTML = contentGenerator(data);
                 setActiveTab(this);
                 disableInputsIfApproved(isApproved);
@@ -672,7 +735,22 @@
                 zoomOffset: -1
             }).addTo(map);
 
-            L.marker([lat, lng]).addTo(map);
+            let marker = L.marker([lat, lng]).addTo(map);
+
+            // Add popup with address details
+            let popupContent = `
+                <div class="popup-content">
+                    <h2>${lat}, ${lng}</h2>
+                    <ul class="popup-list">
+                        ${data.strasse ? `<li><strong>Straße:</strong> ${data.strasse}</li>` : ''}
+                        ${data.plz ? `<li><strong>Postleitzahl:</strong> ${data.plz}</li>` : ''}
+                        ${data.ort ? `<li><strong>Ort:</strong> ${data.ort}</li>` : ''}
+                        ${data.kreis ? `<li><strong>Region:</strong> ${data.kreis}</li>` : ''}
+                        ${data.land ? `<li><strong>Land:</strong> ${data.land}</li>` : ''}
+                    </ul>
+                </div>
+            `;
+            marker.bindPopup(popupContent);
 
             // Redraw tiles after the modal is shown
             map.invalidateSize();
@@ -714,9 +792,9 @@
     function setActiveTab(tab) {
         // Remove 'active' class from all tabs
         let tabs = [document.getElementById('tab-general-info'), document.getElementById('tab-location-info')];
-        tabs.forEach(t => t.classList.remove('active'));
+        tabs.forEach(t => t.classList.remove('active-tab'));
         // Add 'active' class to the selected tab
-        tab.classList.add('active');
+        tab.classList.add('active-tab');
     }
 
 
@@ -821,7 +899,7 @@
     function generateLocationInfo(data) {
         return `<div class="p-6 bg-white rounded-lg shadow-md">
                     <p><strong>Location ID:</strong> ${data.fo_zuordnung}</p>
-                    <p><strong>Address:</strong> ${data.strasse}, ${data.plz} ${data.ort}, ${data.land}</p>
+                    <p><strong>Addresse:</strong> ${data.strasse}, ${data.plz} ${data.ort}, ${data.land}</p>
                     <div id="map" class="mt-4 overflow-hidden rounded-lg" style="height: 350px; width: 100%;"></div>
                     <div class="grid grid-cols-2 gap-4 mt-4">
                         <div>
