@@ -1,6 +1,6 @@
 """ Tabelle  'aemter' mit Datensätzen
     aus vg5000_gem füllen
-""""
+"""
 
 import json
 import psycopg2
