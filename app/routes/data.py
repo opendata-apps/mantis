@@ -25,6 +25,8 @@ from app.forms import MantisSightingForm
 from app.tools.gen_user_id import get_new_id
 from app.routes.admin import get_sighting
 from app.tools.mtb_calc import get_mtb, pointInRect
+from app.tools.find_gemeinde import get_amt_full_scan
+
 from ..config import Config
 
 # Blueprints
@@ -192,8 +194,11 @@ def report(usrid=None):
         # get number of Messtischblatt
         if pointInRect((form.latitude.data, form.longitude.data)):
             mtb = get_mtb(form.latitude.data, form.longitude.data)
+            amt = get_amt_full_scan((form.longitude.data, form.latitude.data))
         else:
             mtb = ""
+            amt = ""
+
         new_fundort = TblFundorte(
             plz=zipcode,
             ort=form.city.data,
@@ -203,6 +208,7 @@ def report(usrid=None):
             longitude=form.longitude.data,
             latitude=form.latitude.data,
             mtb=mtb,
+            amt=amt,
             beschreibung=int(form.location_description.data),
             ablage=bildpfad,
         )
