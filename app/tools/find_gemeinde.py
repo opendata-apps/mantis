@@ -24,6 +24,10 @@ def get_amt_full_scan(point):
 
 if __name__ == '__main__':
 
+    SQLALCHEMY_DATABASE_URI = 'postgresql://mantis_user:mantis@localhost/mantis_tracker'
+    engine = create_engine(SQLALCHEMY_DATABASE_URI)
+    
     point = [12.07906, 51.3324]
     point = [10.895, 48.3745]
+
     print(get_amt_full_scan(point))
