@@ -148,7 +148,7 @@ def stats_mtb(request, dateFrom, dateTo, marker):
     idx = typeInput.index(art)
 
     for row in results[1:]:
-        if row[idx] > 0:
+        if row[idx] > 0 and row[0] is not None:
             try:
                 mtb = int(row[0])
                 dbanswers.append((mtb, row[idx]))
