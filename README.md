@@ -30,7 +30,7 @@ Stay tuned for updates on these exciting new features!
 
 ![HTML](https://img.shields.io/badge/-HTML-000000?style=flat&logo=HTML5)
 ![CSS](https://img.shields.io/badge/-CSS-000000?style=flat&logo=CSS3&logoColor=1572B6)
-![Jinja2](https://img.shields.io/badge/-Jinja2-000000?style=flat&logo=jinja)
+![Jinja2](https://img.shields.io/badge/-Jinja2-000000?style=flat&logo=jinja)s
 ![Python](https://img.shields.io/badge/-Python-000000?style=flat&logo=python)
 ![Flask](https://img.shields.io/badge/-Flask-000000?style=flat&logo=flask)
 ![PostgreSQL](https://img.shields.io/badge/-PostgreSQL-000000?style=flat&logo=postgresql)
@@ -132,6 +132,3 @@ gunicorn run:app    # For Windows: waitress-serve --listen=*:8000 run:app
 SELECT setval('[TableName]_id_seq', (SELECT MAX(id) FROM [TableName]))
 ```
 
-# 📝 License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
