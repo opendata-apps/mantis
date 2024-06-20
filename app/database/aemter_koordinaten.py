@@ -1,6 +1,7 @@
 """
 Diese Tabelle wird genutzt, um aus den
 Koordinaten ein Amt zuzuordnen.
+Sie nutzt die PostGIS-Funktioen
 """
 
 from app import db
