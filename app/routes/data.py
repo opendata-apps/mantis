@@ -195,6 +195,7 @@ def report(usrid=None):
         if pointInRect((form.latitude.data, form.longitude.data)):
             mtb = get_mtb(form.latitude.data, form.longitude.data)
             amt = get_amt_full_scan((form.longitude.data, form.latitude.data))
+            print(amt)
         else:
             mtb = ""
             amt = ""
