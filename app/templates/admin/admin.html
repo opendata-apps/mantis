@@ -187,7 +187,7 @@
     
             <!-- Custom Dropdown Menu -->
             <div id="sortDropdown"
-                class="z-10 hidden w-48 bg-white divide-y divide-gray-100 rounded-lg shadow ">
+                class="z-10 hidden w-48 bg-white divide-y divide-gray-200 rounded-lg shadow ">
                 <ul class="py-2 text-sm text-gray-700 " aria-labelledby="dropdownSortButton">
                     <li id="id_asc"
                         class="flex items-center px-4 py-2 hover:bg-gray-100  {% if current_sort_order=="
@@ -206,7 +206,7 @@
                         Aufsteigend
                     </li>
                     <li id="id_desc"
-                        class="flex items-center px-4 py-2 hover:bg-gray-100  {% if current_sort_order=="
+                        class="flex items-center px-4 py-2 hover:bg-gray-200  {% if current_sort_order=="
                         id_desc" %} bg-gray-300 {% endif %}" onclick="setSortOrder('id_desc')">
                         <div class="h-2 w-2 bg-green-500 rounded-full mr-2 {% if current_sort_order!="id_desc" %}
                             bg-transparent {% endif %}"></div>
@@ -248,19 +248,19 @@
                 <div id="dropdown" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 ">
                     <ul class="py-2 text-sm text-gray-700 " aria-labelledby="dropdownExportButton">
                         <li>
-                            <button onclick="exportData('all')" class="block w-full px-4 py-2 text-left hover:bg-gray-100 ">
+                            <button onclick="exportData('all')" class="block w-full px-4 py-2 text-left hover:bg-gray-200 ">
                                 Export All Data
                             </button>
                         </li>
                         <li>
                             <button onclick="exportData('accepted')"
-                                class="block w-full px-4 py-2 text-left hover:bg-gray-100 ">
+                                class="block w-full px-4 py-2 text-left hover:bg-gray-200 ">
                                 Export Accepted Reports
                             </button>
                         </li>
                         <li>
                             <button onclick="exportData('non_accepted')"
-                                class="block w-full px-4 py-2 text-left hover:bg-gray-100 ">
+                                class="block w-full px-4 py-2 text-left hover:bg-gray-200 ">
                                 Export Non-Accepted Reports
                             </button>
                         </li>
