@@ -69,7 +69,7 @@
 				</svg>
 			</button>
 		</nav>
-		<div id="mobile-menu" class="absolute left-0 right-0 overflow-hidden transition-all duration-300 ease-in-out bg-green-600 max-h-0 md:hidden bg-opacity-95 backdrop-filter backdrop-blur-lg top-full">
+		<div id="mobile-menu" class="absolute left-0 right-0 overflow-hidden transition-all duration-300 ease-in-out bg-green-800 max-h-0 md:hidden bg-opacity-95 backdrop-filter backdrop-blur-lg top-full">
 			<div class="flex flex-col items-center px-2 pt-2 pb-3 space-y-1">
 				<a href="{{ url_for('main.index') }}" class="block px-3 py-2 text-base font-medium text-white transition duration-300 ease-in-out rounded-md hover:bg-green-700">Start</a>
 				<a href="{{ url_for('main.mantis_religiosa') }}" class="block px-3 py-2 text-base font-medium text-white transition duration-300 ease-in-out rounded-md hover:bg-green-700">Gottesanbeterin</a>
@@ -94,10 +94,10 @@
 
 	window.addEventListener("scroll", () => {
 		if (window.scrollY > 0) {
-			header.classList.add("bg-green-600", "bg-opacity-80", "backdrop-filter", "backdrop-blur-lg");
+			header.classList.add("bg-green-800", "bg-opacity-80", "backdrop-filter", "backdrop-blur-lg");
 		} else {
 			if (!isMobileMenuOpen) {
-				header.classList.remove("bg-green-600", "bg-opacity-80", "backdrop-filter", "backdrop-blur-lg");
+				header.classList.remove("bg-green-800", "bg-opacity-80", "backdrop-filter", "backdrop-blur-lg");
 			}
 		}
 	});
@@ -106,13 +106,13 @@
 		isMobileMenuOpen = !isMobileMenuOpen;
 		if (isMobileMenuOpen) {
 			mobileMenu.style.maxHeight = `${mobileMenu.scrollHeight}px`;
-			header.classList.add("bg-green-600", "bg-opacity-95", "backdrop-filter", "backdrop-blur-lg");
+			header.classList.add("bg-green-800", "bg-opacity-95", "backdrop-filter", "backdrop-blur-lg");
 			menuIcon.classList.add('rotate-90');
 			menuIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>';
 		} else {
 			mobileMenu.style.maxHeight = '0';
 			if (window.scrollY === 0) {
-				header.classList.remove("bg-green-600", "bg-opacity-95", "backdrop-filter", "backdrop-blur-lg");
+				header.classList.remove("bg-green-800", "bg-opacity-95", "backdrop-filter", "backdrop-blur-lg");
 			}
 			menuIcon.classList.remove('rotate-90');
 			menuIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>';
@@ -127,7 +127,7 @@
 			mobileMenu.style.maxHeight = '0';
 			isMobileMenuOpen = false;
 			if (window.scrollY === 0) {
-				header.classList.remove("bg-green-600", "bg-opacity-95", "backdrop-filter", "backdrop-blur-lg");
+				header.classList.remove("bg-green-800", "bg-opacity-95", "backdrop-filter", "backdrop-blur-lg");
 			}
 			menuIcon.classList.remove('rotate-90');
 			menuIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>';
@@ -140,7 +140,7 @@
 			mobileMenu.style.maxHeight = '0';
 			isMobileMenuOpen = false;
 			if (window.scrollY === 0) {
-				header.classList.remove("bg-green-600", "bg-opacity-95", "backdrop-filter", "backdrop-blur-lg");
+				header.classList.remove("bg-green-800", "bg-opacity-95", "backdrop-filter", "backdrop-blur-lg");
 			}
 			menuIcon.classList.remove('rotate-90');
 			menuIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>';
