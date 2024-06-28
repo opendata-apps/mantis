@@ -2,8 +2,7 @@
 import json
 import os
 import random
-from app import db
-from app.database.models import TblMeldungen
+
 from flask import (
     Blueprint,
     Response,
@@ -11,9 +10,12 @@ from flask import (
     render_template,
     request,
     send_from_directory,
+    session,
 )
+
+from app import db
+from app.database.models import TblMeldungen
 from app.tools.check_reviewer import login_required
-from flask import session
 
 from ..config import Config
 
@@ -49,7 +51,6 @@ def index():
         post_count=post_count,
         bilder=bilder,
         current_index=current_index,
-        current_year=Config.CURRENT_YEAR,
     )
 
 

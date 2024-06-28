@@ -74,7 +74,7 @@
 				<a href="{{ url_for('main.index') }}" class="block px-3 py-2 text-base font-medium text-white transition duration-300 ease-in-out rounded-md hover:bg-green-700">Start</a>
 				<a href="{{ url_for('main.mantis_religiosa') }}" class="block px-3 py-2 text-base font-medium text-white transition duration-300 ease-in-out rounded-md hover:bg-green-700">Gottesanbeterin</a>
 				<a href="{{ url_for('data.report') }}" class="block px-3 py-2 text-base font-medium text-white transition duration-300 ease-in-out rounded-md hover:bg-green-700">Melden</a>
-				<a href="{{ url_for('data.show_map', year=current_year) }}" class="block px-3 py-2 text-base font-medium text-white transition duration-300 ease-in-out rounded-md hover:bg-green-700">Auswertungen</a>
+				<a href="{{ url_for('data.show_map', year=now.year) }}" class="block px-3 py-2 text-base font-medium text-white transition duration-300 ease-in-out rounded-md hover:bg-green-700">Auswertungen</a>
 				{% if request.path.startswith('/reviewer') or request.path.startswith('/statistik') or
 				request.path.startswith('/superuser') or request.path.startswith('/galerie') or
 				request.path.startswith('/adminPanel') %}
