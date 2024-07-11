@@ -501,7 +501,8 @@ def stats_berlin(request, dateFrom, dateTo, marker):
     # Die Abfrage ausführen
     results = query.all()
 
-    laender = {'11000001': 'Mitte',
+    laender = {'11000000': 'Berlin (allgemein)',
+               '11000001': 'Mitte',
                '11000002': 'Friedrichshain-Kreuzberg',
                '11000003': 'Pankow',
                '11000004': 'Charlottenburg-Wilmersdorf',
