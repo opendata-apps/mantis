@@ -12,44 +12,49 @@
     </form>
     <p class="m-4">Für den Zeitraum vom {{dateFrom}} bis {{dateTo}}.</p>
     <h2 class="m-4">Meldungen:</h2>
-    <div class="flex flex-wrap">
+
+    <div class="flex flex-wrap justify-center">
       {% for k in result.keys() %}
-      <div class="p-10">
-        <h1>{{ k }}</h1>
-	<table class="table-fixed">
-	  <thead>
-	    <tr>
-	      <th style="width:80px">Art</th>
-	      <th style="widht:50px; text-align:right;">Anzahl</th>
-	    </tr>
-	  </thead>
-	  <tbody>
-	    <tr>
-	      <td>Männlich</td>
-	      <td style="text-align:right;">{{result[k]['maennlich']}}</td>
-	    </tr>
-	    <tr>
-	      <td>Weiblich</td>
-	      <td style="text-align:right;">{{result[k]['weiblich']}}</td>
-	    </tr>
-	    <tr>
-	      <td>Nymphe</td>
-	      <td style="text-align:right;">{{result[k]['nymphe']}}</td>
-	    </tr>
-	    <tr>
-	      <td>Oothek</td>
-	      <td style="text-align:right;">{{result[k]['oothek']}}</td>
-	    </tr>
-	    <tr>
-	      <td>Andere</td>
-	      <td style="text-align:right;">{{result[k]['andere']}}</td>
-	    </tr>
-	    <tr class="border-t-2 border-b-4 border-green-500">
-	      <td>Gesamt</td>
-	      <td style="text-align:right;">{{result[k]['gesamt']}}</td>
-	    </tr>
-	  </tbody>
-	</table>
+      <div class="p-4">
+	<div class="text-center mb-4">
+	  <h1 class="text-xl font-bold">{{ k }}</h1>
+	</div>
+	<div class="flex justify-center">
+	  <table class="table-fixed w-32">
+            <thead>
+              <tr>
+		<th class="text-left">Art</th>
+		<th class="text-right">Anzahl</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+		<td>Männlich</td>
+		<td class="text-right">{{result[k]['maennlich']}}</td>
+              </tr>
+              <tr>
+		<td>Weiblich</td>
+		<td class="text-right">{{result[k]['weiblich']}}</td>
+              </tr>
+              <tr>
+		<td>Nymphe</td>
+		<td class="text-right">{{result[k]['nymphe']}}</td>
+              </tr>
+              <tr>
+		<td>Oothek</td>
+		<td class="text-right">{{result[k]['oothek']}}</td>
+              </tr>
+              <tr>
+		<td>Andere</td>
+		<td class="text-right">{{result[k]['andere']}}</td>
+              </tr>
+              <tr class="border-t-2 border-b-4 border-green-500">
+		<td>Gesamt</td>
+		<td class="text-right">{{result[k]['gesamt']}}</td>
+              </tr>
+            </tbody>
+	  </table>
+	</div>
       </div>
       {% endfor %}
     </div>

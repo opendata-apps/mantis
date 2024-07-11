@@ -13,15 +13,18 @@
     <p class="m-4">Meldugen für den Zeitraum vom {{dateFrom}} bis {{dateTo}}.</p>
     {% if marker == "meldungen_amt" %}
     {% endif %}
-    <div class="flex flex-wrap">
+     <div class="flex flex-wrap justify-center">
       {% for k in result.keys() %}
-      <div class="p-10">
-        <h1>{{k}}</h1>
+      <div class="p-10 center">
+        <div class="text-center mb-4">
+	  <h1 class="text-xl font-bold">{{ k }}</h1>
+	</div>
+	<div class="flex justify-center">
 	<table class="table-fixed">
 	  <thead>
 	    <tr>
-	      <th style="width:80px">Art</th>
-	      <th style="widht:50px; text-align:right;">Anzahl</th>
+	      <th class="text-left">Art</th>
+	      <th class="text-right">Anzahl</th>
 	      </tr>
 	  </thead>
 	  <tbody>
@@ -51,6 +54,7 @@
 	    </tr>
 	  </tbody>
 	</table>
+	</div>
       </div>
       {% endfor %}
     </div>
