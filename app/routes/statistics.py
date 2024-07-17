@@ -1,7 +1,7 @@
 from flask import Blueprint
 from flask import render_template, request
 from flask import session, abort
-from sqlalchemy import func, text
+from sqlalchemy import func, text, or_
 from app import db
 from app.database.models import TblUsers
 from app.tools.check_reviewer import login_required
@@ -23,7 +23,8 @@ list_of_stats = {
     "meldungen_amt": "Auswertung Amt/Gemeinde",
     "meldungen_laender": "Meldungen Bundesländer",
     "meldungen_brb": "Meldungen Brandenburg",
-    "meldungen_berlin": "Meldungen Berlin"
+    "meldungen_berlin": "Meldungen Berlin",
+    "meldungen_gesamt": "Alle Summen (Tabelle)"
 }
 
 
@@ -118,6 +119,11 @@ def stats_start(usrid=None):
                             dateFrom=start_date,
                             dateTo=end_date,
                             marker="meldungen_berlin")
+    elif value == "meldungen_gesamt":
+        return stats_gesamt(request,
+                            dateFrom=start_date,
+                            dateTo=end_date,
+                            marker="meldungen_gesamt")
     elif value == "start":
         return render_template(
             "statistics/statistiken.html",
@@ -533,6 +539,105 @@ def stats_berlin(request, dateFrom, dateTo, marker):
 
     return render_template(
         "statistics/stats-brb.html",
+        user_id=session["user_id"],
+        menu=list_of_stats,
+        marker=marker,
+        result=result_dict,
+        dateFrom=dateFrom,
+        dateTo=dateTo
+    )
+
+
+def stats_gesamt(request, dateFrom, dateTo, marker):
+    "Get sum for  Bundesland, Landkreis/Stadtbezirk and Amt"
+
+    result_dict = {
+        '12': ['Brandenburg', '', '', 0, []],
+        '12060': ['', 'Landkreis Barnim', '', 0, []],
+        '12061': ['', 'Landkreis Dahme-Spreewald', '', 0, []],
+        '12062': ['', 'Landkreis Elbe-Elster', '', 0, []],
+        '12063': ['', 'Landkreis Havelland', '', 0, []],
+        '12064': ['', 'Landkreis Märkisch-Oderland', '', 0, []],
+        '12065': ['', 'Landkreis Oberhavel', '', 0, []],
+        '12066': ['', 'Landkreis Oberspreewald-Lausitz', '', 0, []],
+        '12067': ['', 'Landkreis Oder-Spree', '', 0, []],
+        '12068': ['', 'Landkreis Ostprignitz-Ruppin', '', 0, []],
+        '12069': ['', 'Landkreis Potsdam-Mittelmark', '', 0, []],
+        '12070': ['', 'Landkreis Prignitz', '', 0, []],
+        '12071': ['', 'Landkreis Spree-Neiße', '', 0, []],
+        '12072': ['', 'Landkreis Teltow-Fläming', '', 0, []],
+        '12073': ['', 'Landkreis Uckermark', '', 0, []],
+        '12051': ['', 'Brandenburg an der Havel', '', 0, []],
+        '12052': ['', 'Cottbus', '', 0, []],
+        '12053': ['', 'Frankfurt (Oder)', '', 0, []],
+        '12054': ['', 'Potsdam', '', 0, []],
+        '11': ['Berlin⁠', '', '', 0, []],
+        '11000000': ['', 'Berlin (allgemein)', '', 0, []],
+        '11000001': ['', 'Mitte', '', 0],
+        '11000002': ['', 'Friedrichshain-Kreuzberg', '', 0, []],
+        '11000003': ['', 'Pankow', '', 0, []],
+        '11000004': ['', 'Charlottenburg-Wilmersdorf', '', 0, []],
+        '11000005': ['', 'Spandau', '', 0, []],
+        '11000006': ['', 'Steglitz-Zehlendorf', '', 0, []],
+        '11000007': ['', 'Tempelhof-Schöneberg', '', 0, []],
+        '11000008': ['', 'Neukölln', '', 0, []],
+        '11000009': ['', 'Treptow-Köpenick', '', 0, []],
+        '11000010': ['', 'Marzahn-Hellersdorf', '', 0, []],
+        '11000011': ['', 'Lichtenberg', '', 0, []],
+        '11000012': ['', 'Reinickendorf', '', 0, []],
+        '13': ['Mecklenburg-Vorpommern', '', '', 0, []],
+        '14': ['Freistaat Sachsen', '', '',  0, []],
+        '15': ['Sachsen-Anhalt', '', '', 0, []],
+        '16': ['Freistaat Thüringen', '', '',  0, []],
+        '01': ['Schleswig-Holstein', '', '',  0, []],
+        '02': ['Freie und Hansestadt Hamburg', '', '', 0, []],
+        '03': ['Niedersachsen', '', '',  0, []],
+        '04': ['Freie Hansestadt Bremen', '', '', 0, []],
+        '05': ['Nordrhein-Westfalen', '', '', 0, []],
+        '06': ['Hessen', '', '', 0, []],
+        '07': ['Rheinland-Pfalz', '', '', 0, []],
+        '08': ['Baden-Württemberg', '', '', 0, []],
+        '09': ['Freistaat Bayern', '', '', 0, []],
+        '10': ['Saarland⁠', '', '', 0, []],
+    }
+
+    conn = db.session
+
+    query = conn.query(
+        TblFundorte.amt,
+        func.sum(func.COALESCE(TblMeldungen.art_m, 0) +
+                 func.COALESCE(TblMeldungen.art_w, 0) +
+                 func.COALESCE(TblMeldungen.art_o, 0) +
+                 func.COALESCE(TblMeldungen.art_n, 0) +
+                 func.COALESCE(TblMeldungen.art_f, 0)).label('gesamt')
+    ).join(TblMeldungen).filter(
+        TblMeldungen.dat_meld >= dateFrom,
+        TblMeldungen.dat_meld <= dateTo,
+        or_(TblMeldungen.deleted.is_(None), TblMeldungen.deleted == False)
+    ).group_by(
+        TblFundorte.amt)
+
+    # Die Abfrage ausführen
+    results = query.all()
+    keys = list(result_dict.keys())
+    for result in results:
+        if result[0]:
+            # Länder
+            result_dict[f"{result[0][:2]}"][3] += result[1]
+            # Landkreise für Brandenburg
+            if str(f"{result[0][:5]}") in keys:
+                result_dict[f"{result[0][:5]}"][3] += result[1]
+            # Berlin
+            if str(f"{result[0]}") in keys:
+                result_dict[f"{result[0]}"][3] += result[1]
+            # Ämter
+            if result[0].startswith('12'):
+                id, gemeinde = result[0].split(' -- ')
+                result_dict[f"{result[0][:5]}"][4].append(
+                    [id, '', '', gemeinde, result[1]])
+
+    return render_template(
+        "statistics/stats-table-all.html",
         user_id=session["user_id"],
         menu=list_of_stats,
         marker=marker,
