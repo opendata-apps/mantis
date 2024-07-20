@@ -353,7 +353,8 @@ def stats_laender(request, dateFrom, dateTo, marker):
                  func.COALESCE(TblMeldungen.art_f, 0)).label('gesamt')
     ).join(TblMeldungen).filter(
         TblMeldungen.dat_meld >= dateFrom,
-        TblMeldungen.dat_meld <= dateTo
+        TblMeldungen.dat_meld <= dateTo,
+        or_(TblMeldungen.deleted.is_(None), TblMeldungen.deleted == False)
     ).group_by(
         func.substring(TblFundorte.amt, 1, 2)
     )
@@ -425,7 +426,8 @@ def stats_brb(request, dateFrom, dateTo, marker):
     ).join(TblMeldungen).filter(
         TblMeldungen.dat_meld >= dateFrom,
         TblMeldungen.dat_meld <= dateTo,
-        func.substring(TblFundorte.amt, 1, 2) == '12'
+        func.substring(TblFundorte.amt, 1, 2) == '12',
+        or_(TblMeldungen.deleted.is_(None), TblMeldungen.deleted == False)
     ).group_by(
         func.substring(TblFundorte.amt, 1, 5)
     )
@@ -499,7 +501,8 @@ def stats_berlin(request, dateFrom, dateTo, marker):
     ).join(TblMeldungen).filter(
         TblMeldungen.dat_meld >= dateFrom,
         TblMeldungen.dat_meld <= dateTo,
-        func.substring(TblFundorte.amt, 1, 2) == '11'
+        func.substring(TblFundorte.amt, 1, 2) == '11',
+        or_(TblMeldungen.deleted.is_(None), TblMeldungen.deleted == False)
     ).group_by(
         func.substring(TblFundorte.amt, 1, 8)
     )
