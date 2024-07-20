@@ -572,19 +572,6 @@ def stats_gesamt(request, dateFrom, dateTo, marker):
         '12053': ['', 'Frankfurt (Oder)', '', 0, []],
         '12054': ['', 'Potsdam', '', 0, []],
         '11': ['Berlin⁠', '', '', 0, []],
-        '11000000': ['', 'Berlin (allgemein)', '', 0, []],
-        '11000001': ['', 'Mitte', '', 0],
-        '11000002': ['', 'Friedrichshain-Kreuzberg', '', 0, []],
-        '11000003': ['', 'Pankow', '', 0, []],
-        '11000004': ['', 'Charlottenburg-Wilmersdorf', '', 0, []],
-        '11000005': ['', 'Spandau', '', 0, []],
-        '11000006': ['', 'Steglitz-Zehlendorf', '', 0, []],
-        '11000007': ['', 'Tempelhof-Schöneberg', '', 0, []],
-        '11000008': ['', 'Neukölln', '', 0, []],
-        '11000009': ['', 'Treptow-Köpenick', '', 0, []],
-        '11000010': ['', 'Marzahn-Hellersdorf', '', 0, []],
-        '11000011': ['', 'Lichtenberg', '', 0, []],
-        '11000012': ['', 'Reinickendorf', '', 0, []],
         '13': ['Mecklenburg-Vorpommern', '', '', 0, []],
         '14': ['Freistaat Sachsen', '', '',  0, []],
         '15': ['Sachsen-Anhalt', '', '', 0, []],
@@ -630,6 +617,13 @@ def stats_gesamt(request, dateFrom, dateTo, marker):
             # Berlin
             if str(f"{result[0]}") in keys:
                 result_dict[f"{result[0]}"][3] += result[1]
+            # Berliner Stadtbezirke
+            if result[0].startswith('11'):
+                id, gemeinde = result[0].split(' -- ')
+                print(id, gemeinde)
+                result_dict['11'][4].append(
+                    [id, '', '', gemeinde, result[1]])
+
             # Ämter
             if result[0].startswith('12'):
                 id, gemeinde = result[0].split(' -- ')
