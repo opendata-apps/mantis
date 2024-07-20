@@ -608,28 +608,30 @@ def stats_gesamt(request, dateFrom, dateTo, marker):
     results = query.all()
     keys = list(result_dict.keys())
     for result in results:
-        if result[0]:
-            # Länder
-            result_dict[f"{result[0][:2]}"][3] += result[1]
-            # Landkreise für Brandenburg
-            if str(f"{result[0][:5]}") in keys:
-                result_dict[f"{result[0][:5]}"][3] += result[1]
-            # Berlin
-            if str(f"{result[0]}") in keys:
-                result_dict[f"{result[0]}"][3] += result[1]
-            # Berliner Stadtbezirke
-            if result[0].startswith('11'):
-                id, gemeinde = result[0].split(' -- ')
-                print(id, gemeinde)
-                result_dict['11'][4].append(
-                    [id, '', '', gemeinde, result[1]])
+        try:
+            if result[0]:
+                # Länder
+                result_dict[f"{result[0][:2]}"][3] += result[1]
+                # Landkreise für Brandenburg
+                if str(f"{result[0][:5]}") in keys:
+                    result_dict[f"{result[0][:5]}"][3] += result[1]
+                # Berlin
+                if str(f"{result[0]}") in keys:
+                    result_dict[f"{result[0]}"][3] += result[1]
+                # Berliner Stadtbezirke
+                if result[0].startswith('11'):
+                    id, gemeinde = result[0].split(' -- ')
+                    result_dict['11'][4].append(
+                        [id, '', '', gemeinde, result[1]])
 
-            # Ämter
-            if result[0].startswith('12'):
-                id, gemeinde = result[0].split(' -- ')
-                result_dict[f"{result[0][:5]}"][4].append(
-                    [id, '', '', gemeinde, result[1]])
-
+                # Ämter
+                if result[0].startswith('12'):
+                    id, gemeinde = result[0].split(' -- ')
+                    result_dict[f"{result[0][:5]}"][4].append(
+                        [id, '', '', gemeinde, result[1]])
+        except:
+            print(result)
+                    
     return render_template(
         "statistics/stats-table-all.html",
         user_id=session["user_id"],
