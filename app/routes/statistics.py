@@ -19,6 +19,7 @@ list_of_stats = {
     "meldungen_meldedatum": "Meldungen: Meldedatum",
     "meldungen_meld_fund": "Meldungen: Fund- und Meldedatum",
     "meldungen_mtb": "Grafik: Messtischblatt",
+    "meldungen_amt": "Auswertung Amt/Gemeinde",
 }
 
 
@@ -95,6 +96,11 @@ def stats_start(usrid=None):
                          dateFrom=start_date,
                          dateTo=end_date,
                          marker="meldungen_mtb")
+    elif value == "meldungen_amt":
+        return stats_amt(request,
+                         dateFrom=start_date,
+                         dateTo=end_date,
+                         marker="meldungen_amt")
     elif value == "start":
         start_date, end_date = get_date_interval()
 
@@ -148,7 +154,7 @@ def stats_mtb(request, dateFrom, dateTo, marker):
     idx = typeInput.index(art)
 
     for row in results[1:]:
-        if row[idx] > 0:
+        if row[idx] > 0 and row[0] is not None:
             try:
                 mtb = int(row[0])
                 dbanswers.append((mtb, row[idx]))
@@ -164,6 +170,65 @@ def stats_mtb(request, dateFrom, dateTo, marker):
         svg=xml,
         dateFrom=dateFrom,
         dateTo=dateTo
+    )
+
+
+def stats_amt(request, dateFrom, dateTo, marker):
+    "Results as MTB (Messtischblatt-Raster)"
+
+    gem = request.form.get('gemeinde', '120')  # Alle Gemeinden Brandenburgs
+    gem.split(' ')[0]
+    typeInput = ['amt', 'maennlich', 'weiblich',
+                 'oothek', 'nymphe', 'andere', 'all']
+    conn = db.session
+    dbanswers = ['', 0, 0, 0, 0, 0, 0]
+    search = f"{gem}%"
+
+    query = conn.query(
+        TblFundorte.amt,
+        func.sum(func.COALESCE(TblMeldungen.art_m, 0)).label('maennlich'),
+        func.sum(func.COALESCE(TblMeldungen.art_w, 0)).label('weiblich'),
+        func.sum(func.COALESCE(TblMeldungen.art_o, 0)).label('oothek'),
+        func.sum(func.COALESCE(TblMeldungen.art_n, 0)).label('nymphe'),
+        func.sum(func.COALESCE(TblMeldungen.art_f, 0)).label('andere'),
+        func.sum(func.COALESCE(TblMeldungen.art_m, 0) +
+                 func.COALESCE(TblMeldungen.art_w, 0) +
+                 func.COALESCE(TblMeldungen.art_o, 0) +
+                 func.COALESCE(TblMeldungen.art_n, 0) +
+                 func.COALESCE(TblMeldungen.art_f, 0)).label('gesamt')
+    ).join(TblMeldungen).filter(
+        func.age(TblMeldungen.dat_meld, dateFrom) >= '0 days',
+        func.age(TblMeldungen.dat_meld, dateTo) < '1 day',
+
+    ).filter(
+        TblFundorte.amt.like(search)
+    ).group_by(
+        TblFundorte.amt
+    )
+    results = query.all()
+
+    if results:
+        gemeinde = results[0][0]
+    else:
+        gemeinde = "Ungültiger Wert"
+    for row in results:
+        dbanswers[0] = row[0]
+        for idx, val in enumerate(typeInput):
+            if idx > 0:
+                try:
+                    dbanswers[idx] += row[idx]
+                except ValueError as e:
+                    print(e)
+
+    return render_template(
+        "statistics/stats-gemeinde.html",
+        user_id=session["user_id"],
+        menu=list_of_stats,
+        marker=marker,
+        result=dbanswers,
+        dateFrom=dateFrom,
+        dateTo=dateTo,
+        gemeinde=gemeinde
     )
 
 
