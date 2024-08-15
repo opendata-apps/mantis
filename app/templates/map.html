@@ -30,12 +30,12 @@
   {% endblock text %}
   {% block content %}
   <script src="{{ url_for('static', filename='js/flow/flowbite.min.js')}}" defer></script>
-  <section class="container relative mx-auto mt-10">
+  <section class="container relative px-4 mx-auto mt-10 sm:px-6 lg:px-8">
   <!-- Year Selector on Map -->
   <div class="flex justify-center">
     <p
-      class="flex items-center inline-block p-4 my-4 space-x-2 text-black bg-white border border-gray-200 rounded-lg shadow-lg">
-      <span class="flex items-center text-2xl">
+      class="flex items-center inline-block p-4 my-4 space-x-2 text-sm text-black bg-white border border-gray-200 rounded-lg shadow-lg sm:text-base">
+      <span class="flex items-center text-xl sm:text-2xl">
         🔒
         <span class="w-px h-5 mx-3 bg-gray-300"></span>
       </span>
@@ -43,17 +43,7 @@
     </p>
   </div>
 
-  <div id="map" class="relative h-screen rounded-lg shadow-md">
-    <div class="absolute inset-x-0 top-0" style="z-index: 1000; text-align: center;">
-      <label for="yearSelect" class="sr-only">Jahr auswählen:</label>
-      <select id="yearSelect" name="year" onchange="filterByYear(this.value)"
-        class="inline-block w-40 lg:w-48 px-3 py-1.5 text-sm lg:text-base text-gray-700 bg-white bg-opacity-90 rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200 transition">
-        <option value="">Alle Jahre</option>
-        {% for year in years %}
-        <option value="{{ year }}" {% if year==selected_year %}selected{% endif %}>{{ year }}</option>
-        {% endfor %}
-      </select>
-    </div>
+  <div id="map" class="relative h-[70vh] sm:h-screen rounded-lg shadow-md">
   </div>
   
 </section>
@@ -62,19 +52,19 @@
 <!-- Animated counter section -->
 <section class="py-16 bg-gray-100">
   <div class="container px-4 mx-auto">
-    <div class="relative px-8 py-12 bg-green-800 rounded-lg shadow-2xl">
-      <h2 class="mb-8 text-3xl font-bold leading-tight text-center text-gray-100">
+    <div class="relative px-4 py-8 bg-green-800 rounded-lg shadow-2xl sm:px-8 sm:py-12">
+      <h2 class="mb-6 text-2xl font-bold leading-tight text-center text-gray-100 sm:mb-8 sm:text-3xl">
 	{% if not selected_year %}
           Wir haben insgesamt <br />
 	{% endif %}
 	{% if selected_year %}
           Wir haben für das Jahr  {{selected_year}} <br />
 	{% endif %}
-        <span class="font-extrabold text-gray-100 text-7xl counter" data-target="{{ post_count }}">0</span>
+        <span class="text-5xl font-extrabold text-gray-100 sm:text-7xl counter" data-target="{{ post_count }}">0</span>
         <br />
         Meldungen erhalten.
       </h2>
-      <p class="mb-8 text-xl text-center text-gray-100">
+      <p class="mb-6 text-lg text-center text-gray-100 sm:mb-8 sm:text-xl">
         Helfen Sie uns, diese Zahl zu erhöhen!
       </p>
     </div>
@@ -120,13 +110,49 @@
   let userMarker;
   mapApiKey = "{{apikey}}"
 
+  // Custom control for year selection
+  L.Control.YearSelector = L.Control.extend({
+    onAdd: function(map) {
+      var div = L.DomUtil.create('div', 'leaflet-control leaflet-bar');
+      var select = L.DomUtil.create('select', 'year-selector', div);
+      select.id = 'yearSelect';
+      select.name = 'year';
+
+      var option = L.DomUtil.create('option', '', select);
+      option.value = '';
+      option.innerHTML = 'Alle Jahre';
+
+      {% for year in years %}
+      var option = L.DomUtil.create('option', '', select);
+      option.value = '{{ year }}';
+      option.innerHTML = '{{ year }}';
+      {% if year == selected_year %}
+      option.selected = true;
+      {% endif %}
+      {% endfor %}
+
+      L.DomEvent.on(select, 'change', function(e) {
+        filterByYear(e.target.value);
+      });
+
+      return div;
+    },
+
+    onRemove: function(map) {
+      // Nothing to do here
+    }
+  });
+
+  L.control.yearSelector = function(opts) {
+    return new L.Control.YearSelector(opts);
+  }
+
   function initMap() {
     // Define the boundary box for Germany
     const germanyBounds = [
       [47.270111, 5.866342],
       [55.058347, 15.041896]
     ];
-
 
     map = L.map('map', {
       renderer: L.canvas(),
@@ -151,6 +177,9 @@
     };
 
     L.control.layers(baseMaps).addTo(map);
+
+    // Add the custom year selector control to the left side
+    L.control.yearSelector({ position: 'topleft' }).addTo(map);
 
     var markers = L.markerClusterGroup({
       showCoverageOnHover: false,
@@ -228,11 +257,11 @@
 
 
 <style>
-#map .absolute {
-  padding-top: 10px !important;
-  margin: 0 auto !important;
-  width: max-content !important; 
-  margin-left: 80px !important;
+
+#yearSelect {
+  border-radius: 2px;
+  border: 2px ;
+  background-clip: padding-box;
 }
 
 .leaflet-popup-content-wrapper {
@@ -255,13 +284,14 @@
 
 .popup-content h2 {
   margin-bottom: 10px;
-  font-size: 1.3em;
+  font-size: 1.1em;
   color: #f3f4f6;
 }
 
 .popup-list {
   list-style-type: none;
   padding: 0;
+  font-size: 0.9em;
 }
 
 .popup-list li {
@@ -284,6 +314,13 @@
 
   to {
     opacity: 1;
+  }
+}
+
+@media (max-width: 640px) {
+  #map {
+    margin-left: 10px;
+    margin-right: 10px;
   }
 }
 </style>
