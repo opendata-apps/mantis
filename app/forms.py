@@ -86,12 +86,12 @@ class MantisSightingForm(FlaskForm):
         "*Benutzerkennung:", render_kw={"placeholder": "Benutzerkennung"}
     )
     picture = FileField(
-        "Bild (max. 10MB) *",
+        "Bild (max. 12MB) *",
         validators=[
-            FileRequired(message="Das Bild ist erforderlich, maximal 10MB."),
+            FileRequired(message="Das Bild ist erforderlich, maximal 12MB."),
             FileAllowed(ALLOWED_EXTENSIONS, message="Nur Bilder sind zulässig!"),
             FileSize(
-                max_size=10 * 1024 * 1024, message="Das Bild muss kleiner als 10MB sein"
+                max_size=12 * 1024 * 1024, message="Das Bild muss kleiner als 12MB sein"
             ),
         ],
     )
