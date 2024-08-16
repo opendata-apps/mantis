@@ -58,6 +58,13 @@
                 <p class="mb-2 text-sm text-gray-500 "><span class="font-semibold">Click or drop image here...</span></p>
                 <p class="text-xs text-gray-500 ">PNG, JPG, JPEG, HEIC, HEIF or WEBP (max. 10 MB)</p>
               </div>
+              <div id="uploadLoader" class="flex flex-col items-center justify-center hidden w-full h-full">
+                <svg class="w-10 h-10 text-green-500 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <p class="mt-2 text-sm text-gray-500">Bild wird hochgeladen...</p>
+              </div>
               {{ form.picture(class="hidden", id=form.picture.id, accept="image/*") }}
             </label>
           </div>
@@ -604,30 +611,77 @@
   }
 
 
+  function setLocalStorageWithExpiry(key, value, ttl) {
+    const now = new Date();
+    const item = {
+      value: value,
+      expiry: now.getTime() + ttl,
+    };
+    try {
+      localStorage.setItem(key, JSON.stringify(item));
+    } catch (e) {
+      console.error("Error setting localStorage item:", e);
+    }
+  }
+
+  function getLocalStorageWithExpiry(key) {
+    try {
+      const itemStr = localStorage.getItem(key);
+      if (!itemStr) {
+        return null;
+      }
+      const item = JSON.parse(itemStr);
+      const now = new Date();
+      if (now.getTime() > item.expiry) {
+        localStorage.removeItem(key);
+        return null;
+      }
+      return item.value;
+    } catch (e) {
+      console.error("Error getting localStorage item:", e);
+      return null;
+    }
+  }
+
+  function cleanupExpiredItems() {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      getLocalStorageWithExpiry(key); // This will remove the item if it's expired
+    }
+  }
+
+  // Call this function periodically or on page load
+  cleanupExpiredItems();
+
   function saveFormDataToLocalStorage() {
     const form = document.getElementById('mainForm');
     const formData = new FormData(form);
+    const data = {};
 
     for (const [key, value] of formData.entries()) {
-      if (key !== "csrf_token") { // exclude csrf_token
-        localStorage.setItem(key, value);
+      if (key !== "csrf_token" && key !== "picture") {
+        data[key] = value;
       }
     }
+
+    // Set expiry to 1 hour (3600000 milliseconds)
+    setLocalStorageWithExpiry('formData', JSON.stringify(data), 3600000);
   }
 
   function loadFormDataFromLocalStorage() {
     const form = document.getElementById('mainForm');
+    const storedData = getLocalStorageWithExpiry('formData');
 
-    for (const input of form.elements) {
-      if (input.name && input.type !== 'file') {
-        const value = localStorage.getItem(input.name);
-        if (value) {
-          try {
-            input.value = value;
-          } catch (e) {
-            console.error('Error setting input value:', e);
+    if (storedData) {
+      try {
+        const data = JSON.parse(storedData);
+        for (const input of form.elements) {
+          if (input.name && input.type !== 'file' && data.hasOwnProperty(input.name)) {
+            input.value = data[input.name];
           }
         }
+      } catch (e) {
+        console.error('Error parsing stored form data:', e);
       }
     }
   }
@@ -684,6 +738,7 @@
   const preview = document.getElementById('previewImage');
   const previewContainer = document.getElementById('imagePreview');
   const uploadText = document.getElementById('uploadText');
+  const uploadLoader = document.getElementById('uploadLoader');
 
   input.addEventListener('change', handleImageUpload);
   document.addEventListener('drop', dropHandler);
@@ -692,17 +747,19 @@
     const file = e.target.files[0];
     const validFileTypes = ["image/png", "image/jpeg", "image/jfif", "image/webp", "image/heic", "image/heif"];
 
-    // Clear previous error messages
     clearErrorsForField('picture');
 
     if (file) {
-      // Check if the file type is valid
       if (!validFileTypes.includes(file.type.toLowerCase())) {
         const msg = "Erlaubt sind PNG, JPG, JPEG, HEIC, HEIF und WebP Dateien.";
         showErrors({ picture: [msg] }, 0);
-        e.target.value = ''; // Clear the input
+        e.target.value = '';
         return;
       }
+
+      // Show loader
+      uploadText.style.display = 'none';
+      uploadLoader.classList.remove('hidden');
 
       convertImageToWebP(file);
     } else {
@@ -732,6 +789,9 @@
         convertToWebP(resultBlob);
       }).catch(function (x) {
         console.error(x.message);
+        // Hide loader and show upload text on error
+        uploadLoader.classList.add('hidden');
+        uploadText.style.display = 'flex';
       });
     } else {
       convertToWebP(file);
@@ -752,7 +812,10 @@
         dataTransfer.items.add(convertedFile);
         input.files = dataTransfer.files;
         updatePreview(convertedFile);
-      }, 'image/webp', 0.8); // 80% quality, can be adjusted
+        
+        // Hide loader after conversion is complete
+        uploadLoader.classList.add('hidden');
+      }, 'image/webp', 0.8);
     };
     img.src = URL.createObjectURL(file);
   }
@@ -763,6 +826,7 @@
       previewContainer.style.display = 'flex';
       preview.src = e.target.result;
       uploadText.style.display = 'none';
+      uploadLoader.classList.add('hidden');  // Ensure loader is hidden
     };
     reader.readAsDataURL(file);
   }
@@ -770,7 +834,8 @@
   function resetPreview() {
     preview.src = '#';
     previewContainer.style.display = 'none';
-    uploadText.style.display = 'block';
+    uploadText.style.display = 'flex';
+    uploadLoader.classList.add('hidden');  // Ensure loader is hidden
   }
 
 
@@ -1035,7 +1100,12 @@
     loadingMsg.classList.remove('hidden');
     console.log('Loading shown');
   
-    localStorage.clear();
+    // Clear local storage with a try-catch block
+    try {
+      localStorage.clear();
+    } catch (e) {
+      console.error('Error clearing localStorage:', e);
+    }
     
     // Use a flag to ensure the form is submitted only once
     if (!submitBtn.classList.contains('form-submitted')) {
@@ -1079,60 +1149,65 @@
   summaryMarker.bindPopup(summaryMarkerPopup);
 
   const updateSummary = () => {
-    const data = JSON.parse(localStorage.getItem('formData'));
+    const storedData = getLocalStorageWithExpiry('formData');
 
-    if (data) {
-      // Update the location on the map
-      const newLatLng = new L.LatLng(data.latitude, data.longitude);
-      summaryMarker.setLatLng(newLatLng);
-      summaryMap.setView(newLatLng, 13);
+    if (storedData) {
+      try {
+        const data = JSON.parse(storedData);
+        // Update the location on the map
+        const newLatLng = new L.LatLng(data.latitude, data.longitude);
+        summaryMarker.setLatLng(newLatLng);
+        summaryMap.setView(newLatLng, 13);
 
-      // Add a delay before calling invalidateSize
-      setTimeout(() => {
-        summaryMap.invalidateSize();
-      }, 400); // Adjust delay as needed
+        // Add a delay before calling invalidateSize
+        setTimeout(() => {
+          summaryMap.invalidateSize();
+        }, 400); // Adjust delay as needed
 
-      // Update the popup content using template literals for better readability
-      const popupContent = `
-        <strong>Straße:</strong> ${data.street}<br>
-        <strong>Postleitzahl:</strong> ${data.zip_code}<br>
-        <strong>Ort:</strong> ${data.city}<br>
-        <strong>Landkreis/Stadt:</strong> ${data.district}<br>
-        <strong>Bundesland:</strong> ${data.state}
-      `;
-      summaryMarkerPopup.setContent(popupContent);
+        // Update the popup content using template literals for better readability
+        const popupContent = `
+          <strong>Straße:</strong> ${data.street}<br>
+          <strong>Postleitzahl:</strong> ${data.zip_code}<br>
+          <strong>Ort:</strong> ${data.city}<br>
+          <strong>Landkreis/Stadt:</strong> ${data.district}<br>
+          <strong>Bundesland:</strong> ${data.state}
+        `;
+        summaryMarkerPopup.setContent(popupContent);
 
-      // Picture is loaded directly from input as per your request, not from localStorage
-      const pictureInput = document.getElementById('picture');
-      const file = pictureInput.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function () {
-          summaryImage.src = reader.result;
-        };
-        reader.readAsDataURL(file);
-      } else {
-        summaryImage.src = '#';
+        // Picture is loaded directly from input as per your request, not from localStorage
+        const pictureInput = document.getElementById('picture');
+        const file = pictureInput.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function () {
+            summaryImage.src = reader.result;
+          };
+          reader.readAsDataURL(file);
+        } else {
+          summaryImage.src = '#';
+        }
+
+        // Get the selected text from the location_description dropdown
+        const selectLocationDescriptionElement = document.getElementById('location_description');
+        const selectedLocationDescriptionText = selectLocationDescriptionElement.options[selectLocationDescriptionElement.selectedIndex].text;
+
+        summaryLongitude.textContent = data.longitude;
+        summaryLatitude.textContent = data.latitude;
+        summaryStreet.textContent = data.street;
+        summaryZipCode.textContent = data.zip_code;
+        summaryCity.textContent = data.city;
+        summaryDistrict.textContent = data.district;
+        summaryState.textContent = data.state;
+        summaryGender.textContent = data.gender;
+        summaryLocationDescription.textContent = selectedLocationDescriptionText;
+        summaryPictureDescription.textContent = data.picture_description;
+        summaryFirstName.textContent = data.report_first_name;
+        summaryLastName.textContent = data.report_last_name;
+        summarySightingDate.textContent = data.sighting_date;
+        summaryContact.textContent = data.contact;
+      } catch (e) {
+        console.error('Error parsing stored form data in updateSummary:', e);
       }
-
-      // Get the selected text from the location_description dropdown
-      const selectLocationDescriptionElement = document.getElementById('location_description');
-      const selectedLocationDescriptionText = selectLocationDescriptionElement.options[selectLocationDescriptionElement.selectedIndex].text;
-
-      summaryLongitude.textContent = data.longitude;
-      summaryLatitude.textContent = data.latitude;
-      summaryStreet.textContent = data.street;
-      summaryZipCode.textContent = data.zip_code;
-      summaryCity.textContent = data.city;
-      summaryDistrict.textContent = data.district;
-      summaryState.textContent = data.state;
-      summaryGender.textContent = data.gender;
-      summaryLocationDescription.textContent = selectedLocationDescriptionText;
-      summaryPictureDescription.textContent = data.picture_description;
-      summaryFirstName.textContent = data.report_first_name;
-      summaryLastName.textContent = data.report_last_name;
-      summarySightingDate.textContent = data.sighting_date;
-      summaryContact.textContent = data.contact;
     }
   }
 
@@ -1144,7 +1219,7 @@
       document.querySelectorAll('input, select, textarea').forEach(function (input) {
         formData[input.id] = input.value;
       });
-      localStorage.setItem('formData', JSON.stringify(formData));
+      setLocalStorageWithExpiry('formData', JSON.stringify(formData), 3600000);
       updateSummary();
     });
   });
