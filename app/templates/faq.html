@@ -3,152 +3,96 @@
 Häufig gestellte Fragen, Gottesanbeterin, Mantis religiosa FAQ, Projekt Fragen
 {% endblock %}
 {% block page_title %}Häufig gestellte Fragen | Mantis Religiosa Mitmachprojekt | Gottesanbeterin Gesucht{% endblock %}
-{% block meta_description %} Haben Sie Fragen? Finden Sie Antworten auf häufig gestellte Fragen über Mantis religiosa. {% endblock %}
+{% block meta_description %}Haben Sie Fragen? Finden Sie Antworten auf häufig gestellte Fragen über Mantis religiosa.{% endblock %}
 {% block title %}Häufig gestellte Fragen (FAQ){% endblock title %}
 
 {% block content %}
 {% block head %}
-<meta name="description"
-  content="Finden Sie Antworten auf häufig gestellte Fragen zu der Meldung und Beobachtung der Gottesanbeterin (Mantis religiosa) in Deutschland. Erfahren Sie, wie Sie mithelfen können, diese Art zu verfolgen.">
+<meta name="description" content="Finden Sie Antworten auf häufig gestellte Fragen zu der Meldung und Beobachtung der Gottesanbeterin (Mantis religiosa) in Deutschland. Erfahren Sie, wie Sie mithelfen können, diese Art zu verfolgen.">
 <meta name="keywords" content="Gottesanbeterin, Mantis religiosa, Deutschland, Meldung, Beobachtung, FAQ">
 {% endblock head %}
 
+<section class="relative px-4 py-20 overflow-hidden sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-7xl">
 
-<div class="container px-8 py-6 mx-auto">
-  <div class="flex flex-wrap justify-center">
-    <div class="w-full px-4 mb-8 md:w-2/3">
-      <input
-        class="w-full px-4 py-3 mb-8 text-lg leading-tight text-gray-700 bg-white border border-gray-200 rounded appearance-none focus:outline-none focus:ring focus:ring-green-500"
-        id="faq-search" type="text" placeholder="FAQ durchsuchen">
-
-      {% set faq_entries = [
-      {"title": "Muss ich mich für meine Meldung anmelden oder registrieren?", "content": "Nein, für eine Meldung ist
-      eine Registrierung oder
-      Anmeldung nicht nötig."},
-      {"title": "Wer kann mitmachen?", "content": "Mitmachen können Kinder, Jugendliche oder Erwachsene, die Interesse
-      haben, sich an diesem <a href='/'>Forschungsprojekt</a> zu beteiligen."},
-      {"title": "Wie kann ich mitmachen?", "content": "
-      Zuerst laden Sie bitte ein Foto des Tieres hoch. Markieren Sie
-      auf der Karte den Fundort mit einem Doppelklick und prüfen die
-      automatisch erzeugten Einträge in den Feldern „Straße“,
-      „Bundesland“, „Kreis“ und „PLZ“. Ggf. nehmen Sie Korrekturen
-      vor. Ergänzen Sie dann das Entwicklungsstadium über ein
-      Auswahlmenü und füllen die Felder „Ort“, „Bildbeschreibung“ und
-      „Fundort-Beschreibung“ aus. Wenn Sie mögen, können Sie sich mit
-      dem Bestimmungsschlüssel das Geschlecht und das
-      Entwicklungsstadium Ihrer <a href='/mantis-religiosa'>Gottesanbeterin</a> selbst
-      bestimmen. Geben Sie das Funddatum an. Sollten Finder und Melder unterschiedliche Personen sein, können Sie nun
-      noch den
-      Namen des Finders eintragen. Wenn Sie eine
-      Rückantwort wünschen, können Sie auch Ihre E-Mail-Adresse
-      angeben. Mehr brauchen Sie nicht zu tun.
-      "},
-      {
-        "title": "Kann ich auch Gottesanbeterinnen außerhalb von Berlin und Brandenburg melden?",
-        "content": "Ja. Der Fokus des Projektes liegt zwar auf Nachweisen der <a href='/mantis-religiosa'>Gottesanbeterin</a> in Berlin und Brandenburg, aber Meldungen außerhalb von Berlin und Brandenburg sind auch möglich."
-      },
-      {"title": "Kann ich auch Beobachtungen aus vorherigen Jahren melden?",
-      "content": "Sehr gerne. Wir freuen uns über jede Meldung. Schauen Sie gerne
-      auch Ihre Fotoarchive durch und melden Sie uns Ihre bisherigen Funde.
-      "},
-      {"title": "Wonach soll ich suchen?",
-      "content": "Jegliche Nachweise der gut getarnten Lauerjägerin,
-      wie Eigelege (<a href='/mantis-religiosa'>Ootheken</a>), Jungtiere (<a href='/mantis-religiosa'>Nymphen</a>) und erwachsene Tiere
-      sind interessant und erwünscht.
-      "},
-      {"title": "Wo soll ich suchen?",
-      "content": "Die Europäische <a href='/mantis-religiosa'>Gottesanbeterin</a> ist eine Wärme und Sonne liebende Art. Sie kommt in gut
-      besonntem Trockenrasenoffenland mit geringem Strauchbewuchs vor. Sie lebt im hohen
-      Gras, an Stauden, aber auch auf dem Boden, z.B. auf Brachen, an stillgelegten
-      Bahntrassen, auf Truppenübungsplätzen und auf alten Tagebauflächen wurde sie gefunden.
-      Viele Zufallsfunde wurden auch in Innenstädten, auf Balkonen und in Gärten gemacht. In
-      geschlossenen Wäldern kommt sie bei uns nicht vor.
-      "},
-      {"title": "Muss ich etwas unternehmen, wenn ich eine Gottesanbeterin finde?",
-      "content": "
-      Machen Sie ein Foto und melden Sie uns Ihren Fund. Ansonsten brauchen Sie nichts zu tun.
-      Die <a href='/mantis-religiosa'>Gottesanbeterin</a> ist eine geschützte Art. Lassen Sie sie bitte an Ort und Stelle sitzen.
-      Sollte sich eine <a href='/mantis-religiosa'>Gottesanbeterin</a> in Ihre Wohnung verirrt haben, setzen Sie sie bitte nach
-      draußen auf den Balkon, in den Hof oder in die Vegetation in der Nähe Ihres Hauses.
-      "},
-      {"title": "Was passiert mit meiner Meldung?",
-      "content": "
-      Im <a href='https://www.naturkundemuseum-potsdam.de/gottesanbeterin-gesucht'>Naturkundemuseum Potsdam</a> werden die Meldungen in einer Datenbank erfasst. Aus den
-      Meldungen werden anschließend Verbreitungskarten erstellt und die Ausbreitung der Art
-      erforscht.
-      "},
-      {"title": "Was passiert mit meinen Daten?",
-      "content": "Für die Auswertungen werden nur die geographischen Koordinaten ihres Fundes
-      und das Funddatum und keine persönlichen <a href='/datenschutz'>Daten</a> gespeichert. Melderdaten werden vertraulich
-      behandelt und ausschließlich projektbezogen verwendet und nicht weitergegeben."},
-      {"title": "Was passiert mit meinen Fotos?",
-      "content": "Die Fotos dienen ausschließlich der Absicherung des Fundes.
-      Die Bilder werden von uns nicht weiterverwendet oder publiziert.
-      Die Urheberrechte verbleiben bei Ihnen.
-      "}
-      ] %}
-      <div class="space-y-6" id="faq-container">
-        {% for faq in faq_entries %}
-        <div class="faq-item" data-title="{{ faq.title|lower }}">
-          <div
-            class="flex items-center justify-between block p-6 transition-all duration-200 ease-in bg-white border border-gray-200 rounded-lg shadow-lg cursor-pointer hover:shadow-xl faq-header"
-            data-id="faq{{ loop.index }}">
-            <h2
-              class="text-2xl font-semibold text-green-800 transition-colors duration-200 ease-in-out hover:text-green-600">
-              {{ faq.title }}</h2>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-              class="flex-shrink-0 w-6 h-6 transition-transform duration-200 ease-in transform"
-              style="transition: transform 0.3s ease;">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-            </svg>
-          </div>
-          <div
-            class="overflow-hidden overflow-y-hidden duration-700 ease-in-out faq-content max-h-0 transition-max-height"
-            style="max-height: 0;" id="faq{{ loop.index }}">
-            <p class="px-6 pb-4 mt-3 text-lg leading-6 text-gray-800">
-              {{ faq.content|safe }}
-            </p>
-          </div>
+        <div class="mb-12">
+            <input
+                class="w-full px-4 py-3 text-lg leading-tight text-gray-700 bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-green-500"
+                id="faq-search" type="text" placeholder="FAQ durchsuchen">
         </div>
-        {% endfor %}
-      </div>
 
+        {% set faq_entries = [
+        {"title": "Muss ich mich für meine Meldung anmelden oder registrieren?", "content": "Nein, für eine Meldung ist eine Registrierung oder Anmeldung nicht nötig."},
+        {"title": "Wer kann mitmachen?", "content": "Mitmachen können Kinder, Jugendliche oder Erwachsene, die Interesse haben, sich an diesem <a href='/' class='text-green-600 hover:text-green-700'>Forschungsprojekt</a> zu beteiligen."},
+        {"title": "Wie kann ich mitmachen?", "content": "Zuerst laden Sie bitte ein Foto des Tieres hoch. Markieren Sie auf der Karte den Fundort mit einem Doppelklick und prüfen die automatisch erzeugten Einträge in den Feldern 'Straße', 'Bundesland', 'Kreis' und 'PLZ'. Ggf. nehmen Sie Korrekturen vor. Ergänzen Sie dann das Entwicklungsstadium über ein Auswahlmenü und füllen die Felder 'Ort', 'Bildbeschreibung' und 'Fundort-Beschreibung' aus. Wenn Sie mögen, können Sie sich mit dem Bestimmungsschlüssel das Geschlecht und das Entwicklungsstadium Ihrer <a href='/mantis-religiosa' class='text-green-600 hover:text-green-700'>Gottesanbeterin</a> selbst bestimmen. Geben Sie das Funddatum an. Sollten Finder und Melder unterschiedliche Personen sein, können Sie nun noch den Namen des Finders eintragen. Wenn Sie eine Rückantwort wünschen, können Sie auch Ihre E-Mail-Adresse angeben. Mehr brauchen Sie nicht zu tun."},
+        {"title": "Kann ich auch Gottesanbeterinnen außerhalb von Berlin und Brandenburg melden?", "content": "Ja. Der Fokus des Projektes liegt zwar auf Nachweisen der <a href='/mantis-religiosa' class='text-green-600 hover:text-green-700'>Gottesanbeterin</a> in Berlin und Brandenburg, aber Meldungen außerhalb von Berlin und Brandenburg sind auch möglich."},
+        {"title": "Kann ich auch Beobachtungen aus vorherigen Jahren melden?", "content": "Sehr gerne. Wir freuen uns über jede Meldung. Schauen Sie gerne auch Ihre Fotoarchive durch und melden Sie uns Ihre bisherigen Funde."},
+        {"title": "Wonach soll ich suchen?", "content": "Jegliche Nachweise der gut getarnten Lauerjägerin, wie Eigelege (<a href='/mantis-religiosa' class='text-green-600 hover:text-green-700'>Ootheken</a>), Jungtiere (<a href='/mantis-religiosa' class='text-green-600 hover:text-green-700'>Nymphen</a>) und erwachsene Tiere sind interessant und erwünscht."},
+        {"title": "Wo soll ich suchen?", "content": "Die Europäische <a href='/mantis-religiosa' class='text-green-600 hover:text-green-700'>Gottesanbeterin</a> ist eine Wärme und Sonne liebende Art. Sie kommt in gut besonntem Trockenrasenoffenland mit geringem Strauchbewuchs vor. Sie lebt im hohen Gras, an Stauden, aber auch auf dem Boden, z.B. auf Brachen, an stillgelegten Bahntrassen, auf Truppenübungsplätzen und auf alten Tagebauflächen wurde sie gefunden. Viele Zufallsfunde wurden auch in Innenstädten, auf Balkonen und in Gärten gemacht. In geschlossenen Wäldern kommt sie bei uns nicht vor."},
+        {"title": "Muss ich etwas unternehmen, wenn ich eine Gottesanbeterin finde?", "content": "Machen Sie ein Foto und melden Sie uns Ihren Fund. Ansonsten brauchen Sie nichts zu tun. Die <a href='/mantis-religiosa' class='text-green-600 hover:text-green-700'>Gottesanbeterin</a> ist eine geschützte Art. Lassen Sie sie bitte an Ort und Stelle sitzen. Sollte sich eine <a href='/mantis-religiosa' class='text-green-600 hover:text-green-700'>Gottesanbeterin</a> in Ihre Wohnung verirrt haben, setzen Sie sie bitte nach draußen auf den Balkon, in den Hof oder in die Vegetation in der Nähe Ihres Hauses."},
+        {"title": "Was passiert mit meiner Meldung?", "content": "Im <a href='https://www.naturkundemuseum-potsdam.de/gottesanbeterin-gesucht' class='text-green-600 hover:text-green-700'>Naturkundemuseum Potsdam</a> werden die Meldungen in einer Datenbank erfasst. Aus den Meldungen werden anschließend Verbreitungskarten erstellt und die Ausbreitung der Art erforscht."},
+        {"title": "Was passiert mit meinen Daten?", "content": "Für die Auswertungen werden nur die geographischen Koordinaten ihres Fundes und das Funddatum und keine persönlichen <a href='/datenschutz' class='text-green-600 hover:text-green-700'>Daten</a> gespeichert. Melderdaten werden vertraulich behandelt und ausschließlich projektbezogen verwendet und nicht weitergegeben."},
+        {"title": "Was passiert mit meinen Fotos?", "content": "Die Fotos dienen ausschließlich der Absicherung des Fundes. Die Bilder werden von uns nicht weiterverwendet oder publiziert. Die Urheberrechte verbleiben bei Ihnen."}
+        ] %}
+
+        <div class="space-y-8" id="faq-container">
+            {% for faq in faq_entries %}
+            <div class="transition-all duration-300 bg-white rounded-lg shadow-md faq-item hover:shadow-lg" data-title="{{ faq.title|lower }}">
+                <button class="w-full text-left focus:outline-none" data-id="faq{{ loop.index }}">
+                    <div class="flex items-center justify-between p-6">
+                        <h2 class="text-xl font-semibold text-gray-800">
+                            {{ faq.title }}
+                        </h2>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6 text-gray-500 transition-transform duration-200 ease-in transform">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </div>
+                </button>
+                <div class="overflow-hidden transition-all duration-300 max-h-0" id="faq{{ loop.index }}">
+                    <div class="p-6 bg-gray-50">
+                        <p class="text-lg text-gray-600">
+                            {{ faq.content|safe }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
     </div>
-  </div>
-</div>
+</section>
 
 <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "name": "Mantis FAQPage",
-    "mainEntity": [{% for faq in faq_entries %}{
-      "@type": "Question",
-      "name": "{{ faq.title }}",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "{{ faq.content }}"
-      }}{% if not loop.last %},{% endif %}{% endfor %}
-    ]
-  }
-  </script>
-
-
-
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "name": "Mantis FAQPage",
+  "mainEntity": [{% for faq in faq_entries %}{
+    "@type": "Question",
+    "name": "{{ faq.title }}",
+    "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "{{ faq.content }}"
+    }}{% if not loop.last %},{% endif %}{% endfor %}
+  ]
+}
+</script>
 
 <script>
   const faqItems = document.querySelectorAll(".faq-item");
   faqItems.forEach((item) => {
-    const header = item.querySelector('.faq-header');
-    const content = item.querySelector('.faq-content');
-    const arrow = header.querySelector('svg');
+    const button = item.querySelector('button');
+    const content = item.querySelector('div[id^="faq"]');
+    const arrow = button.querySelector('svg');
 
-    header.addEventListener('click', () => {
-      if (content.style.maxHeight !== '0px') {
+    button.addEventListener('click', () => {
+      const expanded = button.getAttribute('aria-expanded') === 'true' || false;
+      button.setAttribute('aria-expanded', !expanded);
+      
+      if (expanded) {
         content.style.maxHeight = '0px';
         arrow.style.transform = 'rotate(0deg)';
       } else {
-        content.style.maxHeight = '2000px';
+        content.style.maxHeight = content.scrollHeight + 'px';
         arrow.style.transform = 'rotate(180deg)';
       }
     });

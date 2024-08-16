@@ -3,78 +3,103 @@
 {% from "macro.html" import popover %}
 {% block content %}
 
-<!--Projektbeschreibung section -->
-<section id="Projektbeschreibung" class="relative pt-16 bg-grey-100">
-  <div class="grid grid-cols-1 gap-6 px-2 md:grid-cols-2 md:px-4 lg:grid-cols-3 xl:px-8">
+    <!--Projektbeschreibung section -->
+    <section id="Projektbeschreibung" class="relative px-4 py-20 overflow-hidden sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-7xl">
+            <div class="space-y-32">
+                <!-- Section 1 -->
+                <div class="relative">
+                    <div class="items-center lg:grid lg:grid-cols-2 lg:gap-12">
+                        <div class="relative mb-8 lg:row-start-1 lg:col-start-2 lg:mb-0">
+                            <div class="overflow-hidden rounded-lg shadow-2xl aspect-w-3 aspect-h-2">
+                                <img src="{{ url_for('static', filename='images/berger06.avif') }}" alt="Gottesanbeterin wird von einer Kamera aufgenommen" class="object-cover object-center w-full h-full transition-transform duration-700 hover:scale-110">
+                            </div>
+                            <!-- Decorative Icon -->
+                            <div class="absolute top-0 right-0 p-2 transform translate-x-1/2 -translate-y-1/2 bg-white rounded-full shadow-lg">
+                                <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="relative lg:row-start-1 lg:col-start-1">
+                            <h2 class="pb-8 text-3xl font-bold tracking-tight text-transparent text-gray-900 sm:text-4xl bg-clip-text bg-gradient-to-r from-green-600 to-green-400">Gottesanbeterin gesucht! -Projekt</h2>
+                            <p class="mb-6 text-lg leading-relaxed text-gray-600">
+                                Das <span class="font-semibold text-green-600">Naturkundemuseum Potsdam</span> und die <span class="font-semibold text-green-600">Mantidenfreunde Berlin-Brandenburg</span> initiieren das Projekt "Gottesanbeterin gesucht!" mit dem Ziel, die <span class="font-semibold text-green-600">Europäische Gottesanbeterin</span> (<i>Mantis religiosa</i> L. 1758) in der Region Brandenburg zu kartieren. Seit 2016 sammeln wir <span class="font-semibold text-green-600">Fundmeldungen</span> dieser speziellen Fangschreckenart und bitten Sie, uns bei der Erforschung ihrer <span class="font-semibold text-green-600">Ausbreitung</span> zu unterstützen.
+                            </p>
+                            <a href="https://www.naturkundemuseum-potsdam.de/gottesanbeterin-gesucht" target="_blank" class="relative inline-flex items-center px-6 py-3 overflow-hidden text-base font-medium text-white transition duration-300 bg-green-500 rounded-md shadow-md group hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                <span class="relative z-10">Mehr erfahren</span>
+                                <svg class="w-5 h-5 ml-2 -mr-1 transition-transform duration-300 group-hover:translate-x-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                    <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                </svg>
+                                <div class="absolute inset-0 w-full h-full transition-all duration-300 scale-0 rounded-md group-hover:scale-100 group-hover:bg-white/10"></div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
 
-    <!-- Card 1 -->
-    <a href="https://www.naturkundemuseum-potsdam.de/gottesanbeterin-gesucht" target="_blank"
-       class="block mx-auto transition-transform duration-500 ease-in-out transform bg-white rounded-lg shadow-md cursor-pointer hover:-translate-y-1 hover:shadow-xl group card">
-      <img loading="lazy"src="{{ url_for('static', filename='images/berger06.avif') }}" alt="Gottesanbeterin"
-        class="w-full h-auto mb-4 rounded-t-lg">
-      <h3 class="mb-2 text-xl font-semibold text-center text-gray-800 uppercase"> Über das "Gottesanbeterin gesucht!"-Projekt</h3>
-      <p class="flex-grow text-center text-gray-600">
-        Das Naturkundemuseum Potsdam und die Mantidenfreunde Berlin-Brandenburg initiieren das Projekt "Gottesanbeterin
-        gesucht!" mit dem Ziel, die Europäische Gottesanbeterin (<i>Mantis religiosa</i> L. 1758) in der Region
-        Brandenburg zu
-        kartieren. Seit 2016 sammeln wir Fundmeldungen dieser speziellen Fangschreckenart und bitten Sie, uns bei der
-        Erforschung ihrer Ausbreitung zu unterstützen. Wenn Sie eine Gottesanbeterin gefunden haben, bitten wir Sie,
-        dies hier zu melden. Zusammen mit Wissenschaftlern und Wissenschaftlerinnen können wir so die Ausbreitung der
-        Gottesanbeterin in Brandenburg erforschen. Weitere Informationen zum Naturkundemuseum Potsdam und zur
-        Gottesanbeterin.
-        <br>
-        Siehe auch:
-      </p>
-      <span class="block mt-4 text-sm font-semibold text-center text-blue-600 underline group-hover:text-blueGray-800">
-        Naturkundemuseum Potsdam
-      </span>
-    </a>
-    <a href="/mantis-religiosa" target="_blank"
-       class="block mx-auto transition-transform duration-500 ease-in-out transform bg-white shadow-md cursor-pointer r ounded-lg hover:-translate-y-1 hover:shadow-xl group card">
-      <img loading="lazy"src="{{ url_for('static', filename='images/berger03.avif') }}" alt="Gottesanbeterin"
-        class="w-full h-auto rounded-t-lg">
+                <!-- Section 2 -->
+                <div class="relative">
+                    <div class="items-center lg:grid lg:grid-cols-2 lg:gap-12">
+                        <div class="relative mb-8 lg:mb-0">
+                            <div class="overflow-hidden rounded-lg shadow-2xl aspect-w-3 aspect-h-2">
+                                <img src="{{ url_for('static', filename='images/berger03.avif') }}" alt="Gottesanbeterin nahaufnahme" class="object-cover object-center w-full h-full transition-transform duration-700 hover:scale-110">
+                            </div>
+                            <!-- Decorative Icon -->
+                            <div class="absolute bottom-0 left-0 p-2 transform bg-white rounded-full shadow-lg translate-x-1/4 translate-y-1/4">
+                                <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="relative">
+                            <h2 class="pb-8 text-3xl font-bold tracking-tight text-transparent text-gray-900 sm:text-4xl bg-clip-text bg-gradient-to-r from-green-600 to-green-400"><i>Mantis religiosa</i> L. 1758</h2>
+                            <p class="mb-6 text-lg leading-relaxed text-gray-600">
+                                Die <span class="font-semibold text-green-600">Europäische Gottesanbeterin</span> ist die einzige Art unter etwa 2.400 Fangschrecken-Arten, die in Deutschland, insbesondere in <span class="font-semibold text-green-600">Brandenburg</span>, vorkommt. Mit ihren zum Gebet gefalteten Vorderbeinen unterscheidet sie sich deutlich von anderen Insekten. Ihre <span class="font-semibold text-green-600">geschickte und gut getarnte Lebensweise</span> macht die Suche nach ihr jedoch anspruchsvoll, daher sind wir auf Ihre <span class="font-semibold text-green-600">Meldungen</span> angewiesen.
+                            </p>
+                            <a href="/mantis-religiosa" class="relative inline-flex items-center px-6 py-3 overflow-hidden text-base font-medium text-white transition duration-300 bg-green-500 rounded-md shadow-md group hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                <span class="relative z-10">Mehr über Mantis religiosa</span>
+                                <svg class="w-5 h-5 ml-2 -mr-1 transition-transform duration-300 group-hover:translate-x-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                    <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                </svg>
+                                <div class="absolute inset-0 w-full h-full transition-all duration-300 scale-0 rounded-md group-hover:scale-100 group-hover:bg-white/10"></div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
 
-      <div class="relative px-4 py-6">
-        <h3 class="mb-2 text-xl font-semibold text-center text-gray-800 uppercase">
-          ÜBER <i>Mantis religiosa</i> L. 1758
-        </h3>
-        <p class="text-center text-gray-600">
-          Die Europäische Gottesanbeterin ist die einzige Art unter etwa 2.400 Fangschrecken-Arten, die in Deutschland,
-          insbesondere in Brandenburg, vorkommt. Mit ihren zum Gebet gefalteten Vorderbeinen unterscheidet sie sich
-          deutlich von anderen Insekten. Ihre geschickte und gut getarnte Lebensweise macht die Suche nach ihr jedoch
-          anspruchsvoll, daher sind wir auf Ihre Meldungen angewiesen. Wenn Sie eine Gottesanbeterin melden, tragen Sie
-          maßgeblich zur Forschung bei.
-          <br />
-          Mehr Informationen über die Gottesanbeterin finden Sie auf
-          dem folgenden Link:
-
-          <span class="block pt-2 text-sm font-semibold text-blue-600 underline group-hover:text-blueGray-800">
-            Gottesanbeterin (<i>Mantis religiosa</i> L. 1758)
-          </span>
-        </p>
-      </div>
-    </a>
-    <a href="/faq" target="_blank"
-       class="block mx-auto transition-transform duration-500 ease-in-out transform bg-white rounded-lg shadow-md cursor-pointer hover:-translate-y-1 hover:shadow-xl group card">
-      <img loading="lazy"src="{{ url_for('static', filename='images/berger10.avif') }}" alt="Gottesanbeterin"
-        class="w-full h-auto rounded-t-lg">
-      <div class="relative px-4 py-6">
-        <h3 class="mb-2 text-xl font-semibold text-center text-gray-800 uppercase">Was passiert mit meiner Meldung?</h3>
-        <p class="text-center text-gray-600">
-          Jede Meldung einer in Brandenburg gefundenen Gottesanbeterin wird überprüft und in einer Datenbank erfasst.
-          Ihr Bild dient ausschließlich zur Bestätigung des Fundes und wird in keiner Form weiterverwendet oder
-          veröffentlicht. Mit Hilfe Ihrer wertvollen Informationen können wir Verbreitungskarten erstellen, welche die
-          aktuelle Verbreitung der Gottesanbeterin in Brandenburg zeigen. Von Jahr zu Jahr können wir so gemeinsam die
-          Ausbreitung der Gottesanbeterin nachverfolgen.
-          <br />
-          Weiterführende Hinweise finden Sie in der:
-          <span class="block pt-2 text-sm font-semibold text-blue-600 underline group-hover:text-blueGray-800">
-            FAQ (häufig gestellte Fragen)
-          </span>
-        </p>
-      </div>
-    </a>
-</section>
+                <!-- Section 3 -->
+                <div class="relative">
+                    <div class="items-center lg:grid lg:grid-cols-2 lg:gap-12">
+                        <div class="relative mb-8 lg:row-start-1 lg:col-start-2 lg:mb-0">
+                            <div class="overflow-hidden rounded-lg shadow-2xl aspect-w-3 aspect-h-2">
+                                <img src="{{ url_for('static', filename='images/berger10.avif') }}" alt="Gottesanbeterin in ihrem Lebensraum" class="object-cover object-center w-full h-full transition-transform duration-700 hover:scale-110">
+                            </div>
+                            <!-- Floating Element -->
+                            <div class="absolute top-0 left-0 p-3 transform bg-white rounded-full shadow-lg -translate-x-1/4 -translate-y-1/4">
+                                <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="relative lg:row-start-1 lg:col-start-1">
+                            <h2 class="pb-8 text-3xl font-bold tracking-tight text-transparent text-gray-900 sm:text-4xl bg-clip-text bg-gradient-to-r from-green-600 to-green-400">Was passiert mit meiner Meldung?</h2>
+                            <p class="mb-6 text-lg leading-relaxed text-gray-600">
+                                Jede <span class="font-semibold text-green-600">Meldung</span> einer in Brandenburg gefundenen Gottesanbeterin wird überprüft und in einer <span class="font-semibold text-green-600">Datenbank</span> erfasst. Ihr Bild dient ausschließlich zur Bestätigung des Fundes und wird in keiner Form weiterverwendet oder veröffentlicht. Mit Hilfe Ihrer wertvollen Informationen können wir <span class="font-semibold text-green-600">Verbreitungskarten</span> erstellen, welche die aktuelle <span class="font-semibold text-green-600">Ausbreitung</span> der Gottesanbeterin in Brandenburg zeigen.
+                            </p>
+                            <a href="/faq" class="relative inline-flex items-center px-6 py-3 overflow-hidden text-base font-medium text-white transition duration-300 bg-green-500 rounded-md shadow-md group hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                <span class="relative z-10">FAQ lesen</span>
+                                <svg class="w-5 h-5 ml-2 -mr-1 transition-transform duration-300 group-hover:translate-x-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                    <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                </svg>
+                                <div class="absolute inset-0 w-full h-full transition-all duration-300 scale-0 rounded-md group-hover:scale-100 group-hover:bg-white/10"></div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
 <!-- Animated counter section -->
 <section class="py-16 bg-gray-100">

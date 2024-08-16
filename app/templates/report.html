@@ -686,7 +686,7 @@
 
   function handleImageUpload(e) {
     const file = e.target.files[0];
-    const validFileTypes = ["image/png", "image/jpeg", "image/jfif", "image/webp", "image/heic"];
+    const validFileTypes = ["image/png", "image/jpeg", "image/jfif", "image/webp"];
 
     // Clear previous error messages
     clearErrorsForField('picture');
@@ -694,7 +694,7 @@
     if (file) {
       // Check if the file type is valid
       if (!validFileTypes.includes(file.type.toLowerCase())) {
-        const msg = "Erlaubt sind PNG, JPG, JPEG, JFIF, WEBP oder HEIC-Dateien.";
+        const msg = "Erlaubt sind PNG, JPG, JPEG, JFIF und WebP Dateien.";
         showErrors({ picture: [msg] }, 0);
         e.target.value = ''; // Clear the input
         return;

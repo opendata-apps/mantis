@@ -130,7 +130,7 @@ def reviewer(usrid):
             query = query.filter(TblMeldungen.art_w >= 1)
         elif filter_type == "oothek":
             query = query.filter(TblMeldungen.art_o >= 1)
-        elif filter_type == "nymhe":
+        elif filter_type == "Nymphe":
             query = query.filter(TblMeldungen.art_n >= 1)
         elif filter_type == "andere":
             query = query.filter(TblMeldungen.art_f >= 1)
