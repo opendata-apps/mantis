@@ -478,28 +478,28 @@
   
     // Update form fields on map click or manual input
     function updateMapAndFormData(lat, lng) {
-      document.querySelector('#latitude').value = lat.toFixed(5);
-      document.querySelector('#longitude').value = lng.toFixed(5);
-  
+      document.querySelector('#latitude').value = lat.toString();
+      document.querySelector('#longitude').value = lng.toString();
+
       getAddressFromCoordinates(lat, lng);
-  
+
       if (userMarker) {
         userMarker.remove();
       }
-  
+
       userMarker = L.marker([lat, lng]).addTo(map);
-  
+
       // Save form data to local storage
       let formData = {};
       document.querySelectorAll('input, select, textarea').forEach(function (input) {
         formData[input.id] = input.value;
       });
       localStorage.setItem('formData', JSON.stringify(formData));
-      updateSummary();  // Also update the summary map right away
-  
+      updateSummary();
+
       // add longitude and latitude to local storage
-      localStorage.setItem('latitude', lat.toFixed(5));
-      localStorage.setItem('longitude', lng.toFixed(5));
+      localStorage.setItem('latitude', lat.toString());
+      localStorage.setItem('longitude', lng.toString());
     }
   
     map.on('click', function (e) {
@@ -653,7 +653,7 @@
         const lngRef = EXIF.getTag(this, 'GPSLongitudeRef');
 
         if (lat && lng && latRef && lngRef) {
-          // Convert coordinates to decimal
+          // Convert coordinates to decimal without rounding
           const latitude = toDecimal(lat, latRef);
           const longitude = toDecimal(lng, lngRef);
 
@@ -662,12 +662,15 @@
             return;
           }
           // Set the values to the form fields
-          document.querySelector('#latitude').value = latitude;
-          document.querySelector('#longitude').value = longitude;
+          document.querySelector('#latitude').value = latitude.toString();
+          document.querySelector('#longitude').value = longitude.toString();
 
           if (window.userMarker) window.userMarker.remove();
           window.userMarker = L.marker([latitude, longitude]).addTo(map);
           map.setView([latitude, longitude], 13); 
+
+          // Trigger the address lookup
+          getAddressFromCoordinates(latitude, longitude);
         } else {
           return;
         }
