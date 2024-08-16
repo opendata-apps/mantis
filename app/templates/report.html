@@ -12,6 +12,7 @@
 <script src="{{ url_for('static', filename='js/exif-js.js')}}" defer></script>
 <script src="{{url_for('static', filename='js/cluster/leaflet.markercluster.js')}}"></script>
 <script src="{{url_for('static', filename='js/currentLocation/L.Control.Locate.min.js')}}"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tuily/heic2any@0.0.6/dist/heic2any.min.js"></script>
 <meta name="csrf-token" content="{{ csrf_token() }}">
 {% endblock %}
 {% block page_title %}Melden Sie Ihre Beobachtung | Mantis Religiosa Mitmachprojekt | Gottesanbeterin Gesucht{% endblock
@@ -55,7 +56,7 @@
                     d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                 </svg>
                 <p class="mb-2 text-sm text-gray-500 "><span class="font-semibold">Click or drop image here...</span></p>
-                <p class="text-xs text-gray-500 ">PNG, JPG, JPEG oder WEBP (max. 10 MB)</p>
+                <p class="text-xs text-gray-500 ">PNG, JPG, JPEG, HEIC, HEIF or WEBP (max. 10 MB)</p>
               </div>
               {{ form.picture(class="hidden", id=form.picture.id, accept="image/*") }}
             </label>
@@ -686,7 +687,7 @@
 
   function handleImageUpload(e) {
     const file = e.target.files[0];
-    const validFileTypes = ["image/png", "image/jpeg", "image/jfif", "image/webp", "image/heic"];
+    const validFileTypes = ["image/png", "image/jpeg", "image/jfif", "image/webp", "image/heic", "image/heif"];
 
     // Clear previous error messages
     clearErrorsForField('picture');
@@ -694,7 +695,7 @@
     if (file) {
       // Check if the file type is valid
       if (!validFileTypes.includes(file.type.toLowerCase())) {
-        const msg = "Erlaubt sind PNG, JPG, JPEG, JFIF, WEBP oder HEIC-Dateien.";
+        const msg = "Erlaubt sind PNG, JPG, JPEG, HEIC, HEIF und WebP Dateien.";
         showErrors({ picture: [msg] }, 0);
         e.target.value = ''; // Clear the input
         return;
@@ -720,6 +721,21 @@
   }
 
   function convertImageToWebP(file) {
+    if (file.type.startsWith('image/heic') || file.type.startsWith('image/heif')) {
+      heic2any({
+        blob: file,
+        toType: "image/jpeg",
+      }).then(function (resultBlob) {
+        convertToWebP(resultBlob);
+      }).catch(function (x) {
+        console.error(x.message);
+      });
+    } else {
+      convertToWebP(file);
+    }
+  }
+
+  function convertToWebP(file) {
     var img = new Image();
     img.onload = function() {
       var canvas = document.createElement('canvas');
