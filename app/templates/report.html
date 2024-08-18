@@ -787,7 +787,13 @@
         blob: file,
         toType: "image/jpeg",
       }).then(function (resultBlob) {
-        convertToWebP(resultBlob);
+        // Check the size of the converted JPG
+        if (resultBlob.size > 10 * 1024 * 1024) {
+          // If larger than 10MB, use stronger compression
+          convertToWebP(resultBlob, 0.5);  // Adjust compression level as needed
+        } else {
+          convertToWebP(resultBlob, 0.7);  // Use normal compression
+        }
       }).catch(function (x) {
         console.error(x.message);
         // Hide loader and show upload text on error
@@ -795,11 +801,11 @@
         uploadText.style.display = 'flex';
       });
     } else {
-      convertToWebP(file);
+      convertToWebP(file, 0.7);  // Use normal compression for non-HEIC files
     }
   }
 
-  function convertToWebP(file) {
+  function convertToWebP(file, quality) {
     var img = new Image();
     img.onload = function() {
       var canvas = document.createElement('canvas');
@@ -809,6 +815,15 @@
       ctx.drawImage(img, 0, 0, img.width, img.height);
       canvas.toBlob(function(blob) {
         var convertedFile = new File([blob], 'image.webp', { type: 'image/webp' });
+        
+        // Check if the converted file is still too large
+        if (convertedFile.size > 12 * 1024 * 1024) {
+          alert("Das Bild ist zu groß. Bitte verwenden Sie ein kleineres Bild oder reduzieren Sie die Bildqualität.");
+          uploadLoader.classList.add('hidden');
+          uploadText.style.display = 'flex';
+          return;
+        }
+        
         var dataTransfer = new DataTransfer();
         dataTransfer.items.add(convertedFile);
         input.files = dataTransfer.files;
@@ -816,7 +831,7 @@
         
         // Hide loader after conversion is complete
         uploadLoader.classList.add('hidden');
-      }, 'image/webp', 0.7);
+      }, 'image/webp', quality);
     };
     img.src = URL.createObjectURL(file);
   }
@@ -833,10 +848,10 @@
   }
 
   function resetPreview() {
-    preview.src = '#';
+    preview.src = '';
     previewContainer.style.display = 'none';
     uploadText.style.display = 'flex';
-    uploadLoader.classList.add('hidden');  // Ensure loader is hidden
+    uploadLoader.classList.add('hidden');
   }
 
 
