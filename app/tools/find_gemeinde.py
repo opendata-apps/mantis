@@ -12,17 +12,10 @@ def get_amt_full_scan(point):
         stm = "select * from aemter"
         rows = conn.execute(text(stm))
         for row in rows:
-            try:
-                coords = json.loads(row[2])
-            except json.JSONDecodeError:
-                cleaned_coords = row[2].replace("'", '"').replace('None', 'null')
-                try:
-                    coords = json.loads(cleaned_coords)
-                except json.JSONDecodeError:
-                    continue
+            coords = json.loads(str(row[2]).replace("'", '"'))
             polygon = shape(coords)
-            point_obj = Point(point)
-            inside = polygon.contains(point_obj)
+            point = Point(point)
+            inside = polygon.contains(point)
             if inside:
                 ags = row[0]
                 gem = row[1]
@@ -31,10 +24,10 @@ def get_amt_full_scan(point):
                     return f"0{ags} -- {gem}"
                 else:
                     return f"{ags} -- {gem}"
-    return None
 
 
 if __name__ == '__main__':
+
     SQLALCHEMY_DATABASE_URI = 'postgresql://mantis_user:mantis@localhost/mantis_tracker'
     engine = create_engine(SQLALCHEMY_DATABASE_URI)
 
