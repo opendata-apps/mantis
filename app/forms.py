@@ -6,6 +6,7 @@ from wtforms.validators import (
     ValidationError,
     InputRequired,
     Optional,
+    Email,
 )
 from flask_wtf.file import FileAllowed, FileRequired, FileSize
 from wtforms import (
@@ -17,43 +18,41 @@ from wtforms import (
     FloatField,
     FileField,
     SubmitField,
-    validators,
 )
 from datetime import datetime, timedelta
-
-# translations_cache = {}
-
+import re
 
 def validate_past_date(form, field):
     if field.data:
-        if field.data > datetime.today().date():
+        today = datetime.today().date()
+        if field.data > today:
             raise ValidationError("Das Datum muss heute oder früher sein.")
-        elif field.data < datetime.today().date() - timedelta(days=5 * 365):
+        elif field.data < today - timedelta(days=5 * 365):
             raise ValidationError("Das Datum darf nicht älter als 5 Jahre sein.")
 
-
 def validate_zip_code(form, field):
-    if field.data and (len(str(field.data)) > 5 or not str(field.data).isdigit()):
-        raise ValidationError(f"Die Postleitzahl ist ungültig. ")
-
+    if field.data:
+        if not re.match(r'^\d{5}$', field.data):
+            raise ValidationError("Die Postleitzahl muss aus genau 5 Ziffern bestehen.")
 
 def longLatValidator(form, field):
     if form.longitude.data is None or form.latitude.data is None:
         raise ValidationError("Längen- und Breitengrad sind erforderlich.")
 
-    if form.longitude.data >= form.latitude.data:
-        raise ValidationError(
-            "Der Breitengrad muss größer als der Längengrad sein (Bitte die Werte tauschen)."
-        )
-
+    try:
+        lon = float(form.longitude.data)
+        lat = float(form.latitude.data)
+        if lon >= lat:
+            raise ValidationError("Der Breitengrad muss größer als der Längengrad sein.")
+    except ValueError:
+        raise ValidationError("Längen- und Breitengrad müssen gültige Zahlen sein.")
 
 class MantisSightingForm(FlaskForm):
     class Meta:
         locales = ["de_DE", "de"]
 
     def __init__(self, *args, **kwargs):
-        if "LANGUAGES" in kwargs:
-            self.LANGUAGES = kwargs.pop("LANGUAGES")
+        self.LANGUAGES = kwargs.pop("LANGUAGES", None)
         super(MantisSightingForm, self).__init__(*args, **kwargs)
         self.userid = kwargs.pop("userid", None)
 
@@ -83,16 +82,16 @@ class MantisSightingForm(FlaskForm):
     ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
 
     userid = StringField(
-        "*Benutzerkennung:", render_kw={"placeholder": "Benutzerkennung"}
+        "*Benutzerkennung:", 
+        validators=[DataRequired(), Length(max=50)],
+        render_kw={"placeholder": "Benutzerkennung"}
     )
     picture = FileField(
         "Bild (max. 12MB) *",
         validators=[
             FileRequired(message="Das Bild ist erforderlich, maximal 12MB."),
-            FileAllowed(ALLOWED_EXTENSIONS, message="Nur Bilder sind zulässig!"),
-            FileSize(
-                max_size=12 * 1024 * 1024, message="Das Bild muss kleiner als 12MB sein"
-            ),
+            FileAllowed(ALLOWED_EXTENSIONS, message="Nur PNG, JPG, JPEG oder WEBP Bilder sind zulässig!"),
+            FileSize(max_size=12 * 1024 * 1024, message="Das Bild muss kleiner als 12MB sein"),
         ],
     )
     gender = SelectField(
@@ -104,42 +103,33 @@ class MantisSightingForm(FlaskForm):
     )
     picture_description = StringField(
         "Sonstige Angaben zum Fundort",
-        validators=[Length(max=500)],
+        validators=[Optional(), Length(max=500)],
         render_kw={"placeholder": "Freihandeingabe Fundort"},
     )
 
     longitude = FloatField(
         "Längengrad *",
         validators=[
-            InputRequired(
-                "Pflichtfeld, das gefüllt wird, \
-                           wenn der Marker in der Karte gesetzt ist."
-            ),
+            InputRequired("Pflichtfeld, das gefüllt wird, wenn der Marker in der Karte gesetzt ist."),
             longLatValidator,
-            NumberRange(min=-180.0, max=180.0),
+            NumberRange(min=-180.0, max=180.0, message="Der Längengrad muss zwischen -180 und 180 liegen."),
         ],
         render_kw={
             "placeholder": "z.B. 13.12345",
             "title": "Der Längengrad Ihres Standorts",
         },
-        description="Bitte geben Sie den Längengrad des Standorts ein, \
-                           an dem Sie die Gottesanbeterin gesehen haben.",
     )
 
     latitude = FloatField(
         "Breitengrad *",
         validators=[
-            InputRequired(
-                "Pflichtfeld, das gefüllt wird, \
-                          wenn der Marker in der Karte gesetzt ist."
-            ),
-            NumberRange(min=-90.0, max=90.0),
+            InputRequired("Pflichtfeld, das gefüllt wird, wenn der Marker in der Karte gesetzt ist."),
+            NumberRange(min=-90.0, max=90.0, message="Der Breitengrad muss zwischen -90 und 90 liegen."),
         ],
         render_kw={
             "placeholder": "z.B. 52.12345",
             "title": "Der Breitengrad Ihres Standorts",
         },
-        description="Bitte geben Sie den Breitengrad des Standorts ein, an dem Sie die Gottesanbeterin gesehen haben.",
     )
 
     zip_code = StringField(
@@ -149,45 +139,52 @@ class MantisSightingForm(FlaskForm):
     )
     city = StringField(
         "Ort *",
-        validators=[DataRequired(message="Bitte geben Sie einen Ort ein.")],
+        validators=[DataRequired(message="Bitte geben Sie einen Ort ein."), Length(max=100)],
         render_kw={"placeholder": "z.B. Berlin"},
     )
     street = StringField(
         "Straße",
-        validators=[Optional()],
+        validators=[Optional(), Length(max=100)],
         render_kw={"placeholder": "z.B. Musterstraße"},
     )
     state = StringField(
         "Bundesland *",
-        validators=[DataRequired(message="Das Bundesland ist erforderlich.")],
+        validators=[DataRequired(message="Das Bundesland ist erforderlich."), Length(max=50)],
         render_kw={"placeholder": "Bundesland"},
     )
     district = StringField(
-        "Landkreis/Stadtteil", render_kw={"placeholder": "z.B. Mitte"}
+        "Landkreis/Stadtteil", 
+        validators=[Optional(), Length(max=100)],
+        render_kw={"placeholder": "z.B. Mitte"}
     )
     location_description = SelectField(
         "Fundort-Beschreibung",
         choices=location_description_CHOICES,
         default="Keine Angabe",
+        validators=[DataRequired()],
         render_kw={"title": "Fundort Beschreibung auswählen"},
     )
 
     report_first_name = StringField(
         "Vorname (Melder) *",
-        validators=[DataRequired(message="Der Vorname ist erforderlich.")],
+        validators=[DataRequired(message="Der Vorname ist erforderlich."), Length(max=50)],
         render_kw={"placeholder": "Erster Buchstabe z.B. M."},
     )
     report_last_name = StringField(
         "Nachname (Melder) *",
-        validators=[DataRequired(message="Der Nachname ist erforderlich.")],
+        validators=[DataRequired(message="Der Nachname ist erforderlich."), Length(max=50)],
         render_kw={"placeholder": "z.B. Mustermann"},
     )
     identical_finder_melder = BooleanField("Finder und Melder sind identisch")
     finder_first_name = StringField(
-        "Vorname (Finder)", render_kw={"placeholder": "Erster Buchstabe Finder z.B. M."}
+        "Vorname (Finder)", 
+        validators=[Optional(), Length(max=50)],
+        render_kw={"placeholder": "Erster Buchstabe Finder z.B. M."}
     )
     finder_last_name = StringField(
-        "Nachname (Finder)", render_kw={"placeholder": "z.B. Mustermann"}
+        "Nachname (Finder)", 
+        validators=[Optional(), Length(max=50)],
+        render_kw={"placeholder": "z.B. Mustermann"}
     )
 
     sighting_date = DateField(
@@ -201,20 +198,11 @@ class MantisSightingForm(FlaskForm):
     contact = StringField(
         "Kontakt (E-Mail)",
         validators=[
-            validators.Optional(),
-            validators.Email(
-                message="Die Email Adresse ist ungültig.", check_deliverability=True
-            ),
+            Optional(),
+            Email(message="Die Email Adresse ist ungültig.", check_deliverability=True),
+            Length(max=120)
         ],
         render_kw={"placeholder": "z.B. max@example.de"},
     )
-    honeypot = StringField()
+    honeypot = StringField('Leave this field empty', validators=[Length(max=0)])
     submit = SubmitField("Absenden")
-
-    # def _get_translations(self):
-    #     languages = (
-    #         tuple(self.LANGUAGES) if self.LANGUAGES else (self.meta.locales or None)
-    #     )
-    #     if languages not in translations_cache:
-    #         translations_cache[languages] = get_translations(languages)
-    #     return translations_cache[languages]
