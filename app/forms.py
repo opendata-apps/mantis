@@ -79,7 +79,7 @@ class MantisSightingForm(FlaskForm):
         ("99", "anderer Fundort"),
     ]
 
-    ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
+    ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp", "heic", "heif"}
 
     userid = StringField(
         "*Benutzerkennung:", 
@@ -90,8 +90,8 @@ class MantisSightingForm(FlaskForm):
         "Bild (max. 12MB) *",
         validators=[
             FileRequired(message="Das Bild ist erforderlich, maximal 12MB."),
-            FileAllowed(ALLOWED_EXTENSIONS, message="Nur PNG, JPG, JPEG oder WEBP Bilder sind zulässig!"),
-            FileSize(max_size=12 * 1024 * 1024, message="Das Bild muss kleiner als 12MB sein"),
+            FileAllowed(ALLOWED_EXTENSIONS, message="Nur PNG, JPG, JPEG, WEBP, HEIC oder HEIF Bilder sind zulässig!"),
+            FileSize(max_size=20 * 1024 * 1024, message="Das Bild muss kleiner als 12MB sein"),
         ],
     )
     gender = SelectField(
