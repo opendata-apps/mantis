@@ -1,0 +1,31 @@
+{% macro MenuFilter() -%}
+<div class="flex flex-wrap ">
+  <div class="flex items-center justify-center text-sm font-medium text-gray-900
+	      pt-5 border border-gray-200 focus:outline-none
+	      hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4
+	      focus:ring-gray-200">
+
+      <div class="flex text-sm mx-4 font-medium text-gray-900 bg-white
+		  border border-gray-200 rounded-lg focus:outline-none hover:bg-gray-100
+		  hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200">
+	<input type="hidden" id="usertId"
+	       name="userId"
+	       value="{{session['user_id']}}"
+	       class="rounded-lg">
+	<select id="stats"
+		name="stats"
+		class="rounded-lg"
+		onchange="this.form.submit()">
+	  {% for statistik in menu.items() %}
+	  <option value="{{ statistik[0] }}"
+		  {% if statistik[0] == marker %} selected = "selected" {% endif %}>
+	    {{ statistik[1] }}
+	  </option>
+	  {% endfor %}
+	</select>
+      </div>
+      <p class="m-4">Für den Zeitraum vom {{dateFrom}} bis {{dateTo}}.</p>
+  </div>
+</div>
+
+{%- endmacro %}

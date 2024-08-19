@@ -15,7 +15,6 @@ from flask import (
     abort,
     session,
 )
-from PIL import Image
 from werkzeug.datastructures import CombinedMultiDict
 from werkzeug.utils import secure_filename
 

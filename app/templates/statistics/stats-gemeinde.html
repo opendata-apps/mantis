@@ -1,56 +1,74 @@
 {% extends "layout.html" %}
 {% block title %}Statistiken{% endblock title %}
 {% block meta_keywords %}Auswertungen, Meßtischblatt{% endblock %}
-{% block content %}
-{% from 'statistics/filter-datum-typ.html' import StatsAuswahl with context %}
+{% from 'statistics/menu-stats.html' import StatsMenu with context %}
 
+{% block content %}
+<script src="{{ url_for('static', filename='js/flow/flowbite.min.js')}}" defer></script>
 <section class="container mx-auto mt-10">
- <div
-   class="sticky col-span-2 row-span-2 duration-500 bg-gray-200 border-4 border-gray-200 rounded-md top-3 hover:shadow-xl">
-   {{StatsAuswahl() }}
-   <div id='myDiv'
-	class="wx-92">
-   <!-- Grafik -->
-   <h2>Für die Gemeinde/das Amt:</h2>
-   <p class="mt-2 text-xl"> {{result[0].split('--')[1]}}</p>
-   <p class="mt-2">Amtliche Gemeindekennzahl: {{result[0].split('--')[0]}}</p>
-   <p class="mt-2 mb-5">Wurden folgende Meldungen erfasst:</p>
-   <table class="table-fixed">
-     <thead>
-       <tr>
-	 <th style="width:80px">Art</th>
-	 <th style="widht:50px; text-align:right;">Anzahl</th>
-       </tr>
-     </thead>
-     <tbody>
-       <tr>
-	 <td>Männlich</td>
-	 <td style="text-align:right;">{{result[1]}}</td>
-       </tr>
-       <tr>
-	 <td>Weiblich</td>
-	 <td style="text-align:right;">{{result[2]}}</td>
-       </tr>
-       <tr>
-	 <td>Nymphe</td>
-	 <td style="text-align:right;">{{result[4]}}</td>
-       </tr>
-       <tr>
-	 <td>Oothek</td>
-	 <td style="text-align:right;">{{result[3]}}</td>
-       </tr>
-       <tr>
-	 <td>Andere</td>
-	 <td style="text-align:right;">{{result[5]}}</td>
-       </tr>
-       <tr class="border-t-2 border-b-4 border-green-500">
-	 <td>Gesamt</td>
-	 <td style="text-align:right;">{{result[6]}}</td>
-       </tr>
-     </tbody>
-   </table>
-   </div>
- 
-<p class="pt-5">Hinweis: Die AGS kann im Reviewer-Bereich gesucht werden. Zu jeder Meldung ist die AGS und die Gemeinde gespeichert.</p> 
+  <div class="sticky col-span-2 row-span-2 duration-500
+	      bg-gray-200 border-4 border-gray-200 rounded-md top-3 hover:shadow-xl">
+    <form action="" method="POST" class="space-y-3">
+      {{ StatsMenu() }}
+    </form>
+    <p class="m-4">Meldungen für den Zeitraum vom {{dateFrom}} bis {{dateTo}}.</p>
+    {% if marker == "meldungen_amt" %}
+    <form action="/statistik" method="POST">
+      <div class="bg-gray-200 ">
+	<input type="text" id="gemeinde" name="gemeinde"
+	       value="{{ gemeinde }}"
+	       class="ml-3 w-full px-4 py-2 text-sm font-medium text-gray-900
+		      border border-gray-200 rounded-lg md:w-auto md:mb-0 focus:outline-none
+		      hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200"
+               placeholder="Eine gültige AGS eingeben" required />
+      </div>
+      <input type="hidden" name="stats" value="meldungen_amt"/>
+    </form>
+    {% endif %}
+    {% if fehler != True %}
+    <p class="mt-2 mb-5">Wurden folgende Meldungen erfasst:</p>
+    <p class="mt-2 text-xl"> {{result[0].split('--')[1]}}</p>
+    <p class="mt-2">Amtliche Gemeindekennzahl: {{result[0].split('--')[0]}}</p>
+    
+    <table class="table-fixed">
+      <thead>
+	<tr>
+	  <th style="width:80px">Art</th>
+	  <th style="widht:50px; text-align:right;">Anzahl</th>
+	</tr>
+      </thead>
+      <tbody>
+	<tr>
+	  <td>Männlich</td>
+	  <td style="text-align:right;">{{result[1]}}</td>
+	</tr>
+	<tr>
+	  <td>Weiblich</td>
+	  <td style="text-align:right;">{{result[2]}}</td>
+	</tr>
+	<tr>
+	  <td>Nymphe</td>
+	  <td style="text-align:right;">{{result[4]}}</td>
+	</tr>
+	<tr>
+	  <td>Oothek</td>
+	  <td style="text-align:right;">{{result[3]}}</td>
+	</tr>
+	<tr>
+	  <td>Andere</td>
+	  <td style="text-align:right;">{{result[5]}}</td>
+	</tr>
+	<tr class="border-t-2 border-b-4 border-green-500">
+	  <td>Gesamt</td>
+	  <td style="text-align:right;">{{result[6]}}</td>
+	</tr>
+      </tbody>
+    </table>
+    {% endif %}
+  </div>
+  <p class="pt-5">Hinweis: Der Allgemeine Gemeinde Schlüssel (AGS) kann im Reviewer-Bereich gesucht werden.
+    <br />
+    Zu jeder Meldung ist die AGS und die Bezeichnung der Gemeinde gespeichert.
+  </p> 
 </section>
 {% endblock content %}

@@ -1,0 +1,63 @@
+{% extends "layout.html" %}
+{% block title %}Statistiken{% endblock title %}
+{% block meta_keywords %}Auswertungen, Meßtischblatt{% endblock %}
+{% from 'statistics/menu-stats.html' import StatsMenu with context %}
+{% block content %}
+<script src="{{ url_for('static', filename='js/flow/flowbite.min.js')}}" defer></script>
+<section class="container mx-auto mt-10">
+  <div class="sticky col-span-2 row-span-2 duration-500
+	      bg-gray-200 border-4 border-gray-200 rounded-md top-3 hover:shadow-xl">
+    <form action="" method="POST" class="space-y-3">
+      {{ StatsMenu() }}
+    </form>
+    <p class="m-4">Meldugen für den Zeitraum vom {{dateFrom}} bis {{dateTo}}.</p>
+    {% if marker == "meldungen_amt" %}
+    {% endif %}
+     <div class="flex flex-wrap justify-center">
+      {% for k in result.keys() %}
+      <div class="p-10 center">
+        <div class="text-center mb-4">
+	  <h1 class="text-xl font-bold">{{ k }}</h1>
+	</div>
+	<div class="flex justify-center">
+	<table class="table-fixed">
+	  <thead>
+	    <tr>
+	      <th class="text-left">Art</th>
+	      <th class="text-right">Anzahl</th>
+	      </tr>
+	  </thead>
+	  <tbody>
+	    <tr>
+	      <td>Männlich</td>
+	      <td style="text-align:right;">{{result[k]['maennlich']}}</td>
+	    </tr>
+	    <tr>
+	      <td>Weiblich</td>
+	      <td style="text-align:right;">{{result[k]['weiblich']}}</td>
+	    </tr>
+	    <tr>
+	      <td>Nymphe</td>
+	      <td style="text-align:right;">{{result[k]['nymphe']}}</td>
+	    </tr>
+	    <tr>
+	      <td>Oothek</td>
+	      <td style="text-align:right;">{{result[k]['oothek']}}</td>
+	    </tr>
+	    <tr>
+	      <td>Andere</td>
+	      <td style="text-align:right;">{{result[k]['andere']}}</td>
+	    </tr>
+	    <tr class="border-t-2 border-b-4 border-green-500">
+	      <td>Gesamt</td>
+	      <td style="text-align:right;">{{result[k]['gesamt']}}</td>
+	    </tr>
+	  </tbody>
+	</table>
+	</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock content %}
