@@ -1,5 +1,6 @@
 let map;
 let userMarker;
+let currentZoom;
 
 function initMap() {
   const germanyBounds = [
@@ -11,6 +12,8 @@ function initMap() {
     maxBounds: germanyBounds,
     maxBoundsViscosity: 1.0
   }).setView([52.5200, 13.4050], 7);
+
+  currentZoom = map.getZoom();
 
   const openStreetMapLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -36,6 +39,7 @@ function initMap() {
     if (map.getZoom() < MIN_ZOOM_LEVEL) {
       map.setZoom(MIN_ZOOM_LEVEL);
     }
+    currentZoom = map.getZoom();
   });
 
   map.on('click', function (e) {
@@ -57,6 +61,13 @@ function initMap() {
       updateMapAndFormData(lat, lng);
     }
   });
+
+  // Load saved coordinates and update map
+  const savedLat = localStorage.getItem('latitude');
+  const savedLng = localStorage.getItem('longitude');
+  if (savedLat && savedLng) {
+    updateMapAndFormData(parseFloat(savedLat), parseFloat(savedLng));
+  }
 }
 
 function updateMapAndFormData(lat, lng) {
@@ -70,12 +81,10 @@ function updateMapAndFormData(lat, lng) {
   }
 
   userMarker = L.marker([lat, lng]).addTo(map);
+  map.setView([lat, lng], currentZoom); // Use the current zoom level
 
   saveFormDataToLocalStorage();
   updateSummary();
-
-  localStorage.setItem('latitude', lat.toString());
-  localStorage.setItem('longitude', lng.toString());
 }
 
 function getAddressFromCoordinates(latitude, longitude) {
@@ -104,6 +113,7 @@ function getAddressFromCoordinates(latitude, longitude) {
       };
 
       window.addressData = addressData;
+      saveFormDataToLocalStorage(); // Save the updated address data
     })
     .catch(error => {
       console.error("Error fetching address data:", error);

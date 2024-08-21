@@ -1,6 +1,6 @@
 <!-- Help Popover Macro -->
 
-{% macro popover(target, title, content, link_url=None, link_text=None) %}
+{% macro popover(target, title, content, popover_content) %}
 <style>
     @keyframes fadeIn {
         0% {
@@ -23,12 +23,10 @@
     }
 </style>
 
-<div class="relative inline-block group" style=>
+<div class="relative inline-block group">
     <button data-popover-target="{{ target }}" type="button" class="pl-2 pr-1 text-black" title="Hilfe">
-        <svg class="w-4 h-4 text-gray-600 " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
-            viewBox="0 0 20 20">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M7.529 7.988a2.502 2.502 0 0 1 5 .191A2.441 2.441 0 0 1 10 10.582V12m-.01 3.008H10M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        <svg class="w-4 h-4 text-gray-600" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7.529 7.988a2.502 2.502 0 0 1 5 .191A2.441 2.441 0 0 1 10 10.582V12m-.01 3.008H10M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
         </svg>
     </button>
 
@@ -36,13 +34,10 @@
         class="absolute invisible w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 group-hover:visible"
         style="left: 100%; bottom: 0; z-index: 2000; transform: translateX(10px); animation: fadeIn 0.5s, fadeOut 0.5s 1s;">
         <div class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg">
-            <h3 class="font-semibold text-gray-900 ">{{ title }}</h3>
+            <h3 class="font-semibold text-gray-900">{{ popover_content[target]['title'] }}</h3>
         </div>
         <div class="px-3 py-2 bg-green-100">
-            <p>{{ content | safe }}</p>
-            {% if link_url and link_text %}
-            <p><a href="{{ link_url }}" class="text-blue-500 underline">{{ link_text }}</a></p>
-            {% endif %}
+            <p>{{ popover_content[target]['content'] | safe }}</p>
         </div>
     </div>
 </div>

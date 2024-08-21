@@ -33,9 +33,13 @@ data = Blueprint("data", __name__)
 checklist = Config.CHECKLIST
 checklist["datum"] = datetime.now() + timedelta(days=1)
 
-# Flask application and routes
-
-
+# Load the popover content from flask static folder
+popover_content = {}
+popover_content_path = os.path.join(Config.STATIC_FOLDER, "popover_content.json")
+if os.path.exists(popover_content_path):
+    with open(popover_content_path, "r") as f:
+        popover_content = json.load(f)
+        
 def _create_directory(date):
     year = date[:4]
     dir_path = Path(Config.UPLOAD_FOLDER + "/" + year + "/" + date)
@@ -171,7 +175,7 @@ def report(usrid=None):
         pid = os.getpid()
         mark = f"{ip}:{pid}"
         _saveip(mark)
-        if checklist.get(mark) > 2:
+        if checklist.get(mark) > 7:
             abort(429)
 
     if form.validate_on_submit():
@@ -265,6 +269,7 @@ def report(usrid=None):
         form=form,
         existing_user=existing_user,
         apikey=Config.esri,
+        popover_content=popover_content,  # Pass popover_content directly
     )
 
 

@@ -44,11 +44,26 @@ function saveFormDataToLocalStorage() {
 
   for (const [key, value] of formData.entries()) {
     if (key !== "csrf_token" && key !== "picture") {
-      data[key] = value;
+      if (key === "sighting_date") {
+        // Check if the date is valid before converting
+        const date = new Date(value);
+        if (!isNaN(date.getTime())) {
+          // Only store valid dates
+          data[key] = date.toISOString().split('T')[0];
+        } else {
+          // If date is invalid, store an empty string or null
+          data[key] = '';
+        }
+      } else {
+        data[key] = value;
+      }
     }
   }
 
-  setLocalStorageWithExpiry('formData', JSON.stringify(data), 3600000);
+  // Save address data along with form data
+  data.addressData = window.addressData || {};
+
+  setLocalStorageWithExpiry('formData', JSON.stringify(data), 3600000); // 1 hour expiry
 }
 
 function loadFormDataFromLocalStorage() {
@@ -60,8 +75,37 @@ function loadFormDataFromLocalStorage() {
       const data = JSON.parse(storedData);
       for (const input of form.elements) {
         if (input.name && input.type !== 'file' && data.hasOwnProperty(input.name)) {
-          input.value = data[input.name];
+          if (input.type === 'checkbox') {
+            input.checked = data[input.name] === 'on';
+          } else if (input.type === 'radio') {
+            input.checked = input.value === data[input.name];
+          } else if (input.type === 'date') {
+            // Only set the date if it's a valid date string
+            const date = new Date(data[input.name]);
+            if (!isNaN(date.getTime())) {
+              input.value = data[input.name];
+            }
+          } else {
+            input.value = data[input.name];
+          }
         }
+      }
+
+      // Restore address data
+      if (data.addressData) {
+        window.addressData = data.addressData;
+      }
+
+      // Restore map marker if latitude and longitude are available
+      if (data.latitude && data.longitude) {
+        updateMapAndFormData(parseFloat(data.latitude), parseFloat(data.longitude));
+      }
+
+      // Trigger change event for identical_finder_melder checkbox
+      const identicalFinderMelder = form.identical_finder_melder;
+      if (identicalFinderMelder) {
+        const event = new Event('change');
+        identicalFinderMelder.dispatchEvent(event);
       }
     } catch (e) {
       console.error('Error parsing stored form data:', e);
@@ -82,6 +126,8 @@ function validateForm(event, nextStepIndex) {
     }
     if (element.type === 'file') {
       formData.append(element.name, element.files[0]);
+    } else if (element.type === 'checkbox') {
+      formData.append(element.name, element.checked ? 'on' : 'off');
     } else {
       formData.append(element.name, element.value);
     }
@@ -133,6 +179,7 @@ function validateForm(event, nextStepIndex) {
           showStep(nextStepIndex);
         }
       }
+      saveFormDataToLocalStorage();
     })
     .catch(error => {
       buttonLoader.classList.remove('loading');
@@ -249,10 +296,12 @@ function showStep(index) {
   if (index === 2) {
     additionalFields.classList.toggle('hidden', form.identical_finder_melder.checked);
   }
+  saveFormDataToLocalStorage();
 }
 
 form.identical_finder_melder.addEventListener('change', () => {
   additionalFields.classList.toggle('hidden', form.identical_finder_melder.checked);
+  saveFormDataToLocalStorage();
 });
 
 function autoCompleteData(inputField, zipCode, city, district, state) {
@@ -279,7 +328,17 @@ function autoCompleteData(inputField, zipCode, city, district, state) {
 
     document.getElementById(id).value = fieldValue || '';
   }
+  saveFormDataToLocalStorage();
 }
+
+// Modify the DOMContentLoaded event listener
+document.addEventListener('DOMContentLoaded', () => {
+  cleanupExpiredItems();
+  loadFormDataFromLocalStorage();
+  const form = document.getElementById('mainForm');
+  form.addEventListener('input', saveFormDataToLocalStorage);
+  form.addEventListener('change', saveFormDataToLocalStorage);
+});
 
 document.getElementById('mainForm').addEventListener('submit', (event) => {
   event.preventDefault();
@@ -291,20 +350,10 @@ document.getElementById('mainForm').addEventListener('submit', (event) => {
   send.classList.add('hidden');
   loadingMsg.classList.remove('hidden');
 
-  try {
-    localStorage.clear();
-  } catch (e) {
-    console.error('Error clearing localStorage:', e);
-  }
+  localStorage.removeItem('formData');
   
   if (!submitBtn.classList.contains('form-submitted')) {
     submitBtn.classList.add('form-submitted');
     event.target.submit();
   }
-});
-
-document.addEventListener('DOMContentLoaded', () => {
-  cleanupExpiredItems();
-  loadFormDataFromLocalStorage();
-  document.getElementById('mainForm').addEventListener('input', saveFormDataToLocalStorage);
 });
