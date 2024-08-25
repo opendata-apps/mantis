@@ -108,7 +108,6 @@ def _handle_file_upload(request, form, usrid):
     with Image.open(io.BytesIO(file_content)) as img:
         # Check if the image is already in WebP format or over 6MB  
         if img.format != 'WEBP' or len(file_content) > 6 * 1024 * 1024:
-            print("Converting to WebP")
             # Convert to WebP
             output = io.BytesIO()
             img.save(output, format='WEBP', quality=50)
