@@ -3,6 +3,8 @@ import os
 from datetime import datetime, timedelta
 from pathlib import Path
 from random import uniform
+from PIL import Image
+import io
 
 from flask import (
     Blueprint,
@@ -107,8 +109,22 @@ def _handle_file_upload(request, form, usrid):
     filename = _create_filename(form.city.data, usrid)
     full_file_path = date_folder / filename
 
-    # Save the uploaded WebP image directly
-    file.save(str(full_file_path))
+    # Read the file content
+    file_content = file.read()
+
+    # Use Pillow to open the image
+    with Image.open(io.BytesIO(file_content)) as img:
+        # Check if the image is already in WebP format
+        if img.format != 'WEBP':
+            # Convert to WebP
+            output = io.BytesIO()
+            img.save(output, format='WEBP', quality=70)
+            output.seek(0)
+            file_content = output.getvalue()
+
+    # Save the WebP image
+    with open(str(full_file_path), 'wb') as f:
+        f.write(file_content)
 
     return str(full_file_path.as_posix())
 
