@@ -3,6 +3,8 @@ import os
 from datetime import datetime, timedelta
 from pathlib import Path
 from random import uniform
+from PIL import Image
+import io
 
 from flask import (
     Blueprint,
@@ -22,7 +24,6 @@ from app import db
 from app.database.models import TblFundorte, TblMeldungen, TblMeldungUser, TblUsers
 from app.forms import MantisSightingForm
 from app.tools.gen_user_id import get_new_id
-from app.routes.admin import get_sighting
 from app.tools.mtb_calc import get_mtb, pointInRect
 from app.tools.find_gemeinde import get_amt_full_scan
 
@@ -33,14 +34,11 @@ data = Blueprint("data", __name__)
 checklist = Config.CHECKLIST
 checklist["datum"] = datetime.now() + timedelta(days=1)
 
-# Flask application and routes
-
-
+        
 def _create_directory(date):
     year = date[:4]
     dir_path = Path(Config.UPLOAD_FOLDER + "/" + year + "/" + date)
     dir_path.mkdir(parents=True, exist_ok=True)
-    ablage_path = year + "/" + date
     return dir_path
 
 
@@ -103,8 +101,23 @@ def _handle_file_upload(request, form, usrid):
     filename = _create_filename(form.city.data, usrid)
     full_file_path = date_folder / filename
 
-    # Save the uploaded WebP image directly
-    file.save(str(full_file_path))
+    # Read the file content
+    file_content = file.read()
+
+    # Use Pillow to open the image
+    with Image.open(io.BytesIO(file_content)) as img:
+        # Check if the image is already in WebP format or over 6MB  
+        if img.format != 'WEBP' or len(file_content) > 6 * 1024 * 1024:
+            print("Converting to WebP")
+            # Convert to WebP
+            output = io.BytesIO()
+            img.save(output, format='WEBP', quality=50)
+            output.seek(0)
+            file_content = output.getvalue()
+
+    # Save the WebP image
+    with open(str(full_file_path), 'wb') as f:
+        f.write(file_content)
 
     return str(full_file_path.as_posix())
 

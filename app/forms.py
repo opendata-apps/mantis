@@ -11,7 +11,6 @@ from wtforms.validators import (
 from flask_wtf.file import FileAllowed, FileRequired, FileSize
 from wtforms import (
     StringField,
-    IntegerField,
     DateField,
     SelectField,
     BooleanField,
