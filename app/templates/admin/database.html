@@ -1,0 +1,345 @@
+{% extends "layout.html" %} {% block title %}Database Admin{% endblock %} {%
+block content %}
+<div class="container px-4 py-8 mx-auto">
+  <h1 class="mb-6 text-3xl font-bold text-gray-800">Database Administration</h1>
+
+  <div class="mb-6">
+    <label
+      for="tableSelect"
+      class="block mb-2 text-sm font-medium text-gray-700"
+      >Select a table:</label
+    >
+    <select
+      id="tableSelect"
+      class="block w-full px-3 py-2 text-base border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+    >
+      <option value="">Select a table</option>
+      {% for table in tables %}
+      <option value="{{ table }}">{{ table }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div id="tableContainer" class="hidden">
+    <h2 id="tableTitle" class="mb-4 text-2xl font-semibold text-gray-700"></h2>
+
+    <!-- Search input -->
+    <div class="mb-4">
+      <input
+        type="text"
+        id="searchInput"
+        placeholder="Search..."
+        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+      />
+    </div>
+
+    <div class="overflow-x-auto shadow-md sm:rounded-lg">
+      <table id="dataTable" class="w-full text-sm text-left text-gray-500">
+        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+          <tr id="tableHeader"></tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+
+    <!-- Pagination controls -->
+    <div class="flex items-center justify-between mt-4">
+      <button
+        id="prevPage"
+        class="px-4 py-2 text-gray-800 bg-gray-200 rounded-md"
+      >
+        Previous
+      </button>
+      <span id="pageInfo"></span>
+      <button
+        id="nextPage"
+        class="px-4 py-2 text-gray-800 bg-gray-200 rounded-md"
+      >
+        Next
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let currentTable = "";
+  let columnTypes = {};
+  let nonEditableFields = [];
+  let currentPage = 1;
+  let itemsPerPage = 20;
+  let totalItems = 0;
+  let searchTerm = "";
+  let debounceTimer;
+  let currentlyEditing = null;
+
+  document
+    .getElementById("tableSelect")
+    .addEventListener("change", function () {
+      currentTable = this.value;
+      currentPage = 1;
+      searchTerm = "";
+      document.getElementById("searchInput").value = "";
+      if (currentTable) {
+        fetchTableData();
+      } else {
+        document.getElementById("tableContainer").classList.add("hidden");
+      }
+    });
+
+  document.getElementById("searchInput").addEventListener("input", function () {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      searchTerm = this.value;
+      currentPage = 1;
+      fetchTableData();
+    }, 300); // Wait for 300ms after the user stops typing
+  });
+
+  document.getElementById("prevPage").addEventListener("click", function () {
+    if (currentPage > 1) {
+      currentPage--;
+      fetchTableData();
+    }
+  });
+
+  document.getElementById("nextPage").addEventListener("click", function () {
+    if (currentPage < Math.ceil(totalItems / itemsPerPage)) {
+      currentPage++;
+      fetchTableData();
+    }
+  });
+
+  function fetchTableData() {
+    fetch(
+      `/admin/get_table_data/${currentTable}?page=${currentPage}&per_page=${itemsPerPage}&search=${searchTerm}`
+    )
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.error) {
+          alert(data.error);
+          return;
+        }
+        columnTypes = data.column_types;
+        nonEditableFields = data.non_editable_fields;
+        totalItems = data.total_items;
+        displayTable(data.columns, data.data);
+        updatePagination();
+      })
+      .catch((error) => console.error("Error:", error));
+  }
+
+  function displayTable(columns, data) {
+    const tableContainer = document.getElementById("tableContainer");
+    const tableTitle = document.getElementById("tableTitle");
+    const tableHeader = document.getElementById("tableHeader");
+    const tableBody = document.getElementById("tableBody");
+
+    tableTitle.textContent = `Table: ${currentTable}`;
+    tableHeader.innerHTML = columns
+      .map((col) => `<th class="px-6 py-3">${col}</th>`)
+      .join("");
+
+    tableBody.innerHTML = data
+      .map(
+        (row, rowIndex) =>
+          `<tr class="bg-white border-b hover:bg-gray-50">${row
+            .map(
+              (cell, cellIndex) =>
+                `<td class="px-6 py-4 ${
+                  nonEditableFields.includes(columns[cellIndex])
+                    ? ""
+                    : "editable hover:bg-gray-100 cursor-pointer"
+                }" 
+                    data-row="${rowIndex}" 
+                    data-column="${columns[cellIndex]}" 
+                    data-type="${columnTypes[columns[cellIndex]]}">${cell}</td>`
+            )
+            .join("")}</tr>`
+      )
+      .join("");
+
+    tableContainer.classList.remove("hidden");
+    addEditListeners();
+  }
+
+  function updatePagination() {
+    const pageInfo = document.getElementById("pageInfo");
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+
+    document.getElementById("prevPage").disabled = currentPage === 1;
+    document.getElementById("nextPage").disabled = currentPage === totalPages;
+  }
+
+  function addEditListeners() {
+    const editableCells = document.querySelectorAll("#dataTable td.editable");
+
+    editableCells.forEach((cell) => {
+      cell.addEventListener("click", function (event) {
+        if (event.target !== this) return;
+        if (this.querySelector("input, select")) return;
+        if (currentlyEditing && currentlyEditing !== this) {
+          cancelEdit(currentlyEditing);
+        }
+
+        startEdit(this);
+      });
+    });
+
+    document.addEventListener("click", function (event) {
+      if (currentlyEditing && !currentlyEditing.contains(event.target)) {
+        cancelEdit(currentlyEditing);
+      }
+    });
+  }
+
+  function startEdit(cell) {
+    currentlyEditing = cell;
+    const currentValue = cell.textContent.trim();
+    const row = cell.dataset.row;
+    const column = cell.dataset.column;
+    const type = cell.dataset.type;
+
+    const input = createInputElement(type, currentValue);
+    const controlsDiv = createControlsDiv();
+
+    cell.dataset.originalContent = cell.innerHTML;
+    cell.innerHTML = "";
+    cell.appendChild(input);
+    cell.appendChild(controlsDiv);
+    input.focus();
+
+    setupEditControls(input, controlsDiv, cell, currentTable, column, row);
+  }
+
+  function createInputElement(type, currentValue) {
+    let input;
+    if (type.includes("bool")) {
+      input = document.createElement("select");
+      input.innerHTML = `
+        <option value="true" ${
+          currentValue === "true" ? "selected" : ""
+        }>true</option>
+        <option value="false" ${
+          currentValue === "false" ? "selected" : ""
+        }>false</option>
+      `;
+    } else if (type.includes("int") || type.includes("float")) {
+      input = document.createElement("input");
+      input.type = "number";
+      input.value = currentValue;
+    } else if (type.includes("date")) {
+      input = document.createElement("input");
+      input.type = "date";
+      input.value = currentValue;
+    } else {
+      input = document.createElement("input");
+      input.type = "text";
+      input.value = currentValue;
+    }
+    input.classList.add("w-full", "p-1", "border", "rounded");
+    return input;
+  }
+
+  function createControlsDiv() {
+    const controlsDiv = document.createElement("div");
+    controlsDiv.classList.add("flex", "justify-between", "mt-2");
+
+    const acceptButton = document.createElement("button");
+    acceptButton.innerHTML = "&#10003;";
+    acceptButton.title = "Accept";
+    acceptButton.classList.add(
+      "bg-green-500",
+      "text-white",
+      "px-2",
+      "py-1",
+      "rounded"
+    );
+
+    const revertButton = document.createElement("button");
+    revertButton.innerHTML = "&#8635;";
+    revertButton.title = "Revert";
+    revertButton.classList.add(
+      "bg-red-500",
+      "text-white",
+      "px-2",
+      "py-1",
+      "rounded"
+    );
+
+    controlsDiv.appendChild(acceptButton);
+    controlsDiv.appendChild(revertButton);
+
+    return controlsDiv;
+  }
+
+  function setupEditControls(input, controlsDiv, cell, table, column, row) {
+    const acceptButton = controlsDiv.querySelector('button[title="Accept"]');
+    const revertButton = controlsDiv.querySelector('button[title="Revert"]');
+
+    acceptButton.addEventListener("click", function () {
+      updateCell(table, column, row, input.value, cell);
+    });
+
+    revertButton.addEventListener("click", function () {
+      cancelEdit(cell);
+    });
+
+    input.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") {
+        acceptButton.click();
+      } else if (e.key === "Escape") {
+        revertButton.click();
+      }
+    });
+  }
+
+  function updateCell(table, column, row, newValue, cell) {
+    const idCell = document.querySelector(
+      `#dataTable td[data-row="${row}"][data-column="id"]`
+    );
+    if (!idCell) {
+      console.error("Could not find ID cell");
+      cancelEdit(cell);
+      return;
+    }
+    const idValue = idCell.textContent;
+
+    fetch("/admin/update_cell", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        table: table,
+        column: column,
+        id: idValue,
+        value: newValue,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          cell.textContent = newValue;
+          currentlyEditing = null;
+        } else {
+          alert("Failed to update: " + (data.error || "Unknown error"));
+          cancelEdit(cell);
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        alert("An error occurred while updating the cell");
+        cancelEdit(cell);
+      });
+  }
+
+  function cancelEdit(cell) {
+    if (cell && cell.dataset.originalContent) {
+      cell.innerHTML = cell.dataset.originalContent;
+      delete cell.dataset.originalContent;
+    }
+    currentlyEditing = null;
+  }
+</script>
+{% endblock %}

@@ -27,9 +27,10 @@ from flask import (
     send_from_directory,
     url_for,
 )
-from sqlalchemy import inspect, or_, text
+from sqlalchemy import inspect, or_, text, cast, String, update
+from sqlalchemy.sql import func
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, Session, load_only
 from app.tools.check_reviewer import login_required
 import shutil
 from werkzeug.utils import secure_filename
@@ -41,6 +42,14 @@ import os
 # Blueprints
 admin = Blueprint("admin", __name__)
 
+# Add this constant at the top of the file
+NON_EDITABLE_FIELDS = {
+    "meldungen": ["id", "fo_zuordnung"],
+    "beschreibung": ["id"],
+    "fundorte": ["id", "ablage", "beschreibung"],
+    "melduser": ["id", "id_finder", "id_meldung", "id_user"],
+    "users": ["id", "user_id"],
+}
 
 @admin.route("/reviewer/<usrid>")
 def reviewer(usrid):
@@ -516,61 +525,6 @@ def export_csv(table_name):
     return Response(si, mimetype="text/csv", headers=headers)
 
 
-@admin.route("/adminPanel", methods=["GET"])
-@login_required
-def admin_panel():
-    "Display the admin panel super admin page"
-    if "user_id" in session:
-        inspector = inspect(db.engine)
-        tables = inspector.get_table_names()
-        tables = [table for table in tables if table not in ["alembic_version", "aemter"]]
-        return render_template(
-            "admin/adminPanel.html", tables=tables, user_id=session["user_id"]
-        )
-    else:
-        return "Unauthorized", 403
-
-
-# Define a dictionary of non-editable fields for each table
-NON_EDITABLE_FIELDS = {
-    "meldungen": ["id", "fo_zuordnung"],
-    "beschreibung": ["id"],
-    "fundorte": ["id", "ablage", "beschreibung"],
-    "melduser": ["id", "id_finder", "id_meldung", "id_user"],
-    "users": ["id", "user_id"],
-}
-
-
-@admin.route("/update_value/<table_name>/<row_id>", methods=["POST"])
-@login_required
-def update_value(table_name, row_id):
-    "Update the value of a field in the specified table and row"
-    data = request.json
-    column_name = data.get("column_name")
-
-    # Check if field is non-editable
-    if column_name in NON_EDITABLE_FIELDS.get(table_name, []):
-        return jsonify({"error": "Field is non-editable"}), 400
-
-    new_value = data.get("new_value")
-
-    table = db.metadata.tables.get(table_name)
-    if table is None:
-        return jsonify({"error": "Table not found"})
-
-    # If the updated field is 'dat_meld', call the image update function
-    if table_name == "meldungen" and column_name == "dat_meld":
-        response, status = update_report_image_date(row_id, new_value)
-        if status != 200:
-            return jsonify(response), status
-
-    # Assuming the primary key column is named 'id'
-    stmt = table.update().where(table.c.id == row_id).values({column_name: new_value})
-    db.session.execute(stmt)
-    db.session.commit()
-
-    return jsonify({"status": "success"})
-
 
 def update_report_image_date(report_id, new_date):
     "Update the date in the image filename and the database"
@@ -634,38 +588,6 @@ def _create_filename(location, usrid, new_date):
     return "{}-{}-{}".format(
         secure_filename(location), new_timestamp, secure_filename(usrid)
     )
-
-
-# Get all table names
-@admin.route("/get_tables", methods=["GET"])
-@login_required
-def get_tables():
-    "Get all table names from the database and return them as a JSON object"
-    inspector = inspect(db.engine)
-    tables = inspector.get_table_names()
-    tables = [table for table in tables if table != "alembic_version"]
-    return jsonify({"tables": tables})
-
-
-@admin.route("/table/<table_name>")
-@login_required
-def get_table_data(table_name):
-    "Get the data from the specified table and return it as a JSON object"
-    limit = 20
-    offset = request.args.get(
-        "offset", default=0, type=int
-    )  # Get the offset parameter from the request
-    table = db.metadata.tables.get(table_name)
-    if table is None:
-        return jsonify({"error": "Table not found"})
-    result = db.session.execute(
-        table.select().order_by(table.c.id).limit(limit).offset(offset)
-    )  # Add limit and offset to the query
-    column_names = result.keys()
-    data = [
-        {column: value for column, value in zip(column_names, row)} for row in result
-    ]
-    return jsonify(data)
 
 
 # Define a function to convert a row to a dictionary
@@ -734,3 +656,105 @@ def export_data(value):
     # Send the file
     mime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     return send_file(output, mimetype=mime, as_attachment=True, download_name=filename)
+
+@admin.route("/admin/database")
+@login_required
+def database_view():
+    inspector = inspect(db.engine)
+    tables = [table for table in inspector.get_table_names() if table not in ['aemter', 'alembic_version']]
+    return render_template("admin/database.html", tables=tables)
+
+@admin.route("/admin/get_table_data/<table_name>")
+@login_required
+def get_table_data(table_name):
+    if table_name in ['aemter', 'alembic_version']:
+        return jsonify({"error": "Access to this table is not allowed"}), 403
+
+    try:
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 20, type=int)
+        search = request.args.get('search', '')
+
+        # Get the table object directly
+        table = db.metadata.tables.get(table_name)
+        if table is None:
+            return jsonify({"error": "Table not found"}), 404
+
+        # Create a select statement
+        stmt = db.select(table)
+
+        # Apply search filter if search term is provided
+        if search:
+            search_filters = []
+            for column in table.columns:
+                if isinstance(column.type, db.String):
+                    search_filters.append(column.ilike(f'%{search}%'))
+                elif isinstance(column.type, (db.Integer, db.Float)):
+                    search_filters.append(cast(column, String).ilike(f'%{search}%'))
+            if search_filters:
+                stmt = stmt.where(or_(*search_filters))
+
+        # Get total count for pagination
+        total_items = db.session.execute(db.select(db.func.count()).select_from(table)).scalar()
+
+        # Apply pagination
+        stmt = stmt.offset((page - 1) * per_page).limit(per_page)
+
+        # Execute query and get results
+        results = db.session.execute(stmt).fetchall()
+
+        # Get column names and types
+        columns = [column.name for column in table.columns]
+        column_types = {column.name: str(column.type) for column in table.columns}
+
+        # Convert results to list of lists
+        data = [[getattr(row, col) for col in columns] for row in results]
+
+        return jsonify({
+            "columns": columns,
+            "data": data,
+            "column_types": column_types,
+            "non_editable_fields": NON_EDITABLE_FIELDS.get(table_name, []),
+            "total_items": total_items
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@admin.route("/admin/update_cell", methods=["POST"])
+@login_required
+def update_cell():
+    data = request.json
+    table_name = data['table']
+    column_name = data['column']
+    id_value = data['id']
+    new_value = data['value']
+
+    if table_name in NON_EDITABLE_FIELDS and column_name in NON_EDITABLE_FIELDS[table_name]:
+        return jsonify({"error": "This field is not editable"}), 403
+
+    try:
+        # Get the table object
+        table = db.metadata.tables.get(table_name)
+        if table is None:
+            return jsonify({"error": "Table not found"}), 404
+
+        # Create the update statement
+        stmt = (
+            db.update(table)
+            .where(table.c.id == id_value)
+            .values(**{column_name: new_value})
+        )
+
+        # Execute the update
+        result = db.session.execute(stmt)
+        db.session.commit()
+
+        if result.rowcount == 0:
+            return jsonify({"error": "Record not found"}), 404
+
+        return jsonify({"success": True})
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
