@@ -504,26 +504,37 @@ def change_mantis_count(id):
 @login_required
 def export_csv(table_name):
     "Export the data from the specified table as a CSV file"
-    # Get the table object from the database
-    table = db.metadata.tables.get(table_name)
+    if table_name in ['aemter', 'alembic_version']:
+        return jsonify({"error": "Access to this table is not allowed"}), 403
 
-    if table is None:
-        return jsonify({"error": "Table not found"})
+    try:
+        table = db.metadata.tables.get(table_name)
+        if table is None:
+            return jsonify({"error": "Table not found"}), 404
 
-    result = db.session.execute(table.select())
-    column_names = result.keys()
-    si = StringIO()
-    writer = csv.writer(si)
-    writer.writerow(column_names)
-    for row in result:
-        writer.writerow(row)
+        query = db.select(table)
+        result = db.session.execute(query)
 
-    si.seek(0)
+        output = StringIO()
+        writer = csv.writer(output)
 
-    # Return the CSV data as a response
-    headers = {"Content-Disposition": "attachment; filename=data.csv"}
-    return Response(si, mimetype="text/csv", headers=headers)
+        # Write headers
+        writer.writerow([column.name for column in table.columns])
 
+        # Write data
+        for row in result:
+            writer.writerow(row)
+
+        output.seek(0)
+
+        return Response(
+            output,
+            mimetype="text/csv",
+            headers={"Content-Disposition": f"attachment;filename={table_name}.csv"}
+        )
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 def update_report_image_date(report_id, new_date):
@@ -669,11 +680,11 @@ def database_view():
 def get_table_data(table_name):
     if table_name in ['aemter', 'alembic_version']:
         return jsonify({"error": "Access to this table is not allowed"}), 403
-
     try:
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 20, type=int)
         search = request.args.get('search', '')
+        sort_order = request.args.get('sort_order', 'id_asc')
 
         # Get the table object directly
         table = db.metadata.tables.get(table_name)
@@ -693,6 +704,13 @@ def get_table_data(table_name):
                     search_filters.append(cast(column, String).ilike(f'%{search}%'))
             if search_filters:
                 stmt = stmt.where(or_(*search_filters))
+
+
+        # Apply sorting
+        if sort_order == 'id_asc':
+            stmt = stmt.order_by(table.c.id.asc())
+        elif sort_order == 'id_desc':
+            stmt = stmt.order_by(table.c.id.desc())
 
         # Get total count for pagination
         total_items = db.session.execute(db.select(db.func.count()).select_from(table)).scalar()
@@ -717,7 +735,6 @@ def get_table_data(table_name):
             "non_editable_fields": NON_EDITABLE_FIELDS.get(table_name, []),
             "total_items": total_items
         })
-
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
