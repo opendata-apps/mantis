@@ -523,7 +523,7 @@ def admin_panel():
     if "user_id" in session:
         inspector = inspect(db.engine)
         tables = inspector.get_table_names()
-        tables = [table for table in tables if table != "alembic_version"]
+        tables = [table for table in tables if table not in ["alembic_version", "aemter"]]
         return render_template(
             "admin/adminPanel.html", tables=tables, user_id=session["user_id"]
         )
