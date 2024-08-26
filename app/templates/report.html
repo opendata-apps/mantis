@@ -16,11 +16,12 @@
 <meta name="csrf-token" content="{{ csrf_token() }}">
 {% endblock %}
 {% block page_title %}Melden Sie Ihre Beobachtung | Mantis Religiosa Mitmachprojekt | Gottesanbeterin Gesucht{% endblock
-  %}
-  {% block title %}Fund melden{% endblock %}
-  {% block meta_description %} Melden Sie Ihre Beobachtungen von Mantis religiosa in Deutschland. Unterstützen Sie die Forschung. {% endblock %}
-  {% block content %}
-  <script src="{{ url_for('static', filename='js/flow/flowbite.min.js')}}" defer></script>
+%}
+{% block title %}Fund melden{% endblock %}
+{% block meta_description %} Melden Sie Ihre Beobachtungen von Mantis religiosa in Deutschland. Unterstützen Sie die
+Forschung. {% endblock %}
+{% block content %}
+<script src="{{ url_for('static', filename='js/flow/flowbite.min.js')}}" defer></script>
 
 
 <div class="flex items-center justify-center min-h-screen bg-gray-100">
@@ -42,8 +43,7 @@
           <div class="flex items-center justify-center w-full">
             <label for="{{ form.picture.id }}"
               class="flex flex-col items-center justify-center w-full h-64 transition-all duration-500 ease-in-out border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
-              ondragover="event.preventDefault();" 
-              ondrop="dropHandler(event);">
+              ondragover="event.preventDefault();" ondrop="dropHandler(event);">
               <div id="imagePreview"
                 class="flex-col items-center justify-center hidden w-full h-64 overflow-hidden transition-all duration-500 ease-in-out fade-in">
                 <img id="previewImage" class="object-scale-down w-full h-full" src="#"
@@ -56,13 +56,17 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                 </svg>
-                <p class="mb-2 text-sm text-gray-500 "><span class="font-semibold">Click or drop image here...</span></p>
+                <p class="mb-2 text-sm text-gray-500 "><span class="font-semibold">Click or drop image here...</span>
+                </p>
                 <p class="text-xs text-gray-500 ">PNG, JPG, JPEG, HEIC, HEIF or WEBP (max. 12 MB)</p>
               </div>
               <div id="uploadLoader" class="flex flex-col items-center justify-center hidden w-full h-full">
-                <svg class="w-10 h-10 text-green-500 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <svg class="w-10 h-10 text-green-500 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none"
+                  viewBox="0 0 24 24">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <path class="opacity-75" fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                  </path>
                 </svg>
                 <p class="mt-2 text-sm text-gray-500">Bild wird hochgeladen...</p>
               </div>
@@ -134,7 +138,7 @@
 
       <!-- Step 2: Beschreibung Ort und Fund -->
       <div id="step2" class="hidden step" data-step-index="1">
-      <h2 class="mb-2 text-2xl font-bold text-gray-800">Fundortbeschreibung zu den Koordinaten</h2>
+        <h2 class="mb-2 text-2xl font-bold text-gray-800">Fundortbeschreibung zu den Koordinaten</h2>
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
             <label for="{{ form.street.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
@@ -415,8 +419,8 @@
               </svg>
             </span>
             <span id="send" class="relative">Senden</span>
-            <svg id="loadSend" class="hidden w-5 h-5 mx-auto text-gray-100 animate-spin" xmlns="http://www.w3.org/2000/svg"
-              fill="none" viewBox="0 0 24 24">
+            <svg id="loadSend" class="hidden w-5 h-5 mx-auto text-gray-100 animate-spin"
+              xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor"
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
@@ -429,10 +433,10 @@
 </div>
 
 <script>
-  window.onload = function() {
+  window.onload = function () {
     const toastButton = document.getElementById('close-button');
     if (toastButton) {
-      setTimeout(function() {
+      setTimeout(function () {
         toastButton.click();
       }, 3000);
     }
@@ -441,49 +445,49 @@
   let map;
   let userMarker;
   mapApiKey = "{{apikey}}";
-  
+
   function initMap() {
     // Define the boundary box for Germany
     const germanyBounds = [
       [47.270111, 5.866342], // Southwest corner
       [55.058347, 15.041896]  // Northeast corner
     ];
-  
+
     map = L.map('map', {
       maxBounds: germanyBounds,
       maxBoundsViscosity: 1.0
     }).setView([52.5200, 13.4050], 7);
-  
+
     // Define map layers
     const openStreetMapLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       maxZoom: 18,
     });
-  
+
     const arcGISLayer = L.esri.Vector.vectorBasemapLayer("ArcGIS:Imagery", {
       apikey: mapApiKey // Add your actual API key here
     });
-  
+
     // Add default layer to the map
     map.addLayer(openStreetMapLayer);
-  
+
     // Layer switcher control
     var baseMaps = {
       "Karte": openStreetMapLayer,
       "Satellit": arcGISLayer
     };
-  
+
     L.control.layers(baseMaps).addTo(map);
     L.control.locate(baseMaps).addTo(map);
-  
+
     // Restrict zooming out too much
     const MIN_ZOOM_LEVEL = 5;
-    map.on('zoomend', function() {
+    map.on('zoomend', function () {
       if (map.getZoom() < MIN_ZOOM_LEVEL) {
         map.setZoom(MIN_ZOOM_LEVEL);
       }
     });
-  
+
     // Update form fields on map click or manual input
     function updateMapAndFormData(lat, lng) {
       document.querySelector('#latitude').value = lat.toString();
@@ -509,11 +513,11 @@
       localStorage.setItem('latitude', lat.toString());
       localStorage.setItem('longitude', lng.toString());
     }
-  
+
     map.on('click', function (e) {
       updateMapAndFormData(e.latlng.lat, e.latlng.lng);
     });
-  
+
     // Listen for manual coordinate input
     document.querySelector('#latitude').addEventListener('change', function () {
       const lat = parseFloat(this.value);
@@ -522,7 +526,7 @@
         updateMapAndFormData(lat, lng);
       }
     });
-  
+
     document.querySelector('#longitude').addEventListener('change', function () {
       const lng = parseFloat(this.value);
       const lat = parseFloat(document.querySelector('#latitude').value);
@@ -531,7 +535,7 @@
       }
     });
   }
-  
+
   document.addEventListener('DOMContentLoaded', initMap);
 
   function getAddressFromCoordinates(latitude, longitude) {
@@ -696,42 +700,74 @@
 
   document.addEventListener('DOMContentLoaded', function () {
     const pictureInput = document.querySelector('#picture');
-
     pictureInput.addEventListener('change', function (event) {
       const file = event.target.files[0];
       if (!file) return;
 
-      EXIF.getData(file, function () {
-        const lat = EXIF.getTag(this, 'GPSLatitude');
-        const lng = EXIF.getTag(this, 'GPSLongitude');
-        const latRef = EXIF.getTag(this, 'GPSLatitudeRef');
-        const lngRef = EXIF.getTag(this, 'GPSLongitudeRef');
+      // Use FileReader to read the file as an ArrayBuffer
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        try {
+          const exifData = EXIF.readFromBinaryFile(e.target.result);
 
-        if (lat && lng && latRef && lngRef) {
-          // Convert coordinates to decimal without rounding
-          const latitude = toDecimal(lat, latRef);
-          const longitude = toDecimal(lng, lngRef);
+          if (exifData) {
+            const lat = exifData.GPSLatitude;
+            const lng = exifData.GPSLongitude;
+            const latRef = exifData.GPSLatitudeRef;
+            const lngRef = exifData.GPSLongitudeRef;
 
-          // if values are nan or 0, do not set the form fields
-          if (isNaN(latitude) || isNaN(longitude) || latitude === 0 || longitude === 0) {
-            return;
+            if (lat && lng && latRef && lngRef) {
+              // Convert coordinates to decimal without rounding
+              const latitude = toDecimal(lat, latRef);
+              const longitude = toDecimal(lng, lngRef);
+
+              // if values are NaN or 0, do not set the form fields
+              if (isNaN(latitude) || isNaN(longitude) || latitude === 0 || longitude === 0) {
+                return;
+              }
+
+              // Set the values to the form fields
+              document.querySelector('#latitude').value = latitude.toString();
+              document.querySelector('#longitude').value = longitude.toString();
+
+              if (window.userMarker) window.userMarker.remove();
+              window.userMarker = L.marker([latitude, longitude]).addTo(map);
+              map.setView([latitude, longitude], 13);
+
+              // Trigger the address lookup
+              getAddressFromCoordinates(latitude, longitude);
+            }
+
+            // Extract and set the sighting date
+            if (exifData.DateTimeOriginal) {
+              const dateTime = exifData.DateTimeOriginal.split(' ')[0].replace(/:/g, '-');
+              document.querySelector('#sighting_date').value = dateTime;
+            }
           }
-          // Set the values to the form fields
-          document.querySelector('#latitude').value = latitude.toString();
-          document.querySelector('#longitude').value = longitude.toString();
-
-          if (window.userMarker) window.userMarker.remove();
-          window.userMarker = L.marker([latitude, longitude]).addTo(map);
-          map.setView([latitude, longitude], 13); 
-
-          // Trigger the address lookup
-          getAddressFromCoordinates(latitude, longitude);
-        } else {
+        } catch (error) {
           return;
         }
-      });
+      };
+
+      reader.readAsArrayBuffer(file);
     });
   });
+
+  function toDecimal(coord, ref) {
+    if (!Array.isArray(coord) || coord.length !== 3) {
+      return NaN;
+    }
+
+    const [degrees, minutes, seconds] = coord.map(val =>
+      typeof val === 'number' ? val : (val.numerator / val.denominator)
+    );
+
+    let decimal = degrees + minutes / 60 + seconds / (60 * 60);
+    if (ref === 'S' || ref === 'W') {
+      decimal = -decimal;
+    }
+    return decimal;
+  }
 
 
 
@@ -807,15 +843,15 @@
 
   function convertToWebP(file, quality) {
     var img = new Image();
-    img.onload = function() {
+    img.onload = function () {
       var canvas = document.createElement('canvas');
       canvas.width = img.width;
       canvas.height = img.height;
       var ctx = canvas.getContext('2d');
       ctx.drawImage(img, 0, 0, img.width, img.height);
-      canvas.toBlob(function(blob) {
+      canvas.toBlob(function (blob) {
         var convertedFile = new File([blob], 'image.webp', { type: 'image/webp' });
-        
+
         // Check if the converted file is still too large
         if (convertedFile.size > 12 * 1024 * 1024) {
           alert("Das Bild ist zu groß. Bitte verwenden Sie ein kleineres Bild oder reduzieren Sie die Bildqualität.");
@@ -823,12 +859,12 @@
           uploadText.style.display = 'flex';
           return;
         }
-        
+
         var dataTransfer = new DataTransfer();
         dataTransfer.items.add(convertedFile);
         input.files = dataTransfer.files;
         updatePreview(convertedFile);
-        
+
         // Hide loader after conversion is complete
         uploadLoader.classList.add('hidden');
       }, 'image/webp', quality);
@@ -838,7 +874,7 @@
 
   function updatePreview(file) {
     var reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = function (e) {
       previewContainer.style.display = 'flex';
       preview.src = e.target.result;
       uploadText.style.display = 'none';
@@ -872,26 +908,14 @@
     }
   }
 
-
-  function toDecimal(coord, ref) {
-    const [degrees, minutes, seconds] = coord;
-    let decimal = degrees + minutes / 60 + seconds / (60 * 60);
-
-    if (ref === 'S' || ref === 'W') {
-      decimal = -decimal;
-    }
-
-    return decimal;
-  }
-
   function validateForm(event, nextStepIndex) {
     event.preventDefault();
     const form = event.target.closest('form');
     const formData = new FormData();
-    
+
     // Add the current step index to the FormData
     formData.append('stepIndex', nextStepIndex);
-    
+
     // Only append form elements that are relevant to the current step
     for (const element of form.elements) {
       if (element.name === 'picture' && nextStepIndex !== 1) {
@@ -903,27 +927,27 @@
         formData.append(element.name, element.value);
       }
     }
-    
+
     let csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
     const button = event.target.closest('a');
     const buttonId = button.id;
     const buttonLoader = document.getElementById(buttonId + 'Loader');
     const buttonText = document.getElementById(buttonId + 'Text');
-  
+
     if (!buttonLoader || !buttonText) {
       console.error('Button loader or text not found');
       return;
     }
-  
+
     // Check if the button is already in loading state
     if (buttonLoader.classList.contains('loading')) {
       return; // Exit if the button is already loading
     }
-  
+
     // Add a 'loading' class to the buttonLoader to track the loading state
     buttonLoader.classList.add('loading');
-  
+
     // Toggle the loading SVG and the button text
     buttonLoader.classList.remove('hidden');
     buttonText.classList.add('hidden');
@@ -1055,7 +1079,7 @@
     if (index === 3) {
       setTimeout(() => {
         summaryMap.invalidateSize();
-      }, 400);  
+      }, 400);
     }
 
     if (index === 2) {
@@ -1098,31 +1122,31 @@
   //event.target.disabled = true;
   //console.log("Button disabled");
   //});
-  
+
 
   document.getElementById('mainForm').addEventListener('submit', (event) => {
     event.preventDefault();  // Prevent the form from submitting immediately
     var loadingMsg = document.getElementById('loadSend');
     var submitBtn = document.getElementById('submitBtn');
     var send = document.getElementById('send');
-  
+
     // Disable the submit button and show loading message
     submitBtn.disabled = true;
     console.log('Button disabled');
-  
+
     send.classList.add('hidden');
     console.log('Send hidden');
-  
+
     loadingMsg.classList.remove('hidden');
     console.log('Loading shown');
-  
+
     // Clear local storage with a try-catch block
     try {
       localStorage.clear();
     } catch (e) {
       console.error('Error clearing localStorage:', e);
     }
-    
+
     // Use a flag to ensure the form is submitted only once
     if (!submitBtn.classList.contains('form-submitted')) {
       submitBtn.classList.add('form-submitted');
