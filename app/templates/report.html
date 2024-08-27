@@ -489,17 +489,13 @@ Forschung. {% endblock %}
     });
 
     // Update form fields on map click or manual input
-    function updateMapAndFormData(lat, lng) {
+    function updateMapAndFormData(lat, lng, zoomToMarker = false) {
       document.querySelector('#latitude').value = lat.toString();
       document.querySelector('#longitude').value = lng.toString();
 
       getAddressFromCoordinates(lat, lng);
 
-      if (userMarker) {
-        userMarker.remove();
-      }
-
-      userMarker = L.marker([lat, lng]).addTo(map);
+      updateMarkerPosition(lat, lng, zoomToMarker);
 
       // Save form data to local storage
       let formData = {};
@@ -515,7 +511,7 @@ Forschung. {% endblock %}
     }
 
     map.on('click', function (e) {
-      updateMapAndFormData(e.latlng.lat, e.latlng.lng);
+      updateMapAndFormData(e.latlng.lat, e.latlng.lng, false);
     });
 
     // Listen for manual coordinate input
@@ -523,7 +519,7 @@ Forschung. {% endblock %}
       const lat = parseFloat(this.value);
       const lng = parseFloat(document.querySelector('#longitude').value);
       if (!isNaN(lat) && !isNaN(lng)) {
-        updateMapAndFormData(lat, lng);
+        updateMapAndFormData(lat, lng, false);
       }
     });
 
@@ -531,7 +527,7 @@ Forschung. {% endblock %}
       const lng = parseFloat(this.value);
       const lat = parseFloat(document.querySelector('#latitude').value);
       if (!isNaN(lat) && !isNaN(lng)) {
-        updateMapAndFormData(lat, lng);
+        updateMapAndFormData(lat, lng, false);
       }
     });
   }
@@ -730,9 +726,8 @@ Forschung. {% endblock %}
               document.querySelector('#latitude').value = latitude.toString();
               document.querySelector('#longitude').value = longitude.toString();
 
-              if (window.userMarker) window.userMarker.remove();
-              window.userMarker = L.marker([latitude, longitude]).addTo(map);
-              map.setView([latitude, longitude], 13);
+              // Update the marker position and zoom for EXIF data
+              updateMarkerPosition(latitude, longitude, true);
 
               // Trigger the address lookup
               getAddressFromCoordinates(latitude, longitude);
@@ -745,13 +740,25 @@ Forschung. {% endblock %}
             }
           }
         } catch (error) {
-          return;
+          console.error('Error processing EXIF data:', error);
         }
       };
 
       reader.readAsArrayBuffer(file);
     });
   });
+
+  // Add this new function to update the marker position
+  function updateMarkerPosition(latitude, longitude, zoomToMarker = false) {
+    if (window.userMarker) {
+      window.userMarker.setLatLng([latitude, longitude]);
+    } else {
+      window.userMarker = L.marker([latitude, longitude]).addTo(map);
+    }
+    if (zoomToMarker) {
+      map.setView([latitude, longitude], 13);
+    }
+  }
 
   function toDecimal(coord, ref) {
     if (!Array.isArray(coord) || coord.length !== 3) {
@@ -786,6 +793,7 @@ Forschung. {% endblock %}
     const maxSizeInBytes = 12 * 1024 * 1024; // 12MB
 
     clearErrorsForField('picture');
+    resetPreview(); // Reset preview before processing new image
 
     if (file) {
       if (!validFileTypes.includes(file.type.toLowerCase())) {
@@ -804,22 +812,98 @@ Forschung. {% endblock %}
       uploadText.style.display = 'none';
       uploadLoader.classList.remove('hidden');
 
-      // Verify that it's a real image
-      const img = new Image();
-      img.onload = function() {
-        URL.revokeObjectURL(this.src);
-        convertImageToWebP(file);
-      };
-      img.onerror = function() {
-        URL.revokeObjectURL(this.src);
-        showErrors({ picture: ["Die Datei scheint kein gültiges Bild zu sein."] }, 0);
-        e.target.value = '';
-        resetPreview();
-      };
-      img.src = URL.createObjectURL(file);
-    } else {
-      resetPreview();
+      // Process the file based on its type
+      if (file.type.startsWith('image/heic') || file.type.startsWith('image/heif')) {
+        processHeicHeif(file);
+      } else if (file.type === 'image/webp') {
+        // WebP files don't need conversion
+        validateAndUpdatePreview(file);
+      } else {
+        // For other image types, validate and convert if necessary
+        validateAndConvertIfNeeded(file);
+      }
     }
+  }
+
+  function processHeicHeif(file) {
+    heic2any({
+      blob: file,
+      toType: "image/jpeg",
+    }).then(function (resultBlob) {
+      validateAndConvertIfNeeded(new File([resultBlob], file.name, { type: 'image/jpeg' }));
+    }).catch(function (error) {
+      handleHeicHeifError(error);
+    });
+  }
+
+  function handleHeicHeifError(error) {
+    let errorMessage = "Die HEIC/HEIF-Datei konnte nicht verarbeitet werden.";
+    showErrors({ picture: [errorMessage] }, 0);
+    resetPreview();
+  }
+
+  function validateAndConvertIfNeeded(file) {
+    const img = new Image();
+    img.onload = function() {
+      URL.revokeObjectURL(this.src);
+      if (file.size > 10 * 1024 * 1024 || file.type !== 'image/webp') {
+        // Convert to WebP if file is large or not already WebP
+        convertToWebP(file, file.size > 10 * 1024 * 1024 ? 0.5 : 0.7);
+      } else {
+        // File is already WebP and not too large, just update preview
+        updatePreview(file);
+      }
+    };
+    img.onerror = function() {
+      URL.revokeObjectURL(this.src);
+      showErrors({ picture: ["Das Bild konnte nicht geladen werden. Bitte versuchen Sie es mit einem anderen Bild."] }, 0);
+      resetPreview();
+    };
+    img.src = URL.createObjectURL(file);
+  }
+
+  function validateAndUpdatePreview(file) {
+    const img = new Image();
+    img.onload = function() {
+      URL.revokeObjectURL(this.src);
+      updatePreview(file);
+    };
+    img.onerror = function() {
+      URL.revokeObjectURL(this.src);
+      showErrors({ picture: ["Die Datei scheint kein gültiges Bild zu sein."] }, 0);
+      resetPreview();
+    };
+    img.src = URL.createObjectURL(file);
+  }
+
+  function convertToWebP(file, quality) {
+    var img = new Image();
+    img.onload = function () {
+      var canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      var ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, img.width, img.height);
+      canvas.toBlob(function (blob) {
+        var convertedFile = new File([blob], 'image.webp', { type: 'image/webp' });
+
+        if (convertedFile.size > 12 * 1024 * 1024) {
+          showErrors({ picture: ["Das Bild ist zu groß. Bitte verwenden Sie ein kleineres Bild oder reduzieren Sie die Bildqualität."] }, 0);
+          resetPreview();
+          return;
+        }
+
+        var dataTransfer = new DataTransfer();
+        dataTransfer.items.add(convertedFile);
+        input.files = dataTransfer.files;
+        updatePreview(convertedFile);
+      }, 'image/webp', quality);
+    };
+    img.onerror = function() {
+      showErrors({ picture: ["Das Bild konnte nicht konvertiert werden. Bitte versuchen Sie es mit einem anderen Bild."] }, 0);
+      resetPreview();
+    };
+    img.src = URL.createObjectURL(file);
   }
 
   function dropHandler(ev) {
@@ -857,37 +941,6 @@ Forschung. {% endblock %}
     } else {
       convertToWebP(file, 0.7);  // Use normal compression for non-HEIC files
     }
-  }
-
-  function convertToWebP(file, quality) {
-    var img = new Image();
-    img.onload = function () {
-      var canvas = document.createElement('canvas');
-      canvas.width = img.width;
-      canvas.height = img.height;
-      var ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, img.width, img.height);
-      canvas.toBlob(function (blob) {
-        var convertedFile = new File([blob], 'image.webp', { type: 'image/webp' });
-
-        // Check if the converted file is still too large
-        if (convertedFile.size > 12 * 1024 * 1024) {
-          alert("Das Bild ist zu groß. Bitte verwenden Sie ein kleineres Bild oder reduzieren Sie die Bildqualität.");
-          uploadLoader.classList.add('hidden');
-          uploadText.style.display = 'flex';
-          return;
-        }
-
-        var dataTransfer = new DataTransfer();
-        dataTransfer.items.add(convertedFile);
-        input.files = dataTransfer.files;
-        updatePreview(convertedFile);
-
-        // Hide loader after conversion is complete
-        uploadLoader.classList.add('hidden');
-      }, 'image/webp', quality);
-    };
-    img.src = URL.createObjectURL(file);
   }
 
   function updatePreview(file) {
