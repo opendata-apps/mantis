@@ -783,13 +783,19 @@ Forschung. {% endblock %}
   function handleImageUpload(e) {
     const file = e.target.files[0];
     const validFileTypes = ["image/png", "image/jpeg", "image/jfif", "image/webp", "image/heic", "image/heif"];
+    const maxSizeInBytes = 12 * 1024 * 1024; // 12MB
 
     clearErrorsForField('picture');
 
     if (file) {
       if (!validFileTypes.includes(file.type.toLowerCase())) {
-        const msg = "Erlaubt sind PNG, JPG, JPEG, HEIC, HEIF und WebP Dateien.";
-        showErrors({ picture: [msg] }, 0);
+        showErrors({ picture: ["Erlaubt sind nur PNG, JPG, JPEG, HEIC, HEIF und WebP Dateien."] }, 0);
+        e.target.value = '';
+        return;
+      }
+
+      if (file.size > maxSizeInBytes) {
+        showErrors({ picture: ["Die Datei ist zu groß. Maximale Größe ist 12MB."] }, 0);
         e.target.value = '';
         return;
       }
@@ -798,7 +804,19 @@ Forschung. {% endblock %}
       uploadText.style.display = 'none';
       uploadLoader.classList.remove('hidden');
 
-      convertImageToWebP(file);
+      // Verify that it's a real image
+      const img = new Image();
+      img.onload = function() {
+        URL.revokeObjectURL(this.src);
+        convertImageToWebP(file);
+      };
+      img.onerror = function() {
+        URL.revokeObjectURL(this.src);
+        showErrors({ picture: ["Die Datei scheint kein gültiges Bild zu sein."] }, 0);
+        e.target.value = '';
+        resetPreview();
+      };
+      img.src = URL.createObjectURL(file);
     } else {
       resetPreview();
     }
