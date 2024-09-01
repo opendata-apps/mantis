@@ -12,6 +12,7 @@ from app.database.models import (
     TblMeldungen,
     TblMeldungUser,
     TblUsers,
+    TblAllData
 )
 from flask import session
 from flask import (
@@ -37,6 +38,7 @@ from werkzeug.utils import secure_filename
 from pathlib import Path
 from flask import current_app
 from app.tools.send_reviewer_email import send_email
+
 import os
 
 # Blueprints
@@ -672,7 +674,8 @@ def export_data(value):
 @login_required
 def database_view():
     inspector = inspect(db.engine)
-    tables = [table for table in inspector.get_table_names() if table not in ['aemter', 'alembic_version']]
+    tables = [table for table in inspector.get_table_names() if table not in ['aemter', 'alembic_version', 'melduser']]
+    tables.append('all_data_view')  # Add the materialized view to the list of tables
     return render_template("admin/database.html", tables=tables)
 
 @admin.route("/admin/get_table_data/<table_name>")
@@ -682,12 +685,23 @@ def get_table_data(table_name):
         return jsonify({"error": "Access to this table is not allowed"}), 403
     try:
         page = request.args.get('page', 1, type=int)
-        per_page = request.args.get('per_page', 20, type=int)
+        per_page = request.args.get('per_page', 10, type=int)
         search = request.args.get('search', '')
         sort_order = request.args.get('sort_order', 'id_asc')
 
-        # Get the table object directly
-        table = db.metadata.tables.get(table_name)
+        # Check if it's time to refresh the materialized view
+        last_updated = session.get('last_updated_all_data_view')
+        now = datetime.utcnow()
+        if last_updated is None or (now - last_updated.replace(tzinfo=None) > timedelta(minutes=1)):
+            TblAllData.refresh_materialized_view()
+            session['last_updated_all_data_view'] = now
+
+        # Get the table object
+        if table_name == 'all_data_view':
+            table = TblAllData.__table__
+        else:
+            table = db.metadata.tables.get(table_name)
+        
         if table is None:
             return jsonify({"error": "Table not found"}), 404
 
@@ -704,7 +718,6 @@ def get_table_data(table_name):
                     search_filters.append(cast(column, String).ilike(f'%{search}%'))
             if search_filters:
                 stmt = stmt.where(or_(*search_filters))
-
 
         # Apply sorting
         if sort_order == 'id_asc':
@@ -751,17 +764,31 @@ def update_cell():
         return jsonify({"error": "This field is not editable"}), 403
 
     try:
-        # Get the table object
-        table = db.metadata.tables.get(table_name)
-        if table is None:
-            return jsonify({"error": "Table not found"}), 404
+        # Check if the table is the materialized view
+        if table_name == 'all_data_view':
+            # Find the original table and column
+            original_table, original_column = find_original_table_and_column(column_name)
+            if not original_table or not original_column:
+                return jsonify({"error": "Unable to find original table and column"}), 400
 
-        # Create the update statement
-        stmt = (
-            db.update(table)
-            .where(table.c.id == id_value)
-            .values(**{column_name: new_value})
-        )
+            # Update the original table
+            stmt = (
+                update(original_table)
+                .where(original_table.id == id_value)
+                .values(**{original_column: new_value})
+            )
+        else:
+            # Get the table object
+            table = db.metadata.tables.get(table_name)
+            if table is None:
+                return jsonify({"error": "Table not found"}), 404
+
+            # Create the update statement
+            stmt = (
+                db.update(table)
+                .where(table.c.id == id_value)
+                .values(**{column_name: new_value})
+            )
 
         # Execute the update
         result = db.session.execute(stmt)
@@ -770,8 +797,50 @@ def update_cell():
         if result.rowcount == 0:
             return jsonify({"error": "Record not found"}), 404
 
+        # Refresh the materialized view after update
+        TblAllData.refresh_materialized_view()
+
         return jsonify({"success": True})
 
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
+
+def find_original_table_and_column(column_name):
+    table_column_mapping = {
+        'id': (TblMeldungen, 'id'),
+        'deleted': (TblMeldungen, 'deleted'),
+        'dat_fund_von': (TblMeldungen, 'dat_fund_von'),
+        'dat_fund_bis': (TblMeldungen, 'dat_fund_bis'),
+        'dat_meld': (TblMeldungen, 'dat_meld'),
+        'dat_bear': (TblMeldungen, 'dat_bear'),
+        'bearb_id': (TblMeldungen, 'bearb_id'),
+        'tiere': (TblMeldungen, 'tiere'),
+        'art_m': (TblMeldungen, 'art_m'),
+        'art_w': (TblMeldungen, 'art_w'),
+        'art_n': (TblMeldungen, 'art_n'),
+        'art_o': (TblMeldungen, 'art_o'),
+        'art_f': (TblMeldungen, 'art_f'),
+        'fo_quelle': (TblMeldungen, 'fo_quelle'),
+        'fo_beleg': (TblMeldungen, 'fo_beleg'),
+        'anm_melder': (TblMeldungen, 'anm_melder'),
+        'anm_bearbeiter': (TblMeldungen, 'anm_bearbeiter'),
+        'plz': (TblFundorte, 'plz'),
+        'ort': (TblFundorte, 'ort'),
+        'strasse': (TblFundorte, 'strasse'),
+        'kreis': (TblFundorte, 'kreis'),
+        'land': (TblFundorte, 'land'),
+        'amt': (TblFundorte, 'amt'),
+        'mtb': (TblFundorte, 'mtb'),
+        'longitude': (TblFundorte, 'longitude'),
+        'latitude': (TblFundorte, 'latitude'),
+        'ablage': (TblFundorte, 'ablage'),
+        'beschreibung': (TblFundortBeschreibung, 'beschreibung'),
+        'melder_name': (TblUsers, 'user_name'),
+        'melder_id': (TblUsers, 'user_id'),
+        'melder_kontakt': (TblUsers, 'user_kontakt'),
+        'finder_name': (TblUsers, 'user_name'),
+        'finder_id': (TblUsers, 'user_id'),
+        'finder_kontakt': (TblUsers, 'user_kontakt')
+    }
+    return table_column_mapping.get(column_name, (None, None))
