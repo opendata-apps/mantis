@@ -24,7 +24,6 @@ from app import db
 from app.database.models import TblFundorte, TblMeldungen, TblMeldungUser, TblUsers
 from app.forms import MantisSightingForm
 from app.tools.gen_user_id import get_new_id
-from app.routes.admin import get_sighting
 from app.tools.mtb_calc import get_mtb, pointInRect
 from app.tools.find_gemeinde import get_amt_full_scan
 
@@ -35,18 +34,11 @@ data = Blueprint("data", __name__)
 checklist = Config.CHECKLIST
 checklist["datum"] = datetime.now() + timedelta(days=1)
 
-# Load the popover content from flask static folder
-popover_content = {}
-popover_content_path = os.path.join(Config.STATIC_FOLDER, "popover_content.json")
-if os.path.exists(popover_content_path):
-    with open(popover_content_path, "r") as f:
-        popover_content = json.load(f)
         
 def _create_directory(date):
     year = date[:4]
     dir_path = Path(Config.UPLOAD_FOLDER + "/" + year + "/" + date)
     dir_path.mkdir(parents=True, exist_ok=True)
-    ablage_path = year + "/" + date
     return dir_path
 
 
@@ -114,11 +106,11 @@ def _handle_file_upload(request, form, usrid):
 
     # Use Pillow to open the image
     with Image.open(io.BytesIO(file_content)) as img:
-        # Check if the image is already in WebP format
-        if img.format != 'WEBP':
+        # Check if the image is already in WebP format or over 6MB  
+        if img.format != 'WEBP' or len(file_content) > 6 * 1024 * 1024:
             # Convert to WebP
             output = io.BytesIO()
-            img.save(output, format='WEBP', quality=70)
+            img.save(output, format='WEBP', quality=50)
             output.seek(0)
             file_content = output.getvalue()
 
