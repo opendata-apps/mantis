@@ -237,14 +237,37 @@ title %} {% from "macro.html" import popover %} {% block content %}
 
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 <script>
-    const counter = document.querySelector(".counter");
+    const counter = document.querySelector('.counter');
     const target = +counter.dataset.target;
     const duration = 2500;
     let startTime = null;
 
     function easeOutExpo(time, b, c, d) {
-        return c * (-Math.pow(2, (-10 * time) / d) + 1) + b;
+        return c * (-Math.pow(2, -10 * time / d) + 1) + b;
     }
+
+    function animate(currentTime) {
+        if (startTime === null) startTime = currentTime;
+        const elapsedTime = currentTime - startTime;
+        const progress = Math.min(elapsedTime / duration, 1);
+        const count = easeOutExpo(progress, 0, target, 1);
+
+        counter.innerText = Math.floor(count);
+        if (elapsedTime < duration) {
+            requestAnimationFrame(animate);
+        } else {
+            counter.innerText = target;
+        }
+    }
+
+    const observer = new IntersectionObserver(entries => {
+        if (entries[0].isIntersecting) {
+            requestAnimationFrame(animate);
+            observer.disconnect();
+        }
+    });
+
+    observer.observe(counter);
 
     function sprayConfetti() {
         confetti({
