@@ -211,34 +211,10 @@ title %} {% from "macro.html" import popover %} {% block content %}
     </div>
 </section>
 
-<!-- Modal -->
-<div id="thanksModal" class="fixed inset-0 flex items-center justify-center transition-opacity duration-300 opacity-0 pointer-events-none" style="z-index: 11000;">
-    <div class="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm"></div>
-    <div class="relative w-full max-w-md p-8 mx-4 transition-transform duration-300 transform scale-95 bg-white rounded-lg shadow-xl">
-        <button id="closeModal" class="absolute text-gray-400 transition-colors duration-200 top-4 right-4 hover:text-gray-600">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-        </button>
-        <h2 class="mb-4 text-2xl font-bold text-center text-green-600">Danke für Ihren Beitrag! 💚</h2>
-        <div class="mb-6 mantis">
-            <img id="dancingMantis" src="https://www.svgrepo.com/show/481511/praying-mantis-2.svg" alt="Gottesanbeterin" class="w-32 h-32 mx-auto">
-            <span class="magnifier" role="img" aria-label="Lupe">🔍</span>
-        </div>
-        <p class="mb-6 text-lg text-center text-gray-700">10.000 Meldungen erreicht! Ihre Unterstützung ist wertvoll für unsere Forschung.</p>
-        <div class="flex justify-center">
-            <button id="moreConfetti" class="px-6 py-3 text-white transition-colors duration-200 bg-green-500 rounded-full shadow-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
-                <span class="mr-2">Feiern!</span>
-                <span role="img" aria-label="Konfetti">🎉</span>
-            </button>
-        </div>
-    </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 <script>
     const counter = document.querySelector('.counter');
     const target = +counter.dataset.target;
+    console.log(target);
     const duration = 2500;
     let startTime = null;
 
@@ -268,7 +244,35 @@ title %} {% from "macro.html" import popover %} {% block content %}
     });
 
     observer.observe(counter);
+</script>
 
+<!-- Modal -->
+{% if celebration_enabled %}
+<div id="thanksModal" class="fixed inset-0 flex items-center justify-center transition-opacity duration-300 opacity-0 pointer-events-none" style="z-index: 11000;">
+    <div class="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm"></div>
+    <div class="relative w-full max-w-md p-8 mx-4 transition-transform duration-300 transform scale-95 bg-white rounded-lg shadow-xl">
+        <button id="closeModal" class="absolute text-gray-400 transition-colors duration-200 top-4 right-4 hover:text-gray-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+        <h2 class="mb-4 text-2xl font-bold text-center text-green-600">Danke für Ihren Beitrag! 💚</h2>
+        <div class="mb-6 mantis">
+            <img id="dancingMantis" src="https://www.svgrepo.com/show/481511/praying-mantis-2.svg" alt="Gottesanbeterin" class="w-32 h-32 mx-auto">
+            <span class="magnifier" role="img" aria-label="Lupe">🔍</span>
+        </div>
+        <p class="mb-6 text-lg text-center text-gray-700">10.000 Meldungen erreicht! Ihre Unterstützung ist wertvoll für unsere Forschung.</p>
+        <div class="flex justify-center">
+            <button id="moreConfetti" class="px-6 py-3 text-white transition-colors duration-200 bg-green-500 rounded-full shadow-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                <span class="mr-2">Feiern!</span>
+                <span role="img" aria-label="Konfetti">🎉</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+<script>
     function sprayConfetti() {
         confetti({
             particleCount: 100,
@@ -322,7 +326,7 @@ title %} {% from "macro.html" import popover %} {% block content %}
         document.body.style.overflow = '';
     }
 
-    // Open modal on page load
+    // Open modal on page load only if celebration is enabled
     window.addEventListener('load', () => {
         setTimeout(openModal, 1000); // Delay modal opening by 1 second
     });
@@ -364,5 +368,5 @@ title %} {% from "macro.html" import popover %} {% block content %}
         animation: dance 0.5s ease-in-out infinite;
     }
 </style>
-
+{% endif %}
 {% endblock content %}

@@ -2,6 +2,7 @@
 import json
 import os
 import random
+from datetime import datetime, timedelta
 
 from flask import (
     Blueprint,
@@ -20,6 +21,7 @@ from app.tools.check_reviewer import login_required
 from ..config import Config
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FEATURE_FLAG_FILE = os.path.join(BASE_DIR, '..', 'static', 'celebration_flag.json')
 
 # Blueprints
 main = Blueprint("main", __name__)
@@ -36,6 +38,9 @@ def index():
         .filter(TblMeldungen.deleted.is_(None))
         .count()
     )
+    
+    celebration_enabled = check_celebration_flag(post_count)
+    
     json_path = os.path.join(
         BASE_DIR, "..", "static", "images", "galerie", "galerie.json"
     )
@@ -51,7 +56,34 @@ def index():
         post_count=post_count,
         bilder=bilder,
         current_index=current_index,
+        celebration_enabled=celebration_enabled,
     )
+    
+def check_celebration_flag(post_count):
+    if post_count <= 10000:
+        return False
+    
+    if not os.path.exists(FEATURE_FLAG_FILE):
+        set_celebration_flag()
+        return True
+    
+    with open(FEATURE_FLAG_FILE, 'r') as f:
+        flag_data = json.load(f)
+    
+    if datetime.now() > datetime.fromisoformat(flag_data['expiry']):
+        return False
+    
+    return True
+
+
+def set_celebration_flag():
+    expiry = (datetime.now() + timedelta(days=1)).isoformat()
+    flag_data = {'expiry': expiry}
+    
+    os.makedirs(os.path.dirname(FEATURE_FLAG_FILE), exist_ok=True)
+    with open(FEATURE_FLAG_FILE, 'w') as f:
+        json.dump(flag_data, f)
+
 
 
 def styles():
