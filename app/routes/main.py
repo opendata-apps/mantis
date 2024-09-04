@@ -57,32 +57,13 @@ def index():
         bilder=bilder,
         current_index=current_index,
         celebration_enabled=celebration_enabled,
+        celebration_threshold=Config.CELEBRATION_THRESHOLD,
     )
     
 def check_celebration_flag(post_count):
-    if post_count <= 10000:
+    if post_count <= Config.CELEBRATION_THRESHOLD:
         return False
-    
-    if not os.path.exists(FEATURE_FLAG_FILE):
-        set_celebration_flag()
-        return True
-    
-    with open(FEATURE_FLAG_FILE, 'r') as f:
-        flag_data = json.load(f)
-    
-    if datetime.now() > datetime.fromisoformat(flag_data['expiry']):
-        return False
-    
     return True
-
-
-def set_celebration_flag():
-    expiry = (datetime.now() + timedelta(days=1)).isoformat()
-    flag_data = {'expiry': expiry}
-    
-    os.makedirs(os.path.dirname(FEATURE_FLAG_FILE), exist_ok=True)
-    with open(FEATURE_FLAG_FILE, 'w') as f:
-        json.dump(flag_data, f)
 
 
 
