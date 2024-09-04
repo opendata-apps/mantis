@@ -67,15 +67,13 @@ def _update_or_create_user(
     usrid, last_name, first_name, contact, finder_last_name, finder_first_name
 ):
     existing_user = TblUsers.query.filter_by(user_id=usrid).first()
-    # existing_finder = TblUsers.query.filter_by(
-    #     user_id=usrid).filter_by(user_rolle="2").first()
 
     new_finder = None
     if finder_first_name and finder_last_name:
         finderid = get_new_id()
         new_finder = TblUsers(
             user_id=finderid,
-            user_name=finder_last_name + " " + finder_first_name[0] + ".",
+            user_name=f"{finder_last_name.strip()} {finder_first_name[0].strip()}.",
             user_rolle=2,
         )
         db.session.add(new_finder)
@@ -84,7 +82,7 @@ def _update_or_create_user(
     if not existing_user:
         new_user = TblUsers(
             user_id=usrid,
-            user_name=last_name + " " + first_name[0] + ".",
+            user_name=f"{last_name.strip()} {first_name[0].strip()}.",
             user_rolle=1,
             user_kontakt=contact,
         )
