@@ -68,11 +68,11 @@ psql -U postgres
 ```
 
 ```sql
-CREATE DATABASE mantis_tracker;
-CREATE USER mantis_user WITH PASSWORD 'mantis';
-GRANT ALL PRIVILEGES ON DATABASE mantis_tracker TO mantis_user;
+CREATE DATABASE mantis_tracker OWNER mantis_tester;
+CREATE USER mantis_tester WITH PASSWORD 'mantis';
+GRANT ALL PRIVILEGES ON DATABASE mantis_tracker TO mantis_tester;
 -- MacOS only:
-GRANT usage, create ON SCHEMA public TO mantis_user;
+GRANT usage, create ON SCHEMA public TO mantis_tester;
 \q
 ```
 
