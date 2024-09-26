@@ -131,27 +131,27 @@ class MantisSightingForm(FlaskForm):
         },
     )
 
-    zip_code = StringField(
+    fund_zip_code = StringField(
         "PLZ",
         validators=[Optional(), validate_zip_code],
         render_kw={"placeholder": "PLZ"},
     )
-    city = StringField(
+    fund_city = StringField(
         "Ort *",
         validators=[DataRequired(message="Bitte geben Sie einen Ort ein."), Length(max=100)],
         render_kw={"placeholder": "z.B. Berlin"},
     )
-    street = StringField(
+    fund_street = StringField(
         "Straße",
         validators=[Optional(), Length(max=100)],
         render_kw={"placeholder": "z.B. Musterstraße"},
     )
-    state = StringField(
+    fund_state = StringField(
         "Bundesland *",
         validators=[DataRequired(message="Das Bundesland ist erforderlich."), Length(max=50)],
         render_kw={"placeholder": "Bundesland"},
     )
-    district = StringField(
+    fund_district = StringField(
         "Landkreis/Stadtteil", 
         validators=[Optional(), Length(max=100)],
         render_kw={"placeholder": "z.B. Mitte"}
