@@ -687,7 +687,8 @@ def get_table_data(table_name):
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 10, type=int)
         search = request.args.get('search', '')
-        sort_order = request.args.get('sort_order', 'id_asc')
+        sort_column = request.args.get('sort_column', 'id')
+        sort_direction = request.args.get('sort_direction', 'asc')
 
         # Check if it's time to refresh the materialized view
         last_updated = session.get('last_updated_all_data_view')
@@ -705,12 +706,18 @@ def get_table_data(table_name):
         if table is None:
             return jsonify({"error": "Table not found"}), 404
 
+        columns = [column.name for column in table.columns]
+
+        # Validate sort_column to prevent SQL injection
+        if sort_column not in columns:
+            sort_column = 'id'
+
         # Create a select statement
         stmt = db.select(table)
 
         # Apply search filter if search term is provided
+        search_filters = []
         if search:
-            search_filters = []
             for column in table.columns:
                 if isinstance(column.type, db.String):
                     search_filters.append(column.ilike(f'%{search}%'))
@@ -720,13 +727,16 @@ def get_table_data(table_name):
                 stmt = stmt.where(or_(*search_filters))
 
         # Apply sorting
-        if sort_order == 'id_asc':
-            stmt = stmt.order_by(table.c.id.asc())
-        elif sort_order == 'id_desc':
-            stmt = stmt.order_by(table.c.id.desc())
+        if sort_direction == 'asc':
+            stmt = stmt.order_by(table.c[sort_column].asc())
+        else:
+            stmt = stmt.order_by(table.c[sort_column].desc())
 
         # Get total count for pagination
-        total_items = db.session.execute(db.select(db.func.count()).select_from(table)).scalar()
+        total_items_stmt = db.select(db.func.count()).select_from(table)
+        if search_filters:
+            total_items_stmt = total_items_stmt.where(or_(*search_filters))
+        total_items = db.session.execute(total_items_stmt).scalar()
 
         # Apply pagination
         stmt = stmt.offset((page - 1) * per_page).limit(per_page)
@@ -734,12 +744,36 @@ def get_table_data(table_name):
         # Execute query and get results
         results = db.session.execute(stmt).fetchall()
 
+        def get_standard_type(column_type):
+            if isinstance(column_type, db.Integer):
+                return 'integer'
+            elif isinstance(column_type, db.String):
+                return 'string'
+            elif isinstance(column_type, db.Boolean):
+                return 'boolean'
+            elif isinstance(column_type, db.Date):
+                return 'date'
+            elif isinstance(column_type, db.DateTime):
+                return 'datetime'
+            elif isinstance(column_type, db.Float):
+                return 'float'
+            else:
+                return 'string'
+
         # Get column names and types
-        columns = [column.name for column in table.columns]
-        column_types = {column.name: str(column.type) for column in table.columns}
+        column_types = {column.name: get_standard_type(column.type) for column in table.columns}
+
+        # Exclude sensitive columns
+        EXCLUDED_COLUMNS = ['report_user_db_id', 'fundorte_id', 'beschreibung_id']
+        columns_with_excluded = columns.copy()
+        columns = [col for col in columns if col not in EXCLUDED_COLUMNS]
+        column_types = {col: column_types[col] for col in columns}
 
         # Convert results to list of lists
-        data = [[getattr(row, col) for col in columns] for row in results]
+        data = [
+            [getattr(row, col) for col in columns_with_excluded if col not in EXCLUDED_COLUMNS]
+            for row in results
+        ]
 
         return jsonify({
             "columns": columns,
@@ -749,7 +783,8 @@ def get_table_data(table_name):
             "total_items": total_items
         })
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        current_app.logger.exception("Error in get_table_data")
+        return jsonify({"error": "An error occurred while fetching table data"}), 500
 
 @admin.route("/admin/update_cell", methods=["POST"])
 @login_required
@@ -764,19 +799,51 @@ def update_cell():
         return jsonify({"error": "This field is not editable"}), 403
 
     try:
-        # Check if the table is the materialized view
         if table_name == 'all_data_view':
             # Find the original table and column
             original_table, original_column = find_original_table_and_column(column_name)
             if not original_table or not original_column:
                 return jsonify({"error": "Unable to find original table and column"}), 400
 
-            # Update the original table
-            stmt = (
-                update(original_table)
-                .where(original_table.id == id_value)
-                .values(**{original_column: new_value})
-            )
+            # Fetch the corresponding row from all_data_view
+            all_data_row = db.session.query(TblAllData).filter(TblAllData.id == id_value).first()
+            if not all_data_row:
+                return jsonify({"error": "Record not found"}), 404
+
+            if original_table == TblUsers:
+                user_db_id = all_data_row.report_user_db_id
+                if not user_db_id:
+                    return jsonify({"error": "User ID not found in the record"}), 400
+                stmt = (
+                    update(original_table)
+                    .where(original_table.id == user_db_id)
+                    .values(**{original_column: new_value})
+                )
+            elif original_table == TblFundorte:
+                fundorte_id = all_data_row.fundorte_id
+                if not fundorte_id:
+                    return jsonify({"error": "Fundorte ID not found in the record"}), 400
+                stmt = (
+                    update(original_table)
+                    .where(original_table.id == fundorte_id)
+                    .values(**{original_column: new_value})
+                )
+            elif original_table == TblFundortBeschreibung:
+                beschreibung_id = all_data_row.beschreibung_id
+                if not beschreibung_id:
+                    return jsonify({"error": "Beschreibung ID not found in the record"}), 400
+                stmt = (
+                    update(original_table)
+                    .where(original_table.id == beschreibung_id)
+                    .values(**{original_column: new_value})
+                )
+            else:
+                # Update other tables using id_value (from meldungen)
+                stmt = (
+                    update(original_table)
+                    .where(original_table.id == id_value)
+                    .values(**{column_name: new_value})
+                )
         else:
             # Get the table object
             table = db.metadata.tables.get(table_name)
@@ -804,7 +871,7 @@ def update_cell():
 
     except Exception as e:
         db.session.rollback()
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "An error occurred while updating the cell"}), 500
 
 def find_original_table_and_column(column_name):
     table_column_mapping = {
@@ -836,11 +903,8 @@ def find_original_table_and_column(column_name):
         'latitude': (TblFundorte, 'latitude'),
         'ablage': (TblFundorte, 'ablage'),
         'beschreibung': (TblFundortBeschreibung, 'beschreibung'),
-        'melder_name': (TblUsers, 'user_name'),
-        'melder_id': (TblUsers, 'user_id'),
-        'melder_kontakt': (TblUsers, 'user_kontakt'),
-        'finder_name': (TblUsers, 'user_name'),
-        'finder_id': (TblUsers, 'user_id'),
-        'finder_kontakt': (TblUsers, 'user_kontakt')
+        'report_user_id': (TblUsers, 'user_id'),
+        'report_user_name': (TblUsers, 'user_name'),
+        'report_user_kontakt': (TblUsers, 'user_kontakt')
     }
     return table_column_mapping.get(column_name, (None, None))

@@ -21,6 +21,7 @@ class TblAllData(db.Model):
     fo_beleg = db.Column(db.String(1))
     anm_melder = db.Column(db.String(500))
     anm_bearbeiter = db.Column(db.String(500))
+    fundorte_id = db.Column(db.Integer)  # New field
     plz = db.Column(db.Integer)
     ort = db.Column(db.String)
     strasse = db.Column(db.String(100))
@@ -31,13 +32,12 @@ class TblAllData(db.Model):
     longitude = db.Column(db.String(25))
     latitude = db.Column(db.String(25))
     ablage = db.Column(db.String(255))
+    beschreibung_id = db.Column(db.Integer)  # New field
     beschreibung = db.Column(db.String(45))
-    melder_name = db.Column(db.String(45))
-    melder_id = db.Column(db.String(40))
-    melder_kontakt = db.Column(db.String(45))
-    finder_name = db.Column(db.String(45))
-    finder_id = db.Column(db.String(40))
-    finder_kontakt = db.Column(db.String(45))
+    report_user_db_id = db.Column(db.Integer)
+    report_user_id = db.Column(db.String(40))
+    report_user_name = db.Column(db.String(45))
+    report_user_kontakt = db.Column(db.String(45))
 
     def __repr__(self):
         return f"<AllData {self.id}>"
@@ -70,6 +70,7 @@ class TblAllData(db.Model):
                     m.fo_beleg,
                     m.anm_melder,
                     m.anm_bearbeiter,
+                    f.id AS fundorte_id,  -- Include fundorte.id
                     f.plz,
                     f.ort,
                     f.strasse,
@@ -80,27 +81,25 @@ class TblAllData(db.Model):
                     f.longitude,
                     f.latitude,
                     f.ablage,
+                    b.id AS beschreibung_id,  -- Include beschreibung.id
                     b.beschreibung,
-                    u_melder.user_name AS melder_name,
-                    u_melder.user_id AS melder_id,
-                    u_melder.user_kontakt AS melder_kontakt,
-                    u_finder.user_name AS finder_name,
-                    u_finder.user_id AS finder_id,
-                    u_finder.user_kontakt AS finder_kontakt
+                    report_user.id AS report_user_db_id,
+                    report_user.user_id AS report_user_id,
+                    report_user.user_name AS report_user_name,
+                    report_user.user_kontakt AS report_user_kontakt
                 FROM 
                     meldungen m
                 LEFT JOIN 
                     fundorte f ON m.fo_zuordnung = f.id
                 LEFT JOIN 
                     beschreibung b ON f.beschreibung = b.id
-                LEFT JOIN 
-                    melduser mu_melder ON m.id = mu_melder.id_meldung AND mu_melder.id_user = mu_melder.id_finder
-                LEFT JOIN 
-                    users u_melder ON mu_melder.id_user = u_melder.id
-                LEFT JOIN 
-                    melduser mu_finder ON m.id = mu_finder.id_meldung AND mu_finder.id_finder != mu_finder.id_user
-                LEFT JOIN 
-                    users u_finder ON mu_finder.id_finder = u_finder.id;
+                LEFT JOIN LATERAL (
+                    SELECT u.*
+                    FROM melduser mu
+                    JOIN users u ON mu.id_user = u.id
+                    WHERE mu.id_meldung = m.id AND u.user_rolle IN ('1', '9')
+                    LIMIT 1
+                ) report_user ON TRUE;
                 """
             )
         )
