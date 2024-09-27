@@ -2,8 +2,8 @@
 import json
 import os
 import random
-from app import db
-from app.database.models import TblMeldungen
+from datetime import datetime, timedelta
+
 from flask import (
     Blueprint,
     Response,
@@ -11,13 +11,17 @@ from flask import (
     render_template,
     request,
     send_from_directory,
+    session,
 )
+
+from app import db
+from app.database.models import TblMeldungen
 from app.tools.check_reviewer import login_required
-from flask import session
 
 from ..config import Config
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FEATURE_FLAG_FILE = os.path.join(BASE_DIR, '..', 'static', 'celebration_flag.json')
 
 # Blueprints
 main = Blueprint("main", __name__)
@@ -34,6 +38,9 @@ def index():
         .filter(TblMeldungen.deleted.is_(None))
         .count()
     )
+    
+    celebration_enabled = check_celebration_flag(post_count)
+    
     json_path = os.path.join(
         BASE_DIR, "..", "static", "images", "galerie", "galerie.json"
     )
@@ -49,8 +56,15 @@ def index():
         post_count=post_count,
         bilder=bilder,
         current_index=current_index,
-        current_year=Config.CURRENT_YEAR,
+        celebration_enabled=celebration_enabled,
+        celebration_threshold=Config.CELEBRATION_THRESHOLD,
     )
+    
+def check_celebration_flag(post_count):
+    if post_count <= Config.CELEBRATION_THRESHOLD:
+        return False
+    return True
+
 
 
 def styles():

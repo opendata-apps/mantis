@@ -34,6 +34,13 @@ data = Blueprint("data", __name__)
 checklist = Config.CHECKLIST
 checklist["datum"] = datetime.now() + timedelta(days=1)
 
+# Load the popover content from flask static folder
+popover_content = {}
+popover_content_path = os.path.join(Config.STATIC_FOLDER, "popover_content.json")
+if os.path.exists(popover_content_path):
+    with open(popover_content_path, "r") as f:
+        popover_content = json.load(f)
+
         
 def _create_directory(date):
     year = date[:4]
@@ -60,15 +67,13 @@ def _update_or_create_user(
     usrid, last_name, first_name, contact, finder_last_name, finder_first_name
 ):
     existing_user = TblUsers.query.filter_by(user_id=usrid).first()
-    # existing_finder = TblUsers.query.filter_by(
-    #     user_id=usrid).filter_by(user_rolle="2").first()
 
     new_finder = None
     if finder_first_name and finder_last_name:
         finderid = get_new_id()
         new_finder = TblUsers(
             user_id=finderid,
-            user_name=finder_last_name + " " + finder_first_name[0] + ".",
+            user_name=f"{finder_last_name.strip()} {finder_first_name.strip()[0].upper()}.",
             user_rolle=2,
         )
         db.session.add(new_finder)
@@ -77,7 +82,7 @@ def _update_or_create_user(
     if not existing_user:
         new_user = TblUsers(
             user_id=usrid,
-            user_name=last_name + " " + first_name[0] + ".",
+            user_name=f"{last_name.strip()} {first_name.strip()[0].upper()}.",
             user_rolle=1,
             user_kontakt=contact,
         )
@@ -183,7 +188,7 @@ def report(usrid=None):
         pid = os.getpid()
         mark = f"{ip}:{pid}"
         _saveip(mark)
-        if checklist.get(mark) > 2:
+        if checklist.get(mark) > 7:
             abort(429)
 
     if form.validate_on_submit():
@@ -277,6 +282,7 @@ def report(usrid=None):
         form=form,
         existing_user=existing_user,
         apikey=Config.esri,
+        popover_content=popover_content
     )
 
 

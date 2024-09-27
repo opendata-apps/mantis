@@ -27,6 +27,7 @@ class Config:
     PERMANENT_SESSION_LIFETIME = timedelta(hours=1)
     CHECKLIST = {}
     PREFERRED_URL_SCHEME = 'https'
+    STATIC_FOLDER = 'app/static'
     INITIAL_DATA = [
         (1, 'Im Haus'),
         (2, 'Im Garten'),
@@ -43,3 +44,4 @@ class Config:
     ]
     CURRENT_YEAR = datetime.now().year
     MIN_MAP_YEAR = 2023
+    CELEBRATION_THRESHOLD = 10000

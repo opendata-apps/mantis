@@ -83,7 +83,7 @@
                                 <option value="maennlich" {% if filters.type=="maennlich" %}selected{% endif %}>Männlich</option>
                                 <option value="weiblich" {% if filters.type=="weiblich" %}selected{% endif %}>Weiblich</option>
                                 <option value="oothek" {% if filters.type=="oothek" %}selected{% endif %}>Oothek</option>
-                                <option value="nymhe" {% if filters.type=="nymhe" %}selected{% endif %}>Nymhe</option>
+                                <option value="Nymphe" {% if filters.type=="Nymphe" %}selected{% endif %}>Nymphe</option>
                                 <option value="andere" {% if filters.type=="andere" %}selected{% endif %}>Andere</option>
                                 <option value="nicht_bestimmt" {% if filters.type=="nicht_bestimmt" %}selected{% endif %}>Nicht bestimmt</option>
                             </select>
@@ -187,7 +187,7 @@
     
             <!-- Custom Dropdown Menu -->
             <div id="sortDropdown"
-                class="z-10 hidden w-48 bg-white divide-y divide-gray-100 rounded-lg shadow ">
+                class="z-10 hidden w-48 bg-white divide-y divide-gray-200 rounded-lg shadow ">
                 <ul class="py-2 text-sm text-gray-700 " aria-labelledby="dropdownSortButton">
                     <li id="id_asc"
                         class="flex items-center px-4 py-2 hover:bg-gray-100  {% if current_sort_order=="
@@ -206,7 +206,7 @@
                         Aufsteigend
                     </li>
                     <li id="id_desc"
-                        class="flex items-center px-4 py-2 hover:bg-gray-100  {% if current_sort_order=="
+                        class="flex items-center px-4 py-2 hover:bg-gray-200  {% if current_sort_order=="
                         id_desc" %} bg-gray-300 {% endif %}" onclick="setSortOrder('id_desc')">
                         <div class="h-2 w-2 bg-green-500 rounded-full mr-2 {% if current_sort_order!="id_desc" %}
                             bg-transparent {% endif %}"></div>
@@ -248,19 +248,19 @@
                 <div id="dropdown" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 ">
                     <ul class="py-2 text-sm text-gray-700 " aria-labelledby="dropdownExportButton">
                         <li>
-                            <button onclick="exportData('all')" class="block w-full px-4 py-2 text-left hover:bg-gray-100 ">
+                            <button onclick="exportData('all')" class="block w-full px-4 py-2 text-left hover:bg-gray-200 ">
                                 Export All Data
                             </button>
                         </li>
                         <li>
                             <button onclick="exportData('accepted')"
-                                class="block w-full px-4 py-2 text-left hover:bg-gray-100 ">
+                                class="block w-full px-4 py-2 text-left hover:bg-gray-200 ">
                                 Export Accepted Reports
                             </button>
                         </li>
                         <li>
                             <button onclick="exportData('non_accepted')"
-                                class="block w-full px-4 py-2 text-left hover:bg-gray-100 ">
+                                class="block w-full px-4 py-2 text-left hover:bg-gray-200 ">
                                 Export Non-Accepted Reports
                             </button>
                         </li>
@@ -356,7 +356,7 @@
 
 
 
-<div id="imageModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="imageModalLabel" tabindex="-1"
+<div id="imageModal" class="fixed inset-0 hidden overflow-y-auto" style="z-index: 9999;" aria-labelledby="imageModalLabel" tabindex="-1"
     title="Um das Bild weiter zu vergrößern klicken sie auf den Button unten">
     <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
         <div id="imageModalBackdrop" class="fixed inset-0 transition-opacity" aria-hidden="true">
@@ -394,7 +394,7 @@
 
 
 <!-- Modal -->
-<div id="modal" class="fixed inset-0 z-10 hidden overflow-y-auto bg-gray-500 bg-opacity-75">
+<div id="modal" class="fixed inset-0 hidden overflow-y-auto bg-gray-500 bg-opacity-75" style="z-index: 9999;">
     <div class="flex items-center justify-center min-h-screen">
         <div class="w-full mx-4 bg-white rounded-lg shadow-xl md:max-w-3xl" style="display: flex; flex-direction: column; justify-content: space-between; height: 80%;">
             <div class="flex-grow p-6">
