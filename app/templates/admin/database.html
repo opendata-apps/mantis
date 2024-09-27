@@ -1,126 +1,65 @@
 {% extends "layout.html" %} {% block title %}Database Admin{% endblock %} {%
 block content %}
-<script
-  src="{{ url_for('static', filename='js/flow/flowbite.min.js')}}"
-  defer
-></script>
-<script
-  src="{{ url_for('static', filename='js/flow/datepicker.min.js')}}"
-  defer
-></script>
+<script src="{{ url_for('static', filename='js/flow/flowbite.min.js')}}" defer></script>
+<script src="{{ url_for('static', filename='js/flow/datepicker.min.js')}}" defer></script>
 
 <div class="container px-4 py-8 mx-auto">
   <h1 class="mb-6 text-3xl font-bold text-gray-800">Database Administration</h1>
 
-  <div
-    class="flex flex-wrap items-center justify-between mb-5 md:space-x-6 lg:space-x-8 xl:space-x-4"
-  >
-    <div
-      class="flex flex-wrap items-center w-full space-x-4 md:space-x-4 md:w-auto"
-    >
+  <div class="flex flex-wrap items-center justify-between mb-5 md:space-x-6 lg:space-x-8 xl:space-x-4">
+    <div class="flex flex-wrap items-center w-full space-x-4 md:space-x-4 md:w-auto">
       <!-- Filter button -->
-      <button
-        id="filterDropdownButton"
-        data-dropdown-toggle="filterDropdown"
+      <button id="filterDropdownButton" data-dropdown-toggle="filterDropdown"
         class="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg md:w-auto focus:outline-none hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200"
-        type="button"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
-          class="w-4 h-4 mr-2 text-gray-400"
-          viewbox="0 0 20 20"
-          fill="currentColor"
-        >
-          <path
-            fill-rule="evenodd"
+        type="button">
+        <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="w-4 h-4 mr-2 text-gray-400"
+          viewbox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd"
             d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"
-            clip-rule="evenodd"
-          />
+            clip-rule="evenodd" />
         </svg>
         Filter Options
-        <svg
-          class="-mr-1 ml-1.5 w-5 h-5"
-          fill="currentColor"
-          viewbox="0 0 20 20"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
-        >
-          <path
-            clip-rule="evenodd"
-            fill-rule="evenodd"
-            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-          />
+        <svg class="-mr-1 ml-1.5 w-5 h-5" fill="currentColor" viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true">
+          <path clip-rule="evenodd" fill-rule="evenodd"
+            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
         </svg>
       </button>
 
-      <div
-        id="filterDropdown"
-        class="z-10 hidden w-64 p-4 space-y-3 bg-white divide-y divide-gray-100 rounded-lg shadow-lg sm:w-80"
-      >
+      <div id="filterDropdown"
+        class="z-50 hidden w-64 p-4 space-y-3 bg-white divide-y divide-gray-100 rounded-lg shadow-lg sm:w-80">
         <p class="text-sm text-gray-700">
           This is a demo filter dropdown. You can add your custom filter options
           here.
         </p>
-        <button
-          type="button"
-          class="w-full px-4 py-2 mt-3 text-white bg-green-500 rounded-md shadow-sm hover:bg-green-600 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:border-transparent"
-        >
+        <button type="button"
+          class="w-full px-4 py-2 mt-3 text-white bg-green-500 rounded-md shadow-sm hover:bg-green-600 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:border-transparent">
           Apply Demo Filter
         </button>
       </div>
     </div>
 
-    <div
-      class="relative flex items-center flex-grow w-full mb-2 rounded-lg shadow-sm md:w-auto md:mb-0"
-    >
-      <form
-        id="searchForm"
-        class="flex items-center w-full transition-all duration-300 bg-white rounded-lg focus-within:ring-2 focus-within:ring-green-500"
-      >
+    <div class="relative flex items-center flex-grow w-full mb-2 rounded-lg shadow-sm md:w-auto md:mb-0">
+      <form id="searchForm"
+        class="flex items-center w-full transition-all duration-300 bg-white rounded-lg focus-within:ring-2 focus-within:ring-green-500">
         <!-- Search Bar -->
         <div class="relative flex-grow">
-          <button
-            type="submit"
-            class="absolute inset-y-0 left-0 flex items-center pl-3"
-          >
-            <svg
-              class="w-5 h-5 text-gray-500"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              aria-hidden="true"
-            >
-              <path
-                fill-rule="evenodd"
+          <button type="submit" class="absolute inset-y-0 left-0 flex items-center pl-3">
+            <svg class="w-5 h-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+              fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd"
                 d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-                clip-rule="evenodd"
-              />
+                clip-rule="evenodd" />
             </svg>
           </button>
-          <input
-            type="text"
-            id="searchInput"
-            name="search"
-            placeholder="Search..."
-            class="w-full h-full py-2 pl-10 pr-4 transition-shadow duration-300 bg-transparent rounded-l-lg search focus:ring-0 focus:border-transparent"
-          />
-          <button
-            type="button"
-            onclick="clearSearch()"
-            title="Clear"
-            class="absolute p-1 transform -translate-y-1/2 bg-white rounded-full right-5 top-1/2 hover:bg-gray-200 focus:outline-none"
-          >
-            <svg
-              focusable="false"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              width="16"
-              height="16"
-            >
+          <input type="text" id="searchInput" name="search" placeholder="Search..."
+            class="w-full h-full py-2 pl-10 pr-4 transition-shadow duration-300 bg-transparent rounded-l-lg search focus:ring-0 focus:border-transparent" />
+          <button type="button" onclick="clearSearch()" title="Clear"
+            class="absolute p-1 transform -translate-y-1/2 bg-white rounded-full right-5 top-1/2 hover:bg-gray-200 focus:outline-none">
+            <svg focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16">
               <path
-                d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
-              ></path>
+                d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z">
+              </path>
             </svg>
           </button>
         </div>
@@ -128,94 +67,41 @@ block content %}
     </div>
 
     <div class="flex items-center w-full space-x-4 md:w-auto">
-      <!-- Sortieren Button -->
-      <button
-        id="dropdownSortButton"
-        data-dropdown-toggle="sortDropdown"
-        class="flex items-center justify-center flex-grow px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200"
-      >
+      <!-- Sort Button -->
+      <button id="dropdownSortButton" data-dropdown-toggle="sortDropdown"
+        class="flex items-center justify-center flex-grow px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200">
         <span id="sortText">Sort...</span>
-        <svg
-          class="-mr-1 ml-1.5 w-5 h-5"
-          fill="currentColor"
-          viewbox="0 0 20 20"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
-        >
-          <path
-            clip-rule="evenodd"
-            fill-rule="evenodd"
-            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-          />
+        <svg class="-mr-1 ml-1.5 w-5 h-5" fill="currentColor" viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true">
+          <path clip-rule="evenodd" fill-rule="evenodd"
+            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
         </svg>
       </button>
 
       <!-- Custom Dropdown Menu -->
-      <div
-        id="sortDropdown"
-        class="z-10 hidden w-48 bg-white divide-y divide-gray-100 rounded-lg shadow"
-      >
-        <ul
-          class="py-2 text-sm text-gray-700"
-          aria-labelledby="dropdownSortButton"
-        >
-          <li
-            id="id_asc"
-            class="flex items-center px-4 py-2 hover:bg-gray-100"
-            onclick="setSortOrder('id_asc')"
-          >
-            <div
-              id="id_asc_indicator"
-              class="hidden w-2 h-2 mr-2 bg-green-500 rounded-full"
-            ></div>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              fill="currentColor"
-              class="mr-2 bi bi-sort-numeric-up"
-              viewBox="0 0 16 16"
-            >
+      <div id="sortDropdown" class="z-10 hidden w-48 bg-white divide-y divide-gray-100 rounded-lg shadow">
+        <ul class="py-2 text-sm text-gray-700" aria-labelledby="dropdownSortButton">
+          <li id="id_asc" class="flex items-center px-4 py-2 hover:bg-gray-100" onclick="setSortOrder('id_asc')">
+            <div id="id_asc_indicator" class="hidden w-2 h-2 mr-2 bg-green-500 rounded-full"></div>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+              class="mr-2 bi bi-sort-numeric-up" viewBox="0 0 16 16">
+              <path d="M12.438 1.668V7H11.39V2.684h-.051l-1.211.859v-.969l1.262-.906h1.046z" />
+              <path fill-rule="evenodd"
+                d="M11.36 14.098c-1.137 0-1.708-.657-1.762-1.278h1.004c.058.223.343.45.773.45.824 0 1.164-.829 1.133-1.856h-.059c-.148.39-.57.742-1.261.742-.91 0-1.72-.613-1.72-1.758 0-1.148.848-1.835 1.973-1.835 1.09 0 2.063.636 2.063 2.687 0 1.867-.723 2.848-2.145 2.848zm.062-2.735c.504 0 .933-.336.933-.972 0-.633-.398-1.008-.94-1.008-.52 0-.927.375-.927 1 0 .64.418.98.934.98z" />
               <path
-                d="M12.438 1.668V7H11.39V2.684h-.051l-1.211.859v-.969l1.262-.906h1.046z"
-              />
-              <path
-                fill-rule="evenodd"
-                d="M11.36 14.098c-1.137 0-1.708-.657-1.762-1.278h1.004c.058.223.343.45.773.45.824 0 1.164-.829 1.133-1.856h-.059c-.148.39-.57.742-1.261.742-.91 0-1.72-.613-1.72-1.758 0-1.148.848-1.835 1.973-1.835 1.09 0 2.063.636 2.063 2.687 0 1.867-.723 2.848-2.145 2.848zm.062-2.735c.504 0 .933-.336.933-.972 0-.633-.398-1.008-.94-1.008-.52 0-.927.375-.927 1 0 .64.418.98.934.98z"
-              />
-              <path
-                d="M4.5 13.5a.5.5 0 0 1-1 0V3.707L2.354 4.854a.5.5 0 1 1-.708-.708l2-1.999.007-.007a.498.498 0 0 1 .7.006l2 2a.5.5 0 1 1-.707.708L4.5 3.707V13.5z"
-              />
+                d="M4.5 13.5a.5.5 0 0 1-1 0V3.707L2.354 4.854a.5.5 0 1 1-.708-.708l2-1.999.007-.007a.498.498 0 0 1 .7.006l2 2a.5.5 0 1 1-.707.708L4.5 3.707V13.5z" />
             </svg>
             Aufsteigend
           </li>
-          <li
-            id="id_desc"
-            class="flex items-center px-4 py-2 hover:bg-gray-100"
-            onclick="setSortOrder('id_desc')"
-          >
-            <div
-              id="id_desc_indicator"
-              class="hidden w-2 h-2 mr-2 bg-green-500 rounded-full"
-            ></div>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              fill="currentColor"
-              class="mr-2 bi bi-sort-numeric-down"
-              viewBox="0 0 16 16"
-            >
+          <li id="id_desc" class="flex items-center px-4 py-2 hover:bg-gray-100" onclick="setSortOrder('id_desc')">
+            <div id="id_desc_indicator" class="hidden w-2 h-2 mr-2 bg-green-500 rounded-full"></div>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+              class="mr-2 bi bi-sort-numeric-down" viewBox="0 0 16 16">
+              <path d="M12.438 1.668V7H11.39V2.684h-.051l-1.211.859v-.969l1.262-.906h1.046z" />
+              <path fill-rule="evenodd"
+                d="M11.36 14.098c-1.137 0-1.708-.657-1.762-1.278h1.004c.058.223.343.45.773.45.824 0 1.164-.829 1.133-1.856h-.059c-.148.39-.57.742-1.261.742-.91 0-1.72-.613-1.72-1.758 0-1.148.848-1.835 1.973-1.835 1.09 0 2.063.636 2.063 2.687 0 1.867-.723 2.848-2.145 2.848zm.062-2.735c.504 0 .933-.336.933-.972 0-.633-.398-1.008-.94-1.008-.52 0-.927.375-.927 1 0 .64.418.98.934.98z" />
               <path
-                d="M12.438 1.668V7H11.39V2.684h-.051l-1.211.859v-.969l1.262-.906h1.046z"
-              />
-              <path
-                fill-rule="evenodd"
-                d="M11.36 14.098c-1.137 0-1.708-.657-1.762-1.278h1.004c.058.223.343.45.773.45.824 0 1.164-.829 1.133-1.856h-.059c-.148.39-.57.742-1.261.742-.91 0-1.72-.613-1.72-1.758 0-1.148.848-1.835 1.973-1.835 1.09 0 2.063.636 2.063 2.687 0 1.867-.723 2.848-2.145 2.848zm.062-2.735c.504 0 .933-.336.933-.972 0-.633-.398-1.008-.94-1.008-.52 0-.927.375-.927 1 0 .64.418.98.934.98z"
-              />
-              <path
-                d="M4.5 2.5a.5.5 0 0 0-1 0v9.793l-1.146-1.147a.5.5 0 0 0-.708.708l2 1.999.007.007a.497.497 0 0 0 .7-.006l2-2a.5.5 0 0 0-.707-.708L4.5 12.293V2.5z"
-              />
+                d="M4.5 2.5a.5.5 0 0 0-1 0v9.793l-1.146-1.147a.5.5 0 0 0-.708.708l2 1.999.007.007a.497.497 0 0 0 .7-.006l2-2a.5.5 0 0 0-.707-.708L4.5 12.293V2.5z" />
             </svg>
             Absteigend
           </li>
@@ -225,43 +111,21 @@ block content %}
 
     <div class="flex items-center w-full space-x-4 md:w-auto">
       <!-- Dropdown button -->
-      <button
-        id="dropdownExportButton"
-        data-dropdown-toggle="filterForm"
-        class="flex items-center justify-center flex-grow px-4 py-2 text-sm font-medium text-gray-100 bg-green-600 border border-green-400 rounded-lg focus:outline-none hover:bg-green-600 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200"
-      >
-        <svg
-          class="w-4 h-4 mr-2"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewbox="0 0 24 24"
-          stroke-width="2"
-          stroke="currentColor"
-          aria-hidden="true"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
-          />
+      <button id="dropdownExportButton" data-dropdown-toggle="filterForm"
+        class="flex items-center justify-center flex-grow px-4 py-2 text-sm font-medium text-gray-100 bg-green-600 border border-green-400 rounded-lg focus:outline-none hover:bg-green-600 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200">
+        <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="2"
+          stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
         </svg>
         Export
       </button>
 
       <!-- Dropdown menu -->
-      <div
-        id="filterForm"
-        class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44"
-      >
-        <ul
-          class="py-2 text-sm text-gray-700"
-          aria-labelledby="dropdownExportButton"
-        >
+      <div id="filterForm" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44">
+        <ul class="py-2 text-sm text-gray-700" aria-labelledby="dropdownExportButton">
           <li>
-            <button
-              onclick="exportCsv()"
-              class="block w-full px-4 py-2 text-left hover:bg-gray-100"
-            >
+            <button onclick="exportCsv()" class="block w-full px-4 py-2 text-left hover:bg-gray-100">
               Export CSV
             </button>
           </li>
@@ -274,32 +138,26 @@ block content %}
     <h2 id="tableTitle" class="mb-4 text-2xl font-semibold text-gray-700"></h2>
 
     <div class="overflow-x-auto shadow-md sm:rounded-lg">
-      <table id="dataTable" class="w-full text-sm text-left text-gray-500">
-        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
-          <tr id="tableHeader"></tr>
-        </thead>
-        <tbody id="tableBody"></tbody>
-      </table>
-    </div>
+      <div id="scrollContainer" class="overflow-y-auto h-[66vh]">
+        <table id="dataTable" class="w-full text-sm text-left text-gray-500">
+          <thead class="sticky top-0 text-xs text-gray-700 uppercase bg-gray-50">
+            <tr id="tableHeader"></tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+        <!-- The sentinel will be appended here by JavaScript -->
+      </div>
 
-    <div
-      id="loadingIndicator"
-      class="absolute inset-0 z-10 flex items-center justify-center hidden bg-white bg-opacity-75"
-    >
-      <div
-        class="w-16 h-16 border-4 border-t-4 border-gray-200 rounded-full loader"
-      ></div>
+      <div id="loadingIndicator" class="absolute inset-0 z-10 flex items-center justify-center hidden ">
+        <div class="w-16 h-16 border-4 border-t-4 border-gray-200 rounded-full loader"></div>
+      </div>
     </div>
   </div>
 </div>
 
 <!-- Edit Modal -->
-<div
-  id="editModal"
-  tabindex="-1"
-  data-modal-backdrop="static"
-  class="fixed inset-0 z-50 flex items-center justify-center hidden overflow-y-auto"
->
+<div id="editModal" tabindex="-1" data-modal-backdrop="static"
+  class="fixed inset-0 z-50 flex items-center justify-center hidden overflow-y-auto">
   <div class="relative w-full h-full max-w-md p-4 md:h-auto">
     <!-- Modal content -->
     <div class="relative bg-white rounded-lg shadow">
@@ -313,28 +171,17 @@ block content %}
         <div id="modalInputContainer"></div>
       </div>
       <!-- Modal footer -->
-      <div
-        class="flex items-center p-6 space-x-2 border-t border-gray-200 rounded-b"
-      >
-        <button
-          type="button"
-          id="saveEditButton"
-          class="text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
-        >
+      <div class="flex items-center p-6 space-x-2 border-t border-gray-200 rounded-b">
+        <button type="button" id="saveEditButton"
+          class="text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
           Save
         </button>
-        <button
-          type="button"
-          id="cancelEditButton"
-          class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10"
-        >
+        <button type="button" id="cancelEditButton"
+          class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10">
           Cancel
         </button>
-        <button
-          type="button"
-          id="resetEditButton"
-          class="text-red-500 bg-white hover:bg-red-100 focus:ring-4 focus:ring-red-200 rounded-lg border border-red-200 text-sm font-medium px-5 py-2.5 hover:text-red-700 focus:z-10"
-        >
+        <button type="button" id="resetEditButton"
+          class="text-red-500 bg-white hover:bg-red-100 focus:ring-4 focus:ring-red-200 rounded-lg border border-red-200 text-sm font-medium px-5 py-2.5 hover:text-red-700 focus:z-10">
           Reset
         </button>
       </div>
@@ -344,7 +191,8 @@ block content %}
 
 <style>
   .selected-cell {
-    background-color: #b3d4fc !important; /* Light blue background */
+    background-color: #b3d4fc !important;
+    /* Light blue background */
   }
 
   .loader {
@@ -355,6 +203,21 @@ block content %}
   @keyframes spin {
     to {
       transform: rotate(360deg);
+    }
+  }
+
+  #dataTable thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: white;
+  }
+
+  @media (max-width: 768px) {
+    #dataTable {
+      display: block;
+      overflow-x: auto;
+      white-space: nowrap;
     }
   }
 </style>
@@ -374,7 +237,8 @@ block content %}
   let currentlyEditingCell = null;
   let currentlyEditingCellData = null;
   let editModalInstance;
-  let observer; // Define observer globally to disconnect when needed
+  let observer;
+  let previouslySelectedCell = null;
 
   document.addEventListener("DOMContentLoaded", function () {
     fetchTableData();
@@ -388,30 +252,53 @@ block content %}
       },
     });
 
-    // Set up infinite scroll observer
     setupInfiniteScroll();
 
-    // Add event listener for clear button
     document
       .querySelector('button[onclick="clearSearch()"]')
       .addEventListener("click", clearSearch);
+
+    document
+      .getElementById("dataTable")
+      .addEventListener("click", function (event) {
+        const cell = event.target.closest("td.editable");
+        if (!cell) return;
+        selectCell(cell);
+      });
+
+    document
+      .getElementById("dataTable")
+      .addEventListener("dblclick", function (event) {
+        const cell = event.target.closest("td.editable");
+        if (!cell) return;
+        if (currentlyEditingCell) return;
+        startEdit(cell);
+      });
+
+    document
+      .getElementById("tableHeader")
+      .addEventListener("click", function (event) {
+        const header = event.target.closest("th");
+        if (!header) return;
+        const column = header.getAttribute("data-column");
+        toggleSortOrder(column);
+      });
   });
 
   function setupInfiniteScroll() {
     const sentinel = document.createElement("div");
     sentinel.id = "scrollSentinel";
-    document.getElementById("tableContainer").appendChild(sentinel);
+    document.getElementById("scrollContainer").appendChild(sentinel);
 
     observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && !isLoading) {
-          // Load next page of data
           currentPage++;
           fetchTableData();
         }
       },
       {
-        root: null,
+        root: document.getElementById("scrollContainer"),
         rootMargin: "0px",
         threshold: 1.0,
       }
@@ -426,7 +313,7 @@ block content %}
       searchTerm = this.value;
       currentPage = 1;
       document.getElementById("tableBody").innerHTML = "";
-      observer.disconnect(); // Reset the observer
+      observer.disconnect();
       setupInfiniteScroll();
       fetchTableData();
       saveState();
@@ -439,17 +326,24 @@ block content %}
       e.preventDefault();
       currentPage = 1;
       document.getElementById("tableBody").innerHTML = "";
-      observer.disconnect(); // Reset the observer
+      observer.disconnect();
       setupInfiniteScroll();
       fetchTableData();
     });
+
+  function showLoadingIndicator() {
+    document.getElementById("loadingIndicator").classList.remove("hidden");
+  }
+
+  function hideLoadingIndicator() {
+    document.getElementById("loadingIndicator").classList.add("hidden");
+  }
 
   function fetchTableData() {
     if (isLoading) return Promise.resolve();
     isLoading = true;
 
-    // Show loading indicator
-    document.getElementById("loadingIndicator").classList.remove("hidden");
+    showLoadingIndicator();
 
     const url = new URL(
       `/admin/get_table_data/${currentTable}`,
@@ -473,16 +367,11 @@ block content %}
         totalItems = data.total_items;
 
         if (data.data.length === 0) {
-          // No more data to load
           observer.disconnect();
           return;
         }
 
-        if (currentPage === 1) {
-          displayTable(data.columns, data.data, true);
-        } else {
-          displayTable(data.columns, data.data, false);
-        }
+        displayTable(data.columns, data.data, currentPage === 1);
         updateSortIndicators();
         saveState();
       })
@@ -492,8 +381,7 @@ block content %}
       })
       .finally(() => {
         isLoading = false;
-        // Hide loading indicator
-        document.getElementById("loadingIndicator").classList.add("hidden");
+        hideLoadingIndicator();
       });
   }
 
@@ -510,26 +398,24 @@ block content %}
         .map(
           (col) =>
             `<th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase cursor-pointer" data-column="${col}">
-              ${col}
-              <span class="sort-indicator"></span>
-            </th>`
+                ${col}
+                <span class="sort-indicator"></span>
+              </th>`
         )
         .join("");
-      addHeaderClickListeners();
     }
 
     const rowsHtml = data
       .map((row, rowIndex) => {
         let rowHtml = "";
-        let idValue;
+        // Get the idValue from the row data
+        const idIndex = columns.indexOf("id");
+        const idValue = idIndex !== -1 ? row[idIndex] : null;
+
         row.forEach((cell, cellIndex) => {
           const columnName = columns[cellIndex];
           const cellType = columnTypes[columnName];
           const isEditable = !nonEditableFields.includes(columnName);
-
-          if (columnName === "id") {
-            idValue = cell; // The 'id' value of the row
-          }
 
           let additionalDataAttributes = "";
           if (columnName === "report_user_db_id") {
@@ -540,21 +426,19 @@ block content %}
             additionalDataAttributes += ` data-beschreibung-id="${cell}"`;
           }
 
-          rowHtml += `<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 ${
-            isEditable ? "editable cursor-pointer" : ""
-          }" 
+          rowHtml += `<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 ${isEditable ? "editable cursor-pointer" : ""
+            }" 
             data-row="${tableBody.rows.length + rowIndex}" 
             data-column="${columnName}" 
             data-type="${cellType}"
-            ${idValue ? `data-id-value="${idValue}"` : ""}
+            data-id-value="${idValue}"
             tabindex="0"
             ${additionalDataAttributes}>${cell}</td>`;
         });
-        return `<tr class="${
-          (tableBody.rows.length + rowIndex) % 2 === 0
-            ? "bg-white"
-            : "bg-gray-50"
-        } hover:bg-gray-100">${rowHtml}</tr>`;
+        return `<tr class="${(tableBody.rows.length + rowIndex) % 2 === 0
+          ? "bg-white"
+          : "bg-gray-50"
+          } hover:bg-gray-100">${rowHtml}</tr>`;
       })
       .join("");
 
@@ -565,22 +449,9 @@ block content %}
     }
 
     tableContainer.classList.remove("hidden");
-    addEditListeners();
-  }
-
-  function addHeaderClickListeners() {
-    const headers = document.querySelectorAll("#tableHeader th");
-
-    headers.forEach((header) => {
-      header.addEventListener("click", function () {
-        const column = this.getAttribute("data-column");
-        toggleSortOrder(column);
-      });
-    });
   }
 
   function toggleSortOrder(column) {
-    // Remember the currently selected cell's identifiers
     let selectedCellInfo = null;
     if (previouslySelectedCell) {
       selectedCellInfo = {
@@ -600,7 +471,6 @@ block content %}
     observer.disconnect();
     setupInfiniteScroll();
     fetchTableData().then(() => {
-      // After data is reloaded, attempt to restore the cell selection
       if (selectedCellInfo) {
         const cell = findCellByIdAndColumn(
           selectedCellInfo.idValue,
@@ -621,14 +491,6 @@ block content %}
     );
     for (let cell of cells) {
       let cellIdValue = cell.dataset.idValue;
-      if (!cellIdValue) {
-        // For cells that are not 'id', get the 'id' from the same row
-        const row = cell.dataset.row;
-        const idCell = document.querySelector(
-          `#dataTable td[data-row="${row}"][data-column="id"]`
-        );
-        cellIdValue = idCell ? idCell.textContent.trim() : null;
-      }
       if (cellIdValue === idValue) {
         return cell;
       }
@@ -657,40 +519,15 @@ block content %}
     sortDirection = "asc";
     document.getElementById("searchInput").value = "";
     document.getElementById("tableBody").innerHTML = "";
-    observer.disconnect(); // Reset the observer
+    observer.disconnect();
     setupInfiniteScroll();
     fetchTableData();
   }
 
-  function addEditListeners() {
-    const editableCells = document.querySelectorAll("#dataTable td.editable");
-
-    editableCells.forEach((cell) => {
-      // Remove existing event listeners to prevent duplicates
-      cell.replaceWith(cell.cloneNode(true));
-      cell = document.querySelector(
-        `#dataTable td[data-row="${cell.dataset.row}"][data-column="${cell.dataset.column}"]`
-      );
-
-      cell.addEventListener("click", function (event) {
-        selectCell(this);
-      });
-
-      cell.addEventListener("dblclick", function (event) {
-        if (currentlyEditingCell) return; // Do nothing if already editing
-        startEdit(this);
-      });
-    });
-  }
-
-  let previouslySelectedCell = null;
-
   function selectCell(cell) {
-    // Remove highlight from previously selected cell
     if (previouslySelectedCell) {
       previouslySelectedCell.classList.remove("selected-cell");
     }
-    // Add highlight to currently selected cell
     cell.classList.add("selected-cell");
     previouslySelectedCell = cell;
   }
@@ -709,36 +546,14 @@ block content %}
       originalValue: currentValue,
     };
 
-    let idValue = null;
-    if (
-      ["report_user_name", "report_user_id", "report_user_kontakt"].includes(
-        column
-      )
-    ) {
-      idValue = cell.dataset.userDbId;
-    } else if (
-      [
-        "plz",
-        "ort",
-        "strasse",
-        "kreis",
-        "land",
-        "amt",
-        "mtb",
-        "longitude",
-        "latitude",
-        "ablage",
-      ].includes(column)
-    ) {
-      idValue = cell.dataset.fundorteId;
-    } else if (["beschreibung"].includes(column)) {
-      idValue = cell.dataset.beschreibungId;
-    } else {
-      idValue = document
-        .querySelector(`#dataTable td[data-row="${row}"][data-column="id"]`)
-        .textContent.trim();
-    }
+    let idValue = cell.dataset.idValue;
     currentlyEditingCellData.idValue = idValue;
+
+    if (!idValue) {
+      console.error("Could not find ID value");
+      alert("Could not find ID value");
+      return;
+    }
 
     const modalInputContainer = document.getElementById("modalInputContainer");
     modalInputContainer.innerHTML = "";
@@ -750,71 +565,44 @@ block content %}
     editModalInstance.show();
   }
 
+  function formatValueForInput(type, value) {
+    if (!value) return "";
+    switch (type) {
+      case "date":
+        return value.slice(0, 10);
+      case "datetime":
+        return value.slice(0, 16);
+      default:
+        return value;
+    }
+  }
+
   function createInputElement(type, currentValue) {
     let input;
     switch (type) {
       case "boolean":
         input = document.createElement("select");
+        input.classList.add("w-full", "p-2", "border", "rounded");
         input.innerHTML = `
-          <option value="true" ${
-            currentValue === "true" ? "selected" : ""
+          <option value="true" ${currentValue === "true" ? "selected" : ""
           }>true</option>
-          <option value="false" ${
-            currentValue === "false" ? "selected" : ""
+          <option value="false" ${currentValue === "false" ? "selected" : ""
           }>false</option>
         `;
         break;
       case "integer":
-        input = document.createElement("input");
-        input.type = "number";
-        input.value = currentValue;
-        break;
       case "float":
-        input = document.createElement("input");
-        input.type = "number";
-        input.step = "any";
-        input.value = currentValue;
-        break;
       case "date":
-        input = document.createElement("input");
-        input.type = "date";
-        input.value = formatDateForInput(currentValue);
-        break;
       case "datetime":
-        input = document.createElement("input");
-        input.type = "datetime-local";
-        input.value = formatDatetimeForInput(currentValue);
-        break;
       default:
         input = document.createElement("input");
-        input.type = "text";
-        input.value = currentValue;
+        input.type = type === "integer" ? "number" : type;
+        if (type === "float") input.step = "any";
+        input.value = formatValueForInput(type, currentValue);
+        input.classList.add("w-full", "p-2", "border", "rounded");
         break;
     }
-    input.classList.add("w-full", "p-2", "border", "rounded");
     return input;
-  }
-
-  function formatDateForInput(dateString) {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    if (isNaN(date)) return "";
-    const year = date.getFullYear();
-    const month = ("0" + (date.getMonth() + 1)).slice(-2);
-    const day = ("0" + date.getDate()).slice(-2);
-    return `${year}-${month}-${day}`;
-  }
-
-  function formatDatetimeForInput(dateTimeString) {
-    if (!dateTimeString) return "";
-    const date = new Date(dateTimeString);
-    if (isNaN(date)) return "";
-    const year = date.getFullYear();
-    const month = ("0" + (date.getMonth() + 1)).slice(-2);
-    const day = ("0" + date.getDate()).slice(-2);
-    const hours = ("0" + date.getHours()).slice(-2);
-    const minutes = ("0" + date.getMinutes()).slice(-2);
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
   }
 
   document
@@ -829,13 +617,13 @@ block content %}
         newValue,
         currentlyEditingCell
       );
-      editModalInstance.hide(); // Hide the modal after saving
+      editModalInstance.hide();
     });
 
   document
     .getElementById("cancelEditButton")
     .addEventListener("click", function () {
-      editModalInstance.hide(); // Hide the modal when canceled
+      editModalInstance.hide();
     });
 
   document
@@ -845,46 +633,42 @@ block content %}
       input.value = currentlyEditingCellData.originalValue;
     });
 
+  function parseValueFromInput(type, value) {
+    switch (type) {
+      case "integer":
+        const intValue = parseInt(value);
+        if (isNaN(intValue)) throw new Error("Please enter a valid integer.");
+        return intValue;
+      case "float":
+        const floatValue = parseFloat(value);
+        if (isNaN(floatValue)) throw new Error("Please enter a valid number.");
+        return floatValue;
+      case "boolean":
+        return value === "true";
+      default:
+        return value;
+    }
+  }
+
   function updateCell(table, column, row, newValue, cell) {
     const idValue = currentlyEditingCellData.idValue;
     const type = currentlyEditingCellData.type;
 
     if (!idValue) {
       console.error("Could not find ID value");
+      alert("Could not find ID value");
       return;
     }
 
-    // Format the newValue based on type
-    let formattedValue = newValue;
-    switch (type) {
-      case "integer":
-        formattedValue = parseInt(newValue);
-        if (isNaN(formattedValue)) {
-          alert("Please enter a valid integer.");
-          return;
-        }
-        break;
-      case "float":
-        formattedValue = parseFloat(newValue);
-        if (isNaN(formattedValue)) {
-          alert("Please enter a valid number.");
-          return;
-        }
-        break;
-      case "boolean":
-        formattedValue = newValue === "true";
-        break;
-      case "date":
-      case "datetime":
-        // No additional formatting needed as input is in correct format
-        break;
-      default:
-        // For strings, no additional formatting
-        break;
+    let formattedValue;
+    try {
+      formattedValue = parseValueFromInput(type, newValue);
+    } catch (e) {
+      alert(e.message);
+      return;
     }
 
-    // Show loading indicator
-    document.getElementById("loadingIndicator").classList.remove("hidden");
+    showLoadingIndicator();
 
     fetch("/admin/update_cell", {
       method: "POST",
@@ -915,8 +699,7 @@ block content %}
         );
       })
       .finally(() => {
-        // Hide loading indicator
-        document.getElementById("loadingIndicator").classList.add("hidden");
+        hideLoadingIndicator();
       });
   }
 
@@ -953,13 +736,13 @@ block content %}
       .finally(() => {
         setTimeout(() => {
           exportButton.innerHTML = `
-                    <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24"
-                        stroke-width="2" stroke="currentColor" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-                    </svg>
-                    Export
-                `;
+                      <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24"
+                          stroke-width="2" stroke="currentColor" aria-hidden="true">
+                          <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                      </svg>
+                      Export
+                  `;
         }, 3000);
       });
   }
@@ -986,7 +769,7 @@ block content %}
     searchTerm = "";
     currentPage = 1;
     document.getElementById("tableBody").innerHTML = "";
-    observer.disconnect(); // Reset the observer
+    observer.disconnect();
     setupInfiniteScroll();
     fetchTableData();
     saveState();
@@ -994,4 +777,5 @@ block content %}
 
   window.addEventListener("load", loadState);
 </script>
+
 {% endblock %}
