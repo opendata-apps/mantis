@@ -550,29 +550,29 @@ Forschung. {% endblock %}
   
         // Function to check user-provided address data against API data
         function checkAddressData(formData, nextStepIndex) {
-          const storedAddressData = JSON.parse(getLocalStorageWithExpiry('addressData')) || {};
-          const userState = formData.get('state') || "";
-          const userDistrict = formData.get('district') || "";
-          const userCity = formData.get('city') || "";
+          // const storedAddressData = JSON.parse(getLocalStorageWithExpiry('addressData')) || {};
+          // const userState = formData.get('state') || "";
+          // const userDistrict = formData.get('district') || "";
+          // const userCity = formData.get('city') || "";
   
-          const errors = {};
+          // const errors = {};
   
-          // Case-insensitive and trimmed comparison
-          if (storedAddressData.state && userState.trim().toLowerCase() !== storedAddressData.state.trim().toLowerCase()) {
-            errors.state = ['Das eingegebene Bundesland stimmt nicht mit den Fundort-Koordinaten überein.'];
-          }
-          if (storedAddressData.district && userDistrict.trim().toLowerCase() !== storedAddressData.district.trim().toLowerCase()) {
-            errors.district = ['Der eingegebene Landkreis/Stadtteil stimmt nicht mit den Fundort-Koordinaten überein.'];
-          }
-          if (storedAddressData.city && userCity.trim().toLowerCase() !== storedAddressData.city.trim().toLowerCase()) {
-            errors.city = ['Der eingegebene Ort stimmt nicht mit den Fundort-Koordinaten überein.'];
-          }
+          // // Case-insensitive and trimmed comparison
+          // if (storedAddressData.state && userState.trim().toLowerCase() !== storedAddressData.state.trim().toLowerCase()) {
+          //   errors.state = ['Das eingegebene Bundesland stimmt nicht mit den Fundort-Koordinaten überein.'];
+          // }
+          // if (storedAddressData.district && userDistrict.trim().toLowerCase() !== storedAddressData.district.trim().toLowerCase()) {
+          //   errors.district = ['Der eingegebene Landkreis/Stadtteil stimmt nicht mit den Fundort-Koordinaten überein.'];
+          // }
+          // if (storedAddressData.city && userCity.trim().toLowerCase() !== storedAddressData.city.trim().toLowerCase()) {
+          //   errors.city = ['Der eingegebene Ort stimmt nicht mit den Fundort-Koordinaten überein.'];
+          // }
   
-          if (Object.keys(errors).length > 0) {
-            showErrors(errors, 1); // Function to display errors
-          } else {
+          // if (Object.keys(errors).length > 0) {
+          //   showErrors(errors, 1); // Function to display errors
+          // } else {
             showStep(nextStepIndex); // Function to proceed to the next step
-          }
+          // }
         }
   
         // Make the checkAddressData function globally accessible
