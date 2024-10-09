@@ -974,9 +974,19 @@
             // Adjust the footer position after the card is removed
             adjustFooterPosition();
 
+            // Check if all cards have been removed
+            checkAllCardsRemoved();
+
         }, 500); // matches the duration of the fade-out animation
     }
 
+    function checkAllCardsRemoved() {
+        const reportContainer = document.getElementById('reportContainer');
+        if (reportContainer.children.length === 0) {
+            // All cards have been removed, reload the page
+            location.reload();
+        }
+    }
 
     function exportData(exportType) {
         var exportButton = document.getElementById("dropdownExportButton");
