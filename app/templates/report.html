@@ -115,31 +115,31 @@ Forschung. {% endblock %}
         <h2 class="mb-2 text-2xl font-bold text-gray-800">Fundortbeschreibung zu den Koordinaten</h2>
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
-            <label for="{{ form.street.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
+            <label for="{{ form.fund_street.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
-                {{ form.street.label.text }}
+                {{ form.fund_street.label.text }}
                 {{ popover("popover-street", popover_content["popover-street"]["title"], popover_content["popover-street"]["content"], popover_content) }}
               </div>
               <div class="relative">
-                {{ form.street(class="input-field") }}
+                {{ form.fund_street(class="input-field") }}
               </div>
             </label>
-            <label for="{{ form.state.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
+            <label for="{{ form.fund_state.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
-                {{ form.state.label.text }}
+                {{ form.fund_state.label.text }}
                 {{ popover("popover-bundesland", popover_content["popover-bundesland"]["title"], popover_content["popover-bundesland"]["content"], popover_content) }}
               </div>
               <div class="relative">
-                {{ form.state(id="state", class="input-field") }}
+                {{ form.fund_state(id="fund_state", class="input-field") }}
               </div>
             </label>
-            <label for="{{ form.district.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
+            <label for="{{ form.fund_district.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
-                {{ form.district.label.text }}
+                {{ form.fund_district.label.text }}
                 {{ popover("popover-bezirk", popover_content["popover-bezirk"]["title"], popover_content["popover-bezirk"]["content"], popover_content) }}
               </div>
               <div class="relative">
-                {{ form.district(id="district", class="input-field") }}
+                {{ form.fund_district(id="fund_district", class="input-field") }}
               </div>
             </label>
 
@@ -161,21 +161,21 @@ Forschung. {% endblock %}
           <div>
             <label class="block mt-1 text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
-                {{ form.zip_code.label.text }}
+                {{ form.fund_zip_code.label.text }}
                 {{ popover("popover-zip", popover_content["popover-zip"]["title"], popover_content["popover-zip"]["content"], popover_content) }}
               </div>
 
             </label>
             <div class="relative font-semibold">
-              {{ form.zip_code(id="zip_code", class="input-field") }}
+              {{ form.fund_zip_code(id="fund_zip_code", class="input-field") }}
             </div>
-            <label for="{{ form.city.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
+            <label for="{{ form.fund_city.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
-                {{ form.city.label.text }}
+                {{ form.fund_city.label.text }}
                 {{ popover("popover-city", popover_content["popover-city"]["title"], popover_content["popover-city"]["content"], popover_content) }}
               </div>
               <div class="relative">
-                {{ form.city(id="city", class="input-field") }}
+                {{ form.fund_city(id="fund_city", class="input-field") }}
               </div>
             </label>
             <label for="{{ form.location_description.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
@@ -503,12 +503,12 @@ Forschung. {% endblock %}
   
         // Extract and set the zip code
         const zipCode = address.postcode || "";
-        document.querySelector("#zip_code").value = zipCode;
+        document.querySelector("#fund_zip_code").value = zipCode;
   
-        // Extract and set the city, considering various possible keys
+        // Extract and set the city
         const city = address.city || address.town || address.village ||
                      address.hamlet || address.suburb || address.locality || "";
-        document.querySelector("#city").value = city;
+        document.querySelector("#fund_city").value = city;
   
         // Extract and set the street address
         const streetName = address.road || address.pedestrian || address.cycleway ||
@@ -516,25 +516,23 @@ Forschung. {% endblock %}
                            address.street_name || "";
         const houseNumber = address.house_number || "";
         const street = `${streetName} ${houseNumber}`.trim();
-        document.querySelector("#street").value = street;
+        document.querySelector("#fund_street").value = street;
   
         // Extract and set the state (Bundesland)
         let state = address.state || address.region || "";
         if (!state && data.extratags && data.extratags["ISO3166-2"]) {
-          // Use ISO3166-2 code to determine the state
           const isoCode = data.extratags["ISO3166-2"];
           state = getStateNameFromISOCode(isoCode);
         }
         if (!state && address.city && isCityState(address.city)) {
-          // For city-states like Berlin, use the city name as the state
           state = address.city;
         }
-        document.querySelector("#state").value = state;
+        document.querySelector("#fund_state").value = state;
   
         // Extract and set the district (Landkreis/Stadtteil)
         const district = address.county || address.district || address.municipality ||
                          address.city_district || address.borough || address.suburb || "";
-        document.querySelector("#district").value = district;
+        document.querySelector("#fund_district").value = district;
   
         // Prepare address data for validation and save to local storage
         const addressData = {
@@ -551,21 +549,21 @@ Forschung. {% endblock %}
         // Function to check user-provided address data against API data
         function checkAddressData(formData, nextStepIndex) {
           // const storedAddressData = JSON.parse(getLocalStorageWithExpiry('addressData')) || {};
-          // const userState = formData.get('state') || "";
-          // const userDistrict = formData.get('district') || "";
-          // const userCity = formData.get('city') || "";
+          // const userState = formData.get('fund_state') || "";
+          // const userDistrict = formData.get('fund_district') || "";
+          // const userCity = formData.get('fund_city') || "";
   
           // const errors = {};
   
           // // Case-insensitive and trimmed comparison
           // if (storedAddressData.state && userState.trim().toLowerCase() !== storedAddressData.state.trim().toLowerCase()) {
-          //   errors.state = ['Das eingegebene Bundesland stimmt nicht mit den Fundort-Koordinaten überein.'];
+          //   errors.fund_state = ['Das eingegebene Bundesland stimmt nicht mit den Fundort-Koordinaten überein.'];
           // }
           // if (storedAddressData.district && userDistrict.trim().toLowerCase() !== storedAddressData.district.trim().toLowerCase()) {
-          //   errors.district = ['Der eingegebene Landkreis/Stadtteil stimmt nicht mit den Fundort-Koordinaten überein.'];
+          //   errors.fund_district = ['Der eingegebene Landkreis/Stadtteil stimmt nicht mit den Fundort-Koordinaten überein.'];
           // }
           // if (storedAddressData.city && userCity.trim().toLowerCase() !== storedAddressData.city.trim().toLowerCase()) {
-          //   errors.city = ['Der eingegebene Ort stimmt nicht mit den Fundort-Koordinaten überein.'];
+          //   errors.fund_city = ['Der eingegebene Ort stimmt nicht mit den Fundort-Koordinaten überein.'];
           // }
   
           // if (Object.keys(errors).length > 0) {
@@ -1185,23 +1183,23 @@ function resetPreview() {
   });
 
   function autoCompleteData(inputField, zipCode, city, district, state) {
-    var inputs = ['zip_code', 'city', 'district', 'state'];
+    var inputs = ['fund_zip_code', 'fund_city', 'fund_district', 'fund_state'];
 
     for (const id of inputs) {
       if (inputField.id === id) continue;
       let fieldValue = null;
 
       switch (id) {
-        case 'zip_code':
+        case 'fund_zip_code':
           fieldValue = zipCode;
           break;
-        case 'city':
+        case 'fund_city':
           fieldValue = city;
           break;
-        case 'district':
+        case 'fund_district':
           fieldValue = district;
           break;
-        case 'state':
+        case 'fund_state':
           fieldValue = state;
           break;
       }
@@ -1291,10 +1289,10 @@ function resetPreview() {
         // Update the popup content using template literals for better readability
         const popupContent = `
           <strong>Straße:</strong> ${data.street}<br>
-          <strong>Postleitzahl:</strong> ${data.zip_code}<br>
-          <strong>Ort:</strong> ${data.city}<br>
-          <strong>Landkreis/Stadt:</strong> ${data.district}<br>
-          <strong>Bundesland:</strong> ${data.state}
+          <strong>Postleitzahl:</strong> ${data.fund_zip_code}<br>
+          <strong>Ort:</strong> ${data.fund_city}<br>
+          <strong>Landkreis/Stadt:</strong> ${data.fund_district}<br>
+          <strong>Bundesland:</strong> ${data.fund_state}
         `;
         summaryMarkerPopup.setContent(popupContent);
 
@@ -1317,11 +1315,11 @@ function resetPreview() {
 
         summaryLongitude.textContent = data.longitude;
         summaryLatitude.textContent = data.latitude;
-        summaryStreet.textContent = data.street;
-        summaryZipCode.textContent = data.zip_code;
-        summaryCity.textContent = data.city;
-        summaryDistrict.textContent = data.district;
-        summaryState.textContent = data.state;
+        summaryStreet.textContent = data.fund_street;
+        summaryZipCode.textContent = data.fund_zip_code;
+        summaryCity.textContent = data.fund_city;
+        summaryDistrict.textContent = data.fund_district;
+        summaryState.textContent = data.fund_state;
         summaryGender.textContent = data.gender;
         summaryLocationDescription.textContent = selectedLocationDescriptionText;
         summaryPictureDescription.textContent = data.picture_description;
