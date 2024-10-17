@@ -2,367 +2,280 @@
 <html lang="de">
 
 <head>
-  <meta charset="UTF-8" />
-  <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-  <title>{% block page_title %}Mantis Religiosa Beobachtungen | Mitmachprojekt | Gottesanbeterin Gesucht{% endblock
-    page_title %}</title>
-  <meta name="description"
-    content="{% block meta_description %} Gottesanbeterin in Deutschland gesichtet? Melden Sie Ihre Beobachtung, unterstützen Sie Forschung zu Mantis religiosa. {% endblock %}">
-  <meta name="keywords"
-    content="{% block meta_keywords %}Mantis religiosa, Gottesanbeterin, Mitmachprojekt, Beobachtungen, Meldung, Citizen Science, Naturkundemuseum, Potsdam, Deutschland, Gottesanbeterin gefunden, Gottesanbeterin gesichtet, Mantis entdeckt, Brandenburg, Berlin {% endblock %}">
-  <link rel="canonical" href="{{ request.url | replace('http:', 'https:') }}" />
-
-  <!-- Open Graph data -->
-  <meta property="og:title" content="Gottesanbeterin Gesucht | Mitmachprojekt | Mantis Religiosa Beobachtungen" />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://gottesanbeterin-gesucht.de/" />
-  <meta property="og:image" content="{{ url_for('static', filename='images/berger03.avif') }}" />
-  <meta property="og:description"
-    content="Beobachtungen der Gottesanbeterin (Mantis religiosa) in Deutschland. Melden Sie Ihre Beobachtungen und unterstützen Sie die Forschung zur Verbreitung dieser Art." />
-  <meta property="og:site_name" content="Gottesanbeterin Gesucht" />
-  <meta property="fb:admins" content="Facebook numberic ID" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='build/theme.css') }}" />
-  {% block head %} {% endblock head %}
+	<meta charset="UTF-8" />
+	<link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+	<title> {% block page_title %}Mantis Religiosa Beobachtungen | Mitmachprojekt | Gottesanbeterin Gesucht{% endblock
+    page_title %} </title>
+	<meta name="description" content="{% block meta_description %} Gottesanbeterin in Deutschland gesichtet? Melden Sie Ihre Beobachtung, unterstützen Sie Forschung zu Mantis religiosa. {% endblock %}" />
+	<meta name="keywords" content="{% block meta_keywords %}Mantis religiosa, Gottesanbeterin, Mitmachprojekt, Beobachtungen, Meldung, Citizen Science, Naturkundemuseum, Potsdam, Deutschland, Gottesanbeterin gefunden, Gottesanbeterin gesichtet, Mantis entdeckt, Brandenburg, Berlin {% endblock %}" />
+	<link rel="canonical" href="{{ request.url | replace('http:', 'https:') }}" />
+	<!-- Open Graph data -->
+	<meta property="og:title" content="Gottesanbeterin Gesucht | Mitmachprojekt | Mantis Religiosa Beobachtungen" />
+	<meta property="og:type" content="website" />
+	<meta property="og:url" content="https://gottesanbeterin-gesucht.de/" />
+	<meta property="og:image" content="{{ url_for('static', filename='images/berger03.avif') }}" />
+	<meta property="og:description" content="Beobachtungen der Gottesanbeterin (Mantis religiosa) in Deutschland. Melden Sie Ihre Beobachtungen und unterstützen Sie die Forschung zur Verbreitung dieser Art." />
+	<meta property="og:site_name" content="Gottesanbeterin Gesucht" />
+	<meta property="fb:admins" content="Facebook numberic ID" />
+	<link rel="stylesheet" href="{{ url_for('static', filename='build/theme.css') }}" /> {% block head %} {% endblock head%}
 </head>
 
 <body class="antialiased bg-gray-100">
-  <div class="topContainer">
-    <div class="relative bg-fixed bg-center bg-no-repeat bg-cover"
-      style="background-image: url('{{ url_for('static', filename='images/berger03.avif') }}');">
-      <nav id="navbar" class="fixed top-0 left-0 z-50 w-full transition-all duration-500 ease-in-out transform">
-        <div class="container flex items-center justify-between px-4 py-3 mx-auto">
-          <a href="/" class="flex items-center font-extrabold text-gray-100">
-            <img loading="lazy" src="{{ url_for('static', filename='favicon.ico') }}"
-              alt="Logo des Mantis-Religiosa-Projekts" class="h-6 mr-2 sm:h-9" />
-            <span class="text-2xl text-gray-100 link link-underline ">Mitmachprojekt</span>
-          </a>
-          <div class="items-center hidden md:flex">
-            <a href="{{ url_for('main.index') }}"
-              class="mantis-top-menu"
-              title="Startseite">
-              <span class="text-gray-100 link link-underline ">Start</span>
-            </a>
-            <a href="{{ url_for('main.mantis_religiosa') }}"
-              class="mantis-top-menu"
-              title="Informationen zur Gottesanbeterin">
-              <span class="text-gray-100 link link-underline ">Gottesanbeterin</span>
-            </a>
-            <a href="{{ url_for('data.report') }}"
-              class="mantis-top-menu"
-              title="Melden Sie eine Gottesanbeterin-Sichtung">
-              <span class="text-gray-100 link link-underline ">Melden</span>
-            </a>
-            <a href="{{ url_for('data.show_map', year=current_year) }}"
-              class="mantis-top-menu"
-              title="Statistiken und Auswertungen">
-              <span class="text-gray-100 link link-underline ">Auswertungen</span>
-            </a>
-            {% if request.path.startswith('/reviewer') or request.path.startswith('/statistik') or
-            request.path.startswith('/superuser') or request.path.startswith('/galerie') or
-            request.path.startswith('/adminPanel') %}
-            <div class="relative">
-              <button id="dropdownReviewerButton" data-dropdown-toggle="dropdownReviewer"
-                class="text-gray-100 bg-green-600 hover:bg-green-500 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-4 py-2.5 text-center inline-flex items-center"
-                type="button" aria-expanded="false" aria-haspopup="true">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                </svg>
-              </button>
-              <div id="dropdownReviewer"
-                class="hidden bg-white divide-y divide-gray-100 rounded shadow w-44 ">
-                <ul class="py-1 text-sm text-gray-700 " aria-labelledby="dropdownReviewerButton">
-                  <li>
-                    <a href="{{'/reviewer/'+ user_id }}" class="block px-4 py-2 hover:bg-gray-100">Reviewer</a>
-                  </li>
-                  <li>
-                    <a href="{{'/statistik/'+ user_id }}" class="block px-4 py-2 hover:bg-gray-100">Statistics</a>
-                  </li>
-                  <li>
-                    <a href="/galerie" class="block px-4 py-2 hover:bg-gray-100">Galerie</a>
-                  </li>
-                  <!--TODO-->
-                  <!-- <li>
-                    <a href="/adminPanel" class="block px-4 py-2 hover:bg-gray-100">Superuser</a>
-                  </li> -->
-                </ul>
-              </div>
-            </div>
-            {% endif %}
-          </div>
-          <!-- Mobile Menu -->
-          <div class="md:hidden">
-            <button class="mobile-menu-button" aria-label="Open mobile menu">
-              <svg class="w-6 h-6 text-gray-100 transition-transform duration-200 transform" fill="currentColor"
-                viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                <path fill-rule="evenodd" clip-rule="evenodd"
-                  d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" />
-              </svg>
-            </button>
-            <div
-              class="absolute left-0 w-full transition-all duration-500 origin-top transform scale-y-0 bg-green-700 rounded-lg opacity-0 top-full mobile-menu">
-              <a href="{{ url_for('main.index') }}"
-                class="mantis-top-mobile"
-                title="Startseite des Mitmachprojekts Mantis">Start</a>
-              <a href="{{ url_for('main.mantis_religiosa') }}"
-                class="mantis-top-mobile"
-                title="Informationen zur Gottesanbeterin Mantis">Gottesanbeterin</a>
-              <a href="{{ url_for('data.report') }}"
-                class="mantis-top-mobile"
-                title="Melden Sie eine Sichtung der Gottesanbeterin Mantis">Melden</a>
-              <a href="{{ url_for('data.show_map') }}"
-                class="mantis-top-mobile"
-                title="Auswertungen der Mantis-Meldungen">Auswertungen</a>
-              {% if request.path.startswith('/reviewer') or request.path.startswith('/statistics') or
-              request.path.startswith('/superuser') or request.path.startswith('/gallerie')%}
-              <div class="relative group">
-                <button id="mobileDropdownButton" data-dropdown-toggle="mobileDropdownContent"
-			                class="transition-colors duration-300 rounded-lg hover:bg-green-500 text-gray-100 bg-green-700 focus:ring-4 focus:ring-green-300 font-medium text-lg px-4 py-2.5 text-center inline-flex items-center w-full justify-center" aria-label="Open extra menu">
-                    Extra
-                    <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                </button>
-                <div id="mobileDropdownContent" class="absolute z-10 hidden w-full text-gray-100 bg-green-700 divide-y divide-gray-100 rounded oben group-focus:block">
-                    <ul class="py-1 text-lg text-center" aria-labelledby="mobileDropdownButton">
-                        <li><a href="{{'/reviewer/'+ user_id }}" class="block px-4 py-2 transition-colors duration-300 rounded-lg hover:bg-green-500">Reviewer</a></li>
-                        <li><a href="{{'/statistik/'+ user_id }}" class="block px-4 py-2 transition-colors duration-300 rounded-lg hover:bg-green-500">Statistics</a></li>
-                        <li><a href="/galerie" class="block px-4 py-2 transition-colors duration-300 rounded-lg hover:bg-green-500">Galerie</a></li>
-                        <li><a href="/adminPanel" class="block px-4 py-2 transition-colors duration-300 rounded-lg hover:bg-green-500">Superuser</a></li>
-                    </ul>
-                </div>
-            </div>
-              {% endif %}
-            </div>
-          </div>
+	<header class="fixed top-0 left-0 right-0 transition-colors duration-300" style="z-index: 9998;">
+		<nav class="container flex items-center justify-between px-4 py-3 mx-auto">
+			<a href="/" class="flex items-center text-2xl font-extrabold text-gray-100">
+				<img loading="lazy" src="{{ url_for('static', filename='favicon.ico') }}" alt="Logo des Mantis-Religiosa-Projekts" class="h-8 mr-2 sm:h-10" />
+				<span class="link link-underline">Mitmachprojekt</span>
+			</a>
+			<div class="hidden space-x-6 md:flex">
+				<a href="{{ url_for('main.index') }}" class="text-xl font-bold text-gray-100 hover:text-gray-300 link link-underline">Start</a>
+				<a href="{{ url_for('main.mantis_religiosa') }}" class="text-xl font-bold text-gray-100 hover:text-gray-300 link link-underline">Gottesanbeterin</a>
+				<a href="{{ url_for('data.report') }}" class="text-xl font-bold text-gray-100 hover:text-gray-300 link link-underline">Melden</a>
+				<a href="{{ url_for('data.show_map', year=now.year) }}" class="text-xl font-bold text-gray-100 hover:text-gray-300 link link-underline">Auswertungen</a>
+				{% if request.path.startswith('/reviewer') or request.path.startswith('/statistik') or
+				request.path.startswith('/superuser') or request.path.startswith('/galerie') or
+				request.path.startswith('/adminPanel') %}
+				<div class="relative">
+					<button id="dropdownReviewerButton" data-dropdown-toggle="dropdownReviewer" class="text-gray-100 bg-green-600 hover:bg-green-500 focus:ring-4 focus:ring-green-600 font-medium rounded-lg text-sm px-4 py-2.5 text-center inline-flex items-center" type="button" aria-expanded="false" aria-haspopup="true">
+						<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+						</svg>
+					</button>
+					<div id="dropdownReviewer" class="hidden bg-white divide-y divide-gray-100 rounded shadow w-44 ">
+						<ul class="py-1 text-sm text-gray-700 " aria-labelledby="dropdownReviewerButton">
+							<li>
+								<a href="{{'/reviewer/'+ user_id }}" class="block px-4 py-2 hover:bg-gray-200">Reviewer</a>
+							</li>
+							<li>
+								<a href="{{'/statistik/'+ user_id }}" class="block px-4 py-2 hover:bg-gray-200">Statistics</a>
+							</li>
+							<li>
+								<a href="/galerie" class="block px-4 py-2 hover:bg-gray-200">Galerie</a>
+							</li>
+							<!--TODO-->
+							<!-- <li>
+							<a href="/adminPanel" class="block px-4 py-2 hover:bg-gray-100">Superuser</a>
+							</li> -->
+						</ul>
+					</div>
+				</div>
+				{% endif %}
+			</div>
+			<button id="mobile-menu-button" class="text-gray-100 md:hidden focus:outline-none" aria-label="Toggle menu">
+				<svg class="w-6 h-6 transition-transform duration-300 ease-in-out" id="menu-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+				</svg>
+			</button>
+		</nav>
+		<div id="mobile-menu" class="absolute left-0 right-0 overflow-hidden transition-all duration-300 ease-in-out bg-green-800 max-h-0 md:hidden bg-opacity-95 backdrop-filter backdrop-blur-lg top-full">
+			<div class="flex flex-col items-center px-2 pt-2 pb-3 space-y-1">
+				<a href="{{ url_for('main.index') }}" class="block px-3 py-2 text-base font-medium text-white transition duration-300 ease-in-out rounded-md hover:bg-green-700">Start</a>
+				<a href="{{ url_for('main.mantis_religiosa') }}" class="block px-3 py-2 text-base font-medium text-white transition duration-300 ease-in-out rounded-md hover:bg-green-700">Gottesanbeterin</a>
+				<a href="{{ url_for('data.report') }}" class="block px-3 py-2 text-base font-medium text-white transition duration-300 ease-in-out rounded-md hover:bg-green-700">Melden</a>
+				<a href="{{ url_for('data.show_map', year=now.year) }}" class="block px-3 py-2 text-base font-medium text-white transition duration-300 ease-in-out rounded-md hover:bg-green-700">Auswertungen</a>
+				{% if request.path.startswith('/reviewer') or request.path.startswith('/statistik') or
+				request.path.startswith('/superuser') or request.path.startswith('/galerie') or
+				request.path.startswith('/adminPanel') %}
+				<a href="{{'/reviewer/'+ user_id }}" class="block px-3 py-2 text-base font-medium text-white transition duration-300 ease-in-out rounded-md hover:bg-green-700">Reviewer</a>
+				<a href="{{'/statistik/'+ user_id }}" class="block px-3 py-2 text-base font-medium text-white transition duration-300 ease-in-out rounded-md hover:bg-green-700">Statistics</a>
+				<a href="/galerie" class="block px-3 py-2 text-base font-medium text-white transition duration-300 ease-in-out rounded-md hover:bg-green-700">Galerie</a>
+				{% endif %}
+			</div>
+		</div>
+	</header>
+	<script>
+	const header = document.querySelector("header");
+	const mobileMenuButton = document.getElementById('mobile-menu-button');
+	const mobileMenu = document.getElementById('mobile-menu');
+	const menuIcon = document.getElementById('menu-icon');
+	let isMobileMenuOpen = false;
 
-      </nav>
-      <!-- Navbar End -->
-      <!-- Content Start -->
-      <div class="relative bg-fixed bg-center bg-no-repeat bg-cover">
-        <div class="z-10 flex-wrap items-center justify-center w-full pb-1" style="position: relative;">
-          <div class="absolute inset-0 flex items-center justify-center overflow-hidden"></div>
-          <div class="container relative px-4 pt-16 pb-1 mx-auto text-center"> <!-- Add text-center here -->
-            <div class="flex flex-col items-center justify-center">
-              <div class="flex flex-col items-center justify-center w-full">
-                <!-- Change to flex-col and center items -->
-                <h1 class="mb-6 font-bold text-gray-100 title md:text-6xl">
-                  {% block title %}{% endblock title %}
-                </h1>
-                {% if request.path == '/' or request.path.startswith("/start") or request.path.startswith("/sichtungen")
-                or request.path.startswith("/report") %}
-                <a href={% block button_ref %} "/melden" {% endblock %}
-                  class="relative px-10 py-3 overflow-hidden font-medium text-gray-100 transition-all transition duration-300 ease-out bg-green-600 rounded-md group hover:bg-gradient-to-r hover:from-green-600 hover:to-green-500 hover:ring-2 hover:ring-offset-2 hover:ring-green-500">
-                  <span class="absolute bottom-0 left-0 h-full -ml-2">
-                    <svg viewBox="0 0 487 487" class="w-auto h-full opacity-100 object-stretch"
-                      xmlns="http://www.w3.org/2000/svg">
-                      <path
-                        d="M0 .3c67 2.1 134.1 4.3 186.3 37 52.2 32.7 89.6 95.8 112.8 150.6 23.2 54.8 32.3 101.4 61.2 149.9 28.9 48.4 77.7 98.8 126.4 149.2H0V.3z"
-                        fill="#FFF" fill-rule="nonzero" fill-opacity=".1"></path>
-                    </svg>
-                  </span>
-                  <span class="absolute top-0 right-0 w-12 h-full -mr-3">
-                    <svg viewBox="0 0 487 487" class="object-cover w-full h-full" xmlns="http://www.w3.org/2000/svg">
-                      <path
-                        d="M487 486.7c-66.1-3.6-132.3-7.3-186.3-37s-95.9-85.3-126.2-137.2c-30.4-51.8-49.3-99.9-76.5-151.4C70.9 109.6 35.6 54.8.3 0H487v486.7z"
-                        fill="#FFF" fill-rule="nonzero" fill-opacity=".1"></path>
-                    </svg>
-                  </span>
-                  <span
-                    class="absolute right-0 w-8 h-32 -mt-12 transition-all duration-1000 transform translate-x-12 bg-white opacity-10 rotate-12 group-hover:-translate-x-40 ease"></span>
-                  <span class="relative text-lg">Melden</span>
-                </a>
-                {% endif %}
-              </div>
-              <p class="mb-8 text-lg text-gray-100">{% block text %}{% endblock text %}</p>
-            </div>
-          </div>
-        </div>
-        <!-- Content End -->
-      </div>
-    </div>
-    <div id="overlay"></div>
-  </div>
-  <!-- Background Image div End -->
-  <script>
-    const mobileMenuButton = document.querySelector(".mobile-menu-button");
-    const mobileMenu = document.querySelector(".mobile-menu");
-    const navbar = document.querySelector("#navbar");
+	window.addEventListener("scroll", () => {
+		if (window.scrollY > 0) {
+			header.classList.add("bg-green-800", "bg-opacity-80", "backdrop-filter", "backdrop-blur-lg");
+		} else {
+			if (!isMobileMenuOpen) {
+				header.classList.remove("bg-green-800", "bg-opacity-80", "backdrop-filter", "backdrop-blur-lg");
+			}
+		}
+	});
 
-    mobileMenuButton.addEventListener("click", function () {
-      if (mobileMenu.classList.contains('scale-y-0')) {
-        mobileMenu.classList.remove('scale-y-0', 'opacity-0');
-        setTimeout(() => mobileMenu.style.transformOrigin = 'top', 500);
-      } else {
-        mobileMenu.style.transformOrigin = '';
-        setTimeout(() => mobileMenu.classList.add('scale-y-0', 'opacity-0'), 0);
-      }
-      mobileMenuButton.querySelector('svg').classList.toggle('rotate-90');
-      navbar.classList.toggle("sticky-nav", "transition-all", "duration-500");
-    });
+	mobileMenuButton.addEventListener('click', () => {
+		isMobileMenuOpen = !isMobileMenuOpen;
+		if (isMobileMenuOpen) {
+			mobileMenu.style.maxHeight = `${mobileMenu.scrollHeight}px`;
+			header.classList.add("bg-green-800", "bg-opacity-95", "backdrop-filter", "backdrop-blur-lg");
+			menuIcon.classList.add('rotate-90');
+			menuIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>';
+		} else {
+			mobileMenu.style.maxHeight = '0';
+			if (window.scrollY === 0) {
+				header.classList.remove("bg-green-800", "bg-opacity-95", "backdrop-filter", "backdrop-blur-lg");
+			}
+			menuIcon.classList.remove('rotate-90');
+			menuIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>';
+		}
+	});
 
-    window.addEventListener("scroll", function () {
-      let isScrolled = window.scrollY > 0;
-      navbar.classList.toggle("shadow-lg", isScrolled);
-      navbar.classList.toggle("sticky-nav", isScrolled || !mobileMenu.classList.contains("scale-y-0"));
-    });
-  </script>
-  <!--! White Content Start-->
-  <div class="z-10 flex flex-wrap mt-0 bg-gray-100" id="content-container">
-    <div class="flex-auto overflow-hidden">
-      {% block content %}
-      {% endblock content %}
-    </div>
-  </div>
+	// Close mobile menu when clicking outside
+	document.addEventListener('click', (event) => {
+		const isClickInsideMenu = mobileMenu.contains(event.target);
+		const isClickOnButton = mobileMenuButton.contains(event.target);
+		if (!isClickInsideMenu && !isClickOnButton && isMobileMenuOpen) {
+			mobileMenu.style.maxHeight = '0';
+			isMobileMenuOpen = false;
+			if (window.scrollY === 0) {
+				header.classList.remove("bg-green-800", "bg-opacity-95", "backdrop-filter", "backdrop-blur-lg");
+			}
+			menuIcon.classList.remove('rotate-90');
+			menuIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>';
+		}
+	});
 
-  <!--! White Content End-->
-  <!--! Start Footer -->
-  <!--https://tailwindcomponents.com/component/footer-5-->
-  <!--! Start Footer -->
-  <footer id="links" class="bg-gray-200 border-t border-gray-300 footer">
-    <div class="max-w-5xl px-4 py-8 mx-auto space-y-6 sm:px-6 lg:px-8 sm:space-y-8">
-      <div class="flex justify-center mb-5 text-green-600">
-        <a href="/"
-          class="text-2xl tracking-wider transition-colors font- sm:text-3xl hover:text-green-700">MITMACHPROJEKT</a>
-      </div>
-      <p class="max-w-xl mx-auto mb-6 text-sm leading-relaxed text-center text-gray-500 sm:text-base">
-        Die Gottesanbeterin (<i>Mantis religiosa </i> L., 1758) ist eine faszinierende
-        Insektenart mit einer einzigartigen Jagdstrategie.
-      </p>
-      <ul class="flex flex-wrap justify-center gap-6 sm:gap-8">
-        <li>
-          <a class="text-gray-700 transition hover:text-gray-800/75"
-            href="https://mantis-religiosa.readthedocs.io/de/latest/index.html" target="_blank"
-            rel="noreferrer noopener">
-            Dokumentation
-          </a>
-        </li>
-        <li>
-          <a class="mantis-footer-link" href="https://gitlab.com/opendata-apps/mantis"
-            target="_blank" rel="noreferrer noopener">
-            Quellcode (GitLab)
-          </a>
-        </li>
-        <li>
-          <a class="mantis-footer-link" href="/faq">
-            FAQ
-          </a>
-        </li>
-        <li>
-          <a class="mantis-footer-link" href="/impressum">
-            Impressum
-          </a>
-        </li>
-        <li>
-          <a class="mantis-footer-link" href="/lizenz">
-            Lizenz
-          </a>
-        </li>
-        <li>
-          <a class="mantis-footer-link" href="/datenschutz">
-            Datenschutz
-          </a>
-        </li>
-      </ul>
-      <ul class="flex flex-wrap justify-center gap-6 mt-6 sm:gap-8">
-        <li>
-          <a href="https://gitlab.com/opendata-apps/mantis" rel="noreferrer noopener" target="_blank"
-            class="text-gray-700 transition-transform transform hover:text-gray-700/75 hover:scale-110">
-            <span class="sr-only">GitLab</span>
-            <img loading="lazy" src="/static/images/svg/gitlab.svg" alt="GitLab (Code)" title="GitLab"
-              class="w-8 h-8 transition-transform transform hover:scale-110">
-          </a>
-        </li>
-        <li>
-          <a href="https://github.com/opendata-apps/mantis" rel="noreferrer noopener" target="_blank"
-            class="text-gray-700 transition-transform transform hover:text-gray-700/75 hover:scale-110">
-            <span class="sr-only">GitHub</span>
-            <img loading="lazy" src="/static/images/svg/github.svg" alt="GitHub (Code)" title="GitHub"
-              class="w-8 h-8 transition-transform transform hover:scale-110">
-          </a>
-        </li>
-        <li>
-          <a href="https://www.naturkundemuseum-potsdam.de/gottesanbeterin-gesucht" rel="noreferrer noopener"
-            target="_blank" class="text-gray-700 transition-transform transform hover:text-gray-700/75 hover:scale-110">
-            <span class="sr-only">Naturkundemuseum Potsdam</span>
-            <img loading="lazy" src="/static/images/svg/praying-mantis.svg" alt="Museum"
-              title="Naturkundemuseum Potsdam" class="w-8 h-8 transition-transform transform hover:scale-110">
-          </a>
-        </li>
-        <li>
-          <a href="https://mantis-religiosa.readthedocs.io" rel="noreferrer noopener" target="_blank"
-            class="text-gray-700 transition-transform transform hover:text-gray-700/75 hover:scale-110">
-            <span class="sr-only">Dokumentation</span>
-            <img loading="lazy" src="/static/images/svg/readme.svg" alt="Dokumentation" title="Dokumentation"
-              class="w-8 h-8 transition-transform transform hover:scale-110">
-          </a>
-        </li>
-      </ul>
-      <div
-        class="flex flex-col justify-center pt-8 mt-8 space-y-4 text-center text-gray-600 border-t border-gray-300 sm:space-y-0 sm:mt-10 sm:flex-row sm:space-x-10 sm:text-left">
-        <span>Python/Flask-App:
-          <a href="https://gitlab.com/opendata-apps/mantis/-/commits/v0.13.4"
-            class="font-medium text-green-600 hover:underline">v0.13.4</a>
-        </span>
-        <span>Lizenz:
-          <a href="/lizenz" class="font-medium text-green-600 hover:underline">MIT</a>
-        </span>
-        <span>© 2024</span>
-        <span>P22</span>
-      </div>
-    </div>
-  </footer>
-  <style>
-    body {
-      opacity: 0 !important;
-      transition: opacity 0.5s ease-in !important;
-    }
+	// Handle window resize
+	window.addEventListener('resize', () => {
+		if (window.innerWidth >= 768) {
+			mobileMenu.style.maxHeight = '0';
+			isMobileMenuOpen = false;
+			if (window.scrollY === 0) {
+				header.classList.remove("bg-green-800", "bg-opacity-95", "backdrop-filter", "backdrop-blur-lg");
+			}
+			menuIcon.classList.remove('rotate-90');
+			menuIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>';
+		}
+	});
+	</script>
+	<section class="relative flex items-center justify-center h-[240px] max-h-[240px] bg-fixed bg-center bg-no-repeat bg-cover" style="background-image: url('{{ url_for('static', filename='images/berger03.avif') }}');">
+		<div id="overlay" class="absolute inset-0 z-10 bg-black bg-opacity-50"></div>
+		<div class="relative z-20 text-center mt-14">
+			<h1 class="mb-6 text-4xl font-bold text-gray-100 md:text-5xl lg:text-6xl"> {% block title %}{% endblock title %} </h1> {% if request.path == '/' or request.path.startswith("/start") or request.path.startswith("/sichtungen") or
+        request.path.startswith("/report") %} <a href={% block button_ref %} "/melden" {% endblock %} class="relative inline-block px-12 py-4 overflow-hidden font-medium text-gray-100 transition-all duration-300 ease-out bg-green-600 rounded-lg group hover:bg-gradient-to-r hover:from-green-600 hover:to-green-500 hover:ring-2 hover:ring-offset-2 hover:ring-green-500">
+				<span class="absolute bottom-0 left-0 h-full -ml-2">
+					<svg viewBox="0 0 487 487" class="w-auto h-full opacity-100 object-stretch" xmlns="http://www.w3.org/2000/svg">
+						<path d="M0 .3c67 2.1 134.1 4.3 186.3 37 52.2 32.7 89.6 95.8 112.8 150.6 23.2 54.8 32.3 101.4 61.2 149.9 28.9 48.4 77.7 98.8 126.4 149.2H0V.3z" fill="#FFF" fill-rule="nonzero" fill-opacity=".1"></path>
+					</svg>
+				</span>
+				<span class="absolute top-0 right-0 w-12">
+					<svg viewBox="0 0 487 487" class="object-cover w-full h-full" xmlns="http://www.w3.org/2000/svg">
+						<path d="M487 486.7c-66.1-3.6-132.3-7.3-186.3-37s-95.9-85.3-126.2-137.2c-30.4-51.8-49.3-99.9-76.5-151.4C70.9 109.6 35.6 54.8.3 0H487v486.7z" fill="#FFF" fill-rule="nonzero" fill-opacity=".1"></path>
+					</svg>
+				</span>
+				<span class="absolute right-0 w-8 h-32 -mt-12 transition-all duration-1000 transform translate-x-12 bg-white opacity-10 rotate-12 group-hover:-translate-x-40 ease"></span>
+				<span class="relative z-20 text-lg">Melden</span>
+			</a> {% endif %}
+		</div>
+	</section>
+	<!--! White Content Start-->
+	<div class="z-10 flex flex-wrap my-10 mt-0 bg-gray-100" id="content-container">
+		<div class="flex-auto overflow-hidden"> {% block content %} {% endblock content %} </div>
+	</div>
+	<!--! White Content End-->
+	<!--! Start Footer -->
+	<!--https://tailwindcomponents.com/component/footer-5-->
+	<!--! Start Footer -->
+	<footer id="links" class="bg-gray-200 border-t border-gray-300 footer">
+		<div class="max-w-5xl px-4 py-8 mx-auto space-y-6 sm:px-6 lg:px-8 sm:space-y-8">
+			<div class="flex justify-center mb-5 text-green-600">
+				<a href="/" class="text-2xl tracking-wider transition-colors font- sm:text-3xl hover:text-green-700">MITMACHPROJEKT</a>
+			</div>
+			<p class="max-w-xl mx-auto mb-6 text-sm leading-relaxed text-center text-gray-500 sm:text-base"> Die Gottesanbeterin ( <i>Mantis religiosa </i> L., 1758) ist eine faszinierende Insektenart mit einer einzigartigen Jagdstrategie. </p>
+			<ul class="flex flex-wrap justify-center gap-6 sm:gap-8">
+				<li>
+					<a class="text-gray-700 transition hover:text-gray-800/75" href="https://mantis-religiosa.readthedocs.io/de/latest/index.html" target="_blank" rel="noreferrer noopener"> Dokumentation </a>
+				</li>
+				<li>
+					<a class="mantis-footer-link" href="https://gitlab.com/opendata-apps/mantis" target="_blank" rel="noreferrer noopener"> Quellcode (GitLab) </a>
+				</li>
+				<li>
+					<a class="mantis-footer-link" href="/faq"> FAQ </a>
+				</li>
+				<li>
+					<a class="mantis-footer-link" href="/impressum"> Impressum </a>
+				</li>
+				<li>
+					<a class="mantis-footer-link" href="/lizenz"> Lizenz </a>
+				</li>
+				<li>
+					<a class="mantis-footer-link" href="/datenschutz"> Datenschutz </a>
+				</li>
+			</ul>
+			<ul class="flex flex-wrap justify-center gap-6 mt-6 sm:gap-8">
+				<li>
+					<a href="https://gitlab.com/opendata-apps/mantis" rel="noreferrer noopener" target="_blank" class="text-gray-700 transition-transform transform hover:text-gray-700/75 hover:scale-110">
+						<span class="sr-only">GitLab</span>
+						<img loading="lazy" src="/static/images/svg/gitlab.svg" alt="GitLab (Code)" title="GitLab" class="w-8 h-8 transition-transform transform hover:scale-110" />
+					</a>
+				</li>
+				<li>
+					<a href="https://github.com/opendata-apps/mantis" rel="noreferrer noopener" target="_blank" class="text-gray-700 transition-transform transform hover:text-gray-700/75 hover:scale-110">
+						<span class="sr-only">GitHub</span>
+						<img loading="lazy" src="/static/images/svg/github.svg" alt="GitHub (Code)" title="GitHub" class="w-8 h-8 transition-transform transform hover:scale-110" />
+					</a>
+				</li>
+				<li>
+					<a href="https://www.naturkundemuseum-potsdam.de/gottesanbeterin-gesucht" rel="noreferrer noopener" target="_blank" class="text-gray-700 transition-transform transform hover:text-gray-700/75 hover:scale-110">
+						<span class="sr-only">Naturkundemuseum Potsdam</span>
+						<img loading="lazy" src="/static/images/svg/praying-mantis.svg" alt="Museum" title="Naturkundemuseum Potsdam" class="w-8 h-8 transition-transform transform hover:scale-110" />
+					</a>
+				</li>
+				<li>
+					<a href="https://mantis-religiosa.readthedocs.io" rel="noreferrer noopener" target="_blank" class="text-gray-700 transition-transform transform hover:text-gray-700/75 hover:scale-110">
+						<span class="sr-only">Dokumentation</span>
+						<img loading="lazy" src="/static/images/svg/readme.svg" alt="Dokumentation" title="Dokumentation" class="w-8 h-8 transition-transform transform hover:scale-110" />
+					</a>
+				</li>
+			</ul>
+			<div class="flex flex-col justify-center pt-8 mt-8 space-y-4 text-center text-gray-600 border-t border-gray-300 sm:space-y-0 sm:mt-10 sm:flex-row sm:space-x-10 sm:text-left">
+				<span>Python/Flask-App: <a href="https://gitlab.com/opendata-apps/mantis/-/commits/v0.13.5" class="font-medium text-green-600 hover:underline">v0.13.5</a>
+				</span>
+				<span>Lizenz: <a href="/lizenz" class="font-medium text-green-600 hover:underline">MIT</a>
+				</span>
+				<span>2024</span>
+				<span>P22</span>
+			</div>
+		</div>
+	</footer>
+	<style>
+	body {
+		opacity: 0 !important;
+		transition: opacity 0.5s ease-in !important;
+	}
 
-    body.loaded {
-      opacity: 1 !important;
-    }
-  </style>
-  <script>
-    window.addEventListener("DOMContentLoaded", (event) => {
-      document.body.classList.add("loaded");
-    });
-    function adjustFooterPosition() {
-      const contentContainer = document.getElementById("content-container");
-      const footer = document.querySelector(".footer");
-      const windowHeight = window.innerHeight;
-      const contentRect = contentContainer.getBoundingClientRect();
-      const footerRect = footer.getBoundingClientRect();
-      const contentHeight = contentRect.height;
-      const footerHeight = footerRect.height;
-      const totalHeight = contentHeight + footerHeight;
-      if (totalHeight < windowHeight) {
-        const minHeight = windowHeight - footerHeight;
-        contentContainer.style.minHeight = minHeight + "px";
-      } else {
-        contentContainer.style.minHeight = "auto";
-      }
-    }
-    
+	body.loaded {
+		opacity: 1 !important;
+	}
+	</style>
+	<script>
+	window.addEventListener("DOMContentLoaded", (event) => {
+		document.body.classList.add("loaded");
+	});
 
-    window.addEventListener("DOMContentLoaded", adjustFooterPosition);
-    window.addEventListener("resize", adjustFooterPosition);
-    console.log(
-      "%cGottesanbeterin Gesucht! 🦗",
-      "background-color: #10B981; color: #FFF; font-size: 24px; padding: 10px 20px; border-radius: 5px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);"
-    );
-    console.log(
-      "%cHallo Entdecker! 🌍",
-      "font-size: 18px; font-weight: bold; padding: 5px; border-bottom: 2px solid #E5E7EB;"
-    );
-    console.log(
-      "🕵️‍♂️ Du scheinst ein Auge für Details zu haben. Wenn du tiefer eintauchen oder beitragen möchtest, sieh dir unser GitLab-Repository an!"
-    );
-    console.log(
-      "%c🔗 https://gitlab.com/opendata-apps/mantis",
-      "color: #3B82F6; font-size: 16px; font-weight: bold;"
-    );
-  </script>
-  <!--! End Footer -->
+	function adjustFooterPosition() {
+		const contentContainer = document.getElementById("content-container");
+		const footer = document.querySelector(".footer");
+		const windowHeight = window.innerHeight;
+		const contentRect = contentContainer.getBoundingClientRect();
+		const footerRect = footer.getBoundingClientRect();
+		const contentHeight = contentRect.height;
+		const footerHeight = footerRect.height;
+		const totalHeight = contentHeight + footerHeight;
+		if(totalHeight < windowHeight) {
+			const minHeight = windowHeight - footerHeight;
+			contentContainer.style.minHeight = minHeight + "px";
+		} else {
+			contentContainer.style.minHeight = "auto";
+		}
+	}
+	window.addEventListener("DOMContentLoaded", adjustFooterPosition);
+	window.addEventListener("resize", adjustFooterPosition);
+	console.log("%cGottesanbeterin Gesucht! 🦗", "background-color: #10B981; color: #FFF; font-size: 24px; padding: 10px 20px; border-radius: 5px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);");
+	console.log("%cHallo Entdecker! 🌍", "font-size: 18px; font-weight: bold; padding: 5px; border-bottom: 2px solid #E5E7EB;");
+	console.log("🕵️‍♂️ Du scheinst ein Auge für Details zu haben. Wenn du tiefer eintauchen oder beitragen möchtest, sieh dir unser GitLab-Repository an!");
+	console.log("%c🔗 https://gitlab.com/opendata-apps/mantis", "color: #3B82F6; font-size: 16px; font-weight: bold;");
+	</script>
+	<!--! End Footer -->
 </body>
 
 </html>

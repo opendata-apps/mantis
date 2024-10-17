@@ -130,7 +130,7 @@ def reviewer(usrid):
             query = query.filter(TblMeldungen.art_w >= 1)
         elif filter_type == "oothek":
             query = query.filter(TblMeldungen.art_o >= 1)
-        elif filter_type == "nymhe":
+        elif filter_type == "Nymphe":
             query = query.filter(TblMeldungen.art_n >= 1)
         elif filter_type == "andere":
             query = query.filter(TblMeldungen.art_f >= 1)
@@ -515,6 +515,61 @@ def export_csv(table_name):
     headers = {"Content-Disposition": "attachment; filename=data.csv"}
     return Response(si, mimetype="text/csv", headers=headers)
 
+@admin.route("/admin/export/xlsx/<table_name>")
+@login_required
+def export_data(table_name):
+    "Export the data from the database as an Excel file"
+    try:
+        current_time = datetime.now().strftime("%d.%m.%Y_%H%M")
+
+        if table_name == "all":
+            data = perform_query()
+            filename = f"Alle_Meldungen_{current_time}.xlsx"
+        elif table_name == "accepted":
+            data = perform_query(filter_value=True)
+            filename = f"Akzeptierte_Meldungen_{current_time}.xlsx"
+        elif table_name == "non_accepted":
+            data = perform_query(filter_value=False)
+            filename = f"Nicht_akzeptierte_Meldungen_{current_time}.xlsx"
+        else:
+            return jsonify({"error": "Invalid export type"}), 400
+
+        data_dicts = [row2dict(row) for row in data]
+        df = pd.DataFrame(data_dicts)
+
+        # Write the DataFrame to an Excel file
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
+            df.to_excel(writer, sheet_name=table_name, index=False)
+            
+            # Get the xlsxwriter workbook and worksheet objects
+            worksheet = writer.sheets[table_name]
+            
+            # Add a table to the worksheet
+            (max_row, max_col) = df.shape
+            column_settings = [{'header': column} for column in df.columns]
+            worksheet.add_table(0, 0, max_row, max_col - 1, {'columns': column_settings, 'style': 'Table Style Medium 9'})
+            
+            # Auto-adjust columns' width
+            for i, col in enumerate(df.columns):
+                column_len = max(df[col].astype(str).map(len).max(), len(col))
+                worksheet.set_column(i, i, column_len + 2)
+
+        # Reset the file pointer to the beginning
+        output.seek(0)
+
+        # Send the file
+        return send_file(
+            output,
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            as_attachment=True,
+            download_name=filename
+        )
+    except Exception as e:
+        # Log the error for debugging
+        print(f"Error in export_data: {str(e)}")
+        return jsonify({"error": "An error occurred during export"}), 500
+
 
 @admin.route("/adminPanel", methods=["GET"])
 @login_required
@@ -700,37 +755,3 @@ def perform_query(filter_value=None):
 
     return query.all()
 
-
-@admin.route("/admin/export/xlsx/<string:value>")
-@login_required
-def export_data(value):
-    "Export the data from the database as an Excel file"
-    # TODO: not perfect, but works for now
-    current_time = datetime.now().strftime("%d.%m.%Y_%H%M")
-
-    if value == "all":
-        data = perform_query()
-        filename = f"Alle_Meldungen_{current_time}.xlsx"
-    elif value == "accepted":
-        data = perform_query(filter_value=True)
-        filename = f"Akzeptierte_Meldungen_{current_time}.xlsx"
-    elif value == "non_accepted":
-        data = perform_query(filter_value=False)
-        filename = f"Nicht_akzeptierte_Meldungen_{current_time}.xlsx"
-    else:
-        abort(404, description="Resource not found")
-
-    data_dicts = [row2dict(row) for row in data]
-    df = pd.DataFrame(data_dicts)
-
-    # Write the DataFrame to an Excel file
-    output = BytesIO()
-    with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
-        df.to_excel(writer, sheet_name="Daten", index=False)
-
-    # Reset the file pointer to the beginning
-    output.seek(0)
-
-    # Send the file
-    mime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    return send_file(output, mimetype=mime, as_attachment=True, download_name=filename)

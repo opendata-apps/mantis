@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% from "macro.html" import popover %}
+{% from "macro.html" import popover with context %}
 {% from "macro.html" import formButton %}
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/leaflet.css')}}" />
@@ -34,31 +34,28 @@ Forschung. {% endblock %}
         <div class="mb-4">
           <div class="flex justify-between">
             {{ form.picture.label.text }}
-            {{ popover("popover-picture", "Info zum Bild-Upload",
-            "Anhand des Bildes können wir Ihre Bestimmung überprüfen. Ist Ihr Fund von uns überprüft und freigegeben,
-            erscheint er in der Karte. Die Bilder werden nicht weiterverwendet. Ihre Urheberrechte bleiben
-            unberührt.") }}
+            {{ popover("popover-picture", popover_content["popover-picture"]["title"], popover_content["popover-picture"]["content"], popover_content) }}
           </div>
           <!-- !TODO: Loader für Bild-Upload -->
           <div class="flex items-center justify-center w-full">
             <label for="{{ form.picture.id }}"
-              class="flex flex-col items-center justify-center w-full h-64 transition-all duration-500 ease-in-out border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
-              ondragover="event.preventDefault();" ondrop="dropHandler(event);">
+              class="flex flex-col items-center justify-center w-full h-64 transition-all duration-300 ease-in-out border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
+              id="dropArea">
               <div id="imagePreview"
-                class="flex-col items-center justify-center hidden w-full h-64 overflow-hidden transition-all duration-500 ease-in-out fade-in">
+                class="flex-col items-center justify-center hidden w-full h-64 overflow-hidden transition-all duration-300 ease-in-out fade-in">
                 <img id="previewImage" class="object-scale-down w-full h-full" src="#"
                   alt="Preview image of the mantis">
               </div>
               <div id="uploadText"
-                class="flex flex-col items-center justify-center pt-5 pb-6 transition-all duration-500 ease-in-out">
-                <svg aria-hidden="true" class="w-10 h-10 mb-3 text-gray-400 animate-bounce" fill="none"
-                  stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                class="flex flex-col items-center justify-center w-full h-full pt-5 pb-6 transition-all duration-300 ease-in-out">
+                <svg aria-hidden="true" class="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor"
+                  viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                 </svg>
-                <p class="mb-2 text-sm text-gray-500 "><span class="font-semibold">Click or drop image here...</span>
-                </p>
-                <p class="text-xs text-gray-500 ">PNG, JPG, JPEG, HEIC, HEIF or WEBP (max. 12 MB)</p>
+                <p class="mb-2 text-sm text-gray-500"><span class="font-semibold">Click to upload</span> or drag and
+                  drop</p>
+                <p class="text-xs text-gray-500">PNG, JPG, JPEG, HEIC, HEIF or WEBP (max. 12 MB)</p>
               </div>
               <div id="uploadLoader" class="flex flex-col items-center justify-center hidden w-full h-full">
                 <svg class="w-10 h-10 text-green-500 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -79,9 +76,7 @@ Forschung. {% endblock %}
             <label for="{{ form.longitude.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.longitude.label.text }}
-                {{ popover("popover-longitude", "Koordinaten",
-                "Der Längengrad wird automatisch angegeben, sobald Sie den Marker an der untenstehenden Karte setzen.")
-                }}
+                {{ popover("popover-longitude", popover_content["popover-longitude"]["title"], popover_content["popover-longitude"]["content"], popover_content) }}
               </div>
               <div class="relative">
                 {{ form.longitude(class="input-field") }}
@@ -92,9 +87,7 @@ Forschung. {% endblock %}
             <label for="{{ form.latitude.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.latitude.label.text }}
-                {{ popover("popover-latitude", "Koordinaten",
-                "Der Breitengrad wird automatisch angegeben, sobald Sie den Marker an der untenstehenden Karte setzen.")
-                }}
+                {{ popover("popover-latitude", popover_content["popover-latitude"]["title"], popover_content["popover-latitude"]["content"], popover_content) }}
               </div>
               <div class="relative">
                 {{ form.latitude(class="input-field") }}
@@ -105,27 +98,8 @@ Forschung. {% endblock %}
         <div class="col-span-full">
           <label for="map" class="block mt-1 text-sm font-semibold text-gray-600">
             <div class="flex justify-between">
-              {{ "Karte: Setzen Sie den Marker in der Karte, die Koordinaten werden automatisch übernommen. Umschaltung
-              zw. Satellitenbild und Kartenansicht via Symbol am rechten Rand." }}
-              {{ popover("popover-map", "Karte",
-              " Benutzen Sie die Zoom-Funktion (+ und - Button oder
-              mittleres Mausrad), setzen Sie mit einem Klick die
-              Marke. Die linke Maustaste verschiebt die Karte. Die
-              Koordinaten werden dann automatisch ins Formular
-              übernommen.
-              Sie können die Koordinaten auch ganz
-              einfach in Google Maps ermitteln. Wechselns Sie zu
-              Google Maps. Suchen Sie die Stelle in der Karte und
-              markieren Sie diese mit einem Rechtsklick ihrer Maus.
-              Es öffnet sich ein Fenster, in dem ganz oben die
-              Koordinaten angezeigt werden, z.B. 52.395952,
-              13.050901. Wählen Sie die Koordinaten mit einem
-              Linksklick mit der Maus an. Nun sind sie kopiert und
-              können in dieses Feld eingefügt werden (Strg + V oder
-              mit dem Befehl Einfügen).
-
-              ")
-              }}
+              {{ "Karte: Setzen Sie den Marker in der Karte, die Koordinaten werden automatisch übernommen. Umschaltung zw. Satellitenbild und Kartenansicht via Symbol am rechten Rand." }}
+              {{ popover("popover-map", popover_content["popover-map"]["title"], popover_content["popover-map"]["content"], popover_content) }}
             </div>
           </label>
           <div id="map" class="h-64 border shadow-md sm:h-96 lg:h-96"></div>
@@ -144,8 +118,7 @@ Forschung. {% endblock %}
             <label for="{{ form.street.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.street.label.text }}
-                {{ popover("popover-street", "Straße",
-                "Falls der Wert nicht korrekt eingelesen wurde, geben Sie bitte den Straßennamen ein.") }}
+                {{ popover("popover-street", popover_content["popover-street"]["title"], popover_content["popover-street"]["content"], popover_content) }}
               </div>
               <div class="relative">
                 {{ form.street(class="input-field") }}
@@ -154,8 +127,7 @@ Forschung. {% endblock %}
             <label for="{{ form.state.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.state.label.text }}
-                {{ popover("popover-bundesland", "Bundesland",
-                "Falls der Wert nicht korrekt eingelesen wurde, ergänzen Sie bitte den Namen des Bundeslandes.") }}
+                {{ popover("popover-bundesland", popover_content["popover-bundesland"]["title"], popover_content["popover-bundesland"]["content"], popover_content) }}
               </div>
               <div class="relative">
                 {{ form.state(id="state", class="input-field") }}
@@ -164,8 +136,7 @@ Forschung. {% endblock %}
             <label for="{{ form.district.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.district.label.text }}
-                {{ popover("popover-bezirk", "Landkreis/Stadtteil",
-                "Falls der Wert nicht korrekt eingelesen wurde, geben Sie bitte den Landkreis/Stadtteil ein.") }}
+                {{ popover("popover-bezirk", popover_content["popover-bezirk"]["title"], popover_content["popover-bezirk"]["content"], popover_content) }}
               </div>
               <div class="relative">
                 {{ form.district(id="district", class="input-field") }}
@@ -180,37 +151,7 @@ Forschung. {% endblock %}
                   title="Anleitung zur Bestimmung in neuem Tab öffnen">
                   Anleitung zur Bestimmung
                 </a>
-                <button data-popover-target="popover-gender" type="button" class="pl-2 pr-1 text-black">
-                  <svg class="w-4 h-4 text-gray-600 " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
-                    viewBox="0 0 20 20">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M7.529 7.988a2.502 2.502 0 0 1 5 .191A2.441 2.441 0 0 1 10 10.582V12m-.01 3.008H10M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                  </svg>
-                </button>
-              </div>
-              <div data-popover id="popover-gender" role="tooltip"
-                class="absolute z-50 invisible inline-block w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 ">
-                <div class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg ">
-                  <h3 class="font-semibold text-green-900 ">
-                    Entwicklungsstadium/Geschlecht
-                  </h3>
-                </div>
-                <div class="px-3 py-2 bg-green-100">
-                  <p>
-                    Dieses Feld ist eine kleine Herausforderung für
-                    den Melder. Trauen Sie sich zu, das Geschlecht
-                    oder das Entwicklungsstadium zu bestimmen?
-                    Die Merkmale für die Bestimmung sind auf
-                    folgender Seite genau beschrieben:
-                    <a class="block pb-2 text-sm font-semibold text-blue-600 hover:text-blueGray-800" href="/bestimmung"
-                      target="_blank">
-                      Link: Hilfe zur Bestimmung <br />(öffnet neuen Tab)</a>
-                    In jedem Fall werden Sie nach einer Bewertung
-                    durch Fachleute über das Ergebnis informiert.
-                    <br />
-                    Versuchen Sie es!
-                  </p>
-                </div>
+                {{ popover("popover-gender", popover_content["popover-gender"]["title"], popover_content["popover-gender"]["content"] | safe, popover_content) }}
               </div>
               <div class="relative">
                 {{ form.gender(class="block w-full px-4 py-2 text-base text-gray-700 transition-colors bg-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200") }}
@@ -221,8 +162,7 @@ Forschung. {% endblock %}
             <label class="block mt-1 text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.zip_code.label.text }}
-                {{ popover("popover-zip", "Postleitzahl",
-                "Falls der Wert nicht korrekt eingelesen wurde, geben Sie bitte die Postleitzahl ein.") }}
+                {{ popover("popover-zip", popover_content["popover-zip"]["title"], popover_content["popover-zip"]["content"], popover_content) }}
               </div>
 
             </label>
@@ -232,8 +172,7 @@ Forschung. {% endblock %}
             <label for="{{ form.city.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.city.label.text }}
-                {{ popover("popover-city", "Ort",
-                "Falls der Wert nicht korrekt eingelesen wurde, geben Sie bitte den Stadtnamen ein.") }}
+                {{ popover("popover-city", popover_content["popover-city"]["title"], popover_content["popover-city"]["content"], popover_content) }}
               </div>
               <div class="relative">
                 {{ form.city(id="city", class="input-field") }}
@@ -242,8 +181,7 @@ Forschung. {% endblock %}
             <label for="{{ form.location_description.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.location_description.label.text }}
-                {{ popover("popover-fundort", "Ergänzungen Ort",
-                "Wählen Sie die passende Option, ergänzen Sie eventuell im Feld sonstige Angaben.)") }}
+                {{ popover("popover-fundort", popover_content["popover-fundort"]["title"], popover_content["popover-fundort"]["content"], popover_content) }}
               </div>
               <div class="relative">
                 {{ form.location_description(id=form.location_description.id, class="input-field") }}
@@ -253,8 +191,7 @@ Forschung. {% endblock %}
             <label for="{{ form.picture_description.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.picture_description.label.text }}
-                {{ popover("popover-beschreibung", "Ergänzungen zum Fund",
-                "Ergänzende Angaben zum Bild (max. 500 Zeichen)") }}
+                {{ popover("popover-beschreibung", popover_content["popover-beschreibung"]["title"], popover_content["popover-beschreibung"]["content"], popover_content) }}
               </div>
               <div class="relative">
                 {{ form.picture_description(
@@ -275,8 +212,7 @@ Forschung. {% endblock %}
             <label for="{{ form.report_first_name.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.report_first_name.label.text }}
-                {{ popover("popover-reportvorname", "Vorname", "Geben Sie bitte Ihren ersten Buchstaben des Vornamens
-                ein. Beispiel: M. für Max") }}
+                {{ popover("popover-reportvorname", popover_content["popover-reportvorname"]["title"], popover_content["popover-reportvorname"]["content"], popover_content) }}
               </div>
               <div class="relative">
                 {{ form.report_first_name(class="input-field") }}
@@ -285,9 +221,7 @@ Forschung. {% endblock %}
             <label for="{{ form.report_last_name.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.report_last_name.label.text }}
-                {{ popover("popover-reportnachname", "Nachname", "Bitte geben Sie Ihren Namen wie
-                angegeben ein. Die Eingabe des Meldernamens ermöglicht uns, Doppelmeldungen zu erkennen und
-                zusammenzuführen") }}
+                {{ popover("popover-reportnachname", popover_content["popover-reportnachname"]["title"], popover_content["popover-reportnachname"]["content"], popover_content) }}
               </div>
               <div class="relative">
                 {{ form.report_last_name(class="input-field") }}
@@ -296,10 +230,7 @@ Forschung. {% endblock %}
             <label for="{{ form.sighting_date.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.sighting_date.label.text }}
-                {{ popover("popover-datum", "Datum", "Wählen Sie hier bitte das Funddatum.
-                TT für den Tag,
-                MM für den Monat und
-                JJJJ für das Jahr") }}
+                {{ popover("popover-datum", popover_content["popover-datum"]["title"], popover_content["popover-datum"]["content"], popover_content) }}
               </div>
               <div class="relative">
                 {{ form.sighting_date(class="input-field") }}
@@ -310,9 +241,7 @@ Forschung. {% endblock %}
             <label for="{{ form.contact.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
                 {{ form.contact.label.text }}
-                {{ popover("popover-kontakt", "Kontaktdaten", "Möchten Sie eine Antwort auf Ihre Meldung haben,
-                geben Sie hier bitte Ihre E-Mail-Adresse ein. Ihre Kontaktdaten werden geschützt,
-                nicht weitergegeben oder anderweitig verwendet.") }}
+                {{ popover("popover-kontakt", popover_content["popover-kontakt"]["title"], popover_content["popover-kontakt"]["content"], popover_content) }}
               </div>
               <div class="relative">
                 {{ form.contact(type="email", class="input-field") }}
@@ -432,54 +361,46 @@ Forschung. {% endblock %}
   </div>
 </div>
 
-<script>
-  window.onload = function () {
-    const toastButton = document.getElementById('close-button');
-    if (toastButton) {
-      setTimeout(function () {
-        toastButton.click();
-      }, 3000);
-    }
-  };
 
+<script>
   let map;
   let userMarker;
   mapApiKey = "{{apikey}}";
-
+  
   function initMap() {
     // Define the boundary box for Germany
     const germanyBounds = [
       [47.270111, 5.866342], // Southwest corner
       [55.058347, 15.041896]  // Northeast corner
     ];
-
+  
     map = L.map('map', {
       maxBounds: germanyBounds,
       maxBoundsViscosity: 1.0
     }).setView([52.5200, 13.4050], 7);
-
+  
     // Define map layers
     const openStreetMapLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       maxZoom: 18,
     });
-
+  
     const arcGISLayer = L.esri.Vector.vectorBasemapLayer("ArcGIS:Imagery", {
-      apikey: mapApiKey // Add your actual API key here
+      apikey: mapApiKey
     });
-
+  
     // Add default layer to the map
     map.addLayer(openStreetMapLayer);
-
+  
     // Layer switcher control
     var baseMaps = {
       "Karte": openStreetMapLayer,
       "Satellit": arcGISLayer
     };
-
+  
     L.control.layers(baseMaps).addTo(map);
     L.control.locate(baseMaps).addTo(map);
-
+  
     // Restrict zooming out too much
     const MIN_ZOOM_LEVEL = 5;
     map.on('zoomend', function () {
@@ -487,33 +408,37 @@ Forschung. {% endblock %}
         map.setZoom(MIN_ZOOM_LEVEL);
       }
     });
-
+  
+    // Load existing form data on page load
+    loadFormDataFromLocalStorage();
+    loadPreviewFromInput();
+  
+    // Check if latitude and longitude are present in the form data
+    const latValue = parseFloat(document.querySelector('#latitude').value);
+    const lngValue = parseFloat(document.querySelector('#longitude').value);
+  
+    if (!isNaN(latValue) && !isNaN(lngValue)) {
+      updateMapAndFormData(latValue, lngValue, true); // Zoom to marker
+    }
+  
     // Update form fields on map click or manual input
     function updateMapAndFormData(lat, lng, zoomToMarker = false) {
       document.querySelector('#latitude').value = lat.toString();
       document.querySelector('#longitude').value = lng.toString();
-
+  
       getAddressFromCoordinates(lat, lng);
-
+  
       updateMarkerPosition(lat, lng, zoomToMarker);
-
-      // Save form data to local storage
-      let formData = {};
-      document.querySelectorAll('input, select, textarea').forEach(function (input) {
-        formData[input.id] = input.value;
-      });
-      localStorage.setItem('formData', JSON.stringify(formData));
+  
+      // Save form data to local storage with expiry
+      saveFormDataToLocalStorage();
       updateSummary();
-
-      // add longitude and latitude to local storage
-      localStorage.setItem('latitude', lat.toString());
-      localStorage.setItem('longitude', lng.toString());
     }
-
+  
     map.on('click', function (e) {
       updateMapAndFormData(e.latlng.lat, e.latlng.lng, false);
     });
-
+  
     // Listen for manual coordinate input
     document.querySelector('#latitude').addEventListener('change', function () {
       const lat = parseFloat(this.value);
@@ -522,7 +447,7 @@ Forschung. {% endblock %}
         updateMapAndFormData(lat, lng, false);
       }
     });
-
+  
     document.querySelector('#longitude').addEventListener('change', function () {
       const lng = parseFloat(this.value);
       const lat = parseFloat(document.querySelector('#latitude').value);
@@ -531,435 +456,531 @@ Forschung. {% endblock %}
       }
     });
   }
-
+  
   document.addEventListener('DOMContentLoaded', initMap);
-
+  
+  function updateMarkerPosition(lat, lng, zoomToMarker) {
+    if (userMarker) {
+      userMarker.setLatLng([lat, lng]);
+    } else {
+      userMarker = L.marker([lat, lng]).addTo(map);
+    }
+  
+    if (zoomToMarker) {
+      map.setView([lat, lng], 14); // Adjust zoom level as needed
+    }
+  }
+  
   function getAddressFromCoordinates(latitude, longitude) {
-    const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`;
-
+    // Construct the API URL with precise parameters
+    const nominatimUrl = `https://nominatim.openstreetmap.org/reverse` +
+      `?format=jsonv2` +             // Use jsonv2 for more consistent output
+      `&lat=${latitude}` +           // Latitude coordinate
+      `&lon=${longitude}` +          // Longitude coordinate
+      `&zoom=18` +                   // Zoom level for building detail
+      `&addressdetails=1` +          // Include detailed address components
+      `&extratags=1` +               // Include extra tags like ISO3166-2 codes
+      `&namedetails=1` +             // Include name details
+      `&accept-language=de`;         // Get results in German
+  
+    // Fetch data from the Nominatim API
     fetch(nominatimUrl)
       .then(response => {
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          throw new Error(`HTTP error! Status: ${response.status}`);
         }
         return response.json();
       })
       .then(data => {
-        console.log(data);
-        const address = data.address;
-
-        document.querySelector("#zip_code").value = address.postcode ? address.postcode.split(";")[0] : "";
-        document.querySelector("#city").value = address.city || address.town || address.village || "";
-        document.querySelector("#street").value = `${address.road || ""} ${address.house_number || ""}`.trim();
-        document.querySelector("#state").value = address.state || address.city || "";
-        document.querySelector("#district").value = address.county || address.suburb || address.borough || "";
-
-        const addressData = {
-          state: address.state || address.city || "",
-          district: address.county || address.suburb || address.borough || "",
-          city: address.city || address.town || address.village || ""
-        };
-
-        function checkAddressData(formData, nextStepIndex) {
-          const userState = formData.get('state');
-          const userDistrict = formData.get('district');
-          const userCity = formData.get('city');
-
-          const errors = {};
-
-          if (addressData.state && userState !== addressData.state) {
-            errors.state = ['Das eingegebene Bundesland stimmt nicht mit den Fundort-Koordinaten überein.'];
-          }
-          if (addressData.district && userDistrict !== addressData.district) {
-            errors.district = ['Der eingegebene Landkreis stimmt nicht mit den Fundort-Koordinaten überein.'];
-          }
-          if (addressData.city && userCity !== addressData.city) {
-            errors.city = ['Der eingegebene Ort stimmt nicht mit den Fundort-Koordinaten überein.'];
-          }
-
-          if (Object.keys(errors).length > 0) {
-            showErrors(errors, 1);
-          } else {
-            showStep(nextStepIndex);
-          }
+        // Check for errors in the API response
+        if (data.error) {
+          console.error("Error from Nominatim API:", data.error);
+          return;
         }
-
-        // Attach the modified checkAddressData function to the global scope
+  
+        console.log(data); // Log the full response for debugging
+        const address = data.address || {};
+  
+        // Extract and set the zip code
+        const zipCode = address.postcode || "";
+        document.querySelector("#zip_code").value = zipCode;
+  
+        // Extract and set the city, considering various possible keys
+        const city = address.city || address.town || address.village ||
+                     address.hamlet || address.suburb || address.locality || "";
+        document.querySelector("#city").value = city;
+  
+        // Extract and set the street address
+        const streetName = address.road || address.pedestrian || address.cycleway ||
+                           address.path || address.footway || address.street ||
+                           address.street_name || "";
+        const houseNumber = address.house_number || "";
+        const street = `${streetName} ${houseNumber}`.trim();
+        document.querySelector("#street").value = street;
+  
+        // Extract and set the state (Bundesland)
+        let state = address.state || address.region || "";
+        if (!state && data.extratags && data.extratags["ISO3166-2"]) {
+          // Use ISO3166-2 code to determine the state
+          const isoCode = data.extratags["ISO3166-2"];
+          state = getStateNameFromISOCode(isoCode);
+        }
+        if (!state && address.city && isCityState(address.city)) {
+          // For city-states like Berlin, use the city name as the state
+          state = address.city;
+        }
+        document.querySelector("#state").value = state;
+  
+        // Extract and set the district (Landkreis/Stadtteil)
+        const district = address.county || address.district || address.municipality ||
+                         address.city_district || address.borough || address.suburb || "";
+        document.querySelector("#district").value = district;
+  
+        // Prepare address data for validation and save to local storage
+        const addressData = {
+          state: state,
+          district: district,
+          city: city,
+          street: street,
+          zipCode: zipCode
+        };
+  
+        // Save address data to local storage
+        setLocalStorageWithExpiry('addressData', JSON.stringify(addressData), 3600000); // 1 hour expiry
+  
+        // Function to check user-provided address data against API data
+        function checkAddressData(formData, nextStepIndex) {
+          // const storedAddressData = JSON.parse(getLocalStorageWithExpiry('addressData')) || {};
+          // const userState = formData.get('state') || "";
+          // const userDistrict = formData.get('district') || "";
+          // const userCity = formData.get('city') || "";
+  
+          // const errors = {};
+  
+          // // Case-insensitive and trimmed comparison
+          // if (storedAddressData.state && userState.trim().toLowerCase() !== storedAddressData.state.trim().toLowerCase()) {
+          //   errors.state = ['Das eingegebene Bundesland stimmt nicht mit den Fundort-Koordinaten überein.'];
+          // }
+          // if (storedAddressData.district && userDistrict.trim().toLowerCase() !== storedAddressData.district.trim().toLowerCase()) {
+          //   errors.district = ['Der eingegebene Landkreis/Stadtteil stimmt nicht mit den Fundort-Koordinaten überein.'];
+          // }
+          // if (storedAddressData.city && userCity.trim().toLowerCase() !== storedAddressData.city.trim().toLowerCase()) {
+          //   errors.city = ['Der eingegebene Ort stimmt nicht mit den Fundort-Koordinaten überein.'];
+          // }
+  
+          // if (Object.keys(errors).length > 0) {
+          //   showErrors(errors, 1); // Function to display errors
+          // } else {
+            showStep(nextStepIndex); // Function to proceed to the next step
+          // }
+        }
+  
+        // Make the checkAddressData function globally accessible
         window.checkAddressData = checkAddressData;
       })
       .catch(error => {
         console.error("Error fetching address data:", error);
       });
   }
-
-
+  
+  // Helper function to map ISO3166-2 codes to state names
+  function getStateNameFromISOCode(isoCode) {
+    const isoToStateMap = {
+      'DE-BW': 'Baden-Württemberg',
+      'DE-BY': 'Bayern',
+      'DE-BE': 'Berlin',
+      'DE-BB': 'Brandenburg',
+      'DE-HB': 'Bremen',
+      'DE-HH': 'Hamburg',
+      'DE-HE': 'Hessen',
+      'DE-MV': 'Mecklenburg-Vorpommern',
+      'DE-NI': 'Niedersachsen',
+      'DE-NW': 'Nordrhein-Westfalen',
+      'DE-RP': 'Rheinland-Pfalz',
+      'DE-SL': 'Saarland',
+      'DE-SN': 'Sachsen',
+      'DE-ST': 'Sachsen-Anhalt',
+      'DE-SH': 'Schleswig-Holstein',
+      'DE-TH': 'Thüringen'
+    };
+    return isoToStateMap[isoCode] || '';
+  }
+  
+  // Helper function to check if a city is a city-state
+  function isCityState(cityName) {
+    const cityStates = ['Berlin', 'Hamburg', 'Bremen'];
+    return cityStates.includes(cityName);
+  }
+  
   // Use Jinja2 to pass the Python variables to JavaScript
   const existingUser = {{ existing_user | tojson | safe }};
 
-  // Check if the existingUser is not null
-  if (existingUser) {
-    const fields = [
-      { id: "report_first_name", value: existingUser.user_name.split(" ")[1] },
-      { id: "report_last_name", value: existingUser.user_name.split(" ")[0] },
-      { id: "contact", value: existingUser.user_kontakt }
-    ];
+// Check if the existingUser is not null
+if (existingUser) {
+  const fields = [
+    { id: "report_first_name", value: existingUser.user_name.split(" ")[1] },
+    { id: "report_last_name", value: existingUser.user_name.split(" ")[0] },
+    { id: "contact", value: existingUser.user_kontakt }
+  ];
 
-    fields.forEach(field => {
-      const element = document.getElementById(field.id);
-      element.value = field.value;
-      element.readOnly = true;
-    });
+  fields.forEach(field => {
+    const element = document.getElementById(field.id);
+    element.value = field.value;
+    element.readOnly = true;
+  });
+}
+
+function setLocalStorageWithExpiry(key, value, ttl) {
+  const now = new Date();
+  const item = {
+    value: value,
+    expiry: now.getTime() + ttl,
+  };
+  try {
+    localStorage.setItem(key, JSON.stringify(item));
+  } catch (e) {
+    console.error("Error setting localStorage item:", e);
   }
+}
 
-
-  function setLocalStorageWithExpiry(key, value, ttl) {
-    const now = new Date();
-    const item = {
-      value: value,
-      expiry: now.getTime() + ttl,
-    };
-    try {
-      localStorage.setItem(key, JSON.stringify(item));
-    } catch (e) {
-      console.error("Error setting localStorage item:", e);
-    }
-  }
-
-  function getLocalStorageWithExpiry(key) {
-    try {
-      const itemStr = localStorage.getItem(key);
-      if (!itemStr) {
-        return null;
-      }
-      const item = JSON.parse(itemStr);
-      const now = new Date();
-      if (now.getTime() > item.expiry) {
-        localStorage.removeItem(key);
-        return null;
-      }
-      return item.value;
-    } catch (e) {
-      console.error("Error getting localStorage item:", e);
+function getLocalStorageWithExpiry(key) {
+  try {
+    const itemStr = localStorage.getItem(key);
+    if (!itemStr) {
       return null;
     }
+    const item = JSON.parse(itemStr);
+    const now = new Date();
+    if (now.getTime() > item.expiry) {
+      localStorage.removeItem(key);
+      return null;
+    }
+    return item.value;
+  } catch (e) {
+    console.error("Error getting localStorage item:", e);
+    return null;
   }
+}
 
-  function cleanupExpiredItems() {
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      getLocalStorageWithExpiry(key); // This will remove the item if it's expired
+function cleanupExpiredItems() {
+  const keys = Object.keys(localStorage);
+  for (const key of keys) {
+    getLocalStorageWithExpiry(key); // This will remove the item if it's expired
+  }
+}
+
+// Call this function periodically or on page load
+cleanupExpiredItems();
+
+function saveFormDataToLocalStorage() {
+  const form = document.getElementById('mainForm');
+  const formData = new FormData(form);
+  const data = {};
+
+  for (const [key, value] of formData.entries()) {
+    if (key !== "csrf_token" && key !== "picture") {
+      data[key] = value;
     }
   }
 
-  // Call this function periodically or on page load
-  cleanupExpiredItems();
+  // Set expiry to 1 hour (3600000 milliseconds)
+  setLocalStorageWithExpiry('formData', JSON.stringify(data), 3600000);
+}
 
-  function saveFormDataToLocalStorage() {
-    const form = document.getElementById('mainForm');
-    const formData = new FormData(form);
-    const data = {};
+function loadFormDataFromLocalStorage() {
+  const form = document.getElementById('mainForm');
+  const storedData = getLocalStorageWithExpiry('formData');
 
-    for (const [key, value] of formData.entries()) {
-      if (key !== "csrf_token" && key !== "picture") {
-        data[key] = value;
-      }
-    }
-
-    // Set expiry to 1 hour (3600000 milliseconds)
-    setLocalStorageWithExpiry('formData', JSON.stringify(data), 3600000);
-  }
-
-  function loadFormDataFromLocalStorage() {
-    const form = document.getElementById('mainForm');
-    const storedData = getLocalStorageWithExpiry('formData');
-
-    if (storedData) {
-      try {
-        const data = JSON.parse(storedData);
-        for (const input of form.elements) {
-          if (input.name && input.type !== 'file' && data.hasOwnProperty(input.name)) {
-            input.value = data[input.name];
-          }
+  if (storedData) {
+    try {
+      const data = JSON.parse(storedData);
+      for (const input of form.elements) {
+        if (input.name && input.type !== 'file' && data.hasOwnProperty(input.name)) {
+          input.value = data[input.name];
         }
-      } catch (e) {
-        console.error('Error parsing stored form data:', e);
       }
+    } catch (e) {
+      console.error('Error parsing stored form data:', e);
     }
   }
+}
 
-
-  // Call this function when the page loads to load saved form data.
-  document.addEventListener('DOMContentLoaded', loadFormDataFromLocalStorage);
-
-  // Call this function to save form data to local storage when any input changes.
-  document.getElementById('mainForm').addEventListener('input', saveFormDataToLocalStorage);
-
-  document.addEventListener('DOMContentLoaded', function () {
-    const pictureInput = document.querySelector('#picture');
-    pictureInput.addEventListener('change', function (event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      // Use FileReader to read the file as an ArrayBuffer
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        try {
-          const exifData = EXIF.readFromBinaryFile(e.target.result);
-
-          if (exifData) {
-            const lat = exifData.GPSLatitude;
-            const lng = exifData.GPSLongitude;
-            const latRef = exifData.GPSLatitudeRef;
-            const lngRef = exifData.GPSLongitudeRef;
-
-            if (lat && lng && latRef && lngRef) {
-              // Convert coordinates to decimal without rounding
-              const latitude = toDecimal(lat, latRef);
-              const longitude = toDecimal(lng, lngRef);
-
-              // if values are NaN or 0, do not set the form fields
-              if (isNaN(latitude) || isNaN(longitude) || latitude === 0 || longitude === 0) {
-                return;
-              }
-
-              // Set the values to the form fields
-              document.querySelector('#latitude').value = latitude.toString();
-              document.querySelector('#longitude').value = longitude.toString();
-
-              // Update the marker position and zoom for EXIF data
-              updateMarkerPosition(latitude, longitude, true);
-
-              // Trigger the address lookup
-              getAddressFromCoordinates(latitude, longitude);
-            }
-
-            // Extract and set the sighting date
-            if (exifData.DateTimeOriginal) {
-              const dateTime = exifData.DateTimeOriginal.split(' ')[0].replace(/:/g, '-');
-              document.querySelector('#sighting_date').value = dateTime;
-            }
-          }
-        } catch (error) {
-          console.error('Error processing EXIF data:', error);
-        }
-      };
-
-      reader.readAsArrayBuffer(file);
-    });
-  });
-
-  // Add this new function to update the marker position
-  function updateMarkerPosition(latitude, longitude, zoomToMarker = false) {
-    if (window.userMarker) {
-      window.userMarker.setLatLng([latitude, longitude]);
-    } else {
-      window.userMarker = L.marker([latitude, longitude]).addTo(map);
-    }
-    if (zoomToMarker) {
-      map.setView([latitude, longitude], 13);
-    }
-  }
-
-  function toDecimal(coord, ref) {
-    if (!Array.isArray(coord) || coord.length !== 3) {
-      return NaN;
-    }
-
-    const [degrees, minutes, seconds] = coord.map(val =>
-      typeof val === 'number' ? val : (val.numerator / val.denominator)
-    );
-
-    let decimal = degrees + minutes / 60 + seconds / (60 * 60);
-    if (ref === 'S' || ref === 'W') {
-      decimal = -decimal;
-    }
-    return decimal;
-  }
-
-
-
-  const input = document.getElementById('{{ form.picture.id }}');
+function loadPreviewFromInput() {
+  const pictureInput = document.getElementById('picture');
   const preview = document.getElementById('previewImage');
   const previewContainer = document.getElementById('imagePreview');
   const uploadText = document.getElementById('uploadText');
-  const uploadLoader = document.getElementById('uploadLoader');
 
-  input.addEventListener('change', handleImageUpload);
-  document.addEventListener('drop', dropHandler);
+  if (!pictureInput || !preview || !previewContainer || !uploadText) {
+    return;
+  }
 
-  function handleImageUpload(e) {
-    const file = e.target.files[0];
-    const validFileTypes = ["image/png", "image/jpeg", "image/jfif", "image/webp", "image/heic", "image/heif"];
-    const maxSizeInBytes = 12 * 1024 * 1024; // 12MB
-
-    clearErrorsForField('picture');
-    resetPreview(); // Reset preview before processing new image
-
-    if (file) {
-      if (!validFileTypes.includes(file.type.toLowerCase())) {
-        showErrors({ picture: ["Erlaubt sind nur PNG, JPG, JPEG, HEIC, HEIF und WebP Dateien."] }, 0);
-        e.target.value = '';
-        return;
-      }
-
-      if (file.size > maxSizeInBytes) {
-        showErrors({ picture: ["Die Datei ist zu groß. Maximale Größe ist 12MB."] }, 0);
-        e.target.value = '';
-        return;
-      }
-
-      // Show loader
+  const file = pictureInput.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      preview.src = e.target.result;
+      previewContainer.style.display = 'flex';
       uploadText.style.display = 'none';
-      uploadLoader.classList.remove('hidden');
+    };
+    reader.onerror = function (e) {
+      resetPreview();
+    };
+    reader.readAsDataURL(file);
+  } else {
+    resetPreview();
+  }
+}
 
-      // Process the file based on its type
-      if (file.type.startsWith('image/heic') || file.type.startsWith('image/heif')) {
-        processHeicHeif(file);
-      } else if (file.type === 'image/webp') {
-        // WebP files don't need conversion
-        validateAndUpdatePreview(file);
-      } else {
-        // For other image types, validate and convert if necessary
-        validateAndConvertIfNeeded(file);
+// Save form data on input change
+document.getElementById('mainForm').addEventListener('input', saveFormDataToLocalStorage);
+
+// EXIF Data Extraction
+document.addEventListener('DOMContentLoaded', function () {
+  const pictureInput = document.querySelector('#picture');
+  pictureInput.addEventListener('change', function (event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Use FileReader to read the file as an ArrayBuffer
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      try {
+        const exifData = EXIF.readFromBinaryFile(e.target.result);
+
+        if (exifData) {
+          const lat = exifData.GPSLatitude;
+          const lng = exifData.GPSLongitude;
+          const latRef = exifData.GPSLatitudeRef;
+          const lngRef = exifData.GPSLongitudeRef;
+
+          if (lat && lng && latRef && lngRef) {
+            // Convert coordinates to decimal without rounding
+            const latitude = toDecimal(lat, latRef);
+            const longitude = toDecimal(lng, lngRef);
+
+            // if values are NaN or 0, do not set the form fields
+            if (isNaN(latitude) || isNaN(longitude) || latitude === 0 || longitude === 0) {
+              return;
+            }
+
+            // Update map and form data
+            updateMapAndFormData(latitude, longitude, true);
+          }
+
+          // Extract and set the sighting date
+          if (exifData.DateTimeOriginal) {
+            const dateTime = exifData.DateTimeOriginal.split(' ')[0].replace(/:/g, '-');
+            document.querySelector('#sighting_date').value = dateTime;
+          }
+        }
+      } catch (error) {
+        console.error('Error processing EXIF data:', error);
+      }
+    };
+
+    reader.readAsArrayBuffer(file);
+  });
+});
+
+function toDecimal(coord, ref) {
+  if (!Array.isArray(coord) || coord.length !== 3) {
+    return NaN;
+  }
+
+  const [degrees, minutes, seconds] = coord.map(val =>
+    typeof val === 'number' ? val : (val.numerator / val.denominator)
+  );
+
+  let decimal = degrees + minutes / 60 + seconds / (60 * 60);
+  if (ref === 'S' || ref === 'W') {
+    decimal = -decimal;
+  }
+  return decimal;
+}
+
+// Image Upload and Preview Handling
+const input = document.getElementById('{{ form.picture.id }}');
+const preview = document.getElementById('previewImage');
+const previewContainer = document.getElementById('imagePreview');
+const uploadText = document.getElementById('uploadText');
+const uploadLoader = document.getElementById('uploadLoader');
+
+input.addEventListener('change', handleImageUpload);
+document.addEventListener('drop', dropHandler);
+
+function handleImageUpload(e) {
+  const file = e.target.files[0];
+  const validFileTypes = ["image/png", "image/jpeg", "image/jfif", "image/webp", "image/heic", "image/heif"];
+  const maxSizeInBytes = 12 * 1024 * 1024; // 12MB
+
+  clearErrorsForField('picture');
+  resetPreview(); // Reset preview before processing new image
+
+  if (file) {
+    if (!validFileTypes.includes(file.type.toLowerCase())) {
+      showErrors({ picture: ["Erlaubt sind nur PNG, JPG, JPEG, HEIC, HEIF und WebP Dateien."] }, 0);
+      e.target.value = '';
+      return;
+    }
+
+    if (file.size > maxSizeInBytes) {
+      showErrors({ picture: ["Die Datei ist zu groß. Maximale Größe ist 12MB."] }, 0);
+      e.target.value = '';
+      return;
+    }
+
+    // Show loader
+    uploadText.style.display = 'none';
+    uploadLoader.classList.remove('hidden');
+
+    // Process the file based on its type
+    if (file.type.startsWith('image/heic') || file.type.startsWith('image/heif')) {
+      processHeicHeif(file);
+    } else if (file.type === 'image/webp') {
+      // WebP files don't need conversion
+      validateAndUpdatePreview(file);
+    } else {
+      // For other image types, validate and convert if necessary
+      validateAndConvertIfNeeded(file);
+    }
+  }
+}
+
+function processHeicHeif(file) {
+  heic2any({
+    blob: file,
+    toType: "image/jpeg",
+  }).then(function (resultBlob) {
+    validateAndConvertIfNeeded(new File([resultBlob], file.name, { type: 'image/jpeg' }));
+  }).catch(function (error) {
+    handleHeicHeifError(error);
+  });
+}
+
+function handleHeicHeifError(error) {
+  let errorMessage = "Die HEIC/HEIF-Datei konnte nicht verarbeitet werden.";
+  showErrors({ picture: [errorMessage] }, 0);
+  resetPreview();
+}
+
+function validateAndConvertIfNeeded(file) {
+  const img = new Image();
+  img.onload = function() {
+    URL.revokeObjectURL(this.src);
+    if (file.size > 10 * 1024 * 1024 || file.type !== 'image/webp') {
+      // Convert to WebP if file is large or not already WebP
+      convertToWebP(file, file.size > 10 * 1024 * 1024 ? 0.5 : 0.7);
+    } else {
+      // File is already WebP and not too large, just update preview
+      updatePreview(file);
+    }
+  };
+  img.onerror = function() {
+    URL.revokeObjectURL(this.src);
+    showErrors({ picture: ["Das Bild konnte nicht geladen werden. Bitte versuchen Sie es mit einem anderen Bild."] }, 0);
+    resetPreview();
+  };
+  img.src = URL.createObjectURL(file);
+}
+
+function validateAndUpdatePreview(file) {
+  const img = new Image();
+  img.onload = function() {
+    URL.revokeObjectURL(this.src);
+    updatePreview(file);
+  };
+  img.onerror = function() {
+    URL.revokeObjectURL(this.src);
+    showErrors({ picture: ["Die Datei scheint kein gültiges Bild zu sein."] }, 0);
+    resetPreview();
+  };
+  img.src = URL.createObjectURL(file);
+}
+
+function convertToWebP(file, quality) {
+  var img = new Image();
+  img.onload = function () {
+    var canvas = document.createElement('canvas');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    var ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, img.width, img.height);
+    canvas.toBlob(function (blob) {
+      var convertedFile = new File([blob], 'image.webp', { type: 'image/webp' });
+
+      if (convertedFile.size > 12 * 1024 * 1024) {
+        showErrors({ picture: ["Das Bild ist zu groß. Bitte verwenden Sie ein kleineres Bild oder reduzieren Sie die Bildqualität."] }, 0);
+        resetPreview();
+        return;
+      }
+
+      var dataTransfer = new DataTransfer();
+      dataTransfer.items.add(convertedFile);
+      input.files = dataTransfer.files;
+      updatePreview(convertedFile);
+    }, 'image/webp', quality);
+  };
+  img.onerror = function() {
+    showErrors({ picture: ["Das Bild konnte nicht konvertiert werden. Bitte versuchen Sie es mit einem anderen Bild."] }, 0);
+    resetPreview();
+  };
+  img.src = URL.createObjectURL(file);
+}
+
+function dropHandler(ev) {
+  ev.preventDefault();
+  if (ev.dataTransfer.items) {
+    for (var i = 0; i < ev.dataTransfer.items.length; i++) {
+      if (ev.dataTransfer.items[i].kind === 'file') {
+        var file = ev.dataTransfer.items[i].getAsFile();
+        convertImageToWebP(file);
       }
     }
   }
+}
 
-  function processHeicHeif(file) {
+function convertImageToWebP(file) {
+  if (file.type.startsWith('image/heic') || file.type.startsWith('image/heif')) {
     heic2any({
       blob: file,
       toType: "image/jpeg",
     }).then(function (resultBlob) {
-      validateAndConvertIfNeeded(new File([resultBlob], file.name, { type: 'image/jpeg' }));
-    }).catch(function (error) {
-      handleHeicHeifError(error);
-    });
-  }
-
-  function handleHeicHeifError(error) {
-    let errorMessage = "Die HEIC/HEIF-Datei konnte nicht verarbeitet werden.";
-    showErrors({ picture: [errorMessage] }, 0);
-    resetPreview();
-  }
-
-  function validateAndConvertIfNeeded(file) {
-    const img = new Image();
-    img.onload = function() {
-      URL.revokeObjectURL(this.src);
-      if (file.size > 10 * 1024 * 1024 || file.type !== 'image/webp') {
-        // Convert to WebP if file is large or not already WebP
-        convertToWebP(file, file.size > 10 * 1024 * 1024 ? 0.5 : 0.7);
+      // Check the size of the converted JPG
+      if (resultBlob.size > 10 * 1024 * 1024) {
+        // If larger than 10MB, use stronger compression
+        convertToWebP(resultBlob, 0.5);  // Adjust compression level as needed
       } else {
-        // File is already WebP and not too large, just update preview
-        updatePreview(file);
+        convertToWebP(resultBlob, 0.7);  // Use normal compression
       }
-    };
-    img.onerror = function() {
-      URL.revokeObjectURL(this.src);
-      showErrors({ picture: ["Das Bild konnte nicht geladen werden. Bitte versuchen Sie es mit einem anderen Bild."] }, 0);
-      resetPreview();
-    };
-    img.src = URL.createObjectURL(file);
+    }).catch(function (x) {
+      console.error(x.message);
+      // Hide loader and show upload text on error
+      uploadLoader.classList.add('hidden');
+      uploadText.style.display = 'flex';
+    });
+  } else {
+    convertToWebP(file, 0.7);  // Use normal compression for non-HEIC files
   }
+}
 
-  function validateAndUpdatePreview(file) {
-    const img = new Image();
-    img.onload = function() {
-      URL.revokeObjectURL(this.src);
-      updatePreview(file);
-    };
-    img.onerror = function() {
-      URL.revokeObjectURL(this.src);
-      showErrors({ picture: ["Die Datei scheint kein gültiges Bild zu sein."] }, 0);
-      resetPreview();
-    };
-    img.src = URL.createObjectURL(file);
-  }
+function updatePreview(file) {
+  var reader = new FileReader();
+  reader.onload = function (e) {
+    previewContainer.style.display = 'flex';
+    preview.src = e.target.result;
+    uploadText.style.display = 'none';
+    uploadLoader.classList.add('hidden');  // Ensure loader is hidden
+  };
+  reader.readAsDataURL(file);
+}
 
-  function convertToWebP(file, quality) {
-    var img = new Image();
-    img.onload = function () {
-      var canvas = document.createElement('canvas');
-      canvas.width = img.width;
-      canvas.height = img.height;
-      var ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, img.width, img.height);
-      canvas.toBlob(function (blob) {
-        var convertedFile = new File([blob], 'image.webp', { type: 'image/webp' });
-
-        if (convertedFile.size > 12 * 1024 * 1024) {
-          showErrors({ picture: ["Das Bild ist zu groß. Bitte verwenden Sie ein kleineres Bild oder reduzieren Sie die Bildqualität."] }, 0);
-          resetPreview();
-          return;
-        }
-
-        var dataTransfer = new DataTransfer();
-        dataTransfer.items.add(convertedFile);
-        input.files = dataTransfer.files;
-        updatePreview(convertedFile);
-      }, 'image/webp', quality);
-    };
-    img.onerror = function() {
-      showErrors({ picture: ["Das Bild konnte nicht konvertiert werden. Bitte versuchen Sie es mit einem anderen Bild."] }, 0);
-      resetPreview();
-    };
-    img.src = URL.createObjectURL(file);
-  }
-
-  function dropHandler(ev) {
-    ev.preventDefault();
-    if (ev.dataTransfer.items) {
-      for (var i = 0; i < ev.dataTransfer.items.length; i++) {
-        if (ev.dataTransfer.items[i].kind === 'file') {
-          var file = ev.dataTransfer.items[i].getAsFile();
-          var input = document.getElementById('{{ form.picture.id }}');
-          convertImageToWebP(file);
-        }
-      }
-    }
-  }
-
-  function convertImageToWebP(file) {
-    if (file.type.startsWith('image/heic') || file.type.startsWith('image/heif')) {
-      heic2any({
-        blob: file,
-        toType: "image/jpeg",
-      }).then(function (resultBlob) {
-        // Check the size of the converted JPG
-        if (resultBlob.size > 10 * 1024 * 1024) {
-          // If larger than 10MB, use stronger compression
-          convertToWebP(resultBlob, 0.5);  // Adjust compression level as needed
-        } else {
-          convertToWebP(resultBlob, 0.7);  // Use normal compression
-        }
-      }).catch(function (x) {
-        console.error(x.message);
-        // Hide loader and show upload text on error
-        uploadLoader.classList.add('hidden');
-        uploadText.style.display = 'flex';
-      });
-    } else {
-      convertToWebP(file, 0.7);  // Use normal compression for non-HEIC files
-    }
-  }
-
-  function updatePreview(file) {
-    var reader = new FileReader();
-    reader.onload = function (e) {
-      previewContainer.style.display = 'flex';
-      preview.src = e.target.result;
-      uploadText.style.display = 'none';
-      uploadLoader.classList.add('hidden');  // Ensure loader is hidden
-    };
-    reader.readAsDataURL(file);
-  }
-
-  function resetPreview() {
-    preview.src = '';
-    previewContainer.style.display = 'none';
-    uploadText.style.display = 'flex';
-    uploadLoader.classList.add('hidden');
-  }
+function resetPreview() {
+  preview.src = '';
+  previewContainer.style.display = 'none';
+  uploadText.style.display = 'flex';
+  uploadLoader.classList.add('hidden');
+}
 
 
   function clearErrorsForField(fieldName) {
@@ -1189,10 +1210,6 @@ Forschung. {% endblock %}
     }
   }
 
-  //document.getElementById('submitBtn').addEventListener('click', (event) => {
-  //event.target.disabled = true;
-  //console.log("Button disabled");
-  //});
 
 
   document.getElementById('mainForm').addEventListener('submit', (event) => {
@@ -1211,17 +1228,13 @@ Forschung. {% endblock %}
     loadingMsg.classList.remove('hidden');
     console.log('Loading shown');
 
-    // Clear local storage with a try-catch block
-    try {
-      localStorage.clear();
-    } catch (e) {
-      console.error('Error clearing localStorage:', e);
-    }
-
     // Use a flag to ensure the form is submitted only once
     if (!submitBtn.classList.contains('form-submitted')) {
       submitBtn.classList.add('form-submitted');
       event.target.submit();
+
+      // Clear localStorage after form-submitted class is added
+      localStorage.clear();
     }
   });
 
@@ -1285,7 +1298,7 @@ Forschung. {% endblock %}
         `;
         summaryMarkerPopup.setContent(popupContent);
 
-        // Picture is loaded directly from input as per your request, not from localStorage
+        // Picture is loaded directly from input not from localStorage
         const pictureInput = document.getElementById('picture');
         const file = pictureInput.files[0];
         if (file) {

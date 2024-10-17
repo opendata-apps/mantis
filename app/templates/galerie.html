@@ -1,4 +1,4 @@
-{% from "macro.html" import popover %}
+{% from "macro.html" import popoverOld %}
 
 {% extends "layout.html" %}
 {% block title %}Bildergalerie{% endblock title %}
@@ -11,7 +11,7 @@
       <span class="sm:hidden">Interessante<br> Momentaufnahmen</span>
       <span class="hidden sm:block">Interessante Momentaufnahmen</span>
     </h2>
-    {{ popover('hinweise-popover', 'Hinweise zur Bedienung', '<ul><li>Das Bild anklicken, Bilderserie startet …</li><li>Mit Pfeil nach rechts, vorblättern …</li><li>Mit Pfeil nach links, zurückblättern …</li><li>Mit ESC-Taste, die Bilderschau beenden …</li></ul>') }}
+    {{ popoverOld('hinweise-popover', 'Hinweise zur Bedienung', '<ul><li>Das Bild anklicken, Bilderserie startet …</li><li>Mit Pfeil nach rechts, vorblättern …</li><li>Mit Pfeil nach links, zurückblättern …</li><li>Mit ESC-Taste, die Bilderschau beenden …</li></ul>') }}
   </div>
   <div class="grid grid-cols-1 gap-4 px-2 md:grid-cols-3 lg:grid-cols-4 xl:px-8 auto-rows-[1fr]">
     <link href="{{ url_for('static', filename='lb/css/lightbox.min.css')}}" rel="stylesheet">

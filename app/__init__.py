@@ -1,15 +1,16 @@
-import click
-from flask.cli import with_appcontext
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import text
-from flask_migrate import Migrate
-from .config import Config
-from flask_wtf.csrf import CSRFProtect
-from werkzeug.middleware.proxy_fix import ProxyFix
-from flask import render_template
 import random
+from datetime import datetime
 
+import click
+from flask import Flask, render_template
+from flask.cli import with_appcontext
+from flask_migrate import Migrate
+from flask_sqlalchemy import SQLAlchemy
+from flask_wtf.csrf import CSRFProtect
+from sqlalchemy import text
+from werkzeug.middleware.proxy_fix import ProxyFix
+
+from .config import Config
 
 csrf = CSRFProtect()
 db = SQLAlchemy()
@@ -61,12 +62,16 @@ def create_app(config_class=Config):
     # https://flask.palletsprojects.com/en/2.3.x/deploying/proxy_fix/
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
+    @app.context_processor
+    def inject_now():
+        return {"now": datetime.utcnow()}
+
     # Import the routes
-    from app.routes.main import main
     from app.routes.admin import admin
     from app.routes.data import data
-    from app.routes.statistics import stats
+    from app.routes.main import main
     from app.routes.provider import provider
+    from app.routes.statistics import stats
 
     csrf.exempt(main)
     csrf.exempt(admin)
