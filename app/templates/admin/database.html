@@ -218,9 +218,11 @@ block content %}
   let editModalInstance;
   let observer;
   let previouslySelectedCell = null;
+  let sentinel = null;
+  let allDataLoaded = false;
 
   document.addEventListener("DOMContentLoaded", function () {
-    fetchTableData();
+    initializeInfiniteScroll();
     const modalElement = document.getElementById("editModal");
     editModalInstance = new Modal(modalElement, {
       backdrop: "static",
@@ -230,8 +232,6 @@ block content %}
         currentlyEditingCellData = null;
       },
     });
-
-    setupInfiniteScroll();
 
     document
       .querySelector('button[onclick="clearSearch()"]')
@@ -264,26 +264,67 @@ block content %}
       });
   });
 
-  function setupInfiniteScroll() {
-    const sentinel = document.createElement("div");
-    sentinel.id = "scrollSentinel";
-    document.getElementById("scrollContainer").appendChild(sentinel);
+  function initializeInfiniteScroll() {
+    // Create the sentinel if it doesn't exist
+    if (!sentinel) {
+      sentinel = document.createElement("div");
+      sentinel.id = "scrollSentinel";
+      sentinel.style.height = "1px";
+    }
 
+    // Append the sentinel to the scrollable container
+    const scrollContainer = document.getElementById("scrollContainer");
+    if (!scrollContainer) return;
+
+    if (!scrollContainer.contains(sentinel)) {
+      scrollContainer.appendChild(sentinel);
+    }
+
+    // If an observer exists, disconnect it
+    if (observer) {
+      observer.disconnect();
+    }
+
+    // Create a new observer
     observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && !isLoading) {
-          currentPage++;
-          fetchTableData();
+        if (entries[0].isIntersecting && !isLoading && !allDataLoaded) {
+          const totalPages = Math.ceil(totalItems / itemsPerPage);
+          if (currentPage < totalPages) {
+            currentPage++;
+            fetchTableData();
+          } else {
+            allDataLoaded = true;
+            observer.disconnect();
+          }
         }
       },
       {
-        root: document.getElementById("scrollContainer"),
-        rootMargin: "0px",
-        threshold: 1.0,
+        root: scrollContainer,
+        rootMargin: "100px",
+        threshold: 0.1,
       }
     );
 
+    // Start observing the sentinel
     observer.observe(sentinel);
+
+    // Check if we need to load more data immediately
+    checkIfMoreDataNeeded();
+  }
+
+  function checkIfMoreDataNeeded() {
+    const scrollContainer = document.getElementById("scrollContainer");
+    if (!scrollContainer || allDataLoaded) return;
+
+    // If the container isn't scrollable yet and we have more data to load
+    if (scrollContainer.scrollHeight <= scrollContainer.clientHeight) {
+      const totalPages = Math.ceil(totalItems / itemsPerPage);
+      if (currentPage < totalPages && !isLoading) {
+        currentPage++;
+        fetchTableData();
+      }
+    }
   }
 
   document.getElementById("searchInput").addEventListener("input", function () {
@@ -291,9 +332,9 @@ block content %}
     debounceTimer = setTimeout(() => {
       searchTerm = this.value;
       currentPage = 1;
+      allDataLoaded = false;
       document.getElementById("tableBody").innerHTML = "";
-      observer.disconnect();
-      setupInfiniteScroll();
+      initializeInfiniteScroll();
       fetchTableData();
       saveState();
     }, 300);
@@ -305,8 +346,7 @@ block content %}
       e.preventDefault();
       currentPage = 1;
       document.getElementById("tableBody").innerHTML = "";
-      observer.disconnect();
-      setupInfiniteScroll();
+      initializeInfiniteScroll();
       fetchTableData();
     });
 
@@ -319,7 +359,7 @@ block content %}
   }
 
   function fetchTableData() {
-    if (isLoading) return Promise.resolve();
+    if (isLoading || allDataLoaded) return Promise.resolve();
     isLoading = true;
 
     showLoadingIndicator();
@@ -336,28 +376,45 @@ block content %}
     url.searchParams.append("sort_direction", sortDirection);
 
     return fetch(url)
-      .then((response) => response.json())
+      .then((response) => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.json();
+      })
       .then((data) => {
         if (data.error) {
-          alert(data.error);
-          return;
+          throw new Error(data.error);
         }
+
         columnTypes = data.column_types;
         nonEditableFields = data.non_editable_fields;
         totalItems = data.total_items;
 
         if (data.data.length === 0) {
-          observer.disconnect();
+          allDataLoaded = true;
+          observer?.disconnect();
           return;
         }
 
         displayTable(data.columns, data.data, currentPage === 1);
         updateSortIndicators();
-        saveState();
+
+        // Only save state if this is not part of initial loading
+        if (!document.hidden) {
+          saveState();
+        }
+
+        // Check if we've reached the last page
+        const totalPages = Math.ceil(totalItems / itemsPerPage);
+        if (currentPage >= totalPages) {
+          allDataLoaded = true;
+          observer?.disconnect();
+        }
       })
       .catch((error) => {
         console.error("Error:", error);
-        alert("An error occurred while fetching data. Please try again later.");
+        if (!document.hidden) {
+          alert("An error occurred while fetching data. Please try again later.");
+        }
       })
       .finally(() => {
         isLoading = false;
@@ -440,6 +497,15 @@ block content %}
     }
 
     tableContainer.classList.remove("hidden");
+
+    // Re-append the sentinel to ensure it's at the bottom
+    const scrollContainer = document.getElementById("scrollContainer");
+    if (scrollContainer.contains(sentinel)) {
+      scrollContainer.removeChild(sentinel);
+    }
+    if (!allDataLoaded) {
+      scrollContainer.appendChild(sentinel);
+    }
   }
 
   function toggleSortOrder(column) {
@@ -451,8 +517,7 @@ block content %}
     }
     currentPage = 1;
     document.getElementById("tableBody").innerHTML = "";
-    observer.disconnect();
-    setupInfiniteScroll();
+    initializeInfiniteScroll();
     fetchTableData();
   }
 
@@ -490,8 +555,7 @@ block content %}
     sortDirection = "asc";
     document.getElementById("searchInput").value = "";
     document.getElementById("tableBody").innerHTML = "";
-    observer.disconnect();
-    setupInfiniteScroll();
+    initializeInfiniteScroll();
     fetchTableData();
   }
 
@@ -761,16 +825,29 @@ block content %}
 
     document.getElementById("searchInput").value = searchTerm;
     changeInputPattern();
-    fetchTableData();
+
+    // Load all pages up to the saved page
+    const promises = [];
+    for (let i = 1; i <= currentPage; i++) {
+      const tempPage = currentPage;
+      currentPage = i;
+      promises.push(fetchTableData());
+    }
+
+    // Wait for all pages to load
+    Promise.all(promises).then(() => {
+      currentPage = parseInt(localStorage.getItem("currentPage")) || 1;
+      checkIfMoreDataNeeded();
+    });
   }
 
   function clearSearch() {
     document.getElementById("searchInput").value = "";
     searchTerm = "";
     currentPage = 1;
+    allDataLoaded = false;
     document.getElementById("tableBody").innerHTML = "";
-    observer.disconnect();
-    setupInfiniteScroll();
+    initializeInfiniteScroll();
     fetchTableData();
     saveState();
   }
@@ -796,6 +873,17 @@ block content %}
   });
 
   window.addEventListener("load", loadState);
+
+  // Add window resize handler
+  let resizeTimeout;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+      if (!allDataLoaded) {
+        checkIfMoreDataNeeded();
+      }
+    }, 250);
+  });
 </script>
 
 {% endblock %}
