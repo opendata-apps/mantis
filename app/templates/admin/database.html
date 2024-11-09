@@ -63,50 +63,15 @@ block content %}
             </svg>
           </button>
         </div>
+        <!-- Dropdown for search type -->
+        <div class="relative">
+          <select id="searchType" name="search_type" onchange="changeInputPattern()"
+            class="block h-full px-4 py-2 leading-tight bg-transparent rounded-r-lg search focus:ring-0 focus:border-transparent">
+            <option value="full_text">Text</option>
+            <option value="id">ID</option>
+          </select>
+        </div>
       </form>
-    </div>
-
-    <div class="flex items-center w-full space-x-4 md:w-auto">
-      <!-- Sort Button -->
-      <button id="dropdownSortButton" data-dropdown-toggle="sortDropdown"
-        class="flex items-center justify-center flex-grow px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200">
-        <span id="sortText">Sort...</span>
-        <svg class="-mr-1 ml-1.5 w-5 h-5" fill="currentColor" viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true">
-          <path clip-rule="evenodd" fill-rule="evenodd"
-            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
-        </svg>
-      </button>
-
-      <!-- Custom Dropdown Menu -->
-      <div id="sortDropdown" class="z-10 hidden w-48 bg-white divide-y divide-gray-100 rounded-lg shadow">
-        <ul class="py-2 text-sm text-gray-700" aria-labelledby="dropdownSortButton">
-          <li id="id_asc" class="flex items-center px-4 py-2 hover:bg-gray-100" onclick="setSortOrder('id_asc')">
-            <div id="id_asc_indicator" class="hidden w-2 h-2 mr-2 bg-green-500 rounded-full"></div>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-              class="mr-2 bi bi-sort-numeric-up" viewBox="0 0 16 16">
-              <path d="M12.438 1.668V7H11.39V2.684h-.051l-1.211.859v-.969l1.262-.906h1.046z" />
-              <path fill-rule="evenodd"
-                d="M11.36 14.098c-1.137 0-1.708-.657-1.762-1.278h1.004c.058.223.343.45.773.45.824 0 1.164-.829 1.133-1.856h-.059c-.148.39-.57.742-1.261.742-.91 0-1.72-.613-1.72-1.758 0-1.148.848-1.835 1.973-1.835 1.09 0 2.063.636 2.063 2.687 0 1.867-.723 2.848-2.145 2.848zm.062-2.735c.504 0 .933-.336.933-.972 0-.633-.398-1.008-.94-1.008-.52 0-.927.375-.927 1 0 .64.418.98.934.98z" />
-              <path
-                d="M4.5 13.5a.5.5 0 0 1-1 0V3.707L2.354 4.854a.5.5 0 1 1-.708-.708l2-1.999.007-.007a.498.498 0 0 1 .7.006l2 2a.5.5 0 1 1-.707.708L4.5 3.707V13.5z" />
-            </svg>
-            Aufsteigend
-          </li>
-          <li id="id_desc" class="flex items-center px-4 py-2 hover:bg-gray-100" onclick="setSortOrder('id_desc')">
-            <div id="id_desc_indicator" class="hidden w-2 h-2 mr-2 bg-green-500 rounded-full"></div>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-              class="mr-2 bi bi-sort-numeric-down" viewBox="0 0 16 16">
-              <path d="M12.438 1.668V7H11.39V2.684h-.051l-1.211.859v-.969l1.262-.906h1.046z" />
-              <path fill-rule="evenodd"
-                d="M11.36 14.098c-1.137 0-1.708-.657-1.762-1.278h1.004c.058.223.343.45.773.45.824 0 1.164-.829 1.133-1.856h-.059c-.148.39-.57.742-1.261.742-.91 0-1.72-.613-1.72-1.758 0-1.148.848-1.835 1.973-1.835 1.09 0 2.063.636 2.063 2.687 0 1.867-.723 2.848-2.145 2.848zm.062-2.735c.504 0 .933-.336.933-.972 0-.633-.398-1.008-.94-1.008-.52 0-.927.375-.927 1 0 .64.418.98.934.98z" />
-              <path
-                d="M4.5 2.5a.5.5 0 0 0-1 0v9.793l-1.146-1.147a.5.5 0 0 0-.708.708l2 1.999.007.007a.497.497 0 0 0 .7-.006l2-2a.5.5 0 0 0-.707-.708L4.5 12.293V2.5z" />
-            </svg>
-            Absteigend
-          </li>
-        </ul>
-      </div>
     </div>
 
     <div class="flex items-center w-full space-x-4 md:w-auto">
@@ -219,6 +184,20 @@ block content %}
       overflow-x: auto;
       white-space: nowrap;
     }
+  }
+
+  .editable {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+  }
+
+  .allow-select {
+    user-select: text !important;
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
   }
 </style>
 
@@ -352,6 +331,7 @@ block content %}
     url.searchParams.append("page", currentPage);
     url.searchParams.append("per_page", itemsPerPage);
     url.searchParams.append("search", searchTerm);
+    url.searchParams.append("search_type", document.getElementById("searchType").value);
     url.searchParams.append("sort_column", sortColumn);
     url.searchParams.append("sort_direction", sortDirection);
 
@@ -408,7 +388,6 @@ block content %}
     const rowsHtml = data
       .map((row, rowIndex) => {
         let rowHtml = "";
-        // Get the idValue from the row data
         const idIndex = columns.indexOf("id");
         const idValue = idIndex !== -1 ? row[idIndex] : null;
 
@@ -416,6 +395,18 @@ block content %}
           const columnName = columns[cellIndex];
           const cellType = columnTypes[columnName];
           const isEditable = !nonEditableFields.includes(columnName);
+
+          let displayValue = cell;
+          if (cellType === "date" && cell) {
+            try {
+              const date = new Date(cell);
+              if (!isNaN(date.getTime())) {
+                displayValue = date.toISOString().split('T')[0];
+              }
+            } catch (e) {
+              console.warn("Failed to format date:", cell);
+            }
+          }
 
           let additionalDataAttributes = "";
           if (columnName === "report_user_db_id") {
@@ -433,7 +424,7 @@ block content %}
             data-type="${cellType}"
             data-id-value="${idValue}"
             tabindex="0"
-            ${additionalDataAttributes}>${cell}</td>`;
+            ${additionalDataAttributes}>${displayValue}</td>`;
         });
         return `<tr class="${(tableBody.rows.length + rowIndex) % 2 === 0
           ? "bg-white"
@@ -452,14 +443,6 @@ block content %}
   }
 
   function toggleSortOrder(column) {
-    let selectedCellInfo = null;
-    if (previouslySelectedCell) {
-      selectedCellInfo = {
-        idValue: previouslySelectedCell.dataset.idValue,
-        column: previouslySelectedCell.dataset.column,
-      };
-    }
-
     if (sortColumn === column) {
       sortDirection = sortDirection === "asc" ? "desc" : "asc";
     } else {
@@ -470,19 +453,7 @@ block content %}
     document.getElementById("tableBody").innerHTML = "";
     observer.disconnect();
     setupInfiniteScroll();
-    fetchTableData().then(() => {
-      if (selectedCellInfo) {
-        const cell = findCellByIdAndColumn(
-          selectedCellInfo.idValue,
-          selectedCellInfo.column
-        );
-        if (cell) {
-          cell.focus();
-          selectCell(cell);
-          cell.scrollIntoView({ block: "center" });
-        }
-      }
-    });
+    fetchTableData();
   }
 
   function findCellByIdAndColumn(idValue, columnName) {
@@ -569,9 +540,21 @@ block content %}
     if (!value) return "";
     switch (type) {
       case "date":
-        return value.slice(0, 10);
+        try {
+          const date = new Date(value);
+          if (isNaN(date.getTime())) return value;
+          return date.toISOString().split('T')[0];
+        } catch (e) {
+          return value;
+        }
       case "datetime":
-        return value.slice(0, 16);
+        try {
+          const date = new Date(value);
+          if (isNaN(date.getTime())) return value;
+          return date.toISOString().slice(0, 16);
+        } catch (e) {
+          return value;
+        }
       default:
         return value;
     }
@@ -582,7 +565,7 @@ block content %}
     switch (type) {
       case "boolean":
         input = document.createElement("select");
-        input.classList.add("w-full", "p-2", "border", "rounded");
+        input.classList.add("w-full", "p-2", "border", "rounded", "allow-select");
         input.innerHTML = `
           <option value="true" ${currentValue === "true" ? "selected" : ""
           }>true</option>
@@ -590,16 +573,26 @@ block content %}
           }>false</option>
         `;
         break;
+      case "date":
+        input = document.createElement("input");
+        input.type = "date";
+        input.value = formatValueForInput("date", currentValue);
+        input.classList.add("w-full", "p-2", "border", "rounded", "allow-select");
+        break;
+      case "datetime":
+        input = document.createElement("input");
+        input.type = "datetime-local";
+        input.value = formatValueForInput("datetime", currentValue);
+        input.classList.add("w-full", "p-2", "border", "rounded", "allow-select");
+        break;
       case "integer":
       case "float":
-      case "date":
-      case "datetime":
       default:
         input = document.createElement("input");
-        input.type = type === "integer" ? "number" : type;
+        input.type = type === "integer" ? "number" : "text";
         if (type === "float") input.step = "any";
         input.value = formatValueForInput(type, currentValue);
-        input.classList.add("w-full", "p-2", "border", "rounded");
+        input.classList.add("w-full", "p-2", "border", "rounded", "allow-select");
         break;
     }
     return input;
@@ -752,6 +745,7 @@ block content %}
     localStorage.setItem("sortColumn", sortColumn);
     localStorage.setItem("sortDirection", sortDirection);
     localStorage.setItem("currentPage", currentPage);
+    localStorage.setItem("searchType", document.getElementById("searchType").value);
   }
 
   function loadState() {
@@ -759,8 +753,14 @@ block content %}
     sortColumn = localStorage.getItem("sortColumn") || "id";
     sortDirection = localStorage.getItem("sortDirection") || "asc";
     currentPage = parseInt(localStorage.getItem("currentPage")) || 1;
+    const savedSearchType = localStorage.getItem("searchType");
+
+    if (savedSearchType) {
+      document.getElementById("searchType").value = savedSearchType;
+    }
 
     document.getElementById("searchInput").value = searchTerm;
+    changeInputPattern();
     fetchTableData();
   }
 
@@ -774,6 +774,26 @@ block content %}
     fetchTableData();
     saveState();
   }
+
+  function changeInputPattern() {
+    const searchType = document.getElementById('searchType').value;
+    const searchInput = document.getElementById('searchInput');
+
+    if (searchType === 'id') {
+      searchInput.setAttribute('pattern', '\\d+');
+      searchInput.setAttribute('title', 'Only IDs are allowed');
+      searchInput.setAttribute('inputmode', 'numeric');
+    } else {
+      searchInput.removeAttribute('pattern');
+      searchInput.removeAttribute('title');
+      searchInput.setAttribute('inputmode', 'text');
+    }
+  }
+
+  // Call the function on page load to set the initial pattern
+  window.addEventListener('load', (event) => {
+    changeInputPattern();
+  });
 
   window.addEventListener("load", loadState);
 </script>

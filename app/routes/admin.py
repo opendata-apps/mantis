@@ -656,6 +656,7 @@ def get_table_data(table_name):
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 10, type=int)
         search = request.args.get('search', '')
+        search_type = request.args.get('search_type', 'full_text')  # Get search type
         sort_column = request.args.get('sort_column', 'id')
         sort_direction = request.args.get('sort_direction', 'asc')
 
@@ -685,15 +686,24 @@ def get_table_data(table_name):
         stmt = db.select(table)
 
         # Apply search filter if search term is provided
-        search_filters = []
         if search:
-            for column in table.columns:
-                if isinstance(column.type, db.String):
-                    search_filters.append(column.ilike(f'%{search}%'))
-                elif isinstance(column.type, (db.Integer, db.Float)):
-                    search_filters.append(cast(column, String).ilike(f'%{search}%'))
-            if search_filters:
-                stmt = stmt.where(or_(*search_filters))
+            if search_type == 'id':
+                try:
+                    # Try to convert search term to integer for ID search
+                    search_id = int(search)
+                    stmt = stmt.where(table.c.id == search_id)
+                except ValueError:
+                    # If conversion fails, return no results
+                    stmt = stmt.where(table.c.id == -1)  # This ensures no results
+            else:  # full_text search
+                search_filters = []
+                for column in table.columns:
+                    if isinstance(column.type, db.String):
+                        search_filters.append(column.ilike(f'%{search}%'))
+                    elif isinstance(column.type, (db.Integer, db.Float)):
+                        search_filters.append(cast(column, String).ilike(f'%{search}%'))
+                if search_filters:
+                    stmt = stmt.where(or_(*search_filters))
 
         # Apply sorting
         if sort_direction == 'asc':
@@ -703,8 +713,16 @@ def get_table_data(table_name):
 
         # Get total count for pagination
         total_items_stmt = db.select(db.func.count()).select_from(table)
-        if search_filters:
-            total_items_stmt = total_items_stmt.where(or_(*search_filters))
+        if search:
+            if search_type == 'id':
+                try:
+                    search_id = int(search)
+                    total_items_stmt = total_items_stmt.where(table.c.id == search_id)
+                except ValueError:
+                    total_items_stmt = total_items_stmt.where(table.c.id == -1)
+            else:
+                if search_filters:
+                    total_items_stmt = total_items_stmt.where(or_(*search_filters))
         total_items = db.session.execute(total_items_stmt).scalar()
 
         # Apply pagination
@@ -733,7 +751,7 @@ def get_table_data(table_name):
         column_types = {column.name: get_standard_type(column.type) for column in table.columns}
 
         # Exclude sensitive columns
-        EXCLUDED_COLUMNS = ['report_user_db_id', 'fundorte_id', 'beschreibung_id']
+        EXCLUDED_COLUMNS = ['report_user_db_id', 'fundorte_id', 'beschreibung_id', 'dat_fund_bis', 'fo_beleg']
         columns_with_excluded = columns.copy()
         columns = [col for col in columns if col not in EXCLUDED_COLUMNS]
         column_types = {col: column_types[col] for col in columns}
