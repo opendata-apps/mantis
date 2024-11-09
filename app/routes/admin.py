@@ -426,21 +426,6 @@ def undelete_sighting(id):
         return jsonify({"error": "Report not found"}), 404
 
 
-@admin.route("/save_sighting_changes/<id>", methods=["POST"])
-@login_required
-def save_sighting_changes(id):
-    "Save changes to sighting based on id"
-    # Find the report by id
-
-    sighting = TblMeldungen.query.get(id)
-    if sighting:
-        sighting = session["user_id"]
-        db.session.commit()
-        return jsonify({"success": True})
-    else:
-        return jsonify({"error": "Report not found"}), 404
-
-
 @admin.route("/change_mantis_gender/<int:id>", methods=["POST"])
 @login_required
 def change_gender(id):
@@ -502,45 +487,24 @@ def change_mantis_count(id):
     return jsonify(success=True)
 
 
-@admin.route("/admin/export/csv/<table_name>", methods=["GET"])
+@admin.route("/admin/export/xlsx/<string:value>")
 @login_required
-def export_csv(table_name):
-    "Export the data from the specified table as a CSV file"
-    if table_name in ['aemter', 'alembic_version']:
-        return jsonify({"error": "Access to this table is not allowed"}), 403
-
-    try:
-        table = db.metadata.tables.get(table_name)
-        if table is None:
-            return jsonify({"error": "Table not found"}), 404
-
-        query = db.select(table)
-        result = db.session.execute(query)
-
-        output = StringIO()
-        writer = csv.writer(output)
-
-        # Write headers
-        writer.writerow([column.name for column in table.columns])
-
-@admin.route("/admin/export/xlsx/<table_name>")
-@login_required
-def export_data(table_name):
+def export_data(value):
     "Export the data from the database as an Excel file"
     try:
         current_time = datetime.now().strftime("%d.%m.%Y_%H%M")
 
-        if table_name == "all":
+        if value == "all":
             data = perform_query()
             filename = f"Alle_Meldungen_{current_time}.xlsx"
-        elif table_name == "accepted":
+        elif value == "accepted":
             data = perform_query(filter_value=True)
             filename = f"Akzeptierte_Meldungen_{current_time}.xlsx"
-        elif table_name == "non_accepted":
+        elif value == "non_accepted":
             data = perform_query(filter_value=False)
             filename = f"Nicht_akzeptierte_Meldungen_{current_time}.xlsx"
         else:
-            return jsonify({"error": "Invalid export type"}), 400
+            abort(404, description="Resource not found")
 
         data_dicts = [row2dict(row) for row in data]
         df = pd.DataFrame(data_dicts)
@@ -548,15 +512,19 @@ def export_data(table_name):
         # Write the DataFrame to an Excel file
         output = BytesIO()
         with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
-            df.to_excel(writer, sheet_name=table_name, index=False)
+            df.to_excel(writer, sheet_name="Daten", index=False)
             
             # Get the xlsxwriter workbook and worksheet objects
-            worksheet = writer.sheets[table_name]
+            workbook = writer.book
+            worksheet = writer.sheets["Daten"]
             
             # Add a table to the worksheet
             (max_row, max_col) = df.shape
             column_settings = [{'header': column} for column in df.columns]
-            worksheet.add_table(0, 0, max_row, max_col - 1, {'columns': column_settings, 'style': 'Table Style Medium 9'})
+            worksheet.add_table(0, 0, max_row, max_col - 1, {
+                'columns': column_settings,
+                'style': 'Table Style Medium 9'
+            })
             
             # Auto-adjust columns' width
             for i, col in enumerate(df.columns):
@@ -567,28 +535,11 @@ def export_data(table_name):
         output.seek(0)
 
         # Send the file
-        return send_file(
-            output,
-            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            as_attachment=True,
-            download_name=filename
-        )
+        mime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        return send_file(output, mimetype=mime, as_attachment=True, download_name=filename)
     except Exception as e:
-        # Log the error for debugging
-        print(f"Error in export_data: {str(e)}")
+        current_app.logger.exception("Error in export_data")
         return jsonify({"error": "An error occurred during export"}), 500
-
-
-        output.seek(0)
-
-        return Response(
-            output,
-            mimetype="text/csv",
-            headers={"Content-Disposition": f"attachment;filename={table_name}.csv"}
-        )
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
 
 
 def update_report_image_date(report_id, new_date):
@@ -687,40 +638,6 @@ def perform_query(filter_value=None):
 
     return query.all()
 
-
-@admin.route("/admin/export/xlsx/<string:value>")
-@login_required
-def export_data(value):
-    "Export the data from the database as an Excel file"
-    # TODO: not perfect, but works for now
-    current_time = datetime.now().strftime("%d.%m.%Y_%H%M")
-
-    if value == "all":
-        data = perform_query()
-        filename = f"Alle_Meldungen_{current_time}.xlsx"
-    elif value == "accepted":
-        data = perform_query(filter_value=True)
-        filename = f"Akzeptierte_Meldungen_{current_time}.xlsx"
-    elif value == "non_accepted":
-        data = perform_query(filter_value=False)
-        filename = f"Nicht_akzeptierte_Meldungen_{current_time}.xlsx"
-    else:
-        abort(404, description="Resource not found")
-
-    data_dicts = [row2dict(row) for row in data]
-    df = pd.DataFrame(data_dicts)
-
-    # Write the DataFrame to an Excel file
-    output = BytesIO()
-    with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
-        df.to_excel(writer, sheet_name="Daten", index=False)
-
-    # Reset the file pointer to the beginning
-    output.seek(0)
-
-    # Send the file
-    mime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    return send_file(output, mimetype=mime, as_attachment=True, download_name=filename)
 
 @admin.route("/admin/database")
 @login_required
