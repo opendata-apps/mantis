@@ -93,7 +93,7 @@ def reviewer(usrid):
 
     filter_status = request.args.get("statusInput", "offen")
     filter_type = request.args.get("typeInput", None)
-    sort_order = request.args.get("sort_order", "id_asc")
+    sort_order = request.args.get("sort_order", "id_desc")  # Changed default to desc
     search_query = request.args.get("q", None)
     search_type = request.args.get("search_type", "full_text")
     date_from = request.args.get("dateFrom", None)
@@ -106,7 +106,7 @@ def reviewer(usrid):
     if "statusInput" not in request.args and "sort_order" not in request.args:
         return redirect(
             url_for(
-                "admin.reviewer", usrid=usrid, statusInput="offen", sort_order="id_asc"
+                "admin.reviewer", usrid=usrid, statusInput="offen", sort_order="id_desc"  # Changed to desc
             )
         )
 
