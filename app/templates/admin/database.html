@@ -335,7 +335,10 @@ block content %}
   let allDataLoaded = false;
 
   document.addEventListener("DOMContentLoaded", function () {
-    initializeInfiniteScroll();
+    fetchTableData().then(() => {
+      initializeInfiniteScroll();
+    });
+
     const modalElement = document.getElementById("editModal");
     editModalInstance = new Modal(modalElement, {
       backdrop: "static",
@@ -378,27 +381,22 @@ block content %}
   });
 
   function initializeInfiniteScroll() {
-    // Create the sentinel if it doesn't exist
+    const scrollContainer = document.getElementById("scrollContainer");
+    if (!scrollContainer) return;
+
+    // Clean up old observer
+    if (observer) {
+      observer.disconnect();
+      observer = null;
+    }
+
+    // Create new sentinel if needed
     if (!sentinel) {
       sentinel = document.createElement("div");
       sentinel.id = "scrollSentinel";
       sentinel.style.height = "1px";
     }
 
-    // Append the sentinel to the scrollable container
-    const scrollContainer = document.getElementById("scrollContainer");
-    if (!scrollContainer) return;
-
-    if (!scrollContainer.contains(sentinel)) {
-      scrollContainer.appendChild(sentinel);
-    }
-
-    // If an observer exists, disconnect it
-    if (observer) {
-      observer.disconnect();
-    }
-
-    // Create a new observer
     observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && !isLoading && !allDataLoaded) {
@@ -408,7 +406,9 @@ block content %}
             fetchTableData();
           } else {
             allDataLoaded = true;
-            observer.disconnect();
+            if (observer) {
+              observer.disconnect();
+            }
           }
         }
       },
@@ -419,25 +419,10 @@ block content %}
       }
     );
 
-    // Start observing the sentinel
-    observer.observe(sentinel);
-
-    // Check if we need to load more data immediately
-    checkIfMoreDataNeeded();
-  }
-
-  function checkIfMoreDataNeeded() {
-    const scrollContainer = document.getElementById("scrollContainer");
-    if (!scrollContainer || allDataLoaded) return;
-
-    // If the container isn't scrollable yet and we have more data to load
-    if (scrollContainer.scrollHeight <= scrollContainer.clientHeight) {
-      const totalPages = Math.ceil(totalItems / itemsPerPage);
-      if (currentPage < totalPages && !isLoading) {
-        currentPage++;
-        fetchTableData();
-      }
+    if (!scrollContainer.contains(sentinel)) {
+      scrollContainer.appendChild(sentinel);
     }
+    observer.observe(sentinel);
   }
 
   document.getElementById("searchInput").addEventListener("input", function () {
@@ -472,9 +457,8 @@ block content %}
   }
 
   function fetchTableData() {
-    if (isLoading || allDataLoaded) return Promise.resolve();
+    if (isLoading) return Promise.resolve();
     isLoading = true;
-
     showLoadingIndicator();
 
     const url = new URL(
@@ -494,40 +478,28 @@ block content %}
         return response.json();
       })
       .then((data) => {
-        if (data.error) {
-          throw new Error(data.error);
-        }
-
         columnTypes = data.column_types;
         nonEditableFields = data.non_editable_fields;
         totalItems = data.total_items;
 
         if (data.data.length === 0) {
           allDataLoaded = true;
-          observer?.disconnect();
           return;
         }
 
         displayTable(data.columns, data.data, currentPage === 1);
         updateSortIndicators();
 
-        // Only save state if this is not part of initial loading
-        if (!document.hidden) {
-          saveState();
-        }
-
-        // Check if we've reached the last page
         const totalPages = Math.ceil(totalItems / itemsPerPage);
         if (currentPage >= totalPages) {
           allDataLoaded = true;
-          observer?.disconnect();
+        } else {
+          allDataLoaded = false;
         }
       })
       .catch((error) => {
         console.error("Error:", error);
-        if (!document.hidden) {
-          alert("An error occurred while fetching data. Please try again later.");
-        }
+        alert("An error occurred while fetching data. Please try again later.");
       })
       .finally(() => {
         isLoading = false;
@@ -540,6 +512,9 @@ block content %}
     const tableTitle = document.getElementById("tableTitle");
     const tableHeader = document.getElementById("tableHeader");
     const tableBody = document.getElementById("tableBody");
+    const scrollContainer = document.getElementById("scrollContainer");
+
+    if (!scrollContainer) return;
 
     tableTitle.textContent = `Table: ${currentTable}`;
 
@@ -548,9 +523,9 @@ block content %}
         .map(
           (col) =>
             `<th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase cursor-pointer" data-column="${col}">
-                ${col}
-                <span class="sort-indicator"></span>
-              </th>`
+                        ${col}
+                        <span class="sort-indicator"></span>
+                      </th>`
         )
         .join("");
     }
@@ -592,12 +567,12 @@ block content %}
             : "bg-gray-50 text-gray-500";
 
           rowHtml += `<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 ${editableClass}" 
-            data-row="${tableBody.rows.length + rowIndex}" 
-            data-column="${columnName}" 
-            data-type="${cellType}"
-            data-id-value="${idValue}"
-            tabindex="0"
-            ${additionalDataAttributes}>${displayValue}</td>`;
+                    data-row="${tableBody.rows.length + rowIndex}" 
+                    data-column="${columnName}" 
+                    data-type="${cellType}"
+                    data-id-value="${idValue}"
+                    tabindex="0"
+                    ${additionalDataAttributes}>${displayValue}</td>`;
         });
         return `<tr class="${(tableBody.rows.length + rowIndex) % 2 === 0
           ? "bg-white"
@@ -614,27 +589,64 @@ block content %}
 
     tableContainer.classList.remove("hidden");
 
-    // Re-append the sentinel to ensure it's at the bottom
-    const scrollContainer = document.getElementById("scrollContainer");
-    if (scrollContainer.contains(sentinel)) {
+    // Handle sentinel after table is populated
+    if (sentinel && scrollContainer.contains(sentinel)) {
       scrollContainer.removeChild(sentinel);
     }
+
+    // Only create and append sentinel if we have more data to load
     if (!allDataLoaded) {
+      if (!sentinel) {
+        sentinel = document.createElement("div");
+        sentinel.id = "scrollSentinel";
+        sentinel.style.height = "1px";
+      }
       scrollContainer.appendChild(sentinel);
     }
   }
 
   function toggleSortOrder(column) {
+    // Save previous values
+    const prevSortColumn = sortColumn;
+    const prevSortDirection = sortDirection;
+
+    // Update sort values
     if (sortColumn === column) {
       sortDirection = sortDirection === "asc" ? "desc" : "asc";
     } else {
       sortColumn = column;
       sortDirection = "asc";
     }
-    currentPage = 1;
-    document.getElementById("tableBody").innerHTML = "";
-    initializeInfiniteScroll();
-    fetchTableData();
+
+    // Only reset if sort actually changed
+    if (prevSortColumn !== sortColumn || prevSortDirection !== sortDirection) {
+      // Reset all state
+      currentPage = 1;
+      allDataLoaded = false;
+      isLoading = false;
+
+      // Clear existing data
+      document.getElementById("tableBody").innerHTML = "";
+
+      // Reset scroll position
+      const scrollContainer = document.getElementById("scrollContainer");
+      if (scrollContainer) {
+        scrollContainer.scrollTop = 0;
+      }
+
+      // Remove existing sentinel and observer
+      if (observer) {
+        observer.disconnect();
+      }
+      if (sentinel && sentinel.parentNode) {
+        sentinel.parentNode.removeChild(sentinel);
+      }
+
+      // Fetch new data and reinitialize scroll after data is loaded
+      fetchTableData().then(() => {
+        initializeInfiniteScroll();
+      });
+    }
   }
 
   function findCellByIdAndColumn(idValue, columnName) {
@@ -924,7 +936,6 @@ block content %}
     localStorage.setItem("searchTerm", searchTerm);
     localStorage.setItem("sortColumn", sortColumn);
     localStorage.setItem("sortDirection", sortDirection);
-    localStorage.setItem("currentPage", currentPage);
     localStorage.setItem("searchType", document.getElementById("searchType").value);
   }
 
@@ -932,8 +943,9 @@ block content %}
     searchTerm = localStorage.getItem("searchTerm") || "";
     sortColumn = localStorage.getItem("sortColumn") || "id";
     sortDirection = localStorage.getItem("sortDirection") || "asc";
-    currentPage = parseInt(localStorage.getItem("currentPage")) || 1;
     const savedSearchType = localStorage.getItem("searchType");
+
+    currentPage = 1;  // Always start from page 1
 
     if (savedSearchType) {
       document.getElementById("searchType").value = savedSearchType;
@@ -941,20 +953,7 @@ block content %}
 
     document.getElementById("searchInput").value = searchTerm;
     changeInputPattern();
-
-    // Load all pages up to the saved page
-    const promises = [];
-    for (let i = 1; i <= currentPage; i++) {
-      const tempPage = currentPage;
-      currentPage = i;
-      promises.push(fetchTableData());
-    }
-
-    // Wait for all pages to load
-    Promise.all(promises).then(() => {
-      currentPage = parseInt(localStorage.getItem("currentPage")) || 1;
-      checkIfMoreDataNeeded();
-    });
+    fetchTableData();
   }
 
   function clearSearch() {
