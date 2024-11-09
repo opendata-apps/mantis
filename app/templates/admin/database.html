@@ -474,8 +474,11 @@ block content %}
             additionalDataAttributes += ` data-beschreibung-id="${cell}"`;
           }
 
-          rowHtml += `<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 ${isEditable ? "editable cursor-pointer" : ""
-            }" 
+          const editableClass = isEditable
+            ? "editable cursor-pointer hover:bg-gray-50"
+            : "bg-gray-50 text-gray-500";
+
+          rowHtml += `<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 ${editableClass}" 
             data-row="${tableBody.rows.length + rowIndex}" 
             data-column="${columnName}" 
             data-type="${cellType}"

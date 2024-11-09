@@ -51,7 +51,18 @@ NON_EDITABLE_FIELDS = {
     "fundorte": ["id", "ablage", "beschreibung"],
     "melduser": ["id", "id_finder", "id_meldung", "id_user"],
     "users": ["id", "user_id"],
+    "all_data_view": ["id", "id_meldung", "fo_zuordnung", "report_user_db_id", "fundorte_id", "beschreibung_id"]
 }
+
+# Exclude sensitive columns
+EXCLUDED_COLUMNS = [
+    'report_user_db_id', 
+    'fundorte_id', 
+    'beschreibung_id', 
+    'dat_fund_bis', 
+    'fo_beleg', 
+    'bearb_id'
+]
 
 @admin.route("/reviewer/<usrid>")
 def reviewer(usrid):
