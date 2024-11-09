@@ -1,29 +1,87 @@
 {% extends "layout.html" %}
+
 {% block meta_keywords %}
-Mantis religiosa, Informationen, Gottesanbeterin Fakten, Lebensraum, Erkennungsmerkmale, Verbreitung, Lebenszyklus, Beobachtungstipps, Brandenburg, Berlin
+Mantis religiosa, Informationen, Gottesanbeterin Fakten, Lebensraum, Erkennungsmerkmale, Verbreitung, Lebenszyklus,
+Beobachtungstipps, Brandenburg, Berlin, Fangschrecken, Insekten, Biodiversität, Artenschutz, Ökologie
 {% endblock %}
-{% block meta_description %} Erfahren Sie mehr über Mantis religiosa, die europäische Gottesanbeterin. {% endblock %}
-{% block page_title %}Mantis Religiosa Information | Gottesanbeterin in Deutschland | Gottesanbeterin Gesucht{% endblock %}
-{% block title %}<i> Mantis religiosa </i><br /> <span class="text-base">(ein geschütztes Tier)</span>{% endblock title
-%}
+
+{% block meta_description %}
+Umfassende Informationen über Mantis religiosa (Europäische Gottesanbeterin): Steckbrief, Habitat, Verbreitung,
+Lebenszyklus und Beobachtungstipps. Erfahren Sie mehr über dieses faszinierende Insekt und seine Rolle in unserem
+Ökosystem.
+{% endblock %}
+
+{% block page_title %}
+Mantis Religiosa: Umfassende Informationen zur Europäischen Gottesanbeterin | Gottesanbeterin Gesucht
+{% endblock %}
+
+{% block head %}
+{{ super() }}
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2023-10-09" />
+<meta property="article:modified_time" content="2023-10-09" />
+<meta property="article:author" content="Gottesanbeterin Gesucht Team" />
+<meta property="article:section" content="Insektenkunde" />
+<meta property="article:tag" content="Mantis religiosa,Gottesanbeterin,Fangschrecken,Insekten,Biodiversität" />
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://gottesanbeterin-gesucht.de/mantis-religiosa"
+  },
+  "headline": "Mantis Religiosa: Umfassende Informationen zur Europäischen Gottesanbeterin",
+  "description": "Umfassende Informationen über Mantis religiosa (Europäische Gottesanbeterin): Steckbrief, Habitat, Verbreitung, Lebenszyklus und Beobachtungstipps.",
+  "image": "{{ url_for('static', filename='images/mantis--maennchen__krueger.webp', _external=True) }}",
+  "author": {
+    "@type": "Organization",
+    "name": "Gottesanbeterin Gesucht Team"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Gottesanbeterin Gesucht",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "{{ url_for('static', filename='favicon.ico', _external=True) }}"
+    }
+  },
+  "datePublished": "2023-10-09",
+  "dateModified": "2023-10-09"
+}
+</script>
+<style>
+  .section-anchor {
+    display: block;
+    position: relative;
+    top: -80px;
+    visibility: hidden;
+  }
+</style>
+{% endblock %}
+
+{% block title %}
+<i>Mantis religiosa</i><br />
+<span class="text-base">(ein geschütztes Tier)</span>
+{% endblock title %}
 
 {% block content %}
 <main class="container px-4 py-12 mx-auto sm:px-6 lg:px-8">
   <div class="grid grid-cols-1 gap-8 md:grid-cols-4">
     <aside class="order-2 md:col-span-1 md:order-1">
       <div class="sticky top-20">
-        <nav class="p-4 rounded-lg shadow-lg">
+        <nav class="p-4 bg-white rounded-lg shadow-lg">
           <h2 class="mb-2 text-xl font-bold">Inhaltsverzeichnis</h2>
-          <ul class="mb-2 ">
-            <li class="mb-2"><a href="#steckbrief" >Steckbrief</a></li>
-            <li class="mb-2"><a href="#steckbrief" >Überblick</a></li>
-            <li class="mb-2"><a href="#habitat" >Habitat</a></li>
-            <li class="mb-2"><a href="#habitat" >Verbreitungsgebiet</a></li>
-            <li class="mb-2"><a href="#verbreitungsgebiet" >Lebenszyklus</a></li>
-            <li class="mb-2"><a href="#lebenszyklus" >Beobachtungstipps</a></li>
-	          <li class="mb-2"><a href="#lebenszyklus" >Bestimmungsschlüssel</a></li>
-            <li class="mb-2"><a href="#bestimmung" >Weiterführende Links</a></li>
-            <li class="mb-2"><a href="#links" >Meldeformular</a></li>
+          <ul class="mb-2">
+            <li class="mb-2"><a href="#steckbrief">Steckbrief</a></li>
+            <li class="mb-2"><a href="#ueberblick">Überblick</a></li>
+            <li class="mb-2"><a href="#habitat">Habitat</a></li>
+            <li class="mb-2"><a href="#verbreitungsgebiet">Verbreitungsgebiet</a></li>
+            <li class="mb-2"><a href="#lebenszyklus">Lebenszyklus</a></li>
+            <li class="mb-2"><a href="#beobachtungstipps">Beobachtungstipps</a></li>
+            <li class="mb-2"><a href="#bestimmung">Bestimmungsschlüssel</a></li>
+            <li class="mb-2"><a href="#weiterfuehrende-links">Weiterführende Links</a></li>
+            <li class="mb-2"><a href="#meldeformular">Meldeformular</a></li>
           </ul>
         </nav>
       </div>
@@ -34,176 +92,135 @@ Mantis religiosa, Informationen, Gottesanbeterin Fakten, Lebensraum, Erkennungsm
           Die faszinierende Welt der
           <a href="https://de.wikipedia.org/wiki/Mantis" target="_blank">Gottesanbeterin</a>
         </h1>
-        <img loading="lazy"class="mb-4 rounded" src="{{ url_for('static', filename='images/mantis--maennchen__krueger.webp') }}"
-          alt="Profile of Mantis religiosa">
-        <p>Bildquelle: Krüger B. 2012</p>
+        <img loading="lazy" class="mb-4 rounded"
+          src="{{ url_for('static', filename='images/mantis--maennchen__krueger.webp') }}"
+          alt="Profil einer männlichen Mantis religiosa">
+        <p class="text-sm text-gray-600">Bildquelle: Krüger B. 2012</p>
         <div class="text-lg leading-normal text-gray-800">
-          <section id="steckbrief" class="mb-8">
+          <span id="steckbrief" class="section-anchor"></span>
+          <section class="mb-8">
             <h2 class="mb-2 text-2xl font-bold text-gray-800">Steckbrief</h2>
-            <ul>
-              <li>
-                <strong>Wissenschaftlicher Name:</strong> <i> Mantis religiosa </i> L., 1758
-              </li>
-              <li>
-                <strong>Ordnung:</strong> <em><a href="https://de.wikipedia.org/wiki/Mantodea"
-                    target="_blank">Fangschrecken (Mantodea)</a></em>
-              </li>
-              <li>
-                <strong>Größe:</strong> <em>Weibchen 7 cm, Männchen 5-6 cm</em>
-              </li>
-              <li>
-                <strong>Lebensraum:</strong> <em>Offene Grasfluren, Brachen, Ruderalflächen, Gärten</em>
-              </li>
-              <li>
-                <strong>Verbreitung:</strong> <em>Europa, Asien, Afrika</em>
-              </li>
-              <li>
-                <strong>Lebensweise:</strong> <em>Räuberisch</em>
-              </li>
-              <li>
-                <strong>Ernährung:</strong> <em>Vorwiegend Insekten und Spinnentiere</em>
-              </li>
-            </ul>
+            <dl>
+              <dt class="font-bold">Wissenschaftlicher Name:</dt>
+              <dd><i>Mantis religiosa</i> L., 1758</dd>
+              <dt class="font-bold">Ordnung:</dt>
+              <dd><em><a href="https://de.wikipedia.org/wiki/Mantodea" target="_blank">Fangschrecken (Mantodea)</a></em>
+              </dd>
+              <dt class="font-bold">Größe:</dt>
+              <dd><em>Weibchen 7 cm, Männchen 5-6 cm</em></dd>
+              <dt class="font-bold">Lebensraum:</dt>
+              <dd><em>Offene Grasfluren, Brachen, Ruderalflächen, Gärten</em></dd>
+              <dt class="font-bold">Verbreitung:</dt>
+              <dd><em>Europa, Asien, Afrika</em></dd>
+              <dt class="font-bold">Lebensweise:</dt>
+              <dd><em>Räuberisch</em></dd>
+              <dt class="font-bold">Ernährung:</dt>
+              <dd><em>Vorwiegend Insekten und Spinnentiere</em></dd>
+            </dl>
           </section>
-          <section id="ueberblick" class="mb-8">
+          <span id="ueberblick" class="section-anchor"></span>
+          <section class="mb-8">
             <h2 class="mb-2 text-2xl font-bold text-gray-800">Überblick</h2>
             <p>
-
-              Das Verbreitungsgebiet der Europäischen Gottesanbeterin
-              erstreckt sich vom südlichen Europa von Portugal über
-              Spanien, Frankreich, Italien, über den Balkan, in die
-              Türkei bis nach Asien. Auch in Afrika kommt die
-              Gottesanbeterin vor. Ursprünglich wurde sie nur in
-              Rheinland-Pfalz, Baden-Württemberg und im Saarland
-              gefunden, aber seit den 1990er Jahren breitet sie sich
-              allmählich Richtung Norden aus. Seit 1998 ist eine
-              stabile, isolierte Population in Berlin-Schöneberg
-              bekannt und die erste Gottesanbeterin in Brandenburg
-              wurde 2007 gefunden. Aktuell ist die Fangschrecke in der
-              Südhälfte Brandenburgs recht weit verbreitet, in den
-              nördlichen Landkreisen hingegen liegen erst seit Kurzem
-              vereinzelte Meldungen vor. Auch in Berlin wird die Art
-              immer häufiger nachgewiesen. Es gibt aber immer noch
-              Verbreitungslücken, daher zählt nach wie vor jede
-              Meldung.
+              Die Europäische Gottesanbeterin (<i>Mantis religiosa</i>) ist eine Fangschreckenart, deren
+              Verbreitungsgebiet sich vom südlichen Europa bis nach Asien erstreckt. Ursprünglich nur in
+              Rheinland-Pfalz, Baden-Württemberg und dem Saarland gefunden, breitet sie sich seit den 1990er Jahren
+              Richtung Norden aus. In Brandenburg wurde sie erstmals 2007 gesichtet und ist nun in der Südhälfte recht
+              weit verbreitet.
             </p>
-            <img loading="lazy"class="mb-4 rounded" src="{{ url_for('static', filename='images/mantis--weibchen__krueger.webp') }}"
-              alt="Mantis religiosa hunting">
-            <p>Bildquelle: Krüger B. 2005</p>
+            <img loading="lazy" class="mb-4 rounded"
+              src="{{ url_for('static', filename='images/mantis--weibchen__krueger.webp') }}"
+              alt="Weibliche Mantis religiosa bei der Jagd">
+            <p class="text-sm text-gray-600">Bildquelle: Krüger B. 2005</p>
           </section>
-          <section id="habitat" class="mb-8">
+          <span id="habitat" class="section-anchor"></span>
+          <section class="mb-8">
             <h2 class="mb-2 text-2xl font-bold text-gray-800">Habitat</h2>
-            <blockquote>
-              <p>
-                Die Gottesanbeterin ist eine wärmeliebende Art und
-                bevorzugt sonnige Lebensräume, wie offene Grasfluren
-                mit strukturgebenden Stauden, Brachen und
-                Ruderalflächen. Überraschend oft findet man sie auch
-                in Gärten und innerhalb von Ortschaften und
-                Städten. In geschlossenen Wäldern wird man sie
-                hingegen nicht finden.
-              </p>
-            </blockquote>
-          </section>
-          <section id="verbreitungsgebiet" class="mb-8">
-            <h2 class="mb-2 text-2xl font-bold text-gray-800">Verbreitungsgebiet</h2>
-            <blockquote>
-             <p>
-                Das Verbreitungsgebiet der Europäischen Gottesanbeterin
-                erstreckt sich vom südlichen Europa von Portugal über
-                Spanien, Frankreich, Italien, über den Balkan, in die
-                Türkei bis nach Asien. Auch in Afrika kommt die
-                Gottesanbeterin vor. Ursprünglich wurde sie nur in
-                Rheinland-Pfalz, Baden-Württemberg und im Saarland
-                gefunden, aber seit den 1990er Jahren breitet sie sich
-                allmählich Richtung Norden aus. Seit 1998 ist eine
-                stabile, isolierte Population in Berlin-Schöneberg
-                bekannt und die erste Gottesanbeterin in Brandenburg
-                wurde 2007 gefunden. Aktuell ist die Fangschrecke in der
-                Südhälfte Brandenburgs recht weit verbreitet, in den
-                nördlichen Landkreisen hingegen liegen erst seit Kurzem
-                vereinzelte Meldungen vor. Auch in Berlin wird die Art
-                immer häufiger nachgewiesen. Es gibt aber immer noch
-                Verbreitungslücken, daher zählt nach wie vor jede
-                Meldung.
-              </p>
-            </blockquote>
-          </section>
-          <section id="lebenszyklus" class="mb-8">
-            <h2 class="mb-2 text-2xl font-bold text-gray-800">Lebenszyklus</h2>
-            <blockquote>
-              <p>
-                Die Gottesanbeterin durchläuft in ihrem Leben mehrere
-                Stadien. Nach der Paarung legt das Weibchen ihre Eier in
-                einem speziellen Schaumnest, der Oothek, ab. In unseren
-                Breiten überwintert die Oothek; die erwachsenen
-                Gottesanbeterinnen sterben im Winter. Aus diesen Eiern
-                schlüpfen im Mai/Juni die Nymphen, die bereits wie
-                kleine Gottesanbeterinnen aussehen. Sie durchlaufen
-                mehrere Häutungen, bis sie schließlich zu erwachsenen
-                Tieren heranwachsen.
-              </p>
-            </blockquote>
-          </section>
-          <section id="bestimmung" class="mb-8">
-            <h2 class="mb-2 text-2xl font-bold text-gray-800">Bestimmungsschlüssel</h2>
             <p>
-	      Kein Muss, aber wenn Sie im Meldeformular die korrekte Zuordnung eintragen wollen,
-	      können Sie mit Hilfe des Bestimmungsschlüssels ermitteln, ob es sich um eine
-	      Oothek, Nymphe, ein adultes Weibchen bzw. Männchen handelt.
-              <br />
-                <a href="/bestimmung" target="_blank"
-                  class="text-green-500 underline hover:text-green-400">Bestimmungsschlüssel</a>
+              Die Gottesanbeterin ist eine wärmeliebende Art und bevorzugt sonnige Lebensräume wie offene Grasfluren mit
+              strukturgebenden Stauden, Brachen und Ruderalflächen. Überraschend oft findet man sie auch in Gärten und
+              innerhalb von Ortschaften und Städten. In geschlossenen Wäldern wird man sie hingegen nicht finden.
             </p>
           </section>
-          <section id="beobachtungstipps" class="mb-8">
+          <span id="verbreitungsgebiet" class="section-anchor"></span>
+          <section class="mb-8">
+            <h2 class="mb-2 text-2xl font-bold text-gray-800">Verbreitungsgebiet</h2>
+            <p>
+              Das Verbreitungsgebiet der Europäischen Gottesanbeterin erstreckt sich vom südlichen Europa von Portugal
+              über Spanien, Frankreich, Italien, über den Balkan, in die Türkei bis nach Asien. Auch in Afrika kommt die
+              Gottesanbeterin vor. Aktuell ist die Fangschrecke in der Südhälfte Brandenburgs recht weit verbreitet, in
+              den nördlichen Landkreisen hingegen liegen erst seit Kurzem vereinzelte Meldungen vor. Auch in Berlin wird
+              die Art immer häufiger nachgewiesen.
+            </p>
+          </section>
+          <span id="lebenszyklus" class="section-anchor"></span>
+          <section class="mb-8">
+            <h2 class="mb-2 text-2xl font-bold text-gray-800">Lebenszyklus</h2>
+            <p>
+              Die Gottesanbeterin durchläuft in ihrem Leben mehrere Stadien. Nach der Paarung legt das Weibchen ihre
+              Eier in einem speziellen Schaumnest, der Oothek, ab. In unseren Breiten überwintert die Oothek; die
+              erwachsenen Gottesanbeterinnen sterben im Winter. Aus diesen Eiern schlüpfen im Mai/Juni die Nymphen, die
+              bereits wie kleine Gottesanbeterinnen aussehen. Sie durchlaufen mehrere Häutungen, bis sie schließlich zu
+              erwachsenen Tieren heranwachsen.
+            </p>
+          </section>
+          <span id="beobachtungstipps" class="section-anchor"></span>
+          <section class="mb-8">
             <h2 class="mb-2 text-2xl font-bold text-gray-800">Beobachtungstipps</h2>
             <p>
-              Die Gottesanbeterin ist tagsüber aktiv und kann bei
-              ruhigem und vorsichtigem Herangehen gut beobachtet
-              werden. Besonders gut lassen sie sich in den
-              Morgenstunden finden, wenn sie sich an sonnigen Plätzen
-              aufwärmen. Mit ihrer grünen bis braunen Färbung sind sie
-              jedoch perfekt getarnt und nicht leicht zu entdecken.
+              Die Gottesanbeterin ist tagsüber aktiv und kann bei ruhigem und vorsichtigem Herangehen gut beobachtet
+              werden. Besonders gut lassen sie sich in den Morgenstunden finden, wenn sie sich an sonnigen Plätzen
+              aufwärmen. Mit ihrer grünen bis braunen Färbung sind sie jedoch perfekt getarnt und nicht leicht zu
+              entdecken.
             </p>
           </section>
-          <section id="#meldeformular" class="mb-8">
+          <span id="bestimmung" class="section-anchor"></span>
+          <section class="mb-8">
+            <h2 class="mb-2 text-2xl font-bold text-gray-800">Bestimmungsschlüssel</h2>
+            <p>
+              Wenn Sie im Meldeformular die korrekte Zuordnung eintragen möchten, können Sie mit Hilfe des
+              Bestimmungsschlüssels ermitteln, ob es sich um eine Oothek, Nymphe, ein adultes Weibchen oder Männchen
+              handelt.
+            </p>
+            <a href="/bestimmung" target="_blank"
+              class="text-green-500 underline hover:text-green-400">Bestimmungsschlüssel</a>
+          </section>
+          <span id="weiterfuehrende-links" class="section-anchor"></span>
+          <section class="mb-8">
             <h2 class="mb-2 text-2xl font-bold text-gray-800">Weiterführende Links</h2>
-            <ul class="text-green-500 underline">
-              <li class="hover:text-green-600">
+            <ul class="list-disc list-inside">
+              <li>
                 <a href="https://www.bkmakro.de/Makro/Mantiden/MR.htm" target="_blank"
-                  class="hover:text-green-400">Mantidenfreunde</a>
+                  class="text-green-500 underline hover:text-green-400">Mantidenfreunde</a>
               </li>
-              <li class="hover:text-green-600">
+              <li>
                 <a href="https://www.naturkundemuseum-potsdam.de/gottesanbeterin-gesucht" target="_blank"
-                  class="hover:text-green-400">Naturkundemuseum Potsdam</a>
+                  class="text-green-500 underline hover:text-green-400">Naturkundemuseum Potsdam</a>
               </li>
-              <li class="hover:text-green-600">
+              <li>
                 <a href="https://de.wikipedia.org/wiki/Europ%C3%A4ische_Gottesanbeterin" target="_blank"
-                  class="hover:text-green-400">Wikipedia Gottesanbeterin</a>
+                  class="text-green-500 underline hover:text-green-400">Wikipedia Gottesanbeterin</a>
               </li>
             </ul>
           </section>
-          <section id="meldeformular" class="p-4 mt-8 bg-green-200 rounded-lg shadow-lg">
+          <span id="meldeformular" class="section-anchor"></span>
+          <section class="p-4 mt-8 bg-green-200 rounded-lg shadow-lg">
             <div class="flex flex-col items-center justify-between md:flex-row">
               <div class="mb-4 md:mb-0">
                 <h2 class="mb-2 text-2xl font-bold text-gray-800">Meldeformular</h2>
                 <p class="text-gray-700">
-                  Haben Sie eine Gottesanbeterin gesichtet? Helfen Sie
-                  uns, die Verbreitung dieser faszinierenden Art
-                  besser zu dokumentieren, indem Sie Ihre Beobachtung
-                  melden. Nutzen Sie dazu unser einfaches
+                  Haben Sie eine Gottesanbeterin gesichtet? Helfen Sie uns, die Verbreitung dieser faszinierenden Art
+                  besser zu dokumentieren, indem Sie Ihre Beobachtung melden. Nutzen Sie dazu unser einfaches
                   Meldeformular.
                 </p>
               </div>
-              <a class="inline-block px-6 py-3 mt-4 text-lg font-semibold text-gray-100 transition-colors duration-200 bg-green-600 border border-transparent rounded-full shadow-lg hover:bg-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+              <a class="inline-block px-6 py-3 mt-4 text-lg font-semibold text-white transition-colors duration-200 bg-green-600 border border-transparent rounded-full shadow-lg hover:bg-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                 href="{{ url_for('data.report') }}">Meldeformular</a>
             </div>
           </section>
         </div>
       </div>
-  </div>
-  </article>
+    </article>
   </div>
 </main>
 
@@ -214,5 +231,4 @@ Mantis religiosa, Informationen, Gottesanbeterin Fakten, Lebensraum, Erkennungsm
     }
   }
 </style>
-
 {% endblock content %}

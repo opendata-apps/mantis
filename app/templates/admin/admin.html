@@ -816,7 +816,7 @@
     }
 
     function generateGeneralInfo(data) {
-        let mantis_types = ['Männchen', 'Weiblich', 'Nymphe', 'Oothek', 'Andere', 'Anzahl'];
+        let mantis_types = ['Männchen', 'Weibchen', 'Nymphe', 'Oothek', 'Andere', 'Anzahl'];
         let gender_counts = [data.art_m, data.art_w, data.art_n, data.art_o, data.art_f, data.tiere];
 
         let html = `<div class="flex flex-wrap -mx-4 overflow-hidden">
@@ -974,24 +974,55 @@
             // Adjust the footer position after the card is removed
             adjustFooterPosition();
 
+            // Check if all cards have been removed
+            checkAllCardsRemoved();
+
         }, 500); // matches the duration of the fade-out animation
     }
 
+    function checkAllCardsRemoved() {
+        const reportContainer = document.getElementById('reportContainer');
+        if (reportContainer.children.length === 0) {
+            // All cards have been removed, reload the page
+            location.reload();
+        }
+    }
 
     function exportData(exportType) {
         var exportButton = document.getElementById("dropdownExportButton");
+        var originalContent = exportButton.innerHTML;
+        
         // Add loading animation to the button
         exportButton.innerHTML = '<svg class="w-5 h-5 mx-auto text-gray-100 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
-        var url = "/admin/export/xlsx/" + exportType;
-        window.location.href = url;
+        exportButton.disabled = true;
 
-        // Set a timer to reset the button after 5 seconds
-        setTimeout(function () {
-            exportButton.innerHTML = 'Export<svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" /></svg>';
-        }, 5000); // adjust the time as necessary
+        fetch('/admin/export/xlsx/' + exportType)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.blob();
+            })
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = 'export_' + exportType + '.xlsx';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred during export. Please try again.');
+            })
+            .finally(() => {
+                // Reset button state
+                exportButton.innerHTML = originalContent;
+                exportButton.disabled = false;
+            });
     }
-
-
 </script>
 
 
