@@ -751,7 +751,7 @@ def get_table_data(table_name):
         column_types = {column.name: get_standard_type(column.type) for column in table.columns}
 
         # Exclude sensitive columns
-        EXCLUDED_COLUMNS = ['report_user_db_id', 'fundorte_id', 'beschreibung_id', 'dat_fund_bis', 'fo_beleg']
+        EXCLUDED_COLUMNS = ['report_user_db_id', 'fundorte_id', 'beschreibung_id', 'dat_fund_bis', 'fo_beleg', 'bearb_id']
         columns_with_excluded = columns.copy()
         columns = [col for col in columns if col not in EXCLUDED_COLUMNS]
         column_types = {col: column_types[col] for col in columns}
