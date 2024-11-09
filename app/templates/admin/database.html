@@ -155,27 +155,12 @@ block content %}
 </div>
 
 <style>
-  .selected-cell {
-    background-color: #b3d4fc !important;
-    /* Light blue background */
-  }
-
-  .loader {
-    border-top-color: #3498db;
-    animation: spin 1s linear infinite;
-  }
-
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-
   #dataTable thead {
     position: sticky;
     top: 0;
     z-index: 10;
-    background-color: white;
+    background-color: #f8fafc;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   }
 
   @media (max-width: 768px) {
@@ -183,6 +168,11 @@ block content %}
       display: block;
       overflow-x: auto;
       white-space: nowrap;
+    }
+
+    #dataTable th,
+    #dataTable td {
+      padding: 8px 12px;
     }
   }
 
@@ -198,6 +188,129 @@ block content %}
     -webkit-user-select: text !important;
     -moz-user-select: text !important;
     -ms-user-select: text !important;
+  }
+
+  .selected-cell {
+    background-color: #dcfce7 !important;
+    border-left: 2px solid #16a34a !important;
+  }
+
+  .loader {
+    border-top-color: #16a34a;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  #dataTable {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  }
+
+  #dataTable th {
+    padding: 12px 16px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 12px;
+    color: #475569;
+    background-color: #f8fafc;
+    border-bottom: 2px solid #e2e8f0;
+    transition: background-color 0.2s;
+  }
+
+  #dataTable th:hover {
+    background-color: #f1f5f9;
+    cursor: pointer;
+  }
+
+  #dataTable td {
+    padding: 12px 16px;
+    font-size: 14px;
+    color: #1e293b;
+    border-bottom: 1px solid #e2e8f0;
+    transition: all 0.2s;
+  }
+
+  #dataTable tr:last-child td {
+    border-bottom: none;
+  }
+
+  #dataTable tr:hover td {
+    background-color: #f8fafc;
+  }
+
+  #dataTable td.editable {
+    position: relative;
+  }
+
+  #dataTable td.editable:hover {
+    background-color: #f1f5f9;
+    cursor: pointer;
+  }
+
+  #dataTable td.editable::after {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: #16a34a;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  #dataTable td.editable:hover::after {
+    opacity: 1;
+  }
+
+  #dataTable td.bg-gray-50 {
+    color: #64748b;
+    background-color: #f8fafc;
+    font-style: italic;
+  }
+
+  .sort-indicator {
+    display: inline-block;
+    margin-left: 4px;
+    font-size: 10px;
+    color: #16a34a;
+  }
+
+  #scrollContainer {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 #f1f5f9;
+  }
+
+  #scrollContainer::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  #scrollContainer::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+  }
+
+  #scrollContainer::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 4px;
+    border: 2px solid #f1f5f9;
+  }
+
+  #scrollContainer::-webkit-scrollbar-thumb:hover {
+    background-color: #94a3b8;
   }
 </style>
 
