@@ -12,6 +12,7 @@ from app.database.models import (
     TblMeldungen,
     TblMeldungUser,
     TblUsers,
+    TblAllData
 )
 from flask import session
 from flask import (
@@ -27,20 +28,41 @@ from flask import (
     send_from_directory,
     url_for,
 )
-from sqlalchemy import inspect, or_, text
+from sqlalchemy import inspect, or_, text, cast, String, update
+from sqlalchemy.sql import func
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, Session, load_only
 from app.tools.check_reviewer import login_required
 import shutil
 from werkzeug.utils import secure_filename
 from pathlib import Path
 from flask import current_app
 from app.tools.send_reviewer_email import send_email
+
 import os
 
 # Blueprints
 admin = Blueprint("admin", __name__)
 
+# Add this constant at the top of the file
+NON_EDITABLE_FIELDS = {
+    "meldungen": ["id", "fo_zuordnung"],
+    "beschreibung": ["id"],
+    "fundorte": ["id", "ablage", "beschreibung"],
+    "melduser": ["id", "id_finder", "id_meldung", "id_user"],
+    "users": ["id", "user_id"],
+    "all_data_view": ["id", "id_meldung", "fo_zuordnung", "report_user_db_id", "fundorte_id", "beschreibung_id"]
+}
+
+# Exclude sensitive columns
+EXCLUDED_COLUMNS = [
+    'report_user_db_id', 
+    'fundorte_id', 
+    'beschreibung_id', 
+    'dat_fund_bis', 
+    'fo_beleg', 
+    'bearb_id'
+]
 
 @admin.route("/reviewer/<usrid>")
 def reviewer(usrid):
@@ -415,21 +437,6 @@ def undelete_sighting(id):
         return jsonify({"error": "Report not found"}), 404
 
 
-@admin.route("/save_sighting_changes/<id>", methods=["POST"])
-@login_required
-def save_sighting_changes(id):
-    "Save changes to sighting based on id"
-    # Find the report by id
-
-    sighting = TblMeldungen.query.get(id)
-    if sighting:
-        sighting = session["user_id"]
-        db.session.commit()
-        return jsonify({"success": True})
-    else:
-        return jsonify({"error": "Report not found"}), 404
-
-
 @admin.route("/change_mantis_gender/<int:id>", methods=["POST"])
 @login_required
 def change_gender(id):
@@ -491,48 +498,24 @@ def change_mantis_count(id):
     return jsonify(success=True)
 
 
-@admin.route("/admin/export/csv/<table_name>", methods=["GET"])
+@admin.route("/admin/export/xlsx/<string:value>")
 @login_required
-def export_csv(table_name):
-    "Export the data from the specified table as a CSV file"
-    # Get the table object from the database
-    table = db.metadata.tables.get(table_name)
-
-    if table is None:
-        return jsonify({"error": "Table not found"})
-
-    result = db.session.execute(table.select())
-    column_names = result.keys()
-    si = StringIO()
-    writer = csv.writer(si)
-    writer.writerow(column_names)
-    for row in result:
-        writer.writerow(row)
-
-    si.seek(0)
-
-    # Return the CSV data as a response
-    headers = {"Content-Disposition": "attachment; filename=data.csv"}
-    return Response(si, mimetype="text/csv", headers=headers)
-
-@admin.route("/admin/export/xlsx/<table_name>")
-@login_required
-def export_data(table_name):
+def export_data(value):
     "Export the data from the database as an Excel file"
     try:
         current_time = datetime.now().strftime("%d.%m.%Y_%H%M")
 
-        if table_name == "all":
+        if value == "all":
             data = perform_query()
             filename = f"Alle_Meldungen_{current_time}.xlsx"
-        elif table_name == "accepted":
+        elif value == "accepted":
             data = perform_query(filter_value=True)
             filename = f"Akzeptierte_Meldungen_{current_time}.xlsx"
-        elif table_name == "non_accepted":
+        elif value == "non_accepted":
             data = perform_query(filter_value=False)
             filename = f"Nicht_akzeptierte_Meldungen_{current_time}.xlsx"
         else:
-            return jsonify({"error": "Invalid export type"}), 400
+            abort(404, description="Resource not found")
 
         data_dicts = [row2dict(row) for row in data]
         df = pd.DataFrame(data_dicts)
@@ -540,15 +523,19 @@ def export_data(table_name):
         # Write the DataFrame to an Excel file
         output = BytesIO()
         with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
-            df.to_excel(writer, sheet_name=table_name, index=False)
+            df.to_excel(writer, sheet_name="Daten", index=False)
             
             # Get the xlsxwriter workbook and worksheet objects
-            worksheet = writer.sheets[table_name]
+            workbook = writer.book
+            worksheet = writer.sheets["Daten"]
             
             # Add a table to the worksheet
             (max_row, max_col) = df.shape
             column_settings = [{'header': column} for column in df.columns]
-            worksheet.add_table(0, 0, max_row, max_col - 1, {'columns': column_settings, 'style': 'Table Style Medium 9'})
+            worksheet.add_table(0, 0, max_row, max_col - 1, {
+                'columns': column_settings,
+                'style': 'Table Style Medium 9'
+            })
             
             # Auto-adjust columns' width
             for i, col in enumerate(df.columns):
@@ -559,72 +546,11 @@ def export_data(table_name):
         output.seek(0)
 
         # Send the file
-        return send_file(
-            output,
-            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            as_attachment=True,
-            download_name=filename
-        )
+        mime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        return send_file(output, mimetype=mime, as_attachment=True, download_name=filename)
     except Exception as e:
-        # Log the error for debugging
-        print(f"Error in export_data: {str(e)}")
+        current_app.logger.exception("Error in export_data")
         return jsonify({"error": "An error occurred during export"}), 500
-
-
-@admin.route("/adminPanel", methods=["GET"])
-@login_required
-def admin_panel():
-    "Display the admin panel super admin page"
-    if "user_id" in session:
-        inspector = inspect(db.engine)
-        tables = inspector.get_table_names()
-        tables = [table for table in tables if table != "alembic_version"]
-        return render_template(
-            "admin/adminPanel.html", tables=tables, user_id=session["user_id"]
-        )
-    else:
-        return "Unauthorized", 403
-
-
-# Define a dictionary of non-editable fields for each table
-NON_EDITABLE_FIELDS = {
-    "meldungen": ["id", "fo_zuordnung"],
-    "beschreibung": ["id"],
-    "fundorte": ["id", "ablage", "beschreibung"],
-    "melduser": ["id", "id_finder", "id_meldung", "id_user"],
-    "users": ["id", "user_id"],
-}
-
-
-@admin.route("/update_value/<table_name>/<row_id>", methods=["POST"])
-@login_required
-def update_value(table_name, row_id):
-    "Update the value of a field in the specified table and row"
-    data = request.json
-    column_name = data.get("column_name")
-
-    # Check if field is non-editable
-    if column_name in NON_EDITABLE_FIELDS.get(table_name, []):
-        return jsonify({"error": "Field is non-editable"}), 400
-
-    new_value = data.get("new_value")
-
-    table = db.metadata.tables.get(table_name)
-    if table is None:
-        return jsonify({"error": "Table not found"})
-
-    # If the updated field is 'dat_meld', call the image update function
-    if table_name == "meldungen" and column_name == "dat_meld":
-        response, status = update_report_image_date(row_id, new_value)
-        if status != 200:
-            return jsonify(response), status
-
-    # Assuming the primary key column is named 'id'
-    stmt = table.update().where(table.c.id == row_id).values({column_name: new_value})
-    db.session.execute(stmt)
-    db.session.commit()
-
-    return jsonify({"status": "success"})
 
 
 def update_report_image_date(report_id, new_date):
@@ -691,38 +617,6 @@ def _create_filename(location, usrid, new_date):
     )
 
 
-# Get all table names
-@admin.route("/get_tables", methods=["GET"])
-@login_required
-def get_tables():
-    "Get all table names from the database and return them as a JSON object"
-    inspector = inspect(db.engine)
-    tables = inspector.get_table_names()
-    tables = [table for table in tables if table != "alembic_version"]
-    return jsonify({"tables": tables})
-
-
-@admin.route("/table/<table_name>")
-@login_required
-def get_table_data(table_name):
-    "Get the data from the specified table and return it as a JSON object"
-    limit = 20
-    offset = request.args.get(
-        "offset", default=0, type=int
-    )  # Get the offset parameter from the request
-    table = db.metadata.tables.get(table_name)
-    if table is None:
-        return jsonify({"error": "Table not found"})
-    result = db.session.execute(
-        table.select().order_by(table.c.id).limit(limit).offset(offset)
-    )  # Add limit and offset to the query
-    column_names = result.keys()
-    data = [
-        {column: value for column, value in zip(column_names, row)} for row in result
-    ]
-    return jsonify(data)
-
-
 # Define a function to convert a row to a dictionary
 def row2dict(row):
     "Convert a row to a dictionary"
@@ -755,3 +649,260 @@ def perform_query(filter_value=None):
 
     return query.all()
 
+
+@admin.route("/admin/database")
+@login_required
+def database_view():
+    inspector = inspect(db.engine)
+    tables = [table for table in inspector.get_table_names() if table not in ['aemter', 'alembic_version', 'melduser']]
+    tables.append('all_data_view')  # Add the materialized view to the list of tables
+    return render_template("admin/database.html", tables=tables)
+
+@admin.route("/admin/get_table_data/<table_name>")
+@login_required
+def get_table_data(table_name):
+    if table_name in ['aemter', 'alembic_version']:
+        return jsonify({"error": "Access to this table is not allowed"}), 403
+    try:
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 10, type=int)
+        search = request.args.get('search', '')
+        search_type = request.args.get('search_type', 'full_text')  # Get search type
+        sort_column = request.args.get('sort_column', 'id')
+        sort_direction = request.args.get('sort_direction', 'asc')
+
+        # Check if it's time to refresh the materialized view
+        last_updated = session.get('last_updated_all_data_view')
+        now = datetime.utcnow()
+        if last_updated is None or (now - last_updated.replace(tzinfo=None) > timedelta(minutes=1)):
+            TblAllData.refresh_materialized_view()
+            session['last_updated_all_data_view'] = now
+
+        # Get the table object
+        if table_name == 'all_data_view':
+            table = TblAllData.__table__
+        else:
+            table = db.metadata.tables.get(table_name)
+        
+        if table is None:
+            return jsonify({"error": "Table not found"}), 404
+
+        columns = [column.name for column in table.columns]
+
+        # Validate sort_column to prevent SQL injection
+        if sort_column not in columns:
+            sort_column = 'id'
+
+        # Create a select statement
+        stmt = db.select(table)
+
+        # Apply search filter if search term is provided
+        if search:
+            if search_type == 'id':
+                try:
+                    # Try to convert search term to integer for ID search
+                    search_id = int(search)
+                    stmt = stmt.where(table.c.id == search_id)
+                except ValueError:
+                    # If conversion fails, return no results
+                    stmt = stmt.where(table.c.id == -1)  # This ensures no results
+            else:  # full_text search
+                search_filters = []
+                for column in table.columns:
+                    if isinstance(column.type, db.String):
+                        search_filters.append(column.ilike(f'%{search}%'))
+                    elif isinstance(column.type, (db.Integer, db.Float)):
+                        search_filters.append(cast(column, String).ilike(f'%{search}%'))
+                if search_filters:
+                    stmt = stmt.where(or_(*search_filters))
+
+        # Apply sorting
+        if sort_direction == 'asc':
+            stmt = stmt.order_by(table.c[sort_column].asc())
+        else:
+            stmt = stmt.order_by(table.c[sort_column].desc())
+
+        # Get total count for pagination
+        total_items_stmt = db.select(db.func.count()).select_from(table)
+        if search:
+            if search_type == 'id':
+                try:
+                    search_id = int(search)
+                    total_items_stmt = total_items_stmt.where(table.c.id == search_id)
+                except ValueError:
+                    total_items_stmt = total_items_stmt.where(table.c.id == -1)
+            else:
+                if search_filters:
+                    total_items_stmt = total_items_stmt.where(or_(*search_filters))
+        total_items = db.session.execute(total_items_stmt).scalar()
+
+        # Apply pagination
+        stmt = stmt.offset((page - 1) * per_page).limit(per_page)
+
+        # Execute query and get results
+        results = db.session.execute(stmt).fetchall()
+
+        def get_standard_type(column_type):
+            if isinstance(column_type, db.Integer):
+                return 'integer'
+            elif isinstance(column_type, db.String):
+                return 'string'
+            elif isinstance(column_type, db.Boolean):
+                return 'boolean'
+            elif isinstance(column_type, db.Date):
+                return 'date'
+            elif isinstance(column_type, db.DateTime):
+                return 'datetime'
+            elif isinstance(column_type, db.Float):
+                return 'float'
+            else:
+                return 'string'
+
+        # Get column names and types
+        column_types = {column.name: get_standard_type(column.type) for column in table.columns}
+
+        # Exclude sensitive columns
+        EXCLUDED_COLUMNS = ['report_user_db_id', 'fundorte_id', 'beschreibung_id', 'dat_fund_bis', 'fo_beleg', 'bearb_id']
+        columns_with_excluded = columns.copy()
+        columns = [col for col in columns if col not in EXCLUDED_COLUMNS]
+        column_types = {col: column_types[col] for col in columns}
+
+        # Convert results to list of lists
+        data = [
+            [getattr(row, col) for col in columns_with_excluded if col not in EXCLUDED_COLUMNS]
+            for row in results
+        ]
+
+        return jsonify({
+            "columns": columns,
+            "data": data,
+            "column_types": column_types,
+            "non_editable_fields": NON_EDITABLE_FIELDS.get(table_name, []),
+            "total_items": total_items
+        })
+    except Exception as e:
+        current_app.logger.exception("Error in get_table_data")
+        return jsonify({"error": "An error occurred while fetching table data"}), 500
+
+@admin.route("/admin/update_cell", methods=["POST"])
+@login_required
+def update_cell():
+    data = request.json
+    table_name = data['table']
+    column_name = data['column']
+    id_value = data['id']
+    new_value = data['value']
+
+    if table_name in NON_EDITABLE_FIELDS and column_name in NON_EDITABLE_FIELDS[table_name]:
+        return jsonify({"error": "This field is not editable"}), 403
+
+    try:
+        if table_name == 'all_data_view':
+            # Find the original table and column
+            original_table, original_column = find_original_table_and_column(column_name)
+            if not original_table or not original_column:
+                return jsonify({"error": "Unable to find original table and column"}), 400
+
+            # Fetch the corresponding row from all_data_view
+            all_data_row = db.session.query(TblAllData).filter(TblAllData.id == id_value).first()
+            if not all_data_row:
+                return jsonify({"error": "Record not found"}), 404
+
+            if original_table == TblUsers:
+                user_db_id = all_data_row.report_user_db_id
+                if not user_db_id:
+                    return jsonify({"error": "User ID not found in the record"}), 400
+                stmt = (
+                    update(original_table)
+                    .where(original_table.id == user_db_id)
+                    .values(**{original_column: new_value})
+                )
+            elif original_table == TblFundorte:
+                fundorte_id = all_data_row.fundorte_id
+                if not fundorte_id:
+                    return jsonify({"error": "Fundorte ID not found in the record"}), 400
+                stmt = (
+                    update(original_table)
+                    .where(original_table.id == fundorte_id)
+                    .values(**{original_column: new_value})
+                )
+            elif original_table == TblFundortBeschreibung:
+                beschreibung_id = all_data_row.beschreibung_id
+                if not beschreibung_id:
+                    return jsonify({"error": "Beschreibung ID not found in the record"}), 400
+                stmt = (
+                    update(original_table)
+                    .where(original_table.id == beschreibung_id)
+                    .values(**{original_column: new_value})
+                )
+            else:
+                # Update other tables using id_value (from meldungen)
+                stmt = (
+                    update(original_table)
+                    .where(original_table.id == id_value)
+                    .values(**{column_name: new_value})
+                )
+        else:
+            # Get the table object
+            table = db.metadata.tables.get(table_name)
+            if table is None:
+                return jsonify({"error": "Table not found"}), 404
+
+            # Create the update statement
+            stmt = (
+                db.update(table)
+                .where(table.c.id == id_value)
+                .values(**{column_name: new_value})
+            )
+
+        # Execute the update
+        result = db.session.execute(stmt)
+        db.session.commit()
+
+        if result.rowcount == 0:
+            return jsonify({"error": "Record not found"}), 404
+
+        # Refresh the materialized view after update
+        TblAllData.refresh_materialized_view()
+
+        return jsonify({"success": True})
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": "An error occurred while updating the cell"}), 500
+
+def find_original_table_and_column(column_name):
+    table_column_mapping = {
+        'id': (TblMeldungen, 'id'),
+        'deleted': (TblMeldungen, 'deleted'),
+        'dat_fund_von': (TblMeldungen, 'dat_fund_von'),
+        'dat_fund_bis': (TblMeldungen, 'dat_fund_bis'),
+        'dat_meld': (TblMeldungen, 'dat_meld'),
+        'dat_bear': (TblMeldungen, 'dat_bear'),
+        'bearb_id': (TblMeldungen, 'bearb_id'),
+        'tiere': (TblMeldungen, 'tiere'),
+        'art_m': (TblMeldungen, 'art_m'),
+        'art_w': (TblMeldungen, 'art_w'),
+        'art_n': (TblMeldungen, 'art_n'),
+        'art_o': (TblMeldungen, 'art_o'),
+        'art_f': (TblMeldungen, 'art_f'),
+        'fo_quelle': (TblMeldungen, 'fo_quelle'),
+        'fo_beleg': (TblMeldungen, 'fo_beleg'),
+        'anm_melder': (TblMeldungen, 'anm_melder'),
+        'anm_bearbeiter': (TblMeldungen, 'anm_bearbeiter'),
+        'plz': (TblFundorte, 'plz'),
+        'ort': (TblFundorte, 'ort'),
+        'strasse': (TblFundorte, 'strasse'),
+        'kreis': (TblFundorte, 'kreis'),
+        'land': (TblFundorte, 'land'),
+        'amt': (TblFundorte, 'amt'),
+        'mtb': (TblFundorte, 'mtb'),
+        'longitude': (TblFundorte, 'longitude'),
+        'latitude': (TblFundorte, 'latitude'),
+        'ablage': (TblFundorte, 'ablage'),
+        'beschreibung': (TblFundortBeschreibung, 'beschreibung'),
+        'report_user_id': (TblUsers, 'user_id'),
+        'report_user_name': (TblUsers, 'user_name'),
+        'report_user_kontakt': (TblUsers, 'user_kontakt')
+    }
+    return table_column_mapping.get(column_name, (None, None))

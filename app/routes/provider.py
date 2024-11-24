@@ -19,9 +19,10 @@ provider = Blueprint("provider", __name__)
 @provider.route("/sichtungen/<usrid>")
 def melder_index(usrid):
     "Index page for the provider. The users reports are displayed here."
-    # Fetch the user based on the 'usrid' parameter
+    # First find the user making the request with role 1 or 9
     user = TblUsers.query.filter_by(user_id=usrid).first()
-    # If the user doesn't exist or the role isn't 9, return 404
+
+    # If the user doesn't exist or the role isn't 1 or 9, return 404
     if not user or (user.user_rolle != "1" and user.user_rolle != "9"):
         abort(404)
 
@@ -29,6 +30,9 @@ def melder_index(usrid):
     session["user_id"] = usrid
 
     image_path = Config.UPLOAD_FOLDER.replace("app/", "")
+
+    # Get the user's email to search for additional reports based on email
+    user_email = user.user_kontakt
 
     # Using SQLAlchemy syntax for querying
     sichtungen_query = (
@@ -66,7 +70,9 @@ def melder_index(usrid):
             TblFundortBeschreibung,
             TblFundorte.beschreibung == TblFundortBeschreibung.id,
         )
-        .filter(TblUsers.user_id == usrid)
+        .filter(
+            TblUsers.user_kontakt == user_email
+        )
         .all()
     )
 

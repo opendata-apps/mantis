@@ -23,8 +23,10 @@ migrate = Migrate()
 def create_materialized_view_command():
     """Create the materialized view."""
     from app.database.full_text_search import FullTextSearch
+    from app.database.alldata import TblAllData
 
     FullTextSearch.create_materialized_view()
+    TblAllData.create_materialized_view()
     click.echo("Materialized view created.")
 
 
