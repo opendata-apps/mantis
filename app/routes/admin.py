@@ -51,18 +51,9 @@ NON_EDITABLE_FIELDS = {
     "fundorte": ["id", "ablage", "beschreibung"],
     "melduser": ["id", "id_finder", "id_meldung", "id_user"],
     "users": ["id", "user_id"],
-    "all_data_view": ["id", "id_meldung", "fo_zuordnung", "report_user_db_id", "fundorte_id", "beschreibung_id"]
+    "all_data_view": ["id", "id_meldung", "fo_zuordnung", "report_user_db_id", "fundorte_id", "beschreibung_id", "dat_fund_von", "ort", "report_user_id"]
 }
 
-# Exclude sensitive columns
-EXCLUDED_COLUMNS = [
-    'report_user_db_id', 
-    'fundorte_id', 
-    'beschreibung_id', 
-    'dat_fund_bis', 
-    'fo_beleg', 
-    'bearb_id'
-]
 
 @admin.route("/reviewer/<usrid>")
 def reviewer(usrid):
@@ -766,7 +757,7 @@ def get_table_data(table_name):
         column_types = {column.name: get_standard_type(column.type) for column in table.columns}
 
         # Exclude sensitive columns
-        EXCLUDED_COLUMNS = ['report_user_db_id', 'fundorte_id', 'beschreibung_id', 'dat_fund_bis', 'fo_beleg', 'bearb_id']
+        EXCLUDED_COLUMNS = ['report_user_db_id', 'fundorte_id', 'beschreibung_id', 'dat_fund_bis', 'fo_beleg', 'bearb_id', 'ablage']
         columns_with_excluded = columns.copy()
         columns = [col for col in columns if col not in EXCLUDED_COLUMNS]
         column_types = {col: column_types[col] for col in columns}
