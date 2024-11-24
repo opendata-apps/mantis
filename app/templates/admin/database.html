@@ -283,13 +283,20 @@ block content %}
 
   .sort-indicator {
     display: inline-block;
-    margin-left: 4px;
     font-size: 10px;
     color: #16a34a;
+    min-width: 8px;
+  }
+
+  #dataTable th > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
   }
 
   #scrollContainer {
-    scrollbar-color: #16a34a #f1f5f9;
+    scrollbar-color: #16a34a #f8f9f1;
   }
 
   #scrollContainer::-webkit-scrollbar {
@@ -522,9 +529,11 @@ block content %}
         .map(
           (col) =>
             `<th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase cursor-pointer" data-column="${col}">
-                        ${col}
-                        <span class="sort-indicator"></span>
-                      </th>`
+              <div class="flex items-center justify-between">
+                <span>${col}</span>
+                <span class="ml-2 sort-indicator"></span>
+              </div>
+            </th>`
         )
         .join("");
     }
