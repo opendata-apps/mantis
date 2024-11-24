@@ -323,6 +323,7 @@ block content %}
 </style>
 
 <script>
+  // First define all variables
   let currentTable = "all_data_view";
   let columnTypes = {};
   let nonEditableFields = [];
@@ -342,51 +343,142 @@ block content %}
   let sentinel = null;
   let allDataLoaded = false;
 
-  document.addEventListener("DOMContentLoaded", function () {
-    fetchTableData().then(() => {
-      initializeInfiniteScroll();
-    });
+  // Main initialization function
+  function initializeApp() {
+    // Initialize search elements
+    const searchInput = document.getElementById("searchInput");
+    if (searchInput) {
+      searchInput.addEventListener("input", function () {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          searchTerm = this.value;
+          currentPage = 1;
+          allDataLoaded = false;
+          document.getElementById("tableBody").innerHTML = "";
+          initializeInfiniteScroll();
+          fetchTableData();
+          saveState();
+        }, 300);
+      });
+    }
 
-    const modalElement = document.getElementById("editModal");
-    editModalInstance = new Modal(modalElement, {
-      backdrop: "static",
-      closable: false,
-      onHide: () => {
-        currentlyEditingCell = null;
-        currentlyEditingCellData = null;
-      },
-    });
+    // Initialize filter form
+    const filterForm = document.getElementById("filterForm");
+    if (filterForm) {
+      filterForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        currentPage = 1;
+        document.getElementById("tableBody").innerHTML = "";
+        initializeInfiniteScroll();
+        fetchTableData();
+      });
+    }
 
-    document
-      .querySelector('button[onclick="clearSearch()"]')
-      .addEventListener("click", clearSearch);
+    // Initialize clear search button
+    const clearSearchBtn = document.querySelector('button[onclick="clearSearch()"]');
+    if (clearSearchBtn) {
+      clearSearchBtn.addEventListener("click", clearSearch);
+    }
 
-    document
-      .getElementById("dataTable")
-      .addEventListener("click", function (event) {
+    // Initialize data table click handlers
+    const dataTable = document.getElementById("dataTable");
+    if (dataTable) {
+      dataTable.addEventListener("click", function (event) {
         const cell = event.target.closest("td.editable");
         if (!cell) return;
         selectCell(cell);
       });
 
-    document
-      .getElementById("dataTable")
-      .addEventListener("dblclick", function (event) {
+      dataTable.addEventListener("dblclick", function (event) {
         const cell = event.target.closest("td.editable");
-        if (!cell) return;
-        if (currentlyEditingCell) return;
+        if (!cell || currentlyEditingCell) return;
         startEdit(cell);
       });
+    }
 
-    document
-      .getElementById("tableHeader")
-      .addEventListener("click", function (event) {
+    // Initialize table header click handlers
+    const tableHeader = document.getElementById("tableHeader");
+    if (tableHeader) {
+      tableHeader.addEventListener("click", function (event) {
         const header = event.target.closest("th");
         if (!header) return;
         const column = header.getAttribute("data-column");
         toggleSortOrder(column);
       });
-  });
+    }
+
+    // Initialize edit modal buttons
+    const saveEditButton = document.getElementById("saveEditButton");
+    if (saveEditButton) {
+      saveEditButton.addEventListener("click", function () {
+        const input = document.getElementById("modalInputField");
+        if (!input) return;
+        const newValue = input.value;
+        updateCell(
+          currentTable,
+          currentlyEditingCellData.column,
+          currentlyEditingCellData.row,
+          newValue,
+          currentlyEditingCell
+        );
+        editModalInstance.hide();
+      });
+    }
+
+    const cancelEditButton = document.getElementById("cancelEditButton");
+    if (cancelEditButton) {
+      cancelEditButton.addEventListener("click", function () {
+        editModalInstance.hide();
+      });
+    }
+
+    const resetEditButton = document.getElementById("resetEditButton");
+    if (resetEditButton) {
+      resetEditButton.addEventListener("click", function () {
+        const input = document.getElementById("modalInputField");
+        if (input && currentlyEditingCellData) {
+          input.value = currentlyEditingCellData.originalValue;
+        }
+      });
+    }
+
+    // Initialize Modal
+    const modalElement = document.getElementById("editModal");
+    if (modalElement) {
+      editModalInstance = new Modal(modalElement, {
+        backdrop: "static",
+        closable: false,
+        onHide: () => {
+          currentlyEditingCell = null;
+          currentlyEditingCellData = null;
+        },
+      });
+    }
+
+    // Initialize window resize handler
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        if (!allDataLoaded) {
+          checkIfMoreDataNeeded();
+        }
+      }, 250);
+    });
+
+    // Load initial state and data
+    loadState();
+    fetchTableData().then(() => {
+      initializeInfiniteScroll();
+    });
+  }
+
+  // Wait for DOM to be fully loaded before initializing
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeApp);
+  } else {
+    initializeApp();
+  }
 
   function initializeInfiniteScroll() {
     const scrollContainer = document.getElementById("scrollContainer");
@@ -432,29 +524,6 @@ block content %}
     }
     observer.observe(sentinel);
   }
-
-  document.getElementById("searchInput").addEventListener("input", function () {
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => {
-      searchTerm = this.value;
-      currentPage = 1;
-      allDataLoaded = false;
-      document.getElementById("tableBody").innerHTML = "";
-      initializeInfiniteScroll();
-      fetchTableData();
-      saveState();
-    }, 300);
-  });
-
-  document
-    .getElementById("filterForm")
-    .addEventListener("submit", function (e) {
-      e.preventDefault();
-      currentPage = 1;
-      document.getElementById("tableBody").innerHTML = "";
-      initializeInfiniteScroll();
-      fetchTableData();
-    });
 
   function showLoadingIndicator() {
     document.getElementById("loadingIndicator").classList.remove("hidden");
@@ -800,34 +869,6 @@ block content %}
     return input;
   }
 
-  document
-    .getElementById("saveEditButton")
-    .addEventListener("click", function () {
-      const input = document.getElementById("modalInputField");
-      const newValue = input.value;
-      updateCell(
-        currentTable,
-        currentlyEditingCellData.column,
-        currentlyEditingCellData.row,
-        newValue,
-        currentlyEditingCell
-      );
-      editModalInstance.hide();
-    });
-
-  document
-    .getElementById("cancelEditButton")
-    .addEventListener("click", function () {
-      editModalInstance.hide();
-    });
-
-  document
-    .getElementById("resetEditButton")
-    .addEventListener("click", function () {
-      const input = document.getElementById("modalInputField");
-      input.value = currentlyEditingCellData.originalValue;
-    });
-
   function parseValueFromInput(type, value) {
     switch (type) {
       case "integer":
@@ -954,17 +995,6 @@ block content %}
   });
 
   window.addEventListener("load", loadState);
-
-  // Add window resize handler
-  let resizeTimeout;
-  window.addEventListener('resize', () => {
-    clearTimeout(resizeTimeout);
-    resizeTimeout = setTimeout(() => {
-      if (!allDataLoaded) {
-        checkIfMoreDataNeeded();
-      }
-    }, 250);
-  });
 
   function checkIfMoreDataNeeded() {
     const scrollContainer = document.getElementById("scrollContainer");
