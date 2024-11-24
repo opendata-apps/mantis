@@ -18,7 +18,7 @@ block content %}
             d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"
             clip-rule="evenodd" />
         </svg>
-        Filter Options
+        Filter
         <svg class="-mr-1 ml-1.5 w-5 h-5" fill="currentColor" viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"
           aria-hidden="true">
           <path clip-rule="evenodd" fill-rule="evenodd"
@@ -28,13 +28,17 @@ block content %}
 
       <div id="filterDropdown"
         class="z-50 hidden w-64 p-4 space-y-3 bg-white divide-y divide-gray-100 rounded-lg shadow-lg sm:w-80">
-        <p class="text-sm text-gray-700">
-          This is a demo filter dropdown. You can add your custom filter options
-          here.
-        </p>
+        <div class="p-4 bg-gray-100 rounded-lg shadow-md">
+          <p class="text-sm text-gray-700">
+            <strong>Hinweis:</strong> Hier könnte eine Filterfunktion eingebunden werden.
+          </p>
+          <p class="text-sm font-bold text-red-500">
+            Vorschläge für Filter sind willkommen!
+          </p>
+        </div>
         <button type="button"
           class="w-full px-4 py-2 mt-3 text-white bg-green-500 rounded-md shadow-sm hover:bg-green-600 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:border-transparent">
-          Apply Demo Filter
+          Filter anwenden
         </button>
       </div>
     </div>
@@ -74,8 +78,7 @@ block content %}
       </form>
     </div>
 
-    <div class="flex items-center w-full space-x-4 md:w-auto">
-      <!-- Dropdown button -->
+    <!-- <div class="flex items-center w-full space-x-4 md:w-auto">
       <button id="dropdownExportButton" data-dropdown-toggle="filterForm"
         class="flex items-center justify-center flex-grow px-4 py-2 text-sm font-medium text-gray-100 bg-green-600 border border-green-400 rounded-lg focus:outline-none hover:bg-green-600 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200">
         <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="2"
@@ -86,7 +89,6 @@ block content %}
         Export
       </button>
 
-      <!-- Dropdown menu -->
       <div id="filterForm" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44">
         <ul class="py-2 text-sm text-gray-700" aria-labelledby="dropdownExportButton">
           <li>
@@ -96,7 +98,7 @@ block content %}
           </li>
         </ul>
       </div>
-    </div>
+    </div> -->
   </div>
 
   <div id="tableContainer" class="hidden">
@@ -893,50 +895,6 @@ block content %}
       })
       .finally(() => {
         hideLoadingIndicator();
-      });
-  }
-
-  function exportCsv() {
-    const exportButton = document.getElementById("dropdownExportButton");
-    exportButton.innerHTML =
-      '<svg class="w-5 h-5 mx-auto text-gray-100 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
-
-    const exportUrl = `/admin/export/csv/${currentTable}`;
-
-    fetch(exportUrl)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        return response.blob();
-      })
-      .then((blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.style.display = "none";
-        a.href = url;
-        a.download = `${currentTable}.csv`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-        alert(
-          "An error occurred while exporting the data. Please try again later."
-        );
-      })
-      .finally(() => {
-        setTimeout(() => {
-          exportButton.innerHTML = `
-                      <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24"
-                          stroke-width="2" stroke="currentColor" aria-hidden="true">
-                          <path stroke-linecap="round" stroke-linejoin="round"
-                              d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-                      </svg>
-                      Export
-                  `;
-        }, 3000);
       });
   }
 
