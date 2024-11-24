@@ -34,9 +34,7 @@
 				<a href="{{ url_for('main.mantis_religiosa') }}" class="text-xl font-bold text-gray-100 hover:text-gray-300 link link-underline">Gottesanbeterin</a>
 				<a href="{{ url_for('data.report') }}" class="text-xl font-bold text-gray-100 hover:text-gray-300 link link-underline">Melden</a>
 				<a href="{{ url_for('data.show_map', year=now.year) }}" class="text-xl font-bold text-gray-100 hover:text-gray-300 link link-underline">Auswertungen</a>
-				{% if request.path.startswith('/reviewer') or request.path.startswith('/statistik') or
-				request.path.startswith('/superuser') or request.path.startswith('/galerie') or
-				request.path.startswith('/adminPanel') %}
+				{% if request.path.startswith('/reviewer') or request.path.startswith('/statistik') or request.path.startswith('/galerie') or request.path.startswith('/alldata') %}
 				<div class="relative">
 					<button id="dropdownReviewerButton" data-dropdown-toggle="dropdownReviewer" class="text-gray-100 bg-green-600 hover:bg-green-500 focus:ring-4 focus:ring-green-600 font-medium rounded-lg text-sm px-4 py-2.5 text-center inline-flex items-center" type="button" aria-expanded="false" aria-haspopup="true">
 						<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -55,7 +53,7 @@
 								<a href="/galerie" class="block px-4 py-2 hover:bg-gray-200">Galerie</a>
 							</li>
 							<li>
-								<a href="/admin/database" class="block px-4 py-2 hover:bg-gray-200">Superuser</a>
+								<a href="/alldata" class="block px-4 py-2 hover:bg-gray-200">Superuser</a>
 							</li>
 						</ul>
 					</div>
@@ -76,11 +74,11 @@
 				<a href="{{ url_for('data.show_map', year=now.year) }}" class="block px-3 py-2 text-base font-medium text-white transition duration-300 ease-in-out rounded-md hover:bg-green-700">Auswertungen</a>
 				{% if request.path.startswith('/reviewer') or request.path.startswith('/statistik') or
 				request.path.startswith('/superuser') or request.path.startswith('/galerie') or
-				request.path.startswith('/adminPanel') %}
+				request.path.startswith('/alldataPanel') %}
 				<a href="{{'/reviewer/'+ user_id }}" class="block px-3 py-2 text-base font-medium text-white transition duration-300 ease-in-out rounded-md hover:bg-green-700">Reviewer</a>
 				<a href="{{'/statistik/'+ user_id }}" class="block px-3 py-2 text-base font-medium text-white transition duration-300 ease-in-out rounded-md hover:bg-green-700">Statistics</a>
 				<a href="/galerie" class="block px-3 py-2 text-base font-medium text-white transition duration-300 ease-in-out rounded-md hover:bg-green-700">Galerie</a>
-				<a href="/admin/database" class="block px-3 py-2 text-base font-medium text-white transition duration-300 ease-in-out rounded-md hover:bg-green-700">Superuser</a>
+				<a href="/alldata" class="block px-3 py-2 text-base font-medium text-white transition duration-300 ease-in-out rounded-md hover:bg-green-700">Superuser</a>
 				{% endif %}
 			</div>
 		</div>

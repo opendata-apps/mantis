@@ -1007,6 +1007,24 @@ block content %}
       }
     }, 250);
   });
+
+  function checkIfMoreDataNeeded() {
+    const scrollContainer = document.getElementById("scrollContainer");
+    if (!scrollContainer) return;
+
+    const containerHeight = scrollContainer.clientHeight;
+    const scrollHeight = scrollContainer.scrollHeight;
+    const scrollTop = scrollContainer.scrollTop;
+    
+    // If we're close to the bottom and not already loading or finished
+    if (containerHeight + scrollTop + 100 >= scrollHeight && !isLoading && !allDataLoaded) {
+      const totalPages = Math.ceil(totalItems / itemsPerPage);
+      if (currentPage < totalPages) {
+        currentPage++;
+        fetchTableData();
+      }
+    }
+  }
 </script>
 
 {% endblock %}

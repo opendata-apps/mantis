@@ -650,13 +650,17 @@ def perform_query(filter_value=None):
     return query.all()
 
 
-@admin.route("/admin/database")
+@admin.route("/alldata")
 @login_required
 def database_view():
     inspector = inspect(db.engine)
     tables = [table for table in inspector.get_table_names() if table not in ['aemter', 'alembic_version', 'melduser']]
     tables.append('all_data_view')  # Add the materialized view to the list of tables
-    return render_template("admin/database.html", tables=tables)
+    
+    # Get user_id from session, default to None if not found
+    user_id = session.get('user_id')
+    
+    return render_template("admin/database.html", tables=tables, user_id=user_id)
 
 @admin.route("/admin/get_table_data/<table_name>")
 @login_required
