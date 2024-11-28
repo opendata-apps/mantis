@@ -472,7 +472,7 @@ def change_mantis_count(id):
     # Update the count for the specified mantis type
     if mantis_type == "Männchen":
         sighting.art_m = new_count
-    elif mantis_type == "Weiblich":
+    elif mantis_type == "Weibchen":
         sighting.art_w = new_count
     elif mantis_type == "Nymphe":
         sighting.art_n = new_count
