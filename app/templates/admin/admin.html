@@ -607,6 +607,9 @@
             .catch(error => console.error('Error:', error));
     }
 
+    // Global variable to store current sighting data
+    let currentSightingData;
+
     function openModal(id) {
         document.body.style.overflow = 'hidden';
         clearTabClickListeners();
@@ -616,17 +619,18 @@
                 return response.json();
             })
             .then(data => {
+                currentSightingData = data; // Store the data globally
                 let tabGeneralInfo = document.getElementById('tab-general-info');
                 let tabLocationInfo = document.getElementById('tab-location-info');
                 let tabContent = document.getElementById('tab-content');
 
                 // Set initial content
-                tabContent.innerHTML = generateGeneralInfo(data);
+                tabContent.innerHTML = generateGeneralInfo(currentSightingData);
                 setActiveTab(tabGeneralInfo);
 
                 // Add click listeners to tab buttons
-                addTabClickListener(tabGeneralInfo, generateGeneralInfo, data);
-                addTabClickListener(tabLocationInfo, generateLocationInfo, data);
+                addTabClickListener(tabGeneralInfo, generateGeneralInfo);
+                addTabClickListener(tabLocationInfo, generateLocationInfo);
 
                 // Show the modal
                 document.getElementById('modal').classList.remove('hidden');
@@ -697,17 +701,29 @@
     }
 
 
-    function addTabClickListener(tabElement, contentGenerator, data) {
-        let isApproved = document.querySelector(`[data-report-id="${data.id_meldung}"]`).getAttribute('data-approved') === 'true';
+    function addTabClickListener(tabElement, contentGenerator) {
         tabElement.onclick = function () {
             if (!this.classList.contains('active-tab')) {
-                document.getElementById('tab-content').innerHTML = contentGenerator(data);
-                setActiveTab(this);
-                disableInputsIfApproved(isApproved);
+                // Re-fetch data when switching tabs
+                fetch('/get_sighting/' + currentSightingData.id_meldung)
+                    .then(response => {
+                        if (!response.ok) throw new Error('Network response was not ok');
+                        return response.json();
+                    })
+                    .then(updatedData => {
+                        currentSightingData = updatedData; // Update the global data variable
+                        document.getElementById('tab-content').innerHTML = contentGenerator(updatedData);
+                        setActiveTab(this);
 
-                if (contentGenerator === generateLocationInfo) {
-                    initiateMap(data);
-                }
+                        // Disable inputs if the sighting has been approved
+                        let isApproved = document.querySelector(`[data-report-id="${updatedData.id_meldung}"]`).getAttribute('data-approved') === 'true';
+                        disableInputsIfApproved(isApproved);
+
+                        if (contentGenerator === generateLocationInfo) {
+                            initiateMap(updatedData);
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
             }
         };
     }
