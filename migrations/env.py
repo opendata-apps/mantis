@@ -1,5 +1,6 @@
 import logging
 from logging.config import fileConfig
+import re
 
 from flask import current_app
 
@@ -14,6 +15,16 @@ config = context.config
 fileConfig(config.config_file_name)
 logger = logging.getLogger('alembic.env')
 
+# Get exclude_tables from config and split into list
+exclude_tables = config.get_main_option('exclude_tables', '').split(',')
+exclude_tables = [t.strip() for t in exclude_tables if t.strip()]
+
+def include_object(object, name, type_, reflected, compare_to):
+    """Determine which database objects should be included in the autogeneration."""
+    # Exclude specific tables from migrations
+    if type_ == "table" and name in exclude_tables:
+        return False
+    return True
 
 def get_engine():
     try:
@@ -100,6 +111,7 @@ def run_migrations_online():
         context.configure(
             connection=connection,
             target_metadata=get_metadata(),
+            include_object=include_object,
             **conf_args
         )
 

@@ -6,3 +6,5 @@ from .meldung_user import TblMeldungUser
 from .aemter_koordinaten import TblAemterCoordinaten
 from .users import TblUsers
 from .alldata import TblAllData
+from .feedback import TblFeedback
+from .feedbackdetails import TblFeedbackDetails

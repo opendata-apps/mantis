@@ -19,6 +19,7 @@ class TblFundorte(db.Model):
     longitude = db.Column(db.VARCHAR(25), nullable=False)
     latitude = db.Column(db.VARCHAR(25), nullable=False)
     ablage = db.Column(db.VARCHAR(255), nullable=False)
+    verwendung = db.Column(db.Integer(), nullable=True)  # 0-7
 
     def __repr__(self):
         return f"<Report {self.id}>"
