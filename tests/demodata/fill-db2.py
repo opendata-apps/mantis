@@ -68,8 +68,9 @@ def generate_sample_reports():
                 strasse=fake.street_name(),
                 kreis=fake.city_suffix(),
                 land=fake.state(),
-                longitude=str(fake.coordinate(center=10.4515, radius=2.5)),  # Approximate center of Germany
-                latitude=str(fake.coordinate(center=51.1657, radius=2.5)),   # Approximate center of Germany
+                # Approximate center of Germany
+                longitude=str(fake.coordinate(center=10.4515, radius=2.5)),
+                latitude=str(fake.coordinate(center=51.1657, radius=2.5)),
                 beschreibung="1",
                 ablage=imagepath,
             )

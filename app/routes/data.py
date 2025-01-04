@@ -21,7 +21,10 @@ from werkzeug.datastructures import CombinedMultiDict
 from werkzeug.utils import secure_filename
 
 from app import db
-from app.database.models import TblFundorte, TblMeldungen, TblMeldungUser, TblUsers
+from app.database.models import (TblFundorte,
+                                 TblMeldungen,
+                                 TblMeldungUser,
+                                 TblUsers)
 from app.forms import MantisSightingForm
 from app.tools.gen_user_id import get_new_id
 from app.tools.mtb_calc import get_mtb, pointInRect
@@ -36,12 +39,13 @@ checklist["datum"] = datetime.now() + timedelta(days=1)
 
 # Load the popover content from flask static folder
 popover_content = {}
-popover_content_path = os.path.join(Config.STATIC_FOLDER, "popover_content.json")
+popover_content_path = os.path.join(Config.STATIC_FOLDER,
+                                    "popover_content.json")
 if os.path.exists(popover_content_path):
     with open(popover_content_path, "r") as f:
         popover_content = json.load(f)
 
-        
+
 def _create_directory(date):
     year = date[:4]
     dir_path = Path(Config.UPLOAD_FOLDER + "/" + year + "/" + date)
@@ -102,7 +106,8 @@ def _handle_file_upload(request, form, usrid):
         flash("No selected file")
         return None
 
-    date_folder = _create_directory(form.sighting_date.data.strftime("%Y-%m-%d"))
+    date_folder = _create_directory(
+        form.sighting_date.data.strftime("%Y-%m-%d"))
     filename = _create_filename(form.city.data, usrid)
     full_file_path = date_folder / filename
 
@@ -111,7 +116,7 @@ def _handle_file_upload(request, form, usrid):
 
     # Use Pillow to open the image
     with Image.open(io.BytesIO(file_content)) as img:
-        # Check if the image is already in WebP format or over 6MB  
+        # Check if the image is already in WebP format or over 6MB
         if img.format != 'WEBP' or len(file_content) > 6 * 1024 * 1024:
             # Convert to WebP
             output = io.BytesIO()
@@ -302,8 +307,8 @@ def success(usrid):
 @data.route("/validate", methods=["POST"])
 def validate():
     "Validate user input in report with the errors from forms.py"
-
-    form_data = CombinedMultiDict((request.form, request.files))  # type: ignore
+    # type: ignore
+    form_data = CombinedMultiDict((request.form, request.files))
     form = MantisSightingForm(form_data)
 
     if form.validate():
@@ -329,7 +334,9 @@ def show_map():
     years = [int(year[0]) for year in years]
 
     reports_query = (
-        db.session.query(TblMeldungen.id, TblFundorte.latitude, TblFundorte.longitude)
+        db.session.query(TblMeldungen.id,
+                         TblFundorte.latitude,
+                         TblFundorte.longitude)
         .join(TblFundorte, TblMeldungen.fo_zuordnung == TblFundorte.id)
         .filter(TblMeldungen.dat_bear != None)
         .filter(TblMeldungen.deleted.is_(None))
@@ -363,8 +370,8 @@ def show_map():
             lati, long = obfuscate_location(lati, long)
 
             koords.append({"report_id": report_id, "latitude": lati, "longitude": long})
-        except:
-            pass
+        except Exception as e:
+            print(e)
 
     reportsJson = json.dumps(koords)
     return render_template(

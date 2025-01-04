@@ -78,13 +78,17 @@ def melder_index(usrid):
         sichtungen.append(sighting_dict)
 
     return render_template(
-        "provider/melder.html", reported_sightings=sichtungen, image_path=image_path
+        "provider/melder.html",
+        reported_sightings=sichtungen,
+        image_path=image_path
     )
 
 
 @provider.route("/<path:filename>")
 def report_Img(filename):
     "Return the image file for the report with the given filename."
+
     return send_from_directory(
-        Config["UPLOAD_PATH"], filename, mimetype="image/webp", as_attachment=False
+        Config["UPLOAD_PATH"], filename,
+        mimetype="image/webp", as_attachment=False
     )

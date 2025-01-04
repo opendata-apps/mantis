@@ -45,8 +45,4 @@ class Config:
     MIN_MAP_YEAR = 2023
     CELEBRATION_THRESHOLD = 10000
     TESTING = False
-    
-class TestConfig(Config):
-    TESTING = True
-    SQLALCHEMY_DATABASE_URI = 'postgresql://mantis_user:mantis@localhost/mantis_tester' 
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
+ 

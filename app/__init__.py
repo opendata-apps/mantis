@@ -33,6 +33,7 @@ def create_materialized_view_command():
 @with_appcontext
 def insert_initial_data_command():
     """Insert initial data into the beschreibung table."""
+    
     for id, beschreibung in Config.INITIAL_DATA:
         db.session.execute(
             text(

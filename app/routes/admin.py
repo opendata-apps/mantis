@@ -515,6 +515,7 @@ def export_csv(table_name):
     headers = {"Content-Disposition": "attachment; filename=data.csv"}
     return Response(si, mimetype="text/csv", headers=headers)
 
+
 @admin.route("/admin/export/xlsx/<table_name>")
 @login_required
 def export_data(table_name):
@@ -541,15 +542,17 @@ def export_data(table_name):
         output = BytesIO()
         with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
             df.to_excel(writer, sheet_name=table_name, index=False)
-            
+
             # Get the xlsxwriter workbook and worksheet objects
             worksheet = writer.sheets[table_name]
-            
+
             # Add a table to the worksheet
             (max_row, max_col) = df.shape
             column_settings = [{'header': column} for column in df.columns]
-            worksheet.add_table(0, 0, max_row, max_col - 1, {'columns': column_settings, 'style': 'Table Style Medium 9'})
-            
+            worksheet.add_table(0, 0, max_row, max_col - 1,
+                                {'columns': column_settings,
+                                 'style': 'Table Style Medium 9'})
+
             # Auto-adjust columns' width
             for i, col in enumerate(df.columns):
                 column_len = max(df[col].astype(str).map(len).max(), len(col))
@@ -754,4 +757,3 @@ def perform_query(filter_value=None):
     )
 
     return query.all()
-
