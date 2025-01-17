@@ -212,38 +212,45 @@ title %} {% from "macro.html" import popover %} {% block content %}
 </section>
 
 <script>
-    const counter = document.querySelector('.counter');
-    const target = +counter.dataset.target;
-    console.log(target);
-    const duration = 2500;
-    let startTime = null;
+  // Counter animation with performance optimization
+  const counter = document.querySelector('.counter');
+  const target = +counter.dataset.target;
+  const duration = 2000;
+  const frameRate = 1000 / 30; // 30 FPS
+  let startTime = null;
 
-    function easeOutExpo(time, b, c, d) {
-        return c * (-Math.pow(2, -10 * time / d) + 1) + b;
+  function easeOutExpo(t) {
+    return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+  }
+
+  function animateCounter(currentTime) {
+    if (!startTime) startTime = currentTime;
+    const elapsedTime = currentTime - startTime;
+    const progress = Math.min(elapsedTime / duration, 1);
+    
+    if (progress < 1) {
+      const nextValue = Math.floor(easeOutExpo(progress) * target);
+      if (counter.innerText !== nextValue.toString()) {
+        counter.innerText = nextValue;
+      }
+      setTimeout(() => requestAnimationFrame(animateCounter), frameRate);
+    } else {
+      counter.innerText = target;
     }
+  }
 
-    function animate(currentTime) {
-        if (startTime === null) startTime = currentTime;
-        const elapsedTime = currentTime - startTime;
-        const progress = Math.min(elapsedTime / duration, 1);
-        const count = easeOutExpo(progress, 0, target, 1);
+  // Intersection Observer with options for better performance
+  const observer = new IntersectionObserver(
+    entries => {
+      if (entries[0].isIntersecting) {
+        requestAnimationFrame(animateCounter);
+        observer.disconnect();
+      }
+    },
+    { threshold: 0.1 }
+  );
 
-        counter.innerText = Math.floor(count);
-        if (elapsedTime < duration) {
-            requestAnimationFrame(animate);
-        } else {
-            counter.innerText = target;
-        }
-    }
-
-    const observer = new IntersectionObserver(entries => {
-        if (entries[0].isIntersecting) {
-            requestAnimationFrame(animate);
-            observer.disconnect();
-        }
-    });
-
-    observer.observe(counter);
+  observer.observe(counter);
 </script>
 
 <!-- Modal -->
