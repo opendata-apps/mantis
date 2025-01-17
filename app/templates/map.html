@@ -122,7 +122,7 @@
       option.value = '';
       option.innerHTML = 'Alle Jahre';
 
-      {% for year in years %}
+      {% for year in years|sort(reverse=true) %}
       var option = L.DomUtil.create('option', '', select);
       option.value = '{{ year }}';
       option.innerHTML = '{{ year }}';
