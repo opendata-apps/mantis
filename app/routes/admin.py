@@ -1,7 +1,5 @@
-import csv
 from datetime import datetime, timedelta
-from functools import wraps
-from io import BytesIO, StringIO
+from io import BytesIO
 import pandas as pd
 from app import db
 from app.config import Config
@@ -17,7 +15,6 @@ from app.database.models import (
 from flask import session
 from flask import (
     Blueprint,
-    Response,
     abort,
     flash,
     jsonify,
@@ -29,9 +26,8 @@ from flask import (
     url_for,
 )
 from sqlalchemy import inspect, or_, text, cast, String, update
-from sqlalchemy.sql import func
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import sessionmaker, Session, load_only
+from sqlalchemy.orm import sessionmaker
 from app.tools.check_reviewer import login_required
 import shutil
 from werkzeug.utils import secure_filename
@@ -539,7 +535,7 @@ def export_data(value):
         # Send the file
         mime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         return send_file(output, mimetype=mime, as_attachment=True, download_name=filename)
-    except Exception as e:
+    except Exception:
         current_app.logger.exception("Error in export_data")
         return jsonify({"error": "An error occurred during export"}), 500
 
@@ -775,7 +771,7 @@ def get_table_data(table_name):
             "non_editable_fields": NON_EDITABLE_FIELDS.get(table_name, []),
             "total_items": total_items
         })
-    except Exception as e:
+    except Exception:
         current_app.logger.exception("Error in get_table_data")
         return jsonify({"error": "An error occurred while fetching table data"}), 500
 
@@ -862,7 +858,7 @@ def update_cell():
 
         return jsonify({"success": True})
 
-    except Exception as e:
+    except Exception:
         db.session.rollback()
         return jsonify({"error": "An error occurred while updating the cell"}), 500
 
