@@ -147,7 +147,7 @@ def galerie():
 @main.route("/favicon.ico")
 def favicon():
     "Return the favicon.ico file."
-    return send_from_directory("static/images/favicon/", "favicon.ico")
+    return send_from_directory("static", "images/favicon/favicon.ico")
 
 
 def not_found(e):
