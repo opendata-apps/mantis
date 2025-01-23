@@ -34,11 +34,13 @@ def _set_gender_fields(selected_gender):
     return genders
 
 
-def generate_sample_reports():
+def generate_sample_reports(app, db):
     genders = ["Männchen", "Weibchen", "Nymphe", "Oothek"]
 
     with app.app_context():
-        for _ in range(600):
+        print(60*'#')
+        print(app, db)
+        for _ in range(50):
             usrid = get_new_id()
             finderid = get_new_id()
 

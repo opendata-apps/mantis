@@ -1,10 +1,13 @@
 import pytest
+import sys
+import os
+from pathlib import Path
 from app import create_app, db
 from alembic import command
 from alembic.config import Config
 from app import test_config
 from sqlalchemy import text
-
+from .demodata.filldb import generate_sample_reports,  _set_gender_fields
 
 @pytest.fixture(scope='session')
 def app():
@@ -17,7 +20,7 @@ def app():
 
 
 def insert_initial_data_command():
-    """Insert initial data into the beschreibung table."""
+    """Insert initial data into the table beschreibung"""
 
     for id, beschreibung in test_config.Config.INITIAL_DATA:
         db.session.execute(
@@ -29,14 +32,14 @@ def insert_initial_data_command():
         )
     db.session.commit()
 
-
 @pytest.fixture(scope='session')
 def _db(app):
     """Set up the database for the test session."""
     db.create_all()  # Erstelle alle Tabellen in der Testdatenbank
     # Initiale Daten einfügen
-    insert_initial_data_command()  # Füge die Daten ein
-
+    insert_initial_data_command()
+    generate_sample_reports(app, db) # 50 Datasets 
+    
     yield db
     db.session.remove()
     db.drop_all()  # Entferne alle Tabellen nach den Tests
