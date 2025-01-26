@@ -31,15 +31,15 @@ def melder_index(usrid):
 
     image_path = Config.UPLOAD_FOLDER.replace("app/", "")
 
-    # Get the user's email to search for additional reports based on email
-    user_email = user.user_kontakt
+    # Get the user's email if provided
+    user_email = user.user_kontakt if user.user_kontakt else None
 
-    # Using SQLAlchemy syntax for querying
-    sichtungen_query = (
+    # Base query with all the necessary joins
+    base_query = (
         db.session.query(
             TblMeldungen.id,
             TblMeldungen.dat_fund_von,
-            TblMeldungen.dat_fund_bis,
+            TblMeldungen.dat_fund_bis, 
             TblMeldungen.dat_meld,
             TblMeldungen.dat_bear,
             TblMeldungen.tiere,
@@ -70,17 +70,19 @@ def melder_index(usrid):
             TblFundortBeschreibung,
             TblFundorte.beschreibung == TblFundortBeschreibung.id,
         )
-        .filter(
-            TblUsers.user_kontakt == user_email
-        )
-        .all()
     )
 
+    # Apply email filter only if user has an email
+    if user_email:
+        sichtungen_query = base_query.filter(TblUsers.user_kontakt == user_email).all()
+    else:
+        sichtungen_query = base_query.filter(TblUsers.user_id == usrid).all()
+
+    # Process query results
     sichtungen = []
     for sighting in sichtungen_query:
         sighting_dict = sighting._asdict()
-        if sighting_dict["dat_bear"] is None:
-            sighting_dict["dat_bear"] = "noch nicht geprüft"
+        sighting_dict["dat_bear"] = sighting_dict["dat_bear"] or "noch nicht geprüft"
         sichtungen.append(sighting_dict)
 
     return render_template(
