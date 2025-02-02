@@ -7,8 +7,9 @@ from alembic import command
 from alembic.config import Config
 from app import test_config
 from sqlalchemy import text
-from .demodata.filldb import generate_sample_reports,  _set_gender_fields
-
+#from .demodata.filldb import generate_sample_reports,  _set_gender_fields
+#from .demodata.fill_db2 import generate_sample_reports
+from .demodata.filldb import insert_data_reports
 @pytest.fixture(scope='session')
 def app():
     # Flask-App mit Testkonfiguration initialisieren
@@ -35,12 +36,14 @@ def insert_initial_data_command():
 @pytest.fixture(scope='session')
 def _db(app):
     """Set up the database for the test session."""
+    
     db.create_all()  # Erstelle alle Tabellen in der Testdatenbank
     # Initiale Daten einfügen
     insert_initial_data_command()
-    generate_sample_reports(app, db) # 50 Datasets 
+    insert_data_reports(db)
     
     yield db
+    #revert all settings and remove data
     db.session.remove()
     db.drop_all()  # Entferne alle Tabellen nach den Tests
 

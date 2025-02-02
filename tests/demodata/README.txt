@@ -54,3 +54,8 @@ select
   left join fundorte fo on me.fo_zuordnung = fo.id
   left join beschreibung be on fo.beschreibung = be.id;
 
+Datensicherung
+==============
+
+pg_dump -U postgres -t alembic_version -d mantis_tester > backup.sql
+
