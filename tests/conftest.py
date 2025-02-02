@@ -7,17 +7,15 @@ from alembic import command
 from alembic.config import Config
 from app import test_config
 from sqlalchemy import text
-#from .demodata.filldb import generate_sample_reports,  _set_gender_fields
-#from .demodata.fill_db2 import generate_sample_reports
 from .demodata.filldb import insert_data_reports
 @pytest.fixture(scope='session')
 def app():
-    # Flask-App mit Testkonfiguration initialisieren
+    # Flask-App nitialise with testconfig
     app = create_app(test_config.Config)
     with app.app_context():
-        # Wende Alembic-Migrationen auf die Test-Datenbank an
-        upgrade()  # Stelle sicher, dass die Migrationen angewendet werden
-        yield app  # Die App für Tests bereitstellen
+        # Alembic-Migrations on testdb
+        upgrade()  
+        yield app 
 
 
 def insert_initial_data_command():
@@ -36,16 +34,19 @@ def insert_initial_data_command():
 @pytest.fixture(scope='session')
 def _db(app):
     """Set up the database for the test session."""
-    
-    db.create_all()  # Erstelle alle Tabellen in der Testdatenbank
-    # Initiale Daten einfügen
+
+    # create all tables in testdb
+    db.create_all()  
+    # fill tables
     insert_initial_data_command()
     insert_data_reports(db)
     
     yield db
+
     #revert all settings and remove data
     db.session.remove()
-    db.drop_all()  # Entferne alle Tabellen nach den Tests
+    # remove all tables after test run
+    db.drop_all()
 
 
 @pytest.fixture(scope='function', autouse=True)
@@ -59,7 +60,7 @@ def session(_db):
 
     yield session  # Liefere die Session für den Test
 
-    transaction.rollback()  # Setze die Datenbank zurück
+    transaction.rollback()
     connection.close()
     session.remove()
 
