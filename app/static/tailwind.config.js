@@ -5,7 +5,13 @@ module.exports = {
     './node_modules/flowbite/**/*.js'
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        primary: {
+          700: '#166534'
+        }
+      }
+    }
   },
   variants: {},
   plugins: [
@@ -13,4 +19,4 @@ module.exports = {
     require('@tailwindcss/forms'),
     require('@tailwindcss/aspect-ratio')
   ]
-} 
+}
