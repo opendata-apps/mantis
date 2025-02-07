@@ -2,17 +2,17 @@
 {% from "macro.html" import popover with context %}
 {% from "macro.html" import formButton %}
 {% block head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/leaflet.css')}}" />
-<link rel="stylesheet" href="{{ url_for('static', filename='css/cluster/MarkerCluster.Default.css')}}" />
-<link rel="stylesheet" href="{{ url_for('static', filename='css/cluster/MarkerCluster.css')}}" />
-<link rel="stylesheet" href="{{ url_for('static', filename='css/currentLocation/L.Control.Locate.min.css')}}" />
-<script src="{{ url_for('static', filename='js/leaflet.js')}}"></script>
-<script src="{{ url_for('static', filename='js/esri-leaflet.js')}}"></script>
-<script src="{{ url_for('static', filename='js/esri-leaflet-vector.js')}}"></script>
-<script src="{{ url_for('static', filename='js/exif-js.js')}}" defer></script>
-<script src="{{url_for('static', filename='js/cluster/leaflet.markercluster.js')}}"></script>
-<script src="{{url_for('static', filename='js/currentLocation/L.Control.Locate.min.js')}}"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tuily/heic2any@0.0.6/dist/heic2any.min.js"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.css')}}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='node_modules/leaflet.markercluster/dist/MarkerCluster.css')}}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='node_modules/leaflet.markercluster/dist/MarkerCluster.Default.css')}}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='node_modules/leaflet.locatecontrol/dist/L.Control.Locate.min.css')}}" />
+<script src="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.js')}}"></script>
+<script src="{{ url_for('static', filename='node_modules/esri-leaflet/dist/esri-leaflet.js')}}"></script>
+<script src="{{ url_for('static', filename='node_modules/esri-leaflet-vector/dist/esri-leaflet-vector.js')}}"></script>
+<script src="{{ url_for('static', filename='node_modules/exif-js/exif.js')}}" defer></script>
+<script src="{{url_for('static', filename='node_modules/leaflet.markercluster/dist/leaflet.markercluster.js')}}"></script>
+<script src="{{url_for('static', filename='node_modules/leaflet.locatecontrol/dist/L.Control.Locate.min.js')}}"></script>
+<script src="{{url_for('static', filename='node_modules/heic2any/dist/heic2any.min.js')}}"></script>
 <meta name="csrf-token" content="{{ csrf_token() }}">
 {% endblock %}
 {% block page_title %}Melden Sie Ihre Beobachtung | Mantis Religiosa Mitmachprojekt | Gottesanbeterin Gesucht{% endblock
@@ -21,7 +21,7 @@
 {% block meta_description %} Melden Sie Ihre Beobachtungen von Mantis religiosa in Deutschland. Unterstützen Sie die
 Forschung. {% endblock %}
 {% block content %}
-<script src="{{ url_for('static', filename='js/flow/flowbite.min.js')}}" defer></script>
+<script src="{{ url_for('static', filename='node_modules/flowbite/dist/flowbite.min.js')}}" defer></script>
 
 
 <div class="flex items-center justify-center min-h-screen bg-gray-100">

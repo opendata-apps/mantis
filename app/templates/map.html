@@ -7,16 +7,18 @@
   {% endif %}
 {% endblock title %}
 {% block head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/leaflet.css')}}" />
-<link rel="stylesheet" href="{{ url_for('static', filename='css/cluster/MarkerCluster.Default.css')}}" />
-<link rel="stylesheet" href="{{ url_for('static', filename='css/cluster/MarkerCluster.css')}}" />
-<link rel="stylesheet" href="{{ url_for('static', filename='css/currentLocation/L.Control.Locate.min.css')}}" />
-<script src="{{ url_for('static', filename='js/leaflet.js')}}"></script>
-<script src="{{ url_for('static', filename='js/esri-leaflet.js')}}"></script>
-<script src="{{ url_for('static', filename='js/esri-leaflet-vector.js')}}"></script>
-<script src="{{ url_for('static', filename='js/exif-js.js')}}" defer></script>
-<script src="{{url_for('static', filename='js/cluster/leaflet.markercluster.js')}}"></script>
-<script src="{{url_for('static', filename='js/currentLocation/L.Control.Locate.min.js')}}"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.css')}}" />
+<link rel="stylesheet"
+  href="{{ url_for('static', filename='node_modules/leaflet.markercluster/dist/MarkerCluster.css')}}" />
+<link rel="stylesheet"
+  href="{{ url_for('static', filename='node_modules/leaflet.markercluster/dist/MarkerCluster.Default.css')}}" />
+<link rel="stylesheet"
+  href="{{ url_for('static', filename='node_modules/leaflet.locatecontrol/dist/L.Control.Locate.min.css')}}" />
+<script src="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.js')}}"></script>
+<script src="{{ url_for('static', filename='node_modules/esri-leaflet/dist/esri-leaflet.js')}}"></script>
+<script src="{{ url_for('static', filename='node_modules/esri-leaflet-vector/dist/esri-leaflet-vector.js')}}"></script>
+<script src="{{url_for('static', filename='node_modules/leaflet.markercluster/dist/leaflet.markercluster.js')}}"></script>
+
 {% endblock %}
 {% block page_title %}Auswertungen der Beobachtungen | Mantis Religiosa Mitmachprojekt | Gottesanbeterin Gesucht{% endblock %}
 {% block meta_keywords %} Auswertungen, Karte, Gottesanbeterin, Mantis religiosa Auswertungen {% endblock %}
@@ -29,7 +31,7 @@
   {% endif %}
   {% endblock text %}
   {% block content %}
-  <script src="{{ url_for('static', filename='js/flow/flowbite.min.js')}}" defer></script>
+<script src="{{ url_for('static', filename='node_modules/flowbite/dist/flowbite.min.js')}}" defer></script>
   <section class="container relative px-4 mx-auto mt-10 sm:px-6 lg:px-8">
   <!-- Year Selector on Map -->
   <div class="flex justify-center">

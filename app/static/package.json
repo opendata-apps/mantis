@@ -1,0 +1,27 @@
+{
+  "name": "mantis",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "watch:css": "tailwindcss -i css/theme.css -o build/theme.css --watch",
+    "build:css": "tailwindcss -i css/theme.css -o build/theme.css"
+  },
+  "dependencies": {
+    "canvas-confetti": "^1.9.3",
+    "esri-leaflet-vector": "^4.2.7",
+    "exif-js": "^2.3.0",
+    "flowbite": "^2.5.2",
+    "flowbite-datepicker": "^1.3.2",
+    "heic2any": "^0.0.4",
+    "leaflet": "^1.9.4",
+    "leaflet.locatecontrol": "^0.83.1",
+    "leaflet.markercluster": "^1.5.3",
+    "lightbox2": "^2.11.5",
+    "plotly.js": "^3.0.0",
+    "tailwindcss": "^3.4.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/aspect-ratio": "^0.4.2",
+    "@tailwindcss/forms": "^0.5.3"
+  }
+}

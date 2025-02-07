@@ -1,6 +1,9 @@
 module.exports = {
   mode: 'jit',
-  content: ['./app/templates/**/*.html', "./node_modules/flowbite/**/*.js"],
+  content: [
+    '../templates/**/*.html',
+    './node_modules/flowbite/**/*.js'
+  ],
   theme: {
     extend: {},
   },
@@ -9,5 +12,5 @@ module.exports = {
     require('flowbite/plugin'),
     require('@tailwindcss/forms'),
     require('@tailwindcss/aspect-ratio')
-]
-}
+  ]
+} 
