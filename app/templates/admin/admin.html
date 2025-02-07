@@ -249,19 +249,25 @@
                     <ul class="py-2 text-sm text-gray-700 " aria-labelledby="dropdownExportButton">
                         <li>
                             <button onclick="exportData('all')" class="block w-full px-4 py-2 text-left hover:bg-gray-200 ">
-                                Export All Data
+                                Export alle Meldungen
                             </button>
                         </li>
                         <li>
                             <button onclick="exportData('accepted')"
                                 class="block w-full px-4 py-2 text-left hover:bg-gray-200 ">
-                                Export Accepted Reports
+                                Export angenommene Meldungen
                             </button>
                         </li>
                         <li>
                             <button onclick="exportData('non_accepted')"
                                 class="block w-full px-4 py-2 text-left hover:bg-gray-200 ">
-                                Export Non-Accepted Reports
+                                Export nicht angenommene Meldungen
+                            </button>
+                        </li>
+                        <li>
+                            <button onclick="exportData('searched')"
+                                class="block w-full px-4 py-2 text-left hover:bg-gray-200 ">
+                                Export gesuchte Meldungen
                             </button>
                         </li>
                     </ul>
@@ -1012,7 +1018,33 @@
         exportButton.innerHTML = '<svg class="w-5 h-5 mx-auto text-gray-100 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
         exportButton.disabled = true;
 
-        fetch('/admin/export/xlsx/' + exportType)
+        // Get current search parameters from the URL
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        // Build the export URL with all current parameters
+        let exportUrl = '/admin/export/xlsx/' + exportType + '?';
+        const params = new URLSearchParams();
+        
+        // Always include these parameters if they exist in the current URL
+        const paramsToCopy = [
+            'statusInput',
+            'typeInput',
+            'q',
+            'search_type',
+            'dateFrom',
+            'dateTo'
+        ];
+        
+        paramsToCopy.forEach(param => {
+            const value = urlParams.get(param);
+            if (value !== null) {
+                params.append(param, value);
+            }
+        });
+        
+        exportUrl += params.toString();
+
+        fetch(exportUrl)
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
