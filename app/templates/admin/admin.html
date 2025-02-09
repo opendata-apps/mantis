@@ -756,7 +756,15 @@
                 zoomOffset: -1
             }).addTo(map);
 
-            let marker = L.marker([lat, lng]).addTo(map);
+            // Custom marker icon configuration
+            var customIcon = L.icon({
+                iconUrl: "{{ url_for('static', filename='images/map/marker-icon.png') }}",
+                iconSize: [25, 41],     // Size of the icon
+                iconAnchor: [12, 41],   // Point of the icon which will correspond to marker's location
+                popupAnchor: [1, -34]   // Point from which the popup should open relative to the iconAnchor
+            });
+
+            let marker = L.marker([lat, lng], { icon: customIcon }).addTo(map);
 
             // Add popup with address details
             let popupContent = `

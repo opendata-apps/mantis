@@ -365,6 +365,7 @@ Forschung. {% endblock %}
 <script>
   let map;
   let userMarker;
+  let customIcon;  // Declare customIcon in global scope
   mapApiKey = "{{apikey}}";
   
   function initMap() {
@@ -387,6 +388,14 @@ Forschung. {% endblock %}
   
     const arcGISLayer = L.esri.Vector.vectorBasemapLayer("ArcGIS:Imagery", {
       apikey: mapApiKey
+    });
+
+    // Initialize customIcon in global scope
+    customIcon = L.icon({
+      iconUrl: "{{ url_for('static', filename='images/map/marker-icon.png') }}",
+      iconSize: [25, 41],     // Size of the icon
+      iconAnchor: [12, 41],   // Point of the icon which will correspond to marker's location
+      popupAnchor: [1, -34]   // Point from which the popup should open relative to the iconAnchor
     });
   
     // Add default layer to the map
@@ -463,7 +472,7 @@ Forschung. {% endblock %}
     if (userMarker) {
       userMarker.setLatLng([lat, lng]);
     } else {
-      userMarker = L.marker([lat, lng]).addTo(map);
+      userMarker = L.marker([lat, lng], { icon: customIcon }).addTo(map);
     }
   
     if (zoomToMarker) {
@@ -1255,6 +1264,14 @@ function resetPreview() {
     apikey: mapApiKey // Add your actual API key here
   });
 
+  // Custom marker icon configuration
+  var customIcon2 = L.icon({
+    iconUrl: "{{ url_for('static', filename='images/map/marker-icon.png') }}",
+    iconSize: [25, 41],     // Size of the icon
+    iconAnchor: [12, 41],   // Point of the icon which will correspond to marker's location
+    popupAnchor: [1, -34]   // Point from which the popup should open relative to the iconAnchor
+  });
+
   // Add default layer to the map
   summaryMap.addLayer(openStreetMapLayerSummary);
 
@@ -1266,7 +1283,7 @@ function resetPreview() {
 
   L.control.layers(baseMapsSummary).addTo(summaryMap);
 
-  const summaryMarker = L.marker([0, 0]).addTo(summaryMap);
+  const summaryMarker = L.marker([0, 0], { icon: customIcon2 }).addTo(summaryMap);
   const summaryMarkerPopup = L.popup().setContent("");
   summaryMarker.bindPopup(summaryMarkerPopup);
 
