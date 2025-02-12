@@ -7,9 +7,14 @@ from flask.cli import with_appcontext
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
-from sqlalchemy import text
+#from sqlalchemy import text
 from werkzeug.middleware.proxy_fix import ProxyFix
-
+from sqlalchemy.dialects.postgresql import TSVECTOR
+import sqlalchemy as sa
+import sqlalchemy.schema
+import sqlalchemy.ext.compiler
+import sqlalchemy.orm as orm
+from sqlalchemy import text
 from .config import Config
 
 csrf = CSRFProtect()
@@ -22,9 +27,12 @@ migrate = Migrate()
 @with_appcontext
 def create_materialized_view_command():
     """Create the materialized view."""
-    from app.database.full_text_search import FullTextSearch
-
-    FullTextSearch.create_materialized_view()
+    from app.database.full_text_search import create_materialized_view
+    engine = sa.create_engine('postgresql://mantis_user:mantis@localhost/mantis_tracker')
+    Session = orm.sessionmaker(bind=engine)
+    session = Session()
+    
+    create_materialized_view(engine, session)
     click.echo("Materialized view created.")
 
 
@@ -44,7 +52,14 @@ def insert_initial_data_command():
     db.session.commit()
     click.echo("Initial data inserted into beschreibung table.")
 
-
+    if Config.TESTING:
+        'Include demo-data for testing and development'
+        
+        from app.demodata.filldb import insert_data_reports
+        insert_data_reports(db)
+        click.echo("Demodaten eingefügt")
+        
+        
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)

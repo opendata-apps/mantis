@@ -5,7 +5,7 @@ from io import BytesIO, StringIO
 import pandas as pd
 from app import db
 from app.config import Config
-from app.database.full_text_search import FullTextSearch
+#from app.database.full_text_search import FullTextSearch
 from app.database.models import (
     TblFundortBeschreibung,
     TblFundorte,
@@ -66,7 +66,7 @@ def reviewer(usrid):
         last_updated = last_updated.replace(tzinfo=None)
 
     if last_updated is None or now - last_updated > timedelta(minutes=1):
-        FullTextSearch.refresh_materialized_view()
+        #FullTextSearch.refresh_materialized_view()
         session["last_updated"] = now
 
     filter_status = request.args.get("statusInput", "offen")

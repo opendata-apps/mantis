@@ -7,7 +7,8 @@ from alembic import command
 from alembic.config import Config
 from app import test_config
 from sqlalchemy import text
-from .demodata.filldb import insert_data_reports
+from app.demodata.filldb import insert_data_reports
+
 @pytest.fixture(scope='session')
 def app():
     # Flask-App nitialise with testconfig
