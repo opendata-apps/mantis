@@ -68,9 +68,19 @@ psql -U postgres
 ```
 
 ```sql
-CREATE DATABASE mantis_tracker OWNER mantis_tester;
-CREATE USER mantis_tester WITH PASSWORD 'mantis';
-GRANT ALL PRIVILEGES ON DATABASE mantis_tracker TO mantis_tester;
+CREATE DATABASE mantis_tracker OWNER mantis_user;
+CREATE USER mantis_user WITH PASSWORD 'mantis';
+GRANT ALL PRIVILEGES ON DATABASE mantis_tracker TO mantis_user;
+-- MacOS only:
+GRANT usage, create ON SCHEMA public TO mantis_tracker;
+\q
+```
+
+For pytest create a test database
+
+```sql
+CREATE DATABASE mantis_tester OWNER mantis_user;
+GRANT ALL PRIVILEGES ON DATABASE mantis_tester TO mantis_user;
 -- MacOS only:
 GRANT usage, create ON SCHEMA public TO mantis_tester;
 \q
@@ -83,7 +93,7 @@ flask db init
 ```
 
 ```bash
-flask db migrate -m "your comment"
+flask db migrate -m "Define initial  database structure."
 ```
 
 ### Step 5: 🏗️ Create the database tables
@@ -94,13 +104,12 @@ flask db upgrade
 ### Step 6: ☕ Fill the database tables 
 
 ```bash
-flask create-mview
-```
-
-```bash
 flask insert-initial-data
 ```
 
+```bash
+flask create-mview
+```
 
 ### Step 7: 🎨 Run the CSS watcher
 
@@ -118,6 +127,19 @@ npx tailwindcss -i app/static/css/theme.css -o app/static/build/theme.css --watc
 python run.py
 ```
 
+### Step 9: 🚀 Connect as Reviewer
+
+```bash
+http://loclahost:5000/reviewer/9999
+```
+
+# Production setup
+
+- Edit Settings in app/config.py and make changes e.g.
+  - Connectionstring for DB
+  - TESTING = False
+  - Run Tests with pytest
+  
 ### Step 9: 🏢 Run production server
 
 ```bash
