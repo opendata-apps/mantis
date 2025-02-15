@@ -5,6 +5,23 @@ from sqlalchemy.sql import func, expression
 from flask import current_app
 from app import db
 from app.database.models import TblMeldungen, TblFundorte, TblFundortBeschreibung, TblMeldungUser, TblUsers
+from contextlib import contextmanager
+from sqlalchemy.exc import OperationalError
+from sqlalchemy.orm import Session
+
+@contextmanager
+def session_scope():
+    """Provide a transactional scope around a series of operations."""
+    session = db.session
+    try:
+        yield session
+        session.commit()
+    except Exception as e:
+        session.rollback()
+        raise
+    finally:
+        # Don't close the session as it's managed by Flask-SQLAlchemy
+        pass
 
 class FullTextSearch(db.Model):
     """
@@ -60,7 +77,23 @@ class FullTextSearch(db.Model):
             # Log the error but don't expose internal details
             current_app.logger.error(f"FTS search error: {str(e)}")
             return []
-    
+
+    @classmethod
+    def refresh_materialized_view(cls):
+        """Refresh the materialized view with error handling."""
+        try:
+            with session_scope() as session:
+                # Try concurrent refresh first
+                session.execute(text("REFRESH MATERIALIZED VIEW CONCURRENTLY full_text_search"))
+        except OperationalError as e:
+            if "concurrent refresh" in str(e).lower():
+                # Fall back to regular refresh if concurrent refresh is not possible
+                with session_scope() as session:
+                    session.execute(text("REFRESH MATERIALIZED VIEW full_text_search"))
+            else:
+                current_app.logger.error(f"FTS refresh error: {str(e)}")
+                raise
+
     @classmethod
     def create_materialized_view(cls):
         """Create the materialized view for full-text search with optimized tsvector concatenation."""
@@ -94,65 +127,19 @@ class FullTextSearch(db.Model):
                 users u ON mu.id_user = u.id
         """
         
-        db.session.execute(text(view_query))
-        
-        # Create unique index for concurrent refresh
-        db.session.execute(text("""
-            CREATE UNIQUE INDEX IF NOT EXISTS idx_fts_meldungen_id 
-            ON full_text_search (meldungen_id)
-        """))
-        
-        # Create GIN index for full-text search
-        db.session.execute(text("""
-            CREATE INDEX IF NOT EXISTS idx_fts_doc_gin 
-            ON full_text_search USING gin(doc)
-        """))
-        
-        db.session.commit()
-    
-    @classmethod
-    def refresh_materialized_view(cls):
-        """Refresh the materialized view with the latest data using concurrent refresh when possible."""
-        try:
-            # Try concurrent refresh first
-            db.session.execute(text("REFRESH MATERIALIZED VIEW CONCURRENTLY full_text_search"))
-            db.session.commit()
-        except Exception as e:
-            db.session.rollback()
-            try:
-                # If concurrent refresh fails, try regular refresh in a new transaction
-                new_session = db.create_scoped_session()
-                try:
-                    new_session.execute(text("REFRESH MATERIALIZED VIEW full_text_search"))
-                    new_session.commit()
-                except Exception as inner_e:
-                    new_session.rollback()
-                    current_app.logger.error(f"Failed to refresh FTS view: {str(inner_e)}")
-                finally:
-                    new_session.close()
-            except Exception as e:
-                current_app.logger.error(f"Failed to refresh FTS view: {str(e)}")
-
-# Set up event listeners for automatic view refresh
-def refresh_fts_on_changes(mapper, connection, target):
-    """Event listener to refresh FTS view when relevant tables change."""
-    try:
-        # Create a new session for the refresh operation
-        new_session = db.create_scoped_session()
-        try:
-            FullTextSearch.refresh_materialized_view()
-        except Exception as e:
-            current_app.logger.error(f"Failed to refresh FTS view on data change: {str(e)}")
-        finally:
-            new_session.close()
-    except Exception as e:
-        current_app.logger.error(f"Failed to create new session for FTS refresh: {str(e)}")
-
-# Register the event listeners for all relevant tables
-for model in [TblMeldungen, TblFundorte, TblFundortBeschreibung, TblMeldungUser, TblUsers]:
-    event.listen(model, 'after_insert', refresh_fts_on_changes)
-    event.listen(model, 'after_update', refresh_fts_on_changes)
-    event.listen(model, 'after_delete', refresh_fts_on_changes)
+        with session_scope() as session:
+            session.execute(text(view_query))
+            
+            # Create indexes
+            session.execute(text("""
+                CREATE UNIQUE INDEX IF NOT EXISTS idx_fts_meldungen_id 
+                ON full_text_search (meldungen_id)
+            """))
+            
+            session.execute(text("""
+                CREATE INDEX IF NOT EXISTS idx_fts_doc_gin 
+                ON full_text_search USING gin(doc)
+            """))
 
 # Create DDL event listeners for database initialization
 event.listen(
