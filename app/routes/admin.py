@@ -31,6 +31,7 @@ from werkzeug.utils import secure_filename
 from pathlib import Path
 from flask import current_app
 from app.tools.send_reviewer_email import send_email
+from typing import Optional, List, Dict, Any, Union
 
 import os
 
@@ -570,8 +571,15 @@ def row2dict(row):
     return d
 
 
-def get_filtered_query(filter_status=None, filter_type=None, search_query=None, search_type=None, date_from=None, date_to=None):
-    "Get filtered query based on parameters - reusable function for both reviewer and export"
+def get_filtered_query(
+    filter_status: Optional[str] = None,
+    filter_type: Optional[str] = None,
+    search_query: Optional[str] = None,
+    search_type: Optional[str] = None,
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None
+) -> Any:
+    """Get filtered query based on parameters."""
     # Always include all necessary joins for better performance
     query = (
         db.session.query(
@@ -651,34 +659,42 @@ def get_filtered_query(filter_status=None, filter_type=None, search_query=None, 
                 if "@" in search_query:
                     query = query.filter(TblUsers.user_kontakt.ilike(f"%{search_query}%"))
                 else:
-                    search_query = search_query.replace(" ", " & ")
-                    search_vector = text(
-                        "plainto_tsquery('german', :query)"
-                    ).bindparams(query=f"{search_query}")
-                    search_results = FullTextSearch.query.filter(
-                        FullTextSearch.doc.op("@@")(search_vector)
-                    ).all()
-                    reported_sightings_ids = [
-                        result.meldungen_id for result in search_results
-                    ]
-                    query = query.filter(TblMeldungen.id.in_(reported_sightings_ids))
+                    # Use the new FTS search method
+                    matching_ids = FullTextSearch.search(search_query)
+                    if matching_ids:
+                        query = query.filter(TblMeldungen.id.in_(matching_ids))
+                    else:
+                        # If no FTS matches, return empty result
+                        query = query.filter(TblMeldungen.id == -1)
         except Exception as e:
             current_app.logger.error(f"Search error: {e}")
             query = query.filter(TblMeldungen.id == -1)  # Return empty result set on error
 
     # Apply date filters
     if date_from and date_to:
-        date_from_obj = datetime.strptime(date_from, "%d.%m.%Y")
-        date_to_obj = datetime.strptime(date_to, "%d.%m.%Y")
-        query = query.filter(
-            TblMeldungen.dat_fund_von.between(date_from_obj, date_to_obj)
-        )
+        try:
+            date_from_obj = datetime.strptime(date_from, "%d.%m.%Y")
+            date_to_obj = datetime.strptime(date_to, "%d.%m.%Y")
+            query = query.filter(
+                TblMeldungen.dat_fund_von.between(date_from_obj, date_to_obj)
+            )
+        except ValueError as e:
+            current_app.logger.error(f"Date parsing error: {e}")
+            query = query.filter(TblMeldungen.id == -1)
     elif date_from:
-        date_from_obj = datetime.strptime(date_from, "%d.%m.%Y")
-        query = query.filter(TblMeldungen.dat_fund_von >= date_from_obj)
+        try:
+            date_from_obj = datetime.strptime(date_from, "%d.%m.%Y")
+            query = query.filter(TblMeldungen.dat_fund_von >= date_from_obj)
+        except ValueError as e:
+            current_app.logger.error(f"Date parsing error: {e}")
+            query = query.filter(TblMeldungen.id == -1)
     elif date_to:
-        date_to_obj = datetime.strptime(date_to, "%d.%m.%Y")
-        query = query.filter(TblMeldungen.dat_fund_von <= date_to_obj)
+        try:
+            date_to_obj = datetime.strptime(date_to, "%d.%m.%Y")
+            query = query.filter(TblMeldungen.dat_fund_von <= date_to_obj)
+        except ValueError as e:
+            current_app.logger.error(f"Date parsing error: {e}")
+            query = query.filter(TblMeldungen.id == -1)
 
     return query
 
