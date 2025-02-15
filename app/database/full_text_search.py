@@ -118,23 +118,35 @@ class FullTextSearch(db.Model):
             db.session.execute(text("REFRESH MATERIALIZED VIEW CONCURRENTLY full_text_search"))
             db.session.commit()
         except Exception as e:
-            # If concurrent refresh fails, fall back to regular refresh
             db.session.rollback()
             try:
-                db.session.execute(text("REFRESH MATERIALIZED VIEW full_text_search"))
-                db.session.commit()
+                # If concurrent refresh fails, try regular refresh in a new transaction
+                new_session = db.create_scoped_session()
+                try:
+                    new_session.execute(text("REFRESH MATERIALIZED VIEW full_text_search"))
+                    new_session.commit()
+                except Exception as inner_e:
+                    new_session.rollback()
+                    current_app.logger.error(f"Failed to refresh FTS view: {str(inner_e)}")
+                finally:
+                    new_session.close()
             except Exception as e:
-                db.session.rollback()
                 current_app.logger.error(f"Failed to refresh FTS view: {str(e)}")
-                raise
 
 # Set up event listeners for automatic view refresh
 def refresh_fts_on_changes(mapper, connection, target):
     """Event listener to refresh FTS view when relevant tables change."""
     try:
-        FullTextSearch.refresh_materialized_view()
+        # Create a new session for the refresh operation
+        new_session = db.create_scoped_session()
+        try:
+            FullTextSearch.refresh_materialized_view()
+        except Exception as e:
+            current_app.logger.error(f"Failed to refresh FTS view on data change: {str(e)}")
+        finally:
+            new_session.close()
     except Exception as e:
-        current_app.logger.error(f"Failed to refresh FTS view on data change: {str(e)}")
+        current_app.logger.error(f"Failed to create new session for FTS refresh: {str(e)}")
 
 # Register the event listeners for all relevant tables
 for model in [TblMeldungen, TblFundorte, TblFundortBeschreibung, TblMeldungUser, TblUsers]:

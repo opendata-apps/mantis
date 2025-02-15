@@ -916,12 +916,17 @@
 
                             <div>
                                 <p class="mb-2 font-semibold">Kommentar (Reviewer):</p>
-                                <div class="px-3 py-2 mr-3 overflow-auto bg-gray-100 rounded-lg details-text" style="max-height: 150px;">
-                                     <textarea class="w-full h-full bg-transparent border-none outline-none resize-none textInputAdmin"
-                                               name="anm_bearbeiter"
-                                               onchange="changeMetaData(${data.id_meldung},'anm_bearbeiter', this.value)"
-                                               >${data.anm_bearbeiter || ""}</textarea>
-           
+                                <div class="relative">
+                                    <textarea class="w-full h-32 p-3 pr-20 overflow-y-auto bg-gray-100 rounded-lg resize-none textInputAdmin focus:outline-none focus:ring-2 focus:ring-green-500"
+                                            name="anm_bearbeiter"
+                                            maxlength="500"
+                                            onchange="changeMetaData(${data.id_meldung},'anm_bearbeiter', this.value)"
+                                            oninput="updateCharCount(this)"
+                                            >${data.anm_bearbeiter || ""}</textarea>
+                                    <div class="absolute text-sm text-gray-500 bottom-2 right-2">
+                                        <span class="char-count">0</span>/500
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>`;
@@ -1082,6 +1087,26 @@
                 exportButton.disabled = false;
             });
     }
+
+    function updateCharCount(textarea) {
+        const maxLength = textarea.getAttribute('maxlength');
+        const currentLength = textarea.value.length;
+        const counter = textarea.parentElement.querySelector('.char-count');
+        counter.textContent = currentLength;
+        
+        // Visual feedback when approaching limit
+        if (currentLength >= maxLength - 50) {
+            counter.classList.add('text-red-500');
+        } else {
+            counter.classList.remove('text-red-500');
+        }
+    }
+
+    // Initialize character count for existing textareas
+    document.addEventListener('DOMContentLoaded', function() {
+        const textareas = document.querySelectorAll('textarea[name="anm_bearbeiter"]');
+        textareas.forEach(textarea => updateCharCount(textarea));
+    });
 </script>
 
 
