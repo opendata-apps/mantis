@@ -870,7 +870,8 @@
             }
 
             map = L.map('map', {
-                zoomControl: false
+                zoomControl: false,
+                tap: true, // Enable tap for mobile
             }).setView([lat, lng], 13);
 
             // Create custom panes with proper z-indexing
@@ -883,13 +884,32 @@
             map.createPane('popupPane');
             map.getPane('popupPane').style.zIndex = 600;
 
-            // Add tile layer to tile pane
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            // Define base layers
+            const openStreetMapLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
                 maxZoom: 19,
                 tileSize: 512,
                 zoomOffset: -1,
-                attribution: '© OpenStreetMap contributors',
                 pane: 'tilePane'
+            });
+
+            const arcGISLayer = L.esri.Vector.vectorBasemapLayer("ArcGIS:Imagery", {
+                apikey: "{{apikey}}" // API key for ArcGIS
+            });
+
+            // Add default layer
+            map.addLayer(openStreetMapLayer);
+
+            // Define base maps for layer control
+            const baseMaps = {
+                "Karte": openStreetMapLayer,
+                "Satellit": arcGISLayer
+            };
+
+            // Add layer control with improved mobile styling
+            L.control.layers(baseMaps, null, {
+                position: 'topright',
+                collapsed: true
             }).addTo(map);
 
             // Add marker to marker pane
@@ -913,7 +933,7 @@
             `;
             marker.bindPopup(popupContent);
 
-            // Add zoom control to bottom right
+            // Add zoom control to bottom right with improved mobile positioning
             L.control.zoom({
                 position: 'bottomright'
             }).addTo(map);
@@ -1067,11 +1087,15 @@
 
     function generateLocationInfo(data) {
         return `<div class="h-full bg-white rounded-lg">
-                <div class="relative h-full">
-                    <div id="map" class="w-full h-full rounded-lg shadow-inner"></div>
-                    <!-- Floating Controls Panel - Improved styling -->
-                    <div class="absolute max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow-lg top-4 right-4" style="z-index: 1000;">
-                        <div class="mb-6">
+                <div class="relative flex flex-col h-full md:flex-row">
+                    <!-- Map Container - Adjusted for mobile and desktop -->
+                    <div class="relative w-full md:w-[calc(100%-20rem)]">
+                        <div id="map" class="w-full h-[50vh] md:h-full rounded-lg shadow-inner"></div>
+                    </div>
+                    
+                    <!-- Details Panel - Fixed width on desktop -->
+                    <div class="w-full p-4 overflow-y-auto bg-white border-t border-gray-200 md:w-80 md:border-t-0 md:border-l" style="z-index: 1000;">
+                        <div class="mb-4">
                             <h3 class="mb-2 text-lg font-semibold text-gray-900">Standort Details</h3>
                             <div id="currentAddressDisplay" class="p-3 mb-3 border border-gray-200 rounded-md bg-gray-50">
                                 <p class="mb-1 text-sm font-medium text-gray-700">Aktuelle Adresse</p>
@@ -1082,7 +1106,7 @@
                             </div>
                         </div>
                         
-                        <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div class="grid grid-cols-2 gap-4 mb-4">
                             <div>
                                 <label class="block mb-2 text-sm font-medium text-gray-700">Latitude</label>
                                 <input type="text" 
@@ -1101,19 +1125,18 @@
                             </div>
                         </div>
 
-                        <!-- Map Controls - Improved styling -->
+                        <!-- Map Controls - Mobile optimized -->
                         <div class="space-y-3">
                             <div id="markerPlacementControls" class="p-4 border border-gray-200 rounded-md bg-gray-50">
                                 <div class="flex items-center justify-between mb-3">
                                     <h4 class="text-sm font-medium text-gray-900">Marker Platzierung</h4>
-                                    <div id="placementStatus" class="hidden px-2 py-1 text-xs font-medium text-white bg-yellow-500 rounded-full" 
-                                         title="Marker-Platzierung ist aktiv">
+                                    <div id="placementStatus" class="hidden px-2 py-1 text-xs font-medium text-white bg-yellow-500 rounded-full">
                                         Aktiv
                                     </div>
                                 </div>
                                 <div class="space-y-3">
                                     <button onclick="toggleMarkerPlacement()" 
-                                        class="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-white transition-all duration-200 bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                                        class="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition-all duration-200 bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                                         id="markerPlacementBtn"
                                         title="Klicken Sie hier, um einen neuen Marker auf der Karte zu platzieren">
                                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1126,16 +1149,14 @@
                                     </button>
                                     <div id="confirmationButtons" class="hidden space-y-2">
                                         <button onclick="confirmMarkerPlacement()" 
-                                            class="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-white transition-all duration-200 bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-                                            title="Bestätigen Sie die neue Position des Markers">
+                                            class="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition-all duration-200 bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
                                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                                             </svg>
                                             Position bestätigen
                                         </button>
                                         <button onclick="cancelMarkerPlacement()" 
-                                            class="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-gray-700 transition-all duration-200 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
-                                            title="Abbrechen und zur ursprünglichen Position zurückkehren">
+                                            class="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-gray-700 transition-all duration-200 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2">
                                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                             </svg>
@@ -1146,7 +1167,7 @@
                             </div>
                             
                             <button onclick="resetMarker(${data.latitude}, ${data.longitude})" 
-                                class="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-gray-700 transition-all duration-200 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2">
+                                class="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-gray-700 transition-all duration-200 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                                         d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
@@ -1270,111 +1291,102 @@
             state: ''
         });
 
-        // Construct the API URL with precise parameters
-        const nominatimUrl = `https://nominatim.openstreetmap.org/reverse` +
-            `?format=jsonv2` +             // Use jsonv2 for more consistent output
-            `&lat=${latitude}` +           // Latitude coordinate
-            `&lon=${longitude}` +          // Longitude coordinate
-            `&zoom=18` +                   // Zoom level for building detail
-            `&addressdetails=1` +          // Include detailed address components
-            `&extratags=1` +               // Include extra tags like ISO3166-2 codes
-            `&namedetails=1` +             // Include name details
-            `&accept-language=de`;         // Get results in German
+        // Construct the API URL with precise parameters for better address resolution
+        const nominatimUrl = new URL("https://nominatim.openstreetmap.org/reverse");
+        nominatimUrl.searchParams.append("format", "jsonv2");          // Use jsonv2 for consistent output
+        nominatimUrl.searchParams.append("lat", latitude.toString());    // Latitude coordinate
+        nominatimUrl.searchParams.append("lon", longitude.toString());   // Longitude coordinate
+        nominatimUrl.searchParams.append("zoom", "18");                  // Zoom level for detailed address
+        nominatimUrl.searchParams.append("addressdetails", "1");         // Include address details
+        nominatimUrl.searchParams.append("extratags", "1");              // Include extra tags
+        nominatimUrl.searchParams.append("namedetails", "1");            // Include name details
+        nominatimUrl.searchParams.append("accept-language", "de");       // Request results in German
 
-        // Add a delay to respect Nominatim's usage policy
-        setTimeout(() => {
-            // Fetch data from the Nominatim API
-            fetch(nominatimUrl)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! Status: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    // Check for errors in the API response
-                    if (data.error) {
-                        console.error("Error from Nominatim API:", data.error);
-                        updateAddressDisplay({
-                            street: 'Fehler beim Laden der Adresse',
-                            zipCode: '',
-                            city: '',
-                            district: '',
-                            state: ''
-                        });
-                        return;
-                    }
+        // Delay to respect Nominatim's usage policy (1 second)
+        setTimeout(async () => {
+            try {
+                const response = await fetch(nominatimUrl.toString());
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
 
-                    const address = data.address || {};
-
-                    // Extract address components
-                    const zipCode = address.postcode || "";
-                    const city = address.city || address.town || address.village ||
-                        address.hamlet || address.suburb || address.locality || "";
-                    const streetName = address.road || address.pedestrian || address.cycleway ||
-                        address.path || address.footway || address.street ||
-                        address.street_name || "";
-                    const houseNumber = address.house_number || "";
-                    const street = `${streetName} ${houseNumber}`.trim();
-                    
-                    // Extract state (Bundesland)
-                    let state = address.state || address.region || "";
-                    if (!state && data.extratags && data.extratags["ISO3166-2"]) {
-                        const isoCode = data.extratags["ISO3166-2"];
-                        state = getStateNameFromISOCode(isoCode);
-                    }
-                    if (!state && address.city && isCityState(address.city)) {
-                        state = address.city;
-                    }
-
-                    // Extract district (Landkreis/Stadtteil)
-                    const district = address.county || address.district || address.municipality ||
-                        address.city_district || address.borough || address.suburb || "";
-
-                    // Update UI with new address
+                // Check for explicit error in Nominatim response
+                if (data.error) {
+                    console.error("Nominatim API error:", data.error);
                     updateAddressDisplay({
-                        street,
-                        zipCode,
-                        city,
-                        district,
-                        state
-                    });
-
-                    // Update the database with new address information
-                    updateAddressInDatabase(currentSightingId, {
-                        plz: zipCode,
-                        ort: city,
-                        strasse: street,
-                        land: state,
-                        kreis: district
-                    });
-
-                    // Update the popup content with new address
-                    const popupContent = `
-                        <div class="popup-content">
-                            <h2>${latitude}, ${longitude}</h2>
-                            <ul class="popup-list">
-                                ${street ? `<li><strong>Straße:</strong> ${street}</li>` : ''}
-                                ${zipCode ? `<li><strong>Postleitzahl:</strong> ${zipCode}</li>` : ''}
-                                ${city ? `<li><strong>Ort:</strong> ${city}</li>` : ''}
-                                ${district ? `<li><strong>Region:</strong> ${district}</li>` : ''}
-                                ${state ? `<li><strong>Land:</strong> ${state}</li>` : ''}
-                            </ul>
-                        </div>
-                    `;
-                    marker.setPopupContent(popupContent);
-                })
-                .catch(error => {
-                    console.error("Error fetching address data:", error);
-                    updateAddressDisplay({
-                        street: 'Fehler beim Laden der Adresse',
+                        street: 'Adresse konnte nicht geladen werden',
                         zipCode: '',
                         city: '',
                         district: '',
                         state: ''
                     });
+                    return; // Exit if Nominatim returned an error
+                }
+
+                const address = data.address || {};
+
+                // Extract relevant address components safely
+                const zipCode = address.postcode || "";
+                const city = address.city || address.town || address.village || address.hamlet || address.suburb || address.locality || "";
+                const streetName = address.road || address.pedestrian || address.cycleway || address.path || address.footway || address.street || address.street_name || "";
+                const houseNumber = address.house_number || "";
+                const street = `${streetName} ${houseNumber}`.trim();
+                const district = address.county || address.district || address.municipality || address.city_district || address.borough || address.suburb || "";
+
+                // Determine state (Bundesland), prioritize ISO code lookup
+                let state = address.state || address.region || "";
+                if (!state && data.extratags && data.extratags["ISO3166-2"]) {
+                    state = getStateNameFromISOCode(data.extratags["ISO3166-2"]);
+                }
+                if (!state && city && isCityState(city)) { // Fallback for city states
+                    state = city;
+                }
+
+                // Update UI with fetched address
+                updateAddressDisplay({
+                    street: street || 'Keine Straße gefunden', // Provide default if empty
+                    zipCode,
+                    city: city || 'Kein Ort gefunden',       // Provide default if empty
+                    district: district || 'Keine Region gefunden', // Provide default if empty
+                    state: state || 'Kein Land gefunden'      // Provide default if empty
                 });
-        }, 1000); // 1 second delay to respect usage policy
+
+                // Update database with address information
+                updateAddressInDatabase(currentSightingId, {
+                    plz: zipCode,
+                    ort: city,
+                    strasse: street,
+                    land: state,
+                    kreis: district
+                });
+
+                // Update marker popup with address details
+                const popupContent = `
+                    <div class="popup-content">
+                        <h2>${latitude}, ${longitude}</h2>
+                        <ul class="popup-list">
+                            ${street ? `<li><strong>Straße:</strong> ${street}</li>` : ''}
+                            ${zipCode ? `<li><strong>Postleitzahl:</strong> ${zipCode}</li>` : ''}
+                            ${city ? `<li><strong>Ort:</strong> ${city}</li>` : ''}
+                            ${district ? `<li><strong>Region:</strong> ${district}</li>` : ''}
+                            ${state ? `<li><strong>Land:</strong> ${state}</li>` : ''}
+                        </ul>
+                    </div>
+                `;
+                marker.setPopupContent(popupContent);
+
+            } catch (error) {
+                console.error("Error fetching address data:", error);
+                updateAddressDisplay({
+                    street: 'Fehler beim Laden der Adresse',
+                    zipCode: '',
+                    city: '',
+                    district: '',
+                    state: ''
+                });
+            }
+        }, 1000); // 1 second delay
     }
 
     function updateAddressDisplay(addressData) {
@@ -1586,11 +1598,11 @@
 
         // Get current search parameters from the URL
         const urlParams = new URLSearchParams(window.location.search);
-        
+
         // Build the export URL with all current parameters
         let exportUrl = '/admin/export/xlsx/' + exportType + '?';
         const params = new URLSearchParams();
-        
+
         // Always include these parameters if they exist in the current URL
         const paramsToCopy = [
             'statusInput',
@@ -1600,20 +1612,20 @@
             'dateFrom',
             'dateTo'
         ];
-        
+
         paramsToCopy.forEach(param => {
             const value = urlParams.get(param);
             if (value !== null) {
                 params.append(param, value);
             }
         });
-        
+
         exportUrl += params.toString();
 
         fetch(exportUrl)
             .then(response => {
                 if (!response.ok) {
-                    throw new Error('Network response was not ok');
+                    throw new Error(`Network response was not ok, status: ${response.status}`);
                 }
                 return response.blob();
             })
@@ -1628,8 +1640,8 @@
                 window.URL.revokeObjectURL(url);
             })
             .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred during export. Please try again.');
+                console.error('Error during export:', error);
+                alert('Export fehlgeschlagen. Bitte versuchen Sie es erneut. Überprüfen Sie die Konsole für Details.');
             })
             .finally(() => {
                 // Reset button state
