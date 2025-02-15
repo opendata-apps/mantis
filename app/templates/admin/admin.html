@@ -921,11 +921,7 @@
                                             name="anm_bearbeiter"
                                             maxlength="500"
                                             onchange="changeMetaData(${data.id_meldung},'anm_bearbeiter', this.value)"
-                                            oninput="updateCharCount(this)"
                                             >${data.anm_bearbeiter || ""}</textarea>
-                                    <div class="absolute text-sm text-gray-500 bottom-2 right-2">
-                                        <span class="char-count">0</span>/500
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1087,26 +1083,6 @@
                 exportButton.disabled = false;
             });
     }
-
-    function updateCharCount(textarea) {
-        const maxLength = textarea.getAttribute('maxlength');
-        const currentLength = textarea.value.length;
-        const counter = textarea.parentElement.querySelector('.char-count');
-        counter.textContent = currentLength;
-        
-        // Visual feedback when approaching limit
-        if (currentLength >= maxLength - 50) {
-            counter.classList.add('text-red-500');
-        } else {
-            counter.classList.remove('text-red-500');
-        }
-    }
-
-    // Initialize character count for existing textareas
-    document.addEventListener('DOMContentLoaded', function() {
-        const textareas = document.querySelectorAll('textarea[name="anm_bearbeiter"]');
-        textareas.forEach(textarea => updateCharCount(textarea));
-    });
 </script>
 
 
