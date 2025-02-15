@@ -695,12 +695,15 @@
                         // First add the edit button
                         addEditButtonIfApproved(isApproved);
 
+                        // Always disable inputs first if approved
+                        if (isApproved) {
+                            disableInputsIfApproved(true);
+                        }
+
                         if (contentGenerator === generateLocationInfo) {
                             initiateMap(updatedData);
-                            // Only enable map controls if in edit mode and not approved, or if in edit mode and approved
-                            if (wasEditModeActive) {
-                                enableMapControls();
-                            } else if (isApproved) {
+                            // Handle map controls based on approval and edit mode
+                            if (isApproved && !wasEditModeActive) {
                                 disableMapControls();
                                 // Also disable coordinate inputs
                                 document.querySelectorAll('input[name="latitude"], input[name="longitude"]').forEach(input => {
@@ -711,10 +714,7 @@
 
                         // Then restore edit mode if it was active
                         if (wasEditModeActive) {
-                            const editButton = document.querySelector('.edit-button');
-                            if (editButton) {
-                                editButton.click(); // This will re-enable edit mode
-                            }
+                            enableEditMode();
                         }
                     })
                     .catch(error => console.error('Error:', error));
@@ -1685,6 +1685,7 @@
 
     // New function to enable edit mode
     function enableEditMode() {
+        isEditModeActive = true;
         const actionContainer = document.querySelector('.action-container');
         const editButton = actionContainer.querySelector('.edit-button');
         
@@ -1698,45 +1699,62 @@
         // Enable map controls if we're on the map tab
         if (document.getElementById('map')) {
             enableMapControls();
+            // Enable coordinate inputs
+            document.querySelectorAll('input[name="latitude"], input[name="longitude"]').forEach(input => {
+                input.disabled = false;
+                input.classList.add('border-green-500', 'focus:ring-green-500');
+            });
         }
 
         // Hide edit button and show save button
-        editButton.style.display = 'none';
-        const saveButton = document.createElement('button');
-        saveButton.type = 'button';
-        saveButton.className = 'save-button flex items-center justify-center px-4 py-2 mr-4 text-sm font-medium text-white transition-all duration-200 bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2';
-        saveButton.title = 'Klicken Sie hier, um die Änderungen zu speichern';
-        saveButton.innerHTML = `
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                    d="M5 13l4 4L19 7"/>
-            </svg>
-            Speichern
-        `;
-        
-        saveButton.onclick = function() {
-            isEditModeActive = false;
-            disableEditMode();
-        };
-        actionContainer.insertBefore(saveButton, actionContainer.firstChild);
+        if (editButton) {
+            editButton.style.display = 'none';
+            const saveButton = document.createElement('button');
+            saveButton.type = 'button';
+            saveButton.className = 'save-button flex items-center justify-center px-4 py-2 mr-4 text-sm font-medium text-white transition-all duration-200 bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2';
+            saveButton.title = 'Klicken Sie hier, um die Änderungen zu speichern';
+            saveButton.innerHTML = `
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                        d="M5 13l4 4L19 7"/>
+                </svg>
+                Speichern
+            `;
+            
+            saveButton.onclick = function() {
+                disableEditMode();
+            };
+            actionContainer.insertBefore(saveButton, actionContainer.firstChild);
+        }
     }
 
-    // New function to disable edit mode
     function disableEditMode() {
+        isEditModeActive = false;
         const actionContainer = document.querySelector('.action-container');
         const saveButton = actionContainer.querySelector('.save-button');
         const editButton = actionContainer.querySelector('.edit-button');
 
+        // Get approval status
+        let reportCard = document.querySelector(`[data-report-id="${currentSightingData.id_meldung}"]`);
+        let isApproved = reportCard.getAttribute('data-approved') === 'true';
+
         // Disable all inputs and remove visual feedback
         document.querySelectorAll('.input-field-admin, .textInputAdmin').forEach(input => {
-            input.disabled = true;
+            input.disabled = isApproved;
             input.classList.remove('border-green-500', 'focus:ring-green-500');
             input.title = '';
         });
 
         // Disable map controls if we're on the map tab
         if (document.getElementById('map')) {
-            disableMapControls();
+            if (isApproved) {
+                disableMapControls();
+                // Disable coordinate inputs
+                document.querySelectorAll('input[name="latitude"], input[name="longitude"]').forEach(input => {
+                    input.disabled = true;
+                    input.classList.remove('border-green-500', 'focus:ring-green-500');
+                });
+            }
         }
 
         // Remove save button and show edit button
