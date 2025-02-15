@@ -149,32 +149,52 @@ def reviewer(usrid):
 @login_required
 def change_mantis_meta_data(id):
     "Change mantis report metadata"
-    # Find the report by id
     new_data = request.form.get("new_data")
     fieldname = request.form.get("type")
-    if fieldname in ["fo_quelle", "anm_bearbeiter"]:
-        sighting = TblMeldungen.query.get(id)
-    else:
-        fo_id = TblMeldungen.query.get(id).fo_zuordnung
-        sighting = TblFundorte.query.get(fo_id)
-    if sighting:
-        sighting.bearb_id = session["user_id"]
-        if fieldname == "fo_quelle":
-            sighting.fo_quelle = new_data
-        elif fieldname == "anm_bearbeiter":
-            sighting.anm_bearbeiter = new_data
-        elif fieldname == "amt":
-            sighting.amt = new_data
-        elif fieldname == "mtb":
-            sighting.mtb = new_data
-        elif fieldname == "latitude":
-            sighting.latitude = new_data
-        elif fieldname == "longitude":
-            sighting.longitude = new_data
-        db.session.commit()
-        return jsonify({"success": True})
-    else:
+
+    if not new_data or not fieldname:
+        return jsonify({"error": "Missing data in request"}), 400
+
+    sighting_meldung = TblMeldungen.query.get(id)
+    if not sighting_meldung:
         return jsonify({"error": "Report not found"}), 404
+
+    if fieldname in ["fo_quelle", "anm_bearbeiter"]:
+        sighting_obj = sighting_meldung
+    else:
+        fo_id = sighting_meldung.fo_zuordnung
+        sighting_obj = TblFundorte.query.get(fo_id)
+        if not sighting_obj:
+            return jsonify({"error": "Fundort not found"}), 404
+
+    sighting_obj.bearb_id = session["user_id"]
+    update_fields = {
+        "fo_quelle": "fo_quelle",
+        "anm_bearbeiter": "anm_bearbeiter",
+        "amt": "amt",
+        "mtb": "mtb",
+        "latitude": "latitude",
+        "longitude": "longitude",
+        "plz": "plz",
+        "ort": "ort",
+        "strasse": "strasse",
+        "kreis": "kreis",
+        "land": "land",
+    }
+
+    field_to_update = update_fields.get(fieldname)
+    if field_to_update:
+        setattr(sighting_obj, field_to_update, new_data)
+        try:
+            db.session.commit()
+            current_app.logger.info(f"Report {id} metadata updated: {fieldname} to {new_data} by user {session['user_id']}")
+            return jsonify({"success": True})
+        except Exception as e:
+            db.session.rollback()
+            current_app.logger.error(f"Database error updating report {id}: {e}")
+            return jsonify({"error": "Database error"}), 500
+    else:
+        return jsonify({"error": "Invalid field type"}), 400
 
 
 @admin.route("/<path:filename>")
