@@ -3,14 +3,13 @@
 {% block text %} {{user_name}} {% endblock text %}
 {% from "macro.html" import render_pagination %}
 {% block head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/leaflet.css')}}" />
-<script src="{{ url_for('static', filename='js/leaflet.js')}}"></script>
-<script src="{{ url_for('static', filename='js/esri-leaflet.js')}}"></script>
-<script src="{{ url_for('static', filename='js/esri-leaflet-vector.js')}}"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.css')}}" />
+<script src="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.js')}}"></script>
+<script src="{{ url_for('static', filename='node_modules/esri-leaflet/dist/esri-leaflet.js')}}"></script>
+<script src="{{ url_for('static', filename='node_modules/esri-leaflet-vector/dist/esri-leaflet-vector.js')}}"></script>
 {% endblock %}
 {% block content %}
-<script src="{{ url_for('static', filename='js/flow/flowbite.min.js')}}" defer></script>
-<script src="{{ url_for('static', filename='js/flow/datepicker.min.js')}}" defer></script>
+<script src="{{ url_for('static', filename='node_modules/flowbite/dist/flowbite.min.js')}}" defer></script>
 
 
 <div class="container px-4 mx-auto my-10 md:px-12">
@@ -175,8 +174,12 @@
                 class="flex items-center w-full transition-all duration-300 bg-white rounded-lg focus-within:ring-2 focus-within:ring-green-500">
                 <!-- Search Bar -->
                 <div class="relative flex-grow">
-                    <button type="submit" class="absolute inset-y-0 left-0 flex items-center pl-3">
-                        <svg class="w-5 h-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                    <button type="submit" class="absolute inset-y-0 left-0 flex items-center pl-3 group" title="Suchsyntax:
+&#8226; Exakte Phrase: &quot;berlin mitte&quot;
+&#8226; ODER-Suche: berlin OR hamburg
+&#8226; Ausschluss: -nymphe
+&#8226; Gruppierung: (berlin OR hamburg) -nymphe">
+                        <svg class="w-5 h-5 text-gray-500 transition-colors duration-200 group-hover:text-green-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
                             fill="currentColor" aria-hidden="true">
                             <path fill-rule="evenodd"
                                 d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
@@ -218,7 +221,7 @@
         <div class="flex items-center w-full space-x-4 md:w-auto">
             <!-- Sortieren Button -->
             <button id="dropdownSortButton" data-dropdown-toggle="sortDropdown"
-                class="flex items-center justify-center flex-grow px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200">
+                class="flex items-center justify-center flex-grow px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none hover:bg-gray-100 focus:z-10 focus:ring-4 focus:ring-gray-200">
                 <span id="sortText">Sortieren...</span>
                 <svg class="-mr-1 ml-1.5 w-5 h-5" fill="currentColor" viewbox="0 0 20 20"
                     xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -288,21 +291,26 @@
                 <div id="dropdown" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 ">
                     <ul class="py-2 text-sm text-gray-700 " aria-labelledby="dropdownExportButton">
                         <li>
-                            <button onclick="exportData('all')"
-                                class="block w-full px-4 py-2 text-left hover:bg-gray-200 ">
-                                Export All Data
+                            <button onclick="exportData('all')" class="block w-full px-4 py-2 text-left hover:bg-gray-200 ">
+                                Export alle Meldungen
                             </button>
                         </li>
                         <li>
                             <button onclick="exportData('accepted')"
                                 class="block w-full px-4 py-2 text-left hover:bg-gray-200 ">
-                                Export Accepted Reports
+                                Export angenommene Meldungen
                             </button>
                         </li>
                         <li>
                             <button onclick="exportData('non_accepted')"
                                 class="block w-full px-4 py-2 text-left hover:bg-gray-200 ">
-                                Export Non-Accepted Reports
+                                Export nicht angenommene Meldungen
+                            </button>
+                        </li>
+                        <li>
+                            <button onclick="exportData('searched')"
+                                class="block w-full px-4 py-2 text-left hover:bg-gray-200 ">
+                                Export gesuchte Meldungen
                             </button>
                         </li>
                     </ul>
@@ -713,6 +721,9 @@
             .catch(error => console.error('Error:', error));
     }
 
+    // Global variable to store current sighting data
+    let currentSightingData;
+
     function openModal(id) {
         document.body.style.overflow = 'hidden';
         clearTabClickListeners();
@@ -722,17 +733,18 @@
                 return response.json();
             })
             .then(data => {
+                currentSightingData = data; // Store the data globally
                 let tabGeneralInfo = document.getElementById('tab-general-info');
                 let tabLocationInfo = document.getElementById('tab-location-info');
                 let tabContent = document.getElementById('tab-content');
 
                 // Set initial content
-                tabContent.innerHTML = generateGeneralInfo(data);
+                tabContent.innerHTML = generateGeneralInfo(currentSightingData);
                 setActiveTab(tabGeneralInfo);
 
                 // Add click listeners to tab buttons
-                addTabClickListener(tabGeneralInfo, generateGeneralInfo, data);
-                addTabClickListener(tabLocationInfo, generateLocationInfo, data);
+                addTabClickListener(tabGeneralInfo, generateGeneralInfo);
+                addTabClickListener(tabLocationInfo, generateLocationInfo);
 
                 // Show the modal
                 document.getElementById('modal').classList.remove('hidden');
@@ -803,17 +815,29 @@
     }
 
 
-    function addTabClickListener(tabElement, contentGenerator, data) {
-        let isApproved = document.querySelector(`[data-report-id="${data.id_meldung}"]`).getAttribute('data-approved') === 'true';
+    function addTabClickListener(tabElement, contentGenerator) {
         tabElement.onclick = function () {
             if (!this.classList.contains('active-tab')) {
-                document.getElementById('tab-content').innerHTML = contentGenerator(data);
-                setActiveTab(this);
-                disableInputsIfApproved(isApproved);
+                // Re-fetch data when switching tabs
+                fetch('/get_sighting/' + currentSightingData.id_meldung)
+                    .then(response => {
+                        if (!response.ok) throw new Error('Network response was not ok');
+                        return response.json();
+                    })
+                    .then(updatedData => {
+                        currentSightingData = updatedData; // Update the global data variable
+                        document.getElementById('tab-content').innerHTML = contentGenerator(updatedData);
+                        setActiveTab(this);
 
-                if (contentGenerator === generateLocationInfo) {
-                    initiateMap(data);
-                }
+                        // Disable inputs if the sighting has been approved
+                        let isApproved = document.querySelector(`[data-report-id="${updatedData.id_meldung}"]`).getAttribute('data-approved') === 'true';
+                        disableInputsIfApproved(isApproved);
+
+                        if (contentGenerator === generateLocationInfo) {
+                            initiateMap(updatedData);
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
             }
         };
     }
@@ -827,6 +851,49 @@
         tabLocationInfo.onclick = null;
     }
 
+
+
+    function initiateMap(data) {
+        setTimeout(function () {
+            let lat = parseFloat(data.latitude.replace(',', '.'));
+            let lng = parseFloat(data.longitude.replace(',', '.'));
+            let map = L.map('map').setView([lat, lng], 13);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 18,
+                tileSize: 512,
+                zoomOffset: -1
+            }).addTo(map);
+
+            // Custom marker icon configuration
+            var customIcon = L.icon({
+                iconUrl: "{{ url_for('static', filename='images/map/marker-icon.png') }}",
+                iconSize: [25, 41],     // Size of the icon
+                iconAnchor: [12, 41],   // Point of the icon which will correspond to marker's location
+                popupAnchor: [1, -34]   // Point from which the popup should open relative to the iconAnchor
+            });
+
+            let marker = L.marker([lat, lng], { icon: customIcon }).addTo(map);
+
+            // Add popup with address details
+            let popupContent = `
+                <div class="popup-content">
+                    <h2>${lat}, ${lng}</h2>
+                    <ul class="popup-list">
+                        ${data.strasse ? `<li><strong>Straße:</strong> ${data.strasse}</li>` : ''}
+                        ${data.plz ? `<li><strong>Postleitzahl:</strong> ${data.plz}</li>` : ''}
+                        ${data.ort ? `<li><strong>Ort:</strong> ${data.ort}</li>` : ''}
+                        ${data.kreis ? `<li><strong>Region:</strong> ${data.kreis}</li>` : ''}
+                        ${data.land ? `<li><strong>Land:</strong> ${data.land}</li>` : ''}
+                    </ul>
+                </div>
+            `;
+            marker.bindPopup(popupContent);
+
+            // Redraw tiles after the modal is shown
+            map.invalidateSize();
+        }, 0);
+    }
 
     function changeGenderCount(id, type, newCount) {
         fetch(`/change_mantis_count/${id}`, {
@@ -1210,7 +1277,33 @@
         exportButton.innerHTML = '<svg class="w-5 h-5 mx-auto text-gray-100 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
         exportButton.disabled = true;
 
-        fetch('/admin/export/xlsx/' + exportType)
+        // Get current search parameters from the URL
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        // Build the export URL with all current parameters
+        let exportUrl = '/admin/export/xlsx/' + exportType + '?';
+        const params = new URLSearchParams();
+        
+        // Always include these parameters if they exist in the current URL
+        const paramsToCopy = [
+            'statusInput',
+            'typeInput',
+            'q',
+            'search_type',
+            'dateFrom',
+            'dateTo'
+        ];
+        
+        paramsToCopy.forEach(param => {
+            const value = urlParams.get(param);
+            if (value !== null) {
+                params.append(param, value);
+            }
+        });
+        
+        exportUrl += params.toString();
+
+        fetch(exportUrl)
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok');

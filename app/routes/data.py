@@ -315,8 +315,7 @@ def validate():
 @data.route("/auswertungen")
 def show_map():
     selected_year = request.args.get("year", None, type=int)
-    "Select data for one selected year"
-
+    
     # Get distinct years from dat_fund_von begginning with MIN_MAP_YEAR
     years = (
         db.session.query(
@@ -327,6 +326,10 @@ def show_map():
         .filter(TblMeldungen.dat_fund_von >= f"{Config.MIN_MAP_YEAR}-01-01")
     )
     years = [int(year[0]) for year in years]
+    
+    # Validate selected_year exists in available years
+    if selected_year is not None and selected_year not in years:
+        selected_year = None
 
     reports_query = (
         db.session.query(TblMeldungen.id, TblFundorte.latitude, TblFundorte.longitude)

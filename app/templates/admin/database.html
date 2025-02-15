@@ -10,7 +10,7 @@ block content %}
     <div class="flex flex-wrap items-center w-full space-x-4 md:space-x-4 md:w-auto">
       <!-- Filter button -->
       <button id="filterDropdownButton" data-dropdown-toggle="filterDropdown"
-        class="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg md:w-auto focus:outline-none hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200"
+        class="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg md:w-auto focus:outline-none hover:bg-gray-100 focus:z-10 focus:ring-4 focus:ring-gray-200"
         type="button">
         <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="w-4 h-4 mr-2 text-gray-400"
           viewbox="0 0 20 20" fill="currentColor">
@@ -18,7 +18,7 @@ block content %}
             d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"
             clip-rule="evenodd" />
         </svg>
-        Filter Options
+        Filter
         <svg class="-mr-1 ml-1.5 w-5 h-5" fill="currentColor" viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"
           aria-hidden="true">
           <path clip-rule="evenodd" fill-rule="evenodd"
@@ -28,13 +28,17 @@ block content %}
 
       <div id="filterDropdown"
         class="z-50 hidden w-64 p-4 space-y-3 bg-white divide-y divide-gray-100 rounded-lg shadow-lg sm:w-80">
-        <p class="text-sm text-gray-700">
-          This is a demo filter dropdown. You can add your custom filter options
-          here.
-        </p>
+        <div class="p-4 bg-gray-100 rounded-lg shadow-md">
+          <p class="text-sm text-gray-700">
+            <strong>Hinweis:</strong> Hier könnte eine Filterfunktion eingebunden werden.
+          </p>
+          <p class="text-sm font-bold text-red-500">
+            Vorschläge für Filter sind willkommen!
+          </p>
+        </div>
         <button type="button"
           class="w-full px-4 py-2 mt-3 text-white bg-green-500 rounded-md shadow-sm hover:bg-green-600 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:border-transparent">
-          Apply Demo Filter
+          Filter anwenden
         </button>
       </div>
     </div>
@@ -74,10 +78,9 @@ block content %}
       </form>
     </div>
 
-    <div class="flex items-center w-full space-x-4 md:w-auto">
-      <!-- Dropdown button -->
+    <!-- <div class="flex items-center w-full space-x-4 md:w-auto">
       <button id="dropdownExportButton" data-dropdown-toggle="filterForm"
-        class="flex items-center justify-center flex-grow px-4 py-2 text-sm font-medium text-gray-100 bg-green-600 border border-green-400 rounded-lg focus:outline-none hover:bg-green-600 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200">
+        class="flex items-center justify-center flex-grow px-4 py-2 text-sm font-medium text-gray-100 bg-green-600 border border-green-400 rounded-lg focus:outline-none hover:bg-green-600 focus:z-10 focus:ring-4 focus:ring-gray-200">
         <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="2"
           stroke="currentColor" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round"
@@ -86,7 +89,6 @@ block content %}
         Export
       </button>
 
-      <!-- Dropdown menu -->
       <div id="filterForm" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44">
         <ul class="py-2 text-sm text-gray-700" aria-labelledby="dropdownExportButton">
           <li>
@@ -96,7 +98,7 @@ block content %}
           </li>
         </ul>
       </div>
-    </div>
+    </div> -->
   </div>
 
   <div id="tableContainer" class="hidden">
@@ -283,14 +285,20 @@ block content %}
 
   .sort-indicator {
     display: inline-block;
-    margin-left: 4px;
     font-size: 10px;
     color: #16a34a;
+    min-width: 8px;
+  }
+
+  #dataTable th > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
   }
 
   #scrollContainer {
-    scrollbar-width: thin;
-    scrollbar-color: #cbd5e1 #f1f5f9;
+    scrollbar-color: #16a34a #f8f9f1;
   }
 
   #scrollContainer::-webkit-scrollbar {
@@ -315,6 +323,7 @@ block content %}
 </style>
 
 <script>
+  // First define all variables
   let currentTable = "all_data_view";
   let columnTypes = {};
   let nonEditableFields = [];
@@ -334,51 +343,142 @@ block content %}
   let sentinel = null;
   let allDataLoaded = false;
 
-  document.addEventListener("DOMContentLoaded", function () {
-    fetchTableData().then(() => {
-      initializeInfiniteScroll();
-    });
+  // Main initialization function
+  function initializeApp() {
+    // Initialize search elements
+    const searchInput = document.getElementById("searchInput");
+    if (searchInput) {
+      searchInput.addEventListener("input", function () {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          searchTerm = this.value;
+          currentPage = 1;
+          allDataLoaded = false;
+          document.getElementById("tableBody").innerHTML = "";
+          initializeInfiniteScroll();
+          fetchTableData();
+          saveState();
+        }, 300);
+      });
+    }
 
-    const modalElement = document.getElementById("editModal");
-    editModalInstance = new Modal(modalElement, {
-      backdrop: "static",
-      closable: false,
-      onHide: () => {
-        currentlyEditingCell = null;
-        currentlyEditingCellData = null;
-      },
-    });
+    // Initialize filter form
+    const filterForm = document.getElementById("filterForm");
+    if (filterForm) {
+      filterForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        currentPage = 1;
+        document.getElementById("tableBody").innerHTML = "";
+        initializeInfiniteScroll();
+        fetchTableData();
+      });
+    }
 
-    document
-      .querySelector('button[onclick="clearSearch()"]')
-      .addEventListener("click", clearSearch);
+    // Initialize clear search button
+    const clearSearchBtn = document.querySelector('button[onclick="clearSearch()"]');
+    if (clearSearchBtn) {
+      clearSearchBtn.addEventListener("click", clearSearch);
+    }
 
-    document
-      .getElementById("dataTable")
-      .addEventListener("click", function (event) {
+    // Initialize data table click handlers
+    const dataTable = document.getElementById("dataTable");
+    if (dataTable) {
+      dataTable.addEventListener("click", function (event) {
         const cell = event.target.closest("td.editable");
         if (!cell) return;
         selectCell(cell);
       });
 
-    document
-      .getElementById("dataTable")
-      .addEventListener("dblclick", function (event) {
+      dataTable.addEventListener("dblclick", function (event) {
         const cell = event.target.closest("td.editable");
-        if (!cell) return;
-        if (currentlyEditingCell) return;
+        if (!cell || currentlyEditingCell) return;
         startEdit(cell);
       });
+    }
 
-    document
-      .getElementById("tableHeader")
-      .addEventListener("click", function (event) {
+    // Initialize table header click handlers
+    const tableHeader = document.getElementById("tableHeader");
+    if (tableHeader) {
+      tableHeader.addEventListener("click", function (event) {
         const header = event.target.closest("th");
         if (!header) return;
         const column = header.getAttribute("data-column");
         toggleSortOrder(column);
       });
-  });
+    }
+
+    // Initialize edit modal buttons
+    const saveEditButton = document.getElementById("saveEditButton");
+    if (saveEditButton) {
+      saveEditButton.addEventListener("click", function () {
+        const input = document.getElementById("modalInputField");
+        if (!input) return;
+        const newValue = input.value;
+        updateCell(
+          currentTable,
+          currentlyEditingCellData.column,
+          currentlyEditingCellData.row,
+          newValue,
+          currentlyEditingCell
+        );
+        editModalInstance.hide();
+      });
+    }
+
+    const cancelEditButton = document.getElementById("cancelEditButton");
+    if (cancelEditButton) {
+      cancelEditButton.addEventListener("click", function () {
+        editModalInstance.hide();
+      });
+    }
+
+    const resetEditButton = document.getElementById("resetEditButton");
+    if (resetEditButton) {
+      resetEditButton.addEventListener("click", function () {
+        const input = document.getElementById("modalInputField");
+        if (input && currentlyEditingCellData) {
+          input.value = currentlyEditingCellData.originalValue;
+        }
+      });
+    }
+
+    // Initialize Modal
+    const modalElement = document.getElementById("editModal");
+    if (modalElement) {
+      editModalInstance = new Modal(modalElement, {
+        backdrop: "static",
+        closable: false,
+        onHide: () => {
+          currentlyEditingCell = null;
+          currentlyEditingCellData = null;
+        },
+      });
+    }
+
+    // Initialize window resize handler
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        if (!allDataLoaded) {
+          checkIfMoreDataNeeded();
+        }
+      }, 250);
+    });
+
+    // Load initial state and data
+    loadState();
+    fetchTableData().then(() => {
+      initializeInfiniteScroll();
+    });
+  }
+
+  // Wait for DOM to be fully loaded before initializing
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeApp);
+  } else {
+    initializeApp();
+  }
 
   function initializeInfiniteScroll() {
     const scrollContainer = document.getElementById("scrollContainer");
@@ -424,29 +524,6 @@ block content %}
     }
     observer.observe(sentinel);
   }
-
-  document.getElementById("searchInput").addEventListener("input", function () {
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => {
-      searchTerm = this.value;
-      currentPage = 1;
-      allDataLoaded = false;
-      document.getElementById("tableBody").innerHTML = "";
-      initializeInfiniteScroll();
-      fetchTableData();
-      saveState();
-    }, 300);
-  });
-
-  document
-    .getElementById("filterForm")
-    .addEventListener("submit", function (e) {
-      e.preventDefault();
-      currentPage = 1;
-      document.getElementById("tableBody").innerHTML = "";
-      initializeInfiniteScroll();
-      fetchTableData();
-    });
 
   function showLoadingIndicator() {
     document.getElementById("loadingIndicator").classList.remove("hidden");
@@ -523,9 +600,11 @@ block content %}
         .map(
           (col) =>
             `<th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase cursor-pointer" data-column="${col}">
-                        ${col}
-                        <span class="sort-indicator"></span>
-                      </th>`
+              <div class="flex items-center justify-between">
+                <span>${col}</span>
+                <span class="ml-2 sort-indicator"></span>
+              </div>
+            </th>`
         )
         .join("");
     }
@@ -790,34 +869,6 @@ block content %}
     return input;
   }
 
-  document
-    .getElementById("saveEditButton")
-    .addEventListener("click", function () {
-      const input = document.getElementById("modalInputField");
-      const newValue = input.value;
-      updateCell(
-        currentTable,
-        currentlyEditingCellData.column,
-        currentlyEditingCellData.row,
-        newValue,
-        currentlyEditingCell
-      );
-      editModalInstance.hide();
-    });
-
-  document
-    .getElementById("cancelEditButton")
-    .addEventListener("click", function () {
-      editModalInstance.hide();
-    });
-
-  document
-    .getElementById("resetEditButton")
-    .addEventListener("click", function () {
-      const input = document.getElementById("modalInputField");
-      input.value = currentlyEditingCellData.originalValue;
-    });
-
   function parseValueFromInput(type, value) {
     switch (type) {
       case "integer":
@@ -888,50 +939,6 @@ block content %}
       });
   }
 
-  function exportCsv() {
-    const exportButton = document.getElementById("dropdownExportButton");
-    exportButton.innerHTML =
-      '<svg class="w-5 h-5 mx-auto text-gray-100 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
-
-    const exportUrl = `/admin/export/csv/${currentTable}`;
-
-    fetch(exportUrl)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        return response.blob();
-      })
-      .then((blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.style.display = "none";
-        a.href = url;
-        a.download = `${currentTable}.csv`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-        alert(
-          "An error occurred while exporting the data. Please try again later."
-        );
-      })
-      .finally(() => {
-        setTimeout(() => {
-          exportButton.innerHTML = `
-                      <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24"
-                          stroke-width="2" stroke="currentColor" aria-hidden="true">
-                          <path stroke-linecap="round" stroke-linejoin="round"
-                              d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-                      </svg>
-                      Export
-                  `;
-        }, 3000);
-      });
-  }
-
   function saveState() {
     localStorage.setItem("searchTerm", searchTerm);
     localStorage.setItem("sortColumn", sortColumn);
@@ -989,16 +996,23 @@ block content %}
 
   window.addEventListener("load", loadState);
 
-  // Add window resize handler
-  let resizeTimeout;
-  window.addEventListener('resize', () => {
-    clearTimeout(resizeTimeout);
-    resizeTimeout = setTimeout(() => {
-      if (!allDataLoaded) {
-        checkIfMoreDataNeeded();
+  function checkIfMoreDataNeeded() {
+    const scrollContainer = document.getElementById("scrollContainer");
+    if (!scrollContainer) return;
+
+    const containerHeight = scrollContainer.clientHeight;
+    const scrollHeight = scrollContainer.scrollHeight;
+    const scrollTop = scrollContainer.scrollTop;
+    
+    // If we're close to the bottom and not already loading or finished
+    if (containerHeight + scrollTop + 100 >= scrollHeight && !isLoading && !allDataLoaded) {
+      const totalPages = Math.ceil(totalItems / itemsPerPage);
+      if (currentPage < totalPages) {
+        currentPage++;
+        fetchTableData();
       }
-    }, 250);
-  });
+    }
+  }
 </script>
 
 {% endblock %}

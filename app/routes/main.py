@@ -2,7 +2,6 @@
 import json
 import os
 import random
-from datetime import datetime, timedelta
 
 from flask import (
     Blueprint,
@@ -144,8 +143,15 @@ def galerie():
         bilder=bilder,
         current_index=current_index,
     )
+    
+@main.route("/favicon.ico")
+def favicon():
+    "Return the favicon.ico file."
+    return send_from_directory("static", "images/favicon/favicon.ico")
 
 
 def not_found(e):
     "404 error page."
     return render_template("404.html")
+
+

@@ -2,7 +2,6 @@
 #lat, lon ,ort, id  = (52.44262, 9.32739, "Königs Wusterhausen", 4106)
 #lat, lon , ort, id = (52.16024, 13.92277, "Kehrigk", 4963/4962) # ist ok
 import requests
-import json
 import re
 #from  meldeorte import fundorte
 overpass_url = "http://overpass-api.de/api/interpreter"

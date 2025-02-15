@@ -60,6 +60,7 @@
 html {
   scroll-behavior: smooth !important;
   font-size: 100% !important;
+  overscroll-behavior: none;
 }
 
 @layer components {
