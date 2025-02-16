@@ -197,5 +197,4 @@ from maxvals;
     session.execute(
             text(stm)
         )
-    session.commit()
-    
+    session.commit()    
