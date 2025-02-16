@@ -37,7 +37,13 @@ Stay tuned for updates on these exciting new features!
 ![Tailwind CSS](https://img.shields.io/badge/-Tailwind%20CSS-000000?style=flat&logo=tailwind-css)
 ![JavaScript](https://img.shields.io/badge/-JavaScript-000000?style=flat&logo=javascript)
 
-# 💻 Development Setup/Installation
+# 💻 Development Setup
+
+### Prerequisites
+
+- Python 3.8+
+- Node.js and npm
+- PostgreSQL
 
 ### Step 1: 📁 Clone the repository
 
@@ -46,22 +52,22 @@ git clone https://gitlab.com/opendata-apps/mantis.git
 cd mantis
 ```
 
-### Step 2: 🌐 Create a virtual environment and activate it
+### Step 2: 🌐 Create and activate virtual environment
 
 ```bash
-python -m venv .venv (or another name with . like .mantis)
+python -m venv .venv
 source .venv/bin/activate    # For Windows: .venv\Scripts\activate
 ```
 
-### Step 3: 📦 Install the dependencies
+### Step 3: 📦 Install Python dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### Step 4: 🗄️ Create a PostgreSQL database
+### Step 4: 🗄️ Set up PostgreSQL database
 
-Use the Program `psql`
+Using `psql`:
 
 ```bash
 psql -U postgres
@@ -110,14 +116,19 @@ flask insert-initial-data
 ### Step 7: 🎨 Run the CSS watcher
 
 ```bash
-npm --proxy <your-proxy> install tailwindcss
+cd app/static
+npm install
 ```
+
+The project includes a convenient script to watch for CSS changes. Start it with:
 
 ```bash
-npx tailwindcss -i app/static/css/theme.css -o app/static/build/theme.css --watch
+npm run watch:css
 ```
 
-### Step 8: 🚀 Run the development server
+### Step 7: 🚀 Run the application
+
+#### Development server
 
 ```bash
 python run.py
@@ -148,11 +159,17 @@ http://loclahost:5000/reviewer/9999
 gunicorn run:app    # For Windows: waitress-serve --listen=*:8000 run:app
 ```
 
-### Step 10: 🌐 Open http://localhost:5000 in your browser
+### Step 8: 🌐 Access the application
 
-### Meldung id error fix
+Open [http://localhost:5000](http://localhost:5000) in your browser.
 
-```bash
+## 🔧 Troubleshooting
+
+### Database Sequence Reset
+
+If you encounter issues with ID sequences, run:
+
+```sql
 SELECT setval('[TableName]_id_seq', (SELECT MAX(id) FROM [TableName]))
 ```
 

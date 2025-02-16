@@ -2,17 +2,17 @@
 {% from "macro.html" import popover with context %}
 {% from "macro.html" import formButton %}
 {% block head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/leaflet.css')}}" />
-<link rel="stylesheet" href="{{ url_for('static', filename='css/cluster/MarkerCluster.Default.css')}}" />
-<link rel="stylesheet" href="{{ url_for('static', filename='css/cluster/MarkerCluster.css')}}" />
-<link rel="stylesheet" href="{{ url_for('static', filename='css/currentLocation/L.Control.Locate.min.css')}}" />
-<script src="{{ url_for('static', filename='js/leaflet.js')}}"></script>
-<script src="{{ url_for('static', filename='js/esri-leaflet.js')}}"></script>
-<script src="{{ url_for('static', filename='js/esri-leaflet-vector.js')}}"></script>
-<script src="{{ url_for('static', filename='js/exif-js.js')}}" defer></script>
-<script src="{{url_for('static', filename='js/cluster/leaflet.markercluster.js')}}"></script>
-<script src="{{url_for('static', filename='js/currentLocation/L.Control.Locate.min.js')}}"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tuily/heic2any@0.0.6/dist/heic2any.min.js"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.css')}}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='node_modules/leaflet.markercluster/dist/MarkerCluster.css')}}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='node_modules/leaflet.markercluster/dist/MarkerCluster.Default.css')}}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='node_modules/leaflet.locatecontrol/dist/L.Control.Locate.min.css')}}" />
+<script src="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.js')}}"></script>
+<script src="{{ url_for('static', filename='node_modules/esri-leaflet/dist/esri-leaflet.js')}}"></script>
+<script src="{{ url_for('static', filename='node_modules/esri-leaflet-vector/dist/esri-leaflet-vector.js')}}"></script>
+<script src="{{ url_for('static', filename='node_modules/exif-js/exif.js')}}" defer></script>
+<script src="{{url_for('static', filename='node_modules/leaflet.markercluster/dist/leaflet.markercluster.js')}}"></script>
+<script src="{{url_for('static', filename='node_modules/leaflet.locatecontrol/dist/L.Control.Locate.min.js')}}"></script>
+<script src="{{url_for('static', filename='node_modules/heic2any/dist/heic2any.min.js')}}"></script>
 <meta name="csrf-token" content="{{ csrf_token() }}">
 {% endblock %}
 {% block page_title %}Melden Sie Ihre Beobachtung | Mantis Religiosa Mitmachprojekt | Gottesanbeterin Gesucht{% endblock
@@ -21,7 +21,7 @@
 {% block meta_description %} Melden Sie Ihre Beobachtungen von Mantis religiosa in Deutschland. Unterstützen Sie die
 Forschung. {% endblock %}
 {% block content %}
-<script src="{{ url_for('static', filename='js/flow/flowbite.min.js')}}" defer></script>
+<script src="{{ url_for('static', filename='node_modules/flowbite/dist/flowbite.min.js')}}" defer></script>
 
 
 <div class="flex items-center justify-center min-h-screen bg-gray-100">
@@ -115,31 +115,31 @@ Forschung. {% endblock %}
         <h2 class="mb-2 text-2xl font-bold text-gray-800">Fundortbeschreibung zu den Koordinaten</h2>
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
-            <label for="{{ form.street.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
+            <label for="{{ form.fund_street.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
-                {{ form.street.label.text }}
+                {{ form.fund_street.label.text }}
                 {{ popover("popover-street", popover_content["popover-street"]["title"], popover_content["popover-street"]["content"], popover_content) }}
               </div>
               <div class="relative">
-                {{ form.street(class="input-field") }}
+                {{ form.fund_street(class="input-field") }}
               </div>
             </label>
-            <label for="{{ form.state.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
+            <label for="{{ form.fund_state.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
-                {{ form.state.label.text }}
+                {{ form.fund_state.label.text }}
                 {{ popover("popover-bundesland", popover_content["popover-bundesland"]["title"], popover_content["popover-bundesland"]["content"], popover_content) }}
               </div>
               <div class="relative">
-                {{ form.state(id="state", class="input-field") }}
+                {{ form.fund_state(id="fund_state", class="input-field") }}
               </div>
             </label>
-            <label for="{{ form.district.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
+            <label for="{{ form.fund_district.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
-                {{ form.district.label.text }}
+                {{ form.fund_district.label.text }}
                 {{ popover("popover-bezirk", popover_content["popover-bezirk"]["title"], popover_content["popover-bezirk"]["content"], popover_content) }}
               </div>
               <div class="relative">
-                {{ form.district(id="district", class="input-field") }}
+                {{ form.fund_district(id="fund_district", class="input-field") }}
               </div>
             </label>
 
@@ -161,21 +161,21 @@ Forschung. {% endblock %}
           <div>
             <label class="block mt-1 text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
-                {{ form.zip_code.label.text }}
+                {{ form.fund_zip_code.label.text }}
                 {{ popover("popover-zip", popover_content["popover-zip"]["title"], popover_content["popover-zip"]["content"], popover_content) }}
               </div>
 
             </label>
             <div class="relative font-semibold">
-              {{ form.zip_code(id="zip_code", class="input-field") }}
+              {{ form.fund_zip_code(id="fund_zip_code", class="input-field") }}
             </div>
-            <label for="{{ form.city.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
+            <label for="{{ form.fund_city.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
               <div class="flex justify-between">
-                {{ form.city.label.text }}
+                {{ form.fund_city.label.text }}
                 {{ popover("popover-city", popover_content["popover-city"]["title"], popover_content["popover-city"]["content"], popover_content) }}
               </div>
               <div class="relative">
-                {{ form.city(id="city", class="input-field") }}
+                {{ form.fund_city(id="fund_city", class="input-field") }}
               </div>
             </label>
             <label for="{{ form.location_description.id }}" class="block mt-1 text-sm font-semibold text-gray-600">
@@ -365,6 +365,7 @@ Forschung. {% endblock %}
 <script>
   let map;
   let userMarker;
+  let customIcon;  // Declare customIcon in global scope
   mapApiKey = "{{apikey}}";
   
   function initMap() {
@@ -387,6 +388,14 @@ Forschung. {% endblock %}
   
     const arcGISLayer = L.esri.Vector.vectorBasemapLayer("ArcGIS:Imagery", {
       apikey: mapApiKey
+    });
+
+    // Initialize customIcon in global scope
+    customIcon = L.icon({
+      iconUrl: "{{ url_for('static', filename='images/map/marker-icon.png') }}",
+      iconSize: [25, 41],     // Size of the icon
+      iconAnchor: [12, 41],   // Point of the icon which will correspond to marker's location
+      popupAnchor: [1, -34]   // Point from which the popup should open relative to the iconAnchor
     });
   
     // Add default layer to the map
@@ -463,7 +472,7 @@ Forschung. {% endblock %}
     if (userMarker) {
       userMarker.setLatLng([lat, lng]);
     } else {
-      userMarker = L.marker([lat, lng]).addTo(map);
+      userMarker = L.marker([lat, lng], { icon: customIcon }).addTo(map);
     }
   
     if (zoomToMarker) {
@@ -503,12 +512,12 @@ Forschung. {% endblock %}
   
         // Extract and set the zip code
         const zipCode = address.postcode || "";
-        document.querySelector("#zip_code").value = zipCode;
+        document.querySelector("#fund_zip_code").value = zipCode;
   
-        // Extract and set the city, considering various possible keys
+        // Extract and set the city
         const city = address.city || address.town || address.village ||
                      address.hamlet || address.suburb || address.locality || "";
-        document.querySelector("#city").value = city;
+        document.querySelector("#fund_city").value = city;
   
         // Extract and set the street address
         const streetName = address.road || address.pedestrian || address.cycleway ||
@@ -516,25 +525,23 @@ Forschung. {% endblock %}
                            address.street_name || "";
         const houseNumber = address.house_number || "";
         const street = `${streetName} ${houseNumber}`.trim();
-        document.querySelector("#street").value = street;
+        document.querySelector("#fund_street").value = street;
   
         // Extract and set the state (Bundesland)
         let state = address.state || address.region || "";
         if (!state && data.extratags && data.extratags["ISO3166-2"]) {
-          // Use ISO3166-2 code to determine the state
           const isoCode = data.extratags["ISO3166-2"];
           state = getStateNameFromISOCode(isoCode);
         }
         if (!state && address.city && isCityState(address.city)) {
-          // For city-states like Berlin, use the city name as the state
           state = address.city;
         }
-        document.querySelector("#state").value = state;
+        document.querySelector("#fund_state").value = state;
   
         // Extract and set the district (Landkreis/Stadtteil)
         const district = address.county || address.district || address.municipality ||
                          address.city_district || address.borough || address.suburb || "";
-        document.querySelector("#district").value = district;
+        document.querySelector("#fund_district").value = district;
   
         // Prepare address data for validation and save to local storage
         const addressData = {
@@ -551,21 +558,21 @@ Forschung. {% endblock %}
         // Function to check user-provided address data against API data
         function checkAddressData(formData, nextStepIndex) {
           // const storedAddressData = JSON.parse(getLocalStorageWithExpiry('addressData')) || {};
-          // const userState = formData.get('state') || "";
-          // const userDistrict = formData.get('district') || "";
-          // const userCity = formData.get('city') || "";
+          // const userState = formData.get('fund_state') || "";
+          // const userDistrict = formData.get('fund_district') || "";
+          // const userCity = formData.get('fund_city') || "";
   
           // const errors = {};
   
           // // Case-insensitive and trimmed comparison
           // if (storedAddressData.state && userState.trim().toLowerCase() !== storedAddressData.state.trim().toLowerCase()) {
-          //   errors.state = ['Das eingegebene Bundesland stimmt nicht mit den Fundort-Koordinaten überein.'];
+          //   errors.fund_state = ['Das eingegebene Bundesland stimmt nicht mit den Fundort-Koordinaten überein.'];
           // }
           // if (storedAddressData.district && userDistrict.trim().toLowerCase() !== storedAddressData.district.trim().toLowerCase()) {
-          //   errors.district = ['Der eingegebene Landkreis/Stadtteil stimmt nicht mit den Fundort-Koordinaten überein.'];
+          //   errors.fund_district = ['Der eingegebene Landkreis/Stadtteil stimmt nicht mit den Fundort-Koordinaten überein.'];
           // }
           // if (storedAddressData.city && userCity.trim().toLowerCase() !== storedAddressData.city.trim().toLowerCase()) {
-          //   errors.city = ['Der eingegebene Ort stimmt nicht mit den Fundort-Koordinaten überein.'];
+          //   errors.fund_city = ['Der eingegebene Ort stimmt nicht mit den Fundort-Koordinaten überein.'];
           // }
   
           // if (Object.keys(errors).length > 0) {
@@ -612,375 +619,389 @@ Forschung. {% endblock %}
     return cityStates.includes(cityName);
   }
   
-  // Use Jinja2 to pass the Python variables to JavaScript
-  const existingUser = {{ existing_user | tojson | safe }};
-
-// Check if the existingUser is not null
-if (existingUser) {
-  const fields = [
-    { id: "report_first_name", value: existingUser.user_name.split(" ")[1] },
-    { id: "report_last_name", value: existingUser.user_name.split(" ")[0] },
-    { id: "contact", value: existingUser.user_kontakt }
-  ];
-
-  fields.forEach(field => {
-    const element = document.getElementById(field.id);
-    element.value = field.value;
-    element.readOnly = true;
-  });
-}
-
-function setLocalStorageWithExpiry(key, value, ttl) {
-  const now = new Date();
-  const item = {
-    value: value,
-    expiry: now.getTime() + ttl,
-  };
+  // Initialize user data from server-side
+  let existingUser;
   try {
-    localStorage.setItem(key, JSON.stringify(item));
-  } catch (e) {
-    console.error("Error setting localStorage item:", e);
-  }
-}
-
-function getLocalStorageWithExpiry(key) {
-  try {
-    const itemStr = localStorage.getItem(key);
-    if (!itemStr) {
-      return null;
-    }
-    const item = JSON.parse(itemStr);
-    const now = new Date();
-    if (now.getTime() > item.expiry) {
-      localStorage.removeItem(key);
-      return null;
-    }
-    return item.value;
-  } catch (e) {
-    console.error("Error getting localStorage item:", e);
-    return null;
-  }
-}
-
-function cleanupExpiredItems() {
-  const keys = Object.keys(localStorage);
-  for (const key of keys) {
-    getLocalStorageWithExpiry(key); // This will remove the item if it's expired
-  }
-}
-
-// Call this function periodically or on page load
-cleanupExpiredItems();
-
-function saveFormDataToLocalStorage() {
-  const form = document.getElementById('mainForm');
-  const formData = new FormData(form);
-  const data = {};
-
-  for (const [key, value] of formData.entries()) {
-    if (key !== "csrf_token" && key !== "picture") {
-      data[key] = value;
-    }
+    existingUser = JSON.parse('{{ existing_user | tojson | safe }}');
+  } catch (error) {
+    console.error('Error parsing existing user data:', error);
+    existingUser = null;
   }
 
-  // Set expiry to 1 hour (3600000 milliseconds)
-  setLocalStorageWithExpiry('formData', JSON.stringify(data), 3600000);
-}
-
-function loadFormDataFromLocalStorage() {
-  const form = document.getElementById('mainForm');
-  const storedData = getLocalStorageWithExpiry('formData');
-
-  if (storedData) {
+  // Populate form fields if existing user data is available
+  if (existingUser && existingUser.user_name) {
     try {
-      const data = JSON.parse(storedData);
-      for (const input of form.elements) {
-        if (input.name && input.type !== 'file' && data.hasOwnProperty(input.name)) {
-          input.value = data[input.name];
+      const [lastName, firstName] = existingUser.user_name.split(" ");
+      const fields = [
+        { id: "report_first_name", value: firstName || '' },
+        { id: "report_last_name", value: lastName || '' },
+        { id: "contact", value: existingUser.user_kontakt || '' }
+      ];
+
+      fields.forEach(field => {
+        const element = document.getElementById(field.id);
+        if (element) {
+          element.value = field.value;
+          element.readOnly = true;
         }
-      }
-    } catch (e) {
-      console.error('Error parsing stored form data:', e);
+      });
+    } catch (error) {
+      console.error('Error setting user form data:', error);
     }
   }
-}
 
-function loadPreviewFromInput() {
-  const pictureInput = document.getElementById('picture');
+  // Local storage helper functions with improved error handling
+  function setLocalStorageWithExpiry(key, value, ttl) {
+    const now = new Date();
+    const item = {
+      value: value,
+      expiry: now.getTime() + ttl,
+    };
+    try {
+      localStorage.setItem(key, JSON.stringify(item));
+    } catch (e) {
+      console.error("Error setting localStorage item:", e);
+    }
+  }
+
+  function getLocalStorageWithExpiry(key) {
+    try {
+      const itemStr = localStorage.getItem(key);
+      if (!itemStr) {
+        return null;
+      }
+      const item = JSON.parse(itemStr);
+      const now = new Date();
+      if (now.getTime() > item.expiry) {
+        localStorage.removeItem(key);
+        return null;
+      }
+      return item.value;
+    } catch (e) {
+      console.error("Error getting localStorage item:", e);
+      return null;
+    }
+  }
+
+  function cleanupExpiredItems() {
+    const keys = Object.keys(localStorage);
+    for (const key of keys) {
+      getLocalStorageWithExpiry(key); // This will remove the item if it's expired
+    }
+  }
+
+  // Call this function periodically or on page load
+  cleanupExpiredItems();
+
+  function saveFormDataToLocalStorage() {
+    const form = document.getElementById('mainForm');
+    const formData = new FormData(form);
+    const data = {};
+
+    for (const [key, value] of formData.entries()) {
+      if (key !== "csrf_token" && key !== "picture") {
+        data[key] = value;
+      }
+    }
+
+    // Set expiry to 1 hour (3600000 milliseconds)
+    setLocalStorageWithExpiry('formData', JSON.stringify(data), 3600000);
+  }
+
+  function loadFormDataFromLocalStorage() {
+    const form = document.getElementById('mainForm');
+    const storedData = getLocalStorageWithExpiry('formData');
+
+    if (storedData) {
+      try {
+        const data = JSON.parse(storedData);
+        for (const input of form.elements) {
+          if (input.name && input.type !== 'file' && data.hasOwnProperty(input.name)) {
+            input.value = data[input.name];
+          }
+        }
+      } catch (e) {
+        console.error('Error parsing stored form data:', e);
+      }
+    }
+  }
+
+  function loadPreviewFromInput() {
+    const pictureInput = document.getElementById('picture');
+    const preview = document.getElementById('previewImage');
+    const previewContainer = document.getElementById('imagePreview');
+    const uploadText = document.getElementById('uploadText');
+
+    if (!pictureInput || !preview || !previewContainer || !uploadText) {
+      return;
+    }
+
+    const file = pictureInput.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        preview.src = e.target.result;
+        previewContainer.style.display = 'flex';
+        uploadText.style.display = 'none';
+      };
+      reader.onerror = function (e) {
+        resetPreview();
+      };
+      reader.readAsDataURL(file);
+    } else {
+      resetPreview();
+    }
+  }
+
+  // Save form data on input change
+  document.getElementById('mainForm').addEventListener('input', saveFormDataToLocalStorage);
+
+  // EXIF Data Extraction
+  document.addEventListener('DOMContentLoaded', function () {
+    const pictureInput = document.querySelector('#picture');
+    pictureInput.addEventListener('change', function (event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      // Use FileReader to read the file as an ArrayBuffer
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        try {
+          const exifData = EXIF.readFromBinaryFile(e.target.result);
+
+          if (exifData) {
+            const lat = exifData.GPSLatitude;
+            const lng = exifData.GPSLongitude;
+            const latRef = exifData.GPSLatitudeRef;
+            const lngRef = exifData.GPSLongitudeRef;
+
+            if (lat && lng && latRef && lngRef) {
+              // Convert coordinates to decimal without rounding
+              const latitude = toDecimal(lat, latRef);
+              const longitude = toDecimal(lng, lngRef);
+
+              // if values are NaN or 0, do not set the form fields
+              if (isNaN(latitude) || isNaN(longitude) || latitude === 0 || longitude === 0) {
+                return;
+              }
+
+              // Update map and form data
+              updateMapAndFormData(latitude, longitude, true);
+            }
+
+            // Extract and set the sighting date
+            if (exifData.DateTimeOriginal) {
+              const dateTime = exifData.DateTimeOriginal.split(' ')[0].replace(/:/g, '-');
+              document.querySelector('#sighting_date').value = dateTime;
+            }
+          }
+        } catch (error) {
+          console.error('Error processing EXIF data:', error);
+        }
+      };
+
+      reader.readAsArrayBuffer(file);
+    });
+  });
+
+  function toDecimal(coord, ref) {
+    if (!Array.isArray(coord) || coord.length !== 3) {
+      return NaN;
+    }
+
+    const [degrees, minutes, seconds] = coord.map(val =>
+      typeof val === 'number' ? val : (val.numerator / val.denominator)
+    );
+
+    let decimal = degrees + minutes / 60 + seconds / (60 * 60);
+    if (ref === 'S' || ref === 'W') {
+      decimal = -decimal;
+    }
+    return decimal;
+  }
+
+  // Image Upload and Preview Handling
+  const input = document.getElementById('{{ form.picture.id }}');
   const preview = document.getElementById('previewImage');
   const previewContainer = document.getElementById('imagePreview');
   const uploadText = document.getElementById('uploadText');
+  const uploadLoader = document.getElementById('uploadLoader');
 
-  if (!pictureInput || !preview || !previewContainer || !uploadText) {
-    return;
-  }
+  input.addEventListener('change', handleImageUpload);
+  document.addEventListener('drop', dropHandler);
 
-  const file = pictureInput.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      preview.src = e.target.result;
-      previewContainer.style.display = 'flex';
-      uploadText.style.display = 'none';
-    };
-    reader.onerror = function (e) {
-      resetPreview();
-    };
-    reader.readAsDataURL(file);
-  } else {
-    resetPreview();
-  }
-}
+  function handleImageUpload(e) {
+    const file = e.target.files[0];
+    const validFileTypes = ["image/png", "image/jpeg", "image/jfif", "image/webp", "image/heic", "image/heif"];
+    const maxSizeInBytes = 12 * 1024 * 1024; // 12MB
 
-// Save form data on input change
-document.getElementById('mainForm').addEventListener('input', saveFormDataToLocalStorage);
+    clearErrorsForField('picture');
+    resetPreview(); // Reset preview before processing new image
 
-// EXIF Data Extraction
-document.addEventListener('DOMContentLoaded', function () {
-  const pictureInput = document.querySelector('#picture');
-  pictureInput.addEventListener('change', function (event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    // Use FileReader to read the file as an ArrayBuffer
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      try {
-        const exifData = EXIF.readFromBinaryFile(e.target.result);
-
-        if (exifData) {
-          const lat = exifData.GPSLatitude;
-          const lng = exifData.GPSLongitude;
-          const latRef = exifData.GPSLatitudeRef;
-          const lngRef = exifData.GPSLongitudeRef;
-
-          if (lat && lng && latRef && lngRef) {
-            // Convert coordinates to decimal without rounding
-            const latitude = toDecimal(lat, latRef);
-            const longitude = toDecimal(lng, lngRef);
-
-            // if values are NaN or 0, do not set the form fields
-            if (isNaN(latitude) || isNaN(longitude) || latitude === 0 || longitude === 0) {
-              return;
-            }
-
-            // Update map and form data
-            updateMapAndFormData(latitude, longitude, true);
-          }
-
-          // Extract and set the sighting date
-          if (exifData.DateTimeOriginal) {
-            const dateTime = exifData.DateTimeOriginal.split(' ')[0].replace(/:/g, '-');
-            document.querySelector('#sighting_date').value = dateTime;
-          }
-        }
-      } catch (error) {
-        console.error('Error processing EXIF data:', error);
-      }
-    };
-
-    reader.readAsArrayBuffer(file);
-  });
-});
-
-function toDecimal(coord, ref) {
-  if (!Array.isArray(coord) || coord.length !== 3) {
-    return NaN;
-  }
-
-  const [degrees, minutes, seconds] = coord.map(val =>
-    typeof val === 'number' ? val : (val.numerator / val.denominator)
-  );
-
-  let decimal = degrees + minutes / 60 + seconds / (60 * 60);
-  if (ref === 'S' || ref === 'W') {
-    decimal = -decimal;
-  }
-  return decimal;
-}
-
-// Image Upload and Preview Handling
-const input = document.getElementById('{{ form.picture.id }}');
-const preview = document.getElementById('previewImage');
-const previewContainer = document.getElementById('imagePreview');
-const uploadText = document.getElementById('uploadText');
-const uploadLoader = document.getElementById('uploadLoader');
-
-input.addEventListener('change', handleImageUpload);
-document.addEventListener('drop', dropHandler);
-
-function handleImageUpload(e) {
-  const file = e.target.files[0];
-  const validFileTypes = ["image/png", "image/jpeg", "image/jfif", "image/webp", "image/heic", "image/heif"];
-  const maxSizeInBytes = 12 * 1024 * 1024; // 12MB
-
-  clearErrorsForField('picture');
-  resetPreview(); // Reset preview before processing new image
-
-  if (file) {
-    if (!validFileTypes.includes(file.type.toLowerCase())) {
-      showErrors({ picture: ["Erlaubt sind nur PNG, JPG, JPEG, HEIC, HEIF und WebP Dateien."] }, 0);
-      e.target.value = '';
-      return;
-    }
-
-    if (file.size > maxSizeInBytes) {
-      showErrors({ picture: ["Die Datei ist zu groß. Maximale Größe ist 12MB."] }, 0);
-      e.target.value = '';
-      return;
-    }
-
-    // Show loader
-    uploadText.style.display = 'none';
-    uploadLoader.classList.remove('hidden');
-
-    // Process the file based on its type
-    if (file.type.startsWith('image/heic') || file.type.startsWith('image/heif')) {
-      processHeicHeif(file);
-    } else if (file.type === 'image/webp') {
-      // WebP files don't need conversion
-      validateAndUpdatePreview(file);
-    } else {
-      // For other image types, validate and convert if necessary
-      validateAndConvertIfNeeded(file);
-    }
-  }
-}
-
-function processHeicHeif(file) {
-  heic2any({
-    blob: file,
-    toType: "image/jpeg",
-  }).then(function (resultBlob) {
-    validateAndConvertIfNeeded(new File([resultBlob], file.name, { type: 'image/jpeg' }));
-  }).catch(function (error) {
-    handleHeicHeifError(error);
-  });
-}
-
-function handleHeicHeifError(error) {
-  let errorMessage = "Die HEIC/HEIF-Datei konnte nicht verarbeitet werden.";
-  showErrors({ picture: [errorMessage] }, 0);
-  resetPreview();
-}
-
-function validateAndConvertIfNeeded(file) {
-  const img = new Image();
-  img.onload = function() {
-    URL.revokeObjectURL(this.src);
-    if (file.size > 10 * 1024 * 1024 || file.type !== 'image/webp') {
-      // Convert to WebP if file is large or not already WebP
-      convertToWebP(file, file.size > 10 * 1024 * 1024 ? 0.5 : 0.7);
-    } else {
-      // File is already WebP and not too large, just update preview
-      updatePreview(file);
-    }
-  };
-  img.onerror = function() {
-    URL.revokeObjectURL(this.src);
-    showErrors({ picture: ["Das Bild konnte nicht geladen werden. Bitte versuchen Sie es mit einem anderen Bild."] }, 0);
-    resetPreview();
-  };
-  img.src = URL.createObjectURL(file);
-}
-
-function validateAndUpdatePreview(file) {
-  const img = new Image();
-  img.onload = function() {
-    URL.revokeObjectURL(this.src);
-    updatePreview(file);
-  };
-  img.onerror = function() {
-    URL.revokeObjectURL(this.src);
-    showErrors({ picture: ["Die Datei scheint kein gültiges Bild zu sein."] }, 0);
-    resetPreview();
-  };
-  img.src = URL.createObjectURL(file);
-}
-
-function convertToWebP(file, quality) {
-  var img = new Image();
-  img.onload = function () {
-    var canvas = document.createElement('canvas');
-    canvas.width = img.width;
-    canvas.height = img.height;
-    var ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0, img.width, img.height);
-    canvas.toBlob(function (blob) {
-      var convertedFile = new File([blob], 'image.webp', { type: 'image/webp' });
-
-      if (convertedFile.size > 12 * 1024 * 1024) {
-        showErrors({ picture: ["Das Bild ist zu groß. Bitte verwenden Sie ein kleineres Bild oder reduzieren Sie die Bildqualität."] }, 0);
-        resetPreview();
+    if (file) {
+      if (!validFileTypes.includes(file.type.toLowerCase())) {
+        showErrors({ picture: ["Erlaubt sind nur PNG, JPG, JPEG, HEIC, HEIF und WebP Dateien."] }, 0);
+        e.target.value = '';
         return;
       }
 
-      var dataTransfer = new DataTransfer();
-      dataTransfer.items.add(convertedFile);
-      input.files = dataTransfer.files;
-      updatePreview(convertedFile);
-    }, 'image/webp', quality);
-  };
-  img.onerror = function() {
-    showErrors({ picture: ["Das Bild konnte nicht konvertiert werden. Bitte versuchen Sie es mit einem anderen Bild."] }, 0);
-    resetPreview();
-  };
-  img.src = URL.createObjectURL(file);
-}
+      if (file.size > maxSizeInBytes) {
+        showErrors({ picture: ["Die Datei ist zu groß. Maximale Größe ist 12MB."] }, 0);
+        e.target.value = '';
+        return;
+      }
 
-function dropHandler(ev) {
-  ev.preventDefault();
-  if (ev.dataTransfer.items) {
-    for (var i = 0; i < ev.dataTransfer.items.length; i++) {
-      if (ev.dataTransfer.items[i].kind === 'file') {
-        var file = ev.dataTransfer.items[i].getAsFile();
-        convertImageToWebP(file);
+      // Show loader
+      uploadText.style.display = 'none';
+      uploadLoader.classList.remove('hidden');
+
+      // Process the file based on its type
+      if (file.type.startsWith('image/heic') || file.type.startsWith('image/heif')) {
+        processHeicHeif(file);
+      } else if (file.type === 'image/webp') {
+        // WebP files don't need conversion
+        validateAndUpdatePreview(file);
+      } else {
+        // For other image types, validate and convert if necessary
+        validateAndConvertIfNeeded(file);
       }
     }
   }
-}
 
-function convertImageToWebP(file) {
-  if (file.type.startsWith('image/heic') || file.type.startsWith('image/heif')) {
+  function processHeicHeif(file) {
     heic2any({
       blob: file,
       toType: "image/jpeg",
     }).then(function (resultBlob) {
-      // Check the size of the converted JPG
-      if (resultBlob.size > 10 * 1024 * 1024) {
-        // If larger than 10MB, use stronger compression
-        convertToWebP(resultBlob, 0.5);  // Adjust compression level as needed
-      } else {
-        convertToWebP(resultBlob, 0.7);  // Use normal compression
-      }
-    }).catch(function (x) {
-      console.error(x.message);
-      // Hide loader and show upload text on error
-      uploadLoader.classList.add('hidden');
-      uploadText.style.display = 'flex';
+      validateAndConvertIfNeeded(new File([resultBlob], file.name, { type: 'image/jpeg' }));
+    }).catch(function (error) {
+      handleHeicHeifError(error);
     });
-  } else {
-    convertToWebP(file, 0.7);  // Use normal compression for non-HEIC files
   }
-}
 
-function updatePreview(file) {
-  var reader = new FileReader();
-  reader.onload = function (e) {
-    previewContainer.style.display = 'flex';
-    preview.src = e.target.result;
-    uploadText.style.display = 'none';
-    uploadLoader.classList.add('hidden');  // Ensure loader is hidden
-  };
-  reader.readAsDataURL(file);
-}
+  function handleHeicHeifError(error) {
+    let errorMessage = "Die HEIC/HEIF-Datei konnte nicht verarbeitet werden.";
+    showErrors({ picture: [errorMessage] }, 0);
+    resetPreview();
+  }
 
-function resetPreview() {
-  preview.src = '';
-  previewContainer.style.display = 'none';
-  uploadText.style.display = 'flex';
-  uploadLoader.classList.add('hidden');
-}
+  function validateAndConvertIfNeeded(file) {
+    const img = new Image();
+    img.onload = function() {
+      URL.revokeObjectURL(this.src);
+      if (file.size > 10 * 1024 * 1024 || file.type !== 'image/webp') {
+        // Convert to WebP if file is large or not already WebP
+        convertToWebP(file, file.size > 10 * 1024 * 1024 ? 0.5 : 0.7);
+      } else {
+        // File is already WebP and not too large, just update preview
+        updatePreview(file);
+      }
+    };
+    img.onerror = function() {
+      URL.revokeObjectURL(this.src);
+      showErrors({ picture: ["Das Bild konnte nicht geladen werden. Bitte versuchen Sie es mit einem anderen Bild."] }, 0);
+      resetPreview();
+    };
+    img.src = URL.createObjectURL(file);
+  }
+
+  function validateAndUpdatePreview(file) {
+    const img = new Image();
+    img.onload = function() {
+      URL.revokeObjectURL(this.src);
+      updatePreview(file);
+    };
+    img.onerror = function() {
+      URL.revokeObjectURL(this.src);
+      showErrors({ picture: ["Die Datei scheint kein gültiges Bild zu sein."] }, 0);
+      resetPreview();
+    };
+    img.src = URL.createObjectURL(file);
+  }
+
+  function convertToWebP(file, quality) {
+    var img = new Image();
+    img.onload = function () {
+      var canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      var ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, img.width, img.height);
+      canvas.toBlob(function (blob) {
+        var convertedFile = new File([blob], 'image.webp', { type: 'image/webp' });
+
+        if (convertedFile.size > 12 * 1024 * 1024) {
+          showErrors({ picture: ["Das Bild ist zu groß. Bitte verwenden Sie ein kleineres Bild oder reduzieren Sie die Bildqualität."] }, 0);
+          resetPreview();
+          return;
+        }
+
+        var dataTransfer = new DataTransfer();
+        dataTransfer.items.add(convertedFile);
+        input.files = dataTransfer.files;
+        updatePreview(convertedFile);
+      }, 'image/webp', quality);
+    };
+    img.onerror = function() {
+      showErrors({ picture: ["Das Bild konnte nicht konvertiert werden. Bitte versuchen Sie es mit einem anderen Bild."] }, 0);
+      resetPreview();
+    };
+    img.src = URL.createObjectURL(file);
+  }
+
+  function dropHandler(ev) {
+    ev.preventDefault();
+    if (ev.dataTransfer.items) {
+      for (var i = 0; i < ev.dataTransfer.items.length; i++) {
+        if (ev.dataTransfer.items[i].kind === 'file') {
+          var file = ev.dataTransfer.items[i].getAsFile();
+          convertImageToWebP(file);
+        }
+      }
+    }
+  }
+
+  function convertImageToWebP(file) {
+    if (file.type.startsWith('image/heic') || file.type.startsWith('image/heif')) {
+      heic2any({
+        blob: file,
+        toType: "image/jpeg",
+      }).then(function (resultBlob) {
+        // Check the size of the converted JPG
+        if (resultBlob.size > 10 * 1024 * 1024) {
+          // If larger than 10MB, use stronger compression
+          convertToWebP(resultBlob, 0.5);  // Adjust compression level as needed
+        } else {
+          convertToWebP(resultBlob, 0.7);  // Use normal compression
+        }
+      }).catch(function (x) {
+        console.error(x.message);
+        // Hide loader and show upload text on error
+        uploadLoader.classList.add('hidden');
+        uploadText.style.display = 'flex';
+      });
+    } else {
+      convertToWebP(file, 0.7);  // Use normal compression for non-HEIC files
+    }
+  }
+
+  function updatePreview(file) {
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      previewContainer.style.display = 'flex';
+      preview.src = e.target.result;
+      uploadText.style.display = 'none';
+      uploadLoader.classList.add('hidden');  // Ensure loader is hidden
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function resetPreview() {
+    preview.src = '';
+    previewContainer.style.display = 'none';
+    uploadText.style.display = 'flex';
+    uploadLoader.classList.add('hidden');
+  }
 
 
   function clearErrorsForField(fieldName) {
@@ -1185,23 +1206,23 @@ function resetPreview() {
   });
 
   function autoCompleteData(inputField, zipCode, city, district, state) {
-    var inputs = ['zip_code', 'city', 'district', 'state'];
+    var inputs = ['fund_zip_code', 'fund_city', 'fund_district', 'fund_state'];
 
     for (const id of inputs) {
       if (inputField.id === id) continue;
       let fieldValue = null;
 
       switch (id) {
-        case 'zip_code':
+        case 'fund_zip_code':
           fieldValue = zipCode;
           break;
-        case 'city':
+        case 'fund_city':
           fieldValue = city;
           break;
-        case 'district':
+        case 'fund_district':
           fieldValue = district;
           break;
-        case 'state':
+        case 'fund_state':
           fieldValue = state;
           break;
       }
@@ -1257,6 +1278,14 @@ function resetPreview() {
     apikey: mapApiKey // Add your actual API key here
   });
 
+  // Custom marker icon configuration
+  var customIcon2 = L.icon({
+    iconUrl: "{{ url_for('static', filename='images/map/marker-icon.png') }}",
+    iconSize: [25, 41],     // Size of the icon
+    iconAnchor: [12, 41],   // Point of the icon which will correspond to marker's location
+    popupAnchor: [1, -34]   // Point from which the popup should open relative to the iconAnchor
+  });
+
   // Add default layer to the map
   summaryMap.addLayer(openStreetMapLayerSummary);
 
@@ -1268,7 +1297,7 @@ function resetPreview() {
 
   L.control.layers(baseMapsSummary).addTo(summaryMap);
 
-  const summaryMarker = L.marker([0, 0]).addTo(summaryMap);
+  const summaryMarker = L.marker([0, 0], { icon: customIcon2 }).addTo(summaryMap);
   const summaryMarkerPopup = L.popup().setContent("");
   summaryMarker.bindPopup(summaryMarkerPopup);
 
@@ -1291,10 +1320,10 @@ function resetPreview() {
         // Update the popup content using template literals for better readability
         const popupContent = `
           <strong>Straße:</strong> ${data.street}<br>
-          <strong>Postleitzahl:</strong> ${data.zip_code}<br>
-          <strong>Ort:</strong> ${data.city}<br>
-          <strong>Landkreis/Stadt:</strong> ${data.district}<br>
-          <strong>Bundesland:</strong> ${data.state}
+          <strong>Postleitzahl:</strong> ${data.fund_zip_code}<br>
+          <strong>Ort:</strong> ${data.fund_city}<br>
+          <strong>Landkreis/Stadt:</strong> ${data.fund_district}<br>
+          <strong>Bundesland:</strong> ${data.fund_state}
         `;
         summaryMarkerPopup.setContent(popupContent);
 
@@ -1317,11 +1346,11 @@ function resetPreview() {
 
         summaryLongitude.textContent = data.longitude;
         summaryLatitude.textContent = data.latitude;
-        summaryStreet.textContent = data.street;
-        summaryZipCode.textContent = data.zip_code;
-        summaryCity.textContent = data.city;
-        summaryDistrict.textContent = data.district;
-        summaryState.textContent = data.state;
+        summaryStreet.textContent = data.fund_street;
+        summaryZipCode.textContent = data.fund_zip_code;
+        summaryCity.textContent = data.fund_city;
+        summaryDistrict.textContent = data.fund_district;
+        summaryState.textContent = data.fund_state;
         summaryGender.textContent = data.gender;
         summaryLocationDescription.textContent = selectedLocationDescriptionText;
         summaryPictureDescription.textContent = data.picture_description;

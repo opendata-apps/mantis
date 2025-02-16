@@ -3,121 +3,163 @@
 {% block text %} {{user_name}} {% endblock text %}
 {% from "macro.html" import render_pagination %}
 {% block head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/leaflet.css')}}" />
-<script src="{{ url_for('static', filename='js/leaflet.js')}}"></script>
-<script src="{{ url_for('static', filename='js/esri-leaflet.js')}}"></script>
-<script src="{{ url_for('static', filename='js/esri-leaflet-vector.js')}}"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.css')}}" />
+<script src="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.js')}}"></script>
+<script src="{{ url_for('static', filename='node_modules/esri-leaflet/dist/esri-leaflet.js')}}"></script>
+<script src="{{ url_for('static', filename='node_modules/esri-leaflet-vector/dist/esri-leaflet-vector.js')}}"></script>
 {% endblock %}
 {% block content %}
-<script src="{{ url_for('static', filename='js/flow/flowbite.min.js')}}" defer></script>
-<script src="{{ url_for('static', filename='js/flow/datepicker.min.js')}}" defer></script>
+<script src="{{ url_for('static', filename='node_modules/flowbite/dist/flowbite.min.js')}}" defer></script>
 
 
 <div class="container px-4 mx-auto my-10 md:px-12">
 
     {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
-      {% for category, message in messages %}
-        {% if category == 'error' %}
-          <div class="flex items-center justify-between p-4 mb-4 text-red-700 bg-red-100 border-l-4 border-red-500 rounded-md" role="alert" id="errorAlert">
-            <div>
-              <strong class="font-bold">Error!</strong>
-              <span class="block sm:inline">{{ message }}</span>
-            </div>
-            <button onclick="document.getElementById('errorAlert').style.display='none'" class="text-red-700 hover:text-red-900">
-              <svg class="w-6 h-6 fill-current" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>Close</title><path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"></path></svg>
-            </button>
-          </div>
-          {% endif %}
-	  {% if category == 'info' %}
-          <div class="flex items-center justify-between p-4 mb-4 text-red-700 bg-red-100 border-l-4 border-red-500 rounded-md" role="alert" id="errorAlert">
-            <div>
-              <strong class="font-bold">Info: </strong>
-              <span class="block sm:inline">{{ message | safe}}</span>
-            </div>
-            <button onclick="document.getElementById('errorAlert').style.display='none'" class="text-red-700 hover:text-red-900">
-              <svg class="w-6 h-6 fill-current" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>Close</title><path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"></path></svg>
-            </button>
-          </div>
-        {% endif %}
-      {% endfor %}
+    {% for category, message in messages %}
+    {% if category == 'error' %}
+    <div class="flex items-center justify-between p-4 mb-4 text-red-700 bg-red-100 border-l-4 border-red-500 rounded-md"
+        role="alert" id="errorAlert">
+        <div>
+            <strong class="font-bold">Error!</strong>
+            <span class="block sm:inline">{{ message }}</span>
+        </div>
+        <button onclick="document.getElementById('errorAlert').style.display='none'"
+            class="text-red-700 hover:text-red-900">
+            <svg class="w-6 h-6 fill-current" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                <title>Close</title>
+                <path
+                    d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z">
+                </path>
+            </svg>
+        </button>
+    </div>
     {% endif %}
-  {% endwith %}
-  
+    {% if category == 'info' %}
+    <div class="flex items-center justify-between p-4 mb-4 text-red-700 bg-red-100 border-l-4 border-red-500 rounded-md"
+        role="alert" id="errorAlert">
+        <div>
+            <strong class="font-bold">Info: </strong>
+            <span class="block sm:inline">{{ message | safe}}</span>
+        </div>
+        <button onclick="document.getElementById('errorAlert').style.display='none'"
+            class="text-red-700 hover:text-red-900">
+            <svg class="w-6 h-6 fill-current" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                <title>Close</title>
+                <path
+                    d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z">
+                </path>
+            </svg>
+        </button>
+    </div>
+    {% endif %}
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+
     <div class="flex flex-wrap items-center justify-between mb-5 md:space-x-6 lg:space-x-8 xl:space-x-4">
         <div class="flex flex-wrap items-center w-full space-x-4 md:space-x-0 md:space-y-4 md:flex-col md:w-auto">
             <!-- Filter button -->
-            <button id="filterDropdownButton" data-dropdown-toggle="filterDropdown" data-dropdown-ignore-click-outside-class="datepicker"
-                class="flex items-center justify-center w-full px-4 py-2 mb-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg md:w-auto md:mb-0 focus:outline-none hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200"
+            <button id="filterDropdownButton" data-dropdown-toggle="filterDropdown"
+                data-dropdown-ignore-click-outside-class="datepicker"
+                class="flex items-center justify-center w-full px-4 py-2 mb-2 text-sm font-medium text-gray-700 transition-all duration-200 bg-white border border-gray-200 rounded-lg md:w-auto md:mb-0 focus:outline-none hover:bg-gray-50 hover:border-gray-300 hover:text-gray-900 focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                 type="button">
-                <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="w-4 h-4 mr-2 text-gray-400"
+                <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="w-4 h-4 mr-2 text-gray-500 transition-colors duration-200 group-hover:text-gray-700"
                     viewbox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd"
                         d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"
                         clip-rule="evenodd" />
                 </svg>
                 Filter
-                <svg class="-mr-1 ml-1.5 w-5 h-5" fill="currentColor" viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"
-                    aria-hidden="true">
+                <svg class="-mr-1 ml-1.5 w-5 h-5 text-gray-500 transition-colors duration-200 group-hover:text-gray-700" fill="currentColor" viewbox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                     <path clip-rule="evenodd" fill-rule="evenodd"
                         d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
                 </svg>
             </button>
-    
-            <div id="filterDropdown" class="z-10 hidden w-64 p-4 space-y-3 bg-white divide-y divide-gray-100 rounded-lg shadow-lg sm:w-80">
+
+            <div id="filterDropdown"
+                class="z-10 hidden w-64 p-4 space-y-3 bg-white divide-y divide-gray-100 rounded-lg shadow-lg sm:w-80">
                 <form action="{{ url_for('admin.reviewer', usrid=session['user_id']) }}" method="GET" class="space-y-3">
                     <div class="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
                         <div class="w-full space-y-1 md:w-1/2">
-                            <label for="statusInput" class="block text-sm font-semibold text-left text-gray-700">Status</label>
-                            <select id="statusInput" name="statusInput" class="w-full p-2 text-sm rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                            <label for="statusInput"
+                                class="block text-sm font-semibold text-left text-gray-700">Status</label>
+                            <select id="statusInput" name="statusInput"
+                                class="w-full p-2 text-sm rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
                                 <option value="all" {% if filters.status=="all" %}selected{% endif %}>Alle</option>
-                                <option value="bearbeitet" {% if filters.status=="bearbeitet" %}selected{% endif %}>Bearbeitet</option>
+                                <option value="bearbeitet" {% if filters.status=="bearbeitet" %}selected{% endif %}>
+                                    Bearbeitet</option>
                                 <option value="offen" {% if filters.status=="offen" %}selected{% endif %}>Offen</option>
-                                <option value="geloescht" {% if filters.status=="geloescht" %}selected{% endif %}>Gelöscht</option>
+                                <option value="geloescht" {% if filters.status=="geloescht" %}selected{% endif %}>
+                                    Gelöscht</option>
                             </select>
                         </div>
                         <div class="w-full space-y-1 md:w-1/2">
-                            <label for="typeInput" class="block text-sm font-semibold text-left text-gray-700">Typ</label>
-                            <select id="typeInput" name="typeInput" class="w-full p-2 text-sm rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                            <label for="typeInput"
+                                class="block text-sm font-semibold text-left text-gray-700">Typ</label>
+                            <select id="typeInput" name="typeInput"
+                                class="w-full p-2 text-sm rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
                                 <option value="all" {% if filters.type=="all" %}selected{% endif %}>Alle</option>
-                                <option value="maennlich" {% if filters.type=="maennlich" %}selected{% endif %}>Männlich</option>
-                                <option value="weiblich" {% if filters.type=="weiblich" %}selected{% endif %}>Weiblich</option>
-                                <option value="oothek" {% if filters.type=="oothek" %}selected{% endif %}>Oothek</option>
-                                <option value="Nymphe" {% if filters.type=="Nymphe" %}selected{% endif %}>Nymphe</option>
-                                <option value="andere" {% if filters.type=="andere" %}selected{% endif %}>Andere</option>
-                                <option value="nicht_bestimmt" {% if filters.type=="nicht_bestimmt" %}selected{% endif %}>Nicht bestimmt</option>
+                                <option value="maennlich" {% if filters.type=="maennlich" %}selected{% endif %}>Männlich
+                                </option>
+                                <option value="weiblich" {% if filters.type=="weiblich" %}selected{% endif %}>Weiblich
+                                </option>
+                                <option value="oothek" {% if filters.type=="oothek" %}selected{% endif %}>Oothek
+                                </option>
+                                <option value="Nymphe" {% if filters.type=="Nymphe" %}selected{% endif %}>Nymphe
+                                </option>
+                                <option value="andere" {% if filters.type=="andere" %}selected{% endif %}>Andere
+                                </option>
+                                <option value="nicht_bestimmt" {% if filters.type=="nicht_bestimmt" %}selected{% endif
+                                    %}>Nicht bestimmt</option>
                             </select>
                         </div>
                     </div>
-                    <div date-rangepicker datepicker-buttons datepicker-autoselect-today datepicker-format="dd.mm.yyyy" class="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
+                    <div date-rangepicker datepicker-buttons datepicker-autoselect-today datepicker-format="dd.mm.yyyy"
+                        class="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
                         <div class="relative w-full md:w-1/2">
-                            <label for="dateFrom" class="block text-sm font-semibold text-gray-700">Funddatum von</label>
-                            <input name="dateFrom" id="dateFrom" type="text" value="{{ request.args.get('dateFrom', '') }}" class="w-full p-2 text-sm rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent" placeholder="von">
+                            <label for="dateFrom" class="block text-sm font-semibold text-gray-700">Funddatum
+                                von</label>
+                            <input name="dateFrom" id="dateFrom" type="text"
+                                value="{{ request.args.get('dateFrom', '') }}"
+                                class="w-full p-2 text-sm rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                placeholder="von">
                             <div class="absolute inset-y-0 right-0 flex items-center pr-3 mt-4 pointer-events-none">
-                                <svg class="w-5 h-5 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z"/>
+                                <svg class="w-5 h-5 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                    fill="currentColor" viewBox="0 0 20 20">
+                                    <path
+                                        d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
                                 </svg>
                             </div>
                         </div>
                         <div class="relative w-full md:w-1/2">
                             <label for="dateTo" class="block text-sm font-semibold text-gray-700">Funddatum bis</label>
-                            <input name="dateTo" id="dateTo" type="text" value="{{ request.args.get('dateTo', '') }}" class="w-full p-2 text-sm rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent" placeholder="bis">
+                            <input name="dateTo" id="dateTo" type="text" value="{{ request.args.get('dateTo', '') }}"
+                                class="w-full p-2 text-sm rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                placeholder="bis">
                             <div class="absolute inset-y-0 right-0 flex items-center pr-3 mt-4 pointer-events-none">
-                                <svg class="w-5 h-5 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z"/>
+                                <svg class="w-5 h-5 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                    fill="currentColor" viewBox="0 0 20 20">
+                                    <path
+                                        d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
                                 </svg>
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="flex justify-between mt-4 space-x-4">
-                        <button id="clearFilters" type="button" class="flex items-center justify-center w-24 px-2 py-1 text-sm text-red-500 border border-red-500 rounded-md shadow-sm hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:border-transparent">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-4 h-4 mr-1">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                        <button id="clearFilters" type="button"
+                            class="flex items-center justify-center w-24 px-2 py-1 text-sm text-red-500 border border-red-500 rounded-md shadow-sm hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:border-transparent">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" class="w-4 h-4 mr-1">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                                    d="M6 18L18 6M6 6l12 12"></path>
                             </svg>
                             Löschen
                         </button>
-                        <button type="submit" class="w-1/2 px-4 py-2 text-white bg-green-500 rounded-md shadow-sm hover:bg-green-600 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:border-transparent">
+                        <button type="submit"
+                            class="w-1/2 px-4 py-2 text-white bg-green-500 rounded-md shadow-sm hover:bg-green-600 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:border-transparent">
                             Filtern
                         </button>
                     </div>
@@ -132,8 +174,12 @@
                 class="flex items-center w-full transition-all duration-300 bg-white rounded-lg focus-within:ring-2 focus-within:ring-green-500">
                 <!-- Search Bar -->
                 <div class="relative flex-grow">
-                    <button type="submit" class="absolute inset-y-0 left-0 flex items-center pl-3">
-                        <svg class="w-5 h-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                    <button type="submit" class="absolute inset-y-0 left-0 flex items-center pl-3 group" title="Suchsyntax:
+&#8226; Exakte Phrase: &quot;berlin mitte&quot;
+&#8226; ODER-Suche: berlin OR hamburg
+&#8226; Ausschluss: -nymphe
+&#8226; Gruppierung: (berlin OR hamburg) -nymphe">
+                        <svg class="w-5 h-5 text-gray-500 transition-colors duration-200 group-hover:text-green-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
                             fill="currentColor" aria-hidden="true">
                             <path fill-rule="evenodd"
                                 d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
@@ -169,99 +215,102 @@
                 <button type="submit" class="hidden">Suchen</button>
             </form>
         </div>
-    
-    
-    
+
+
+
         <div class="flex items-center w-full space-x-4 md:w-auto">
             <!-- Sortieren Button -->
             <button id="dropdownSortButton" data-dropdown-toggle="sortDropdown"
-                class="flex items-center justify-center flex-grow px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200">
+                class="flex items-center justify-center flex-grow px-4 py-2 text-sm font-medium text-gray-700 transition-all duration-200 bg-white border border-gray-200 rounded-lg focus:outline-none hover:bg-gray-50 hover:border-gray-300 hover:text-gray-900 focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
                 <span id="sortText">Sortieren...</span>
-                <svg class="-mr-1 ml-1.5 w-5 h-5" fill="currentColor" viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"
-                    aria-hidden="true">
+                <svg class="-mr-1 ml-1.5 w-5 h-5 text-gray-500 transition-colors duration-200 group-hover:text-gray-700" fill="currentColor" viewbox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                     <path clip-rule="evenodd" fill-rule="evenodd"
                         d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
                 </svg>
             </button>
-    
-    
+
             <!-- Custom Dropdown Menu -->
-            <div id="sortDropdown"
-                class="z-10 hidden w-48 bg-white divide-y divide-gray-200 rounded-lg shadow ">
-                <ul class="py-2 text-sm text-gray-700 " aria-labelledby="dropdownSortButton">
-                    <li id="id_asc"
-                        class="flex items-center px-4 py-2 hover:bg-gray-100  {% if current_sort_order=="
-                        id_asc" %} bg-gray-300 {% endif %}" onclick="setSortOrder('id_asc')">
-                        <div class="h-2 w-2 bg-green-500 rounded-full mr-2 {% if current_sort_order!="id_asc" %}
-                            bg-transparent {% endif %}"></div>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                            class="mr-2 bi bi-sort-numeric-up" viewBox="0 0 16 16">
-                            <!-- SVG paths for Aufsteigend -->
-                            <path d="M12.438 1.668V7H11.39V2.684h-.051l-1.211.859v-.969l1.262-.906h1.046z" />
-                            <path fill-rule="evenodd"
-                                d="M11.36 14.098c-1.137 0-1.708-.657-1.762-1.278h1.004c.058.223.343.45.773.45.824 0 1.164-.829 1.133-1.856h-.059c-.148.39-.57.742-1.261.742-.91 0-1.72-.613-1.72-1.758 0-1.148.848-1.835 1.973-1.835 1.09 0 2.063.636 2.063 2.687 0 1.867-.723 2.848-2.145 2.848zm.062-2.735c.504 0 .933-.336.933-.972 0-.633-.398-1.008-.94-1.008-.52 0-.927.375-.927 1 0 .64.418.98.934.98z" />
-                            <path
-                                d="M4.5 13.5a.5.5 0 0 1-1 0V3.707L2.354 4.854a.5.5 0 1 1-.708-.708l2-1.999.007-.007a.498.498 0 0 1 .7.006l2 2a.5.5 0 1 1-.707.708L4.5 3.707V13.5z" />
-                        </svg>
-                        Aufsteigend
+            <div id="sortDropdown" class="z-10 hidden w-48 bg-white divide-y divide-gray-100 rounded-lg shadow-lg">
+                <ul class="py-2 text-sm text-gray-700" aria-labelledby="dropdownSortButton">
+                    <li>
+                        <button onclick="setSortOrder('id_asc')" 
+                            class="flex items-center w-full px-4 py-2.5 text-left text-gray-700 transition-all duration-200 hover:bg-gray-50 hover:text-gray-900 {% if current_sort_order == 'id_asc' %}bg-gray-50{% endif %}">
+                            <div class="w-2 h-2 mr-2 {% if current_sort_order == 'id_asc' %}bg-green-500{% else %}bg-transparent{% endif %} rounded-full"></div>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                class="mr-2 bi bi-sort-numeric-up" viewBox="0 0 16 16">
+                                <path d="M12.438 1.668V7H11.39V2.684h-.051l-1.211.859v-.969l1.262-.906h1.046z" />
+                                <path fill-rule="evenodd"
+                                    d="M11.36 14.098c-1.137 0-1.708-.657-1.762-1.278h1.004c.058.223.343.45.773.45.824 0 1.164-.829 1.133-1.856h-.059c-.148.39-.57.742-1.261.742-.91 0-1.72-.613-1.72-1.758 0-1.148.848-1.835 1.973-1.835 1.09 0 2.063.636 2.063 2.687 0 1.867-.723 2.848-2.145 2.848zm.062-2.735c.504 0 .933-.336.933-.972 0-.633-.398-1.008-.94-1.008-.52 0-.927.375-.927 1 0 .64.418.98.934.98z" />
+                                <path
+                                    d="M4.5 13.5a.5.5 0 0 1-1 0V3.707L2.354 4.854a.5.5 0 1 1-.708-.708l2-1.999.007-.007a.498.498 0 0 1 .7.006l2 2a.5.5 0 1 1-.707.708L4.5 3.707V13.5z" />
+                            </svg>
+                            <span class="flex-grow">Aufsteigend</span>
+                        </button>
                     </li>
-                    <li id="id_desc"
-                        class="flex items-center px-4 py-2 hover:bg-gray-200  {% if current_sort_order=="
-                        id_desc" %} bg-gray-300 {% endif %}" onclick="setSortOrder('id_desc')">
-                        <div class="h-2 w-2 bg-green-500 rounded-full mr-2 {% if current_sort_order!="id_desc" %}
-                            bg-transparent {% endif %}"></div>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                            class="mr-2 bi bi-sort-numeric-down" viewBox="0 0 16 16">
-                            <!-- SVG paths for Absteigend -->
-                            <path d="M12.438 1.668V7H11.39V2.684h-.051l-1.211.859v-.969l1.262-.906h1.046z" />
-                            <path fill-rule="evenodd"
-                                d="M11.36 14.098c-1.137 0-1.708-.657-1.762-1.278h1.004c.058.223.343.45.773.45.824 0 1.164-.829 1.133-1.856h-.059c-.148.39-.57.742-1.261.742-.91 0-1.72-.613-1.72-1.758 0-1.148.848-1.835 1.973-1.835 1.09 0 2.063.636 2.063 2.687 0 1.867-.723 2.848-2.145 2.848zm.062-2.735c.504 0 .933-.336.933-.972 0-.633-.398-1.008-.94-1.008-.52 0-.927.375-.927 1 0 .64.418.98.934.98z" />
-                            <path
-                                d="M4.5 2.5a.5.5 0 0 0-1 0v9.793l-1.146-1.147a.5.5 0 0 0-.708.708l2 1.999.007.007a.497.497 0 0 0 .7-.006l2-2a.5.5 0 0 0-.707-.708L4.5 12.293V2.5z" />
-                        </svg>
-                        Absteigend
+                    <li>
+                        <button onclick="setSortOrder('id_desc')"
+                            class="flex items-center w-full px-4 py-2.5 text-left text-gray-700 transition-all duration-200 hover:bg-gray-50 hover:text-gray-900 {% if current_sort_order == 'id_desc' %}bg-gray-50{% endif %}">
+                            <div class="w-2 h-2 mr-2 {% if current_sort_order == 'id_desc' %}bg-green-500{% else %}bg-transparent{% endif %} rounded-full"></div>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                class="mr-2 bi bi-sort-numeric-down" viewBox="0 0 16 16">
+                                <path d="M12.438 1.668V7H11.39V2.684h-.051l-1.211.859v-.969l1.262-.906h1.046z" />
+                                <path fill-rule="evenodd"
+                                    d="M11.36 14.098c-1.137 0-1.708-.657-1.762-1.278h1.004c.058.223.343.45.773.45.824 0 1.164-.829 1.133-1.856h-.059c-.148.39-.57.742-1.261.742-.91 0-1.72-.613-1.72-1.758 0-1.148.848-1.835 1.973-1.835 1.09 0 2.063.636 2.063 2.687 0 1.867-.723 2.848-2.145 2.848zm.062-2.735c.504 0 .933-.336.933-.972 0-.633-.398-1.008-.94-1.008-.52 0-.927.375-.927 1 0 .64.418.98.934.98z" />
+                                <path
+                                    d="M4.5 2.5a.5.5 0 0 0-1 0v9.793l-1.146-1.147a.5.5 0 0 0-.708.708l2 1.999.007.007a.497.497 0 0 0 .7-.006l2-2a.5.5 0 0 0-.707-.708L4.5 12.293V2.5z" />
+                            </svg>
+                            <span class="flex-grow">Absteigend</span>
+                        </button>
                     </li>
                 </ul>
             </div>
-    
+
             <!-- Hidden actual select for form submission -->
             <select id="sortInput" class="hidden" onchange="updateSortOrder()">
                 <option value=""></option>
                 <option value="id_asc" {% if current_sort_order=="id_asc" %}selected{% endif %}></option>
                 <option value="id_desc" {% if current_sort_order=="id_desc" %}selected{% endif %}></option>
             </select>
-    
-    
+
+
             <div class="flex items-center w-full space-x-4 md:w-auto">
-                <!-- Dropdown button -->
+                <!-- Export button -->
                 <button id="dropdownExportButton" data-dropdown-toggle="dropdown"
-                    class="flex items-center justify-center flex-grow px-4 py-2 text-sm font-medium text-gray-100 bg-green-600 border border-green-400 rounded-lg focus:outline-none hover:bg-green-600 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200">
-                    <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24"
+                    class="flex items-center justify-center flex-grow px-4 py-2 text-sm font-medium text-gray-100 transition-all duration-200 bg-green-500 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                    <svg class="w-4 h-4 mr-2 transition-transform duration-200 group-hover:scale-110" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                         stroke-width="2" stroke="currentColor" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
                     </svg>
                     Export
                 </button>
-    
+
                 <!-- Dropdown menu -->
-                <div id="dropdown" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 ">
-                    <ul class="py-2 text-sm text-gray-700 " aria-labelledby="dropdownExportButton">
+                <div id="dropdown" class="z-10 hidden w-56 bg-white divide-y divide-gray-100 rounded-lg shadow-lg">
+                    <ul class="py-2 text-sm text-gray-700" aria-labelledby="dropdownExportButton">
                         <li>
-                            <button onclick="exportData('all')" class="block w-full px-4 py-2 text-left hover:bg-gray-200 ">
-                                Export All Data
+                            <button onclick="exportData('all')"
+                                class="flex items-center w-full px-4 py-2.5 text-left text-gray-700 transition-all duration-200 hover:bg-gray-200 hover:text-gray-900">
+                                <span class="flex-grow">Export alle Meldungen</span>
                             </button>
                         </li>
                         <li>
                             <button onclick="exportData('accepted')"
-                                class="block w-full px-4 py-2 text-left hover:bg-gray-200 ">
-                                Export Accepted Reports
+                                class="flex items-center w-full px-4 py-2.5 text-left text-gray-700 transition-all duration-200 hover:bg-gray-200 hover:text-gray-900">
+                                <span class="flex-grow">Export angenommene Meldungen</span>
                             </button>
                         </li>
                         <li>
                             <button onclick="exportData('non_accepted')"
-                                class="block w-full px-4 py-2 text-left hover:bg-gray-200 ">
-                                Export Non-Accepted Reports
+                                class="flex items-center w-full px-4 py-2.5 text-left text-gray-700 transition-all duration-200 hover:bg-gray-200 hover:text-gray-900">
+                                <span class="flex-grow">Export nicht angenommene Meldungen</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button onclick="exportData('searched')"
+                                class="flex items-center w-full px-4 py-2.5 text-left text-gray-700 transition-all duration-200 hover:bg-gray-200 hover:text-gray-900">
+                                <span class="flex-grow">Export gesuchte Meldungen</span>
                             </button>
                         </li>
                     </ul>
@@ -276,50 +325,66 @@
             data-report-id="{{sighting.id}}" data-approved="{{ 'true' if sighting.dat_bear else 'false' }}"
             data-deleted="{{ 'true' if sighting.deleted else 'false' }}">
             <div class="relative">
-                <img loading="lazy" onclick="openImageModal('{{ url_for('admin.report_Img', filename=image_path + "/" + sighting.fundort.ablage) }}')"
+                <img loading="lazy" onclick="openImageModal('{{ url_for('admin.report_Img', filename=image_path + '/' + sighting.fundort.ablage) }}')"
                     class="object-cover w-full h-48 transition-transform duration-200 ease-in-out rounded-t-lg cursor-pointer md:h-64 hover:scale-105"
-                    src="{{ url_for('admin.report_Img', filename=image_path + "/" + sighting.fundort.ablage)}}"
+                    src="{{ url_for('admin.report_Img', filename=image_path + '/' + sighting.fundort.ablage) }}"
                     alt="Image not found">
-                <div title="{{sighting.ort}}&#13;&#10;Postleitzahl: {{sighting.plz}}&#13;&#10;Kreis: {{sighting.kreis}}&#13;&#10;Land: {{sighting.land}}" class="absolute bottom-0 px-3 py-1 mb-4 ml-4 font-semibold text-gray-800 rounded-full bg-white/80 backdrop-blur-md">{{ sighting.kreis }} | {{ sighting.ort }}</div>
+                <div title="{{sighting.ort}}&#13;&#10;Postleitzahl: {{sighting.plz}}&#13;&#10;Kreis: {{sighting.kreis}}&#13;&#10;Land: {{sighting.land}}"
+                    class="absolute bottom-0 px-3 py-1 mb-4 ml-4 font-semibold text-gray-800 rounded-full bg-white/80 backdrop-blur-md">
+                    {{ sighting.kreis }} | {{ sighting.ort }}</div>
                 {% if sighting.deleted %}
-                <div class="absolute bottom-0 right-0 px-3 py-1 mb-4 mr-4 font-semibold text-gray-800 rounded-full bg-red-500/80 backdrop-blur-md">Gelöscht
-                    <button title="Wiederherstellen" onclick="undoDelete({{sighting.id}})"
-                        class="px-2 py-1 ml-2 text-xs font-semibold text-red-500 bg-white rounded-full hover:bg-gray-100 focus:outline-none">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" id="arrow-u-up-left" class="w-4 h-4 fill-current">
+                <div
+                    class="absolute bottom-0 right-0 px-3 py-1 mb-4 mr-4 font-semibold text-gray-800 rounded-full bg-red-500/80 backdrop-blur-md">
+                    Gelöscht
+                    <button title="Wiederherstellen" 
+                        onclick="undoDelete('{{sighting.id}}')"
+                        class="px-2 py-1 ml-2 text-xs font-semibold text-red-500 bg-white rounded-full hover:bg-gray-200 focus:outline-none">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" id="arrow-u-up-left"
+                            class="w-4 h-4 fill-current">
                             <rect width="256" height="256" fill="none"></rect>
-                            <polyline fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="24" points="80 136 32 88 80 40"></polyline>
-                            <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="24" d="M80,200h88a56,56,0,0,0,56-56v-.00011A55.99988,55.99988,0,0,0,168.00011,88H32"></path>
+                            <polyline fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                stroke-width="24" points="80 136 32 88 80 40"></polyline>
+                            <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                stroke-width="24"
+                                d="M80,200h88a56,56,0,0,0,56-56v-.00011A55.99988,55.99988,0,0,0,168.00011,88H32"></path>
                         </svg>
                     </button>
                 </div>
                 {% endif %}
-                <span class="absolute inline-block px-2 py-1 font-semibold leading-none tracking-wide text-gray-100 uppercase bg-green-500 rounded-full top-2 left-2">{{ sighting.id }}</span>
+                <span
+                    class="absolute inline-block px-2 py-1 font-semibold leading-none tracking-wide text-gray-100 uppercase bg-green-500 rounded-full top-2 left-2">{{
+                    sighting.id }}</span>
             </div>
             <div class="p-4 bg-white rounded-lg">
                 <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
                         <p class="text-sm"><strong>Melde-Datum:</strong> {{ sighting.dat_meld }}</p>
-                        <p class="text-sm"><strong>Fund-Datum:</strong> {{ sighting.dat_fund_von }}{% if sighting.dat_fund_bis %} - {{ sighting.dat_fund_bis}}{% endif %}</p>
+                        <p class="text-sm"><strong>Fund-Datum:</strong> {{ sighting.dat_fund_von }}{% if
+                            sighting.dat_fund_bis %} - {{ sighting.dat_fund_bis}}{% endif %}</p>
                     </div>
                     {% if sighting.dat_bear %}
                     <div class="text-xs font-semibold text-gray-600 md:text-sm">
                         <div class="mb-2">
                             <p class="mb-1"><strong>Geprüft am:</strong> {{ sighting.dat_bear }}</p>
-                            <p><strong>Bearbeitet von:</strong> {{ sighting.approver_username | default('Unknown') }}</p>
+                            <p><strong>Bearbeitet von:</strong> {{ sighting.approver_username | default('Unknown') }}
+                            </p>
                         </div>
                     </div>
                     {% endif %}
                 </div>
-                
+
                 <div class="flex flex-wrap items-center justify-between mt-3">
                     <div class="flex items-center">
-                        <button onclick="openModal({{sighting.id}})" style="min-width: 2 rem;"
+                        <button 
+                            onclick="openModal('{{sighting.id}}')" 
+                            style="min-width: 2rem;"
                             class="p-1 transition-colors duration-200 rounded focus:outline-none hover:bg-green-200">
                             <img loading="lazy" src="/static/images/svg/edit.svg" alt="Edit"
                                 class="w-4 h-4 md:w-5 md:h-5">
                         </button>
                         {% if not sighting.deleted %}
-                        <button onclick="deleteSighting({{sighting.id}})"
+                        <button 
+                            onclick="deleteSighting('{{sighting.id}}')"
                             class="p-1 ml-2 transition-colors duration-200 rounded md:ml-4 focus:outline-none hover:bg-red-200"
                             style="min-width: 2 rem;">
                             <img loading="lazy" src="/static/images/svg/delete.svg" alt="Delete"
@@ -336,7 +401,8 @@
                             Angenommen
                         </span>
                         {% else %}
-                        <button onclick="toggleApprove({{sighting.id}})"
+                        <button 
+                            onclick="toggleApprove('{{sighting.id}}')"
                             class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-100 bg-green-500 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                             Annehmen
                         </button>
@@ -347,16 +413,17 @@
         </div>
         {% endfor %}
     </div>
-    
+
     {{ render_pagination(paginated_sightings, 'admin.reviewer', current_filter_status, current_sort_order, search_query,
     request.args.get('dateFrom', ''), request.args.get('dateTo', '')) }}
-    </div>
+</div>
 
 
 
 
 
-<div id="imageModal" class="fixed inset-0 hidden overflow-y-auto" style="z-index: 9999;" aria-labelledby="imageModalLabel" tabindex="-1"
+<div id="imageModal" class="fixed inset-0 hidden overflow-y-auto" style="z-index: 9999;"
+    aria-labelledby="imageModalLabel" tabindex="-1"
     title="Um das Bild weiter zu vergrößern klicken sie auf den Button unten">
     <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
         <div id="imageModalBackdrop" class="fixed inset-0 transition-opacity" aria-hidden="true">
@@ -385,7 +452,7 @@
                     </svg>
                 </button>
             </div>
-            
+
         </div>
     </div>
 </div>
@@ -394,103 +461,276 @@
 
 
 <!-- Modal -->
-<div id="modal" class="fixed inset-0 hidden overflow-y-auto bg-gray-500 bg-opacity-75" style="z-index: 9999;">
-    <div class="flex items-center justify-center min-h-screen">
-        <div class="w-full mx-4 bg-white rounded-lg shadow-xl md:max-w-3xl" style="display: flex; flex-direction: column; justify-content: space-between; height: 80%;">
-            <div class="flex-grow p-6">
-                <!-- Tab Buttons -->
-                <div class="flex justify-center mb-4 space-x-2 md:space-x-4">
+<div id="modal" class="fixed inset-0 hidden overflow-y-auto bg-gray-500/75 backdrop-blur-sm" style="z-index: 9999;">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <!-- Modal Container - Updated with better shadow and spacing -->
+        <div class="w-full transition-all duration-300 bg-white shadow-2xl rounded-xl md:max-w-5xl lg:max-w-6xl xl:max-w-7xl"
+            style="display: flex; flex-direction: column; height: calc(90vh - 2rem);">
+
+            <!-- Header Section -->
+            <div class="flex-grow p-8 overflow-hidden">
+                <!-- Tab Buttons - Updated with better spacing and visual hierarchy -->
+                <div class="flex justify-center mb-6 space-x-4">
                     <button
-                        class="px-4 py-2 font-semibold text-green-700 bg-green-100 rounded-lg focus:outline-none hover:bg-green-600 hover:text-gray-100"
+                        class="px-6 py-3 text-base font-semibold text-green-700 transition-all duration-200 bg-green-100 rounded-lg shadow-sm focus:outline-none hover:bg-green-600 hover:text-gray-100 focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                         id="tab-general-info">General Information</button>
                     <button
-                        class="px-4 py-2 font-semibold text-green-700 bg-green-100 rounded-lg focus:outline-none hover:bg-green-600 hover:text-gray-100"
+                        class="px-6 py-3 text-base font-semibold text-green-700 transition-all duration-200 bg-green-100 rounded-lg shadow-sm focus:outline-none hover:bg-green-600 hover:text-gray-100 focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                         id="tab-location-info">Position auf der Karte</button>
                 </div>
-                <!-- Tab Content -->
-                <div id="tab-content" class="overflow-y-auto" style="max-height: 450px;">
+
+                <!-- Tab Content - Updated with consistent spacing -->
+                <div id="tab-content" class="overflow-y-auto rounded-lg"
+                    style="height: calc(100% - 4rem); scrollbar-width: thin;" role="tabpanel">
                     <!-- Content will be loaded here -->
                 </div>
             </div>
-            <!-- Actions -->
-            <div class="p-6 bg-gray-100">
-                <div class="flex justify-end space-x-2 action-container">
+
+            <!-- Actions Footer - Updated with reduced height -->
+            <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+                <div class="flex justify-end space-x-4 action-container">
                     <!-- "Bearbeiten" button will be inserted here dynamically -->
                     <button type="button"
-                        class="px-4 py-2 font-semibold text-gray-700 bg-gray-200 rounded-lg focus:outline-none hover:bg-gray-300"
+                        class="px-5 py-2 text-sm font-medium text-gray-700 transition-all duration-200 bg-gray-200 rounded-lg shadow-sm hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
                         onclick="closeModal()">Schließen</button>
                 </div>
-            </div>                
+            </div>
         </div>
     </div>
 </div>
 
 <style>
     #map .absolute {
-      padding-top: 10px !important;
-      margin: 0 auto !important;
-      width: max-content !important; 
-      margin-left: 80px !important;
+        padding-top: 10px !important;
+        margin: 0 auto !important;
+        width: max-content !important;
+        margin-left: 80px !important;
     }
-    
+
     .leaflet-popup-content-wrapper {
-      background: rgba(22, 101, 52, 0.8);
-      border-radius: 12px;
-      color: #ffffff;
-      font-family: 'Arial', sans-serif;
-      opacity: 0;
-      animation: fadeIn ease 1s;
-      animation-fill-mode: forwards;
-    }
-    
-    .leaflet-popup-tip {
-      background: rgba(22, 101, 52, 0.8);
-    }
-    
-    .leaflet-popup-content {
-      padding: 10px;
-    }
-    
-    .popup-content h2 {
-      margin-bottom: 10px;
-      font-size: 1.3em;
-      color: #f3f4f6;
-    }
-    
-    .popup-list {
-      list-style-type: none;
-      padding: 0;
-    }
-    
-    .popup-list li {
-      margin-bottom: 5px;
-    }
-    
-    .popup-loading, .popup-error {
-      text-align: center;
-      font-weight: bold;
-    }
-    
-    .popup-error {
-      color: #FF6347;
-    }
-    
-    @keyframes fadeIn {
-      from {
+        background: rgba(22, 101, 52, 0.8);
+        border-radius: 12px;
+        color: #ffffff;
+        font-family: 'Arial', sans-serif;
         opacity: 0;
-      }
-    
-      to {
-        opacity: 1;
-      }
+        animation: fadeIn ease 1s;
+        animation-fill-mode: forwards;
     }
-    </style>
+
+    .leaflet-popup-tip {
+        background: rgba(22, 101, 52, 0.8);
+    }
+
+    .leaflet-popup-content {
+        padding: 10px;
+    }
+
+    .popup-content h2 {
+        margin-bottom: 10px;
+        font-size: 1.3em;
+        color: #f3f4f6;
+    }
+
+    .popup-list {
+        list-style-type: none;
+        padding: 0;
+    }
+
+    .popup-list li {
+        margin-bottom: 5px;
+    }
+
+    .popup-loading,
+    .popup-error {
+        text-align: center;
+        font-weight: bold;
+    }
+
+    .popup-error {
+        color: #FF6347;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    /* Improved scrollbar styling */
+    #tab-content::-webkit-scrollbar {
+        width: 8px !important;
+    }
+
+    #tab-content::-webkit-scrollbar-track {
+        background: #f1f1f1 !important;
+        border-radius: 4px !important;
+    }
+
+    #tab-content::-webkit-scrollbar-thumb {
+        background: #888 !important;
+        border-radius: 4px !important;
+    }
+
+    #tab-content::-webkit-scrollbar-thumb:hover {
+        background: #666 !important;
+    }
+
+    /* Active tab styling */
+    .active-tab {
+        @apply bg-green-600 text-gray-100 shadow-md !important;
+        transform: translateY(-1px) !important;
+    }
+
+    /* Modal animation */
+    #modal {
+        transition: opacity 200ms ease-in-out !important;
+    }
+
+    #modal.hidden {
+        opacity: 0 !important;
+    }
+
+    #modal:not(.hidden) {
+        opacity: 1 !important;
+    }
+
+    /* Content transition */
+    #tab-content>div {
+        transition: opacity 200ms ease-in-out !important;
+    }
+</style>
 
 
 
 <script>
-    let map;
-    let marker;
+    // Global variables
+    let map = null;
+    let marker = null;
+    let tempMarker = null;
+    let originalMarkerPosition = null;
+    let customIcon = null;
+    let currentSightingId = null;
+    // Add global variable for edit mode state
+    let isEditModeActive = false;
+
+    // Initialize functions
+    function openModal(id) {
+        document.body.style.overflow = 'hidden';
+        clearTabClickListeners();
+        fetch('/get_sighting/' + id)
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(data => {
+                currentSightingData = data; // Store the data globally
+                let tabGeneralInfo = document.getElementById('tab-general-info');
+                let tabLocationInfo = document.getElementById('tab-location-info');
+                let tabContent = document.getElementById('tab-content');
+
+                // Set initial content
+                tabContent.innerHTML = generateGeneralInfo(currentSightingData);
+                setActiveTab(tabGeneralInfo);
+
+                // Add click listeners to tab buttons
+                addTabClickListener(tabGeneralInfo, generateGeneralInfo);
+                addTabClickListener(tabLocationInfo, generateLocationInfo);
+
+                // Show the modal
+                document.getElementById('modal').classList.remove('hidden');
+
+                // Disable inputs if the sighting has been approved
+                let reportCard = document.querySelector(`[data-report-id="${id}"]`);
+                let isApproved = reportCard.getAttribute('data-approved') === 'true';
+                disableInputsIfApproved(isApproved);
+                addEditButtonIfApproved(isApproved);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Fehler beim Laden der Daten. Bitte versuchen Sie es später erneut.');
+            });
+    }
+
+    function clearTabClickListeners() {
+        let tabGeneralInfo = document.getElementById('tab-general-info');
+        let tabLocationInfo = document.getElementById('tab-location-info');
+
+        tabGeneralInfo.onclick = null;
+        tabLocationInfo.onclick = null;
+    }
+
+    function setActiveTab(tab) {
+        // Remove 'active' class from all tabs
+        let tabs = [document.getElementById('tab-general-info'), document.getElementById('tab-location-info')];
+        tabs.forEach(t => t.classList.remove('active-tab'));
+        // Add 'active' class to the selected tab
+        tab.classList.add('active-tab');
+    }
+
+    function addTabClickListener(tabElement, contentGenerator) {
+        tabElement.onclick = function () {
+            if (!this.classList.contains('active-tab')) {
+                // Store current edit mode state before switching tabs
+                const wasEditModeActive = isEditModeActive;
+                
+                // Re-fetch data when switching tabs
+                fetch('/get_sighting/' + currentSightingData.id_meldung)
+                    .then(response => {
+                        if (!response.ok) throw new Error('Network response was not ok');
+                        return response.json();
+                    })
+                    .then(updatedData => {
+                        currentSightingData = updatedData;
+                        document.getElementById('tab-content').innerHTML = contentGenerator(updatedData);
+                        setActiveTab(this);
+
+                        // Get the report card to check approval status
+                        let reportCard = document.querySelector(`[data-report-id="${updatedData.id_meldung}"]`);
+                        let isApproved = reportCard.getAttribute('data-approved') === 'true';
+
+                        // First add the edit button
+                        addEditButtonIfApproved(isApproved);
+
+                        // Always disable inputs first if approved
+                        if (isApproved) {
+                            disableInputsIfApproved(true);
+                        }
+
+                        if (contentGenerator === generateLocationInfo) {
+                            initiateMap(updatedData);
+                            // Handle map controls based on approval and edit mode
+                            if (isApproved && !wasEditModeActive) {
+                                disableMapControls();
+                                // Also disable coordinate inputs
+                                document.querySelectorAll('input[name="latitude"], input[name="longitude"]').forEach(input => {
+                                    input.disabled = true;
+                                });
+                            }
+                        }
+
+                        // Then restore edit mode if it was active
+                        if (wasEditModeActive) {
+                            enableEditMode();
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+            }
+        };
+    }
+
+    // Initialize custom icon
+    function initializeCustomIcon() {
+        customIcon = L.icon({
+            iconUrl: "{{ url_for('static', filename='images/map/marker-icon.png') }}",
+            iconSize: [25, 41],     // Size of the icon
+            iconAnchor: [12, 41],   // Point of the icon which will correspond to marker's location
+            popupAnchor: [1, -34]   // Point from which the popup should open relative to the iconAnchor
+        });
+    }
 
     function setSortOrder(value) {
         document.getElementById('sortInput').value = value;
@@ -607,87 +847,8 @@
             .catch(error => console.error('Error:', error));
     }
 
-    function openModal(id) {
-        document.body.style.overflow = 'hidden';
-        clearTabClickListeners();
-        fetch('/get_sighting/' + id)
-            .then(response => {
-                if (!response.ok) throw new Error('Network response was not ok');
-                return response.json();
-            })
-            .then(data => {
-                let tabGeneralInfo = document.getElementById('tab-general-info');
-                let tabLocationInfo = document.getElementById('tab-location-info');
-                let tabContent = document.getElementById('tab-content');
-
-                // Set initial content
-                tabContent.innerHTML = generateGeneralInfo(data);
-                setActiveTab(tabGeneralInfo);
-
-                // Add click listeners to tab buttons
-                addTabClickListener(tabGeneralInfo, generateGeneralInfo, data);
-                addTabClickListener(tabLocationInfo, generateLocationInfo, data);
-
-                // Show the modal
-                document.getElementById('modal').classList.remove('hidden');
-
-                // Disable inputs if the sighting has been approved
-                let reportCard = document.querySelector(`[data-report-id="${id}"]`);
-                let isApproved = reportCard.getAttribute('data-approved') === 'true';
-                disableInputsIfApproved(isApproved);
-                addEditButtonIfApproved(isApproved);
-            })
-            .catch(error => console.error('Error:', error));
-    }
-
-
-    // Existing function to add the edit button
-    function addEditButtonIfApproved(isApproved) {
-        const actionContainer = document.querySelector('.action-container');
-        let existingButton = document.getElementById('edit-button');
-    
-        // Remove the existing button if there is one
-        if (existingButton) {
-            existingButton.remove();
-        }
-    
-        // Create the button only if it is approved (i.e., editable)
-        if (isApproved) {
-            const editButton = document.createElement('button');
-            editButton.type = "button";
-            editButton.id = "edit-button";
-            editButton.onclick = toggleEdit;
-            editButton.style.minWidth = "2rem";
-            editButton.innerHTML = `
-                <img loading="lazy" src="/static/images/svg/edit.svg" alt="Edit" class="w-4 h-4 md:w-5 md:h-5">
-            `;
-            editButton.className = "p-1 transition-colors duration-200 rounded focus:outline-none hover:bg-green-200 relative";
-            actionContainer.insertBefore(editButton, actionContainer.firstChild);
-        }
-    }
-    
-
-    function toggleEdit() {
-        let inputs = document.querySelectorAll('.input-field-admin, .textInputAdmin');
-        let isDisabled = inputs[0].disabled;
-        let editButton = document.getElementById('edit-button');
-
-        if (isDisabled) {
-            if (confirm('Möchten Sie die Bearbeitung aktivieren? Änderungen werden gespeichert.')) {
-                inputs.forEach(input => {
-                    input.disabled = !isDisabled;
-                });
-                editButton.classList.remove('hover:bg-green-200');
-                editButton.classList.add('bg-green-200', 'hover:bg-red-200');
-            }
-        } else {
-            inputs.forEach(input => {
-                input.disabled = !isDisabled;
-            });
-            editButton.classList.remove('bg-green-200', 'hover:bg-red-200');
-            editButton.classList.add('hover:bg-green-200');
-        }
-    }
+    // Global variable to store current sighting data
+    let currentSightingData;
 
     function disableInputsIfApproved(isApproved) {
         let inputs = document.querySelectorAll('.input-field-admin, .textInputAdmin');
@@ -697,45 +858,65 @@
     }
 
 
-    function addTabClickListener(tabElement, contentGenerator, data) {
-        let isApproved = document.querySelector(`[data-report-id="${data.id_meldung}"]`).getAttribute('data-approved') === 'true';
-        tabElement.onclick = function () {
-            if (!this.classList.contains('active-tab')) {
-                document.getElementById('tab-content').innerHTML = contentGenerator(data);
-                setActiveTab(this);
-                disableInputsIfApproved(isApproved);
-
-                if (contentGenerator === generateLocationInfo) {
-                    initiateMap(data);
-                }
-            }
-        };
-    }
-
-
-    function clearTabClickListeners() {
-        let tabGeneralInfo = document.getElementById('tab-general-info');
-        let tabLocationInfo = document.getElementById('tab-location-info');
-
-        tabGeneralInfo.onclick = null;
-        tabLocationInfo.onclick = null;
-    }
-
-
-
     function initiateMap(data) {
         setTimeout(function () {
             let lat = parseFloat(data.latitude.replace(',', '.'));
             let lng = parseFloat(data.longitude.replace(',', '.'));
-            let map = L.map('map').setView([lat, lng], 13);
+            currentSightingId = data.id_meldung;
 
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 18,
+            // Initialize the custom icon if not already done
+            if (!customIcon) {
+                initializeCustomIcon();
+            }
+
+            map = L.map('map', {
+                zoomControl: false,
+                tap: true, // Enable tap for mobile
+            }).setView([lat, lng], 13);
+
+            // Create custom panes with proper z-indexing
+            map.createPane('tilePane');
+            map.getPane('tilePane').style.zIndex = 200;
+
+            map.createPane('markerPane');
+            map.getPane('markerPane').style.zIndex = 400;
+
+            map.createPane('popupPane');
+            map.getPane('popupPane').style.zIndex = 600;
+
+            // Define base layers
+            const openStreetMapLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19,
                 tileSize: 512,
-                zoomOffset: -1
+                zoomOffset: -1,
+                pane: 'tilePane'
+            });
+
+            const arcGISLayer = L.esri.Vector.vectorBasemapLayer("ArcGIS:Imagery", {
+                apikey: "{{apikey}}" // API key for ArcGIS
+            });
+
+            // Add default layer
+            map.addLayer(openStreetMapLayer);
+
+            // Define base maps for layer control
+            const baseMaps = {
+                "Karte": openStreetMapLayer,
+                "Satellit": arcGISLayer
+            };
+
+            // Add layer control with improved mobile styling
+            L.control.layers(baseMaps, null, {
+                position: 'topright',
+                collapsed: true
             }).addTo(map);
 
-            let marker = L.marker([lat, lng]).addTo(map);
+            // Add marker to marker pane
+            marker = L.marker([lat, lng], {
+                pane: 'markerPane',
+                icon: customIcon
+            }).addTo(map);
 
             // Add popup with address details
             let popupContent = `
@@ -752,8 +933,25 @@
             `;
             marker.bindPopup(popupContent);
 
-            // Redraw tiles after the modal is shown
+            // Add zoom control to bottom right with improved mobile positioning
+            L.control.zoom({
+                position: 'bottomright'
+            }).addTo(map);
+
             map.invalidateSize();
+
+            // Check if the report is approved and disable map controls accordingly
+            let reportCard = document.querySelector(`[data-report-id="${data.id_meldung}"]`);
+            let isApproved = reportCard.getAttribute('data-approved') === 'true';
+            
+            // Disable map controls if approved and not in edit mode
+            if (isApproved && !isEditModeActive) {
+                disableMapControls();
+                // Also disable coordinate inputs
+                document.querySelectorAll('input[name="latitude"], input[name="longitude"]').forEach(input => {
+                    input.disabled = true;
+                });
+            }
         }, 0);
     }
 
@@ -789,16 +987,6 @@
             });
     }
 
-    function setActiveTab(tab) {
-        // Remove 'active' class from all tabs
-        let tabs = [document.getElementById('tab-general-info'), document.getElementById('tab-location-info')];
-        tabs.forEach(t => t.classList.remove('active-tab'));
-        // Add 'active' class to the selected tab
-        tab.classList.add('active-tab');
-    }
-
-
-
     function openImageModal(imageUrl) {
         document.body.style.overflow = 'hidden';
         document.getElementById('modalImage').src = imageUrl;
@@ -816,116 +1004,528 @@
     }
 
     function generateGeneralInfo(data) {
-        let mantis_types = ['Männchen', 'Weiblich', 'Nymphe', 'Oothek', 'Andere', 'Anzahl'];
+        let mantis_types = ['Männchen', 'Weibchen', 'Nymphe', 'Oothek', 'Andere', 'Anzahl'];
         let gender_counts = [data.art_m, data.art_w, data.art_n, data.art_o, data.art_f, data.tiere];
 
-        let html = `<div class="flex flex-wrap -mx-4 overflow-hidden">
-                        <div class="w-full px-4 my-4 overflow-hidden lg:w-1/2">
-                            <div class="p-6 bg-white rounded-lg shadow-md">
-                                <div class="grid grid-cols-2 gap-4">
-                                    ${mantis_types.map((type, i) => `
-                                        <div>
-                                            <label for="mantis-count-${type}" class="block text-sm font-medium text-gray-700">${type}</label>
-                                            <input id="mantis-count-${type}" type="number" min="0"
-                                            value="${gender_counts[i]}"
-                                            onchange="changeGenderCount(${data.id_meldung}, '${type}', this.value)"
-                                            class="w-full input-field-admin" >
-                                        </div>
-                                    `).join('')}
+        let html = `<div class="h-full overflow-y-auto">
+                        <div class="flex flex-wrap -mx-4 overflow-hidden">
+                            <div class="w-full px-4 my-4 overflow-hidden lg:w-1/2">
+                                <div class="p-6 bg-white rounded-lg shadow-md">
+                                    <div class="grid grid-cols-2 gap-4">
+                                        ${mantis_types.map((type, i) => `
+                                            <div>
+                                                <label for="mantis-count-${type}" class="block text-sm font-medium text-gray-700">${type}</label>
+                                                <input id="mantis-count-${type}" type="number" min="0"
+                                                value="${gender_counts[i]}"
+                                                onchange="changeGenderCount(${data.id_meldung}, '${type}', this.value)"
+                                                class="w-full input-field-admin" >
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="w-full px-4 my-4 overflow-hidden lg:w-1/2">
+                                <div class="p-6 space-y-4 bg-white rounded-lg shadow-md">
+                                    <p><strong>Report ID:</strong> ${data.id_meldung}</p>
+                                    <p><strong>Date Reported:</strong> ${data.dat_meld.replace(/\d{2}:\d{2}:\d{2} GMT/, '')}</p>
+                                    <div class="bg-gray-100 rounded-lg">
+                                        <p class="font-semibold">User Info:</p>
+                                        <p><strong>Name:</strong> ${data.user_name}</p>
+                                        <p><strong>Email:</strong> ${data.user_kontakt}</p>
+                                        <p><strong>User ID:</strong> ${data.user_id.length > 15 ? data.user_id.substring(0, 12) + '...' : data.user_id}</p>
+                                        <p><strong>Role:</strong> ${data.user_rolle}</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="w-full px-4 my-4 overflow-hidden lg:w-1/2">
-                            <div class="p-6 space-y-4 bg-white rounded-lg shadow-md">
-                                <p><strong>Report ID:</strong> ${data.id_meldung}</p>
-                                <p><strong>Date Reported:</strong> ${data.dat_meld.replace(/\d{2}:\d{2}:\d{2} GMT/, '')}</p>
-                                <div class="bg-gray-100 rounded-lg">
-                                    <p class="font-semibold">User Info:</p>
-                                    <p><strong>Name:</strong> ${data.user_name}</p>
-                                    <p><strong>Email:</strong> ${data.user_kontakt}</p>
-                                    <p><strong>User ID:</strong> ${data.user_id.length > 15 ? data.user_id.substring(0, 12) + '...' : data.user_id}</p>
-                                    <p><strong>Role:</strong> ${data.user_rolle}</p>
-                                </div>
-                            </div>
+                        <div class="p-6 mt-6 bg-white rounded-lg shadow-md">
+                            <p class="font-semibold">Kommentar (Melder):</p>
+                            <div class="p-3 mt-2 overflow-auto bg-gray-100 rounded-lg" style="max-height: 150px;">${data.anm_melder.replace(/\n/g, '<br />')}</div>
                         </div>
-                    </div>
-                    <div class="p-6 mt-6 bg-white rounded-lg shadow-md">
-                        <p class="font-semibold">Kommentar (Melder):</p>
-                        <div class="p-3 mt-2 overflow-auto bg-gray-100 rounded-lg" style="max-height: 150px;">${data.anm_melder.replace(/\n/g, '<br />')}</div>
-                    </div>
 
-                    <div class="p-6 mt-6 bg-white rounded-lg shadow-md">
-                        <div class="grid grid-cols-1 gap-4">
-                            <div>
-                                <p class="font-semibold">Fundortquelle:</p>
-                                <input type="text" class="w-full mt-1 input-field-admin"
-                                name="fo_quelle"
-                                onchange="changeMetaData(${data.id_meldung},'fo_quelle', this.value)"
-                                value=${data.fo_quelle}>
-                            </div>
+                        <div class="p-6 mt-6 bg-white rounded-lg shadow-md">
+                            <div class="grid grid-cols-1 gap-4">
+                                <div>
+                                    <p class="font-semibold">Fundortquelle:</p>
+                                    <input type="text" class="w-full mt-1 input-field-admin"
+                                    name="fo_quelle"
+                                    onchange="changeMetaData(${data.id_meldung},'fo_quelle', this.value)"
+                                    value=${data.fo_quelle}>
+                                </div>
 
-                            <div>
-                                <p class="font-semibold">Amt:</p>
-                                <input type="text" class="w-full mt-1 input-field-admin"
-                                        name="amt"
-                                        onchange="changeMetaData(${data.id_meldung},'amt', this.value)"
-                                        ${"value='" + (data.amt || "") + "'"}>
-                            </div>
+                                <div>
+                                    <p class="font-semibold">Amt:</p>
+                                    <input type="text" class="w-full mt-1 input-field-admin"
+                                            name="amt"
+                                            onchange="changeMetaData(${data.id_meldung},'amt', this.value)"
+                                            ${"value='" + (data.amt || "") + "'"}>
+                                </div>
 
-                            <div>
-                                <p class="font-semibold">Messtischblatt:</p>
-                                <a href="${'https://susudata.de/messtisch/tk25.html?lat='+(data.latitude)+'&lng='+(data.longitude)+'&zoom=15&marker=Fundort'}" target="_blank" class="text-blue-500 underline">Karte</a>
-                                <input type="text" class="w-full mt-1 input-field-admin"
-                                        name="mtb"
-                                        onchange="changeMetaData(${data.id_meldung},'mtb', this.value)"
-                                        ${"value='" + (data.mtb || "") + "'"}>
-                            </div>
+                                <div>
+                                    <p class="font-semibold">Messtischblatt:</p>
+                                    <a href="${'https://susudata.de/messtisch/tk25.html?lat=' + (data.latitude) + '&lng=' + (data.longitude) + '&zoom=15&marker=Fundort'}" target="_blank" class="text-blue-500 underline">Karte</a>
+                                    <input type="text" class="w-full mt-1 input-field-admin"
+                                            name="mtb"
+                                            onchange="changeMetaData(${data.id_meldung},'mtb', this.value)"
+                                            ${"value='" + (data.mtb || "") + "'"}>
+                                </div>
 
-                            <div>
-                                <p class="mb-2 font-semibold">Kommentar (Reviewer):</p>
-                                <div class="px-3 py-2 mr-3 overflow-auto bg-gray-100 rounded-lg details-text" style="max-height: 150px;">
-                                     <textarea class="w-full h-full bg-transparent border-none outline-none resize-none textInputAdmin"
-                                               name="anm_bearbeiter"
-                                               onchange="changeMetaData(${data.id_meldung},'anm_bearbeiter', this.value)"
-                                               >${data.anm_bearbeiter || ""}</textarea>
+                                <div>
+                                    <p class="mb-2 font-semibold">Kommentar (Reviewer):</p>
+                                    <div class="px-3 py-2 mr-3 overflow-auto bg-gray-100 rounded-lg details-text" style="max-height: 150px;">
+                                         <textarea class="w-full h-full bg-transparent border-none outline-none resize-none textInputAdmin"
+                                                   name="anm_bearbeiter"
+                                                   onchange="changeMetaData(${data.id_meldung},'anm_bearbeiter', this.value)"
+                                                   >${data.anm_bearbeiter || ""}</textarea>
            
+                                </div>
                             </div>
-                        </div>
-                    </div>`;
+                        </div>`;
 
         return html;
     }
 
     function generateLocationInfo(data) {
-        return `<div class="p-6 bg-white rounded-lg shadow-md">
-                    <p><strong>Location ID:</strong> ${data.fo_zuordnung}</p>
-                    <p><strong>Addresse:</strong> ${data.strasse}, ${data.plz} ${data.ort}, ${data.land}</p>
-                    <div id="map" class="mt-4 overflow-hidden rounded-lg" style="height: 350px; width: 100%;"></div>
-                    <div class="grid grid-cols-2 gap-4 mt-4">
-                        <div>
-                            <p class="font-semibold">Latitude:</p>
-                            <input type="text" class="w-full mt-1 input-field-admin"
-                                   name="latitude"
-                                   onchange="changeMetaData(${data.id_meldung},'latitude', this.value)"
-                                   ${"value='" + (data.latitude || "") + "'"}>
+        return `<div class="h-full bg-white rounded-lg">
+                <div class="relative flex flex-col h-full md:flex-row">
+                    <!-- Map Container - Adjusted for mobile and desktop -->
+                    <div class="relative w-full md:w-[calc(100%-20rem)]">
+                        <div id="map" class="w-full h-[50vh] md:h-full rounded-lg shadow-inner"></div>
+                    </div>
+                    
+                    <!-- Details Panel - Fixed width on desktop -->
+                    <div class="w-full p-4 overflow-y-auto bg-white border-t border-gray-200 md:w-80 md:border-t-0 md:border-l" style="z-index: 1000;">
+                        <div class="mb-4">
+                            <h3 class="mb-2 text-lg font-semibold text-gray-900">Standort Details</h3>
+                            <div id="currentAddressDisplay" class="p-3 mb-3 border border-gray-200 rounded-md bg-gray-50">
+                                <p class="mb-1 text-sm font-medium text-gray-700">Aktuelle Adresse</p>
+                                <p class="text-sm text-gray-600" id="addressStreet">${data.strasse || 'Keine Straße'}</p>
+                                <p class="text-sm text-gray-600" id="addressCity">${data.plz || ''} ${data.ort || 'Kein Ort'}</p>
+                                <p class="text-sm text-gray-600" id="addressDistrict">${data.kreis || 'Kein Kreis'}</p>
+                                <p class="text-sm text-gray-600" id="addressState">${data.land || 'Kein Land'}</p>
+                            </div>
                         </div>
-                        <div>
-                            <p class="font-semibold">Longitude:</p>
-                            <input type="text" class="w-full mt-1 input-field-admin"
-                                   name="longitude"
-                                   onchange="changeMetaData(${data.id_meldung},'longitude', this.value)"
-                                   ${"value='" + (data.longitude || "") + "'"}>
+                        
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-gray-700">Latitude</label>
+                                <input type="text" 
+                                    class="w-full px-3 py-2 text-sm border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent input-field-admin"
+                                    name="latitude"
+                                    onchange="validateAndUpdateCoordinate(this, 'latitude')"
+                                    value="${data.latitude || ''}">
+                            </div>
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-gray-700">Longitude</label>
+                                <input type="text" 
+                                    class="w-full px-3 py-2 text-sm border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent input-field-admin"
+                                    name="longitude"
+                                    onchange="validateAndUpdateCoordinate(this, 'longitude')"
+                                    value="${data.longitude || ''}">
+                            </div>
+                        </div>
+
+                        <!-- Map Controls - Mobile optimized -->
+                        <div class="space-y-3">
+                            <div id="markerPlacementControls" class="p-4 border border-gray-200 rounded-md bg-gray-50">
+                                <div class="flex items-center justify-between mb-3">
+                                    <h4 class="text-sm font-medium text-gray-900">Marker Platzierung</h4>
+                                    <div id="placementStatus" class="hidden px-2 py-1 text-xs font-medium text-white bg-yellow-500 rounded-full">
+                                        Aktiv
+                                    </div>
+                                </div>
+                                <div class="space-y-3">
+                                    <button onclick="toggleMarkerPlacement()" 
+                                        class="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition-all duration-200 bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                                        id="markerPlacementBtn"
+                                        title="Klicken Sie hier, um einen neuen Marker auf der Karte zu platzieren">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        </svg>
+                                        <span id="markerBtnText">Marker platzieren</span>
+                                    </button>
+                                    <div id="confirmationButtons" class="hidden space-y-2">
+                                        <button onclick="confirmMarkerPlacement()" 
+                                            class="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition-all duration-200 bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                            </svg>
+                                            Position bestätigen
+                                        </button>
+                                        <button onclick="cancelMarkerPlacement()" 
+                                            class="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-gray-700 transition-all duration-200 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2">
+                                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                            </svg>
+                                            Abbrechen
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button onclick="resetMarker(${data.latitude}, ${data.longitude})" 
+                                class="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-gray-700 transition-all duration-200 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                </svg>
+                                Position zurücksetzen
+                            </button>
                         </div>
                     </div>
-                </div>`;
+                </div>
+            </div>`;
     }
 
+    function validateAndUpdateCoordinate(input, type) {
+        const value = input.value.replace(',', '.');
+        const num = parseFloat(value);
+        
+        // Basic coordinate validation
+        let isValid = false;
+        if (type === 'latitude') {
+            isValid = !isNaN(num) && num >= -90 && num <= 90;
+        } else {
+            isValid = !isNaN(num) && num >= -180 && num <= 180;
+        }
+
+        if (isValid) {
+            input.classList.remove('border-red-500');
+            input.classList.add('border-gray-300');
+            
+            // Update marker position if both coordinates are valid
+            const latInput = document.querySelector('input[name="latitude"]');
+            const lngInput = document.querySelector('input[name="longitude"]');
+            if (latInput.value && lngInput.value) {
+                const lat = parseFloat(latInput.value.replace(',', '.'));
+                const lng = parseFloat(lngInput.value.replace(',', '.'));
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    marker.setLatLng([lat, lng]);
+                    map.setView([lat, lng], map.getZoom());
+                    changeMetaData(currentSightingId, type, num.toFixed(6));
+                }
+            }
+        } else {
+            input.classList.remove('border-gray-300');
+            input.classList.add('border-red-500');
+        }
+    }
+
+    function toggleMarkerPlacement() {
+        // Check if inputs are disabled (not in edit mode)
+        if (document.querySelector('.input-field-admin').disabled) {
+            return; // Don't allow marker placement if not in edit mode
+        }
+
+        const btn = document.getElementById('markerPlacementBtn');
+        const btnText = document.getElementById('markerBtnText');
+        const status = document.getElementById('placementStatus');
+        const confirmBtns = document.getElementById('confirmationButtons');
+        const isActive = btn.classList.contains('bg-yellow-500');
+
+        if (!isActive) {
+            // Store original position
+            originalMarkerPosition = marker.getLatLng();
+            
+            // Active state
+            btn.classList.remove('bg-green-600', 'hover:bg-green-700');
+            btn.classList.add('bg-yellow-500', 'hover:bg-yellow-600');
+            btnText.textContent = 'Klicken Sie auf die Karte';
+            status.classList.remove('hidden');
+            map.on('click', onMapClick);
+            map.getContainer().style.cursor = 'crosshair';
+            
+            // Show confirmation buttons after first click
+            map.once('click', () => {
+                confirmBtns.classList.remove('hidden');
+            });
+
+            // Set original marker to semi-transparent
+            marker.setOpacity(0.4);
+        }
+    }
+
+    function confirmMarkerPlacement() {
+        const btn = document.getElementById('markerPlacementBtn');
+        const btnText = document.getElementById('markerBtnText');
+        const status = document.getElementById('placementStatus');
+        const confirmBtns = document.getElementById('confirmationButtons');
+
+        // Update the original marker with the temp marker position
+        if (tempMarker) {
+            const pos = tempMarker.getLatLng();
+            marker.setLatLng(pos);
+            marker.setOpacity(1); // Reset opacity
+
+            // Update coordinates in database
+            changeMetaData(currentSightingId, 'latitude', pos.lat.toFixed(6));
+            changeMetaData(currentSightingId, 'longitude', pos.lng.toFixed(6));
+
+            // Get and update address information
+            getAddressFromCoordinates(pos.lat, pos.lng);
+
+            tempMarker.remove();
+            tempMarker = null;
+        }
+
+        // Reset UI
+        btn.classList.remove('bg-yellow-500', 'hover:bg-yellow-600');
+        btn.classList.add('bg-green-600', 'hover:bg-green-700');
+        btnText.textContent = 'Marker platzieren';
+        status.classList.add('hidden');
+        confirmBtns.classList.add('hidden');
+        map.off('click', onMapClick);
+        map.getContainer().style.cursor = '';
+    }
+
+    function getAddressFromCoordinates(latitude, longitude) {
+        // Show loading state in the address display
+        updateAddressDisplay({
+            street: 'Wird geladen...',
+            zipCode: '',
+            city: '',
+            district: '',
+            state: ''
+        });
+
+        // Construct the API URL with precise parameters for better address resolution
+        const nominatimUrl = new URL("https://nominatim.openstreetmap.org/reverse");
+        nominatimUrl.searchParams.append("format", "jsonv2");          // Use jsonv2 for consistent output
+        nominatimUrl.searchParams.append("lat", latitude.toString());    // Latitude coordinate
+        nominatimUrl.searchParams.append("lon", longitude.toString());   // Longitude coordinate
+        nominatimUrl.searchParams.append("zoom", "18");                  // Zoom level for detailed address
+        nominatimUrl.searchParams.append("addressdetails", "1");         // Include address details
+        nominatimUrl.searchParams.append("extratags", "1");              // Include extra tags
+        nominatimUrl.searchParams.append("namedetails", "1");            // Include name details
+        nominatimUrl.searchParams.append("accept-language", "de");       // Request results in German
+
+        // Delay to respect Nominatim's usage policy (1 second)
+        setTimeout(async () => {
+            try {
+                const response = await fetch(nominatimUrl.toString());
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+
+                // Check for explicit error in Nominatim response
+                if (data.error) {
+                    console.error("Nominatim API error:", data.error);
+                    updateAddressDisplay({
+                        street: 'Adresse konnte nicht geladen werden',
+                        zipCode: '',
+                        city: '',
+                        district: '',
+                        state: ''
+                    });
+                    return; // Exit if Nominatim returned an error
+                }
+
+                const address = data.address || {};
+
+                // Extract relevant address components safely
+                const zipCode = address.postcode || "";
+                const city = address.city || address.town || address.village || address.hamlet || address.suburb || address.locality || "";
+                const streetName = address.road || address.pedestrian || address.cycleway || address.path || address.footway || address.street || address.street_name || "";
+                const houseNumber = address.house_number || "";
+                const street = `${streetName} ${houseNumber}`.trim();
+                const district = address.county || address.district || address.municipality || address.city_district || address.borough || address.suburb || "";
+
+                // Determine state (Bundesland), prioritize ISO code lookup
+                let state = address.state || address.region || "";
+                if (!state && data.extratags && data.extratags["ISO3166-2"]) {
+                    state = getStateNameFromISOCode(data.extratags["ISO3166-2"]);
+                }
+                if (!state && city && isCityState(city)) { // Fallback for city states
+                    state = city;
+                }
+
+                // Update UI with fetched address
+                updateAddressDisplay({
+                    street: street || 'Keine Straße gefunden', // Provide default if empty
+                    zipCode,
+                    city: city || 'Kein Ort gefunden',       // Provide default if empty
+                    district: district || 'Keine Region gefunden', // Provide default if empty
+                    state: state || 'Kein Land gefunden'      // Provide default if empty
+                });
+
+                // Update database with address information
+                updateAddressInDatabase(currentSightingId, {
+                    plz: zipCode,
+                    ort: city,
+                    strasse: street,
+                    land: state,
+                    kreis: district
+                });
+
+                // Update marker popup with address details
+                const popupContent = `
+                    <div class="popup-content">
+                        <h2>${latitude}, ${longitude}</h2>
+                        <ul class="popup-list">
+                            ${street ? `<li><strong>Straße:</strong> ${street}</li>` : ''}
+                            ${zipCode ? `<li><strong>Postleitzahl:</strong> ${zipCode}</li>` : ''}
+                            ${city ? `<li><strong>Ort:</strong> ${city}</li>` : ''}
+                            ${district ? `<li><strong>Region:</strong> ${district}</li>` : ''}
+                            ${state ? `<li><strong>Land:</strong> ${state}</li>` : ''}
+                        </ul>
+                    </div>
+                `;
+                marker.setPopupContent(popupContent);
+
+            } catch (error) {
+                console.error("Error fetching address data:", error);
+                updateAddressDisplay({
+                    street: 'Fehler beim Laden der Adresse',
+                    zipCode: '',
+                    city: '',
+                    district: '',
+                    state: ''
+                });
+            }
+        }, 1000); // 1 second delay
+    }
+
+    function updateAddressDisplay(addressData) {
+        // Update the address display in the UI
+        document.getElementById('addressStreet').textContent = addressData.street || 'Keine Straße';
+        document.getElementById('addressCity').textContent = `${addressData.zipCode || ''} ${addressData.city || 'Kein Ort'}`;
+        document.getElementById('addressDistrict').textContent = addressData.district || 'Kein Kreis';
+        document.getElementById('addressState').textContent = addressData.state || 'Kein Land';
+    }
+
+    function updateAddressInDatabase(sightingId, addressData) {
+        // Update each address field in the database
+        Object.entries(addressData).forEach(([field, value]) => {
+            if (value) {
+                // Map the address fields to the correct database field names
+                let dbField = field;
+                switch(field) {
+                    case 'zipCode':
+                        dbField = 'plz';
+                        break;
+                    case 'city':
+                        dbField = 'ort';
+                        break;
+                    case 'street':
+                        dbField = 'strasse';
+                        break;
+                    case 'district':
+                        dbField = 'kreis';
+                        break;
+                    case 'state':
+                        dbField = 'land';
+                        break;
+                }
+                changeMetaData(sightingId, dbField, value);
+            }
+        });
+    }
+
+    // Helper function to map ISO3166-2 codes to state names
+    function getStateNameFromISOCode(isoCode) {
+        const isoToStateMap = {
+            'DE-BW': 'Baden-Württemberg',
+            'DE-BY': 'Bayern',
+            'DE-BE': 'Berlin',
+            'DE-BB': 'Brandenburg',
+            'DE-HB': 'Bremen',
+            'DE-HH': 'Hamburg',
+            'DE-HE': 'Hessen',
+            'DE-MV': 'Mecklenburg-Vorpommern',
+            'DE-NI': 'Niedersachsen',
+            'DE-NW': 'Nordrhein-Westfalen',
+            'DE-RP': 'Rheinland-Pfalz',
+            'DE-SL': 'Saarland',
+            'DE-SN': 'Sachsen',
+            'DE-ST': 'Sachsen-Anhalt',
+            'DE-SH': 'Schleswig-Holstein',
+            'DE-TH': 'Thüringen'
+        };
+        return isoToStateMap[isoCode] || '';
+    }
+
+    // Helper function to check if a city is a city-state
+    function isCityState(cityName) {
+        const cityStates = ['Berlin', 'Hamburg', 'Bremen'];
+        return cityStates.includes(cityName);
+    }
+
+    function cancelMarkerPlacement() {
+        const btn = document.getElementById('markerPlacementBtn');
+        const btnText = document.getElementById('markerBtnText');
+        const status = document.getElementById('placementStatus');
+        const confirmBtns = document.getElementById('confirmationButtons');
+
+        // Remove temp marker and reset to original position
+        if (tempMarker) {
+            tempMarker.remove();
+            tempMarker = null;
+        }
+        if (originalMarkerPosition) {
+            marker.setLatLng(originalMarkerPosition);
+            marker.setOpacity(1); // Reset opacity
+            document.querySelector('input[name="latitude"]').value = originalMarkerPosition.lat.toFixed(6);
+            document.querySelector('input[name="longitude"]').value = originalMarkerPosition.lng.toFixed(6);
+        }
+
+        // Reset UI
+        btn.classList.remove('bg-yellow-500', 'hover:bg-yellow-600');
+        btn.classList.add('bg-green-600', 'hover:bg-green-700');
+        btnText.textContent = 'Marker platzieren';
+        status.classList.add('hidden');
+        confirmBtns.classList.add('hidden');
+        map.off('click', onMapClick);
+        map.getContainer().style.cursor = '';
+    }
+
+    function onMapClick(e) {
+        const lat = e.latlng.lat.toFixed(6);
+        const lng = e.latlng.lng.toFixed(6);
+
+        // Ensure customIcon is initialized
+        if (!customIcon) {
+            initializeCustomIcon();
+        }
+
+        // Remove existing temp marker if it exists
+        if (tempMarker) {
+            tempMarker.remove();
+        }
+
+        // Create new temp marker
+        tempMarker = L.marker(e.latlng, {
+            pane: 'markerPane',
+            icon: customIcon
+        }).addTo(map);
+
+        document.querySelector('input[name="latitude"]').value = lat;
+        document.querySelector('input[name="longitude"]').value = lng;
+    }
+
+    function resetMarker(originalLat, originalLng) {
+        const latLng = L.latLng(originalLat, originalLng);
+
+        if (marker) {
+            marker.setLatLng(latLng);
+            map.setView(latLng, 13);
+        }
+
+        document.querySelector('input[name="latitude"]').value = originalLat;
+        document.querySelector('input[name="longitude"]').value = originalLng;
+
+        changeMetaData(currentSightingId, 'latitude', originalLat);
+        changeMetaData(currentSightingId, 'longitude', originalLng);
+    }
 
     function closeModal() {
-        // Hide modal
         document.body.style.overflow = 'auto';
         document.getElementById('modal').classList.add('hidden');
-        clearTabClickListeners(); // Clear listeners when the modal is closed
+        clearTabClickListeners();
+        isEditModeActive = false; // Reset edit mode state when closing modal
     }
 
     // Function to delete a sighting
@@ -991,15 +1591,41 @@
     function exportData(exportType) {
         var exportButton = document.getElementById("dropdownExportButton");
         var originalContent = exportButton.innerHTML;
-        
+
         // Add loading animation to the button
         exportButton.innerHTML = '<svg class="w-5 h-5 mx-auto text-gray-100 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
         exportButton.disabled = true;
 
-        fetch('/admin/export/xlsx/' + exportType)
+        // Get current search parameters from the URL
+        const urlParams = new URLSearchParams(window.location.search);
+
+        // Build the export URL with all current parameters
+        let exportUrl = '/admin/export/xlsx/' + exportType + '?';
+        const params = new URLSearchParams();
+
+        // Always include these parameters if they exist in the current URL
+        const paramsToCopy = [
+            'statusInput',
+            'typeInput',
+            'q',
+            'search_type',
+            'dateFrom',
+            'dateTo'
+        ];
+
+        paramsToCopy.forEach(param => {
+            const value = urlParams.get(param);
+            if (value !== null) {
+                params.append(param, value);
+            }
+        });
+
+        exportUrl += params.toString();
+
+        fetch(exportUrl)
             .then(response => {
                 if (!response.ok) {
-                    throw new Error('Network response was not ok');
+                    throw new Error(`Network response was not ok, status: ${response.status}`);
                 }
                 return response.blob();
             })
@@ -1014,14 +1640,161 @@
                 window.URL.revokeObjectURL(url);
             })
             .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred during export. Please try again.');
+                console.error('Error during export:', error);
+                alert('Export fehlgeschlagen. Bitte versuchen Sie es erneut. Überprüfen Sie die Konsole für Details.');
             })
             .finally(() => {
                 // Reset button state
                 exportButton.innerHTML = originalContent;
                 exportButton.disabled = false;
             });
+    }
+
+    // Update addEditButtonIfApproved to track edit mode state
+    function addEditButtonIfApproved(isApproved) {
+        const actionContainer = document.querySelector('.action-container');
+        const existingEditButton = actionContainer.querySelector('.edit-button');
+        const existingSaveButton = actionContainer.querySelector('.save-button');
+        const existingApproveButton = actionContainer.querySelector('.approve-button');
+        
+        // Remove existing buttons if present
+        if (existingEditButton) existingEditButton.remove();
+        if (existingSaveButton) existingSaveButton.remove();
+        if (existingApproveButton) existingApproveButton.remove();
+
+        if (isApproved) {
+            const editButton = document.createElement('button');
+            editButton.type = 'button';
+            editButton.className = 'edit-button flex items-center justify-center px-4 py-2 mr-4 text-sm font-medium text-gray-700 transition-all duration-200 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2';
+            editButton.title = 'Klicken Sie hier, um die Meldung zu bearbeiten';
+            editButton.innerHTML = `
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                </svg>
+                Bearbeiten
+            `;
+            
+            editButton.onclick = function() {
+                isEditModeActive = true;
+                enableEditMode();
+            };
+            actionContainer.insertBefore(editButton, actionContainer.firstChild);
+        } else {
+            // Add approve button for unapproved reports
+            const approveButton = document.createElement('button');
+            approveButton.type = 'button';
+            approveButton.className = 'approve-button flex items-center justify-center px-4 py-2 mr-4 text-sm font-medium text-gray-100 bg-green-500 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500';
+            approveButton.title = 'Klicken Sie hier, um die Meldung anzunehmen';
+            approveButton.innerHTML = 'Annehmen';
+            approveButton.onclick = function() {
+                toggleApprove(currentSightingData.id_meldung);
+                closeModal();
+            };
+            actionContainer.insertBefore(approveButton, actionContainer.firstChild);
+        }
+    }
+
+    // New function to enable edit mode
+    function enableEditMode() {
+        isEditModeActive = true;
+        const actionContainer = document.querySelector('.action-container');
+        const editButton = actionContainer.querySelector('.edit-button');
+        
+        // Enable all inputs with visual feedback
+        document.querySelectorAll('.input-field-admin, .textInputAdmin').forEach(input => {
+            input.disabled = false;
+            input.classList.add('border-green-500', 'focus:ring-green-500');
+            input.title = 'Dieses Feld kann jetzt bearbeitet werden';
+        });
+
+        // Enable map controls if we're on the map tab
+        if (document.getElementById('map')) {
+            enableMapControls();
+            // Enable coordinate inputs
+            document.querySelectorAll('input[name="latitude"], input[name="longitude"]').forEach(input => {
+                input.disabled = false;
+                input.classList.add('border-green-500', 'focus:ring-green-500');
+            });
+        }
+
+        // Hide edit button and show save button
+        if (editButton) {
+            editButton.style.display = 'none';
+            const saveButton = document.createElement('button');
+            saveButton.type = 'button';
+            saveButton.className = 'save-button flex items-center justify-center px-4 py-2 mr-4 text-sm font-medium text-white transition-all duration-200 bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2';
+            saveButton.title = 'Klicken Sie hier, um die Änderungen zu speichern';
+            saveButton.innerHTML = `
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                        d="M5 13l4 4L19 7"/>
+                </svg>
+                Speichern
+            `;
+            
+            saveButton.onclick = function() {
+                disableEditMode();
+            };
+            actionContainer.insertBefore(saveButton, actionContainer.firstChild);
+        }
+    }
+
+    function disableEditMode() {
+        isEditModeActive = false;
+        const actionContainer = document.querySelector('.action-container');
+        const saveButton = actionContainer.querySelector('.save-button');
+        const editButton = actionContainer.querySelector('.edit-button');
+
+        // Get approval status
+        let reportCard = document.querySelector(`[data-report-id="${currentSightingData.id_meldung}"]`);
+        let isApproved = reportCard.getAttribute('data-approved') === 'true';
+
+        // Disable all inputs and remove visual feedback
+        document.querySelectorAll('.input-field-admin, .textInputAdmin').forEach(input => {
+            input.disabled = isApproved;
+            input.classList.remove('border-green-500', 'focus:ring-green-500');
+            input.title = '';
+        });
+
+        // Disable map controls if we're on the map tab
+        if (document.getElementById('map')) {
+            if (isApproved) {
+                disableMapControls();
+                // Disable coordinate inputs
+                document.querySelectorAll('input[name="latitude"], input[name="longitude"]').forEach(input => {
+                    input.disabled = true;
+                    input.classList.remove('border-green-500', 'focus:ring-green-500');
+                });
+            }
+        }
+
+        // Remove save button and show edit button
+        if (saveButton) saveButton.remove();
+        if (editButton) editButton.style.display = 'flex';
+    }
+
+    // New function to enable map controls
+    function enableMapControls() {
+        const markerPlacementBtn = document.getElementById('markerPlacementBtn');
+        if (markerPlacementBtn) {
+            markerPlacementBtn.disabled = false;
+            markerPlacementBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+    }
+
+    // New function to disable map controls
+    function disableMapControls() {
+        const markerPlacementBtn = document.getElementById('markerPlacementBtn');
+        if (markerPlacementBtn) {
+            markerPlacementBtn.disabled = true;
+            markerPlacementBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            
+            // Cancel any active marker placement
+            if (markerPlacementBtn.classList.contains('bg-yellow-500')) {
+                cancelMarkerPlacement();
+            }
+        }
     }
 </script>
 

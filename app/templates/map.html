@@ -7,16 +7,18 @@
   {% endif %}
 {% endblock title %}
 {% block head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/leaflet.css')}}" />
-<link rel="stylesheet" href="{{ url_for('static', filename='css/cluster/MarkerCluster.Default.css')}}" />
-<link rel="stylesheet" href="{{ url_for('static', filename='css/cluster/MarkerCluster.css')}}" />
-<link rel="stylesheet" href="{{ url_for('static', filename='css/currentLocation/L.Control.Locate.min.css')}}" />
-<script src="{{ url_for('static', filename='js/leaflet.js')}}"></script>
-<script src="{{ url_for('static', filename='js/esri-leaflet.js')}}"></script>
-<script src="{{ url_for('static', filename='js/esri-leaflet-vector.js')}}"></script>
-<script src="{{ url_for('static', filename='js/exif-js.js')}}" defer></script>
-<script src="{{url_for('static', filename='js/cluster/leaflet.markercluster.js')}}"></script>
-<script src="{{url_for('static', filename='js/currentLocation/L.Control.Locate.min.js')}}"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.css')}}" />
+<link rel="stylesheet"
+  href="{{ url_for('static', filename='node_modules/leaflet.markercluster/dist/MarkerCluster.css')}}" />
+<link rel="stylesheet"
+  href="{{ url_for('static', filename='node_modules/leaflet.markercluster/dist/MarkerCluster.Default.css')}}" />
+<link rel="stylesheet"
+  href="{{ url_for('static', filename='node_modules/leaflet.locatecontrol/dist/L.Control.Locate.min.css')}}" />
+<script src="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.js')}}"></script>
+<script src="{{ url_for('static', filename='node_modules/esri-leaflet/dist/esri-leaflet.js')}}"></script>
+<script src="{{ url_for('static', filename='node_modules/esri-leaflet-vector/dist/esri-leaflet-vector.js')}}"></script>
+<script src="{{url_for('static', filename='node_modules/leaflet.markercluster/dist/leaflet.markercluster.js')}}"></script>
+
 {% endblock %}
 {% block page_title %}Auswertungen der Beobachtungen | Mantis Religiosa Mitmachprojekt | Gottesanbeterin Gesucht{% endblock %}
 {% block meta_keywords %} Auswertungen, Karte, Gottesanbeterin, Mantis religiosa Auswertungen {% endblock %}
@@ -29,7 +31,7 @@
   {% endif %}
   {% endblock text %}
   {% block content %}
-  <script src="{{ url_for('static', filename='js/flow/flowbite.min.js')}}" defer></script>
+<script src="{{ url_for('static', filename='node_modules/flowbite/dist/flowbite.min.js')}}" defer></script>
   <section class="container relative px-4 mx-auto mt-10 sm:px-6 lg:px-8">
   <!-- Year Selector on Map -->
   <div class="flex justify-center">
@@ -43,7 +45,7 @@
     </p>
   </div>
 
-  <div id="map" class="relative h-[70vh] sm:h-screen rounded-lg shadow-md">
+  <div id="map" class="relative h-[70vh] sm:h-screen rounded-lg shadow-md" role="application" aria-label="Interaktive Karte der Gottesanbeterin-Sichtungen in Deutschland">
   </div>
   
 </section>
@@ -73,36 +75,43 @@
 
 
 <script>
+  // Counter animation with performance optimization
   const counter = document.querySelector('.counter');
   const target = +counter.dataset.target;
-  console.log(target);
-  const duration = 2500;
+  const duration = 2000;
+  const frameRate = 1000 / 30; // 30 FPS
   let startTime = null;
 
-  function easeOutExpo(time, b, c, d) {
-    return c * (-Math.pow(2, -10 * time / d) + 1) + b;
+  function easeOutExpo(t) {
+    return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
   }
 
-  function animate(currentTime) {
-    if (startTime === null) startTime = currentTime;
+  function animateCounter(currentTime) {
+    if (!startTime) startTime = currentTime;
     const elapsedTime = currentTime - startTime;
     const progress = Math.min(elapsedTime / duration, 1);
-    const count = easeOutExpo(progress, 0, target, 1);
-
-    counter.innerText = Math.floor(count);
-    if (elapsedTime < duration) {
-      requestAnimationFrame(animate);
+    
+    if (progress < 1) {
+      const nextValue = Math.floor(easeOutExpo(progress) * target);
+      if (counter.innerText !== nextValue.toString()) {
+        counter.innerText = nextValue;
+      }
+      setTimeout(() => requestAnimationFrame(animateCounter), frameRate);
     } else {
       counter.innerText = target;
     }
   }
 
-  const observer = new IntersectionObserver(entries => {
-    if (entries[0].isIntersecting) {
-      requestAnimationFrame(animate);
-      observer.disconnect();
-    }
-  });
+  // Intersection Observer with options for better performance
+  const observer = new IntersectionObserver(
+    entries => {
+      if (entries[0].isIntersecting) {
+        requestAnimationFrame(animateCounter);
+        observer.disconnect();
+      }
+    },
+    { threshold: 0.1 }
+  );
 
   observer.observe(counter);
 
@@ -117,16 +126,21 @@
       var select = L.DomUtil.create('select', 'year-selector', div);
       select.id = 'yearSelect';
       select.name = 'year';
+      select.setAttribute('aria-label', 'Jahr der Sichtungen auswählen');
+      select.setAttribute('role', 'combobox');
 
       var option = L.DomUtil.create('option', '', select);
       option.value = '';
       option.innerHTML = 'Alle Jahre';
+      {% if not selected_year %}
+      option.selected = true;
+      {% endif %}
 
-      {% for year in years %}
+      {% for year in years|sort(reverse=true) %}
       var option = L.DomUtil.create('option', '', select);
       option.value = '{{ year }}';
       option.innerHTML = '{{ year }}';
-      {% if year == selected_year %}
+      {% if selected_year == year %}
       option.selected = true;
       {% endif %}
       {% endfor %}
@@ -157,7 +171,9 @@
     map = L.map('map', {
       renderer: L.canvas(),
       maxBounds: germanyBounds,
-      maxBoundsViscosity: 1.0
+      maxBoundsViscosity: 1.0,
+      keyboard: true,
+      keyboardPanDelta: 100
     }).setView([51.991649, 13.080113], 9);
 
     const openStreetMapLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -185,43 +201,54 @@
       showCoverageOnHover: false,
     });
 
+    // Custom marker icon configuration
+    var customIcon = L.icon({
+      iconUrl: "{{ url_for('static', filename='images/map/marker-icon.png') }}",
+      iconSize: [25, 41],     // Size of the icon
+      iconAnchor: [12, 41],   // Point of the icon which will correspond to marker's location
+      popupAnchor: [1, -34]   // Point from which the popup should open relative to the iconAnchor
+    });
+
     var reports = JSON.parse('{{ reportsJson | safe }}');
 
     reports.forEach(report => {
-      const marker = L.marker([report.latitude, report.longitude]);
+      const marker = L.marker([report.latitude, report.longitude], {
+        icon: customIcon,
+        alt: 'Gottesanbeterin-Sichtung an Position ' + report.latitude + ', ' + report.longitude
+      });
 
-      marker.bindPopup("<div class='popup-loading'>Loading...</div>");
+      marker.bindPopup("<div class='popup-loading' role='status'>Daten werden geladen...</div>");
 
       marker.on('popupopen', function (e) {
         fetch(`/get_marker_data/${report.report_id}`)
           .then(response => response.json())
           .then(data => {
-            let popupContent = `<div class="popup-content">
-                                  <h2>Melde ID: ${data.id}</h2>
-                                  <ul class="popup-list">`;
+            let popupContent = '<div class="popup-content" role="dialog" aria-label="Sichtungsdetails">' +
+                              '<h2>Melde ID: ' + data.id + '</h2>' +
+                              '<ul class="popup-list">';
 
             if (data.dat_meld) {
-              popupContent += `<li><strong>Melde Datum:</strong> ${data.dat_meld}</li>`;
+              popupContent += '<li><strong>Melde Datum:</strong> ' + data.dat_meld + '</li>';
             }
 
             if (data.dat_fund_von) {
-              popupContent += `<li><strong>Fund Datum:</strong> ${data.dat_fund_von}</li>`;
+              popupContent += '<li><strong>Fund Datum:</strong> ' + data.dat_fund_von + '</li>';
             }
 
             if (data.ort) {
-              popupContent += `<li><strong>Ort:</strong> ${data.ort}</li>`;
+              popupContent += '<li><strong>Ort:</strong> ' + data.ort + '</li>';
             }
 
             if (data.kreis) {
-              popupContent += `<li><strong>Lkr./Kr./Bez.:</strong> ${data.kreis}</li>`;
+              popupContent += '<li><strong>Lkr./Kr./Bez.:</strong> ' + data.kreis + '</li>';
             }
 
-            popupContent += `</ul></div>`;
+            popupContent += '</ul></div>';
 
             e.popup.setContent(popupContent);
           })
           .catch(error => {
-            e.popup.setContent("<div class='popup-error'>Failed to load data</div>");
+            e.popup.setContent("<div class='popup-error' role='alert'>Fehler beim Laden der Daten. Bitte versuchen Sie es später erneut.</div>");
           });
       });
 

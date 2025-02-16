@@ -5,6 +5,7 @@ from email.mime.text import MIMEText
 from email.utils import formataddr
 from app.config import Config
 from email.utils import make_msgid
+from email.utils import make_msgid 
 from email.utils import formatdate
 
 

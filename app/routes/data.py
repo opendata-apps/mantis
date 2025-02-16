@@ -108,7 +108,7 @@ def _handle_file_upload(request, form, usrid):
 
     date_folder = _create_directory(
         form.sighting_date.data.strftime("%Y-%m-%d"))
-    filename = _create_filename(form.city.data, usrid)
+    filename = _create_filename(form.fund_city.data, usrid)
     full_file_path = date_folder / filename
 
     # Read the file content
@@ -208,10 +208,10 @@ def report(usrid=None):
             Config.UPLOAD_FOLDER + "/", ""
         )
 
-        if not form.zip_code.data:
+        if not form.fund_zip_code.data:
             zipcode = "0"
         else:
-            zipcode = form.zip_code.data
+            zipcode = form.fund_zip_code.data
         # get number of Messtischblatt
         if pointInRect((form.latitude.data, form.longitude.data)):
             mtb = get_mtb(form.latitude.data, form.longitude.data)
@@ -222,10 +222,10 @@ def report(usrid=None):
 
         new_fundort = TblFundorte(
             plz=zipcode,
-            ort=form.city.data,
-            strasse=form.street.data,
-            kreis=form.district.data,
-            land=form.state.data,
+            ort=form.fund_city.data,
+            strasse=form.fund_street.data,
+            kreis=form.fund_district.data,
+            land=form.fund_state.data,
             longitude=form.longitude.data,
             latitude=form.latitude.data,
             mtb=mtb,
@@ -320,8 +320,7 @@ def validate():
 @data.route("/auswertungen")
 def show_map():
     selected_year = request.args.get("year", None, type=int)
-    "Select data for one selected year"
-
+    
     # Get distinct years from dat_fund_von begginning with MIN_MAP_YEAR
     years = (
         db.session.query(
@@ -332,6 +331,10 @@ def show_map():
         .filter(TblMeldungen.dat_fund_von >= f"{Config.MIN_MAP_YEAR}-01-01")
     )
     years = [int(year[0]) for year in years]
+    
+    # Validate selected_year exists in available years
+    if selected_year is not None and selected_year not in years:
+        selected_year = None
 
     reports_query = (
         db.session.query(TblMeldungen.id,

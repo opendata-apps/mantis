@@ -5,12 +5,11 @@
 {% from 'statistics/filter-datum-typ.html' import StatsAuswahl with context %}
 
 {% block content %}
-<script src="{{ url_for('static', filename='js/flow/flowbite.min.js')}}" defer></script>
+<script src="{{ url_for('static', filename='node_modules/flowbite/dist/flowbite.min.js')}}" defer></script>
 <section class="container mx-auto mt-10">
   <form action="" method="POST" class="space-y-3">
    {{ MenuFilter() }}
-   <div class="sticky col-span-2 row-span-2 duration-500 bg-gray-200
-	       border-4 border-gray-200 rounded-md top-3 hover:shadow-xl">
+   <div class="sticky col-span-2 row-span-2 duration-500 bg-gray-200 border-4 border-gray-200 rounded-md top-3 hover:shadow-xl">
     <p class="p-2">Zeitraum, für alle Statistiken festlegen.</p>
     {{ StatsAuswahl() }}
     <input type="hidden"

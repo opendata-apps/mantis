@@ -2,11 +2,13 @@ import sqlalchemy as sa
 import sqlalchemy.schema
 import sqlalchemy.ext.compiler
 import sqlalchemy.orm as orm
-from sqlalchemy import text
+from sqlalchemy import text, func
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import types
 from sqlalchemy.dialects.postgresql import TSVECTOR
+from typing import List, Optional
+from flask import current_app
 
 
 meta = sa.MetaData()
@@ -20,6 +22,62 @@ class FullTextSearch(Base):
     meldungen_id = Column(Integer, primary_key=True)
     doc = Column(TSVECTOR)
   
+    @classmethod
+    def search(cls, query: str, limit: Optional[int] = None) -> List[int]:
+        """
+        Perform a full-text search using websearch_to_tsquery.
+        
+        Args:
+            query: The search query string using websearch syntax
+            limit: Optional limit for the number of results
+            
+        Returns:
+            List of meldungen_id that match the search criteria
+            
+        Example:
+            >>> FullTextSearch.search('"exact phrase" -exclude')
+            >>> FullTextSearch.search('word1 OR word2')
+        """
+        try:
+            from app import db
+            session = db.session
+
+            # Handle email searches separately
+            if '@' in query:
+                sql = text("""
+                    SELECT DISTINCT m.id 
+                    FROM meldungen m
+                    JOIN melduser mu ON m.id = mu.id_meldung
+                    JOIN users u ON mu.id_user = u.id
+                    WHERE u.user_kontakt ILIKE :query
+                    ORDER BY m.id DESC
+                """)
+                if limit:
+                    sql = text(str(sql) + " LIMIT :limit")
+                    result = session.execute(sql, {'query': f'%{query}%', 'limit': limit})
+                else:
+                    result = session.execute(sql, {'query': f'%{query}%'})
+                return [row[0] for row in result]
+
+            # For regular searches, use websearch_to_tsquery
+            sql = text("""
+                SELECT meldungen_id 
+                FROM full_text_search 
+                WHERE doc @@ websearch_to_tsquery('german', :query)
+                ORDER BY ts_rank(doc, websearch_to_tsquery('german', :query)) DESC
+            """)
+
+            if limit:
+                sql = text(str(sql) + " LIMIT :limit")
+                result = session.execute(sql, {'query': query, 'limit': limit})
+            else:
+                result = session.execute(sql, {'query': query})
+
+            return [row[0] for row in result]
+
+        except Exception as e:
+            current_app.logger.error(f"FTS search error: {str(e)}")
+            return []
 
 
 class Drop(sa.schema.DDLElement):
@@ -135,6 +193,11 @@ def create_materialized_view(db, session=None):
     meta.create_all(bind=db, checkfirst=True)
     session.commit()
     session.close()
+    
+def refresh_materialized_view(db):
+    "Refresh the materialized view"
+    db.session.execute(text('REFRESH MATERIALIZED VIEW full_text_search'))
+    db.session.commit()
 
 if __name__ == '__main__':
     #try:

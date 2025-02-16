@@ -24,6 +24,43 @@ db = SQLAlchemy()
 migrate = Migrate()
 
 
+# Define the custom command for creating the materialized view
+@click.command("create-mview")
+@with_appcontext
+def create_materialized_view_command():
+    """Create the materialized view."""
+    #from app.database.full_text_search import FullTextSearch
+    from app.database.alldata import TblAllData
+
+    #FullTextSearch.createGen()
+    TblAllData.create_materialized_view()
+    click.echo("Materialized view created.")
+
+
+@click.command("upgrade-fts")
+@with_appcontext
+def upgrade_fts_command():
+    """Upgrade the Full Text Search implementation."""
+    try:
+        # Run the migration
+        from flask import current_app
+        from flask_migrate import upgrade as flask_migrate_upgrade
+        
+        with current_app.app_context():
+            # Run both migrations in sequence
+            flask_migrate_upgrade(revision='fts_upgrade_2024')
+            flask_migrate_upgrade(revision='fts_weighted_upgrade_2024')
+            
+            # Refresh the view
+            from app.database.full_text_search import FullTextSearch
+            FullTextSearch.refresh_materialized_view()
+        
+        click.echo("FTS upgrade completed successfully.")
+    except Exception as e:
+        click.echo(f"Error during FTS upgrade: {e}")
+        raise
+
+
 # Define the custom command for inserting initial data
 @click.command("insert-initial-data")
 @with_appcontext
@@ -79,10 +116,10 @@ def create_app(config_class=Config):
         app.jinja_env.filters["shuffle"] = shuffle
 
     migrate.init_app(app, db)
-    #insert_initial_data_command()
-    #fts.create_materialized_view(db)
-    # Register the custom command
-    #app.cli.add_command(create_materialized_view_command)
+
+    # Register the custom commands
+    app.cli.add_command(create_materialized_view_command)
+    app.cli.add_command(upgrade_fts_command)
     app.cli.add_command(insert_initial_data_command)
 
     # If using Flask-App behind Nginx
