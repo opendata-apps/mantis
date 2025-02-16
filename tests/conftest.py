@@ -23,6 +23,11 @@ def app():
         upgrade()  
         yield app 
 
+@pytest.fixture
+def client(app):
+    """Create a test client for the Flask application."""
+    return app.test_client()
+
 def insert_initial_data_command():
     """Insert initial data into the beschreibung table."""
 
