@@ -5,49 +5,76 @@ from pathlib import Path
 from app import create_app, db
 from alembic import command
 from alembic.config import Config
-from app import test_config
+from app.test_config import Config as TestConfig
 from sqlalchemy import text
+#from app.demodata.filldb import insert_data_reports
+#from app import insert_initial_data_command
+import  app.database.full_text_search as fts
+import sqlalchemy as sa
+import sqlalchemy.orm as orm
 from app.demodata.filldb import insert_data_reports
 
 @pytest.fixture(scope='session')
 def app():
     # Flask-App nitialise with testconfig
-    app = create_app(test_config.Config)
+    app = create_app(TestConfig)
     with app.app_context():
         # Alembic-Migrations on testdb
         upgrade()  
         yield app 
 
-
 def insert_initial_data_command():
-    """Insert initial data into the table beschreibung"""
+    """Insert initial data into the beschreibung table."""
 
-    for id, beschreibung in test_config.Config.INITIAL_DATA:
-        db.session.execute(
+    conn = TestConfig.URI
+    db = sa.create_engine(conn)
+    Session = orm.sessionmaker(bind=db)
+    session = Session()
+    for id, beschreibung in TestConfig.INITIAL_DATA:
+        session.execute(
             text(
-                "INSERT INTO beschreibung (id, beschreibung) \
-                VALUES (:id, :beschreibung)"
+                "INSERT INTO beschreibung (id, beschreibung) VALUES (:id, :beschreibung)"
             ),
             {"id": id, "beschreibung": beschreibung},
         )
-    db.session.commit()
+    session.commit()
 
+    insert_data_reports(session)
+    fts.create_materialized_view(db, session=session)
+
+
+def drop_all_with_views():
+    # Alle Materialized Views löschen (mit CASCADE)
+    db.session.execute(text(
+        'DROP TABLE IF EXISTS public.meldungen CASCADE'
+    ))
+
+    db.session.execute(text(
+        'DROP MATERIALIZED VIEW IF EXISTS public.full_text_search CASCADE'
+    ))
+    # Jetzt alle Tabellen löschen
+    db.session.commit()
+    db.drop_all()
+    db.session.commit()
+    
+    
 @pytest.fixture(scope='session')
 def _db(app):
     """Set up the database for the test session."""
 
     # create all tables in testdb
+
+    # Test-Setup: Vor jedem Testlauf aufrufen
+    drop_all_with_views()
     db.create_all()  
     # fill tables
     insert_initial_data_command()
-    insert_data_reports(db)
-    
+        
     yield db
 
-    #revert all settings and remove data
     db.session.remove()
     # remove all tables after test run
-    db.drop_all()
+    drop_all_with_views()
 
 
 @pytest.fixture(scope='function', autouse=True)

@@ -5,7 +5,8 @@ from io import BytesIO, StringIO
 import pandas as pd
 from app import db
 from app.config import Config
-#from app.database.full_text_search import FullTextSearch
+from app.database.full_text_search import FullTextSearch
+
 from app.database.models import (
     TblFundortBeschreibung,
     TblFundorte,
@@ -13,6 +14,7 @@ from app.database.models import (
     TblMeldungUser,
     TblUsers,
 )
+
 from flask import session
 from flask import (
     Blueprint,
@@ -30,6 +32,7 @@ from flask import (
 from sqlalchemy import inspect, or_, text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy import func
 from app.tools.check_reviewer import login_required
 import shutil
 from werkzeug.utils import secure_filename
@@ -61,11 +64,15 @@ def reviewer(usrid):
     # Store the userid in session
     session["user_id"] = usrid
 
-    # Convert last_updated to a timezone-naive datetime if it's timezone-aware
+    # Convert last_updated to a timezone-naive datetime
+    # if it's timezone-aware
+    
     if last_updated and last_updated.tzinfo:
         last_updated = last_updated.replace(tzinfo=None)
 
     if last_updated is None or now - last_updated > timedelta(minutes=1):
+        db.session.execute(text('REFRESH MATERIALIZED VIEW full_text_search'))
+        db.session.commit()
         #FullTextSearch.refresh_materialized_view()
         session["last_updated"] = now
 
@@ -160,6 +167,7 @@ def reviewer(usrid):
                     search_type = "full_text"
 
             if search_type == "full_text":
+                print(search_query)
                 if "@" in search_query:
                     query = (
                         query.join(
@@ -177,7 +185,7 @@ def reviewer(usrid):
                         # Option 2: Use plainto_tsquery
                         query=f"{search_query}"
                     )
-                    search_results = FullTextSearch.query.filter(
+                    search_results = db.session.query(FullTextSearch).filter(
                         FullTextSearch.doc.op("@@")(search_vector)
                     ).all()
                     reported_sightings_ids = [

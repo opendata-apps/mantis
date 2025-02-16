@@ -3,14 +3,23 @@ import sqlalchemy.schema
 import sqlalchemy.ext.compiler
 import sqlalchemy.orm as orm
 from sqlalchemy import text
+from sqlalchemy import Column, Integer, String
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import types
+from sqlalchemy.dialects.postgresql import TSVECTOR
 
-engine = sa.create_engine(
-    'postgresql://mantis_user:mantis@localhost/mantis_tracker'
-)
+
 meta = sa.MetaData()
 
-Session = orm.sessionmaker(bind=engine)
-session = Session()
+Base = sa.orm.declarative_base()
+
+class FullTextSearch(Base):
+    __tablename__ = 'full_text_search'
+    __table_args__ = {'schema': 'public'}
+
+    meldungen_id = Column(Integer, primary_key=True)
+    doc = Column(TSVECTOR)
+  
 
 
 class Drop(sa.schema.DDLElement):
@@ -52,14 +61,24 @@ def dropGen(element, compiler, **kwargs):
     return text(sql)  # text() um den SQL-Ausdruck
 
 
-def create_materialized_view(engine, session):
+def create_materialized_view(db, session=None):
     'create a materialized view for global search activities '
+    if not db:
+        db = sa.create_engine(
+            'postgresql://mantis_user:mantis@localhost/mantis_tracker'
+        )
 
-    # drop = Drop(name='full_text_search', schema='public')
-    # You can call dropGen directly with the `drop` object
-    # session.execute(dropGen(drop, None))
-    # session.commit()
+        Session = orm.sessionmaker(bind=db)
+        session = Session()
 
+    #try:
+        #session.execute(text('drop table melduser cascade'))
+        #drop = Drop(name='full_text_search', schema='public')
+        # You can call dropGen directly with the `drop` object
+        #session.execute(dropGen(drop, None))
+        #session.commit()
+    #except Exception as e:
+    #    print('Nix zu löschen')
     # Table Aliases
     meldungen = sa.table('meldungen', sa.column('id'), sa.column('bearb_id'),
                          sa.column('anm_melder'), sa.column('anm_bearbeiter'),
@@ -108,18 +127,21 @@ def create_materialized_view(engine, session):
         .outerjoin(users, melduser.c.id_user == users.c.id)
     )
 
-    view = Create(
+    # Create View
+    Create(
         name='full_text_search',
         select=view_query
     )
-    meta.create_all(bind=engine, checkfirst=True)
+    meta.create_all(bind=db, checkfirst=True)
+    session.commit()
     session.close()
 
-
 if __name__ == '__main__':
-    drop = Drop(name='full_text_search', schema='public')
-    # You can call dropGen directly with the `drop` object
-    session.execute(dropGen(drop, None))
-    session.commit()
-
-    create_materialized_view(engine, session)
+    #try:
+    #    drop = Drop(name='full_text_search', schema='public')
+    #    # You can call dropGen directly with the `drop` object
+    #    session.execute(dropGen(drop, None))
+    #    session.commit()
+    #except:
+    #    print('No view to drop.')
+    create_materialized_view()

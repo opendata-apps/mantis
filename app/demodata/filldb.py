@@ -22,8 +22,41 @@ def generatat_sample_data():
     """
         print(template)
 
-def insert_data_reports(db):
+    
+
+        
+def insert_data_reports(session):
     """A set of twenty reports for testing"""
+
+    stm = """
+
+with sequences as (
+  select *
+  from (
+    select table_schema,
+           table_name,
+           column_name,
+           pg_get_serial_sequence(format('%I.%I', table_schema, table_name), column_name) as col_sequence
+    from information_schema.columns
+    where table_schema not in ('pg_catalog', 'information_schema')
+  ) t
+  where col_sequence is not null
+), maxvals as (
+  select table_schema, table_name, column_name, col_sequence,
+          (xpath('/row/max/text()',
+             query_to_xml(format('select max(%I) from %I.%I', column_name, table_schema, table_name), true, true, ''))
+          )[1]::text::bigint as max_val
+  from sequences
+) 
+select table_schema, 
+       table_name, 
+       column_name, 
+       col_sequence,
+       coalesce(max_val, 0) as max_val,
+       setval(col_sequence, coalesce(max_val, 1)) --<< this will change the sequence
+from maxvals;
+
+    """ 
 
 
     users =[
@@ -71,7 +104,7 @@ def insert_data_reports(db):
     ]
     
     fundorte = [
-        "insert into fundorte values (1 , '64027', 'Miesbach', 'Karl Heinz-Ring-Straße','Ville', 'Hamburg', '', '', 1, '10.671282', '52.036639', '2025/2025-01-19/mantis1.webp');",
+        "insert into fundorte values (1 , '64027', 'Zossen', 'Oertelufer','Zossen', 'Teltow-Fläming', '', '3746', 1, '13.440683', '52.217574', '2025/2025-01-19/mantis1.webp');",
         "insert into fundorte values (2 , '76960', 'Osterode am Harz', 'Lübsstr. ','Ville', 'Niedersachsen', '', '', 1, '8.480548', '50.777494', '2025/2025-01-19/mantis2.webp');",
         "insert into fundorte values (3 , '17557', 'Kusel', 'Mendestr. ','Ville', 'Bremen', '', '', 1, '8.002667' , '49.039553', '2025/2025-01-19/mantis3.webp');",
         "insert into fundorte values (4 , '73949', 'Bad Mergentheim', 'Stolzestr. ','Ville', 'Hamburg', '', '', 1, '12.241585', '51.746216', '2025/2025-01-19/mantis4.webp');",
@@ -94,14 +127,14 @@ def insert_data_reports(db):
     ]
     
     meldungen = [
-        "insert into meldungen values (1, NULL, '2025-10-03', NULL, '2025-02-01', NULL, NULL, 1, 1, 0, 0, 0, 0, 1,  'F', '', 'Antworten vielleicht zusammen langsam sind möglich heute. Boden darauf Zeit alle reich Wiese. Jetzt legen Erde möglich jetzt Jahr spät rot.', '');",
+        "insert into meldungen values (1, NULL, '2025-10-03', NULL, '2025-02-01', '2025-02-03', '9999', 1, 1, 0, 0, 0, 0, 1,  'F', '', 'Antworten vielleicht zusammen langsam sind möglich heute. Boden darauf Zeit alle reich Wiese. Jetzt legen Erde möglich jetzt Jahr spät rot.', '');",
         "insert into meldungen values (2, NULL, '2025-08-24', NULL, '2025-02-01', NULL, NULL, 1, 0, 0, 1, 0, 0, 2,  'F', '', 'Das Ball viel. Glauben Schluss rechnen Wetter. Stadt ab Monat Land selbst suchen merken.\nSchreiben Spiel schwer Frage. Junge in Zug nichts Wiese Weihnachten auf.', '');",
         "insert into meldungen values (3, NULL, '2025-04-26', NULL, '2025-02-01', NULL, NULL, 1, 0, 1, 0, 0, 0, 3,  'F', '', 'Gott ihn Finger verstecken Papa Affe. Die dabei Baum antworten.\nZurück mein durch Winter weiter. Ferien früher Baum Sonntag. Hoch schlagen aus.', '');",
         "insert into meldungen values (4, NULL, '2025-01-02', NULL, '2025-02-01', NULL, NULL, 1, 0, 0, 1, 0, 0, 4,  'F', '', 'Arzt grün eigentlich gefährlich dürfen nein. Haare Monate neu hören arbeiten. Also Zug den Eis.\nNicht halten setzen.\nTier Land dafür also Klasse. Mädchen heute sich wird damit.', '');",
         "insert into meldungen values (5, NULL, '2025-10-18', NULL, '2025-02-02', NULL, NULL, 1, 0, 0, 0, 1, 0, 5,  'F', '', 'Schluss Glas halbe Papa nehmen Monate spielen.\nBeispiel um Wasser Familie verstecken können Wiese also. Dir gefährlich rennen Glück.', '');",
-        "insert into meldungen values (6, NULL, '2025-01-28', NULL, '2025-02-02', NULL, NULL, 1, 1, 0, 0, 0, 0, 6,  'F', '', 'Heute Vater natürlich nichts. Kommen nimmt lernen hängen. Es zeigen Schiff zurück bekommen danach Küche. Heiß fressen leise Oma.', '');",
+        "insert into meldungen values (6, NULL, '2025-01-28', NULL, '2025-02-02', '2025-02-02', '9999', 1, 1, 0, 0, 0, 0, 6,  'F', '', 'Heute Vater natürlich nichts. Kommen nimmt lernen hängen. Es zeigen Schiff zurück bekommen danach Küche. Heiß fressen leise Oma.', '');",
         "insert into meldungen values (7, NULL, '2022-08-10', NULL, '2025-02-02', NULL, NULL, 1, 0, 0, 1, 0, 0, 7,  'F', '', 'Warm genau wir Stelle böse. Ruhig gewinnen helfen sein Straße öffnen so. Weg dir schwimmen hart.\nDunkel nie stellen können hoch hart schaffen. Angst See besser.', '');",
-        "insert into meldungen values (8, NULL, '2025-12-25', NULL, '2025-02-01', NULL, NULL, 1, 0, 0, 0, 1, 0, 8,  'F', '', 'Geschenk weg gehen sieben Maus mit. Schule Bein fragen Wohnung heraus Wald Teller.\nDauern Beispiel Spaß wenig. Vorbei fünf Ende Gott lernen spielen ihn.', '');",
+        "insert into meldungen values (8, NULL, '2025-12-25', NULL, '2025-02-01', '2025-02-03', '9999', 1, 0, 0, 0, 1, 0, 8,  'F', '', 'Geschenk weg gehen sieben Maus mit. Schule Bein fragen Wohnung heraus Wald Teller.\nDauern Beispiel Spaß wenig. Vorbei fünf Ende Gott lernen spielen ihn.', '');",
         "insert into meldungen values (9, NULL, '2025-09-30', NULL, '2025-02-01', NULL, NULL, 1, 0, 0, 1, 0, 0, 9,  'F', '', 'Lustig Stück nichts. Onkel neun Katze Baum einigen darauf.\nMann deshalb lassen weg fragen nimmt fröhlich zeigen. Kennen tief Straße überall jetzt Zahl fertig. Haus lange sechs.', '');",
         "insert into meldungen values (10,NULL, '2022-09-04', NULL, '2025-02-01', NULL, NULL, 1, 0, 0, 0, 1, 0, 10, 'F', '', 'Voll darauf nämlich sehen Geschichte. Minute nennen Land kalt. Dabei Lehrer singen kochen sechs schreiben jung brauchen. Wohnung werfen neben überall.', '');",
         "insert into meldungen values (11,NULL, '2022-09-24', NULL, '2025-02-01', NULL, NULL, 1, 0, 1, 0, 0, 0, 11, 'F', '', 'Stunde drei fressen springen ins an. Pferd nennen stellen bis wer Geschichte. Schwester Brief Ball sie brauchen stehen.', '');",
@@ -139,25 +172,30 @@ def insert_data_reports(db):
         "insert into melduser values (20,20,39,40);",
     ]
 
-   
+    # insert data
     for user in users:
-        db.session.execute(
+        session.execute(
             text(user)
         )
     for fundort in fundorte:
-        db.session.execute(
+        session.execute(
             text(fundort)
         )
 
     for meldung in meldungen:
-        db.session.execute(
+        session.execute(
             text(meldung)
         )
         
     for melduser in meldusers:
-        db.session.execute(
+        session.execute(
             text(melduser)
         )
+    session.commit()
 
-
-    db.session.commit()
+    # update all sequences for all tables
+    session.execute(
+            text(stm)
+        )
+    session.commit()
+    

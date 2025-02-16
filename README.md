@@ -107,10 +107,6 @@ flask db upgrade
 flask insert-initial-data
 ```
 
-```bash
-flask create-mview
-```
-
 ### Step 7: 🎨 Run the CSS watcher
 
 ```bash
@@ -132,6 +128,12 @@ python run.py
 ```bash
 http://loclahost:5000/reviewer/9999
 ```
+# Start with frech databases
+
+- delete database mantis_tracker 
+- delete database mantis_tester
+- delete folder migrations
+- start again with Step 4
 
 # Production setup
 
