@@ -74,11 +74,21 @@ psql -U postgres
 ```
 
 ```sql
-CREATE DATABASE mantis_tracker;
+CREATE DATABASE mantis_tracker OWNER mantis_user;
 CREATE USER mantis_user WITH PASSWORD 'mantis';
 GRANT ALL PRIVILEGES ON DATABASE mantis_tracker TO mantis_user;
 -- MacOS only:
-GRANT usage, create ON SCHEMA public TO mantis_user;
+GRANT usage, create ON SCHEMA public TO mantis_tracker;
+\q
+```
+
+For pytest create a test database
+
+```sql
+CREATE DATABASE mantis_tester OWNER mantis_user;
+GRANT ALL PRIVILEGES ON DATABASE mantis_tester TO mantis_user;
+-- MacOS only:
+GRANT usage, create ON SCHEMA public TO mantis_tester;
 \q
 ```
 
@@ -89,7 +99,7 @@ flask db init
 ```
 
 ```bash
-flask db migrate -m "your comment"
+flask db migrate -m "Define initial  database structure."
 ```
 
 ### Step 5: 🏗️ Create the database tables
@@ -100,16 +110,10 @@ flask db upgrade
 ### Step 6: ☕ Fill the database tables 
 
 ```bash
-flask create-mview
-```
-
-```bash
 flask insert-initial-data
 ```
 
-### Step 6: 🎨 Set up Tailwind CSS
-
-First, install the Node.js dependencies:
+### Step 7: 🎨 Run the CSS watcher
 
 ```bash
 cd app/static
@@ -129,9 +133,27 @@ npm run watch:css
 ```bash
 python run.py
 ```
-This will start both the Flask development server and Tailwind CSS compiler in watch mode.
 
-#### Production server
+### Step 9: 🚀 Connect as Reviewer
+
+```bash
+http://loclahost:5000/reviewer/9999
+```
+# Start with frech databases
+
+- delete database mantis_tracker 
+- delete database mantis_tester
+- delete folder migrations
+- start again with Step 4
+
+# Production setup
+
+- Edit Settings in app/config.py and make changes e.g.
+  - Connectionstring for DB
+  - TESTING = False
+  - Run Tests with pytest
+  
+### Step 9: 🏢 Run production server
 
 ```bash
 gunicorn run:app    # For Windows: waitress-serve --listen=*:8000 run:app

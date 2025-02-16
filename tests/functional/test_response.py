@@ -1,6 +1,3 @@
-from app import create_app
-
-
 def test_request_example(client):
     response = client.get("/")
     assert b"Mitmachprojekt" in response.data

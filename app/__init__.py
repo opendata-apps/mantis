@@ -7,11 +7,18 @@ from flask.cli import with_appcontext
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
-from sqlalchemy import text
 from werkzeug.middleware.proxy_fix import ProxyFix
-
+#from sqlalchemy.dialects.postgresql import TSVECTOR
+import sqlalchemy as sa
+import sqlalchemy.schema
+import sqlalchemy.ext.compiler
+import sqlalchemy.orm as orm
+from sqlalchemy import text
 from .config import Config
+import  app.database.full_text_search as fts
+from app.demodata.filldb import insert_data_reports
 
+#import create_materialized_view
 csrf = CSRFProtect()
 db = SQLAlchemy()
 migrate = Migrate()
@@ -22,10 +29,10 @@ migrate = Migrate()
 @with_appcontext
 def create_materialized_view_command():
     """Create the materialized view."""
-    from app.database.full_text_search import FullTextSearch
+    #from app.database.full_text_search import FullTextSearch
     from app.database.alldata import TblAllData
 
-    FullTextSearch.create_materialized_view()
+    #FullTextSearch.createGen()
     TblAllData.create_materialized_view()
     click.echo("Materialized view created.")
 
@@ -59,17 +66,46 @@ def upgrade_fts_command():
 @with_appcontext
 def insert_initial_data_command():
     """Insert initial data into the beschreibung table."""
+    conn = Config.SQLALCHEMY_DATABASE_URI
+    db = sa.create_engine(conn)
+    Session = orm.sessionmaker(bind=db)
+    session = Session()
+
     for id, beschreibung in Config.INITIAL_DATA:
-        db.session.execute(
+        session.execute(
             text(
                 "INSERT INTO beschreibung (id, beschreibung) VALUES (:id, :beschreibung)"
             ),
             {"id": id, "beschreibung": beschreibung},
         )
-    db.session.commit()
-    click.echo("Initial data inserted into beschreibung table.")
+    session.commit()
 
+    insert_data_reports(session)
+    fts.create_materialized_view(db, session=session)
 
+#    conn = Config.SQLALCHEMY_DATABASE_URI
+#    db = sa.create_engine(conn)
+#    Session = orm.sessionmaker(bind=db)
+#    session = Session()
+#    try:
+#        for id, beschreibung in Config.INITIAL_DATA:
+#            session.execute(
+#                text(
+#                    "INSERT INTO beschreibung (id, beschreibung) VALUES (:id, :beschreibung)"
+#                ),
+#                {"id": id, "beschreibung": beschreibung},
+#            )
+#
+#        session.commit()
+#    except Exception as e:
+#        print("Beschreibungen schon vorhanden!")
+##    if Config.TESTING:
+##   try:
+#    print('Include demo-data for testing and development')
+#    insert_data_reports(session)
+ #   except Exception as e:
+  #      print("demodata schon vorhanden!")
+    #fts.create_materialized_view(db, session)        
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
@@ -85,6 +121,7 @@ def create_app(config_class=Config):
     app.cli.add_command(create_materialized_view_command)
     app.cli.add_command(upgrade_fts_command)
     app.cli.add_command(insert_initial_data_command)
+
     # If using Flask-App behind Nginx
     # https://flask.palletsprojects.com/en/2.3.x/deploying/proxy_fix/
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)

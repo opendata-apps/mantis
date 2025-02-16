@@ -632,9 +632,9 @@ def stats_gesamt(request, dateFrom, dateTo, marker):
                     id, gemeinde = result[0].split(' -- ')
                     result_dict[f"{result[0][:5]}"][4].append(
                         [id, '', '', gemeinde, result[1]])
-        except:
-            print(result)
-                    
+        except Exception as e:
+            print(result, e)
+
     return render_template(
         "statistics/stats-table-all.html",
         user_id=session["user_id"],

@@ -2,7 +2,6 @@
 import json
 import os
 import random
-
 from flask import (
     Blueprint,
     Response,
@@ -20,7 +19,10 @@ from app.tools.check_reviewer import login_required
 from ..config import Config
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-FEATURE_FLAG_FILE = os.path.join(BASE_DIR, '..', 'static', 'celebration_flag.json')
+FEATURE_FLAG_FILE = os.path.join(BASE_DIR,
+                                 '..',
+                                 'static',
+                                 'celebration_flag.json')
 
 # Blueprints
 main = Blueprint("main", __name__)
@@ -37,9 +39,9 @@ def index():
         .filter(TblMeldungen.deleted.is_(None))
         .count()
     )
-    
+
     celebration_enabled = check_celebration_flag(post_count)
-    
+
     json_path = os.path.join(
         BASE_DIR, "..", "static", "images", "galerie", "galerie.json"
     )
@@ -58,12 +60,12 @@ def index():
         celebration_enabled=celebration_enabled,
         celebration_threshold=Config.CELEBRATION_THRESHOLD,
     )
-    
+
+
 def check_celebration_flag(post_count):
     if post_count <= Config.CELEBRATION_THRESHOLD:
         return False
     return True
-
 
 
 def styles():
@@ -153,5 +155,3 @@ def favicon():
 def not_found(e):
     "404 error page."
     return render_template("404.html")
-
-

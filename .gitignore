@@ -2,6 +2,7 @@
 datastore
 import
 .#*
+.*~ 
 \#*
 db-import.sh
 \.mantis

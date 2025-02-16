@@ -1,50 +1,27 @@
-from typing import Optional, List, Tuple
-from sqlalchemy import event, DDL, Index, text
+import sqlalchemy as sa
+import sqlalchemy.schema
+import sqlalchemy.ext.compiler
+import sqlalchemy.orm as orm
+from sqlalchemy import text, func
+from sqlalchemy import Column, Integer, String
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import types
 from sqlalchemy.dialects.postgresql import TSVECTOR
-from sqlalchemy.sql import func, expression
+from typing import List, Optional
 from flask import current_app
-from app import db
-from app.database.models import TblMeldungen, TblFundorte, TblFundortBeschreibung, TblMeldungUser, TblUsers
-from contextlib import contextmanager
-from sqlalchemy.exc import OperationalError
-from sqlalchemy.orm import Session
 
-@contextmanager
-def session_scope():
-    """Provide a transactional scope around a series of operations."""
-    session = db.session
-    try:
-        yield session
-        session.commit()
-    except Exception as e:
-        session.rollback()
-        raise
-    finally:
-        # Don't close the session as it's managed by Flask-SQLAlchemy
-        pass
 
-class FullTextSearch(db.Model):
-    """
-    A materialized view for full-text search functionality.
-    Uses PostgreSQL's tsvector and websearch_to_tsquery for efficient text search operations.
-    
-    The search supports the following websearch syntax:
-    - quoted strings for exact phrase matches: "exact phrase"
-    - OR operator: word1 OR word2
-    - negation: -word
-    - grouping with parentheses: (word1 OR word2) word3
-    """
-    __tablename__ = "full_text_search"
-    
-    meldungen_id = db.Column(db.Integer, primary_key=True)
-    doc = db.Column(TSVECTOR)
-    
-    # Create GIN index for faster full-text search
-    __table_args__ = (
-        Index('idx_fts_doc_gin', doc, postgresql_using='gin'),
-        Index('idx_fts_meldungen_id', meldungen_id, unique=True),
-    )
-    
+meta = sa.MetaData()
+
+Base = sa.orm.declarative_base()
+
+class FullTextSearch(Base):
+    __tablename__ = 'full_text_search'
+    __table_args__ = {'schema': 'public'}
+
+    meldungen_id = Column(Integer, primary_key=True)
+    doc = Column(TSVECTOR)
+  
     @classmethod
     def search(cls, query: str, limit: Optional[int] = None) -> List[int]:
         """
@@ -62,92 +39,172 @@ class FullTextSearch(db.Model):
             >>> FullTextSearch.search('word1 OR word2')
         """
         try:
-            # Use websearch_to_tsquery for better search syntax support
-            ts_query = expression.func.websearch_to_tsquery('german', query)
-            
-            # Build the search query
-            search_query = cls.query.with_entities(cls.meldungen_id).\
-                filter(cls.doc.op('@@')(ts_query))
-                
+            from app import db
+            session = db.session
+
+            # Handle email searches separately
+            if '@' in query:
+                sql = text("""
+                    SELECT DISTINCT m.id 
+                    FROM meldungen m
+                    JOIN melduser mu ON m.id = mu.id_meldung
+                    JOIN users u ON mu.id_user = u.id
+                    WHERE u.user_kontakt ILIKE :query
+                    ORDER BY m.id DESC
+                """)
+                if limit:
+                    sql = text(str(sql) + " LIMIT :limit")
+                    result = session.execute(sql, {'query': f'%{query}%', 'limit': limit})
+                else:
+                    result = session.execute(sql, {'query': f'%{query}%'})
+                return [row[0] for row in result]
+
+            # For regular searches, use websearch_to_tsquery
+            sql = text("""
+                SELECT meldungen_id 
+                FROM full_text_search 
+                WHERE doc @@ websearch_to_tsquery('german', :query)
+                ORDER BY ts_rank(doc, websearch_to_tsquery('german', :query)) DESC
+            """)
+
             if limit:
-                search_query = search_query.limit(limit)
-                
-            return [result.meldungen_id for result in search_query.all()]
+                sql = text(str(sql) + " LIMIT :limit")
+                result = session.execute(sql, {'query': query, 'limit': limit})
+            else:
+                result = session.execute(sql, {'query': query})
+
+            return [row[0] for row in result]
+
         except Exception as e:
-            # Log the error but don't expose internal details
             current_app.logger.error(f"FTS search error: {str(e)}")
             return []
 
-    @classmethod
-    def refresh_materialized_view(cls):
-        """Refresh the materialized view with error handling."""
-        try:
-            with session_scope() as session:
-                # Try concurrent refresh first
-                session.execute(text("REFRESH MATERIALIZED VIEW CONCURRENTLY full_text_search"))
-        except OperationalError as e:
-            if "concurrent refresh" in str(e).lower():
-                # Fall back to regular refresh if concurrent refresh is not possible
-                with session_scope() as session:
-                    session.execute(text("REFRESH MATERIALIZED VIEW full_text_search"))
-            else:
-                current_app.logger.error(f"FTS refresh error: {str(e)}")
-                raise
 
-    @classmethod
-    def create_materialized_view(cls):
-        """Create the materialized view for full-text search with optimized tsvector concatenation."""
-        view_query = """
-            CREATE MATERIALIZED VIEW IF NOT EXISTS full_text_search AS
-            SELECT 
-                m.id as meldungen_id,
-                setweight(to_tsvector('german', COALESCE(m.bearb_id, '') || ' ' ||
-                    COALESCE(m.anm_melder, '') || ' ' ||
-                    COALESCE(m.anm_bearbeiter, '')), 'A') ||
-                setweight(to_tsvector('german', COALESCE(f.ort, '') || ' ' ||
-                    COALESCE(f.strasse, '') || ' ' ||
-                    COALESCE(f.kreis, '') || ' ' ||
-                    COALESCE(f.land, '') || ' ' ||
-                    COALESCE(f.amt, '') || ' ' ||
-                    COALESCE(f.plz::text, '') || ' ' ||
-                    COALESCE(f.mtb, '')), 'B') ||
-                setweight(to_tsvector('german', COALESCE(b.beschreibung, '')), 'C') ||
-                setweight(to_tsvector('german', COALESCE(u.user_id, '') || ' ' ||
-                    COALESCE(u.user_name, '') || ' ' ||
-                    COALESCE(u.user_kontakt, '')), 'D') as doc
-            FROM 
-                meldungen m
-            LEFT JOIN 
-                fundorte f ON m.fo_zuordnung = f.id
-            LEFT JOIN 
-                beschreibung b ON f.beschreibung = b.id
-            LEFT JOIN 
-                melduser mu ON m.id = mu.id_meldung
-            LEFT JOIN 
-                users u ON mu.id_user = u.id
-        """
-        
-        with session_scope() as session:
-            session.execute(text(view_query))
-            
-            # Create indexes
-            session.execute(text("""
-                CREATE UNIQUE INDEX IF NOT EXISTS idx_fts_meldungen_id 
-                ON full_text_search (meldungen_id)
-            """))
-            
-            session.execute(text("""
-                CREATE INDEX IF NOT EXISTS idx_fts_doc_gin 
-                ON full_text_search USING gin(doc)
-            """))
+class Drop(sa.schema.DDLElement):
+    def __init__(self, name, schema):
+        self.name = name
+        self.schema = schema
 
-# Create DDL event listeners for database initialization
-event.listen(
-    FullTextSearch.__table__,
-    'after_create',
-    DDL(
-        """
-        CREATE INDEX IF NOT EXISTS idx_fts_doc_gin ON full_text_search USING gin(doc);
-        """
+
+class Create(sa.schema.DDLElement):
+    def __init__(self, name, select, schema='public'):
+        self.name = name
+        self.schema = schema
+        self.select = select
+
+        sa.event.listen(meta, 'after_create', self)
+        sa.event.listen(meta, 'before_drop', Drop(name, schema))
+
+
+@sa.ext.compiler.compiles(Create)
+def createGen(element, compiler, **kwargs):
+    return 'CREATE MATERIALIZED VIEW {schema}."{name}" AS {select}'.format(
+        name=element.name,
+        schema=element.schema,
+        select=compiler.sql_compiler.process(
+            element.select,
+            literal_binds=True
+        ),
     )
-)
+
+
+@sa.ext.compiler.compiles(Drop)
+def dropGen(element, compiler, **kwargs):
+    # Den SQL-Ausdruck mit text() umschließen,
+    # damit SQLAlchemy ihn korrekt behandelt
+    sql = 'DROP MATERIALIZED VIEW {schema}."{name}"'.format(
+        name=element.name,
+        schema=element.schema
+    )
+    return text(sql)  # text() um den SQL-Ausdruck
+
+
+def create_materialized_view(db, session=None):
+    'create a materialized view for global search activities '
+    if not db:
+        db = sa.create_engine(
+            'postgresql://mantis_user:mantis@localhost/mantis_tracker'
+        )
+
+        Session = orm.sessionmaker(bind=db)
+        session = Session()
+
+    #try:
+        #session.execute(text('drop table melduser cascade'))
+        #drop = Drop(name='full_text_search', schema='public')
+        # You can call dropGen directly with the `drop` object
+        #session.execute(dropGen(drop, None))
+        #session.commit()
+    #except Exception as e:
+    #    print('Nix zu löschen')
+    # Table Aliases
+    meldungen = sa.table('meldungen', sa.column('id'), sa.column('bearb_id'),
+                         sa.column('anm_melder'), sa.column('anm_bearbeiter'),
+                         sa.column('fo_zuordnung'))
+    fundorte = sa.table('fundorte', sa.column('id'),
+                        sa.column('ort'), sa.column('strasse'),
+                        sa.column('kreis'), sa.column('land'),
+                        sa.column('amt'), sa.column('plz'),
+                        sa.column('mtb'), sa.column('beschreibung'))
+    beschreibung = sa.table('beschreibung', sa.column('id'),
+                            sa.column('beschreibung'))
+    melduser = sa.table('melduser', sa.column('id_meldung'),
+                        sa.column('id_user'), sa.column('id_finder'))
+    users = sa.table('users', sa.column('id'), sa.column('user_id'),
+                     sa.column('user_name'), sa.column('user_kontakt'))
+    # Full-Text Vector
+    fts_vector = sa.func.to_tsvector(
+        text("'german'"),
+        sa.func.coalesce(meldungen.c.bearb_id, '') + ' ' +
+        sa.func.coalesce(meldungen.c.anm_melder, '') + ' ' +
+        sa.func.coalesce(meldungen.c.anm_bearbeiter, '') + ' ' +
+        sa.func.coalesce(fundorte.c.ort, '') + ' ' +
+        sa.func.coalesce(fundorte.c.strasse, '') + ' ' +
+        sa.func.coalesce(fundorte.c.kreis, '') + ' ' +
+        sa.func.coalesce(fundorte.c.land, '') + ' ' +
+        sa.func.coalesce(fundorte.c.amt, '') + ' ' +
+        sa.func.coalesce(fundorte.c.plz.cast(sa.String), '') + ' ' +
+        sa.func.coalesce(fundorte.c.mtb, '') + ' ' +
+        sa.func.coalesce(beschreibung.c.beschreibung, '') + ' ' +
+        sa.func.coalesce(melduser.c.id_user.cast(sa.String), '') + ' ' +
+        sa.func.coalesce(melduser.c.id_finder.cast(sa.String), '') + ' ' +
+        sa.func.coalesce(users.c.user_id, '') + ' ' +
+        sa.func.coalesce(users.c.user_name, '') + ' ' +
+        sa.func.coalesce(users.c.user_kontakt, '')
+    ).label('doc')
+
+    # Query Definition
+    view_query = sa.select(
+        meldungen.c.id.label('meldungen_id'),
+        fts_vector
+    ).select_from(
+        meldungen
+        .outerjoin(fundorte, meldungen.c.fo_zuordnung == fundorte.c.id)
+        .outerjoin(beschreibung, fundorte.c.beschreibung == beschreibung.c.id)
+        .outerjoin(melduser, meldungen.c.id == melduser.c.id_meldung)
+        .outerjoin(users, melduser.c.id_user == users.c.id)
+    )
+
+    # Create View
+    Create(
+        name='full_text_search',
+        select=view_query
+    )
+    meta.create_all(bind=db, checkfirst=True)
+    session.commit()
+    session.close()
+    
+def refresh_materialized_view(db):
+    "Refresh the materialized view"
+    db.session.execute(text('REFRESH MATERIALIZED VIEW full_text_search'))
+    db.session.commit()
+
+if __name__ == '__main__':
+    #try:
+    #    drop = Drop(name='full_text_search', schema='public')
+    #    # You can call dropGen directly with the `drop` object
+    #    session.execute(dropGen(drop, None))
+    #    session.commit()
+    #except:
+    #    print('No view to drop.')
+    create_materialized_view()

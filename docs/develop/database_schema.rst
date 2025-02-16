@@ -6,18 +6,23 @@ Schema
 .. index:: Datanbank; Schema
 .. index:: Schema; Datenbank
 	   
-.. image:: images/mantis-dbstruktur.svg
+.. image:: ./images/mantis-dbstruktur.svg
    :width: 1024
 
-- Die mit Alembic erstellten Relationen finden Sie im Repository im
-  Ordner
+Alembic
+-------
 
-  ``manits/app/database/``.
-- Die Verbindung zur Datenbank wird in der Datei
+Die mit Alembic erstellten Relationen
+finden Sie im Ordner:
 
-  ``manits/app/config.py``
+ ``manits/app/database/``
 
-  definiert. 
+Datenbankverbindung
+-------------------
+
+Die Verbindung zur Datenbank wird in der folgenden Datei definiert:
+
+``manits/app/config.py``
 
 Demodaten
 ---------
@@ -26,7 +31,7 @@ Demodaten
 	   
 Demodaten befinden sich im Ordner:
 
-  ``manits/tests/demaodata``
+``manits/tests/demodata``
 
 Neuanlage
 ---------
