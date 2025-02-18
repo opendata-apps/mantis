@@ -73,16 +73,18 @@ Using `psql`:
 psql -U postgres
 ```
 
+Preapare a database for production. 
+
 ```sql
-CREATE DATABASE mantis_tracker OWNER mantis_user;
 CREATE USER mantis_user WITH PASSWORD 'mantis';
+CREATE DATABASE mantis_tracker OWNER mantis_user;
 GRANT ALL PRIVILEGES ON DATABASE mantis_tracker TO mantis_user;
 -- MacOS only:
 GRANT usage, create ON SCHEMA public TO mantis_tracker;
 \q
 ```
 
-For pytest create a test database
+Prepare a database for pytest
 
 ```sql
 CREATE DATABASE mantis_tester OWNER mantis_user;
@@ -108,6 +110,9 @@ flask db migrate -m "Define initial  database structure."
 flask db upgrade
 ```
 ### Step 6: ☕ Fill the database tables 
+
+If TESTING in config.py is set to TRUE also
+Demodata are inserted into the database.
 
 ```bash
 flask insert-initial-data
