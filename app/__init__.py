@@ -1,6 +1,7 @@
 import random
 from datetime import datetime
-
+import shutil
+import os
 import click
 from flask import Flask, render_template
 from flask.cli import with_appcontext
@@ -83,29 +84,16 @@ def insert_initial_data_command():
     insert_data_reports(session)
     fts.create_materialized_view(db, session=session)
 
-#    conn = Config.SQLALCHEMY_DATABASE_URI
-#    db = sa.create_engine(conn)
-#    Session = orm.sessionmaker(bind=db)
-#    session = Session()
-#    try:
-#        for id, beschreibung in Config.INITIAL_DATA:
-#            session.execute(
-#                text(
-#                    "INSERT INTO beschreibung (id, beschreibung) VALUES (:id, :beschreibung)"
-#                ),
-#                {"id": id, "beschreibung": beschreibung},
-#            )
-#
-#        session.commit()
-#    except Exception as e:
-#        print("Beschreibungen schon vorhanden!")
-##    if Config.TESTING:
-##   try:
-#    print('Include demo-data for testing and development')
-#    insert_data_reports(session)
- #   except Exception as e:
-  #      print("demodata schon vorhanden!")
-    #fts.create_materialized_view(db, session)        
+    src = 'app/datastore/gallerie/'
+    trg = 'app/datastore/2025/2025-01-19/'
+    os.makedirs(os.path.dirname(trg), exist_ok=True)
+    
+    files=os.listdir(src)
+    for fname in files:
+        # copying demo files to the 
+        # destination directory
+        shutil.copy2(os.path.join(src,fname), trg)
+    
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)

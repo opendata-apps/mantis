@@ -1,6 +1,7 @@
 import pytest
 import sys
 import os
+import shutil
 from pathlib import Path
 from app import create_app, db
 from alembic import command
@@ -47,7 +48,7 @@ def insert_initial_data_command():
     insert_data_reports(session)
     fts.create_materialized_view(db, session=session)
 
-
+    
 def drop_all_with_views():
     # Alle Materialized Views löschen (mit CASCADE)
     db.session.execute(text(

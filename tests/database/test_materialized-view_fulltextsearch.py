@@ -3,7 +3,7 @@ import app.database.full_text_search as fts
 
 #@pytest.fixture(scope='session')
 def test_view_fulltextsearch1(session):
-    search_query = "Harz"
+    search_query = "Zossen"
     search_vector = text(
         "plainto_tsquery('german', :query)"
     ).bindparams(
@@ -17,11 +17,11 @@ def test_view_fulltextsearch1(session):
         result.meldungen_id for result in search_results
     ]
 
-    assert  reported_sightings_ids == [2]
+    assert  reported_sightings_ids == [1]
 
 #@pytest.fixture(scope='session')
 def test_view_fulltextsearch_with_umlaut(session):
-    search_query = "Jülich"
+    search_query = "Cottbus"
     search_vector = text(
         "plainto_tsquery('german', :query)"
     ).bindparams(
@@ -35,4 +35,4 @@ def test_view_fulltextsearch_with_umlaut(session):
         result.meldungen_id for result in search_results
     ]
 
-    assert  reported_sightings_ids == [20]
+    assert  reported_sightings_ids == [3, 9]
