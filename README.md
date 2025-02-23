@@ -127,7 +127,7 @@ The project includes a convenient script to watch for CSS changes. Start it with
 npm run watch:css
 ```
 
-### Step 7: 🚀 Run the application
+### Step 8: 🚀 Run the application
 
 #### Development server
 
@@ -141,11 +141,10 @@ python run.py
 http://loclahost:5000/reviewer/9999
 ```
 
-# Start with frech databases
+# Start with fresh databases
 
 - delete database mantis_tracker
 - delete database mantis_tester
-- delete folder migrations
 - start again with Step 4
 
 # Production setup
@@ -154,7 +153,13 @@ http://loclahost:5000/reviewer/9999
   - Connectionstring for DB
   - TESTING = False
   - Run Tests with pytest
-  
+- Create the minified CSS file
+
+```bash
+cd app/static
+npm run build:css
+```
+
 ### Step 9: 🏢 Run production server
 
 ```bash
@@ -164,13 +169,3 @@ gunicorn run:app    # For Windows: waitress-serve --listen=*:8000 run:app
 ### Step 8: 🌐 Access the application
 
 Open [http://localhost:5000](http://localhost:5000) in your browser.
-
-## 🔧 Troubleshooting
-
-### Database Sequence Reset
-
-If you encounter issues with ID sequences, run:
-
-```sql
-SELECT setval('[TableName]_id_seq', (SELECT MAX(id) FROM [TableName]))
-```
