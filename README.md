@@ -6,7 +6,6 @@ An interactive web application to track Mantis Religiosa sightings in Brandenbur
 
 Mantis Tracker allows users to report Mantis Religiosa sightings and view them on an interactive map, along with insightful statistics and helpful FAQs.
 
-
 ## 🌟 Features
 
 - 📚 Learn about the Mantis Religiosa
@@ -73,7 +72,7 @@ Using `psql`:
 psql -U postgres
 ```
 
-Preapare a database for production. 
+Preapare a database for production.
 
 ```sql
 CREATE USER mantis_user WITH PASSWORD 'mantis';
@@ -97,10 +96,6 @@ GRANT usage, create ON SCHEMA public TO mantis_tester;
 > ⚠️: Only if there are any Database changes:
 
 ```bash
-flask db init
-```
-
-```bash
 flask db migrate -m "Define initial  database structure."
 ```
 
@@ -109,7 +104,8 @@ flask db migrate -m "Define initial  database structure."
 ```bash
 flask db upgrade
 ```
-### Step 6: ☕ Fill the database tables 
+
+### Step 6: ☕ Fill the database tables
 
 If TESTING in config.py is set to TRUE also
 Demodata are inserted into the database.
@@ -144,9 +140,10 @@ python run.py
 ```bash
 http://loclahost:5000/reviewer/9999
 ```
+
 # Start with frech databases
 
-- delete database mantis_tracker 
+- delete database mantis_tracker
 - delete database mantis_tester
 - delete folder migrations
 - start again with Step 4
@@ -177,4 +174,3 @@ If you encounter issues with ID sequences, run:
 ```sql
 SELECT setval('[TableName]_id_seq', (SELECT MAX(id) FROM [TableName]))
 ```
-

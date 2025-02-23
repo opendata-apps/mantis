@@ -81,18 +81,19 @@ def insert_initial_data_command():
         )
     session.commit()
 
-    insert_data_reports(session)
-    fts.create_materialized_view(db, session=session)
+    if Config.TESTING:  
+        insert_data_reports(session)
+        fts.create_materialized_view(db, session=session)
 
-    src = 'app/datastore/gallerie/'
-    trg = 'app/datastore/2025/2025-01-19/'
-    os.makedirs(os.path.dirname(trg), exist_ok=True)
-    
-    files=os.listdir(src)
-    for fname in files:
-        # copying demo files to the 
-        # destination directory
-        shutil.copy2(os.path.join(src,fname), trg)
+        src = 'app/datastore/gallerie/'
+        trg = 'app/datastore/2025/2025-01-19/'
+        os.makedirs(os.path.dirname(trg), exist_ok=True)
+        
+        files=os.listdir(src)
+        for fname in files:
+            # copying demo files to the 
+            # destination directory
+            shutil.copy2(os.path.join(src,fname), trg)
     
 def create_app(config_class=Config):
     app = Flask(__name__)
