@@ -8,6 +8,7 @@ https://nominatim.openstreetmap.org/search?\
 https://nominatim.openstreetmap.org/search?\n
    q=Dorfstraße+Fichtwald+04936+8&format=json&addressdetails=1&limit=3
 """
+
 import requests
 from geopy.distance import geodesic
 import time
