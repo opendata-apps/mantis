@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "watch:css": "tailwindcss -i css/theme.css -o build/theme.css --watch",
-    "build:css": "tailwindcss -i css/theme.css -o build/theme.css"
+    "build:css": "tailwindcss -i css/theme.css -o build/theme.css --minify"
   },
   "dependencies": {
     "canvas-confetti": "^1.9.3",
