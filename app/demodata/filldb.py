@@ -104,7 +104,7 @@ from maxvals;
     ]
     
     fundorte = [
-        "insert into fundorte values (1 , '64027', 'Zossen', 'Oertelufer','Zossen', 'Teltow-Fläming', '12072477', '3746', 1, '13.440683', '52.217574', '2025/2025-01-19/mantis1.webp');",
+        "insert into fundorte values (1 , '15806', 'Zossen', 'Oertelufer','Zossen', 'Teltow-Fläming', '12072477', '3746', 1, '13.440683', '52.217574', '2025/2025-01-19/mantis1.webp');",
         "insert into fundorte values (2 , '14793', 'Ziesar', 'Wiesenweg','Potsdam-Mittelmark', 'Brandenburg', '12069696', '3739', 1, '12.281342', '52.257955', '2025/2025-01-19/mantis2.webp');",
         "insert into fundorte values (3 , '03044', 'Cottbus', 'Querstraße 14','Schmellwitz', 'Brandenburg', '12052000', '4251', 1, '14.322739' , '51.785667', '2025/2025-01-19/mantis3.webp');",
         "insert into fundorte values (4 , '14929', 'Treuenbrietzen', 'Brücker Straße','Potsdam-Mittelmark', 'Brandenburg', '12069632', '3843', 1, '12.241585', '51.746216', '2025/2025-01-19/mantis4.webp');",
