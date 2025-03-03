@@ -21,6 +21,7 @@ dependencies = [
     "flask-migrate==4.1.0",
     "flask-sqlalchemy==3.1.1",
     "flask-wtf==1.2.2",
+    "geopy>=2.4.1",
     "greenlet==3.1.1",
     "gunicorn==23.0.0",
     "idna==3.10",
