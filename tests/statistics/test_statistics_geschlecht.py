@@ -2,9 +2,9 @@ import pytest
 from unittest.mock import patch
 from werkzeug.test import EnvironBuilder
 from werkzeug.wrappers import Request
-from flask.sessions import SecureCookieSession
 from werkzeug.datastructures import MultiDict  
 from app.routes.statistics import stats_geschlecht,  get_date_interval, list_of_stats
+from flask import session
 
 @pytest.fixture
 def mock_request():
@@ -12,19 +12,19 @@ def mock_request():
     # Erstelle einen EnvironBuilder mit den Formular-Daten
     builder = EnvironBuilder(
         method='POST',
-        data={'dateFrom': '2024-01-01', 'dateTo': '2025-12-31'}
+        data={'dateFrom': '2024-01-01', 'dateTo': '2025-12-31',
+              'user_id':'9999'}
     )
     
     # Erstelle das Request-Objekt
     request = Request(builder.get_environ())
     
+   
     # Erstelle und setze die Session als SecureCookieSession
-    session = SecureCookieSession()
     session['user_id'] = '9999'  # Setze die user_id
-    
     # Verknüpfe die Session mit dem Request
     request.session = session
-
+   
     return request
 
 

@@ -237,7 +237,7 @@ def stats_bardiagram_datum(request, dbfields,
 
 def stats_geschlecht(request=None):
     """Count sum of all kategories"""
-    print(request.session)
+    
     start_date, end_date = get_date_interval(request)
     stm = f"""
       select sum(art_m) as "Männchen"
@@ -252,7 +252,7 @@ def stats_geschlecht(request=None):
             and deleted is NULL or 'f') as filtered;"""
 
     sql = text(stm)
-    userid = request.session["user_id"]
+    userid = session["user_id"]
     with db.engine.connect() as conn:
         result = conn.execute(sql)
         res = []

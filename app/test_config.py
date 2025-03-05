@@ -1,5 +1,6 @@
+import os
 from datetime import datetime
-
+from dotenv import load_dotenv
 
 class Config:
     TESTING = True
@@ -23,3 +24,5 @@ class Config:
     CURRENT_YEAR = datetime.now().year
     MIN_MAP_YEAR = 2025
     CELEBRATION_THRESHOLD = 10000
+    SECRET_KEY = os.environ.get(
+        'SECRET_KEY') or 'do-not-get-tired-youll-never-find'
