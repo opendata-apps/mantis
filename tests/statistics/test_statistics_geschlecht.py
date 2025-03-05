@@ -4,11 +4,7 @@ from werkzeug.test import EnvironBuilder
 from werkzeug.wrappers import Request
 from flask.sessions import SecureCookieSession
 from werkzeug.datastructures import MultiDict  
-#from your_module import stats_geschlecht  # Passe den Import an den tatsächlichen Pfad an
 from app.routes.statistics import stats_geschlecht,  get_date_interval, list_of_stats
-#from flask import render_template
-# Testdaten
-mock_result = [{'Männchen': 3, 'Weibchen': 4, 'Nymphen': 6, 'Ootheken': 6, 'Andere': 0}]
 
 @pytest.fixture
 def mock_request():
@@ -68,5 +64,4 @@ def test_stats_geschlecht(mock_render_template, session, mock_request):
     actual_values = mock_render_template.call_args[1]['values']
     expected_values = {'Männchen': 3, 'Weibchen': 4, 'Nymphen': 6, 'Ootheken': 6, 'Andere': 0}
     
-    # Vergleiche die Werte
     assert actual_values == expected_values, f"Expected values: {expected_values}, but got: {actual_values}"
