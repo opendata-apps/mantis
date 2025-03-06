@@ -222,7 +222,7 @@ def stats_bardiagram_datum(request, dbfields,
                 trace["x"].append(str(record[0]))
                 trace["y"].append(record[1])
         results[idx] = trace
-
+        print(results)
     return render_template(
         "statistics/" + page,
         menu=list_of_stats,
