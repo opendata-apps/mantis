@@ -216,13 +216,13 @@ def stats_bardiagram_datum(request, dbfields,
             result = conn.execute(sql)
 
         trace = {"x": [], "y": []}
-
+        
         if result:
             for record in result:
                 trace["x"].append(str(record[0]))
                 trace["y"].append(record[1])
         results[idx] = trace
-
+        print(results)
     return render_template(
         "statistics/" + page,
         menu=list_of_stats,
