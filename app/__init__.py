@@ -1,5 +1,5 @@
 import random
-from datetime import datetime
+from datetime import datetime, timezone
 import shutil
 import os
 import click
@@ -117,7 +117,7 @@ def create_app(config_class=Config):
 
     @app.context_processor
     def inject_now():
-        return {"now": datetime.utcnow()}
+        return {"now": datetime.now(timezone.utc)}
 
     # Import the routes
     from app.routes.admin import admin
