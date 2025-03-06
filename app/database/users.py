@@ -1,6 +1,4 @@
 from app import db
-from ..database import Base
-
 
 class TblUsers(db.Model):
     __tablename__ = "users"

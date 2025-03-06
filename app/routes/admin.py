@@ -24,14 +24,14 @@ from flask import (
     send_from_directory,
     url_for,
 )
-from sqlalchemy import inspect, or_, text, cast, String, update
+from sqlalchemy import inspect, or_, cast, String, update
 from app.tools.check_reviewer import login_required
 import shutil
 from werkzeug.utils import secure_filename
 from pathlib import Path
 from flask import current_app
 from app.tools.send_reviewer_email import send_email
-from typing import Optional, List, Dict, Any, Union
+from typing import Optional, Any
 
 import os
 

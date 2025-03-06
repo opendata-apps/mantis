@@ -1,4 +1,4 @@
-from app.tools.mtb_calc import get_mtb, pointInRect
+from app.tools.mtb_calc import get_mtb
 
 def test_get_mtb_for_trebbin(session):
 

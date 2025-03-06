@@ -2,9 +2,8 @@ import pytest
 from unittest.mock import patch
 from werkzeug.test import EnvironBuilder
 from werkzeug.wrappers import Request
-from werkzeug.datastructures import MultiDict  
-from app.routes.statistics import stats_geschlecht,  get_date_interval, list_of_stats
-from flask import session as flask_session, appcontext_pushed, g
+from app.routes.statistics import stats_geschlecht
+from flask import session as flask_session
 
 @pytest.fixture
 def mock_request(app):

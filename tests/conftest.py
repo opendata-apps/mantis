@@ -1,8 +1,4 @@
 import pytest
-import sys
-import os
-import shutil
-from pathlib import Path
 from app import create_app, db
 from alembic import command
 from alembic.config import Config

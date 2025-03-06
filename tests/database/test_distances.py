@@ -1,6 +1,3 @@
-import time
-import requests
-from geopy.distance import geodesic
 from app.tools.check_distance import get_coordinates_from_address
 from app.tools.check_distance import  calculate_distance
 

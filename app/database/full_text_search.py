@@ -2,10 +2,8 @@ import sqlalchemy as sa
 import sqlalchemy.schema
 import sqlalchemy.ext.compiler
 import sqlalchemy.orm as orm
-from sqlalchemy import text, func
-from sqlalchemy import Column, Integer, String
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import types
+from sqlalchemy import text
+from sqlalchemy import Column, Integer 
 from sqlalchemy.dialects.postgresql import TSVECTOR
 from typing import List, Optional
 from flask import current_app

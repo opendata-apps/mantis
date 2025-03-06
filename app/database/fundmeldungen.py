@@ -1,5 +1,4 @@
 from app import db
-from ..database import Base
 
 
 class TblMeldungen(db.Model):

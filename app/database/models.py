@@ -8,3 +8,15 @@ from .users import TblUsers
 from .full_text_search import FullTextSearch
 
 from .alldata import TblAllData
+
+__all__ = [
+    "TblMeldungen",
+    "TblFundortBeschreibung",
+    "TblFundorte",
+    "TblMeldungUser",
+    "TblAemterCoordinaten",
+    "TblUsers",
+    "FullTextSearch",
+    "TblAllData",
+    "Base",
+]
