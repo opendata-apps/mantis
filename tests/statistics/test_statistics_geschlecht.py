@@ -5,6 +5,7 @@ from werkzeug.wrappers import Request
 from app.routes.statistics import stats_geschlecht
 from flask import session as flask_session
 
+
 @pytest.fixture
 def mock_request(app):
     """Fixture für das Mocken des Requests mit form-Daten und einer user_id in der SecureCookieSession."""
