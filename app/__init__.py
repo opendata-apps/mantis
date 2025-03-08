@@ -1,4 +1,3 @@
-import random
 from datetime import datetime, timezone
 import shutil
 import os
@@ -101,9 +100,6 @@ def create_app(config_class=Config):
     csrf.init_app(app)
     db.init_app(app)
 
-    with app.app_context():
-        app.jinja_env.filters["shuffle"] = shuffle
-
     migrate.init_app(app, db)
 
     # Register the custom commands
@@ -141,17 +137,6 @@ def create_app(config_class=Config):
     app.register_error_handler(429, too_many_requests)
 
     return app
-
-
-# Define the shuffle function for images
-# Add the shuffle function to Jinja environment filters
-def shuffle(seq):
-    try:
-        result = list(seq)
-        random.shuffle(result)
-        return result
-    except:
-        return seq
 
 
 def page_not_found(e):
