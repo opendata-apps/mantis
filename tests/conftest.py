@@ -25,6 +25,97 @@ def client(app):
     """Create a test client for the Flask application."""
     return app.test_client()
 
+@pytest.fixture
+def request_context(app):
+    """Provides a Flask request context for tests.
+    Use this when you need to access Flask's request, session, or g objects."""
+    with app.test_request_context() as ctx:
+        yield ctx
+
+@pytest.fixture
+def session_with_user(request_context):
+    """Fixture that sets up a user in the session.
+    Use when you need an authenticated session."""
+    from flask import session
+    session['user_id'] = '9999'
+    yield session
+
+@pytest.fixture
+def mock_request(app, session_with_user):
+    """Creates a mock request object with session data.
+    Use for testing routes that access request data."""
+    from werkzeug.test import EnvironBuilder
+    from werkzeug.wrappers import Request
+    from flask import session as flask_session
+    
+    # Create environment with form data
+    builder = EnvironBuilder(
+        method='POST',
+        data={'user_id': '9999'}
+    )
+    
+    # Create the request object
+    request = Request(builder.get_environ())
+    
+    # Make sure the request has access to the session
+    request.environ['flask.session'] = flask_session
+    
+    yield request
+
+@pytest.fixture
+def mock_render_template():
+    """Provides a mock for Flask's render_template function.
+    
+    Example usage:
+        def test_some_route(mock_render_template):
+            # Make request to endpoint
+            response = client.get('/')
+            
+            # Assert render_template was called with correct template and context
+            mock_render_template.assert_called_once_with('home.html', user=None)
+    """
+    from unittest.mock import patch
+    with patch('flask.render_template') as mock:
+        mock.return_value = ''
+        yield mock
+
+@pytest.fixture
+def authenticated_client(client, session_with_user):
+    """Provides a test client with an authenticated session."""
+    return client
+
+@pytest.fixture
+def form_data_request(mock_request, request):
+    """Generic fixture for mocking a request with form data.
+    
+    Usage:
+        @pytest.fixture
+        def my_form_data(form_data_request):
+            form_data_request.form = {
+                'field1': 'value1',
+                'field2': 'value2'
+            }
+            return form_data_request
+    """
+    # Get form data from test markers if provided
+    marker = request.node.get_closest_marker("form_data")
+    form_data = marker.args[0] if marker else {}
+    
+    # Add form data to the mock request
+    mock_request.form = form_data
+    return mock_request
+
+@pytest.fixture
+def form_with_dates(form_data_request):
+    """Fixture for mocking a request with standard date range form data.
+    Commonly used in statistics tests."""
+    form_data_request.form = {
+        'dateFrom': '2024-01-01',
+        'dateTo': '2025-12-31',
+        'user_id': '9999'
+    }
+    return form_data_request
+
 def insert_initial_data_command():
     """Insert initial data into the beschreibung table."""
 
