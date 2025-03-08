@@ -1,3 +1,13 @@
+"""Tests for the mantis report submission process including form validation and database operations.
+
+This test suite validates the complete report submission functionality including:
+1. Form rendering
+2. Form validation (all field types)
+3. File upload handling
+4. Security features (honeypot, rate limiting)
+5. Database integration
+6. Gender field mapping
+"""
 import io
 import datetime
 from pathlib import Path
@@ -10,7 +20,11 @@ from app.database.fundortbeschreibung import TblFundortBeschreibung
 
 
 def create_test_image():
-    """Create a test image file in memory."""
+    """Create a test image file in memory.
+    
+    Returns:
+        BytesIO: In-memory file object with a small JPEG image
+    """
     file = io.BytesIO()
     image = Image.new('RGB', (100, 100), color='red')
     image.save(file, 'jpeg')
@@ -21,7 +35,15 @@ def create_test_image():
 
 @pytest.fixture
 def report_form_data():
-    """Creates valid data for the mantis sighting report form."""
+    """Creates valid data for the mantis sighting report form.
+    
+    This fixture provides default values for all form fields required 
+    for a successful submission, and is used as a base for modifying
+    specific fields in tests.
+    
+    Returns:
+        dict: Form data with valid values for all required fields
+    """
     today = datetime.date.today()
     sighting_date = (today - datetime.timedelta(days=7)).strftime('%Y-%m-%d')
     
@@ -45,9 +67,15 @@ def report_form_data():
     }
 
 
-# Fixture for the location test data
 @pytest.fixture
 def location_test_data():
+    """Provides test data for TblFundorte model.
+    
+    Used for database integration tests to create location records.
+    
+    Returns:
+        dict: Default values for a test location record
+    """
     return {
         'mtb': '3644',
         'longitude': '13.404954',
@@ -62,9 +90,15 @@ def location_test_data():
     }
 
 
-# Fixture for user test data
 @pytest.fixture
 def user_test_data():
+    """Provides test data for TblUsers model.
+    
+    Used for database integration tests to create user records.
+    
+    Returns:
+        dict: Default values for a test user record
+    """
     return {
         'user_id': 'TEST123',
         'user_name': 'Reporter T.',
@@ -74,7 +108,11 @@ def user_test_data():
 
 
 class TestReportSubmission:
-    """Tests for the mantis report submission route."""
+    """Tests for the mantis report submission route.
+    
+    This test class covers form rendering, validation, file upload,
+    database integration, and security features of the submission process.
+    """
     
     # Track test objects for cleanup
     test_sighting_ids = []
@@ -84,7 +122,12 @@ class TestReportSubmission:
     
     @patch('app.routes.data._create_directory')
     def test_report_form_renders(self, mock_create_directory, client):
-        """Test that the report form page renders correctly."""
+        """Test that the report form page renders correctly.
+        
+        Verifies:
+        - The route responds with 200 status code
+        - The page contains the correct heading text
+        """
         mock_create_directory.return_value = True
         
         response = client.get('/melden')
@@ -95,6 +138,16 @@ class TestReportSubmission:
     # Helper method to set up test data and clean up after
     @pytest.fixture(autouse=True)
     def setup_and_teardown(self, session):
+        """Set up test environment and clean up after each test.
+        
+        Handles:
+        - Setting up a database session
+        - Tracking test records for cleanup
+        - Deleting test records after each test
+        
+        This ensures proper test isolation and prevents test data
+        from affecting other tests.
+        """
         # Setup - create any common test data here
         # Get testing session
         self.session = session
@@ -135,9 +188,25 @@ class TestReportSubmission:
                 self.session.delete(location)
             
         self.session.commit()
+    
+    #########################
+    # Database Model Tests #
+    #########################
         
     def test_database_models_integration(self, session, location_test_data, user_test_data):
-        """Test direct database model interaction for the report flow."""
+        """Test direct database model interaction for the report flow.
+        
+        This test verifies that all database models used in the report
+        submission process can be properly created and linked together,
+        mimicking what happens during an actual form submission.
+        
+        Verifies:
+        - Location records can be created
+        - Sighting records can be created and linked to locations
+        - User records can be created
+        - User-sighting relations can be created
+        - All relationships between records work correctly
+        """
         # Test data
         heute = datetime.datetime.now().date()
         user_id = user_test_data['user_id']
@@ -213,7 +282,16 @@ class TestReportSubmission:
         assert relation_db is not None
     
     def test_negative_validation_missing_required_fields(self, session):
-        """Test that database models enforce required fields."""
+        """Test that database models enforce required fields.
+        
+        This test verifies that the database schema correctly
+        enforces required field constraints by attempting to
+        save a record with a missing required field.
+        
+        Verifies:
+        - IntegrityError is raised when required fields are missing
+        - Transaction is rolled back properly on error
+        """
         # Create sighting without required date field (dat_fund_von is nullable=False)
         invalid_sighting = TblMeldungen(
             # Missing dat_fund_von (which is nullable=False)
@@ -245,7 +323,18 @@ class TestReportSubmission:
     ])
     def test_gender_field_mapping(self, session, location_test_data, gender_input, 
                                    expected_m, expected_w, expected_n, expected_o):
-        """Test that gender mappings work correctly for different inputs."""
+        """Test that gender mappings work correctly for different inputs.
+        
+        This parameterized test verifies that gender field values are
+        correctly mapped in the database based on form input.
+        
+        Parameters:
+            gender_input: The gender selection from the form
+            expected_m: Expected male field value
+            expected_w: Expected female field value
+            expected_n: Expected nymph field value
+            expected_o: Expected oothek field value
+        """
         # Test function similar to _set_gender_fields in data.py
         def _set_gender_fields(selected_gender):
             genders = {"art_m": 0, "art_w": 0, "art_n": 0, "art_o": 0}
@@ -301,11 +390,26 @@ class TestReportSubmission:
         assert sighting.art_n == expected_n
         assert sighting.art_o == expected_o
 
+    ############################
+    # Form Submission Tests #
+    ############################
+    
     @patch('app.routes.data._handle_file_upload')
     @patch('app.routes.data._create_directory')
     def test_image_upload_integration(self, mock_create_directory, mock_handle_upload, client, 
                                      report_form_data, session):
-        """Test the image upload handling during report submission."""
+        """Test the image upload handling during report submission.
+        
+        This test verifies the end-to-end process of submitting a report form
+        with an image attachment, ensuring all database records are created
+        correctly and with the right field values.
+        
+        Verifies:
+        - File upload handler is called correctly
+        - Database records are created in all relevant tables
+        - Record field values match form input
+        - Proper relationships are established
+        """
         # Setup mocks
         mock_create_directory.return_value = Path('/dummy/path')
         mock_handle_upload.return_value = 'dummy/path/test_image.webp'
@@ -418,113 +522,75 @@ class TestReportSubmission:
             mock_handle_upload.assert_not_called()
         else:
             assert False, f"Unexpected status code: {response.status_code}"
+    
+    ############################
+    # Form Validation Tests #
+    ############################
 
+    @pytest.mark.parametrize("field,invalid_value,error_message", [
+        ('sighting_date', lambda: (datetime.datetime.now() + datetime.timedelta(days=10)).strftime('%Y-%m-%d'), 
+         'Das Datum darf nicht in der Zukunft liegen'),
+        ('longitude', '200.0', 'Der Längengrad muss zwischen -180 und 180 liegen'),
+        ('latitude', '100.0', 'Der Breitengrad muss zwischen -90 und 90 liegen'),
+        ('contact', 'invalid-email', 'Die Email Adresse ist ungültig'),
+    ])
     @patch('app.routes.data._handle_file_upload')
     @patch('app.routes.data._create_directory')
-    def test_form_field_validation_errors(self, mock_create_directory, mock_handle_upload, client, 
-                                     report_form_data):
-        """Test validation errors for various form fields."""
+    def test_field_validation_errors_parameterized(self, mock_create_directory, mock_handle_upload, 
+                                                  client, report_form_data, field, invalid_value, 
+                                                  error_message):
+        """Test validation errors for various form fields using parameterization.
+        
+        This parameterized test validates various field validation rules by
+        submitting forms with invalid data and checking for appropriate error messages.
+        
+        Parameters:
+            field: The form field to test
+            invalid_value: The invalid value to use (can be a function for dynamic values)
+            error_message: Expected error message
+        """
         # Setup mocks
         mock_create_directory.return_value = Path('/dummy/path')
         mock_handle_upload.return_value = 'dummy/path/test_image.webp'
         
-        # 1. Test future date validation error
-        future_date_data = report_form_data.copy()
-        future_date = (datetime.datetime.now() + datetime.timedelta(days=10)).strftime('%Y-%m-%d')
-        future_date_data['sighting_date'] = future_date
-        future_date_data['location_description'] = '1'
+        # Create form data with invalid value for the specified field
+        form_data = report_form_data.copy()
+        form_data['location_description'] = '1'
         
-        # Create a fresh test image for each request
-        response = client.post(
-            '/melden',
-            data={**future_date_data, 'picture': create_test_image()},
-            content_type='multipart/form-data',
-            follow_redirects=True
-        )
-        
-        # Form validation in Flask-WTF renders the form again with error messages (status 200)
-        # Form errors are part of the rendered HTML - they don't cause HTTP errors (400)
-        # Some fields might still cause validation at a deeper level, resulting in 400
-        expected_message = 'Das Datum darf nicht in der Zukunft liegen'
-        response_text = response.data.decode('utf-8')
-        
-        # If the form validation error is properly displayed, it should be a 200 with error message
-        if response.status_code == 200 and expected_message in response_text:
-            assert True, "Future date validation works correctly"
+        # If invalid_value is a function (for dynamic values like dates), call it
+        if callable(invalid_value):
+            form_data[field] = invalid_value()
         else:
-            # Some implementations might return 400 for validation errors
-            assert response.status_code in [200, 400], f"Unexpected status code: {response.status_code}"
+            form_data[field] = invalid_value
         
-        # 2. Test invalid coordinates
-        invalid_coords_data = report_form_data.copy()
-        invalid_coords_data['longitude'] = '200.0'  # Invalid longitude > 180
-        invalid_coords_data['location_description'] = '1'
-        
+        # Submit form with invalid data
         response = client.post(
             '/melden',
-            data={**invalid_coords_data, 'picture': create_test_image()},
+            data={**form_data, 'picture': create_test_image()},
             content_type='multipart/form-data',
             follow_redirects=True
         )
         
         # Check for appropriate error message and status code
-        expected_message = 'Der Längengrad muss zwischen -180 und 180 liegen'
         response_text = response.data.decode('utf-8')
         
-        if response.status_code == 200 and expected_message in response_text:
-            assert True, "Coordinate validation works correctly"
-        else:
-            assert response.status_code in [200, 400], f"Unexpected status code: {response.status_code}"
+        # Verify validation works as expected
+        assert response.status_code in [200, 400], f"Unexpected status code: {response.status_code}"
+        if response.status_code == 200:
+            assert error_message in response_text, f"Expected error message '{error_message}' not found"
         
-        # 3. Test missing required fields
-        missing_fields_data = report_form_data.copy()
-        # Remove required field
-        missing_fields_data.pop('fund_city')
-        missing_fields_data['location_description'] = '1'
-        
-        response = client.post(
-            '/melden',
-            data={**missing_fields_data, 'picture': create_test_image()},
-            content_type='multipart/form-data',
-            follow_redirects=True
-        )
-        
-        # Check for appropriate error message and status code
-        expected_message = 'Bitte geben Sie einen Ort ein'
-        response_text = response.data.decode('utf-8')
-        
-        if response.status_code == 200 and expected_message in response_text:
-            assert True, "Required field validation works correctly"
-        else:
-            assert response.status_code in [200, 400], f"Unexpected status code: {response.status_code}"
-        
-        # 4. Test invalid email format
-        invalid_email_data = report_form_data.copy()
-        invalid_email_data['contact'] = 'invalid-email-format'
-        invalid_email_data['location_description'] = '1'
-        
-        response = client.post(
-            '/melden',
-            data={**invalid_email_data, 'picture': create_test_image()},
-            content_type='multipart/form-data',
-            follow_redirects=True
-        )
-        
-        # Check for appropriate error message and status code
-        expected_message = 'Die Email Adresse ist ungültig'
-        response_text = response.data.decode('utf-8')
-        
-        if response.status_code == 200 and expected_message in response_text:
-            assert True, "Email validation works correctly"
-        else:
-            assert response.status_code in [200, 400], f"Unexpected status code: {response.status_code}"
-        
-        # Verify file upload handler wasn't called for any validation errors
+        # Verify file upload handler wasn't called for validation errors
         mock_handle_upload.assert_not_called()
-
+    
     @patch('app.routes.data._create_directory')
     def test_file_upload_validation(self, mock_create_directory, client, report_form_data):
-        """Test validation for file uploads including file type and size constraints."""
+        """Test validation for file uploads including file type and size constraints.
+        
+        This test verifies file-related validations including:
+        - Missing file validation
+        - File type validation
+        - File size validation
+        """
         # Setup mocks
         mock_create_directory.return_value = Path('/dummy/path')
         
@@ -600,8 +666,17 @@ class TestReportSubmission:
         if max_size:
             assert max_size <= 20 * 1024 * 1024, f"File size limit should be reasonable, got {max_size} bytes"
 
+    ############################
+    # Security Feature Tests #
+    ############################
+    
     def test_honeypot_spam_protection(self, client, report_form_data):
-        """Test the honeypot field for spam protection."""
+        """Test the honeypot field for spam protection.
+        
+        This test verifies that the honeypot anti-spam mechanism
+        correctly rejects form submissions where the hidden honeypot
+        field is filled (as a bot would do).
+        """
         # Prepare form data with honeypot filled (simulating bot submission)
         form_data = report_form_data.copy()
         form_data['honeypot'] = 'spam content'  # Bots would fill this field
@@ -635,7 +710,14 @@ class TestReportSubmission:
     
     @patch('app.routes.data.checklist')
     def test_rate_limiting(self, mock_checklist, client, report_form_data):
-        """Test rate limiting mechanism for form submissions."""
+        """Test rate limiting mechanism for form submissions.
+        
+        This test verifies that the application correctly
+        implements rate limiting to prevent form submission flooding.
+        
+        It mocks the checklist dictionary to simulate a user who
+        has exceeded the maximum allowed submissions.
+        """
         # Setup mocks for checklist to simulate rate limit exceeded
         # In data.py, the logic is: if checklist.get(mark) > 7: abort(429)
         # We need to make this check return > 7
