@@ -13,10 +13,14 @@ from app.demodata.filldb import insert_data_reports
 
 @pytest.fixture(scope='session')
 def app():
-    # Flask-App nitialise with testconfig
+    """Create and configure a Flask app for testing.
+    
+    Creates the Flask application with test configuration and runs
+    database migrations before returning the app instance.
+    """
     app = create_app(TestConfig)
     with app.app_context():
-        # Alembic-Migrations on testdb
+        # Run Alembic migrations on test database
         upgrade()  
         yield app 
 
@@ -137,7 +141,12 @@ def insert_initial_data_command():
 
     
 def drop_all_with_views():
-    # Alle Materialized Views löschen (mit CASCADE)
+    """Drop all database tables and materialized views.
+    
+    This function ensures proper cleanup by dropping tables and views
+    with CASCADE to handle dependencies correctly.
+    """
+    # Drop all materialized views with CASCADE
     db.session.execute(text(
         'DROP TABLE IF EXISTS public.meldungen CASCADE'
     ))
@@ -145,7 +154,7 @@ def drop_all_with_views():
     db.session.execute(text(
         'DROP MATERIALIZED VIEW IF EXISTS public.full_text_search CASCADE'
     ))
-    # Jetzt alle Tabellen löschen
+    # Drop all remaining tables
     db.session.commit()
     db.drop_all()
     db.session.commit()
@@ -153,33 +162,38 @@ def drop_all_with_views():
     
 @pytest.fixture(scope='session')
 def _db(app):
-    """Set up the database for the test session."""
-
-    # create all tables in testdb
-
-    # Test-Setup: Vor jedem Testlauf aufrufen
+    """Set up the database for the test session.
+    
+    Creates all database tables, populates with initial test data,
+    and handles cleanup after all tests are complete.
+    """
+    # Setup: Run before test session begins
     drop_all_with_views()
     db.create_all()  
-    # fill tables
+    # Fill tables with test data
     insert_initial_data_command()
         
     yield db
 
+    # Teardown: Run after test session completes
     db.session.remove()
-    # remove all tables after test run
     drop_all_with_views()
 
 
 @pytest.fixture(scope='function', autouse=True)
 def session(_db):
-    """Erstellt eine neue Datenbank-Session für jeden Test."""
+    """Creates a new database session for each test.
+    
+    This fixture creates a transaction for each test and rolls it back
+    after the test completes, ensuring test isolation.
+    """
     connection = _db.engine.connect()
     transaction = connection.begin()
     options = dict(bind=connection, binds={})
     session = _db._make_scoped_session(options=options)
     _db.session = session
 
-    yield session  # Liefere die Session für den Test
+    yield session  # Provide the session for the test
 
     transaction.rollback()
     connection.close()
@@ -187,8 +201,11 @@ def session(_db):
 
 
 def upgrade():
-    """Führe Alembic-Migrationen auf der Test-Datenbank aus."""
-
+    """Run Alembic migrations on the test database.
+    
+    Executes all database migrations to bring the schema
+    to the latest version before running tests.
+    """
     connstring = 'postgresql://mantis_user:mantis@localhost/mantis_tester'
     alembic_cfg = Config('migrations/alembic.ini')
     alembic_cfg.set_main_option("sqlalchemy.url",
@@ -196,8 +213,8 @@ def upgrade():
     alembic_cfg.set_main_option("script_location", 'migrations')
 
     try:
-        # Führe die Migrationen bis zum neuesten Stand aus
+        # Execute migrations to the latest version
         command.upgrade(alembic_cfg, 'heads')
     except Exception as e:
-        print("Fehler bei der Migration:", e)
+        print("Error during migration:", e)
         raise
