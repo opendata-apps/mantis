@@ -211,7 +211,7 @@ def toggle_approve_sighting(id):
     "Find ID and mark as edited with a date in column dat_bear"
 
     # Find the report by id
-    sighting = TblMeldungen.query.get(id)
+    sighting = db.session.get(TblMeldungen, id)
     if sighting:
         # Set the dat_bear value to the current
         # datetime if it is not already set
@@ -312,7 +312,7 @@ def get_sighting(id):
 def delete_sighting(id):
     "Delete sighting based on id"
     # Find the report by id
-    sighting = TblMeldungen.query.get(id)
+    sighting = db.session.get(TblMeldungen, id)
     if sighting:
         # Set the deleted value to True
         sighting.deleted = True
@@ -328,7 +328,7 @@ def delete_sighting(id):
 def undelete_sighting(id):
     "Undelete sighting based on id"
     # Find the report by id
-    sighting = TblMeldungen.query.get(id)
+    sighting = db.session.get(TblMeldungen, id)
     if sighting:
         # Set the deleted value to False
         sighting.deleted = False
@@ -345,7 +345,7 @@ def change_gender(id):
     "Change mantis gender or type"
     new_gender = request.form.get("new_gender")
 
-    sighting = TblMeldungen.query.get(id)
+    sighting = db.session.get(TblMeldungen, id)
 
     # Reset all gender columns to 0
     sighting.art_m = 0
@@ -378,7 +378,7 @@ def change_mantis_count(id):
     "Change mantis count for a specific type"
     new_count = request.form.get("new_count")
     mantis_type = request.form.get("type")
-    sighting = TblMeldungen.query.get(id)
+    sighting = db.session.get(TblMeldungen, id)
 
     # Update the count for the specified mantis type
     if mantis_type == "Männchen":
