@@ -1,10 +1,10 @@
 {% extends "layout.html" %}
 {% block title %}
-  {% if selected_year %}
-    Fundmeldungen {{ selected_year }}
-  {% else %}
-    Fundmeldungen gesamt
-  {% endif %}
+{% if selected_year %}
+Fundmeldungen {{ selected_year }}
+{% else %}
+Fundmeldungen gesamt
+{% endif %}
 {% endblock title %}
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.css')}}" />
@@ -15,67 +15,68 @@
 <link rel="stylesheet"
   href="{{ url_for('static', filename='node_modules/leaflet.locatecontrol/dist/L.Control.Locate.min.css')}}" />
 <script src="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.js')}}"></script>
-<script src="{{ url_for('static', filename='node_modules/esri-leaflet/dist/esri-leaflet.js')}}"></script>
-<script src="{{ url_for('static', filename='node_modules/esri-leaflet-vector/dist/esri-leaflet-vector.js')}}"></script>
-<script src="{{url_for('static', filename='node_modules/leaflet.markercluster/dist/leaflet.markercluster.js')}}"></script>
+<script
+  src="{{url_for('static', filename='node_modules/leaflet.markercluster/dist/leaflet.markercluster.js')}}"></script>
 
 {% endblock %}
-{% block page_title %}Auswertungen der Beobachtungen | Mantis Religiosa Mitmachprojekt | Gottesanbeterin Gesucht{% endblock %}
+{% block page_title %}Auswertungen der Beobachtungen | Mantis Religiosa Mitmachprojekt | Gottesanbeterin Gesucht{%
+endblock %}
 {% block meta_keywords %} Auswertungen, Karte, Gottesanbeterin, Mantis religiosa Auswertungen {% endblock %}
-{% block meta_description %} Schauen Sie sich die Auswertungen von Gottesanbeterin-Beobachtungen in Deutschland an. {% endblock %}
+{% block meta_description %} Schauen Sie sich die Auswertungen von Gottesanbeterin-Beobachtungen in Deutschland an. {%
+endblock %}
 {% block text %}
 {% if selected_year %}
 Übersicht zu allen bestätigten Meldungen im Jahr {{ selected_year }}.
 {% else %}
 Übersicht zu allen bestätigten Meldungen.
-  {% endif %}
-  {% endblock text %}
-  {% block content %}
+{% endif %}
+{% endblock text %}
+{% block content %}
 <script src="{{ url_for('static', filename='node_modules/flowbite/dist/flowbite.min.js')}}" defer></script>
-  <section class="container relative px-4 mx-auto mt-10 sm:px-6 lg:px-8">
-  <!-- Year Selector on Map -->
-  <div class="flex justify-center">
-    <p
-      class="flex items-center inline-block p-4 my-4 space-x-2 text-sm text-black bg-white border border-gray-200 rounded-lg shadow-lg sm:text-base">
+<div class="container px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+
+  <!-- Information banner -->
+  <div class="flex justify-center mt-6 mb-6">
+    <div
+      class="flex items-center max-w-2xl p-4 my-2 space-x-2 text-sm text-black bg-white border border-gray-200 rounded-lg shadow-md sm:text-base">
       <span class="flex items-center text-xl sm:text-2xl">
         🔒
         <span class="w-px h-5 mx-3 bg-gray-300"></span>
       </span>
-      Die Position der Marker kann von den gemeldeten Koordinaten abweichen (Datenschutz).
-    </p>
+      <p>Die Position der Marker kann von den gemeldeten Koordinaten abweichen (Datenschutz).</p>
+    </div>
   </div>
 
-  <div id="map" class="relative h-[70vh] sm:h-screen rounded-lg shadow-md" role="application" aria-label="Interaktive Karte der Gottesanbeterin-Sichtungen in Deutschland">
+  <!-- Map container -->
+  <div id="map" class="relative h-[60vh] md:h-[65vh] rounded-xl shadow-lg" role="application"
+    aria-label="Interaktive Karte der Gottesanbeterin-Sichtungen in Deutschland">
   </div>
-  
-</section>
+</div>
 
-
-<!-- Animated counter section -->
-<section class="py-16 bg-gray-100">
-  <div class="container px-4 mx-auto">
-    <div class="relative px-4 py-8 bg-green-800 rounded-lg shadow-2xl sm:px-8 sm:py-12">
-      <h2 class="mb-6 text-2xl font-bold leading-tight text-center text-gray-100 sm:mb-8 sm:text-3xl">
-	{% if not selected_year %}
-          Wir haben insgesamt <br />
-	{% endif %}
-	{% if selected_year %}
-          Wir haben für das Jahr  {{selected_year}} <br />
-	{% endif %}
-        <span class="text-5xl font-extrabold text-gray-100 sm:text-7xl counter" data-target="{{ post_count }}">0</span>
+<!-- Animated counter section  -->
+<section class="py-12 bg-gray-100">
+  <div class="container max-w-5xl px-4 mx-auto sm:px-6 lg:px-8">
+    <div class="relative px-6 py-10 bg-green-800 shadow-xl rounded-xl sm:px-10 sm:py-12">
+      <h2 class="mb-6 text-2xl font-bold leading-tight text-center text-white sm:mb-8 sm:text-3xl">
+        {% if not selected_year %}
+        Wir haben insgesamt <br />
+        {% endif %}
+        {% if selected_year %}
+        Wir haben für das Jahr {{selected_year}} <br />
+        {% endif %}
+        <span class="text-5xl font-extrabold text-white sm:text-7xl counter" data-target="{{ post_count }}">0</span>
         <br />
         Meldungen erhalten.
       </h2>
-      <p class="mb-6 text-lg text-center text-gray-100 sm:mb-8 sm:text-xl">
+      <p class="mb-6 text-lg text-center text-white sm:mb-8 sm:text-xl">
         Helfen Sie uns, diese Zahl zu erhöhen!
       </p>
     </div>
   </div>
 </section>
 
-
 <script>
-  // Counter animation with performance optimization
+  // Counter animation
   const counter = document.querySelector('.counter');
   const target = +counter.dataset.target;
   const duration = 2000;
@@ -90,7 +91,7 @@
     if (!startTime) startTime = currentTime;
     const elapsedTime = currentTime - startTime;
     const progress = Math.min(elapsedTime / duration, 1);
-    
+
     if (progress < 1) {
       const nextValue = Math.floor(easeOutExpo(progress) * target);
       if (counter.innerText !== nextValue.toString()) {
@@ -102,7 +103,7 @@
     }
   }
 
-  // Intersection Observer with options for better performance
+  // Intersection Observer
   const observer = new IntersectionObserver(
     entries => {
       if (entries[0].isIntersecting) {
@@ -117,11 +118,10 @@
 
   let map;
   let userMarker;
-  mapApiKey = "{{apikey}}"
 
   // Custom control for year selection
   L.Control.YearSelector = L.Control.extend({
-    onAdd: function(map) {
+    onAdd: function (map) {
       var div = L.DomUtil.create('div', 'leaflet-control leaflet-bar');
       var select = L.DomUtil.create('select', 'year-selector', div);
       select.id = 'yearSelect';
@@ -136,7 +136,7 @@
       option.selected = true;
       {% endif %}
 
-      {% for year in years|sort(reverse=true) %}
+      {% for year in years | sort(reverse = true) %}
       var option = L.DomUtil.create('option', '', select);
       option.value = '{{ year }}';
       option.innerHTML = '{{ year }}';
@@ -145,19 +145,19 @@
       {% endif %}
       {% endfor %}
 
-      L.DomEvent.on(select, 'change', function(e) {
+      L.DomEvent.on(select, 'change', function (e) {
         filterByYear(e.target.value);
       });
 
       return div;
     },
 
-    onRemove: function(map) {
+    onRemove: function (map) {
       // Nothing to do here
     }
   });
 
-  L.control.yearSelector = function(opts) {
+  L.control.yearSelector = function (opts) {
     return new L.Control.YearSelector(opts);
   }
 
@@ -176,20 +176,54 @@
       keyboardPanDelta: 100
     }).setView([51.991649, 13.080113], 9);
 
+    // Free base map layers
     const openStreetMapLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      maxZoom: 12,
+      maxZoom: 12
     });
 
-    const arcGISLayer = L.esri.Vector.vectorBasemapLayer("ArcGIS:Imagery", {
-      apikey: mapApiKey // API key for ArcGIS
+    // Stadia AlidadeSatellite - high quality satellite imagery
+    const stadiaSatellite = L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}{r}.{ext}', {
+      minZoom: 0,
+      maxZoom: 12,
+      attribution: '&copy; CNES, Distribution Airbus DS, © Airbus DS, © PlanetObserver (Contains Copernicus Data) | &copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      ext: 'jpg'
     });
+
+    // Stadia AlidadeSmoothDark - elegant dark-themed map
+    const stadiaDark = L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png', {
+      minZoom: 0,
+      maxZoom: 12,
+      attribution: '&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    });
+
+    // ESRI World Imagery
+    const esriWorldImagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      minZoom: 0,
+      maxZoom: 12,
+      attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+    });
+
+    // ESRI Reference Labels Layer
+    const esriLabelsLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+      minZoom: 0,
+      maxZoom: 12,
+      attribution: 'Tiles &copy; Esri &mdash; Source: Esri'
+    });
+
+    // ESRI World Imagery with Labels (combined layer)
+    const esriImageryWithLabels = L.layerGroup([
+      esriWorldImagery,
+      esriLabelsLayer
+    ]);
 
     map.addLayer(openStreetMapLayer);
 
     var baseMaps = {
-      "Karte": openStreetMapLayer,
-      "Satellit": arcGISLayer
+      "OpenStreetMap": openStreetMapLayer,
+      "Stadia Satellite": stadiaSatellite,
+      "ESRI Satellite mit Beschriftung": esriImageryWithLabels,
+      "Dunkle Karte": stadiaDark
     };
 
     L.control.layers(baseMaps).addTo(map);
@@ -224,8 +258,8 @@
           .then(response => response.json())
           .then(data => {
             let popupContent = '<div class="popup-content" role="dialog" aria-label="Sichtungsdetails">' +
-                              '<h2>Melde ID: ' + data.id + '</h2>' +
-                              '<ul class="popup-list">';
+              '<h2>Melde ID: ' + data.id + '</h2>' +
+              '<ul class="popup-list">';
 
             if (data.dat_meld) {
               popupContent += '<li><strong>Melde Datum:</strong> ' + data.dat_meld + '</li>';
@@ -284,71 +318,71 @@
 
 
 <style>
+  #yearSelect {
+    border-radius: 2px;
+    border: 2px;
+    background-clip: padding-box;
+  }
 
-#yearSelect {
-  border-radius: 2px;
-  border: 2px ;
-  background-clip: padding-box;
-}
-
-.leaflet-popup-content-wrapper {
-  background: rgba(22, 101, 52, 0.8);
-  border-radius: 12px;
-  color: #ffffff;
-  font-family: 'Arial', sans-serif;
-  opacity: 0;
-  animation: fadeIn ease 1s;
-  animation-fill-mode: forwards;
-}
-
-.leaflet-popup-tip {
-  background: rgba(22, 101, 52, 0.8);
-}
-
-.leaflet-popup-content {
-  padding: 10px;
-}
-
-.popup-content h2 {
-  margin-bottom: 10px;
-  font-size: 1.1em;
-  color: #f3f4f6;
-}
-
-.popup-list {
-  list-style-type: none;
-  padding: 0;
-  font-size: 0.9em;
-}
-
-.popup-list li {
-  margin-bottom: 5px;
-}
-
-.popup-loading, .popup-error {
-  text-align: center;
-  font-weight: bold;
-}
-
-.popup-error {
-  color: #FF6347;
-}
-
-@keyframes fadeIn {
-  from {
+  .leaflet-popup-content-wrapper {
+    background: rgba(22, 101, 52, 0.8);
+    border-radius: 12px;
+    color: #ffffff;
+    font-family: 'Arial', sans-serif;
     opacity: 0;
+    animation: fadeIn ease 1s;
+    animation-fill-mode: forwards;
   }
 
-  to {
-    opacity: 1;
+  .leaflet-popup-tip {
+    background: rgba(22, 101, 52, 0.8);
   }
-}
 
-@media (max-width: 640px) {
-  #map {
-    margin-left: 10px;
-    margin-right: 10px;
+  .leaflet-popup-content {
+    padding: 10px;
   }
-}
+
+  .popup-content h2 {
+    margin-bottom: 10px;
+    font-size: 1.1em;
+    color: #f3f4f6;
+  }
+
+  .popup-list {
+    list-style-type: none;
+    padding: 0;
+    font-size: 0.9em;
+  }
+
+  .popup-list li {
+    margin-bottom: 5px;
+  }
+
+  .popup-loading,
+  .popup-error {
+    text-align: center;
+    font-weight: bold;
+  }
+
+  .popup-error {
+    color: #FF6347;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  @media (max-width: 640px) {
+    #map {
+      margin-left: 10px;
+      margin-right: 10px;
+    }
+  }
 </style>
 {% endblock content %}
