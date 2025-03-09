@@ -893,24 +893,41 @@
                 pane: 'tilePane'
             });
 
-            const arcGISLayer = L.esri.Vector.vectorBasemapLayer("ArcGIS:Imagery", {
-                apikey: "{{apikey}}" // API key for ArcGIS
+            // ESRI World Imagery
+            const esriWorldImagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                minZoom: 0,
+                maxZoom: 19,
+                tileSize: 512,
+                zoomOffset: -1,
+                attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+                pane: 'tilePane'
             });
+
+            // ESRI Reference Labels Layer
+            const esriLabelsLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+                minZoom: 0,
+                maxZoom: 19,
+                tileSize: 512,
+                zoomOffset: -1,
+                attribution: 'Tiles &copy; Esri &mdash; Source: Esri',
+                pane: 'tilePane'
+            });
+
+            // ESRI World Imagery with Labels (combined layer)
+            const esriImageryWithLabels = L.layerGroup([
+                esriWorldImagery,
+                esriLabelsLayer
+            ]);
 
             // Add default layer
             map.addLayer(openStreetMapLayer);
 
-            // Define base maps for layer control
-            const baseMaps = {
+            var baseMaps = {
                 "Karte": openStreetMapLayer,
-                "Satellit": arcGISLayer
+                "Satellit": esriImageryWithLabels
             };
 
-            // Add layer control with improved mobile styling
-            L.control.layers(baseMaps, null, {
-                position: 'topright',
-                collapsed: true
-            }).addTo(map);
+            L.control.layers(baseMaps).addTo(map);
 
             // Add marker to marker pane
             marker = L.marker([lat, lng], {

@@ -182,21 +182,6 @@ endblock %}
       maxZoom: 12
     });
 
-    // Stadia AlidadeSatellite - high quality satellite imagery
-    const stadiaSatellite = L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}{r}.{ext}', {
-      minZoom: 0,
-      maxZoom: 12,
-      attribution: '&copy; CNES, Distribution Airbus DS, © Airbus DS, © PlanetObserver (Contains Copernicus Data) | &copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      ext: 'jpg'
-    });
-
-    // Stadia AlidadeSmoothDark - elegant dark-themed map
-    const stadiaDark = L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png', {
-      minZoom: 0,
-      maxZoom: 12,
-      attribution: '&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-    });
-
     // ESRI World Imagery
     const esriWorldImagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
       minZoom: 0,
@@ -220,10 +205,8 @@ endblock %}
     map.addLayer(openStreetMapLayer);
 
     var baseMaps = {
-      "OpenStreetMap": openStreetMapLayer,
-      "Stadia Satellite": stadiaSatellite,
-      "ESRI Satellite mit Beschriftung": esriImageryWithLabels,
-      "Dunkle Karte": stadiaDark
+      "Karte": openStreetMapLayer,
+      "Satellit": esriImageryWithLabels,
     };
 
     L.control.layers(baseMaps).addTo(map);
