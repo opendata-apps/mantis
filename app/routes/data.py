@@ -286,7 +286,6 @@ def report(usrid=None):
         "report.html",
         form=form,
         existing_user=existing_user,
-        apikey=Config.esri,
         popover_content=popover_content
     )
 
@@ -380,7 +379,6 @@ def show_map():
     return render_template(
         "map.html",
         reportsJson=reportsJson,
-        apikey=Config.esri,
         post_count=post_count,
         years=years,
         selected_year=selected_year,

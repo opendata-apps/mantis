@@ -7,8 +7,6 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='node_modules/leaflet.markercluster/dist/MarkerCluster.Default.css')}}" />
 <link rel="stylesheet" href="{{ url_for('static', filename='node_modules/leaflet.locatecontrol/dist/L.Control.Locate.min.css')}}" />
 <script src="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.js')}}"></script>
-<script src="{{ url_for('static', filename='node_modules/esri-leaflet/dist/esri-leaflet.js')}}"></script>
-<script src="{{ url_for('static', filename='node_modules/esri-leaflet-vector/dist/esri-leaflet-vector.js')}}"></script>
 <script src="{{ url_for('static', filename='node_modules/exif-js/exif.js')}}" defer></script>
 <script src="{{url_for('static', filename='node_modules/leaflet.markercluster/dist/leaflet.markercluster.js')}}"></script>
 <script src="{{url_for('static', filename='node_modules/leaflet.locatecontrol/dist/L.Control.Locate.min.js')}}"></script>
@@ -366,7 +364,6 @@ Forschung. {% endblock %}
   let map;
   let userMarker;
   let customIcon;  // Declare customIcon in global scope
-  mapApiKey = "{{apikey}}";
   
   function initMap() {
     // Define the boundary box for Germany
@@ -1272,7 +1269,6 @@ Forschung. {% endblock %}
   // Map initialization
   // Second Map:
   const summaryMap = L.map("summaryMap").setView([0, 0], 13);
-  mapApiKey = "{{apikey}}"
 
   // Define map layers
   const openStreetMapLayerSummary = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
