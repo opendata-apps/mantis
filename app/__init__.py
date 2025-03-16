@@ -79,10 +79,10 @@ def insert_initial_data_command():
             {"id": id, "beschreibung": beschreibung},
         )
     session.commit()
+    fts.create_materialized_view(db, session=session)
 
     if Config.TESTING:  
         insert_data_reports(session)
-        fts.create_materialized_view(db, session=session)
 
         src = 'app/datastore/gallerie/'
         trg = 'app/datastore/2025/2025-01-19/'
