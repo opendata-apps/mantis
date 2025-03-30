@@ -15,7 +15,7 @@ import sqlalchemy.ext.compiler
 import sqlalchemy.orm as orm
 from sqlalchemy import text
 from .config import Config
-import  app.database.full_text_search as fts
+
 from app.demodata.filldb import insert_data_reports
 
 #import create_materialized_view
@@ -25,9 +25,9 @@ migrate = Migrate()
 
 
 # Define the custom command for creating the materialized view
-@click.command("create-mview")
+@click.command("create_all_data_view")
 @with_appcontext
-def create_materialized_view_command():
+def create_all_data_view():
     """Create the materialized view."""
     #from app.database.full_text_search import FullTextSearch
     from app.database.alldata import TblAllData
@@ -66,6 +66,10 @@ def upgrade_fts_command():
 @with_appcontext
 def insert_initial_data_command():
     """Insert initial data into the beschreibung table."""
+
+    import  app.database.alldata as ad
+    import  app.database.full_text_search as fts
+    
     conn = Config.SQLALCHEMY_DATABASE_URI
     db = sa.create_engine(conn)
     Session = orm.sessionmaker(bind=db)
@@ -80,7 +84,8 @@ def insert_initial_data_command():
         )
     session.commit()
     fts.create_materialized_view(db, session=session)
-
+    ad.create_materialized_view(db, session=session)
+    
     if Config.TESTING:  
         insert_data_reports(session)
 
@@ -103,7 +108,8 @@ def create_app(config_class=Config):
     migrate.init_app(app, db)
 
     # Register the custom commands
-    app.cli.add_command(create_materialized_view_command)
+
+    app.cli.add_command(create_all_data_view)
     app.cli.add_command(upgrade_fts_command)
     app.cli.add_command(insert_initial_data_command)
 
