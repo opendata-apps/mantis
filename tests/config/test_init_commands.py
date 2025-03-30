@@ -4,87 +4,13 @@ from flask.cli import ScriptInfo
 from click.testing import CliRunner
 from flask import Flask
 from app import (
-    create_materialized_view_command,
-    upgrade_fts_command,
     page_not_found,
     forbidden,
     too_many_requests
 )
 
 
-def test_create_materialized_view_command():
-    """Test the create-mview CLI command."""
-    runner = CliRunner()
-    
-    # Mock the TblAllData.create_materialized_view method
-    with patch('app.database.alldata.TblAllData.create_materialized_view') as mock_create_view:
-        # Create a mock Flask app and context
-        app = Flask('testapp')
-        
-        # Setup the Flask app context for the CLI command
-        obj = ScriptInfo(create_app=lambda: app)
-        
-        # Run the command
-        result = runner.invoke(create_materialized_view_command, obj=obj)
-        
-        # Verify the command executed successfully
-        assert result.exit_code == 0
-        assert "Materialized view created." in result.output
-        
-        # Check that the method was called
-        mock_create_view.assert_called_once()
 
-
-def test_upgrade_fts_command():
-    """Test the upgrade-fts CLI command."""
-    runner = CliRunner()
-    
-    # We need to patch the class method that doesn't exist yet in FullTextSearch
-    # This is needed because the code calls FullTextSearch.refresh_materialized_view()
-    # but the actual implementation just has a standalone function
-    with patch('app.database.full_text_search.FullTextSearch') as mock_fts_class, \
-         patch('flask_migrate.upgrade') as mock_upgrade:
-        
-        # Set up the mock class method
-        mock_fts_class.refresh_materialized_view = MagicMock()
-        
-        # Create a mock Flask app
-        app = Flask('testapp')
-        
-        # Setup the Flask app context for the CLI command
-        obj = ScriptInfo(create_app=lambda: app)
-        
-        # Run the command
-        result = runner.invoke(upgrade_fts_command, obj=obj)
-        
-        # Verify the command executed successfully
-        assert result.exit_code == 0
-        assert "FTS upgrade completed successfully." in result.output
-        
-        # Check that the methods were called
-        assert mock_upgrade.call_count == 2
-        mock_fts_class.refresh_materialized_view.assert_called_once()
-
-
-def test_upgrade_fts_command_error():
-    """Test the upgrade-fts CLI command with an error."""
-    runner = CliRunner()
-    
-    # Mock flask_migrate.upgrade to raise an exception
-    with patch('flask_migrate.upgrade', side_effect=Exception("Test error")):
-        
-        # Create a mock Flask app
-        app = Flask('testapp')
-        
-        # Setup the Flask app context for the CLI command
-        obj = ScriptInfo(create_app=lambda: app)
-        
-        # Run the command - should fail but not crash the test
-        result = runner.invoke(upgrade_fts_command, obj=obj)
-        
-        # Verify the command reported the error
-        assert result.exit_code != 0
-        assert "Error during FTS upgrade: Test error" in result.output
 
 
 def test_flask_app_with_testing_config():

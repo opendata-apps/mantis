@@ -69,6 +69,7 @@ def insert_initial_data_command():
 
     import  app.database.alldata as ad
     import  app.database.full_text_search as fts
+    import  app.database.vg5000_fill_aemter as vg5000
     
     conn = Config.SQLALCHEMY_DATABASE_URI
     db = sa.create_engine(conn)
@@ -86,11 +87,9 @@ def insert_initial_data_command():
     fts.create_materialized_view(db, session=session)
     ad.create_materialized_view(db, session=session)
     
-    if Config.TESTING:  
+    if Config.TESTING:
+        from tests.database.jsondata import data as jsondata
         insert_data_reports(session)
-        # refresh materialized views
-        fts.refresh_materialized_view()
-        ad.refresh_materialized_view()
 
         src = 'app/datastore/gallerie/'
         trg = 'app/datastore/2025/2025-01-19/'
@@ -101,7 +100,12 @@ def insert_initial_data_command():
             # copying demo files to the 
             # destination directory
             shutil.copy2(os.path.join(src,fname), trg)
+    else:
+        from app.database.vg5000_gem import data as jsondata
     
+    vg5000.import_aemter_data(db, jsondata)
+
+
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
