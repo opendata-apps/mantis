@@ -30,35 +30,35 @@ migrate = Migrate()
 def create_all_data_view():
     """Create the materialized view."""
     #from app.database.full_text_search import FullTextSearch
-    from app.database.alldata import TblAllData
+    import  app.database.alldata as ad
 
     #FullTextSearch.createGen()
-    TblAllData.create_materialized_view()
+    ad.create_materialized_view()
     click.echo("Materialized view created.")
 
 
-@click.command("upgrade-fts")
-@with_appcontext
-def upgrade_fts_command():
-    """Upgrade the Full Text Search implementation."""
-    try:
-        # Run the migration
-        from flask import current_app
-        from flask_migrate import upgrade as flask_migrate_upgrade
+# @click.command("upgrade-fts")
+# @with_appcontext
+# def upgrade_fts_command():
+#     """Upgrade the Full Text Search implementation."""
+#     try:
+#         # Run the migration
+#         from flask import current_app
+#         from flask_migrate import upgrade as flask_migrate_upgrade
         
-        with current_app.app_context():
-            # Run both migrations in sequence
-            flask_migrate_upgrade(revision='fts_upgrade_2024')
-            flask_migrate_upgrade(revision='fts_weighted_upgrade_2024')
+#         with current_app.app_context():
+#             # Run both migrations in sequence
+#             flask_migrate_upgrade(revision='fts_upgrade_2024')
+#             flask_migrate_upgrade(revision='fts_weighted_upgrade_2024')
             
-            # Refresh the view
-            from app.database.full_text_search import FullTextSearch
-            FullTextSearch.refresh_materialized_view()
+#             # Refresh the view
+#             from app.database.full_text_search import FullTextSearch
+#             FullTextSearch.refresh_materialized_view()
         
-        click.echo("FTS upgrade completed successfully.")
-    except Exception as e:
-        click.echo(f"Error during FTS upgrade: {e}")
-        raise
+#         click.echo("FTS upgrade completed successfully.")
+#     except Exception as e:
+#         click.echo(f"Error during FTS upgrade: {e}")
+#         raise
 
 
 # Define the custom command for inserting initial data
@@ -88,6 +88,9 @@ def insert_initial_data_command():
     
     if Config.TESTING:  
         insert_data_reports(session)
+        # refresh materialized views
+        fts.refresh_materialized_view()
+        ad.refresh_materialized_view()
 
         src = 'app/datastore/gallerie/'
         trg = 'app/datastore/2025/2025-01-19/'
@@ -110,7 +113,7 @@ def create_app(config_class=Config):
     # Register the custom commands
 
     app.cli.add_command(create_all_data_view)
-    app.cli.add_command(upgrade_fts_command)
+    # app.cli.add_command(upgrade_fts_command)
     app.cli.add_command(insert_initial_data_command)
 
     # If using Flask-App behind Nginx

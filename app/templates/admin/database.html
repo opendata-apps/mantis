@@ -330,7 +330,7 @@ block content %}
   let itemsPerPage = 50;
   let totalItems = 0;
   let searchTerm = "";
-  let sortColumn = "id";
+  let sortColumn = "meldungen_id";
   let sortDirection = "asc";
   let isLoading = false;
   let debounceTimer;
@@ -611,7 +611,7 @@ block content %}
     const rowsHtml = data
       .map((row, rowIndex) => {
         let rowHtml = "";
-        const idIndex = columns.indexOf("id");
+        const idIndex = columns.indexOf("meldungen_id");
         const idValue = idIndex !== -1 ? row[idIndex] : null;
 
         row.forEach((cell, cellIndex) => {
@@ -632,7 +632,7 @@ block content %}
           }
 
           let additionalDataAttributes = "";
-          if (columnName === "report_user_db_id") {
+          if (columnName === "id_user") {
             additionalDataAttributes += ` data-user-db-id="${cell}"`;
           } else if (columnName === "fundorte_id") {
             additionalDataAttributes += ` data-fundorte-id="${cell}"`;
@@ -757,7 +757,7 @@ block content %}
   function resetFilters() {
     currentPage = 1;
     searchTerm = "";
-    sortColumn = "id";
+    sortColumn = "meldungen_id";
     sortDirection = "asc";
     document.getElementById("searchInput").value = "";
     document.getElementById("tableBody").innerHTML = "";
@@ -913,7 +913,7 @@ block content %}
       body: JSON.stringify({
         table: table,
         column: column,
-        id: idValue,
+        meldungen_id: idValue,
         value: formattedValue,
       }),
     })
@@ -947,7 +947,7 @@ block content %}
 
   function loadState() {
     searchTerm = localStorage.getItem("searchTerm") || "";
-    sortColumn = localStorage.getItem("sortColumn") || "id";
+    sortColumn = localStorage.getItem("sortColumn") || "meldungen_id";
     sortDirection = localStorage.getItem("sortDirection") || "asc";
     const savedSearchType = localStorage.getItem("searchType");
 

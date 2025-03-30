@@ -3,7 +3,8 @@ from io import BytesIO
 import pandas as pd
 from app import db
 from app.config import Config
-from app.database.full_text_search import FullTextSearch, refresh_materialized_view
+import  app.database.alldata as ad
+import  app.database.full_text_search as fts
 from app.database.models import (
     TblFundortBeschreibung,
     TblFundorte,
@@ -45,7 +46,7 @@ NON_EDITABLE_FIELDS = {
     "fundorte": ["id", "ablage", "beschreibung"],
     "melduser": ["id", "id_finder", "id_meldung", "id_user"],
     "users": ["id", "user_id"],
-    "all_data_view": ["id", "id_meldung", "fo_zuordnung", "report_user_db_id", "fundorte_id", "beschreibung_id", "dat_fund_von", "ort", "report_user_id"]
+    "all_data_view": ["meldungen_id", "fo_zuordnung", "fundorte_id", "beschreibung_id", "dat_fund_von", "id_user", "user_id"]
 }
 
 
@@ -73,7 +74,7 @@ def reviewer(usrid):
         last_updated = last_updated.replace(tzinfo=None)
 
     if last_updated is None or now - last_updated > timedelta(minutes=1):
-        refresh_materialized_view(db)
+        fts.refresh_materialized_view(db)
         session["last_updated"] = now
 
     filter_status = request.args.get("statusInput", "offen")
@@ -680,7 +681,7 @@ def get_filtered_query(
                     query = query.filter(TblUsers.user_kontakt.ilike(f"%{search_query}%"))
                 else:
                     # Use the new FTS search method
-                    matching_ids = FullTextSearch.search(search_query)
+                    matching_ids = fts.search(search_query)
                     if matching_ids:
                         query = query.filter(TblMeldungen.id.in_(matching_ids))
                     else:
@@ -722,49 +723,49 @@ def get_filtered_query(
 @admin.route("/alldata")
 @login_required
 def database_view():
-    inspector = inspect(db.engine)
-    tables = [table for table in inspector.get_table_names() if table not in ['aemter', 'alembic_version', 'melduser']]
-    tables.append('all_data_view')  # Add the materialized view to the list of tables
     
+    last_updated = session.get("last_updated_all_data_view")
+    now = datetime.utcnow()
+    if last_updated and last_updated.tzinfo:
+        last_updated = last_updated.replace(tzinfo=None)
+
+    if last_updated is None or now - last_updated > timedelta(minutes=1):
+        ad.refresh_materialized_view(db)
+        print("refreshed materialized view" + "\n\n\n\n\n\n\n\n\n\n")
+        session["last_updated_all_data_view"] = now
     # Get user_id from session, default to None if not found
     user_id = session.get('user_id')
-    
-    return render_template("admin/database.html", tables=tables, user_id=user_id)
+
+    return render_template("admin/database.html", user_id=user_id)
 
 @admin.route("/admin/get_table_data/<table_name>")
 @login_required
 def get_table_data(table_name):
-    if table_name in ['aemter', 'alembic_version']:
-        return jsonify({"error": "Access to this table is not allowed"}), 403
+    if table_name != 'all_data_view':
+        return jsonify({"error": "Only all_data_view is available"}), 403
     try:
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 10, type=int)
         search = request.args.get('search', '')
-        search_type = request.args.get('search_type', 'full_text')  # Get search type
-        sort_column = request.args.get('sort_column', 'id')
+        search_type = request.args.get('search_type', 'full_text')
+        sort_column = request.args.get('sort_column', 'meldungen_id')
         sort_direction = request.args.get('sort_direction', 'asc')
 
         # Check if it's time to refresh the materialized view
         last_updated = session.get('last_updated_all_data_view')
         now = datetime.utcnow()
         if last_updated is None or (now - last_updated.replace(tzinfo=None) > timedelta(minutes=1)):
-            refresh_materialized_view(db)
+            ad.refresh_materialized_view(db)
             session['last_updated_all_data_view'] = now
 
-        # Get the table object
-        if table_name == 'all_data_view':
-            table = TblAllData.__table__
-        else:
-            table = db.metadata.tables.get(table_name)
+        # Get the table object - we only work with TblAllData now
+        table = TblAllData.__table__
         
-        if table is None:
-            return jsonify({"error": "Table not found"}), 404
-
         columns = [column.name for column in table.columns]
 
         # Validate sort_column to prevent SQL injection
         if sort_column not in columns:
-            sort_column = 'id'
+            sort_column = 'meldungen_id'
 
         # Create a select statement
         stmt = db.select(table)
@@ -775,10 +776,10 @@ def get_table_data(table_name):
                 try:
                     # Try to convert search term to integer for ID search
                     search_id = int(search)
-                    stmt = stmt.where(table.c.id == search_id)
+                    stmt = stmt.where(table.c.meldungen_id == search_id)
                 except ValueError:
                     # If conversion fails, return no results
-                    stmt = stmt.where(table.c.id == -1)  # This ensures no results
+                    stmt = stmt.where(table.c.meldungen_id == -1)  # This ensures no results
             else:  # full_text search
                 search_filters = []
                 for column in table.columns:
@@ -801,9 +802,9 @@ def get_table_data(table_name):
             if search_type == 'id':
                 try:
                     search_id = int(search)
-                    total_items_stmt = total_items_stmt.where(table.c.id == search_id)
+                    total_items_stmt = total_items_stmt.where(table.c.meldungen_id == search_id)
                 except ValueError:
-                    total_items_stmt = total_items_stmt.where(table.c.id == -1)
+                    total_items_stmt = total_items_stmt.where(table.c.meldungen_id == -1)
             else:
                 if search_filters:
                     total_items_stmt = total_items_stmt.where(or_(*search_filters))
@@ -835,7 +836,7 @@ def get_table_data(table_name):
         column_types = {column.name: get_standard_type(column.type) for column in table.columns}
 
         # Exclude sensitive columns
-        EXCLUDED_COLUMNS = ['report_user_db_id', 'fundorte_id', 'beschreibung_id', 'dat_fund_bis', 'fo_beleg', 'bearb_id', 'ablage']
+        EXCLUDED_COLUMNS = ['id_user', 'id_finder', 'fundorte_id', 'beschreibung_id', 'dat_fund_bis', 'fo_beleg', 'bearb_id', 'ablage']
         columns_with_excluded = columns.copy()
         columns = [col for col in columns if col not in EXCLUDED_COLUMNS]
         column_types = {col: column_types[col] for col in columns}
@@ -850,12 +851,12 @@ def get_table_data(table_name):
             "columns": columns,
             "data": data,
             "column_types": column_types,
-            "non_editable_fields": NON_EDITABLE_FIELDS.get(table_name, []),
+            "non_editable_fields": NON_EDITABLE_FIELDS.get('all_data_view', []),
             "total_items": total_items
         })
-    except Exception:
-        current_app.logger.exception("Error in get_table_data")
-        return jsonify({"error": "An error occurred while fetching table data"}), 500
+    except Exception as e:
+        current_app.logger.exception(f"Error in get_table_data: {str(e)}")
+        return jsonify({"error": f"An error occurred while fetching table data: {str(e)}"}), 500
 
 @admin.route("/admin/update_cell", methods=["POST"])
 @login_required
@@ -863,69 +864,59 @@ def update_cell():
     data = request.json
     table_name = data['table']
     column_name = data['column']
-    id_value = data['id']
+    id_value = data['meldungen_id']
     new_value = data['value']
+
+    if table_name != 'all_data_view':
+        return jsonify({"error": "Only all_data_view is supported"}), 403
 
     if table_name in NON_EDITABLE_FIELDS and column_name in NON_EDITABLE_FIELDS[table_name]:
         return jsonify({"error": "This field is not editable"}), 403
 
     try:
-        if table_name == 'all_data_view':
-            # Find the original table and column
-            original_table, original_column = find_original_table_and_column(column_name)
-            if not original_table or not original_column:
-                return jsonify({"error": "Unable to find original table and column"}), 400
+        # Find the original table and column
+        original_table, original_column = find_original_table_and_column(column_name)
+        if not original_table or not original_column:
+            return jsonify({"error": "Unable to find original table and column"}), 400
 
-            # Fetch the corresponding row from all_data_view
-            all_data_row = db.session.query(TblAllData).filter(TblAllData.id == id_value).first()
-            if not all_data_row:
-                return jsonify({"error": "Record not found"}), 404
+        # Fetch the corresponding row from all_data_view
+        all_data_row = db.session.query(TblAllData).filter(TblAllData.meldungen_id == id_value).first()
+        if not all_data_row:
+            return jsonify({"error": "Record not found"}), 404
 
-            if original_table == TblUsers:
-                user_db_id = all_data_row.report_user_db_id
-                if not user_db_id:
-                    return jsonify({"error": "User ID not found in the record"}), 400
-                stmt = (
-                    update(original_table)
-                    .where(original_table.id == user_db_id)
-                    .values(**{original_column: new_value})
-                )
-            elif original_table == TblFundorte:
-                fundorte_id = all_data_row.fundorte_id
-                if not fundorte_id:
-                    return jsonify({"error": "Fundorte ID not found in the record"}), 400
-                stmt = (
-                    update(original_table)
-                    .where(original_table.id == fundorte_id)
-                    .values(**{original_column: new_value})
-                )
-            elif original_table == TblFundortBeschreibung:
-                beschreibung_id = all_data_row.beschreibung_id
-                if not beschreibung_id:
-                    return jsonify({"error": "Beschreibung ID not found in the record"}), 400
-                stmt = (
-                    update(original_table)
-                    .where(original_table.id == beschreibung_id)
-                    .values(**{original_column: new_value})
-                )
-            else:
-                # Update other tables using id_value (from meldungen)
-                stmt = (
-                    update(original_table)
-                    .where(original_table.id == id_value)
-                    .values(**{column_name: new_value})
-                )
-        else:
-            # Get the table object
-            table = db.metadata.tables.get(table_name)
-            if table is None:
-                return jsonify({"error": "Table not found"}), 404
-
-            # Create the update statement
+        if original_table == TblUsers:
+            user_db_id = all_data_row.id_user
+            if not user_db_id:
+                return jsonify({"error": "User ID not found in the record"}), 400
             stmt = (
-                db.update(table)
-                .where(table.c.id == id_value)
-                .values(**{column_name: new_value})
+                update(original_table)
+                .where(original_table.id == user_db_id)
+                .values(**{original_column: new_value})
+            )
+        elif original_table == TblFundorte:
+            fundorte_id = all_data_row.fundorte_id
+            if not fundorte_id:
+                return jsonify({"error": "Fundorte ID not found in the record"}), 400
+            stmt = (
+                update(original_table)
+                .where(original_table.id == fundorte_id)
+                .values(**{original_column: new_value})
+            )
+        elif original_table == TblFundortBeschreibung:
+            beschreibung_id = all_data_row.beschreibung_id
+            if not beschreibung_id:
+                return jsonify({"error": "Beschreibung ID not found in the record"}), 400
+            stmt = (
+                update(original_table)
+                .where(original_table.id == beschreibung_id)
+                .values(**{original_column: new_value})
+            )
+        else:
+            # Update TblMeldungen using meldungen_id
+            stmt = (
+                update(original_table)
+                .where(original_table.id == id_value)
+                .values(**{original_column: new_value})
             )
 
         # Execute the update
@@ -935,18 +926,20 @@ def update_cell():
         if result.rowcount == 0:
             return jsonify({"error": "Record not found"}), 404
 
-        # Refresh the all data materialized view after update
-        TblAllData.refresh_materialized_view()
+        # Refresh materialized view after update
+        ad.refresh_materialized_view(db)
+        session["last_updated_all_data_view"] = datetime.utcnow()
 
         return jsonify({"success": True})
 
-    except Exception:
+    except Exception as e:
         db.session.rollback()
-        return jsonify({"error": "An error occurred while updating the cell"}), 500
+        current_app.logger.exception(f"Error in update_cell: {str(e)}")
+        return jsonify({"error": f"An error occurred while updating the cell: {str(e)}"}), 500
 
 def find_original_table_and_column(column_name):
     table_column_mapping = {
-        'id': (TblMeldungen, 'id'),
+        'meldungen_id': (TblMeldungen, 'id'),
         'deleted': (TblMeldungen, 'deleted'),
         'dat_fund_von': (TblMeldungen, 'dat_fund_von'),
         'dat_fund_bis': (TblMeldungen, 'dat_fund_bis'),
@@ -959,6 +952,7 @@ def find_original_table_and_column(column_name):
         'art_n': (TblMeldungen, 'art_n'),
         'art_o': (TblMeldungen, 'art_o'),
         'art_f': (TblMeldungen, 'art_f'),
+        'fo_zuordnung': (TblMeldungen, 'fo_zuordnung'),
         'fo_quelle': (TblMeldungen, 'fo_quelle'),
         'fo_beleg': (TblMeldungen, 'fo_beleg'),
         'anm_melder': (TblMeldungen, 'anm_melder'),
@@ -974,8 +968,8 @@ def find_original_table_and_column(column_name):
         'latitude': (TblFundorte, 'latitude'),
         'ablage': (TblFundorte, 'ablage'),
         'beschreibung': (TblFundortBeschreibung, 'beschreibung'),
-        'report_user_id': (TblUsers, 'user_id'),
-        'report_user_name': (TblUsers, 'user_name'),
-        'report_user_kontakt': (TblUsers, 'user_kontakt')
+        'user_id': (TblUsers, 'user_id'),
+        'user_name': (TblUsers, 'user_name'),
+        'user_kontakt': (TblUsers, 'user_kontakt')
     }
     return table_column_mapping.get(column_name, (None, None))

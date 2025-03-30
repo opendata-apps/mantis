@@ -11,7 +11,7 @@ class TblAllData(Base):
     __tablename__ = 'all_data_view'
     __table_args__ = {'schema': 'public'}
     
-    id = db.Column(db.Integer, primary_key=True)
+    meldungen_id = db.Column(db.Integer, primary_key=True)
     deleted = db.Column(db.Boolean)
     dat_fund_von = db.Column(db.Date)
     dat_fund_bis = db.Column(db.Date)
@@ -28,7 +28,7 @@ class TblAllData(Base):
     fo_beleg = db.Column(db.String(1))
     anm_melder = db.Column(db.String(500))
     anm_bearbeiter = db.Column(db.String(500))
-    fundorte_id = db.Column(db.Integer)  # New field
+    fundorte_id = db.Column(db.Integer)
     plz = db.Column(db.Integer)
     ort = db.Column(db.String)
     strasse = db.Column(db.String(100))
@@ -39,12 +39,13 @@ class TblAllData(Base):
     longitude = db.Column(db.String(25))
     latitude = db.Column(db.String(25))
     ablage = db.Column(db.String(255))
-    beschreibung_id = db.Column(db.Integer)  # New field
+    beschreibung_id = db.Column(db.Integer)
     beschreibung = db.Column(db.String(45))
-    report_user_db_id = db.Column(db.Integer)
-    report_user_id = db.Column(db.String(40))
-    report_user_name = db.Column(db.String(45))
-    report_user_kontakt = db.Column(db.String(45))
+    id_user = db.Column(db.Integer)
+    id_finder = db.Column(db.Integer)
+    user_id = db.Column(db.Integer)
+    user_name = db.Column(db.String(45))
+    user_kontakt = db.Column(db.String(45))
 
   
 class Drop(sa.schema.DDLElement):
@@ -182,18 +183,17 @@ def create_materialized_view(db=None,session=None):
         fundorte.c.ablage,
         beschreibung.c.id.label('beschreibung_id'),
         beschreibung.c.beschreibung,
-        melduser.c.id.label('melduser_id'),
         melduser.c.id_meldung,
         melduser.c.id_user,
         melduser.c.id_finder,
-        users.c.id.label('user_id'),
+        users.c.id.label('user_tbl_id'),
         users.c.user_id,
         users.c.user_name,
         users.c.user_kontakt
     ).select_from(
         meldungen
         .outerjoin(fundorte, meldungen.c.fo_zuordnung == fundorte.c.id)
-        .outerjoin(beschreibung, fundorte.c.beschreibung == beschreibung.c.id)
+        .outerjoin(beschreibung, meldungen.c.fo_zuordnung == beschreibung.c.id)
         .outerjoin(melduser, meldungen.c.id == melduser.c.id_meldung)
         .outerjoin(users, melduser.c.id_user == users.c.id)
     )
