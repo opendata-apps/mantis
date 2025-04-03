@@ -731,7 +731,6 @@ def database_view():
 
     if last_updated is None or now - last_updated > timedelta(minutes=1):
         ad.refresh_materialized_view(db)
-        print("refreshed materialized view" + "\n\n\n\n\n\n\n\n\n\n")
         session["last_updated_all_data_view"] = now
     # Get user_id from session, default to None if not found
     user_id = session.get('user_id')
@@ -836,7 +835,8 @@ def get_table_data(table_name):
         column_types = {column.name: get_standard_type(column.type) for column in table.columns}
 
         # Exclude sensitive columns
-        EXCLUDED_COLUMNS = ['id_user', 'id_finder', 'fundorte_id', 'beschreibung_id', 'dat_fund_bis', 'fo_beleg', 'bearb_id', 'ablage']
+        EXCLUDED_COLUMNS = ['id_user', 'id_finder', 'fundorte_id', 'beschreibung_id',
+                            'dat_fund_bis', 'fo_beleg', 'bearb_id', 'ablage']
         columns_with_excluded = columns.copy()
         columns = [col for col in columns if col not in EXCLUDED_COLUMNS]
         column_types = {col: column_types[col] for col in columns}
@@ -880,7 +880,8 @@ def update_cell():
             return jsonify({"error": "Unable to find original table and column"}), 400
 
         # Fetch the corresponding row from all_data_view
-        all_data_row = db.session.query(TblAllData).filter(TblAllData.meldungen_id == id_value).first()
+        all_data_row = db.session.query(TblAllData).filter(
+            TblAllData.meldungen_id == id_value).first()
         if not all_data_row:
             return jsonify({"error": "Record not found"}), 404
 
@@ -905,7 +906,8 @@ def update_cell():
         elif original_table == TblFundortBeschreibung:
             beschreibung_id = all_data_row.beschreibung_id
             if not beschreibung_id:
-                return jsonify({"error": "Beschreibung ID not found in the record"}), 400
+                return jsonify(
+                    {"error": "Beschreibung ID not found in the record"}), 400
             stmt = (
                 update(original_table)
                 .where(original_table.id == beschreibung_id)
@@ -935,7 +937,11 @@ def update_cell():
     except Exception as e:
         db.session.rollback()
         current_app.logger.exception(f"Error in update_cell: {str(e)}")
-        return jsonify({"error": f"An error occurred while updating the cell: {str(e)}"}), 500
+        errmsg = jsonify(
+            {"error": f"Error while updating the cell: {str(e)}"}
+        )
+        return errmsg, 500
+
 
 def find_original_table_and_column(column_name):
     table_column_mapping = {
