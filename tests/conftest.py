@@ -4,9 +4,8 @@ from alembic import command
 from alembic.config import Config
 from app.test_config import Config as TestConfig
 from sqlalchemy import text
-#from app.demodata.filldb import insert_data_reports
-#from app import insert_initial_data_command
 import  app.database.full_text_search as fts
+import  app.database.alldata as ad
 import sqlalchemy as sa
 import sqlalchemy.orm as orm
 from app.demodata.filldb import insert_data_reports
@@ -138,7 +137,8 @@ def insert_initial_data_command():
 
     insert_data_reports(session)
     fts.create_materialized_view(db, session=session)
-
+    ad.create_materialized_view(db, session=session)
+    
     
 def drop_all_with_views():
     """Drop all database tables and materialized views.

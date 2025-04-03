@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from io import BytesIO
 import pandas as pd
 from app import db
@@ -725,11 +725,11 @@ def get_filtered_query(
 def database_view():
     
     last_updated = session.get("last_updated_all_data_view")
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     if last_updated and last_updated.tzinfo:
         last_updated = last_updated.replace(tzinfo=None)
-
-    if last_updated is None or now - last_updated > timedelta(minutes=1):
+    if last_updated is None or now - last_updated.astimezone(timezone.utc) > timedelta(minutes=1):
+         #if last_updated is None or now - last_updated > timedelta(minutes=1):
         ad.refresh_materialized_view(db)
         session["last_updated_all_data_view"] = now
     # Get user_id from session, default to None if not found
@@ -752,7 +752,7 @@ def get_table_data(table_name):
 
         # Check if it's time to refresh the materialized view
         last_updated = session.get('last_updated_all_data_view')
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc).replace(tzinfo=None)  # Offset-naiv
         if last_updated is None or (now - last_updated.replace(tzinfo=None) > timedelta(minutes=1)):
             ad.refresh_materialized_view(db)
             session['last_updated_all_data_view'] = now
