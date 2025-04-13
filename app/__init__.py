@@ -65,31 +65,37 @@ def create_all_data_view():
 @click.command("insert-initial-data")
 @with_appcontext
 def insert_initial_data_command():
-    """Insert initial data into the beschreibung table."""
+    """Insert initial data into the database using the populate script."""
 
     import  app.database.alldata as ad
     import  app.database.full_text_search as fts
-    import  app.database.vg5000_fill_aemter as vg5000
-    
+    # Import the new populate function
+    from app.database.populate import populate_all
+
     conn = Config.SQLALCHEMY_DATABASE_URI
-    db = sa.create_engine(conn)
-    Session = orm.sessionmaker(bind=db)
+    db_engine = sa.create_engine(conn) # Renamed for clarity, used by populate_all
+    Session = orm.sessionmaker(bind=db_engine)
     session = Session()
 
-    for id, beschreibung in Config.INITIAL_DATA:
-        session.execute(
-            text(
-                "INSERT INTO beschreibung (id, beschreibung) VALUES (:id, :beschreibung)"
-            ),
-            {"id": id, "beschreibung": beschreibung},
-        )
-    session.commit()
-    fts.create_materialized_view(db, session=session)
-    ad.create_materialized_view(db, session=session)
-    
+    # Determine the source of VG5000 data
     if Config.TESTING:
         from tests.database.jsondata import data as jsondata
-        insert_data_reports(session)
+    else:
+        from app.database.vg5000_gem import data as jsondata
+
+    # Call the centralized population function
+    # It handles beschreibung, feedback_types, and vg5000_aemter
+    populate_all(db_engine, session, jsondata) 
+    
+    # Keep the creation/refresh of materialized views
+    # Ensure these run *after* all initial data is potentially populated
+    fts.create_materialized_view(db_engine, session=session)
+    ad.create_materialized_view(db_engine, session=session)
+    
+    # Keep testing-specific data insertion and file operations
+    if Config.TESTING:
+        # Assuming insert_data_reports uses the same session
+        insert_data_reports(session) 
 
         src = 'app/datastore/gallerie/'
         trg = 'app/datastore/2025/2025-01-19/'
@@ -97,13 +103,11 @@ def insert_initial_data_command():
         
         files=os.listdir(src)
         for fname in files:
-            # copying demo files to the 
-            # destination directory
             shutil.copy2(os.path.join(src,fname), trg)
-    else:
-        from app.database.vg5000_gem import data as jsondata
-    
-    vg5000.import_aemter_data(db, jsondata)
+        click.echo("Inserted test reports and copied gallery files.") # Added echo for clarity
+
+    # No separate call to vg5000.import_aemter_data needed here anymore
+    click.echo("Initial data population process finished.") # General finish message
 
 
 def create_app(config_class=Config):
