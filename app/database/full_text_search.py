@@ -118,7 +118,7 @@ def dropGen(element, compiler, **kwargs):
 
 
 def create_materialized_view(db, session=None):
-    'create a materialized view for global search activities '
+    'create or recreate a materialized view for global search activities'
     if not db:
         db = sa.create_engine(
             'postgresql://mantis_user:mantis@localhost/mantis_tracker'
@@ -127,14 +127,14 @@ def create_materialized_view(db, session=None):
         Session = orm.sessionmaker(bind=db)
         session = Session()
 
-    #try:
-        #session.execute(text('drop table melduser cascade'))
-        #drop = Drop(name='full_text_search', schema='public')
-        # You can call dropGen directly with the `drop` object
-        #session.execute(dropGen(drop, None))
-        #session.commit()
-    #except Exception as e:
-    #    print('Nix zu löschen')
+    # Drop the existing materialized view if it exists
+    try:
+        drop = Drop(name='full_text_search', schema='public')
+        session.execute(dropGen(drop, None))
+        session.commit()
+    except Exception:
+        print('No existing view to drop, creating a new one.')
+
     # Table Aliases
     meldungen = sa.table('meldungen', sa.column('id'), sa.column('bearb_id'),
                          sa.column('anm_melder'), sa.column('anm_bearbeiter'),

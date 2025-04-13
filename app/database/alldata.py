@@ -85,8 +85,8 @@ def dropGen(element, compiler, **kwargs):
     return text(sql)  # text() um den SQL-Ausdruck
 
 
-def create_materialized_view(db=None,session=None):
-    'create a materialized view for admin data '
+def create_materialized_view(db=None, session=None):
+    'create or recreate a materialized view for admin data'
     if not db:
         db = sa.create_engine(
             'postgresql://mantis_user:mantis@localhost/mantis_tracker'
@@ -95,14 +95,14 @@ def create_materialized_view(db=None,session=None):
         Session = orm.sessionmaker(bind=db)
         session = Session()
 
-    #try:
-        #session.execute(text('drop table melduser cascade'))
-        #drop = Drop(name='full_text_search', schema='public')
-        # You can call dropGen directly with the `drop` object
-        #session.execute(dropGen(drop, None))
-        #session.commit()
-    #except Exception as e:
-    #    print('Nix zu löschen')
+    # Drop the existing materialized view if it exists
+    try:
+        drop = Drop(name='all_data_view', schema='public')
+        session.execute(dropGen(drop, None))
+        session.commit()
+    except Exception:
+        print('No existing view to drop, creating a new one.')
+
     # Table Aliases
     meldungen = sa.table('meldungen',
                          sa.column('id'),
