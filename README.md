@@ -93,16 +93,19 @@ GRANT usage, create ON SCHEMA public TO mantis_tester;
 \q
 ```
 
-> ⚠️: Only if there are any Database changes:
-
-```bash
-flask db migrate -m "Define initial  database structure."
-```
-
 ### Step 5: 🏗️ Create the database tables
 
 ```bash
+
 flask db upgrade
+
+# aktuelle Version anzeigen
+flask db current
+
+# History anzeigen
+
+flask db history
+
 ```
 
 ### Step 6: ☕ Fill the database tables
