@@ -12,7 +12,7 @@ class TblUsers(db.Model):
 
     # Relationship to the feedback source
     feedback_source = relationship(
-        "TblUserFeedbackSource", back_populates="user", uselist=False, cascade="all, delete-orphan"
+        "TblUserFeedback", back_populates="user", uselist=False, cascade="all, delete-orphan"
     )
 
     def __repr__(self):

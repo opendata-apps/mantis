@@ -16,4 +16,4 @@ class TblFeedbackType(db.Model):
         return {
             "id": self.id,
             "name": self.name,
-        } 
+        }

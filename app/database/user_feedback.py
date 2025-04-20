@@ -18,17 +18,17 @@ class TblUserFeedback(db.Model):
     user = db.relationship("TblUsers", back_populates="feedback_source")
 
     # Relationship to the lookup table
-    source_type_rel = relationship("TblFeedbackSourceType", back_populates="user_feedbacks")
+    feedback_type_rel = relationship("TblFeedbackType", back_populates="user_feedbacks")
 
     def __repr__(self):
-        source_name = self.source_type_rel.name if self.source_type_rel else 'Unknown'
+        source_name = self.feedback_type_rel.name if self.feedback_type_rel else 'Unknown'
         return f"<UserFeedback id={self.id} user_id={self.user_id} source='{source_name}'>"
 
     def to_dict(self):
         return {
             "id": self.id,
             "user_id": self.user_id,
-            "source_type": self.source_type_rel.name if self.source_type_rel else None, 
+            "source_type": self.feedback_type_rel.name if self.feedback_type_rel else None, 
             "source_detail": self.source_detail,
-            "feedback_source_type_id": self.feedback_source_type_id # Optionally include the ID
+            "feedback_type_id": self.feedback_type_id
         } 
