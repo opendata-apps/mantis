@@ -4,11 +4,13 @@ from alembic import command
 from alembic.config import Config
 from app.test_config import Config as TestConfig
 from sqlalchemy import text
-import  app.database.full_text_search as fts
-import  app.database.alldata as ad
+import app.database.full_text_search as fts
+import app.database.alldata as ad
 import sqlalchemy as sa
 import sqlalchemy.orm as orm
 from app.demodata.filldb import insert_data_reports
+from app.database.populate import populate_all
+from tests.database.jsondata import data as jsondata
 
 @pytest.fixture(scope='session')
 def app():
@@ -134,7 +136,7 @@ def insert_initial_data_command():
             {"id": id, "beschreibung": beschreibung},
         )
     session.commit()
-
+    populate_all(db, session=session, vg5000_json_data=jsondata) 
     insert_data_reports(session)
     fts.create_materialized_view(db, session=session)
     ad.create_materialized_view(db, session=session)
