@@ -193,7 +193,7 @@ def create_materialized_view(db=None, session=None):
     ).select_from(
         meldungen
         .outerjoin(fundorte, meldungen.c.fo_zuordnung == fundorte.c.id)
-        .outerjoin(beschreibung, meldungen.c.fo_zuordnung == beschreibung.c.id)
+        .outerjoin(beschreibung, fundorte.c.beschreibung == beschreibung.c.id)
         .outerjoin(melduser, meldungen.c.id == melduser.c.id_meldung)
         .outerjoin(users, melduser.c.id_user == users.c.id)
     )
