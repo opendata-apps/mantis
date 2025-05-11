@@ -1,0 +1,181 @@
+{% macro render_photo_upload(field) %}
+<div class="form-group">
+  <div id="photo-upload-area" class="photo-dropzone mt-1 flex justify-center px-6 pt-8 pb-8 cursor-pointer relative">
+    <!-- Loading indicator for dropzone -->
+    <div id="dropzoneLoadingIndicator" class="absolute inset-0 bg-white bg-opacity-80 z-10 flex flex-col items-center justify-center hidden">
+      <div class="w-12 h-12 border-4 border-gray-200 border-t-green-600 rounded-full animate-spin"></div>
+      <div id="dropzoneLoadingMessage" class="mt-4 font-medium text-green-700">Bild wird verarbeitet...</div>
+    </div>
+    <div class="space-y-3 text-center">
+      <div class="flex justify-center">
+        <svg aria-hidden="true" class="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor"
+          viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+        </svg>
+      </div>
+      <div class="flex flex-col text-sm text-gray-600">
+        <label for="{{ field.id }}" class="relative cursor-pointer bg-white rounded-md font-medium text-green-600 hover:text-green-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-green-500">
+          <span class="text-sm md:text-base">Klicken Sie, um ein Foto auszuwählen</span>
+          {{ field(class="sr-only", required=true, accept=".jpg,.jpeg,.png,.webp,.heic,.heif") }}
+        </label>
+        <p class="mt-2">oder ziehen Sie ein Bild hierher</p>
+        <p class="text-xs text-gray-500 mt-2">
+          JPG, PNG, WEBP, HEIC, HEIF bis zu 12MB
+        </p>
+      </div>
+    </div>
+  </div>
+  {% if field.errors %}
+    <div class="text-red-500 text-sm mt-1 field-error-message" data-for="{{ field.id }}">{{ field.errors[0] }}</div>
+  {% endif %}
+  
+  <!-- Photo preview area -->
+  <div id="photoPreview" class="mt-4 hidden">
+    <div class="bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200">
+      <div class="relative w-full h-60 md:h-80 overflow-hidden flex items-center justify-center">
+        <img id="preview-img" class="block max-w-full max-h-full object-contain" src="" alt="Preview">
+        <button type="button" id="remove-photo" class="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 focus:outline-none" title="Foto entfernen">
+          <i class="fas fa-times w-5 h-5"></i>
+        </button>
+      </div>
+      
+      <!-- EXIF Metadata display -->
+      <div id="exif-data" class="p-4 hidden">
+        <h4 class="font-medium text-gray-700 mb-2">Aus dem Bild ausgelesene Informationen:</h4>
+        <div class="exif-panel p-3">
+          <div id="exif-grid" class="grid grid-cols-2 gap-2 text-sm">
+            <div>
+              <span class="font-medium">Datum:</span> 
+              <span id="exif-date" class="text-green-600">Nicht verfügbar</span>
+            </div>
+            <div>
+              <span class="font-medium">Standort:</span> 
+              <span id="exif-location" class="text-green-600">Nicht verfügbar</span>
+            </div>
+          </div>
+        </div>
+        <p class="text-xs text-gray-500 mt-2">
+          Diese Informationen werden automatisch in das Formular übernommen. Sie können sie später bei Bedarf ändern.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endmacro %}
+
+{% macro render_form_field(field, attrs={}) %}
+  {# Create a mutable copy of attrs to allow popping #}
+  {% set attrs = dict(attrs) %}
+  <div class="form-group">
+    {# Get label class from attrs or use default, then remove from dict #}
+    {% set label_cls = attrs.pop('label_class', 'block text-sm font-medium text-gray-700 mb-1') %}
+    {{ field.label(class=label_cls) }}
+    {# Get field class from attrs or use default, then remove from dict #}
+    {% set field_cls = attrs.pop('class', 'block w-full px-4 py-2 text-base text-gray-700 bg-white rounded-lg shadow-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200 transition ease-in-out duration-300') %}
+    {# Render the field, passing the specific class and unpacking remaining attrs #}
+    {{ field(class=field_cls, **attrs) }}
+    {% if field.errors %}
+      <div class="text-red-500 text-sm mt-1 field-error-message" data-for="{{ field.id }}">{{ field.errors[0] }}</div>
+    {% endif %}
+  </div>
+{% endmacro %}
+
+{% macro render_checkbox_field(field, attrs={}) %}
+  {# Create a mutable copy of attrs to allow popping #}
+  {% set attrs = dict(attrs) %}
+  <div class="flex items-center space-x-2">
+    {# Get field class from attrs or use default, then remove #}
+    {% set field_cls = attrs.pop('class', 'form-checkbox w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded shadow-sm transition duration-150 ease-in-out') %}
+    {# Get label class from attrs or use default, then remove #}
+    {% set label_cls = attrs.pop('label_class', 'text-sm text-gray-700') %}
+    {# Render field, passing specific class and remaining attrs #}
+    {{ field(class=field_cls, **attrs) }}
+    {{ field.label(for=field.id, class=label_cls) }}
+    {% if field.errors %}
+      {# Checkbox errors might need specific placement depending on design #}
+      <span class="text-red-500 text-xs ml-2">{{ field.errors[0] }}</span> 
+    {% endif %}
+  </div>
+{% endmacro %}
+
+{% macro render_step_navigation(current_step, total_steps, show_prev=True, show_next=False, show_submit=False) %}
+<div class="flex justify-between items-center mt-6 relative h-10">
+  {% if show_prev %}
+    <button type="button" class="px-4 py-2 bg-gray-500 text-white font-medium rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200 ease-in-out shadow-sm flex items-center w-24 justify-center" id="prev{{ current_step }}">
+      <i class="fas fa-chevron-left w-4 h-4 mr-1"></i> Zurück
+    </button>
+  {% else %}
+    <span class="w-24"></span> <!-- Placeholder for alignment -->
+  {% endif %}
+  
+  <span class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-sm text-gray-500 whitespace-nowrap">
+    Schritt {{ current_step }} von {{ total_steps }}
+  </span>
+  
+  {% if show_next %}
+    <button type="button" class="px-4 py-2 bg-green-600 text-white font-medium rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200 ease-in-out shadow-sm flex items-center w-24 justify-center" id="next{{ current_step }}">
+      Weiter <i class="fas fa-chevron-right w-4 h-4 ml-1"></i>
+    </button>
+  {% elif show_submit %}
+    <button type="submit" class="px-4 py-2 bg-green-600 text-white font-medium rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200 ease-in-out shadow-sm flex items-center w-auto justify-center">
+      Absenden <i class="fas fa-paper-plane w-4 h-4 ml-1"></i>
+    </button>
+  {% else %}
+    <span class="w-24"></span> <!-- Placeholder for alignment -->
+  {% endif %}
+</div>
+{% endmacro %}
+
+{% macro render_review_section(title, icon_class, step_to_edit) %}
+<div class="review-section bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+  <div class="flex items-center justify-between bg-gray-50 px-4 py-3 border-b border-gray-200">
+    <h4 class="text-md font-medium text-gray-700 flex items-center">
+      <i class="{{ icon_class }} w-5 h-5 mr-2 text-green-600"></i>
+      {{ title }}
+    </h4>
+    <button type="button" class="edit-btn text-sm text-green-600 hover:text-green-800 font-medium flex items-center p-1 rounded hover:bg-green-50" data-step="{{ step_to_edit }}">
+      <i class="fas fa-pencil-alt w-4 h-4 mr-1"></i>
+      Bearbeiten
+    </button>
+  </div>
+  <div class="p-4">
+    {{ caller() }} {# Render the content passed to the macro call #}
+  </div>
+</div>
+{% endmacro %}
+
+{% macro render_review_item(label, value_id, default_value='-', container_class='border-b border-gray-100 pb-2', label_class='font-medium text-gray-700', value_class='text-gray-900') %}
+<div class="{{ container_class }}">
+  <span class="{{ label_class }}">{{ label }}:</span> 
+  <span id="{{ value_id }}" class="{{ value_class }}">{{ default_value }}</span>
+</div>
+{% endmacro %}
+
+{% macro render_review_text_block(label, value_id, default_value='-') %}
+<div>
+  <span class="font-medium text-gray-700">{{ label }}:</span> 
+  <div id="{{ value_id }}" class="text-gray-900 mt-1 bg-gray-50 p-2 rounded-md max-h-32 overflow-y-auto break-words">{{ default_value }}</div>
+</div>
+{% endmacro %}
+
+{% macro render_review_info_block(label, icon_class, value_id=None, default_value='-') %}
+<div class="bg-gray-50 p-3 rounded-md">
+  <div class="flex items-center mb-2">
+    <i class="{{ icon_class }} w-5 h-5 text-green-500 mr-2"></i>
+    <span class="font-medium text-gray-700">{{ label }}</span>
+  </div>
+  {% if value_id %}
+    {# Render simple value if value_id is provided #}
+    <div id="{{ value_id }}" class="text-gray-900 ml-7">{{ default_value }}</div>
+    {% if caller %}
+      <div class="ml-7 mt-1">{# Optional container for extra content AFTER the value #}
+          {{ caller() }}
+      </div>
+    {% endif %}
+  {% elif caller %}
+    {# Render caller content directly if no value_id #}
+    {{ caller() }}
+  {% endif %}
+</div>
+{% endmacro %} 

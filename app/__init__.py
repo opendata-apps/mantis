@@ -138,7 +138,7 @@ def create_app(config_class=Config):
     from app.routes.main import main
     from app.routes.provider import provider
     from app.routes.statistics import stats
-
+    from app.routes.report import report
     csrf.exempt(main)
     csrf.exempt(admin)
     csrf.exempt(stats)
@@ -149,6 +149,7 @@ def create_app(config_class=Config):
     app.register_blueprint(data)
     app.register_blueprint(stats)
     app.register_blueprint(provider)
+    app.register_blueprint(report)
     app.register_error_handler(404, page_not_found)
     app.register_error_handler(403, forbidden)
     app.register_error_handler(429, too_many_requests)

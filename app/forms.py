@@ -1,207 +1,181 @@
 from flask_wtf import FlaskForm
+from flask_wtf.file import FileField, FileAllowed, FileRequired, FileSize
+from wtforms import (
+    StringField,
+    FloatField,
+    TextAreaField,
+    DateField,
+    SubmitField,
+    SelectField,
+    BooleanField,
+)
 from wtforms.validators import (
     DataRequired,
+    Email,
+    Optional,
     Length,
     NumberRange,
     ValidationError,
     InputRequired,
-    Optional,
-    Email,
 )
-from flask_wtf.file import FileAllowed, FileRequired, FileSize
-from wtforms import (
-    StringField,
-    DateField,
-    SelectField,
-    BooleanField,
-    FloatField,
-    FileField,
-    SubmitField,
-)
-from datetime import datetime, timedelta
+from datetime import date, timedelta
 import re
 
+# Define constants for choices
+GENDER_CHOICES = [
+    ("", "-- Bitte wählen --"),
+    ("Unbekannt", "Unbekannt"),
+    ("Männlich", "Männlich"),
+    ("Weiblich", "Weiblich"),
+    ("Nymphe", "Nymphe"),
+    ("Oothek", "Oothek (Eipaket)"),
+]
+
+LOCATION_DESCRIPTION_CHOICES = [
+    ("", "-- Bitte wählen --"),
+    ("1", "Innenräume"),
+    ("2", "Garten"),
+    ("3", "Balkon/Terrasse"),
+    ("4", "Fenster/Wand"),
+    ("5", "Industriegebiet"),
+    ("6", "Wald"),
+    ("7", "Wiese/Weide"),
+    ("8", "Heide"),
+    ("9", "Straßenrand/Weg"),
+    ("10", "Gewerbegebiet"),
+    ("11", "In/an einem Fahrzeug"),
+    ("99", "Andere Orte"),
+]
+
+# Custom validators
 def validate_past_date(form, field):
     if field.data:
-        today = datetime.today().date()
+        today = date.today()
         if field.data > today:
-            raise ValidationError("Das Datum muss heute oder früher sein.")
-        elif field.data < today - timedelta(days=5 * 365):
-            raise ValidationError("Das Datum darf nicht älter als 5 Jahre sein.")
+            raise ValidationError("Datum darf nicht in der Zukunft liegen.")
+        five_years_ago = today - timedelta(days=5*365)
+        if field.data < five_years_ago:
+             raise ValidationError("Datum liegt zu weit zurück (max. 5 Jahre).")
+
 
 def validate_zip_code(form, field):
-    if field.data:
-        if not re.match(r'^\d{5}$', field.data):
-            raise ValidationError("Die Postleitzahl muss aus genau 5 Ziffern bestehen.")
+    if field.data and not re.match(r"^\d{5}$", field.data):
+        raise ValidationError("Postleitzahl muss genau 5 Ziffern haben.")
 
-def longLatValidator(form, field):
-    if form.longitude.data is None or form.latitude.data is None:
-        raise ValidationError("Längen- und Breitengrad sind erforderlich.")
-
-    try:
-        lon = float(form.longitude.data)
-        lat = float(form.latitude.data)
-        if lon >= lat:
-            raise ValidationError("Der Breitengrad muss größer als der Längengrad sein.")
-    except ValueError:
-        raise ValidationError("Längen- und Breitengrad müssen gültige Zahlen sein.")
-
+# Define WTForms form class for the sighting report
 class MantisSightingForm(FlaskForm):
-    class Meta:
-        locales = ["de_DE", "de"]
-
-    def __init__(self, *args, **kwargs):
-        self.LANGUAGES = kwargs.pop("LANGUAGES", None)
-        super(MantisSightingForm, self).__init__(*args, **kwargs)
-        self.userid = kwargs.pop("userid", None)
-
-    GENDER_CHOICES = [
-        ("keine Zuordnung", "Keine Zuordnung"),
-        ("Männchen", "Männchen"),
-        ("Weibchen", "Weibchen"),
-        ("Nymphe", "Nymphe"),
-        ("Oothek", "Oothek"),
-    ]
-
-    location_description_CHOICES = [
-        ("1", "Im Haus"),
-        ("2", "Im Garten"),
-        ("3", "Auf dem Balkon/auf der Terrasse"),
-        ("4", "Am Fenster/an der Hauswand"),
-        ("5", "Industriebrache"),
-        ("6", "Im Wald"),
-        ("7", "Wiese/Weide"),
-        ("8", "Heidelandschaft"),
-        ("9", "Straßengraben/Wegesrand/Ruderalflur"),
-        ("10", "Gewerbegebiet"),
-        ("11", "Im oder am Auto"),
-        ("99", "anderer Fundort"),
-    ]
-
-    ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp", "heic", "heif"}
-
-    userid = StringField(
-        "*Benutzerkennung:", 
-        validators=[DataRequired(), Length(max=50)],
-        render_kw={"placeholder": "Benutzerkennung"}
+    # Observer Information
+    report_first_name = StringField(
+        "Vorname *",
+        validators=[DataRequired(message="Vorname ist erforderlich."), Length(min=2, max=50, message="Vorname muss zwischen 2 und 50 Zeichen lang sein.")],
+        render_kw={"placeholder": "Ihr Vorname", "autocomplete": "given-name"},
     )
-    picture = FileField(
-        "Bild (max. 12MB) *",
+    report_last_name = StringField(
+        "Nachname *",
+        validators=[DataRequired(message="Nachname ist erforderlich."), Length(min=2, max=50, message="Nachname muss zwischen 2 und 50 Zeichen lang sein.")],
+        render_kw={"placeholder": "Ihr Nachname", "autocomplete": "family-name"},
+    )
+    email = StringField(
+        "E-Mail",
         validators=[
-            FileRequired(message="Das Bild ist erforderlich, maximal 12MB."),
-            FileAllowed(ALLOWED_EXTENSIONS, message="Nur PNG, JPG, JPEG, WEBP, HEIC oder HEIF Bilder sind zulässig!"),
-            FileSize(max_size=20 * 1024 * 1024, message="Das Bild muss kleiner als 12MB sein"),
+            Optional(),
+            Email(
+                message="Bitte geben Sie eine gültige E-Mail-Adresse ein.",
+                check_deliverability=False,
+            ),
+            Length(max=120),
         ],
+        render_kw={"placeholder": "ihre.email@beispiel.de", "autocomplete": "email"},
     )
-    gender = SelectField(
-        "Entwicklungsstadium/Geschlecht",
-        choices=GENDER_CHOICES,
-        default="Keine Zuordnung",
-        validators=[DataRequired(message="Bitte wählen Sie eine Option.")],
-        render_kw={"title": "Entwicklungsstadium auswählen"},
+    identical_finder_reporter = BooleanField(
+        "Ich bin der Finder dieser Gottesanbeterin"
     )
-    picture_description = StringField(
-        "Sonstige Angaben zum Fundort",
-        validators=[Optional(), Length(max=500)],
-        render_kw={"placeholder": "Freihandeingabe Fundort"},
+    finder_first_name = StringField(
+        "Vorname des Finders",
+        validators=[Optional(), Length(min=2, max=50, message="Vorname muss zwischen 2 und 50 Zeichen lang sein.")],
+        render_kw={"placeholder": "Vorname (falls abweichend)", "autocomplete": "off"},
+    )
+    finder_last_name = StringField(
+        "Nachname des Finders",
+        validators=[Optional(), Length(min=2, max=50, message="Nachname muss zwischen 2 und 50 Zeichen lang sein.")],
+        render_kw={"placeholder": "Nachname (falls abweichend)", "autocomplete": "off"},
     )
 
-    longitude = FloatField(
-        "Längengrad *",
+    # Sighting Details
+    sighting_date = DateField(
+        "Datum der Sichtung *",
+        format="%Y-%m-%d",
         validators=[
-            InputRequired("Pflichtfeld, das gefüllt wird, wenn der Marker in der Karte gesetzt ist."),
-            longLatValidator,
-            NumberRange(min=-180.0, max=180.0, message="Der Längengrad muss zwischen -180 und 180 liegen."),
+            DataRequired(message="Sichtungsdatum ist erforderlich."),
+            validate_past_date,
         ],
-        render_kw={
-            "placeholder": "z.B. 13.12345",
-            "title": "Der Längengrad Ihres Standorts",
-        },
+        render_kw={"placeholder": "JJJJ-MM-TT", "autocomplete": "off"}
     )
 
+    # Location Information
     latitude = FloatField(
         "Breitengrad *",
         validators=[
-            InputRequired("Pflichtfeld, das gefüllt wird, wenn der Marker in der Karte gesetzt ist."),
-            NumberRange(min=-90.0, max=90.0, message="Der Breitengrad muss zwischen -90 und 90 liegen."),
+            InputRequired(message="Breitengrad ist erforderlich (Karte nutzen)."),
+            NumberRange(min=-90.0, max=90.0, message="Breitengrad muss zwischen -90 und 90 liegen.")
         ],
-        render_kw={
-            "placeholder": "z.B. 52.12345",
-            "title": "Der Breitengrad Ihres Standorts",
-        },
+        render_kw={"readonly": True, "aria-label": "Breitengrad (von Karte gesetzt)"}
     )
+    longitude = FloatField(
+        "Längengrad *",
+        validators=[
+            InputRequired(message="Längengrad ist erforderlich (Karte nutzen)."),
+            NumberRange(min=-180.0, max=180.0, message="Längengrad muss zwischen -180 und 180 liegen.")
+        ],
+         render_kw={"readonly": True, "aria-label": "Längengrad (von Karte gesetzt)"}
+    )
+    fund_zip_code = StringField("Postleitzahl", validators=[Optional(), Length(min=5, max=5, message="PLZ muss 5 Ziffern haben."), validate_zip_code], render_kw={"placeholder": "z.B. 10115", "autocomplete": "postal-code"})
+    fund_city = StringField("Stadt/Ort *", validators=[DataRequired(message="Stadt/Ort ist erforderlich."), Length(max=100)], render_kw={"placeholder": "Name der Stadt oder des Ortes", "autocomplete": "address-level2"})
+    fund_street = StringField("Straße", validators=[Optional(), Length(max=100)], render_kw={"placeholder": "Straßenname (optional)", "autocomplete": "address-line1"})
+    fund_state = StringField("Bundesland *", validators=[DataRequired(message="Bundesland ist erforderlich."), Length(max=50)], render_kw={"placeholder": "Bundesland", "autocomplete": "address-level1"})
+    fund_district = StringField("Landkreis", validators=[Optional(), Length(max=100)], render_kw={"placeholder": "Landkreis oder Bezirk (optional)", "autocomplete": "address-level3"})
 
-    fund_zip_code = StringField(
-        "PLZ",
-        validators=[Optional(), validate_zip_code],
-        render_kw={"placeholder": "PLZ"},
-    )
-    fund_city = StringField(
-        "Ort *",
-        validators=[DataRequired(message="Bitte geben Sie einen Ort ein."), Length(max=100)],
-        render_kw={"placeholder": "z.B. Berlin"},
-    )
-    fund_street = StringField(
-        "Straße",
-        validators=[Optional(), Length(max=100)],
-        render_kw={"placeholder": "z.B. Musterstraße"},
-    )
-    fund_state = StringField(
-        "Bundesland *",
-        validators=[DataRequired(message="Das Bundesland ist erforderlich."), Length(max=50)],
-        render_kw={"placeholder": "Bundesland"},
-    )
-    fund_district = StringField(
-        "Landkreis/Stadtteil", 
-        validators=[Optional(), Length(max=100)],
-        render_kw={"placeholder": "z.B. Mitte"}
+
+    # Mantis Details
+    gender = SelectField(
+        "Entwicklungsstadium/Geschlecht *",
+        choices=GENDER_CHOICES,
+        validators=[DataRequired(message="Bitte wählen Sie eine Option aus.")],
+        render_kw={"title": "Entwicklungsstadium auswählen"}
     )
     location_description = SelectField(
-        "Fundort-Beschreibung",
-        choices=location_description_CHOICES,
-        default="Keine Angabe",
-        validators=[DataRequired()],
-        render_kw={"title": "Fundort Beschreibung auswählen"},
+        "Fundortbeschreibung *",
+        choices=LOCATION_DESCRIPTION_CHOICES,
+        validators=[DataRequired(message="Bitte wählen Sie einen Ortstyp aus.")],
+        render_kw={"title": "Fundortbeschreibung auswählen"}
+    )
+    description = TextAreaField("Details zum Fundort", validators=[Optional(), Length(max=500)], render_kw={"placeholder": "Weitere Details (max. 500 Zeichen)", "rows": 3})
+
+    # Photo Upload
+    photo = FileField(
+        "Foto (max. 12MB) *",
+        validators=[
+            FileRequired(message="Ein Foto ist erforderlich."),
+            FileAllowed(['jpg', 'jpeg', 'png', 'webp', 'heic', 'heif'], 'Nur Bilddateien (JPG, PNG, WEBP, HEIC, HEIF) sind erlaubt.'),
+            FileSize(max_size=12 * 1024 * 1024, message="Das Bild darf maximal 12MB groß sein.")
+        ]
     )
 
-    report_first_name = StringField(
-        "Vorname (Melder) *",
-        validators=[DataRequired(message="Der Vorname ist erforderlich."), Length(max=50)],
-        render_kw={"placeholder": "Erster Buchstabe z.B. M."},
-    )
-    report_last_name = StringField(
-        "Nachname (Melder) *",
-        validators=[DataRequired(message="Der Nachname ist erforderlich."), Length(max=50)],
-        render_kw={"placeholder": "z.B. Mustermann"},
-    )
-    identical_finder_melder = BooleanField("Finder und Melder sind identisch")
-    finder_first_name = StringField(
-        "Vorname (Finder)", 
-        validators=[Optional(), Length(max=50)],
-        render_kw={"placeholder": "Erster Buchstabe Finder z.B. M."}
-    )
-    finder_last_name = StringField(
-        "Nachname (Finder)", 
-        validators=[Optional(), Length(max=50)],
-        render_kw={"placeholder": "z.B. Mustermann"}
-    )
+    # Honeypot field for spam prevention
+    honeypot = StringField(validators=[Optional(), Length(max=1)]) # max=1 is a small defense
 
-    sighting_date = DateField(
-        "Funddatum *",
-        validators=[
-            DataRequired(message="Das Funddatum ist erforderlich."),
-            validate_past_date,
-        ],
-        render_kw={"placeholder": "z.B. 2023-05-14"},
-    )
-    contact = StringField(
-        "Kontakt (E-Mail)",
-        validators=[
-            Optional(),
-            Email(message="Die Email Adresse ist ungültig.", check_deliverability=True),
-            Length(max=120)
-        ],
-        render_kw={"placeholder": "z.B. max@example.de"},
-    )
-    honeypot = StringField('Leave this field empty', validators=[Length(max=0)])
-    submit = SubmitField("Absenden")
+    submit = SubmitField("Bericht einreichen")
+
+    def validate_finder_names_dependency(self, extra_validators=None):
+
+        if not self.identical_finder_reporter.data:
+            first_name_filled = bool(self.finder_first_name.data)
+            last_name_filled = bool(self.finder_last_name.data)
+
+            if first_name_filled and not last_name_filled:
+                self.finder_last_name.errors.append('Nachname des Finders ist erforderlich, wenn Vorname angegeben wurde.')
+                return False
+            if last_name_filled and not first_name_filled:
+                self.finder_first_name.errors.append('Vorname des Finders ist erforderlich, wenn Nachname angegeben wurde.')
+                return False
+        return True

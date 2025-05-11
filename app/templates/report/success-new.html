@@ -30,7 +30,7 @@ Vielen Dank für Ihre Meldung.
                 {% endif %}
             </p>
             <div class="flex flex-col justify-center gap-4 md:flex-row">
-                <a href="/melden/{{usrid}}"
+                <a href="{{ url_for('report.melden', usrid=usrid if usrid else None) }}"
                     class="relative px-4 py-2 overflow-hidden font-medium text-gray-100 transition duration-300 ease-out bg-green-600 rounded-md md:px-6 md:py-3 group hover:bg-gradient-to-r hover:from-green-600 hover:to-green-500 hover:ring-2 hover:ring-offset-2 hover:ring-green-500">
                     <span class="absolute bottom-0 left-0 h-full -ml-2">
                         <svg viewBox="0 0 487 487" class="w-auto h-full opacity-100 object-stretch"
@@ -52,8 +52,13 @@ Vielen Dank für Ihre Meldung.
                         class="absolute right-0 w-8 h-32 -mt-12 transition-all duration-1000 transform translate-x-12 bg-white opacity-10 rotate-12 group-hover:-translate-x-40 ease"></span>
                     <span class="relative text-sm md:text-lg">weitere Meldung</span>
                 </a>
-                <a href="/sichtungen/{{usrid}}"
+                {% if usrid %}
+                <a href="{{ url_for('provider.melder_index', usrid=usrid) }}"
                     class="relative px-4 py-2 overflow-hidden font-medium text-gray-100 transition duration-300 ease-out bg-gray-300 rounded-md md:px-6 md:py-3 group hover:bg-gradient-to-r hover:from-gray-300 hover:to-gray-400 hover:ring-2 hover:ring-offset-2 hover:ring-gray-400">
+                {% else %}
+                <a href="{{ url_for('data.show_map', year=now.year) }}"
+                    class="relative px-4 py-2 overflow-hidden font-medium text-gray-100 transition duration-300 ease-out bg-gray-300 rounded-md md:px-6 md:py-3 group hover:bg-gradient-to-r hover:from-gray-300 hover:to-gray-400 hover:ring-2 hover:ring-offset-2 hover:ring-gray-400">
+                {% endif %}
                     <span class="absolute bottom-0 left-0 h-full -ml-2">
                         <svg viewBox="0 0 487 487" class="w-auto h-full opacity-100 object-stretch"
                             xmlns="http://www.w3.org/2000/svg">
@@ -84,6 +89,6 @@ Vielen Dank für Ihre Meldung.
     window.onpopstate = function() {
         window.history.go(1);
     };
-    </script>
+</script>
     
 {% endblock content %}
