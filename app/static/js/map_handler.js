@@ -47,6 +47,16 @@ const MapHandler = {
                  console.warn('Leaflet Geocoder library not loaded.');
              }
 
+            // Add simple Locate control
+            if (typeof L.Control.Locate !== 'undefined') {
+                L.control.locate().addTo(this.state.map);
+                
+                // Set marker when location is found
+                this.state.map.on('locationfound', (e) => {
+                    this.setMarkerAndCoordinates(e.latlng.lat, e.latlng.lng);
+                });
+            }
+
             // Add map event listeners
             this.state.map.on('click', this.handleMapClick.bind(this));
 
