@@ -15,6 +15,8 @@ import sqlalchemy.ext.compiler
 import sqlalchemy.orm as orm
 from sqlalchemy import text
 from .config import Config
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 from app.demodata.filldb import insert_data_reports
 
@@ -22,6 +24,13 @@ from app.demodata.filldb import insert_data_reports
 csrf = CSRFProtect()
 db = SQLAlchemy()
 migrate = Migrate()
+limiter = Limiter(
+    key_func=get_remote_address,
+    storage_uri="memory://",
+    strategy="fixed-window",
+    default_limits=["200 per day", "100 per hour"],
+    headers_enabled=True
+)
 
 
 # Define the custom command for creating the materialized view
@@ -115,6 +124,7 @@ def create_app(config_class=Config):
     app.config.from_object(config_class)
     csrf.init_app(app)
     db.init_app(app)
+    limiter.init_app(app)
 
     migrate.init_app(app, db)
 
@@ -166,4 +176,5 @@ def forbidden(e):
 
 
 def too_many_requests(e):
-    return render_template("error/429.html"), 429
+    """Custom error handler for rate limiting (429 errors)"""
+    return render_template("error/429.html", error=e), 429

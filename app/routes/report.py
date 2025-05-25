@@ -22,7 +22,7 @@ from flask import (
 from werkzeug.datastructures import CombinedMultiDict, MultiDict
 from werkzeug.utils import secure_filename
 
-from app import db
+from app import db, limiter, csrf
 from app.database.models import (TblFundorte,
                                  TblMeldungen,
                                  TblMeldungUser,
@@ -37,50 +37,29 @@ from ..config import Config
 # Blueprints
 report = Blueprint("report", __name__)
 
-# For rate limiting - similar to checklist in data.py
-report_submission_checklist = {}
-
-def _check_and_update_ip_submission_count(ip_address: str, limit: int = 7) -> bool:
-    """Checks and updates submission count for an IP. Returns True if limit exceeded."""
-    global report_submission_checklist
-    today_str = datetime.now().strftime("%Y-%m-%d")
-
-    # Check if we need to reset the checklist for a new day
-    if report_submission_checklist.get("date") != today_str:
-        report_submission_checklist = {"date": today_str}
-        print(f"--- Rate limiting checklist reset for new day: {today_str} ---")
-
-    current_count = report_submission_checklist.get(ip_address, 0)
-    current_count += 1
-    report_submission_checklist[ip_address] = current_count
-    print(f"--- IP {ip_address} submission count: {current_count} ---")
-
-    return current_count > limit
-
 # Helper function to determine gender fields for TblMeldungen
 def _set_gender_fields(selected_gender_value):
     """
     Maps a gender string to a dictionary of TblMeldungen gender fields.
     Example input: "Männlich", "Weibchen", etc.
     """
-    genders = {"art_m": 0, "art_w": 0, "art_n": 0, "art_o": 0}
+    genders = {"art_m": 0, "art_w": 0, "art_n": 0, "art_o": 0, "art_f": 0}
     gender_mapping = {
         "Männlich": "art_m",
         "Weiblich": "art_w",
         "Nymphe": "art_n",
         "Oothek": "art_o",
-        "Unbekannt": "art_u" # Assuming TblMeldungen has an art_u or similar for unknown
+        "Unbekannt": "art_f"  # Map "Unbekannt" to art_f (other/unknown category)
     }
     db_field_name = gender_mapping.get(selected_gender_value)
-    if db_field_name:
-        # Ensure the key exists in genders dict, especially if art_u is new
-        if db_field_name not in genders and db_field_name == "art_u": 
-            genders["art_u"] = 0 # Initialize if not present
+    if db_field_name and db_field_name in genders:
         genders[db_field_name] = 1
     return genders
 
 @report.route("/melden", methods=["GET", "POST"])
 @report.route("/melden/<usrid>", methods=["GET", "POST"])
+@limiter.limit("10 per hour", methods=["POST"])  # Only limit POST requests (form submissions)
+@limiter.limit("3 per minute", methods=["POST"])  # Additional short-term limit for POST
 def melden(usrid=None):
     """Handle the report form submission using SQLAlchemy, including rate limiting and pre-filling."""
     form = MantisSightingForm()
@@ -90,48 +69,86 @@ def melden(usrid=None):
         user_to_prefill = TblUsers.query.filter_by(user_id=usrid).first()
         if user_to_prefill:
             print(f"--- Attempting to pre-fill form for user ID: {usrid} ---")
-            # Expected format: "Lastname F."
+            # Parse user_name format: "Lastname F." (standard format in database)
             name_parts = user_to_prefill.user_name.split(" ", 1)
+            
+            # Extract last name (always present)
             form.report_last_name.data = name_parts[0]
-            # form.report_first_name.data cannot be accurately prefilled from "F."
-            form.email.data = user_to_prefill.user_kontakt
+            
+            # Extract first initial from format like "F." (always present due to database format)
+            if len(name_parts) >= 2:
+                initial_part = name_parts[1].strip()
+                if initial_part.endswith(".") and len(initial_part) == 2:
+                    # Standard format "F." - extract just the letter
+                    form.report_first_name.data = initial_part[0]
+                else:
+                    # Unexpected format, use as-is
+                    form.report_first_name.data = initial_part
+            else:
+                # Fallback: use first letter of last name if no space found
+                form.report_first_name.data = name_parts[0][0] if name_parts[0] else "X"
+            
+            # Prefill email if available
+            form.email.data = user_to_prefill.user_kontakt or ""
+            
             user_prefilled_data = True
-            print(f"Prefilled: Last Name='{form.report_last_name.data}', Email='{form.email.data}'")
+            print(f"Prefilled: Last Name='{form.report_last_name.data}', First Name='{form.report_first_name.data}', Email='{form.email.data}'")
         else:
             print(f"--- User ID {usrid} provided for pre-fill, but user not found. ---")
 
     if request.method == "POST":
-        # Rate Limiting Check (before form validation)
-        ip_addr = request.remote_addr
-        if _check_and_update_ip_submission_count(ip_addr, limit=7):
-            print(f"--- Rate limit exceeded for IP: {ip_addr}. Aborting with 429. ---")
-            abort(429) # Too Many Requests
-
         if form.validate_on_submit():
             print(f"--- Form Data Validated (POST) ---")
             # Honeypot Check (after form validation)
             if form.honeypot.data:
-                print(f"--- Honeypot triggered by IP: {ip_addr}. Aborting with 403. ---")
+                print(f"--- Honeypot triggered by IP: {request.remote_addr}. Aborting with 403. ---")
                 abort(403) # Forbidden
             
             print(f"Form data: {form.data}")
             try:
                 # 1. User Handling (Reporter)
-                reporter_user_id = get_new_id()
-                reporter_name = f"{form.report_last_name.data.strip()} {form.report_first_name.data.strip()[0].upper()}."
-                reporter_contact = form.email.data
-                reporter = TblUsers(
-                    user_id=reporter_user_id,
-                    user_name=reporter_name,
-                    user_rolle=1,
-                    user_kontakt=reporter_contact
-                )
-                print(f"--- Preparing Reporter User ---")
-                print(f"Reporter User ID: {reporter_user_id}")
-                print(f"Reporter Name: {reporter_name}")
-                print(f"Reporter Contact: {reporter_contact}")
-                db.session.add(reporter)
-                db.session.flush()
+                # Check if this is a prefilled user (existing user)
+                if usrid:
+                    reporter = TblUsers.query.filter_by(user_id=usrid).first()
+                    if reporter:
+                        print(f"--- Using Existing Reporter User ---")
+                        print(f"Reporter User ID: {reporter.user_id}")
+                        print(f"Reporter Name: {reporter.user_name}")
+                        print(f"Reporter Contact: {reporter.user_kontakt}")
+                    else:
+                        # User ID provided but not found, create new user
+                        reporter_user_id = get_new_id()
+                        reporter_name = f"{form.report_last_name.data.strip()} {form.report_first_name.data.strip()[0].upper()}."
+                        reporter_contact = form.email.data
+                        reporter = TblUsers(
+                            user_id=reporter_user_id,
+                            user_name=reporter_name,
+                            user_rolle=1,
+                            user_kontakt=reporter_contact
+                        )
+                        print(f"--- Creating New Reporter User (usrid not found) ---")
+                        print(f"Reporter User ID: {reporter_user_id}")
+                        print(f"Reporter Name: {reporter_name}")
+                        print(f"Reporter Contact: {reporter_contact}")
+                        db.session.add(reporter)
+                        db.session.flush()
+                else:
+                    # No user ID provided, create new user
+                    reporter_user_id = get_new_id()
+                    reporter_name = f"{form.report_last_name.data.strip()} {form.report_first_name.data.strip()[0].upper()}."
+                    reporter_contact = form.email.data
+                    reporter = TblUsers(
+                        user_id=reporter_user_id,
+                        user_name=reporter_name,
+                        user_rolle=1,
+                        user_kontakt=reporter_contact
+                    )
+                    print(f"--- Creating New Reporter User ---")
+                    print(f"Reporter User ID: {reporter_user_id}")
+                    print(f"Reporter Name: {reporter_name}")
+                    print(f"Reporter Contact: {reporter_contact}")
+                    db.session.add(reporter)
+                    db.session.flush()
 
                 finder_instance = None
                 if not form.identical_finder_reporter.data:
@@ -213,7 +230,7 @@ def melden(usrid=None):
                     'dat_fund_von': form.sighting_date.data,
                     'dat_meld': current_time,
                     'fo_zuordnung': new_fundort.id,
-                    'fo_quelle': "F", 'art_f': "0", 'tiere': "1",
+                    'fo_quelle': "F", 'tiere': "1",
                     **gender_fields_dict,
                     'anm_melder': form.description.data
                 }
@@ -261,7 +278,7 @@ def melden(usrid=None):
             print(f"Form errors: {form.errors}")
 
     # For GET requests or validation failures, render the form
-    # Pass user_prefilled_data to template if you want to conditionally make fields readonly
+    # Pass user_prefilled_data to template to show visual indicators for prefilled fields
     return render_template("report/report_form.html", form=form, now=datetime.now, user_prefilled=user_prefilled_data)
 
 @report.route("/success")
@@ -305,6 +322,8 @@ def get_step_fields(step):
     return step_fields_map.get(step, [])
 
 @report.route("/validate_step", methods=["POST"])
+@csrf.exempt  # Exempt AJAX validation from CSRF protection
+@limiter.limit("30 per minute")  # Allow reasonable validation requests
 def validate_step():
     """Validate a single step of the form via AJAX using WTForms."""
     # Get JSON data from request

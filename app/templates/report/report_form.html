@@ -179,11 +179,36 @@
       <div class="hidden p-6 bg-white border border-gray-100 rounded-lg shadow-sm step" id="step3">
         <h3 class="mb-4 text-xl font-medium text-green-700">Ihre Kontaktdaten</h3>
         
+        {% if user_prefilled %}
+        <div class="p-3 mb-4 border border-blue-200 rounded-md bg-blue-50">
+          <div class="flex items-center">
+            <i class="w-5 h-5 mr-2 text-blue-500 fas fa-info-circle"></i>
+            <p class="text-sm text-blue-700">
+              Ihre Daten wurden basierend auf Ihrem Benutzer-Account vorausgefüllt und können nicht geändert werden.
+            </p>
+          </div>
+        </div>
+        {% endif %}
+        
         <div class="space-y-4">
            {# Reporter Fields #}
-           {{ render_form_field(form.report_first_name, attrs={'id': 'report_first_name'}) }}
-           {{ render_form_field(form.report_last_name, attrs={'id': 'report_last_name'}) }}
-           {{ render_form_field(form.email, attrs={'id': 'email'}) }}
+           {% if user_prefilled %}
+             {{ render_form_field(form.report_first_name, attrs={'id': 'report_first_name', 'readonly': true, 'class': 'block w-full px-4 py-2 text-base text-gray-600 bg-gray-100 rounded-lg shadow-sm border border-gray-300 cursor-not-allowed'}) }}
+           {% else %}
+             {{ render_form_field(form.report_first_name, attrs={'id': 'report_first_name'}) }}
+           {% endif %}
+           
+           {% if user_prefilled %}
+             {{ render_form_field(form.report_last_name, attrs={'id': 'report_last_name', 'readonly': true, 'class': 'block w-full px-4 py-2 text-base text-gray-600 bg-gray-100 rounded-lg shadow-sm border border-gray-300 cursor-not-allowed'}) }}
+           {% else %}
+             {{ render_form_field(form.report_last_name, attrs={'id': 'report_last_name'}) }}
+           {% endif %}
+           
+           {% if user_prefilled %}
+             {{ render_form_field(form.email, attrs={'id': 'email', 'readonly': true, 'class': 'block w-full px-4 py-2 text-base text-gray-600 bg-gray-100 rounded-lg shadow-sm border border-gray-300 cursor-not-allowed'}) }}
+           {% else %}
+             {{ render_form_field(form.email, attrs={'id': 'email'}) }}
+           {% endif %}
            
            {# Checkbox #}
            {{ render_checkbox_field(form.identical_finder_reporter, attrs={'id': 'identical_finder_reporter'}) }}

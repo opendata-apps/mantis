@@ -67,12 +67,12 @@ class MantisSightingForm(FlaskForm):
     # Observer Information
     report_first_name = StringField(
         "Vorname *",
-        validators=[DataRequired(message="Vorname ist erforderlich."), Length(min=2, max=50, message="Vorname muss zwischen 2 und 50 Zeichen lang sein.")],
+        validators=[DataRequired(message="Vorname ist erforderlich."), Length(min=1, max=50, message="Vorname muss zwischen 1 und 50 Zeichen lang sein.")],
         render_kw={"placeholder": "Ihr Vorname", "autocomplete": "given-name"},
     )
     report_last_name = StringField(
         "Nachname *",
-        validators=[DataRequired(message="Nachname ist erforderlich."), Length(min=2, max=50, message="Nachname muss zwischen 2 und 50 Zeichen lang sein.")],
+        validators=[DataRequired(message="Nachname ist erforderlich."), Length(min=1, max=50, message="Nachname muss zwischen 1 und 50 Zeichen lang sein.")],
         render_kw={"placeholder": "Ihr Nachname", "autocomplete": "family-name"},
     )
     email = StringField(
@@ -92,12 +92,12 @@ class MantisSightingForm(FlaskForm):
     )
     finder_first_name = StringField(
         "Vorname des Finders",
-        validators=[Optional(), Length(min=2, max=50, message="Vorname muss zwischen 2 und 50 Zeichen lang sein.")],
+        validators=[Optional(), Length(min=1, max=50, message="Vorname muss zwischen 1 und 50 Zeichen lang sein.")],
         render_kw={"placeholder": "Vorname (falls abweichend)", "autocomplete": "off"},
     )
     finder_last_name = StringField(
         "Nachname des Finders",
-        validators=[Optional(), Length(min=2, max=50, message="Nachname muss zwischen 2 und 50 Zeichen lang sein.")],
+        validators=[Optional(), Length(min=1, max=50, message="Nachname muss zwischen 1 und 50 Zeichen lang sein.")],
         render_kw={"placeholder": "Nachname (falls abweichend)", "autocomplete": "off"},
     )
 
