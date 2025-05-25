@@ -26,36 +26,34 @@ const PhotoHandler = {
     handleDragOver: function(e) {
         e.preventDefault();
         e.stopPropagation();
-        e.currentTarget.classList.add('dragover'); // Use currentTarget
+        e.currentTarget.classList.add('dragover');
     },
 
     handleDragLeave: function(e) {
         e.preventDefault();
         e.stopPropagation();
-        e.currentTarget.classList.remove('dragover'); // Use currentTarget
+        e.currentTarget.classList.remove('dragover');
     },
 
     handleDrop: function(e) {
         e.preventDefault();
         e.stopPropagation();
-        e.currentTarget.classList.remove('dragover'); // Use currentTarget
+        e.currentTarget.classList.remove('dragover');
         
         if (e.dataTransfer.files.length) {
             this.elements.photoInput.files = e.dataTransfer.files;
-            // Create and dispatch a 'change' event on the file input
-            // so handlePhotoChange is triggered consistently.
             const changeEvent = new Event('change', { bubbles: true });
             this.elements.photoInput.dispatchEvent(changeEvent);
         }
     },
 
-    handlePhotoChange: async function(event) { // Use event object
+    handlePhotoChange: async function(event) {
         const inputElement = event.target;
         if (!inputElement.files || !inputElement.files[0]) return;
         
         const file = inputElement.files[0];
         
-        // Validate file type and size using helpers
+        // Quick validation first
         if (!this.helpers.isValidImageType(file)) {
             this.helpers.showFieldError(this.elements, 'photo', 'Bitte wählen Sie eine Bilddatei (JPG, PNG, WEBP, HEIC oder HEIF).');
             return;
@@ -66,54 +64,121 @@ const PhotoHandler = {
             return;
         }
         
-        // Show loading indicator using helpers
-        this.helpers.showDropzoneLoading(this.elements, true, "Verarbeite Bild...");
+        // Clear any previous errors
         this.helpers.clearFieldError(this.elements, 'photo');
         
+        // Start processing with progress feedback
+        await this.processImageWithProgress(file);
+    },
+
+    processImageWithProgress: async function(file) {
+        if (!file) {
+            this.helpers.showFieldError(this.elements, 'photo', 'Keine Datei ausgewählt.');
+            return;
+        }
+
+        const originalFileName = file.name || 'unknown.jpg';
+        
         try {
-            // Process EXIF data (assumes ExifProcessor is global)
-            const exifResult = await ExifProcessor.processImageExif(file)
-                .catch(err => {
-                    console.error("EXIF Error:", err);
-                    return { error: err.message }; // Gracefully handle EXIF errors
-                });
-
-            // Convert to WebP (assumes WebpConverter is global)
-            const webpResult = await WebpConverter.processImage(file)
-                 .catch(err => {
-                     throw new Error(`Bildkonvertierung fehlgeschlagen: ${err.message}`);
-                 });
-
+            // Step 1: Initial validation and setup
+            this.helpers.showDropzoneLoading(this.elements, true, "Bereite Bildverarbeitung vor...");
+            await this.delay(100);
+            
+            // Step 2: EXIF processing (non-blocking) - do this first with original file
+            this.helpers.showDropzoneLoading(this.elements, true, "Lese Bildinformationen...");
+            await this.delay(100);
+            const exifResult = await this.processExifNonBlocking(file);
+            
+            // Step 3: Image conversion and optimization (WebP converter handles HEIC internally)
+            this.helpers.showDropzoneLoading(this.elements, true, "Optimiere Bild für Upload...");
+            await this.delay(100);
+            
+            // Ensure file has original filename for WebP converter
+            if (!file.name && originalFileName) {
+                file.originalFileName = originalFileName;
+            }
+            
+            const webpResult = await this.convertToWebpNonBlocking(file);
+            
+            // Step 4: Finalize
+            this.helpers.showDropzoneLoading(this.elements, true, "Fertigstellung...");
+            await this.delay(100);
+            
+            // Validate results before storing
+            if (!webpResult || !webpResult.blob || !webpResult.dataUrl) {
+                throw new Error('Bildkonvertierung unvollständig - bitte versuchen Sie es erneut.');
+            }
+            
             // Store WebP data in main state
             this.state.convertedWebpData = {
                 dataUrl: webpResult.dataUrl,
                 blob: webpResult.blob,
-                originalFileName: webpResult.originalFileName || file.name
+                originalFileName: webpResult.originalFileName || originalFileName
             };
             
-            // Display preview
+            // Display preview and apply EXIF data
             this.displayPhotoPreview(webpResult.dataUrl);
-            
-            // Apply EXIF data if available
             this.applyExifData(exifResult);
             
         } catch (error) {
             console.error('Error processing image:', error);
-            
-            let errorMessage = 'Ein Fehler ist beim Verarbeiten des Bildes aufgetreten.';
-            if (error.message.includes('HEIC')) {
-                errorMessage = 'HEIC/HEIF Bilder konnten nicht verarbeitet werden. Bitte konvertieren Sie das Bild zu JPEG oder PNG vor dem Hochladen.';
-            } else if (error.message.includes('load image')) {
-                errorMessage = 'Das Bild konnte nicht geladen werden. Bitte versuchen Sie ein anderes Bild.';
-            } else if (error.message.includes('Bildkonvertierung')) {
-                errorMessage = error.message; // Use the specific conversion error
-            }
-            
-            this.helpers.showFieldError(this.elements, 'photo', errorMessage);
-            this.removePhoto(); // Clean up UI on error
+            this.handleProcessingError(error);
         } finally {
             this.helpers.showDropzoneLoading(this.elements, false);
         }
+    },
+
+    // Simple delay function to allow UI updates
+    delay: function(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    },
+
+
+
+    processExifNonBlocking: async function(file) {
+        return new Promise((resolve) => {
+            // Use setTimeout to make EXIF processing non-blocking
+            setTimeout(async () => {
+                try {
+                    const result = await ExifProcessor.processImageExif(file);
+                    resolve(result);
+                } catch (err) {
+                    console.error("EXIF Error:", err);
+                    resolve({ error: err.message });
+                }
+            }, 10);
+        });
+    },
+
+    convertToWebpNonBlocking: async function(file) {
+        return new Promise((resolve, reject) => {
+            // Use setTimeout to make WebP conversion non-blocking
+            setTimeout(async () => {
+                try {
+                    const result = await WebpConverter.processImage(file);
+                    resolve(result);
+                } catch (err) {
+                    reject(new Error(`Bildkonvertierung fehlgeschlagen: ${err.message}`));
+                }
+            }, 10);
+        });
+    },
+
+    handleProcessingError: function(error) {
+        let errorMessage = 'Ein Fehler ist beim Verarbeiten des Bildes aufgetreten.';
+        
+        if (error.message.includes('HEIC')) {
+            errorMessage = 'HEIC/HEIF Bilder konnten nicht verarbeitet werden. Bitte konvertieren Sie das Bild zu JPEG oder PNG vor dem Hochladen.';
+        } else if (error.message.includes('load image')) {
+            errorMessage = 'Das Bild konnte nicht geladen werden. Bitte versuchen Sie ein anderes Bild.';
+        } else if (error.message.includes('Bildkonvertierung')) {
+            errorMessage = error.message;
+        } else if (error.message.includes('too large') || error.message.includes('size')) {
+            errorMessage = 'Das Bild ist zu groß. Bitte wählen Sie ein kleineres Bild (max. 12MB).';
+        }
+        
+        this.helpers.showFieldError(this.elements, 'photo', errorMessage);
+        this.removePhoto();
     },
 
     displayPhotoPreview: function(dataUrl) {
@@ -127,7 +192,7 @@ const PhotoHandler = {
     removePhoto: function() {
         if (!this.elements.photoInput) return;
         
-        this.elements.photoInput.value = ''; // Clear the file input
+        this.elements.photoInput.value = '';
         
         if (this.elements.photoPreview) this.elements.photoPreview.classList.add('hidden');
         if (this.elements.exifDataDiv) this.elements.exifDataDiv.classList.add('hidden');
@@ -136,14 +201,13 @@ const PhotoHandler = {
         // Reset state related to photo
         this.state.convertedWebpData = null;
         this.state.hasExifData = false;
-        if (this.elements.previewImg) this.elements.previewImg.src = ''; // Clear preview image source
+        if (this.elements.previewImg) this.elements.previewImg.src = '';
         
-        // Clear any photo errors using helpers
         this.helpers.clearFieldError(this.elements, 'photo');
     },
 
     applyExifData: function(result) {
-        this.state.hasExifData = false; // Reset flag
+        this.state.hasExifData = false;
         
         if (result.error || !this.elements.exifDataDiv) {
             console.warn('EXIF data error or elements missing:', result.error);
@@ -154,7 +218,7 @@ const PhotoHandler = {
         const exifData = result.exifData;
         const gpsCoordinates = result.gpsCoordinates;
         
-        this.elements.exifDataDiv.classList.add('hidden'); // Hide initially
+        this.elements.exifDataDiv.classList.add('hidden');
         if (this.elements.exifDate) this.elements.exifDate.textContent = 'Nicht verfügbar';
         if (this.elements.exifLocation) this.elements.exifLocation.textContent = 'Nicht verfügbar';
 
@@ -163,10 +227,8 @@ const PhotoHandler = {
             const parts = exifData.dateTime.split(' ')[0].split(':');
             if (parts.length === 3) {
                 const formattedDate = `${parts[0]}-${parts[1]}-${parts[2]}`;
-                // Check if date is valid before setting
                 const dateObj = new Date(formattedDate);
                 if (!isNaN(dateObj)) {
-                     // Prevent setting future dates from EXIF
                      const today = new Date();
                      today.setHours(0, 0, 0, 0);
                      if (dateObj <= today) {

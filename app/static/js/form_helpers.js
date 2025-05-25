@@ -13,6 +13,25 @@ const FormHelpers = {
         }
     },
 
+    showDropzoneLoading: function(elements, isLoading, message = '') {
+        if (!elements.dropzoneLoadingIndicator) return;
+        
+        if (isLoading) {
+            elements.dropzoneLoadingIndicator.classList.remove('hidden');
+            if (elements.dropzoneLoadingMessage && message) {
+                elements.dropzoneLoadingMessage.textContent = message;
+                // Use CSS animation instead of JavaScript for better performance
+                elements.dropzoneLoadingMessage.classList.add('processing-indicator');
+            }
+        } else {
+            elements.dropzoneLoadingIndicator.classList.add('hidden');
+            // Clean up animation class
+            if (elements.dropzoneLoadingMessage) {
+                elements.dropzoneLoadingMessage.classList.remove('processing-indicator');
+            }
+        }
+    },
+
     showFieldError: function(elements, fieldId, message) {
         // Special case for coordinates (map)
         if (fieldId === 'coordinates' || fieldId === 'map') {
@@ -21,11 +40,11 @@ const FormHelpers = {
                 let errorElement = mapContainer.parentElement.querySelector('.field-error-message');
                 if (!errorElement) {
                     errorElement = document.createElement('div');
-                    errorElement.className = 'field-error-message text-red-500 text-sm mt-1'; // Added error text classes
+                    errorElement.className = 'mt-1 text-sm text-red-500 field-error-message';
                     mapContainer.after(errorElement);
                 }
                 errorElement.textContent = message;
-                 mapContainer.classList.add('border-red-500'); // Add border to map on error
+                 mapContainer.classList.add('border-red-500');
             }
             return;
         }
@@ -40,12 +59,11 @@ const FormHelpers = {
                 let errorElement = container.parentElement.querySelector('.field-error-message');
                 if (!errorElement) {
                     errorElement = document.createElement('div');
-                    errorElement.className = 'field-error-message text-red-500 text-sm mt-1'; // Added error text classes
+                    errorElement.className = 'mt-1 text-sm text-red-500 field-error-message';
                     container.after(errorElement);
                 }
                 errorElement.textContent = message;
-                // Add visual indication to dropzone/preview container if needed
-                container.classList.add('border-red-500'); 
+                container.classList.add('border-red-500');
             }
             return;
         }
@@ -65,12 +83,10 @@ const FormHelpers = {
         let errorElement = field.parentElement.querySelector(`.field-error-message[data-for="${fieldId}"]`);
         if (!errorElement) {
             errorElement = document.createElement('div');
-            errorElement.className = 'field-error-message text-red-500 text-sm mt-1'; // Added error text classes
+            errorElement.className = 'mt-1 text-sm text-red-500 field-error-message';
             errorElement.dataset.for = fieldId;
             
-            // Add to DOM (usually after the input)
             field.parentElement.appendChild(errorElement); 
-            // field.after(errorElement); // Alternative placement
             
             // Set ARIA attributes
             const errorId = `error-${fieldId}`;
@@ -81,6 +97,8 @@ const FormHelpers = {
         errorElement.textContent = message;
     },
 
+
+
     clearFieldError: function(elements, fieldId) {
         // Handle special cases
         if (fieldId === 'coordinates' || fieldId === 'map') {
@@ -88,7 +106,7 @@ const FormHelpers = {
             if (mapContainer) {
                 const errorElement = mapContainer.parentElement.querySelector('.field-error-message');
                 if (errorElement) errorElement.remove();
-                mapContainer.classList.remove('border-red-500'); // Remove border
+                mapContainer.classList.remove('border-red-500');
             }
             return;
         }
@@ -124,7 +142,7 @@ const FormHelpers = {
         }
     },
 
-    clearAllErrors: function(elements, stepIndex) { // Expects 0-based index
+    clearAllErrors: function(elements, stepIndex) {
         if (!elements.steps || stepIndex < 0 || stepIndex >= elements.steps.length) return;
         
         const currentStepElement = elements.steps[stepIndex];
@@ -167,18 +185,5 @@ const FormHelpers = {
 
     isValidImageSize: function(file) {
         return file.size <= 12 * 1024 * 1024; // 12MB
-    },
-
-    showDropzoneLoading: function(elements, isLoading, message = '') {
-        if (!elements.dropzoneLoadingIndicator) return;
-        
-        if (isLoading) {
-            elements.dropzoneLoadingIndicator.classList.remove('hidden');
-            if (elements.dropzoneLoadingMessage && message) {
-                elements.dropzoneLoadingMessage.textContent = message;
-            }
-        } else {
-            elements.dropzoneLoadingIndicator.classList.add('hidden');
-        }
     }
 }; 

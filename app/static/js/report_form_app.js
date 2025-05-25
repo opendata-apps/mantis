@@ -226,10 +226,6 @@ const ReportFormApp = {
         if (!this.elements.steps || stepIndex < 0 || stepIndex >= this.elements.steps.length) return;
         
         this.showStep(stepIndex);
-         // Scroll step into view smoothly
-         if (this.elements.steps[stepIndex]) {
-             this.elements.steps[stepIndex].scrollIntoView({ behavior: 'smooth', block: 'start' });
-         }
     },
 
     validateAndGoToNextStep: async function(currentStepIndex, nextStepIndex) {
@@ -265,8 +261,7 @@ const ReportFormApp = {
             if (nextStepIndex === 1 && this.state.map) {
                 setTimeout(() => {
                     this.state.map.invalidateSize();
-                    // Center map if coordinates exist (handled by MapHandler.updateMarkerFromForm on init/reload)
-                }, 150); // Slightly longer delay after step transition
+                }, 100);
             }
         }
     },
@@ -429,7 +424,7 @@ const ReportFormApp = {
         if (this.elements.submitBtn) this.elements.submitBtn.disabled = true;
 
         const formData = new FormData(this.elements.form);
-        // Remove original file if it exists, append the processed WebP blob
+        // Remove original file if it exists, append the processed WebP blobbest practice big multi step form
         formData.delete('photo');
         const originalName = this.state.convertedWebpData.originalFileName || 'sighting.webp';
         const fileNameWithoutExt = originalName.substring(0, originalName.lastIndexOf('.')) || originalName;

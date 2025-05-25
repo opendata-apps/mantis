@@ -56,6 +56,57 @@ def _set_gender_fields(selected_gender_value):
         genders[db_field_name] = 1
     return genders
 
+def _process_uploaded_image(photo_file, sighting_date, city_name, user_id):
+    """
+    Process uploaded image with KISS approach: trust client-optimized WebP files.
+    
+    Priority 1 & 2 Fix: Avoid double processing and unnecessary quality loss.
+    - If client sent optimized WebP ≤8MB: save as-is (trust client work)
+    - Otherwise: re-compress only when necessary
+    
+    Returns: relative database path for the saved image
+    """
+    # Create upload directory structure
+    year_str = sighting_date.strftime("%Y")
+    date_str_for_path = sighting_date.strftime("%Y-%m-%d")
+    upload_dir = Path(Config.UPLOAD_FOLDER) / year_str / date_str_for_path
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Generate filename
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    city_filename_part = secure_filename(city_name or "unknown_city")
+    generated_filename = f"{city_filename_part}-{timestamp}-{secure_filename(user_id)}.webp"
+    full_save_path = upload_dir / generated_filename
+    
+    # Read image data
+    image_bytes = photo_file.read()
+    photo_file.seek(0)
+    
+    # KISS Fix: Trust client-optimized WebP files under 8MB
+    with Image.open(io.BytesIO(image_bytes)) as img:
+        file_size_mb = len(image_bytes) / (1024 * 1024)
+        
+        if img.format == 'WEBP' and file_size_mb <= 8.0:
+            # Client already optimized this WebP - trust their work!
+            print(f"--- Trusting client-optimized WebP: {file_size_mb:.1f}MB ---")
+            image_bytes_to_save = image_bytes
+        else:
+            # Only re-compress if client optimization failed or non-WebP format
+            print(f"--- Re-compressing image: format={img.format}, size={file_size_mb:.1f}MB ---")
+            output_buffer = io.BytesIO()
+            # Use higher quality (60) since we're only re-compressing when necessary
+            img.save(output_buffer, format='WEBP', quality=60)
+            image_bytes_to_save = output_buffer.getvalue()
+            new_size_mb = len(image_bytes_to_save) / (1024 * 1024)
+            print(f"--- Compressed to {new_size_mb:.1f}MB ---")
+    
+    # Save the final image
+    with open(full_save_path, 'wb') as f:
+        f.write(image_bytes_to_save)
+    
+    # Return relative path for database storage
+    return str(Path(year_str) / date_str_for_path / generated_filename)
+
 @report.route("/melden", methods=["GET", "POST"])
 @report.route("/melden/<usrid>", methods=["GET", "POST"])
 @limiter.limit("10 per hour", methods=["POST"])  # Only limit POST requests (form submissions)
@@ -170,27 +221,7 @@ def melden(usrid=None):
                 photo_file = form.photo.data
                 db_image_path = None
                 if photo_file:
-                    sighting_date_obj = form.sighting_date.data # Use the date object
-                    year_str = sighting_date_obj.strftime("%Y")
-                    date_str_for_path = sighting_date_obj.strftime("%Y-%m-%d")
-                    upload_dir = Path(Config.UPLOAD_FOLDER) / year_str / date_str_for_path
-                    upload_dir.mkdir(parents=True, exist_ok=True)
-                    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-                    city_filename_part = secure_filename(form.fund_city.data or "unknown_city")
-                    generated_filename = f"{city_filename_part}-{timestamp}-{secure_filename(reporter_user_id)}.webp"
-                    full_save_path = upload_dir / generated_filename
-                    image_bytes = photo_file.read()
-                    photo_file.seek(0)
-                    with Image.open(io.BytesIO(image_bytes)) as img:
-                        if img.format != 'WEBP' or len(image_bytes) > 6 * 1024 * 1024:
-                            output_buffer = io.BytesIO()
-                            img.save(output_buffer, format='WEBP', quality=50)
-                            image_bytes_to_save = output_buffer.getvalue()
-                        else:
-                            image_bytes_to_save = image_bytes
-                    with open(full_save_path, 'wb') as f:
-                        f.write(image_bytes_to_save)
-                    db_image_path = str(Path(year_str) / date_str_for_path / generated_filename)
+                    db_image_path = _process_uploaded_image(photo_file, form.sighting_date.data, form.fund_city.data, reporter_user_id)
 
                 # 3. Fundort (Location)
                 lat = form.latitude.data

@@ -14,102 +14,114 @@ const WebpConverter = {
                 return reject(new Error("No file provided."));
             }
 
-            const originalFileName = file.name;
+            const originalFileName = file.name || file.originalFileName || 'unknown.jpg';
             let fileToProcess = file;
             let wasHeic = false;
 
-            // --- HEIC/HEIF Conversion (if necessary) ---
-            const isHeic = file.type === 'image/heic' || file.type === 'image/heif' || 
-                         originalFileName.toLowerCase().endsWith('.heic') || originalFileName.toLowerCase().endsWith('.heif');
+            // Quick size check to prevent memory issues
+            const maxFileSize = 50 * 1024 * 1024; // 50MB limit for processing
+            if (file.size > maxFileSize) {
+                return reject(new Error(`File too large for processing: ${(file.size / 1024 / 1024).toFixed(1)}MB. Maximum: 50MB`));
+            }
 
-            if (isHeic) {
+            // --- HEIC/HEIF Conversion (if necessary) ---
+            // Check if file is actually HEIC/HEIF by MIME type (not just filename)
+            const isActuallyHeic = file.type === 'image/heic' || file.type === 'image/heif';
+            
+            if (isActuallyHeic) {
                 if (typeof heic2any !== 'function') {
                     console.error('heic2any library not loaded.');
                     return reject(new Error('HEIC conversion library not loaded.'));
                 }
                 try {
-                    console.log("Starting HEIC conversion...");
-                    // Convert HEIC to JPEG first, as canvas might not handle HEIC directly
                     const conversionResult = await heic2any({ 
                         blob: file,
-                        toType: "image/jpeg", // Convert HEIC to JPEG temporarily
-                        quality: 0.85 // Keep JPEG quality reasonable
+                        toType: "image/jpeg",
+                        quality: 0.85
                     });
-                    fileToProcess = conversionResult; // Use the converted JPEG blob
+                    fileToProcess = conversionResult;
                     wasHeic = true;
-                    console.log("HEIC converted successfully to JPEG for processing.");
                 } catch (heicError) {
                     console.error('Error converting HEIC/HEIF:', heicError);
                     return reject(new Error(`HEIC/HEIF conversion failed: ${heicError.message || heicError}`));
                 }
             }
 
-            // --- WebP Conversion using Canvas --- 
-
-            // Define image loading and conversion logic (used by both paths)
+            // --- WebP Conversion using Canvas with size optimization ---
             const loadImageAndConvertToWebp = (imageSource) => {
                 const img = new Image();
                 
                 img.onload = () => {
-                    let objectUrlCreated = imageSource.startsWith('blob:'); // Track if we need to revoke
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    canvas.width = img.naturalWidth; // Use natural dimensions
-                    canvas.height = img.naturalHeight;
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    
-                    // Revoke Object URL if one was created for this image loading step
-                    if (objectUrlCreated) { 
-                        URL.revokeObjectURL(img.src); 
-                    }
-
-                    // Convert canvas to WebP Blob
                     try {
-                         canvas.toBlob((blob) => {
-                             if (!blob) {
-                                 // If blob creation fails, reject the promise
-                                 return reject(new Error('Canvas to WebP Blob conversion failed.'));
-                             }
-                             // Create a data URL for preview purposes
-                             const dataUrl = canvas.toDataURL('image/webp', 0.8);
-                             
-                             resolve({
-                                 blob: blob,          // The WebP Blob for uploading
-                                 dataUrl: dataUrl,    // The WebP data URL for preview
-                                 originalFileName: originalFileName // Keep original name
-                             });
+                        let objectUrlCreated = imageSource.startsWith('blob:');
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        
+                        // Calculate optimal dimensions to prevent memory issues
+                        const maxDimension = 4096; // Max width/height
+                        let { width, height } = WebpConverter.calculateOptimalDimensions(
+                            img.naturalWidth, 
+                            img.naturalHeight, 
+                            maxDimension
+                        );
+                        
+                        canvas.width = width;
+                        canvas.height = height;
+                        
+                        // Draw image with potential resizing
+                        ctx.drawImage(img, 0, 0, width, height);
+                        
+                        // Revoke Object URL if one was created
+                        if (objectUrlCreated) { 
+                            URL.revokeObjectURL(img.src); 
+                        }
 
-                         }, 'image/webp', 0.8); // Quality set to 0.8
+                        // Convert canvas to WebP Blob with quality based on file size
+                        const quality = WebpConverter.calculateOptimalQuality(file.size, width, height);
+                        
+                        canvas.toBlob((blob) => {
+                            if (!blob) {
+                                return reject(new Error('Canvas to WebP Blob conversion failed.'));
+                            }
+                            
+                            // Create a data URL for preview purposes
+                            const dataUrl = canvas.toDataURL('image/webp', quality);
+                            
+                            console.log(`WebP conversion complete: ${(blob.size / 1024).toFixed(1)}KB (quality: ${quality})`);
+                            
+                            resolve({
+                                blob: blob,
+                                dataUrl: dataUrl,
+                                originalFileName: originalFileName
+                            });
+
+                        }, 'image/webp', quality);
+                        
                     } catch (toBlobError) {
-                         console.error("Error during canvas.toBlob:", toBlobError);
-                         // If toBlob throws an error, reject the promise
-                         reject(new Error(`Failed to convert canvas to WebP: ${toBlobError.message}`));
+                        console.error("Error during canvas processing:", toBlobError);
+                        reject(new Error(`Failed to convert canvas to WebP: ${toBlobError.message}`));
                     }
                 };
                 
                 img.onerror = (error) => {
-                     let objectUrlCreated = imageSource.startsWith('blob:');
-                     // Revoke Object URL if one was created and loading failed
+                    let objectUrlCreated = imageSource.startsWith('blob:');
                     if (objectUrlCreated) { 
                         URL.revokeObjectURL(img.src); 
                     }
-                    console.error("Error loading image for WebP conversion:", img.src, error);
+                    console.error("Error loading image for WebP conversion:", error);
                     reject(new Error('Could not load image data for conversion.'));
                 };
 
-                img.src = imageSource; // Set the source (Data URL or Object URL)
+                img.src = imageSource;
             };
 
             // --- Trigger Image Loading ---
             if (wasHeic) {
-                // If it was HEIC, fileToProcess is a Blob. Use Object URL.
                 const objectUrl = URL.createObjectURL(fileToProcess);
                 loadImageAndConvertToWebp(objectUrl);
             } else {
-                // If it wasn't HEIC, fileToProcess is the original File. Use FileReader.
                 const reader = new FileReader();
                 reader.onload = (event) => {
-                    // Use the Data URL from the FileReader result
                     loadImageAndConvertToWebp(event.target.result); 
                 };
                 reader.onerror = (error) => {
@@ -119,5 +131,51 @@ const WebpConverter = {
                 reader.readAsDataURL(fileToProcess);
             }
         });
+    },
+
+    // Calculate optimal dimensions to prevent memory issues
+    calculateOptimalDimensions: function(originalWidth, originalHeight, maxDimension) {
+        if (originalWidth <= maxDimension && originalHeight <= maxDimension) {
+            return { width: originalWidth, height: originalHeight };
+        }
+        
+        const aspectRatio = originalWidth / originalHeight;
+        
+        if (originalWidth > originalHeight) {
+            return {
+                width: maxDimension,
+                height: Math.round(maxDimension / aspectRatio)
+            };
+        } else {
+            return {
+                width: Math.round(maxDimension * aspectRatio),
+                height: maxDimension
+            };
+        }
+    },
+
+    // Calculate optimal quality based on file size and dimensions
+    calculateOptimalQuality: function(fileSize, width, height) {
+        const pixels = width * height;
+        const fileSizeMB = fileSize / (1024 * 1024);
+        
+        // Start with base quality
+        let quality = 0.8;
+        
+        // Reduce quality for large files
+        if (fileSizeMB > 10) {
+            quality = 0.6;
+        } else if (fileSizeMB > 5) {
+            quality = 0.7;
+        }
+        
+        // Reduce quality for high-resolution images
+        if (pixels > 8000000) { // > 8MP
+            quality = Math.min(quality, 0.6);
+        } else if (pixels > 4000000) { // > 4MP
+            quality = Math.min(quality, 0.7);
+        }
+        
+        return Math.max(0.5, quality); // Never go below 0.5 quality
     }
 };
