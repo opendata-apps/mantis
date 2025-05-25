@@ -52,6 +52,26 @@
     background-color: rgba(16, 185, 129, 0.05);
   }
   
+  /* Readonly field styling */
+  input[readonly], select[readonly], textarea[readonly] {
+    background-color: #f9fafb !important;
+    color: #6b7280 !important;
+    cursor: not-allowed !important;
+  }
+  
+  input[readonly]:hover, select[readonly]:hover, textarea[readonly]:hover {
+    background-color: #f9fafb !important;
+  }
+  
+  /* Textarea size constraints */
+  textarea {
+    min-height: 100px !important;
+    max-height: 200px !important;
+    resize: vertical !important;
+  }
+  
+
+  
   /* EXIF info panel styles */
   .exif-panel {
     background-color: #f3f4f6;
@@ -117,6 +137,7 @@
           <h3 class="mb-4 text-xl font-medium text-green-700">Foto & Details</h3>
           
           <p class="mb-4 text-sm text-gray-600">
+            <i class="w-4 h-4 mr-1 text-green-600 fas fa-camera"></i>
             Bitte laden Sie ein Foto Ihrer Gottesanbeterin-Sichtung hoch und beschreiben Sie, was Sie gesehen haben.
           </p>
           
@@ -144,6 +165,7 @@
           <h3 class="mb-4 text-xl font-medium text-green-700">Wann und Wo? (Ort & Datum)</h3>
           
           <p class="mb-3 text-sm italic text-gray-500">
+            <i class="w-4 h-4 mr-1 text-green-600 fas fa-map-marker-alt"></i>
             Prüfen oder setzen Sie das Sichtungsdatum und markieren Sie den genauen Fundort auf der Karte.
           </p>
           
@@ -221,33 +243,24 @@
         <div class="hidden p-6 bg-white border border-gray-100 rounded-lg shadow-sm step" id="step3">
           <h3 class="mb-4 text-xl font-medium text-green-700">Ihre Kontaktdaten</h3>
           
-          {% if user_prefilled %}
-          <div class="p-3 mb-4 border border-blue-200 rounded-md bg-blue-50">
-            <div class="flex items-center">
-              <i class="w-5 h-5 mr-2 text-blue-500 fas fa-info-circle"></i>
-              <p class="text-sm text-blue-700">
-                Ihre Daten wurden basierend auf Ihrem Benutzer-Account vorausgefüllt und können nicht geändert werden.
-              </p>
-            </div>
-          </div>
-          {% endif %}
+
           
           <div class="space-y-4">
              {# Reporter Fields #}
              {% if user_prefilled %}
-               {{ render_form_field(form.report_first_name, attrs={'id': 'report_first_name', 'readonly': true, 'class': 'block w-full px-4 py-2 text-base text-gray-600 bg-gray-100 rounded-lg shadow-sm border border-gray-300 cursor-not-allowed'}) }}
+               {{ render_form_field(form.report_first_name, attrs={'id': 'report_first_name', 'readonly': true}) }}
              {% else %}
                {{ render_form_field(form.report_first_name, attrs={'id': 'report_first_name'}) }}
              {% endif %}
              
              {% if user_prefilled %}
-               {{ render_form_field(form.report_last_name, attrs={'id': 'report_last_name', 'readonly': true, 'class': 'block w-full px-4 py-2 text-base text-gray-600 bg-gray-100 rounded-lg shadow-sm border border-gray-300 cursor-not-allowed'}) }}
+               {{ render_form_field(form.report_last_name, attrs={'id': 'report_last_name', 'readonly': true}) }}
              {% else %}
                {{ render_form_field(form.report_last_name, attrs={'id': 'report_last_name'}) }}
              {% endif %}
              
              {% if user_prefilled %}
-               {{ render_form_field(form.email, attrs={'id': 'email', 'readonly': true, 'class': 'block w-full px-4 py-2 text-base text-gray-600 bg-gray-100 rounded-lg shadow-sm border border-gray-300 cursor-not-allowed'}) }}
+               {{ render_form_field(form.email, attrs={'id': 'email', 'readonly': true}) }}
              {% else %}
                {{ render_form_field(form.email, attrs={'id': 'email'}) }}
              {% endif %}
@@ -276,6 +289,7 @@
           <h3 class="mb-4 text-xl font-medium text-green-700">Überprüfen & Absenden</h3>
           
           <p class="mb-6 text-sm text-gray-600">
+            <i class="w-4 h-4 mr-1 text-green-600 fas fa-check-circle"></i>
             Bitte überprüfen Sie Ihre Angaben und senden Sie Ihre Meldung ab. Sie können jederzeit zurückgehen, um Änderungen vorzunehmen.
           </p>
           
