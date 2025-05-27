@@ -681,7 +681,7 @@ def get_filtered_query(
                     query = query.filter(TblUsers.user_kontakt.ilike(f"%{search_query}%"))
                 else:
                     # Use the new FTS search method
-                    matching_ids = fts.search(search_query)
+                    matching_ids = fts.FullTextSearch.search(search_query)
                     if matching_ids:
                         query = query.filter(TblMeldungen.id.in_(matching_ids))
                     else:
