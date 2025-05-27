@@ -47,6 +47,19 @@ LOCATION_DESCRIPTION_CHOICES = [
     ("99", "Andere Orte"),
 ]
 
+# Feedback source choices - matches database feedback_types table
+FEEDBACK_SOURCE_CHOICES = [
+    ("", "-- Bitte wählen --"),
+    ("1", "Auf einer Veranstaltung"),
+    ("2", "Flyer/Folder des Projektes"),
+    ("3", "Presse"),
+    ("4", "Fernsehbeitrag"),
+    ("5", "Internetrecherche"),
+    ("6", "Social Media"),
+    ("7", "Freunde, Bekannte, Kollegen"),
+    ("8", "Andere"),
+]
+
 # Custom validators
 def validate_past_date(form, field):
     if field.data:
@@ -99,6 +112,19 @@ class MantisSightingForm(FlaskForm):
         "Nachname des Finders",
         validators=[Optional(), Length(min=1, max=50, message="Nachname muss zwischen 1 und 50 Zeichen lang sein.")],
         render_kw={"placeholder": "Nachname (falls abweichend)", "autocomplete": "off"},
+    )
+
+    # Feedback Information - How did you hear about us?
+    feedback_source = SelectField(
+        "Wie sind Sie auf unser Projekt aufmerksam geworden?",
+        choices=FEEDBACK_SOURCE_CHOICES,
+        validators=[Optional()],
+        render_kw={"title": "Feedback-Quelle auswählen"}
+    )
+    feedback_detail = StringField(
+        "Details (optional)",
+        validators=[Optional(), Length(max=255, message="Details dürfen maximal 255 Zeichen lang sein.")],
+        render_kw={"placeholder": "z.B. Name der Veranstaltung, Website, etc.", "autocomplete": "off"},
     )
 
     # Sighting Details

@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% from 'report/form_components.html' import render_photo_upload, render_form_field, render_checkbox_field, render_step_navigation, render_review_section, render_review_item, render_review_text_block, render_review_info_block %}
+{% from 'report/form_components.html' import render_photo_upload, render_form_field, render_checkbox_field, render_step_navigation, render_review_section, render_review_item, render_review_text_block, render_review_info_block, render_feedback_section %}
 
 {% block title %}Sichtung melden - Gottesanbeterin{% endblock %}
 
@@ -274,6 +274,11 @@
                 {{ render_form_field(form.finder_last_name, attrs={'id': 'finder_last_name'}) }}
             </div>
 
+            <!-- Feedback Section - only show if user hasn't provided feedback before -->
+            {% if not user_has_feedback %}
+            {{ render_feedback_section(form.feedback_source, form.feedback_detail) }}
+            {% endif %}
+
             <!-- Honeypot field -->
             <div style="position:absolute; left:-5000px;" aria-hidden="true">
               <label for="honeypot">If you are human, leave this field blank:</label>
@@ -351,6 +356,15 @@
                     <div id="review-finder-name" class="text-gray-900 ml-7">-</div>
                   {% endcall %}
                   </div>
+                  
+                {% if not user_has_feedback %}
+                <div id="review-feedback-container" class="md:col-span-2">
+                  {% call render_review_info_block(label='Wie haben Sie von uns erfahren?', icon_class='fas fa-lightbulb') %}
+                    <div id="review-feedback-source" class="text-gray-900 ml-7">Nicht angegeben</div>
+                    <div id="review-feedback-detail" class="hidden mt-1 text-sm text-gray-600 ml-7"></div>
+                  {% endcall %}
+                  </div>
+                {% endif %}
                 </div>
             {% endcall %}
           
@@ -378,6 +392,53 @@
 </div>
 
 <script>
-
+// Feedback form interactions - only if feedback elements exist
+document.addEventListener('DOMContentLoaded', function() {
+    const feedbackSourceSelect = document.getElementById('feedback_source');
+    const feedbackDetailContainer = document.getElementById('feedback_detail_container');
+    const feedbackDetailInput = document.getElementById('feedback_detail');
+    
+    // Only setup feedback interactions if elements exist (user hasn't provided feedback before)
+    if (feedbackSourceSelect && feedbackDetailContainer && feedbackDetailInput) {
+        // Show/hide detail field based on feedback source selection
+        function toggleFeedbackDetail() {
+            const selectedValue = feedbackSourceSelect.value;
+            const selectedText = feedbackSourceSelect.options[feedbackSourceSelect.selectedIndex].text;
+            
+            if (selectedValue && selectedValue !== '') {
+                feedbackDetailContainer.classList.remove('hidden');
+                
+                // Update placeholder based on selection
+                if (selectedValue === '1') { // Veranstaltung
+                    feedbackDetailInput.placeholder = 'z.B. Name der Veranstaltung, Ort';
+                } else if (selectedValue === '2') { // Flyer
+                    feedbackDetailInput.placeholder = 'z.B. wo haben Sie den Flyer erhalten?';
+                } else if (selectedValue === '3') { // Presse
+                    feedbackDetailInput.placeholder = 'z.B. Name der Zeitung/Zeitschrift';
+                } else if (selectedValue === '4') { // TV
+                    feedbackDetailInput.placeholder = 'z.B. Name des Senders/der Sendung';
+                } else if (selectedValue === '5') { // Internet
+                    feedbackDetailInput.placeholder = 'z.B. Suchmaschine, Website-Name';
+                } else if (selectedValue === '6') { // Social Media
+                    feedbackDetailInput.placeholder = 'z.B. Facebook, Instagram, Twitter';
+                } else if (selectedValue === '7') { // Freunde
+                    feedbackDetailInput.placeholder = 'z.B. Freund, Kollege, Familie';
+                } else if (selectedValue === '8') { // Andere
+                    feedbackDetailInput.placeholder = 'Bitte beschreiben Sie, wie Sie von uns erfahren haben';
+                } else {
+                    feedbackDetailInput.placeholder = 'z.B. Name der Veranstaltung, Website, etc.';
+                }
+            } else {
+                feedbackDetailContainer.classList.add('hidden');
+                feedbackDetailInput.value = ''; // Clear the detail field when hiding
+            }
+        }
+        
+        // Add event listener for feedback source changes
+        feedbackSourceSelect.addEventListener('change', toggleFeedbackDetail);
+        // Initialize on page load
+        toggleFeedbackDetail();
+    }
+});
 </script>
 {% endblock %} 

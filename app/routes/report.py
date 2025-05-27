@@ -26,7 +26,9 @@ from app import db, limiter, csrf
 from app.database.models import (TblFundorte,
                                  TblMeldungen,
                                  TblMeldungUser,
-                                 TblUsers)
+                                 TblUsers,
+                                 TblUserFeedback,
+                                 TblFeedbackType)
 from app.forms import MantisSightingForm
 from app.tools.gen_user_id import get_new_id
 from app.tools.mtb_calc import get_mtb, pointInRect
@@ -115,6 +117,7 @@ def melden(usrid=None):
     """Handle the report form submission using SQLAlchemy, including rate limiting and pre-filling."""
     form = MantisSightingForm()
     user_prefilled_data = False # Flag to indicate if form was pre-filled
+    user_has_feedback = False # Flag to check if user already provided feedback
 
     if request.method == "GET" and usrid:
         user_to_prefill = TblUsers.query.filter_by(user_id=usrid).first()
@@ -142,8 +145,12 @@ def melden(usrid=None):
             # Prefill email if available
             form.email.data = user_to_prefill.user_kontakt or ""
             
+            # Check if user already provided feedback
+            existing_feedback = TblUserFeedback.query.filter_by(user_id=user_to_prefill.id).first()
+            user_has_feedback = existing_feedback is not None
+            
             user_prefilled_data = True
-            print(f"Prefilled: Last Name='{form.report_last_name.data}', First Name='{form.report_first_name.data}', Email='{form.email.data}'")
+            print(f"Prefilled: Last Name='{form.report_last_name.data}', First Name='{form.report_first_name.data}', Email='{form.email.data}', Has Feedback: {user_has_feedback}")
         else:
             print(f"--- User ID {usrid} provided for pre-fill, but user not found. ---")
 
@@ -217,13 +224,34 @@ def melden(usrid=None):
                         db.session.add(finder_instance)
                         db.session.flush()
 
-                # 2. File Upload
+                # 2. User Feedback Processing (How did you hear about us?)
+                if form.feedback_source.data:
+                    try:
+                        feedback_type_id = int(form.feedback_source.data)
+                        # Check if feedback entry already exists for this user
+                        existing_feedback = TblUserFeedback.query.filter_by(user_id=reporter.id).first()
+                        
+                        if not existing_feedback:
+                            # Create new feedback entry
+                            user_feedback = TblUserFeedback(
+                                user_id=reporter.id,
+                                feedback_type_id=feedback_type_id,
+                                source_detail=form.feedback_detail.data
+                            )
+                            db.session.add(user_feedback)
+                            print(f"--- Created User Feedback: type_id={feedback_type_id}, detail='{form.feedback_detail.data}' ---")
+                        else:
+                            print(f"--- User feedback already exists for user {reporter.id}, skipping ---")
+                    except (ValueError, TypeError) as e:
+                        print(f"Warning: Could not process feedback_source '{form.feedback_source.data}': {e}")
+
+                # 3. File Upload
                 photo_file = form.photo.data
                 db_image_path = None
                 if photo_file:
                     db_image_path = _process_uploaded_image(photo_file, form.sighting_date.data, form.fund_city.data, reporter_user_id)
 
-                # 3. Fundort (Location)
+                # 4. Fundort (Location)
                 lat = form.latitude.data
                 lon = form.longitude.data
                 mtb_value = ""
@@ -254,7 +282,7 @@ def melden(usrid=None):
                 db.session.add(new_fundort)
                 db.session.flush()
 
-                # 4. Meldung (Sighting Report)
+                # 5. Meldung (Sighting Report)
                 gender_fields_dict = _set_gender_fields(form.gender.data)
                 current_time = datetime.now() # Store current time for consistent use
                 new_meldung_data = {
@@ -271,7 +299,7 @@ def melden(usrid=None):
                 db.session.add(new_meldung)
                 db.session.flush()
 
-                # 5. MeldungUser (Link User to Sighting)
+                # 6. MeldungUser (Link User to Sighting)
                 meldung_user_link_data = {
                     'id_meldung': new_meldung.id,
                     'id_user': reporter.id
@@ -310,7 +338,7 @@ def melden(usrid=None):
 
     # For GET requests or validation failures, render the form
     # Pass user_prefilled_data to template to show visual indicators for prefilled fields
-    return render_template("report/report_form.html", form=form, now=datetime.now, user_prefilled=user_prefilled_data)
+    return render_template("report/report_form.html", form=form, now=datetime.now, user_prefilled=user_prefilled_data, user_has_feedback=user_has_feedback)
 
 @report.route("/success")
 def success():
@@ -347,7 +375,7 @@ def get_step_fields(step):
     step_fields_map = {
         1: ['gender', 'location_description', 'description'],  # Photo is handled client-side for validation step
         2: ['sighting_date', 'latitude', 'longitude', 'fund_city', 'fund_state', 'fund_zip_code', 'fund_district', 'fund_street'],
-        3: ['report_first_name', 'report_last_name', 'email', 'identical_finder_reporter', 'finder_first_name', 'finder_last_name'], # Moved contact fields here
+        3: ['report_first_name', 'report_last_name', 'email', 'identical_finder_reporter', 'finder_first_name', 'finder_last_name', 'feedback_source', 'feedback_detail'], # Contact fields + feedback
         4: [], # Review step doesn't need AJAX validation of specific fields before submit
     }
     return step_fields_map.get(step, [])

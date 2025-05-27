@@ -41,6 +41,8 @@ const ReportFormApp = {
             reviewEmail: '#review-email',
             reviewFinderContainer: '#review-finder-container',
             reviewFinderName: '#review-finder-name',
+            reviewFeedbackSource: '#review-feedback-source',
+            reviewFeedbackDetail: '#review-feedback-detail',
             nextBtns: '[id^="next"]',
             prevBtns: '[id^="prev"]',
             editBtns: '.edit-btn'
@@ -393,6 +395,30 @@ const ReportFormApp = {
                 } else {
                     // Hide if finder names are empty even if box is unchecked
                     this.elements.reviewFinderContainer.classList.add('hidden'); 
+                }
+            }
+        }
+        
+        // Feedback Information - only process if elements exist (user hasn't provided feedback before)
+        const feedbackSourceSelect = document.getElementById('feedback_source');
+        const feedbackDetailInput = document.getElementById('feedback_detail');
+        
+        if (this.elements.reviewFeedbackSource && feedbackSourceSelect) {
+            if (feedbackSourceSelect.value) {
+                const selectedText = feedbackSourceSelect.options[feedbackSourceSelect.selectedIndex].text;
+                this.elements.reviewFeedbackSource.textContent = selectedText;
+                
+                // Show detail if provided
+                if (this.elements.reviewFeedbackDetail && feedbackDetailInput && feedbackDetailInput.value.trim()) {
+                    this.elements.reviewFeedbackDetail.textContent = `Details: ${feedbackDetailInput.value.trim()}`;
+                    this.elements.reviewFeedbackDetail.classList.remove('hidden');
+                } else if (this.elements.reviewFeedbackDetail) {
+                    this.elements.reviewFeedbackDetail.classList.add('hidden');
+                }
+            } else {
+                this.elements.reviewFeedbackSource.textContent = 'Nicht angegeben';
+                if (this.elements.reviewFeedbackDetail) {
+                    this.elements.reviewFeedbackDetail.classList.add('hidden');
                 }
             }
         }
