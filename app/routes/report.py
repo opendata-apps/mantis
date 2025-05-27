@@ -1,39 +1,34 @@
-import json
-import os
-from datetime import datetime, timedelta
-from pathlib import Path
-from random import uniform
-import string
-from PIL import Image
 import io
+import string
+from datetime import datetime
+from pathlib import Path
 
 from flask import (
     Blueprint,
     flash,
     jsonify,
-    redirect,
     render_template,
     request,
     url_for,
     abort,
-    session,
-    make_response
+    session
 )
-from werkzeug.datastructures import CombinedMultiDict, MultiDict
+from werkzeug.datastructures import MultiDict
 from werkzeug.utils import secure_filename
+from PIL import Image
 
 from app import db, limiter, csrf
-from app.database.models import (TblFundorte,
-                                 TblMeldungen,
-                                 TblMeldungUser,
-                                 TblUsers,
-                                 TblUserFeedback,
-                                 TblFeedbackType)
+from app.database.models import (
+    TblFundorte,
+    TblMeldungen,
+    TblMeldungUser,
+    TblUsers,
+    TblUserFeedback
+)
 from app.forms import MantisSightingForm
 from app.tools.gen_user_id import get_new_id
 from app.tools.mtb_calc import get_mtb, pointInRect
 from app.tools.find_gemeinde import get_amt_full_scan
-import random
 from ..config import Config
 
 # Blueprints
@@ -41,391 +36,316 @@ report = Blueprint("report", __name__)
 
 # Helper function to determine gender fields for TblMeldungen
 def _set_gender_fields(selected_gender_value):
-    """
-    Maps a gender string to a dictionary of TblMeldungen gender fields.
-    Example input: "Männlich", "Weibchen", etc.
-    """
-    genders = {"art_m": 0, "art_w": 0, "art_n": 0, "art_o": 0, "art_f": 0}
+    """Maps gender string to TblMeldungen database fields."""
     gender_mapping = {
         "Männlich": "art_m",
-        "Weiblich": "art_w",
+        "Weiblich": "art_w", 
         "Nymphe": "art_n",
         "Oothek": "art_o",
-        "Unbekannt": "art_f"  # Map "Unbekannt" to art_f (other/unknown category)
+        "Unbekannt": "art_f"
     }
-    db_field_name = gender_mapping.get(selected_gender_value)
-    if db_field_name and db_field_name in genders:
-        genders[db_field_name] = 1
+    
+    genders = {"art_m": 0, "art_w": 0, "art_n": 0, "art_o": 0, "art_f": 0}
+    field_name = gender_mapping.get(selected_gender_value)
+    if field_name:
+        genders[field_name] = 1
     return genders
 
 def _process_uploaded_image(photo_file, sighting_date, city_name, user_id):
-    """
-    Process uploaded image with KISS approach: trust client-optimized WebP files.
-    
-    Priority 1 & 2 Fix: Avoid double processing and unnecessary quality loss.
-    - If client sent optimized WebP ≤8MB: save as-is (trust client work)
-    - Otherwise: re-compress only when necessary
-    
-    Returns: relative database path for the saved image
-    """
-    # Create upload directory structure
+    """Process uploaded image - trust client-optimized WebP files to avoid double compression."""
     year_str = sighting_date.strftime("%Y")
-    date_str_for_path = sighting_date.strftime("%Y-%m-%d")
-    upload_dir = Path(Config.UPLOAD_FOLDER) / year_str / date_str_for_path
+    date_str = sighting_date.strftime("%Y-%m-%d")
+    upload_dir = Path(Config.UPLOAD_FOLDER) / year_str / date_str
     upload_dir.mkdir(parents=True, exist_ok=True)
     
-    # Generate filename
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    city_filename_part = secure_filename(city_name or "unknown_city")
-    generated_filename = f"{city_filename_part}-{timestamp}-{secure_filename(user_id)}.webp"
-    full_save_path = upload_dir / generated_filename
+    city_part = secure_filename(city_name or "unknown_city")
+    filename = f"{city_part}-{timestamp}-{secure_filename(user_id)}.webp"
+    full_path = upload_dir / filename
     
-    # Read image data
     image_bytes = photo_file.read()
     photo_file.seek(0)
     
-    # KISS Fix: Trust client-optimized WebP files under 8MB
     with Image.open(io.BytesIO(image_bytes)) as img:
         file_size_mb = len(image_bytes) / (1024 * 1024)
         
         if img.format == 'WEBP' and file_size_mb <= 8.0:
-            # Client already optimized this WebP - trust their work!
-            print(f"--- Trusting client-optimized WebP: {file_size_mb:.1f}MB ---")
+            # Trust client-optimized WebP
             image_bytes_to_save = image_bytes
         else:
-            # Only re-compress if client optimization failed or non-WebP format
-            print(f"--- Re-compressing image: format={img.format}, size={file_size_mb:.1f}MB ---")
+            # Re-compress if needed
             output_buffer = io.BytesIO()
-            # Use higher quality (60) since we're only re-compressing when necessary
             img.save(output_buffer, format='WEBP', quality=60)
             image_bytes_to_save = output_buffer.getvalue()
-            new_size_mb = len(image_bytes_to_save) / (1024 * 1024)
-            print(f"--- Compressed to {new_size_mb:.1f}MB ---")
     
-    # Save the final image
-    with open(full_save_path, 'wb') as f:
+    with open(full_path, 'wb') as f:
         f.write(image_bytes_to_save)
     
-    # Return relative path for database storage
-    return str(Path(year_str) / date_str_for_path / generated_filename)
+    return str(Path(year_str) / date_str / filename)
+
+def _create_user(first_name, last_name, email, role=1):
+    """Create a new user with standardized name format."""
+    user_id = get_new_id()
+    name = f"{last_name.strip()} {first_name.strip()[0].upper()}."
+    return TblUsers(
+        user_id=user_id,
+        user_name=name,
+        user_rolle=role,
+        user_kontakt=email
+    )
+
+def _parse_user_name(user_name):
+    """Parse database user_name format 'Lastname F.' into components."""
+    name_parts = user_name.split(" ", 1)
+    last_name = name_parts[0]
+    
+    if len(name_parts) >= 2:
+        initial_part = name_parts[1].strip()
+        if initial_part.endswith(".") and len(initial_part) == 2:
+            first_name = initial_part[0]
+        else:
+            first_name = initial_part
+    else:
+        first_name = name_parts[0][0] if name_parts[0] else "X"
+    
+    return last_name, first_name
 
 @report.route("/melden", methods=["GET", "POST"])
 @report.route("/melden/<usrid>", methods=["GET", "POST"])
-@limiter.limit("10 per hour", methods=["POST"])  # Only limit POST requests (form submissions)
-@limiter.limit("3 per minute", methods=["POST"])  # Additional short-term limit for POST
+@limiter.limit("10 per hour", methods=["POST"])
+@limiter.limit("3 per minute", methods=["POST"])
 def melden(usrid=None):
-    """Handle the report form submission using SQLAlchemy, including rate limiting and pre-filling."""
+    """Handle mantis sighting report form submission with user prefilling support."""
     form = MantisSightingForm()
-    user_prefilled_data = False # Flag to indicate if form was pre-filled
-    user_has_feedback = False # Flag to check if user already provided feedback
+    user_prefilled_data = False
+    user_has_feedback = False
 
+    # Handle GET request with user prefilling
     if request.method == "GET" and usrid:
         user_to_prefill = TblUsers.query.filter_by(user_id=usrid).first()
         if user_to_prefill:
-            print(f"--- Attempting to pre-fill form for user ID: {usrid} ---")
-            # Parse user_name format: "Lastname F." (standard format in database)
-            name_parts = user_to_prefill.user_name.split(" ", 1)
+            last_name, first_name = _parse_user_name(user_to_prefill.user_name)
             
-            # Extract last name (always present)
-            form.report_last_name.data = name_parts[0]
-            
-            # Extract first initial from format like "F." (always present due to database format)
-            if len(name_parts) >= 2:
-                initial_part = name_parts[1].strip()
-                if initial_part.endswith(".") and len(initial_part) == 2:
-                    # Standard format "F." - extract just the letter
-                    form.report_first_name.data = initial_part[0]
-                else:
-                    # Unexpected format, use as-is
-                    form.report_first_name.data = initial_part
-            else:
-                # Fallback: use first letter of last name if no space found
-                form.report_first_name.data = name_parts[0][0] if name_parts[0] else "X"
-            
-            # Prefill email if available
+            form.report_last_name.data = last_name
+            form.report_first_name.data = first_name
             form.email.data = user_to_prefill.user_kontakt or ""
             
             # Check if user already provided feedback
-            existing_feedback = TblUserFeedback.query.filter_by(user_id=user_to_prefill.id).first()
-            user_has_feedback = existing_feedback is not None
-            
+            user_has_feedback = TblUserFeedback.query.filter_by(user_id=user_to_prefill.id).first() is not None
             user_prefilled_data = True
-            print(f"Prefilled: Last Name='{form.report_last_name.data}', First Name='{form.report_first_name.data}', Email='{form.email.data}', Has Feedback: {user_has_feedback}")
-        else:
-            print(f"--- User ID {usrid} provided for pre-fill, but user not found. ---")
 
     if request.method == "POST":
         if form.validate_on_submit():
-            print(f"--- Form Data Validated (POST) ---")
-            # Honeypot Check (after form validation)
+            # Security: Check honeypot field
             if form.honeypot.data:
-                print(f"--- Honeypot triggered by IP: {request.remote_addr}. Aborting with 403. ---")
-                abort(403) # Forbidden
+                abort(403)
             
-            print(f"Form data: {form.data}")
             try:
-                # 1. User Handling (Reporter)
-                # Check if this is a prefilled user (existing user)
+                # 1. Handle reporter user (existing or new)
                 if usrid:
                     reporter = TblUsers.query.filter_by(user_id=usrid).first()
-                    if reporter:
-                        print(f"--- Using Existing Reporter User ---")
-                        print(f"Reporter User ID: {reporter.user_id}")
-                        print(f"Reporter Name: {reporter.user_name}")
-                        print(f"Reporter Contact: {reporter.user_kontakt}")
-                    else:
+                    if not reporter:
                         # User ID provided but not found, create new user
-                        reporter_user_id = get_new_id()
-                        reporter_name = f"{form.report_last_name.data.strip()} {form.report_first_name.data.strip()[0].upper()}."
-                        reporter_contact = form.email.data
-                        reporter = TblUsers(
-                            user_id=reporter_user_id,
-                            user_name=reporter_name,
-                            user_rolle=1,
-                            user_kontakt=reporter_contact
+                        reporter = _create_user(
+                            form.report_first_name.data,
+                            form.report_last_name.data,
+                            form.email.data
                         )
-                        print(f"--- Creating New Reporter User (usrid not found) ---")
-                        print(f"Reporter User ID: {reporter_user_id}")
-                        print(f"Reporter Name: {reporter_name}")
-                        print(f"Reporter Contact: {reporter_contact}")
                         db.session.add(reporter)
                         db.session.flush()
                 else:
                     # No user ID provided, create new user
-                    reporter_user_id = get_new_id()
-                    reporter_name = f"{form.report_last_name.data.strip()} {form.report_first_name.data.strip()[0].upper()}."
-                    reporter_contact = form.email.data
-                    reporter = TblUsers(
-                        user_id=reporter_user_id,
-                        user_name=reporter_name,
-                        user_rolle=1,
-                        user_kontakt=reporter_contact
+                    reporter = _create_user(
+                        form.report_first_name.data,
+                        form.report_last_name.data,
+                        form.email.data
                     )
-                    print(f"--- Creating New Reporter User ---")
-                    print(f"Reporter User ID: {reporter_user_id}")
-                    print(f"Reporter Name: {reporter_name}")
-                    print(f"Reporter Contact: {reporter_contact}")
                     db.session.add(reporter)
                     db.session.flush()
 
+                # 2. Handle finder user (if different from reporter)
                 finder_instance = None
                 if not form.identical_finder_reporter.data:
                     if form.finder_first_name.data and form.finder_last_name.data:
-                        finder_user_id = get_new_id()
-                        finder_name = f"{form.finder_last_name.data.strip()} {form.finder_first_name.data.strip()[0].upper()}."
-                        finder_instance = TblUsers(
-                            user_id=finder_user_id,
-                            user_name=finder_name,
-                            user_rolle=2,
+                        finder_instance = _create_user(
+                            form.finder_first_name.data,
+                            form.finder_last_name.data,
+                            "",
+                            role=2
                         )
-                        print(f"--- Preparing Finder User ---")
-                        print(f"Finder User ID: {finder_user_id}")
-                        print(f"Finder Name: {finder_name}")
                         db.session.add(finder_instance)
                         db.session.flush()
 
-                # 2. User Feedback Processing (How did you hear about us?)
+                # 3. Handle user feedback (how did you hear about us?)
                 if form.feedback_source.data:
                     try:
                         feedback_type_id = int(form.feedback_source.data)
-                        # Check if feedback entry already exists for this user
                         existing_feedback = TblUserFeedback.query.filter_by(user_id=reporter.id).first()
                         
                         if not existing_feedback:
-                            # Create new feedback entry
                             user_feedback = TblUserFeedback(
                                 user_id=reporter.id,
                                 feedback_type_id=feedback_type_id,
                                 source_detail=form.feedback_detail.data
                             )
                             db.session.add(user_feedback)
-                            print(f"--- Created User Feedback: type_id={feedback_type_id}, detail='{form.feedback_detail.data}' ---")
-                        else:
-                            print(f"--- User feedback already exists for user {reporter.id}, skipping ---")
-                    except (ValueError, TypeError) as e:
-                        print(f"Warning: Could not process feedback_source '{form.feedback_source.data}': {e}")
+                    except (ValueError, TypeError):
+                        pass  # Invalid feedback data, skip silently
 
-                # 3. File Upload
-                photo_file = form.photo.data
+                # 4. Process uploaded photo
                 db_image_path = None
-                if photo_file:
-                    db_image_path = _process_uploaded_image(photo_file, form.sighting_date.data, form.fund_city.data, reporter_user_id)
+                if form.photo.data:
+                    db_image_path = _process_uploaded_image(
+                        form.photo.data, 
+                        form.sighting_date.data, 
+                        form.fund_city.data, 
+                        reporter.user_id
+                    )
 
-                # 4. Fundort (Location)
-                lat = form.latitude.data
-                lon = form.longitude.data
-                mtb_value = ""
-                amt_value = ""
-                print(f"--- Processing Location Data ---")
-                print(f"Raw Lat/Lon from form: {lat}, {lon}")
+                # 5. Create location record
+                lat, lon = form.latitude.data, form.longitude.data
+                mtb_value = amt_value = ""
+                
                 if lat is not None and lon is not None and pointInRect((lat, lon)):
                     mtb_value = get_mtb(lat, lon)
                     amt_value = get_amt_full_scan((lon, lat))
                 
-                fundort_beschreibung_val = 0
+                location_description = 0
                 if form.location_description.data:
                     try:
-                        fundort_beschreibung_val = int(form.location_description.data)
+                        location_description = int(form.location_description.data)
                     except (ValueError, TypeError):
-                        print(f"Warning: Could not convert location_description '{form.location_description.data}' to int for Fundort.")
+                        pass
                 
-                new_fundort_data = {
-                    'plz': form.fund_zip_code.data or "0", 'ort': form.fund_city.data,
-                    'strasse': form.fund_street.data, 'kreis': form.fund_district.data,
-                    'land': form.fund_state.data, 'longitude': lon, 'latitude': lat,
-                    'mtb': mtb_value, 'amt': amt_value, 'beschreibung': fundort_beschreibung_val,
-                    'ablage': db_image_path
-                }
-                print(f"--- Preparing TblFundorte Data ---")
-                print(f"{new_fundort_data=}")
-                new_fundort = TblFundorte(**new_fundort_data)
-                db.session.add(new_fundort)
+                fundort = TblFundorte(
+                    plz=form.fund_zip_code.data or "0",
+                    ort=form.fund_city.data,
+                    strasse=form.fund_street.data,
+                    kreis=form.fund_district.data,
+                    land=form.fund_state.data,
+                    longitude=lon,
+                    latitude=lat,
+                    mtb=mtb_value,
+                    amt=amt_value,
+                    beschreibung=location_description,
+                    ablage=db_image_path
+                )
+                db.session.add(fundort)
                 db.session.flush()
 
-                # 5. Meldung (Sighting Report)
-                gender_fields_dict = _set_gender_fields(form.gender.data)
-                current_time = datetime.now() # Store current time for consistent use
-                new_meldung_data = {
-                    'dat_fund_von': form.sighting_date.data,
-                    'dat_meld': current_time,
-                    'fo_zuordnung': new_fundort.id,
-                    'fo_quelle': "F", 'tiere': "1",
-                    **gender_fields_dict,
-                    'anm_melder': form.description.data
-                }
-                print(f"--- Preparing TblMeldungen Data (fo_zuordnung is now {new_fundort.id}) ---")
-                print(f"{new_meldung_data=}")
-                new_meldung = TblMeldungen(**new_meldung_data) # Use prepared dict
-                db.session.add(new_meldung)
+                # 6. Create sighting record
+                gender_fields = _set_gender_fields(form.gender.data)
+                meldung = TblMeldungen(
+                    dat_fund_von=form.sighting_date.data,
+                    dat_meld=datetime.now(),
+                    fo_zuordnung=fundort.id,
+                    fo_quelle="F",
+                    tiere="1",
+                    anm_melder=form.description.data,
+                    **gender_fields
+                )
+                db.session.add(meldung)
                 db.session.flush()
 
-                # 6. MeldungUser (Link User to Sighting)
-                meldung_user_link_data = {
-                    'id_meldung': new_meldung.id,
-                    'id_user': reporter.id
-                }
-                if finder_instance:
-                    meldung_user_link_data['id_finder'] = finder_instance.id
-                
-                print(f"--- Preparing TblMeldungUser Data (IDs are {new_meldung.id}, {reporter.id}, {finder_instance.id if finder_instance else None}) ---")
-                print(f"{meldung_user_link_data=}")
-                meldung_user_link = TblMeldungUser(**meldung_user_link_data) # Use prepared dict
-                db.session.add(meldung_user_link)
-
+                # 7. Link user to sighting
+                user_link = TblMeldungUser(
+                    id_meldung=meldung.id,
+                    id_user=reporter.id,
+                    id_finder=finder_instance.id if finder_instance else None
+                )
+                db.session.add(user_link)
                 db.session.commit()
 
-                # Set session flags for success page
+                # Set session data for success page
                 session["report_submission_successful"] = True
                 session["last_submission_reporter_id"] = reporter.user_id
-                session["submission_had_email"] = bool(reporter.user_kontakt) # True if email was provided
-                print(f"--- Report submitted. Session flags set. Reporter ID: {reporter.user_id}, Had Email: {session['submission_had_email']} ---")
+                session["submission_had_email"] = bool(reporter.user_kontakt)
 
-                # Instead of redirecting, return a JSON response with the success URL
-                success_url = url_for("report.success")
-                return jsonify({"success": True, "redirect_url": success_url, "message": "Vielen Dank, Ihre Meldung wurde erfolgreich gespeichert!"}), 200
+                return jsonify({
+                    "success": True, 
+                    "redirect_url": url_for("report.success"),
+                    "message": "Vielen Dank, Ihre Meldung wurde erfolgreich gespeichert!"
+                }), 200
 
             except Exception as e:
                 db.session.rollback()
-                print(f"Error processing new report: {e}")
-                flash(
-                    "Ein Fehler ist beim Speichern Ihrer Meldung aufgetreten. Bitte versuchen Sie es erneut.",
-                    "error",
-                )
-        else:
-            # Form validation failed on POST
-            print("--- Form validation failed on POST ---")
-            print(f"Form errors: {form.errors}")
-
-    # For GET requests or validation failures, render the form
-    # Pass user_prefilled_data to template to show visual indicators for prefilled fields
-    return render_template("report/report_form.html", form=form, now=datetime.now, user_prefilled=user_prefilled_data, user_has_feedback=user_has_feedback)
+                flash("Ein Fehler ist beim Speichern Ihrer Meldung aufgetreten. Bitte versuchen Sie es erneut.", "error")
+        
+    return render_template(
+        "report/report_form.html", 
+        form=form, 
+        now=datetime.now, 
+        user_prefilled=user_prefilled_data, 
+        user_has_feedback=user_has_feedback
+    )
 
 @report.route("/success")
 def success():
-    """Thank you page after successful submission, with session check."""
-    print(f"--- Success page accessed. URL: {request.url}, Referrer: {request.referrer} ---")
-    
-    # Try to get and remove the success flag. If it was present and True, this is the first valid visit.
+    """Display success page after form submission with session validation."""
     was_successful_submission = session.pop("report_submission_successful", False)
-    
-    last_reporter_id = None
-    had_email = False # Default for cases where it's not a fresh submission
     
     if was_successful_submission:
         last_reporter_id = session.pop("last_submission_reporter_id", None)
-        had_email = session.pop("submission_had_email", False) # Pop this too
-        print(f"--- Success page: Valid first visit. Reporter ID: {last_reporter_id}, Had Email: {had_email} ---")
+        had_email = session.pop("submission_had_email", False)
     else:
-        # This means the flag was not present (e.g., refresh, direct access)
-        print(f"--- Success page: Accessed via refresh, direct link, or after flag was cleared. ---")
-        # If accessed directly or refreshed, had_email will be False, so the general message will be shown.
-        # last_reporter_id will remain None, making links generic.
+        last_reporter_id = None
+        had_email = False
 
-    # The template will render. If last_reporter_id is None, the links
-    # /melden/{{usrid}} will become /melden/
-    # /sichtungen/{{usrid}} will become /sichtungen/
-    # These base URLs should lead to appropriate general pages.
-    # Pass 'addresse' as a string 'True'/'False' for the template's conditional logic.
-    return render_template("report/success-new.html", usrid=last_reporter_id, addresse=str(had_email))
+    return render_template(
+        "report/success-new.html", 
+        usrid=last_reporter_id, 
+        addresse=str(had_email)
+    )
 
-
-# Helper function to get fields relevant to a step
 def get_step_fields(step):
-    """Return a list of field names relevant to a specific form step"""
-    step_fields_map = {
-        1: ['gender', 'location_description', 'description'],  # Photo is handled client-side for validation step
+    """Return field names for form step validation."""
+    step_fields = {
+        1: ['gender', 'location_description', 'description'],
         2: ['sighting_date', 'latitude', 'longitude', 'fund_city', 'fund_state', 'fund_zip_code', 'fund_district', 'fund_street'],
-        3: ['report_first_name', 'report_last_name', 'email', 'identical_finder_reporter', 'finder_first_name', 'finder_last_name', 'feedback_source', 'feedback_detail'], # Contact fields + feedback
-        4: [], # Review step doesn't need AJAX validation of specific fields before submit
+        3: ['report_first_name', 'report_last_name', 'email', 'identical_finder_reporter', 'finder_first_name', 'finder_last_name', 'feedback_source', 'feedback_detail'],
+        4: []  # Review step has no specific field validation
     }
-    return step_fields_map.get(step, [])
+    return step_fields.get(step, [])
 
 @report.route("/validate_step", methods=["POST"])
-@csrf.exempt  # Exempt AJAX validation from CSRF protection
-@limiter.limit("30 per minute")  # Allow reasonable validation requests
+@csrf.exempt
+@limiter.limit("30 per minute")
 def validate_step():
-    """Validate a single step of the form via AJAX using WTForms."""
-    # Get JSON data from request
+    """Validate form step via AJAX."""
     data = request.json
     step = data.get("step", 1)
-    
-    # Get relevant fields for the current step
     step_fields = get_step_fields(step)
+    
     if not step_fields:
-        # Step 3 (empty) or Review step, considered valid for navigation purposes
         return jsonify({"valid": True, "errors": {}})
     
-    # Create a MultiDict for WTForms, handling boolean checkbox correctly
+    # Prepare form data for validation
     form_data = MultiDict(data)
     if 'identical_finder_reporter' in data:
-        form_data['identical_finder_reporter'] = data['identical_finder_reporter'] == 'true' or data['identical_finder_reporter'] is True
+        form_data['identical_finder_reporter'] = data['identical_finder_reporter'] in ('true', True)
     
-    # Create form instance with the data
-    form = MantisSightingForm(formdata=form_data, csrf_enabled=False)  # Disable CSRF for AJAX validation
+    form = MantisSightingForm(formdata=form_data, csrf_enabled=False)
     
     is_valid = True
     errors = {}
     
-    # Validate only the fields relevant to this step
+    # Validate step-specific fields
     for field_name in step_fields:
         field = getattr(form, field_name, None)
-        if field:
-            # Validate this specific field using the form context
-            if not field.validate(form): # This runs standard validators (DataRequired, Length, etc.)
-                is_valid = False
-                errors[field_name] = field.errors
-
-    # If field-level validation passed AND it's Step 3, run the custom cross-field check
-    if is_valid and step == 3:
-        if not form.validate_finder_names_dependency(): # Call our specific cross-field validator
+        if field and not field.validate(form):
             is_valid = False
-            # Manually add errors from the custom validation if any
+            errors[field_name] = field.errors
+
+    # Step 3: Cross-field validation for finder names
+    if is_valid and step == 3:
+        if not form.validate_finder_names_dependency():
+            is_valid = False
             if 'finder_first_name' in form.errors:
                 errors['finder_first_name'] = form.errors['finder_first_name']
             if 'finder_last_name' in form.errors:
                 errors['finder_last_name'] = form.errors['finder_last_name']
 
-    # Special case for step 2: Validate coordinates (keep this logic, apply only if field validation passed)
+    # Step 2: Coordinate validation
     if is_valid and step == 2:
         lat = data.get("latitude", "")
         lng = data.get("longitude", "")
@@ -435,10 +355,7 @@ def validate_step():
             errors["coordinates"] = ["Bitte wählen Sie einen Standort auf der Karte"]
         else:
             try:
-                lat_float = float(lat)
-                lng_float = float(lng)
-                
-                # Range check for valid coordinates
+                lat_float, lng_float = float(lat), float(lng)
                 if not (-90 <= lat_float <= 90) or not (-180 <= lng_float <= 180):
                     is_valid = False
                     errors["coordinates"] = ["Ungültige Koordinaten. Bitte wählen Sie einen gültigen Standort."]
