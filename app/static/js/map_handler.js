@@ -51,9 +51,11 @@ const MapHandler = {
             if (typeof L.Control.Locate !== 'undefined') {
                 L.control.locate().addTo(this.state.map);
                 
-                // Set marker when location is found
+                // Only zoom to GPS location, don't set marker (force manual placement)
                 this.state.map.on('locationfound', (e) => {
-                    this.setMarkerAndCoordinates(e.latlng.lat, e.latlng.lng);
+                    this.state.map.setView(e.latlng, this.config.mapDefaults.sightingZoom);
+                    // Show message to encourage manual marker placement
+                    this.helpers.showFieldError(this.elements, 'coordinates', '📍 GPS-Position gefunden. Bitte klicken Sie auf die Karte, um den genauen Fundort zu markieren.');
                 });
             }
 
@@ -92,15 +94,21 @@ const MapHandler = {
         this.state.lastMapClick = now;
         
         this.setMarkerAndCoordinates(e.latlng.lat, e.latlng.lng);
+        // Clear any coordinate placement messages since user manually placed marker
+        this.helpers.clearFieldError(this.elements, 'coordinates');
     },
 
     handleGeocodeResult: function(e) {
         if (e.geocode && e.geocode.center) {
             const latlng = e.geocode.center;
-            this.setMarkerAndCoordinates(latlng.lat, latlng.lng);
-             if (this.state.map && e.geocode.bbox) {
+            // Only zoom to search result, don't set marker (force manual placement)
+            if (this.state.map && e.geocode.bbox) {
                 this.state.map.fitBounds(e.geocode.bbox);
+            } else {
+                this.state.map.setView([latlng.lat, latlng.lng], this.config.mapDefaults.sightingZoom);
             }
+            // Show message to encourage manual marker placement
+            this.helpers.showFieldError(this.elements, 'coordinates', '🔍 Adresse gefunden. Bitte klicken Sie auf die Karte, um den genauen Fundort zu markieren.');
         } else {
             console.warn('Geocode result did not contain center coordinates:', e);
             this.helpers.showFieldError(this.elements, 'map', 'Adresse gefunden, aber Koordinaten fehlen.');
