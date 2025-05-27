@@ -1,4 +1,3 @@
-// Main application logic for the report form
 const ReportFormApp = {
     config: {
         selectors: {
@@ -47,12 +46,12 @@ const ReportFormApp = {
             prevBtns: '[id^="prev"]',
             editBtns: '.edit-btn'
         },
-        urls: { // URLs should be passed from template or defined globally
-            validateStep: '/validate-step', // Placeholder - fetch from data attribute or global var
-            submitForm: '/report'       // Placeholder - use form action attribute
+        urls: {
+            validateStep: '/validate-step',
+            submitForm: '/report'
         },
         mapDefaults: {
-            center: [51.1657, 10.4515], // Germany
+            center: [51.1657, 10.4515],
             zoom: 6,
             sightingZoom: 14
         },
@@ -61,52 +60,43 @@ const ReportFormApp = {
 
     state: {
         currentStep: 0,
-        map: null, // Managed by MapHandler
-        marker: null, // Managed by MapHandler
-        geocoder: null, // Managed by MapHandler
+        map: null,
+        marker: null,
+        geocoder: null,
         geocodeDebounceTimer: null,
         lastMapClick: 0,
         hasExifData: false,
-        convertedWebpData: null, // { dataUrl: '', blob: null, originalFileName: '' }
+        convertedWebpData: null,
         descriptionDebounceTimer: null
     },
 
     elements: {},
 
-    // --- Initialization ---
     initialize: function() {
-        // Check for dependencies
-        if (typeof FormHelpers === 'undefined' || typeof PhotoHandler === 'undefined' || typeof MapHandler === 'undefined') {
-            console.error('Missing required script dependencies (FormHelpers, PhotoHandler, MapHandler).');
-            alert('Ein Fehler beim Laden der Seite ist aufgetreten. Bitte versuchen Sie es später erneut.');
-            return;
-        }
-        
         this.cacheElements();
         
         if (!this.elements.form || !this.elements.csrfToken) {
-            console.error("Form or CSRF token not found. Aborting initialization.");
-            // Optionally display a user-friendly error message
+            console.error("Form or CSRF token not found.");
             return;
         }
 
-        // Get URLs from data attributes if available, otherwise use form action for submit
-        this.config.urls.validateStep = this.elements.form.dataset.validateUrl || '/validate-step'; 
-        this.config.urls.submitForm = this.elements.form.action;
-
-        this.showStep(this.state.currentStep); // Show initial step
-        
-        // Initialize Handlers, passing 'this' app object for context/state sharing if needed
-        // Or just pass the specific parts they need (state, elements, config, helpers)
-        MapHandler.initialize(this.state, this.elements, this.config, FormHelpers); 
-        // Get the map update function AFTER map handler is initialized
-        const mapUpdateCallback = MapHandler.updateMapWithCoordinates.bind(MapHandler);
-        PhotoHandler.initialize(this.state, this.elements, this.config, FormHelpers, mapUpdateCallback);
-        
-        // Initialize form interactions
+        this.initializeUrls();
+        this.showStep(this.state.currentStep);
+        this.initializeHandlers();
         this.setupFormInteractions();
         this.setupStepNavigation(); 
         this.setupFormSubmission();   
+    },
+
+    initializeUrls: function() {
+        this.config.urls.validateStep = this.elements.form.dataset.validateUrl || '/validate-step';
+        this.config.urls.submitForm = this.elements.form.action;
+    },
+
+    initializeHandlers: function() {
+        MapHandler.initialize(this.state, this.elements, this.config, FormHelpers);
+        const mapUpdateCallback = MapHandler.updateMapWithCoordinates.bind(MapHandler);
+        PhotoHandler.initialize(this.state, this.elements, this.config, FormHelpers, mapUpdateCallback);
     },
     
     cacheElements: function() {
@@ -119,12 +109,14 @@ const ReportFormApp = {
             } else if (elementList.length > 1) {
                 this.elements[key] = Array.from(elementList);
             } else {
-                this.elements[key] = null; // Keep track even if not found
-                // console.warn(`Element not found for selector: ${key} ('${selector}')`);
+                this.elements[key] = null;
             }
         }
         
-        // Add additional common elements
+        this.cacheAdditionalElements();
+    },
+
+    cacheAdditionalElements: function() {
         this.elements.csrfToken = document.querySelector('input[name="csrf_token"]')?.value;
         this.elements.submitBtn = document.querySelector('button[type="submit"]');
         this.elements.addressFields = {
@@ -136,16 +128,22 @@ const ReportFormApp = {
         };
     },
 
-    // --- Form Interactions Module ---
     setupFormInteractions: function() {
+        this.setupFinderToggle();
+        this.setupCharacterCount();
+    },
+
+    setupFinderToggle: function() {
         if (this.elements.identicalFinderCheckbox && this.elements.finderFields) {
             this.elements.identicalFinderCheckbox.addEventListener('change', this.toggleFinderFields.bind(this));
-            this.toggleFinderFields(); // Initial state
+            this.toggleFinderFields();
         }
-        
+    },
+
+    setupCharacterCount: function() {
         if (this.elements.descriptionField && this.elements.charCount) {
             this.elements.descriptionField.addEventListener('input', this.updateCharCount.bind(this));
-            this.updateCharCount(); // Initial count
+            this.updateCharCount();
         }
     },
 
@@ -155,19 +153,16 @@ const ReportFormApp = {
         const isChecked = this.elements.identicalFinderCheckbox.checked;
         this.elements.finderFields.style.display = isChecked ? 'none' : 'block';
         
-        // Clear/disable finder fields when hidden for validation purposes
+        if (isChecked) {
+            this.clearFinderFields();
+        }
+    },
+
+    clearFinderFields: function() {
         const finderFirstName = document.getElementById('finder_first_name');
         const finderLastName = document.getElementById('finder_last_name');
-        if (isChecked) {
-            if(finderFirstName) finderFirstName.value = '';
-            if(finderLastName) finderLastName.value = '';
-            // Optionally disable them too if backend validation requires it
-             // if(finderFirstName) finderFirstName.disabled = true;
-             // if(finderLastName) finderLastName.disabled = true;
-        } else {
-             // if(finderFirstName) finderFirstName.disabled = false;
-             // if(finderLastName) finderLastName.disabled = false;
-        }
+        if (finderFirstName) finderFirstName.value = '';
+        if (finderLastName) finderLastName.value = '';
     },
 
     updateCharCount: function() {
@@ -177,32 +172,40 @@ const ReportFormApp = {
         this.state.descriptionDebounceTimer = setTimeout(() => {
             const remaining = this.config.maxDescLength - this.elements.descriptionField.value.length;
             this.elements.charCount.textContent = remaining;
-            this.elements.charCount.style.color = remaining < 0 ? '#ef4444' : ''; // Use Tailwind red
+            this.elements.charCount.style.color = remaining < 0 ? '#ef4444' : '';
         }, 100);
     },
 
-    // --- Form Navigation and Validation Module ---
     setupStepNavigation: function() {
+        this.setupNextButtons();
+        this.setupPrevButtons();
+        this.setupEditButtons();
+    },
+
+    setupNextButtons: function() {
         if (this.elements.nextBtns) {
             this.elements.nextBtns.forEach((btn, index) => {
                 btn.addEventListener('click', () => this.validateAndGoToNextStep(index, index + 1));
             });
         }
-        
+    },
+
+    setupPrevButtons: function() {
         if (this.elements.prevBtns) {
-            this.elements.prevBtns.forEach((btn, index) => {
-                // Find corresponding step index (prevBtn id is like prev2, prev3, prev4)
+            this.elements.prevBtns.forEach(btn => {
                 const currentStepIndex = parseInt(btn.id.replace('prev', ''), 10) - 1;
-                btn.addEventListener('click', () => this.goToStep(currentStepIndex - 1)); 
+                btn.addEventListener('click', () => this.goToStep(currentStepIndex - 1));
             });
         }
-        
+    },
+
+    setupEditButtons: function() {
         if (this.elements.editBtns) {
             this.elements.editBtns.forEach(btn => {
                 btn.addEventListener('click', () => {
                     const stepToEdit = parseInt(btn.dataset.step, 10);
                     if (!isNaN(stepToEdit)) {
-                        this.goToStep(stepToEdit - 1); // Adjust to 0-based index
+                        this.goToStep(stepToEdit - 1);
                     }
                 });
             });
@@ -210,7 +213,7 @@ const ReportFormApp = {
     },
     
     showStep: function(stepIndex) {
-        if (!this.elements.steps || stepIndex < 0 || stepIndex >= this.elements.steps.length) return;
+        if (!this.isValidStepIndex(stepIndex)) return;
         
         this.elements.steps.forEach((step, index) => {
             if (index === stepIndex) {
@@ -224,207 +227,309 @@ const ReportFormApp = {
         this.state.currentStep = stepIndex;
     },
 
+    isValidStepIndex: function(stepIndex) {
+        return this.elements.steps && 
+               stepIndex >= 0 && 
+               stepIndex < this.elements.steps.length;
+    },
+
     goToStep: function(stepIndex) {
-        if (!this.elements.steps || stepIndex < 0 || stepIndex >= this.elements.steps.length) return;
+        if (!this.isValidStepIndex(stepIndex)) return;
         
         this.showStep(stepIndex);
+        
+        if (stepIndex === 1 && this.state.map) {
+            this.handleLocationStepActivation();
+        }
+    },
+
+    handleLocationStepActivation: function() {
+        setTimeout(() => {
+            this.state.map.invalidateSize();
+            if (typeof MapHandler !== 'undefined' && MapHandler.autoRequestLocationIfNeeded) {
+                MapHandler.autoRequestLocationIfNeeded();
+            }
+        }, 100);
     },
 
     validateAndGoToNextStep: async function(currentStepIndex, nextStepIndex) {
-        // Client-side validation first (pass 1-based step number)
-        if (!this.validateStepClientSide(currentStepIndex + 1)) return; 
+        if (!this.validateStepClientSide(currentStepIndex + 1)) return;
 
         if (currentStepIndex === 0 && !this.state.convertedWebpData) {
-             FormHelpers.showFieldError(this.elements, 'photo', 'Bitte laden Sie ein Foto hoch...');
-             return;
+            FormHelpers.showFieldError(this.elements, 'photo', 'Bitte laden Sie ein Foto hoch...');
+            return;
         }
 
-        const needsServerValidation = currentStepIndex < 3; // Steps 1, 2, 3 (0-indexed) need validation
-        let serverIsValid = true;
-
-        if (needsServerValidation) {
-            const button = document.getElementById(`next${currentStepIndex + 1}`);
-            if (button) button.disabled = true;
-            FormHelpers.showLoadingOverlay(this.elements, true, "Validiere Eingaben...");
-            
-            serverIsValid = await this.validateStepWithServer(currentStepIndex + 1); // Pass 1-based step index
-            
-            FormHelpers.showLoadingOverlay(this.elements, false);
-            if (button) button.disabled = false;
-        }
+        const serverIsValid = await this.performServerValidation(currentStepIndex);
         
         if (serverIsValid) {
-            if (nextStepIndex === 3) { // Moving to Review Step (index 3)
-                this.updateReviewContent();
-            }
-            this.goToStep(nextStepIndex);
-            
-            // Re-validate map size if moving to step 2 (index 1)
-            if (nextStepIndex === 1 && this.state.map) {
-                setTimeout(() => {
-                    this.state.map.invalidateSize();
-                }, 100);
-            }
+            this.proceedToNextStep(nextStepIndex);
         }
     },
-    
-    validateStepClientSide: function(stepNumber) { // Expects 1-based step number
-        FormHelpers.clearAllErrors(this.elements, stepNumber - 1); // Use 0-based index for errors
-        let isValid = true;
 
-        if (stepNumber === 2) { // Location step
-            const lat = this.elements.latInput?.value;
-            const lng = this.elements.lngInput?.value;
-            if (!lat || !lng) {
-                FormHelpers.showFieldError(this.elements, 'coordinates', 'Bitte wählen Sie einen Standort auf der Karte.');
-                isValid = false;
-            }
-        }
-        // Add more client-side checks if needed (e.g., basic format checks for text fields)
+    performServerValidation: async function(currentStepIndex) {
+        const needsServerValidation = currentStepIndex < 3;
+        if (!needsServerValidation) return true;
+
+        const button = document.getElementById(`next${currentStepIndex + 1}`);
+        if (button) button.disabled = true;
+        FormHelpers.showLoadingOverlay(this.elements, true, "Validiere Eingaben...");
+        
+        const isValid = await this.validateStepWithServer(currentStepIndex + 1);
+        
+        FormHelpers.showLoadingOverlay(this.elements, false);
+        if (button) button.disabled = false;
+        
         return isValid;
     },
+
+    proceedToNextStep: function(nextStepIndex) {
+        if (nextStepIndex === 3) {
+            this.updateReviewContent();
+        }
+        this.goToStep(nextStepIndex);
+        
+        if (nextStepIndex === 1 && this.state.map) {
+            this.handleLocationStepActivation();
+        }
+    },
     
-    validateStepWithServer: async function(stepNumber) { // Expects 1-based step number
-        const formData = new FormData(this.elements.form);
-        const jsonData = {};
-        formData.forEach((value, key) => {
-            if (key !== 'photo') jsonData[key] = value; // Exclude file input from JSON data
-        });
-        jsonData.step = stepNumber;
-        jsonData.latitude = this.elements.latInput?.value || ''; // Ensure coordinates are included
-        jsonData.longitude = this.elements.lngInput?.value || '';
+    validateStepClientSide: function(stepNumber) {
+        FormHelpers.clearAllErrors(this.elements, stepNumber - 1);
+        
+        if (stepNumber === 2) {
+            return this.validateLocationStep();
+        }
+        
+        return true;
+    },
+
+    validateLocationStep: function() {
+        const lat = this.elements.latInput?.value;
+        const lng = this.elements.lngInput?.value;
+        
+        if (!lat || !lng) {
+            FormHelpers.showFieldError(this.elements, 'coordinates', 'Bitte wählen Sie einen Standort auf der Karte.');
+            return false;
+        }
+        return true;
+    },
+    
+    validateStepWithServer: async function(stepNumber) {
+        const jsonData = this.buildValidationData(stepNumber);
         
         try {
-            const response = await fetch(this.config.urls.validateStep, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': this.elements.csrfToken
-                },
-                body: JSON.stringify(jsonData)
-            });
+            const response = await this.sendValidationRequest(jsonData);
+            const data = await response.json();
             
-            const data = await response.json(); // Assume server always returns JSON
-            
-            FormHelpers.clearAllErrors(this.elements, stepNumber - 1); // Clear errors for current step
+            FormHelpers.clearAllErrors(this.elements, stepNumber - 1);
             
             if (!response.ok) {
-                 // Handle server-side errors (e.g., 500) or validation errors (e.g., 400/422)
-                 console.error('Server validation error:', data);
-                 if (data && data.errors) {
-                     this.displayServerErrors(data.errors); // Display field-specific errors
-                 } else {
-                     FormHelpers.showFieldError(this.elements, 'general', data.error || 'Serverfehler bei der Validierung.');
-                 }
-                 return false;
-             }
+                this.handleServerError(data);
+                return false;
+            }
 
-            // Check the specific success flag from the response
             if (!data.valid) {
                 if (data.errors) {
-                   this.displayServerErrors(data.errors);
+                    this.displayServerErrors(data.errors);
                 }
                 return false;
             }
             
-            return true; // Validation successful
+            return true;
 
         } catch (error) {
-            console.error('Error fetching server validation:', error);
-            FormHelpers.clearAllErrors(this.elements, stepNumber - 1); // Clear errors for current step
+            console.error('Server validation error:', error);
+            FormHelpers.clearAllErrors(this.elements, stepNumber - 1);
             FormHelpers.showFieldError(this.elements, 'general', 'Netzwerkfehler oder Server nicht erreichbar.');
             return false;
+        }
+    },
+
+    buildValidationData: function(stepNumber) {
+        const formData = new FormData(this.elements.form);
+        const jsonData = {};
+        
+        formData.forEach((value, key) => {
+            if (key !== 'photo') jsonData[key] = value;
+        });
+        
+        jsonData.step = stepNumber;
+        jsonData.latitude = this.elements.latInput?.value || '';
+        jsonData.longitude = this.elements.lngInput?.value || '';
+        
+        return jsonData;
+    },
+
+    sendValidationRequest: function(jsonData) {
+        return fetch(this.config.urls.validateStep, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': this.elements.csrfToken
+            },
+            body: JSON.stringify(jsonData)
+        });
+    },
+
+    handleServerError: function(data) {
+        console.error('Server validation error:', data);
+        if (data?.errors) {
+            this.displayServerErrors(data.errors);
+        } else {
+            FormHelpers.showFieldError(this.elements, 'general', data.error || 'Serverfehler bei der Validierung.');
         }
     },
     
     displayServerErrors: function(errors) {
         let firstErrorField = null;
+        
         for (const field in errors) {
-            if (!firstErrorField) firstErrorField = field; // Track the first field with an error
-            const message = Array.isArray(errors[field]) ? errors[field][0] : errors[field]; // Handle potential array/string error message
-            
-             // Map potential backend field names to frontend IDs if needed
-             const fieldId = field; // Assuming backend names match frontend IDs for now
-            
-            FormHelpers.showFieldError(this.elements, fieldId, message);
+            if (!firstErrorField) firstErrorField = field;
+            const message = Array.isArray(errors[field]) ? errors[field][0] : errors[field];
+            FormHelpers.showFieldError(this.elements, field, message);
         }
-         // Optionally, scroll the first error field into view
-         const firstErrorElement = document.getElementById(firstErrorField);
-         if (firstErrorElement) {
-             firstErrorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-         }
+        
+        this.scrollToFirstError(firstErrorField);
     },
 
-    // --- Review Content Module ---
-    updateReviewContent: function() {
-        // Photo
-        if (this.state.convertedWebpData?.dataUrl && this.elements.reviewPhoto) {
-             this.elements.reviewPhoto.src = this.state.convertedWebpData.dataUrl;
-        }
-        
-        // Details
-        if (this.elements.reviewGender) this.elements.reviewGender.textContent = document.getElementById('gender')?.selectedOptions[0]?.text || '-';
-        if (this.elements.reviewLocationDesc) this.elements.reviewLocationDesc.textContent = document.getElementById('location_description')?.selectedOptions[0]?.text || '-';
-        if (this.elements.reviewDescription) this.elements.reviewDescription.textContent = this.elements.descriptionField?.value.trim() || '-';
-
-        // Date & Location
-        if (this.elements.reviewDate) this.elements.reviewDate.textContent = this.elements.sightingDateInput?.value ? new Date(this.elements.sightingDateInput.value).toLocaleDateString('de-DE') : '-';
-        if (this.elements.reviewCoordinates) this.elements.reviewCoordinates.textContent = (this.elements.latInput?.value && this.elements.lngInput?.value) ? `${parseFloat(this.elements.latInput.value).toFixed(6)}, ${parseFloat(this.elements.lngInput.value).toFixed(6)}` : '-';
-        if (this.elements.reviewStreet) this.elements.reviewStreet.textContent = this.elements.addressFields.street?.value.trim() || '-';
-        if (this.elements.reviewZip) this.elements.reviewZip.textContent = this.elements.addressFields.zipCode?.value.trim() || '-';
-        if (this.elements.reviewCity) this.elements.reviewCity.textContent = this.elements.addressFields.city?.value.trim() || '-';
-        if (this.elements.reviewState) this.elements.reviewState.textContent = this.elements.addressFields.state?.value.trim() || '-';
-        if (this.elements.reviewDistrict) this.elements.reviewDistrict.textContent = this.elements.addressFields.district?.value.trim() || '-';
-
-        // Reporter & Finder
-        const reporterFirstName = document.getElementById('report_first_name')?.value || '';
-        const reporterLastName = document.getElementById('report_last_name')?.value || '';
-        if (this.elements.reviewReporterName) this.elements.reviewReporterName.textContent = `${reporterFirstName} ${reporterLastName}`.trim() || '-';
-        if (this.elements.reviewEmail) this.elements.reviewEmail.textContent = document.getElementById('email')?.value || '-';
-        
-        if (this.elements.reviewFinderContainer && this.elements.identicalFinderCheckbox) {
-            if (this.elements.identicalFinderCheckbox.checked) {
-                this.elements.reviewFinderContainer.classList.add('hidden');
-            } else {
-                const finderFirstName = document.getElementById('finder_first_name')?.value || '';
-                const finderLastName = document.getElementById('finder_last_name')?.value || '';
-                const finderName = `${finderFirstName} ${finderLastName}`.trim();
-                if (finderName) {
-                    if (this.elements.reviewFinderName) this.elements.reviewFinderName.textContent = finderName;
-                    this.elements.reviewFinderContainer.classList.remove('hidden');
-                } else {
-                    // Hide if finder names are empty even if box is unchecked
-                    this.elements.reviewFinderContainer.classList.add('hidden'); 
-                }
+    scrollToFirstError: function(fieldId) {
+        if (fieldId) {
+            const element = document.getElementById(fieldId);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         }
+    },
+
+    updateReviewContent: function() {
+        this.updateReviewPhoto();
+        this.updateReviewDetails();
+        this.updateReviewLocation();
+        this.updateReviewPersons();
+        this.updateReviewFeedback();
+    },
+
+    updateReviewPhoto: function() {
+        if (this.state.convertedWebpData?.dataUrl && this.elements.reviewPhoto) {
+            this.elements.reviewPhoto.src = this.state.convertedWebpData.dataUrl;
+        }
+    },
+
+    updateReviewDetails: function() {
+        if (this.elements.reviewGender) {
+            this.elements.reviewGender.textContent = document.getElementById('gender')?.selectedOptions[0]?.text || '-';
+        }
+        if (this.elements.reviewLocationDesc) {
+            this.elements.reviewLocationDesc.textContent = document.getElementById('location_description')?.selectedOptions[0]?.text || '-';
+        }
+        if (this.elements.reviewDescription) {
+            this.elements.reviewDescription.textContent = this.elements.descriptionField?.value.trim() || '-';
+        }
+    },
+
+    updateReviewLocation: function() {
+        if (this.elements.reviewDate) {
+            const dateText = this.elements.sightingDateInput?.value 
+                ? new Date(this.elements.sightingDateInput.value).toLocaleDateString('de-DE') 
+                : '-';
+            this.elements.reviewDate.textContent = dateText;
+        }
         
-        // Feedback Information - only process if elements exist (user hasn't provided feedback before)
+        if (this.elements.reviewCoordinates) {
+            const lat = this.elements.latInput?.value;
+            const lng = this.elements.lngInput?.value;
+            const coordText = (lat && lng) 
+                ? `${parseFloat(lat).toFixed(6)}, ${parseFloat(lng).toFixed(6)}` 
+                : '-';
+            this.elements.reviewCoordinates.textContent = coordText;
+        }
+        
+        this.updateAddressFields();
+    },
+
+    updateAddressFields: function() {
+        const addressMappings = [
+            { element: this.elements.reviewStreet, field: this.elements.addressFields.street },
+            { element: this.elements.reviewZip, field: this.elements.addressFields.zipCode },
+            { element: this.elements.reviewCity, field: this.elements.addressFields.city },
+            { element: this.elements.reviewState, field: this.elements.addressFields.state },
+            { element: this.elements.reviewDistrict, field: this.elements.addressFields.district }
+        ];
+        
+        addressMappings.forEach(({ element, field }) => {
+            if (element) {
+                element.textContent = field?.value.trim() || '-';
+            }
+        });
+    },
+
+    updateReviewPersons: function() {
+        this.updateReporterInfo();
+        this.updateFinderInfo();
+    },
+
+    updateReporterInfo: function() {
+        const firstName = document.getElementById('report_first_name')?.value || '';
+        const lastName = document.getElementById('report_last_name')?.value || '';
+        
+        if (this.elements.reviewReporterName) {
+            this.elements.reviewReporterName.textContent = `${firstName} ${lastName}`.trim() || '-';
+        }
+        if (this.elements.reviewEmail) {
+            this.elements.reviewEmail.textContent = document.getElementById('email')?.value || '-';
+        }
+    },
+
+    updateFinderInfo: function() {
+        if (!this.elements.reviewFinderContainer || !this.elements.identicalFinderCheckbox) return;
+        
+        if (this.elements.identicalFinderCheckbox.checked) {
+            this.elements.reviewFinderContainer.classList.add('hidden');
+        } else {
+            const firstName = document.getElementById('finder_first_name')?.value || '';
+            const lastName = document.getElementById('finder_last_name')?.value || '';
+            const finderName = `${firstName} ${lastName}`.trim();
+            
+            if (finderName) {
+                if (this.elements.reviewFinderName) {
+                    this.elements.reviewFinderName.textContent = finderName;
+                }
+                this.elements.reviewFinderContainer.classList.remove('hidden');
+            } else {
+                this.elements.reviewFinderContainer.classList.add('hidden');
+            }
+        }
+    },
+
+    updateReviewFeedback: function() {
         const feedbackSourceSelect = document.getElementById('feedback_source');
         const feedbackDetailInput = document.getElementById('feedback_detail');
         
-        if (this.elements.reviewFeedbackSource && feedbackSourceSelect) {
-            if (feedbackSourceSelect.value) {
-                const selectedText = feedbackSourceSelect.options[feedbackSourceSelect.selectedIndex].text;
-                this.elements.reviewFeedbackSource.textContent = selectedText;
-                
-                // Show detail if provided
-                if (this.elements.reviewFeedbackDetail && feedbackDetailInput && feedbackDetailInput.value.trim()) {
-                    this.elements.reviewFeedbackDetail.textContent = `Details: ${feedbackDetailInput.value.trim()}`;
-                    this.elements.reviewFeedbackDetail.classList.remove('hidden');
-                } else if (this.elements.reviewFeedbackDetail) {
-                    this.elements.reviewFeedbackDetail.classList.add('hidden');
-                }
-            } else {
-                this.elements.reviewFeedbackSource.textContent = 'Nicht angegeben';
-                if (this.elements.reviewFeedbackDetail) {
-                    this.elements.reviewFeedbackDetail.classList.add('hidden');
-                }
+        if (!this.elements.reviewFeedbackSource || !feedbackSourceSelect) return;
+        
+        if (feedbackSourceSelect.value) {
+            const selectedText = feedbackSourceSelect.options[feedbackSourceSelect.selectedIndex].text;
+            this.elements.reviewFeedbackSource.textContent = selectedText;
+            
+            this.updateFeedbackDetail(feedbackDetailInput);
+        } else {
+            this.elements.reviewFeedbackSource.textContent = 'Nicht angegeben';
+            if (this.elements.reviewFeedbackDetail) {
+                this.elements.reviewFeedbackDetail.classList.add('hidden');
             }
         }
     },
 
-    // --- Form Submission Module ---
+    updateFeedbackDetail: function(feedbackDetailInput) {
+        if (this.elements.reviewFeedbackDetail && feedbackDetailInput && feedbackDetailInput.value.trim()) {
+            this.elements.reviewFeedbackDetail.textContent = `Details: ${feedbackDetailInput.value.trim()}`;
+            this.elements.reviewFeedbackDetail.classList.remove('hidden');
+        } else if (this.elements.reviewFeedbackDetail) {
+            this.elements.reviewFeedbackDetail.classList.add('hidden');
+        }
+    },
+
     setupFormSubmission: function() {
         if (!this.elements.form) return;
         this.elements.form.addEventListener('submit', this.handleFormSubmit.bind(this));
@@ -433,109 +538,130 @@ const ReportFormApp = {
     handleFormSubmit: async function(e) {
         e.preventDefault();
         
-        // Final client validation (current step is review step, index 3)
-        if (!this.validateStepClientSide(this.state.currentStep + 1)) { 
-             console.warn('Client-side validation failed on submit.');
-             // Error messages should already be shown by validateStepClientSide
-             return;
-        } 
-
-        if (!this.state.convertedWebpData?.blob) {
-            FormHelpers.showFieldError(this.elements, 'photo', 'Kein gültiges Bild zum Senden vorhanden.');
-            this.goToStep(0); // Go back to photo step
+        if (!this.validateStepClientSide(this.state.currentStep + 1)) {
+            console.warn('Client-side validation failed on submit.');
             return;
         }
 
+        if (!this.state.convertedWebpData?.blob) {
+            FormHelpers.showFieldError(this.elements, 'photo', 'Kein gültiges Bild zum Senden vorhanden.');
+            this.goToStep(0);
+            return;
+        }
+
+        this.prepareSubmission();
+        
+        try {
+            const formData = this.buildSubmissionData();
+            const response = await this.sendFormData(formData);
+            await this.handleSubmissionResponse(response);
+        } catch (error) {
+            this.handleSubmissionError(error);
+        }
+    },
+
+    prepareSubmission: function() {
         FormHelpers.showLoadingOverlay(this.elements, true, "Sende Ihre Meldung...");
         if (this.elements.submitBtn) this.elements.submitBtn.disabled = true;
+    },
 
+    buildSubmissionData: function() {
         const formData = new FormData(this.elements.form);
-        // Remove original file if it exists, append the processed WebP blobbest practice big multi step form
         formData.delete('photo');
+        
+        const webpFile = this.createWebpFile();
+        formData.append('photo', webpFile);
+
+        if (!formData.has('csrf_token') && this.elements.csrfToken) {
+            formData.append('csrf_token', this.elements.csrfToken);
+        }
+
+        return formData;
+    },
+
+    createWebpFile: function() {
         const originalName = this.state.convertedWebpData.originalFileName || 'sighting.webp';
         const fileNameWithoutExt = originalName.substring(0, originalName.lastIndexOf('.')) || originalName;
         const webpFileName = `${fileNameWithoutExt}.webp`;
-        const webpFile = new File([this.state.convertedWebpData.blob], webpFileName, { type: 'image/webp', lastModified: Date.now() });
-        formData.append('photo', webpFile);
+        
+        return new File([this.state.convertedWebpData.blob], webpFileName, {
+            type: 'image/webp',
+            lastModified: Date.now()
+        });
+    },
 
-        // Include CSRF token if not already part of FormData (depends on WTForms config)
-        if (!formData.has('csrf_token') && this.elements.csrfToken) {
-             formData.append('csrf_token', this.elements.csrfToken);
+    sendFormData: function(formData) {
+        return fetch(this.config.urls.submitForm, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': this.elements.csrfToken
+            }
+        });
+    },
+
+    handleSubmissionResponse: async function(response) {
+        if (!response.ok) {
+            const errorMessage = await this.parseErrorResponse(response);
+            throw new Error(errorMessage);
         }
+        
+        if (response.redirected) {
+            window.location.href = response.url;
+        } else {
+            const data = await response.json().catch(() => ({}));
+            window.location.href = data.redirect_url || '/thank-you';
+        }
+    },
 
+    parseErrorResponse: async function(response) {
+        let errorMessage = `Serverfehler: ${response.status} ${response.statusText}`;
+        
         try {
-            const response = await fetch(this.config.urls.submitForm, {
-                 method: 'POST',
-                 body: formData,
-                 // No 'Content-Type' header for FormData, browser sets it with boundary
-                 headers: {
-                     'X-CSRFToken': this.elements.csrfToken // Send CSRF via header too if needed by backend
-                 }
-            });
-            
-            if (!response.ok) {
-                let serverErrorMsg = `Serverfehler: ${response.status} ${response.statusText}`;
-                try {
-                    // Attempt to parse JSON error response from server
-                    const errorData = await response.json();
-                    if (errorData && errorData.error) {
-                       serverErrorMsg = `Fehler: ${errorData.error}`;
-                    } else if (errorData && errorData.message) {
-                         serverErrorMsg = `Fehler: ${errorData.message}`;
-                    }
-                    // TODO: Handle field-specific errors returned on final submit if necessary
-                    // if (errorData && errorData.errors) { ... display errors ... }
-                } catch (parseError) { 
-                    console.warn('Could not parse JSON error response from server.');
-                    // Optionally read response text for non-JSON errors
-                     // const textError = await response.text(); 
-                     // serverErrorMsg = textError || serverErrorMsg;
-                }
-                throw new Error(serverErrorMsg);
+            const errorData = await response.json();
+            if (errorData?.error) {
+                errorMessage = `Fehler: ${errorData.error}`;
+            } else if (errorData?.message) {
+                errorMessage = `Fehler: ${errorData.message}`;
             }
-            
-            // Handle successful submission (redirect or message)
-            if (response.redirected) {
-                window.location.href = response.url;
-            } else {
-                 // Check if response contains a success URL
-                 const data = await response.json().catch(() => ({})); // Attempt to parse JSON response
-                 if (data.redirect_url) {
-                     window.location.href = data.redirect_url;
-                 } else {
-                    // Fallback redirect if no specific URL provided
-                     window.location.href = '/thank-you'; // Make sure this URL exists
-                 }
-            }
-        } catch (error) {
-            console.error('Error submitting form:', error);
-            FormHelpers.showLoadingOverlay(this.elements, false);
-            if (this.elements.submitBtn) this.elements.submitBtn.disabled = false;
-            
-            let errorMessage = 'Ein Fehler ist beim Senden aufgetreten. Bitte versuchen Sie es erneut.';
-            if (error.message.includes('NetworkError') || error.message.includes('Failed to fetch')) {
-                errorMessage = 'Netzwerkfehler. Bitte Internetverbindung überprüfen.';
-            } else if (error.message.includes('413') || error.message.includes('Payload Too Large')) {
-                errorMessage = 'Datei ist zu groß (max. 12MB).';
-            } else {
-                 // Use the specific error message from the catch block
-                 errorMessage = error.message;
-            }
-             FormHelpers.showFieldError(this.elements, 'general', errorMessage); 
-             // Display error near submit button as well for visibility
-             const submitButtonContainer = this.elements.submitBtn?.parentElement;
-             if (submitButtonContainer && !submitButtonContainer.querySelector('.field-error-message[data-general-submit-error]')) {
-                  const errorEl = document.createElement('div');
-                  errorEl.className = 'w-full mt-2 text-sm text-center text-red-500 field-error-message';
-                  errorEl.dataset.generalSubmitError = 'true'; // Add attribute to prevent duplicates
-                  errorEl.textContent = errorMessage;
-                  submitButtonContainer.appendChild(errorEl);
-             }
+        } catch (parseError) {
+            console.warn('Could not parse error response.');
         }
+        
+        return errorMessage;
+    },
+
+    handleSubmissionError: function(error) {
+        console.error('Form submission error:', error);
+        FormHelpers.showLoadingOverlay(this.elements, false);
+        if (this.elements.submitBtn) this.elements.submitBtn.disabled = false;
+        
+        const errorMessage = this.getErrorMessage(error);
+        FormHelpers.showFieldError(this.elements, 'general', errorMessage);
+        this.showSubmitButtonError(errorMessage);
+    },
+
+    getErrorMessage: function(error) {
+        if (error.message.includes('NetworkError') || error.message.includes('Failed to fetch')) {
+            return 'Netzwerkfehler. Bitte Internetverbindung überprüfen.';
+        } else if (error.message.includes('413') || error.message.includes('Payload Too Large')) {
+            return 'Datei ist zu groß (max. 12MB).';
+        }
+        return error.message || 'Ein Fehler ist beim Senden aufgetreten. Bitte versuchen Sie es erneut.';
+    },
+
+    showSubmitButtonError: function(errorMessage) {
+        const container = this.elements.submitBtn?.parentElement;
+        if (!container || container.querySelector('.field-error-message[data-general-submit-error]')) return;
+        
+        const errorEl = document.createElement('div');
+        errorEl.className = 'w-full mt-2 text-sm text-center text-red-500 field-error-message';
+        errorEl.dataset.generalSubmitError = 'true';
+        errorEl.textContent = errorMessage;
+        container.appendChild(errorEl);
     }
 };
 
-// Initialize the app once the DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
     ReportFormApp.initialize();
 }); 
