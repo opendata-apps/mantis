@@ -1,6 +1,4 @@
 """Tests for the Aemter (administrative areas) database table functionality."""
-from sqlalchemy import text
-import json
 from app.database.aemter_koordinaten import TblAemterCoordinaten
 
 
@@ -13,27 +11,27 @@ def test_table_aemter_structure(session):
     # Insert test data
     test_properties = {
         "OBJID": "TEST001",
-        "GEN": "Test Town", 
+        "GEN": "Test Town",
         "BEZ": "Gemeinde",
         "ARS": "12345"
     }
-    
+
     # Create a test record
     test_area = TblAemterCoordinaten(
         ags=12345,
         gen="Test Town",
         properties=test_properties
     )
-    
+
     # Add and commit to the database
     session.add(test_area)
     session.commit()
-    
+
     # Query the data back
     result = session.query(TblAemterCoordinaten).filter(
         TblAemterCoordinaten.ags == 12345
     ).first()
-    
+
     # Verify the record was inserted correctly
     assert result is not None, "Test record should exist"
     assert result.gen == "Test Town", "Name should match"
@@ -48,22 +46,22 @@ def test_table_aemter_manual_insert(session):
         "GEN": "Test Area",
         "BEZ": "Gemeinde"
     }
-    
+
     # Insert a new record
     new_area = TblAemterCoordinaten(
         ags=99999,
         gen="Test Area",
         properties=properties
     )
-    
+
     session.add(new_area)
     session.commit()
-    
+
     # Verify it was inserted correctly
     test_area = session.query(TblAemterCoordinaten).filter(
         TblAemterCoordinaten.ags == 99999
     ).first()
-    
+
     assert test_area is not None
     assert test_area.gen == "Test Area"
     assert test_area.properties["OBJID"] == "TEST123"

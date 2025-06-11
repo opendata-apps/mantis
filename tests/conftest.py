@@ -22,8 +22,8 @@ def app():
     app = create_app(TestConfig)
     with app.app_context():
         # Run Alembic migrations on test database
-        upgrade()  
-        yield app 
+        upgrade()
+        yield app
 
 @pytest.fixture
 def client(app):
@@ -52,19 +52,19 @@ def mock_request(app, session_with_user):
     from werkzeug.test import EnvironBuilder
     from werkzeug.wrappers import Request
     from flask import session as flask_session
-    
+
     # Create environment with form data
     builder = EnvironBuilder(
         method='POST',
         data={'user_id': '9999'}
     )
-    
+
     # Create the request object
     request = Request(builder.get_environ())
-    
+
     # Make sure the request has access to the session
     request.environ['flask.session'] = flask_session
-    
+
     yield request
 
 @pytest.fixture
@@ -105,7 +105,7 @@ def form_data_request(mock_request, request):
     # Get form data from test markers if provided
     marker = request.node.get_closest_marker("form_data")
     form_data = marker.args[0] if marker else {}
-    
+
     # Add form data to the mock request
     mock_request.form = form_data
     return mock_request
@@ -136,12 +136,12 @@ def insert_initial_data_command():
             {"id": id, "beschreibung": beschreibung},
         )
     session.commit()
-    populate_all(db, session=session, vg5000_json_data=jsondata) 
+    populate_all(db, session=session, vg5000_json_data=jsondata)
     insert_data_reports(session)
     fts.create_materialized_view(db, session=session)
     ad.create_materialized_view(db, session=session)
-    
-    
+
+
 def drop_all_with_views():
     """Drop all database tables and materialized views.
     
@@ -160,8 +160,8 @@ def drop_all_with_views():
     db.session.commit()
     db.drop_all()
     db.session.commit()
-    
-    
+
+
 @pytest.fixture(scope='session')
 def _db(app):
     """Set up the database for the test session.
@@ -171,10 +171,10 @@ def _db(app):
     """
     # Setup: Run before test session begins
     drop_all_with_views()
-    db.create_all()  
+    db.create_all()
     # Fill tables with test data
     insert_initial_data_command()
-        
+
     yield db
 
     # Teardown: Run after test session completes

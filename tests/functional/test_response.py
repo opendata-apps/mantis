@@ -20,6 +20,6 @@ def test_routes_content_and_status(client, route, expected_content, status_code)
     """Test verschiedene Routen mit erwarteten Inhalten und Status-Codes."""
     response = client.get(route)
     assert response.status_code == status_code
-    
+
     if expected_content is not None and status_code == 200:
         assert expected_content in response.data

@@ -1,7 +1,4 @@
 """Tests for the full-text search functionality using materialized views."""
-import pytest
-from sqlalchemy import text
-import app.database.alldata as ad
 from datetime import datetime, timezone
 
 def test_view_alldata_search(client):
@@ -16,7 +13,7 @@ def test_view_alldata_search(client):
         sess['last_updated_all_data_view'] = now  # Optional
         # Test a simple search
         #form_data = {'search': 'Cottbus', 'user_id':'9999'}
-    
+
     # Senden einer POST-Anfrage an die Seite mit den Formulardaten
     response = client.get("/alldata?search=Cottbus")
     # Überprüfen, ob die Antwort einen Statuscode 200 zurückgibt

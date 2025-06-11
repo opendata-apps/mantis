@@ -14,23 +14,22 @@ def test_table_meldungen_query_capabilities(session):
     # Get total count first to understand the data
     total_count = session.query(TblMeldungen).count()
     assert total_count == 20, "Expected 20 test records in total"
-    
+
     # Check records with non-null deletion status
     deleted_records = session.query(TblMeldungen).filter(
-        TblMeldungen.deleted == True
+        TblMeldungen.deleted.is_(True)
     ).all()
-    
+
     non_deleted_records = session.query(TblMeldungen).filter(
-        TblMeldungen.deleted == False
+        TblMeldungen.deleted.is_(False)
     ).all()
-    
+
     # Check records with null deletion status
     null_deletion_status = session.query(TblMeldungen).filter(
         TblMeldungen.deleted.is_(None)
     ).count()
-    
-    # Print diagnostic info for this test
-    print(f"Deleted: {len(deleted_records)}, Non-deleted: {len(non_deleted_records)}, Null status: {null_deletion_status}")
-    
+
+    # Diagnostic info: deleted + non-deleted + null status should equal total count
+
     # Ensure we can account for all records (deleted + non-deleted + null status)
     assert len(deleted_records) + len(non_deleted_records) + null_deletion_status == total_count

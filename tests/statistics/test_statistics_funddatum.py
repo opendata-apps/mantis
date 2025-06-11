@@ -6,7 +6,7 @@ from app.routes.statistics import stats_bardiagram_datum
 def custom_date_request(form_data_request):
     """Fixture für einen Request mit spezifischem Datumszeitraum für Fundatum-Tests."""
     form_data_request.form = {
-        'dateFrom': '2024-01-07', 
+        'dateFrom': '2024-01-07',
         'dateTo': '2024-03-06',
         'user_id': '9999'
     }
@@ -16,11 +16,11 @@ def custom_date_request(form_data_request):
 def test_stats_funddatum(custom_date_request, session):
     """Test dass die stats_bardiagram_datum Funktion korrekte Daten liefert
     für den Fundort-Datumsbereich."""
-    
+
     with patch('app.routes.statistics.render_template') as mock_render_template:
         # Mock-Rückgabewert setzen
         mock_render_template.return_value = None
-        
+
         # Funktion aufrufen
         stats_bardiagram_datum(
             request=custom_date_request,

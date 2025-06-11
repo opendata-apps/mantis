@@ -17,7 +17,7 @@ import pytest
                     "51.464414",
                     "13.540649"
                 ]
-            }, 
+            },
             10.0
         ),
     ]
@@ -42,10 +42,10 @@ def test_distance_calculation(session, address_data, expected_min_distance):
         address_data["plz"],
         address_data["housenumber"]
     )
-    
+
     # Get the marker coordinates
     coord2 = address_data['marker']
-    
+
     # Calculate the distance between coordinates if both are available
     if coord1 and coord2:
         distance = calculate_distance(coord1, coord2)

@@ -1,6 +1,5 @@
 """Tests for the Beschreibung (description) database table functionality."""
 from app.database.fundortbeschreibung import TblFundortBeschreibung
-import pytest
 import sqlalchemy as sa
 
 
@@ -12,7 +11,7 @@ def test_table_beschreibung_record_count(session):
     """
     # Use ORM query instead of raw SQL
     result = session.query(TblFundortBeschreibung).all()
-    
+
     # Verify the expected number of records
     assert len(result) == 12, "Expected 12 description categories in the test database"
 
@@ -26,26 +25,26 @@ def test_table_beschreibung_create_and_query(session):
     # Find the maximum ID currently in the table to avoid duplicates
     max_id = session.query(sa.func.max(TblFundortBeschreibung.id)).scalar() or 0
     test_id = max_id + 1
-    
+
     # Create a new test description
     new_description = TblFundortBeschreibung(
         id=test_id,
         beschreibung="Test Description"
     )
-    
+
     # Add and commit to the database
     session.add(new_description)
     session.commit()
-    
+
     # Query the record back using ORM
     result = session.query(TblFundortBeschreibung).filter(
         TblFundortBeschreibung.id == test_id
     ).first()
-    
+
     # Verify the record was created correctly
     assert result is not None, "Should find the new description record"
     assert result.beschreibung == "Test Description", "Description text should match"
-    
+
     # Test to_dict method
     record_dict = result.to_dict()
     assert record_dict["id"] == test_id

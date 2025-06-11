@@ -8,7 +8,7 @@ def test_table_user_by_name(session):
     result = session.query(TblUsers).filter(
         TblUsers.user_name.like('Losekann%')
     ).all()
-    
+
     # Verify the expected user is found
     assert any(user.user_name == 'Losekann Z.' for user in result)
     assert len(result) > 0
@@ -20,6 +20,6 @@ def test_table_user_by_contact(session):
     result = session.query(TblUsers).filter(
         TblUsers.user_kontakt.like('%com')
     ).all()
-    
+
     # Verify the expected number of records
     assert len(result) == 7

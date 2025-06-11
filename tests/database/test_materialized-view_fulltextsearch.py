@@ -13,11 +13,11 @@ def test_view_fulltextsearch_direct_search_method(session, request_context):
     # Test a simple search
     search_term = "Cottbus"
     results = fts.FullTextSearch.search(search_term)
-    
+
     # Results should be sorted by rank so we don't rely on order
     assert set(results) == {3, 9}, \
         f"Expected IDs {{3, 9}} for search term '{search_term}' but got {results}"
-    
+
     # Test a search with limit
     limited_results = fts.FullTextSearch.search(search_term, limit=1)
     assert len(limited_results) == 1, \
@@ -54,17 +54,17 @@ def test_full_text_search_parameterized(session, request_context, search_term, e
     ).bindparams(
         query=search_term
     )
-    
+
     # Query using the ORM and PostgreSQL operator
     search_results = session.query(fts.FullTextSearch).filter(
         fts.FullTextSearch.doc.op("@@")(search_vector)
     ).all()
-    
+
     # Extract the IDs from the results
     reported_sightings_ids = [
         result.meldungen_id for result in search_results
     ]
-    
+
     # Sort both lists for consistent comparison
     reported_sightings_ids.sort()
     expected_ids.sort()
@@ -83,17 +83,17 @@ def test_full_text_search_refreshing(session, request_context):
     # Use the module's refresh function to update the materialized view
     from app import db
     fts.refresh_materialized_view(db)
-    
+
     # Verify that we can still search after refreshing
     search_vector = text(
         "plainto_tsquery('german', :query)"
     ).bindparams(
         query="Berlin"
     )
-    
+
     search_results = session.query(fts.FullTextSearch).filter(
         fts.FullTextSearch.doc.op("@@")(search_vector)
     ).all()
-    
+
     # We should still find results after refreshing
     assert len(search_results) > 0, "Should still find results after refreshing the view"

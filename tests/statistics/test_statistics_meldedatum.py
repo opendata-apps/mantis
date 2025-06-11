@@ -5,8 +5,8 @@ from app.routes.statistics import stats_bardiagram_datum
 
 @pytest.mark.parametrize("dbfields,page,marker,expected_x,expected_y", [
     (
-        ['dat_fund_von'], 
-        'stats-meld-fund.html', 
+        ['dat_fund_von'],
+        'stats-meld-fund.html',
         'meldungen_meld_fund',
         ['2024-01-20', '2024-01-28', '2024-02-12', '2024-02-19'],
         [1, 1, 1, 1]
@@ -16,18 +16,18 @@ from app.routes.statistics import stats_bardiagram_datum
 @pytest.mark.usefixtures("session_with_user", "request_context")
 def test_stats_bardiagram(mock_request, session, dbfields, page, marker, expected_x, expected_y):
     """Parameterized test for stats_bardiagram_datum with different configurations."""
-    
+
     # Setup date range in the form data
     mock_request.form = {
         'dateFrom': '2024-01-07',
         'dateTo': '2024-03-06',
         'user_id': '9999'
     }
-    
+
     with patch('app.routes.statistics.render_template') as mock_render_template:
         # Set mock return value
         mock_render_template.return_value = None
-        
+
         # Call the function
         stats_bardiagram_datum(
             request=mock_request,
