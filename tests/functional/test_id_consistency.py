@@ -150,7 +150,7 @@ class TestIDConsistency:
         soup = BeautifulSoup(response.data, 'html.parser')
         
         # Look for "Melde-ID" text
-        melde_id_text = soup.find(text=lambda text: text and 'Melde-ID' in text)
+        melde_id_text = soup.find(string=lambda text: text and 'Melde-ID' in text)
         assert melde_id_text is not None, "Provider view should show 'Melde-ID'"
 
     def test_no_internal_ids_exposed(self, client):
