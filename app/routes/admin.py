@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from io import BytesIO
 import pandas as pd
-from app import db
+from app import db, limiter
 from app.config import Config
 import  app.database.alldata as ad
 import  app.database.full_text_search as fts
@@ -199,6 +199,7 @@ def change_mantis_meta_data(id):
 
 @admin.route("/<path:filename>")
 @login_required
+@limiter.exempt
 def report_Img(filename):
     "This function is used to serve the image of the report"
     return send_from_directory("", filename, mimetype="image/webp", as_attachment=False)

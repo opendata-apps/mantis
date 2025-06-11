@@ -1047,7 +1047,17 @@
                                         <p class="font-semibold">User Info:</p>
                                         <p><strong>Name:</strong> ${data.user_name}</p>
                                         <p><strong>Email:</strong> ${data.user_kontakt}</p>
-                                        <p><strong>User ID:</strong> ${data.user_id.length > 15 ? data.user_id.substring(0, 12) + '...' : data.user_id}</p>
+                                        <p class="flex items-center">
+                                            <strong>User ID:</strong>
+                                            <span class="ml-1 font-mono text-sm" id="userId-${data.id_meldung}" title="${data.user_id}">${data.user_id.length > 15 ? data.user_id.substring(0, 12) + '...' : data.user_id}</span>
+                                            <button onclick="copyUserId('${data.user_id}')" 
+                                                class="ml-2 p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded transition-colors duration-150"
+                                                title="User ID kopieren">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                                </svg>
+                                            </button>
+                                        </p>
                                         <p><strong>Role:</strong> ${data.user_rolle}</p>
                                     </div>
                                 </div>
@@ -1810,6 +1820,50 @@
                 cancelMarkerPlacement();
             }
         }
+    }
+
+    // Function to copy user ID to clipboard
+    function copyUserId(userId) {
+        // Create a temporary textarea element
+        const textarea = document.createElement('textarea');
+        textarea.value = userId;
+        textarea.style.position = 'fixed';
+        textarea.style.left = '-999999px';
+        document.body.appendChild(textarea);
+        
+        // Select and copy the text
+        textarea.select();
+        textarea.setSelectionRange(0, 99999); // For mobile devices
+        
+        try {
+            document.execCommand('copy');
+            
+            // Show success feedback
+            const button = event.target.closest('button');
+            const svg = button.querySelector('svg');
+            const originalTitle = button.title;
+            
+            // Change icon to checkmark
+            svg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>';
+            button.title = 'Kopiert!';
+            button.classList.remove('text-gray-400');
+            button.classList.add('text-green-600');
+            
+            // Reset after 1.5 seconds
+            setTimeout(() => {
+                // Restore original icon
+                svg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>';
+                button.title = originalTitle;
+                button.classList.remove('text-green-600');
+                button.classList.add('text-gray-400');
+            }, 1500);
+        } catch (err) {
+            console.error('Failed to copy user ID:', err);
+            alert('Fehler beim Kopieren der User ID');
+        }
+        
+        // Clean up
+        document.body.removeChild(textarea);
     }
 </script>
 
