@@ -35,7 +35,7 @@ def index():
     post_count = (
         db.session.query(TblMeldungen)
         .filter(TblMeldungen.dat_fund_von >= f"{Config.MIN_MAP_YEAR}-01-01")
-        .filter(TblMeldungen.dat_bear != None)
+        .filter(TblMeldungen.dat_bear.is_not(None))
         .filter(TblMeldungen.deleted.is_(None))
         .count()
     )

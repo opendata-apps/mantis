@@ -11,6 +11,7 @@ from flask import (
 from app import db
 from app.database.models import (TblFundorte,
                                  TblMeldungen,)
+from sqlalchemy import or_
 
 from ..config import Config
 
@@ -41,8 +42,8 @@ def show_map():
                          TblFundorte.latitude,
                          TblFundorte.longitude)
         .join(TblFundorte, TblMeldungen.fo_zuordnung == TblFundorte.id)
-        .filter(TblMeldungen.dat_bear != None)
-        .filter(TblMeldungen.deleted.is_(None))
+        .filter(TblMeldungen.dat_bear.is_not(None))
+        .filter(or_(TblMeldungen.deleted.is_(None), TblMeldungen.deleted == False))  # noqa: E712
     )
 
     if selected_year is not None:
@@ -56,8 +57,8 @@ def show_map():
         post_count = (
             db.session.query(TblMeldungen)
             .filter(TblMeldungen.dat_fund_von >= f"{Config.MIN_MAP_YEAR}-01-01")
-            .filter(TblMeldungen.dat_bear != None)
-            .filter(TblMeldungen.deleted.is_(None))
+            .filter(TblMeldungen.dat_bear.is_not(None))
+            .filter(or_(TblMeldungen.deleted.is_(None), TblMeldungen.deleted == False))  # noqa: E712
             .count()
         )
 
