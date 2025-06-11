@@ -1,5 +1,5 @@
 """Tests for the full-text search functionality using materialized views."""
-from datetime import datetime, timezone
+from datetime import datetime
 
 def test_view_alldata_search(client):
     """Test the direct search method in the FullTextSearch class.
@@ -7,12 +7,9 @@ def test_view_alldata_search(client):
     This test verifies that the search() class method properly finds
     matching records by using PostgreSQL's full-text search capabilities.
     """
-    now = datetime.now(timezone.utc)
     with client.session_transaction() as sess:
         sess['user_id'] = '9999'  # Simulierter eingeloggter Benutzer
-        sess['last_updated_all_data_view'] = now  # Optional
-        # Test a simple search
-        #form_data = {'search': 'Cottbus', 'user_id':'9999'}
+        # Don't set last_updated_all_data_view - let the route handle it
 
     # Senden einer POST-Anfrage an die Seite mit den Formulardaten
     response = client.get("/alldata?search=Cottbus")

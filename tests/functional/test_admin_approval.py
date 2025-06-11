@@ -71,7 +71,7 @@ class TestAdminApproval:
 
             # Check the response
             assert response.status_code == 200
-            assert response.json['success'] == True
+            assert response.json['success'] is True
 
             # Refresh the sighting from the database
             session.refresh(mock_sighting)
@@ -85,7 +85,7 @@ class TestAdminApproval:
 
             # Check the response
             assert response.status_code == 200
-            assert response.json['success'] == True
+            assert response.json['success'] is True
 
             # Refresh the sighting from the database
             session.refresh(mock_sighting)
@@ -113,7 +113,7 @@ class TestAdminApproval:
 
         # Check the response
         assert response.status_code == 200
-        assert response.json['success'] == True
+        assert response.json['success'] is True
 
         # Refresh the sighting from the database and check changes
         session.refresh(mock_sighting)

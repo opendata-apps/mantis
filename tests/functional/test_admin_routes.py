@@ -1,15 +1,12 @@
 """Tests for admin routes including reviewer interface and data management."""
 import pytest
-from flask import session
 from datetime import datetime, timedelta
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 import json
-import pandas as pd
-from io import BytesIO
 
 from app.database.models import (
     TblMeldungen, TblFundorte, TblUsers, TblMeldungUser,
-    TblFundortBeschreibung, TblAllData
+    TblFundortBeschreibung
 )
 
 
@@ -39,12 +36,13 @@ class TestAdminRoutes:
         )
         session.add(self.regular_user)
         
-        # Create test description
-        self.test_description = TblFundortBeschreibung(
-            beschreibung='Test location description'
-        )
-        session.add(self.test_description)
-        session.flush()
+        # Use an existing description from the pre-populated data
+        self.test_description = session.query(TblFundortBeschreibung).filter_by(id=1).first()
+        if not self.test_description:
+            # Fallback if somehow the initial data isn't there
+            self.test_description = session.query(TblFundortBeschreibung).first()
+        
+        assert self.test_description, "No beschreibung records found in database"
         
         # Create test location
         self.test_location = TblFundorte(
@@ -168,7 +166,7 @@ class TestAdminRoutes:
         assert data['success'] is True
         
         # Verify the change in database
-        location = session.query(TblFundorte).get(self.test_location.id)
+        location = session.get(TblFundorte, self.test_location.id)
         assert location.ort == 'Updated City'
 
     def test_change_mantis_metadata_unauthenticated(self, client):

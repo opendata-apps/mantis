@@ -1,8 +1,6 @@
 """Tests for the authentication decorator."""
-import pytest
-from flask import session, abort, Flask
+from flask import Flask
 from app.tools.check_reviewer import login_required
-from werkzeug.exceptions import Forbidden
 
 
 class TestLoginRequired:
