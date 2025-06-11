@@ -3,10 +3,8 @@
 """
 
 import json
-from app.database.vg5000_gem import data as jsondata
 from sqlalchemy import text
 import sqlalchemy.orm as orm
-import click
 
 
 def import_aemter_data(db, jsondata):

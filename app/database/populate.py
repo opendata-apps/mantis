@@ -1,4 +1,3 @@
-import sqlalchemy as sa
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 import logging

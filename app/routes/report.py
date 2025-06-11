@@ -1,5 +1,4 @@
 import io
-import string
 from datetime import datetime
 from pathlib import Path
 
@@ -267,7 +266,7 @@ def melden(usrid=None):
                     "message": "Vielen Dank, Ihre Meldung wurde erfolgreich gespeichert!"
                 }), 200
 
-            except Exception as e:
+            except Exception:
                 db.session.rollback()
                 flash("Ein Fehler ist beim Speichern Ihrer Meldung aufgetreten. Bitte versuchen Sie es erneut.", "error")
         
