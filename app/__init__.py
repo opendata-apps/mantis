@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime
 import shutil
 import os
 import click
@@ -13,7 +13,6 @@ import sqlalchemy as sa
 import sqlalchemy.schema
 import sqlalchemy.ext.compiler
 import sqlalchemy.orm as orm
-from sqlalchemy import text
 from .config import Config
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -140,7 +139,7 @@ def create_app(config_class=Config):
 
     @app.context_processor
     def inject_now():
-        return {"now": datetime.now(timezone.utc)}
+        return {"now": datetime.now()}
 
     # Import the routes
     from app.routes.admin import admin

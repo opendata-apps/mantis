@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from io import BytesIO
 import pandas as pd
 from app import db
@@ -60,7 +60,7 @@ def reviewer(usrid):
     if not user or user.user_rolle != "9":
         abort(403)
 
-    now = datetime.utcnow()
+    now = datetime.now()
     # Get the user_name of the logged in user_id
     user_name = user.user_name
     page = request.args.get("page", 1, type=int)
@@ -68,11 +68,10 @@ def reviewer(usrid):
     last_updated = session.get("last_updated")
     # Store the userid in session
     session["user_id"] = usrid
-
-    # Convert last_updated to a timezone-naive datetime if it's timezone-aware
-    if last_updated and last_updated.tzinfo:
+    
+    # Handle case where session datetime might have timezone info from serialization
+    if last_updated and hasattr(last_updated, 'tzinfo') and last_updated.tzinfo:
         last_updated = last_updated.replace(tzinfo=None)
-
     if last_updated is None or now - last_updated > timedelta(minutes=1):
         fts.refresh_materialized_view(db)
         session["last_updated"] = now
@@ -156,7 +155,7 @@ def change_mantis_meta_data(id):
     if not new_data or not fieldname:
         return jsonify({"error": "Missing data in request"}), 400
 
-    sighting_meldung = TblMeldungen.query.get(id)
+    sighting_meldung = db.session.get(TblMeldungen, id)
     if not sighting_meldung:
         return jsonify({"error": "Report not found"}), 404
 
@@ -164,7 +163,7 @@ def change_mantis_meta_data(id):
         sighting_obj = sighting_meldung
     else:
         fo_id = sighting_meldung.fo_zuordnung
-        sighting_obj = TblFundorte.query.get(fo_id)
+        sighting_obj = db.session.get(TblFundorte, fo_id)
         if not sighting_obj:
             return jsonify({"error": "Fundort not found"}), 404
 
@@ -489,8 +488,7 @@ def export_data(value):
         with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
             df.to_excel(writer, sheet_name="Daten", index=False)
             
-            # Get the xlsxwriter workbook and worksheet objects
-            workbook = writer.book
+            # Get the xlsxwriter worksheet object
             worksheet = writer.sheets["Daten"]
             
             # Add a table to the worksheet
@@ -725,10 +723,11 @@ def get_filtered_query(
 def database_view():
     
     last_updated = session.get("last_updated_all_data_view")
-    now = datetime.now(timezone.utc)
-    if last_updated and last_updated.tzinfo:
+    now = datetime.now()
+    # Handle case where session datetime might have timezone info from serialization
+    if last_updated and hasattr(last_updated, 'tzinfo') and last_updated.tzinfo:
         last_updated = last_updated.replace(tzinfo=None)
-    if last_updated is None or now - last_updated.astimezone(timezone.utc) > timedelta(minutes=1):
+    if last_updated is None or now - last_updated > timedelta(minutes=1):
          #if last_updated is None or now - last_updated > timedelta(minutes=1):
         ad.refresh_materialized_view(db)
         session["last_updated_all_data_view"] = now
@@ -752,8 +751,11 @@ def get_table_data(table_name):
 
         # Check if it's time to refresh the materialized view
         last_updated = session.get('last_updated_all_data_view')
-        now = datetime.now(timezone.utc).replace(tzinfo=None)  # Offset-naiv
-        if last_updated is None or (now - last_updated.replace(tzinfo=None) > timedelta(minutes=1)):
+        now = datetime.now()
+        # Handle case where session datetime might have timezone info from serialization
+        if last_updated and hasattr(last_updated, 'tzinfo') and last_updated.tzinfo:
+            last_updated = last_updated.replace(tzinfo=None)
+        if last_updated is None or (now - last_updated > timedelta(minutes=1)):
             ad.refresh_materialized_view(db)
             session['last_updated_all_data_view'] = now
 
@@ -930,7 +932,7 @@ def update_cell():
 
         # Refresh materialized view after update
         ad.refresh_materialized_view(db)
-        session["last_updated_all_data_view"] = datetime.utcnow()
+        session["last_updated_all_data_view"] = datetime.now()
 
         return jsonify({"success": True})
 
