@@ -175,12 +175,12 @@
                 <div class="grid grid-cols-2 gap-3">
                   <div class="form-group">
                     <label for="manual-latitude" class="block mb-1 text-xs font-medium text-gray-700">Breitengrad</label>
-                    <input type="number" id="manual-latitude" step="0.000001" placeholder="z.B. 48.137154" 
+                    <input type="text" id="manual-latitude" pattern="-?[0-9]+\.?[0-9]*" placeholder="z.B. 48.137154" 
                       class="block w-full px-4 py-2 text-base text-gray-700 transition duration-300 ease-in-out bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200">
                   </div>
                   <div class="form-group">
                     <label for="manual-longitude" class="block mb-1 text-xs font-medium text-gray-700">Längengrad</label>
-                    <input type="number" id="manual-longitude" step="0.000001" placeholder="z.B. 11.576124"
+                    <input type="text" id="manual-longitude" pattern="-?[0-9]+\.?[0-9]*" placeholder="z.B. 11.576124"
                       class="block w-full px-4 py-2 text-base text-gray-700 transition duration-300 ease-in-out bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200">
                   </div>
                 </div>
