@@ -32,6 +32,9 @@ from werkzeug.utils import secure_filename
 from pathlib import Path
 from flask import current_app
 from app.tools.send_reviewer_email import send_email
+from app.tools.mtb_calc import get_mtb, pointInRect
+from app.tools.find_gemeinde import get_amt_full_scan
+from app.tools.coordinate_validation import validate_and_normalize_coordinate
 from typing import Optional, Any
 
 import os
@@ -48,6 +51,34 @@ NON_EDITABLE_FIELDS = {
     "users": ["id", "user_id"],
     "all_data_view": ["meldungen_id", "fo_zuordnung", "fundorte_id", "beschreibung_id", "dat_fund_von", "id_user", "user_id"]
 }
+
+
+def recalculate_amt_mtb(fundort):
+    """Recalculate AMT and MTB values for a fundort based on its coordinates."""
+    if not fundort or not fundort.latitude or not fundort.longitude:
+        return
+    
+    try:
+        # Strip whitespace and convert to float
+        lat = float(fundort.latitude.strip())
+        lon = float(fundort.longitude.strip())
+        
+        if -90 <= lat <= 90 and -180 <= lon <= 180:
+            if pointInRect((lat, lon)):
+                fundort.mtb = get_mtb(lat, lon)
+                fundort.amt = get_amt_full_scan((lon, lat))
+            else:
+                # Coordinates outside Brandenburg region
+                fundort.mtb = ""
+                fundort.amt = ""
+        else:
+            # Invalid coordinate range
+            fundort.mtb = ""
+            fundort.amt = ""
+    except (ValueError, TypeError, AttributeError):
+        # If coordinates can't be parsed, clear AMT/MTB
+        fundort.mtb = ""
+        fundort.amt = ""
 
 
 @admin.route("/reviewer/<usrid>")
@@ -167,7 +198,7 @@ def change_mantis_meta_data(id):
         if not sighting_obj:
             return jsonify({"error": "Fundort not found"}), 404
 
-    sighting_obj.bearb_id = session["user_id"]
+    sighting_meldung.bearb_id = session["user_id"]
     update_fields = {
         "fo_quelle": "fo_quelle",
         "anm_bearbeiter": "anm_bearbeiter",
@@ -184,10 +215,23 @@ def change_mantis_meta_data(id):
 
     field_to_update = update_fields.get(fieldname)
     if field_to_update:
+        # Normalize coordinate values before storing
+        if fieldname in ["latitude", "longitude"]:
+            is_valid, normalized_value, error_msg = validate_and_normalize_coordinate(new_data, fieldname)
+            if not is_valid:
+                return jsonify({"error": error_msg}), 400
+            new_data = normalized_value
+        
         setattr(sighting_obj, field_to_update, new_data)
+        
+        # If coordinates were updated, recalculate AMT and MTB
+        if fieldname in ["latitude", "longitude"]:
+            recalculate_amt_mtb(sighting_obj)
+        
         try:
             db.session.commit()
             current_app.logger.info(f"Report {id} metadata updated: {fieldname} to {new_data} by user {session['user_id']}")
+            
             return jsonify({"success": True})
         except Exception as e:
             db.session.rollback()
@@ -195,6 +239,57 @@ def change_mantis_meta_data(id):
             return jsonify({"error": "Database error"}), 500
     else:
         return jsonify({"error": "Invalid field type"}), 400
+
+
+@admin.route("/update_coordinates/<int:id>", methods=["POST"])
+@login_required
+def update_coordinates(id):
+    """Update both coordinates at once and recalculate AMT/MTB"""
+    try:
+        data = request.get_json()
+        if not data or 'latitude' not in data or 'longitude' not in data:
+            return jsonify({"error": "Missing coordinates"}), 400
+        
+        # Validate and normalize both coordinates
+        lat_valid, normalized_lat, lat_error = validate_and_normalize_coordinate(data['latitude'], 'latitude')
+        lon_valid, normalized_lon, lon_error = validate_and_normalize_coordinate(data['longitude'], 'longitude')
+        
+        if not lat_valid:
+            return jsonify({"error": lat_error}), 400
+        if not lon_valid:
+            return jsonify({"error": lon_error}), 400
+        
+        # Get the sighting and its location
+        sighting = db.session.get(TblMeldungen, id)
+        if not sighting:
+            return jsonify({"error": "Report not found"}), 404
+            
+        fundort = db.session.get(TblFundorte, sighting.fo_zuordnung)
+        if not fundort:
+            return jsonify({"error": "Location not found"}), 404
+        
+        # Update coordinates and recalculate
+        fundort.latitude = normalized_lat
+        fundort.longitude = normalized_lon
+        recalculate_amt_mtb(fundort)
+        
+        # Update bearer ID
+        sighting.bearb_id = session["user_id"]
+        
+        db.session.commit()
+        
+        return jsonify({
+            "success": True,
+            "amt": fundort.amt or "",
+            "mtb": fundort.mtb or ""
+        })
+        
+    except ValueError:
+        return jsonify({"error": "Invalid coordinate format"}), 400
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Error updating coordinates for report {id}: {e}")
+        return jsonify({"error": str(e)}), 500
 
 
 @admin.route("/<path:filename>")
@@ -901,6 +996,14 @@ def update_cell():
             fundorte_id = all_data_row.fundorte_id
             if not fundorte_id:
                 return jsonify({"error": "Fundorte ID not found in the record"}), 400
+            
+            # Validate and normalize coordinates before storing
+            if original_column in ['latitude', 'longitude']:
+                is_valid, normalized_value, error_msg = validate_and_normalize_coordinate(new_value, original_column)
+                if not is_valid:
+                    return jsonify({"error": error_msg}), 400
+                new_value = normalized_value
+            
             stmt = (
                 update(original_table)
                 .where(original_table.id == fundorte_id)
@@ -926,10 +1029,16 @@ def update_cell():
 
         # Execute the update
         result = db.session.execute(stmt)
-        db.session.commit()
-
+        
         if result.rowcount == 0:
             return jsonify({"error": "Record not found"}), 404
+        
+        # If coordinates were updated, recalculate AMT and MTB
+        if column_name in ['latitude', 'longitude'] and original_table == TblFundorte:
+            fundort = db.session.get(TblFundorte, fundorte_id)
+            recalculate_amt_mtb(fundort)
+        
+        db.session.commit()
 
         # Refresh materialized view after update
         ad.refresh_materialized_view(db)

@@ -7,6 +7,7 @@ from flask import (
     render_template,
     request,
 )
+from app.tools.coordinate_validation import validate_and_normalize_coordinate
 
 from app import db
 from app.database.models import (TblFundorte,
@@ -67,15 +68,16 @@ def show_map():
     # Serialize the reports data as a JSON object
     koords = []
     for report_id, latitude, longitude in reports:
-        try:
-            lati = float(latitude.replace(",", "."))
-            long = float(longitude.replace(",", "."))
-
+        # Validate and normalize coordinates using centralized function
+        lat_valid, normalized_lat, _ = validate_and_normalize_coordinate(latitude, 'latitude')
+        lon_valid, normalized_lon, _ = validate_and_normalize_coordinate(longitude, 'longitude')
+        
+        if lat_valid and lon_valid:
+            # Convert back to float for obfuscation
+            lati = float(normalized_lat)
+            long = float(normalized_lon)
             lati, long = obfuscate_location(lati, long)
-
             koords.append({"report_id": report_id, "latitude": lati, "longitude": long})
-        except Exception as e:
-            print(e)
 
     reportsJson = json.dumps(koords)
     return render_template(

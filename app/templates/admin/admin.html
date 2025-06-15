@@ -988,18 +988,62 @@
 
     function changeMetaData(id, type, newContent) {
         fetch(`/change_mantis_meta_data/${id}`, {
-
             method: 'POST',
             body: new URLSearchParams({ id: id, type: type, new_data: newContent }),
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
         })
             .then(response => response.json())
             .then(data => {
-                if (data.success) {
-                } else {
+                if (!data.success) {
                     console.error('Failed to change metadata:', data.error);
                 }
             });
+    }
+
+    function updateBothCoordinates(id, lat, lng) {
+        // Update coordinate inputs immediately
+        const latInput = document.querySelector('input[name="latitude"]');
+        const lngInput = document.querySelector('input[name="longitude"]');
+        if (latInput) latInput.value = lat.toFixed(6);
+        if (lngInput) lngInput.value = lng.toFixed(6);
+
+        // Send both coordinates in a single request
+        fetch(`/update_coordinates/${id}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ latitude: lat, longitude: lng })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update AMT/MTB fields in the UI
+                const amtInputs = document.querySelectorAll('input[name="amt"], [data-field="amt"]');
+                amtInputs.forEach(element => {
+                    if (element.tagName === 'INPUT') {
+                        element.value = data.amt || '';
+                    } else {
+                        element.textContent = data.amt || 'Unbekannt';
+                    }
+                });
+                
+                const mtbInputs = document.querySelectorAll('input[name="mtb"], [data-field="mtb"]');
+                mtbInputs.forEach(element => {
+                    if (element.tagName === 'INPUT') {
+                        element.value = data.mtb || '';
+                    } else {
+                        element.textContent = data.mtb || 'Unbekannt';
+                    }
+                });
+                
+            } else {
+                console.error('Failed to update coordinates:', data.error);
+                alert('Fehler beim Aktualisieren der Koordinaten: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error updating coordinates:', error);
+            alert('Fehler beim Aktualisieren der Koordinaten');
+        });
     }
 
     function openImageModal(imageUrl) {
@@ -1230,7 +1274,9 @@
                 if (!isNaN(lat) && !isNaN(lng)) {
                     marker.setLatLng([lat, lng]);
                     map.setView([lat, lng], map.getZoom());
-                    changeMetaData(currentSightingId, type, num.toFixed(6));
+                    
+                    // Always update both coordinates together
+                    updateBothCoordinates(currentSightingId, lat, lng);
                 }
             }
         } else {
@@ -1286,8 +1332,8 @@
             marker.setOpacity(1); // Reset opacity
 
             // Update coordinates in database
-            changeMetaData(currentSightingId, 'latitude', pos.lat.toFixed(6));
-            changeMetaData(currentSightingId, 'longitude', pos.lng.toFixed(6));
+            // Send both coordinates together to avoid double AMT calculation
+            updateBothCoordinates(currentSightingId, pos.lat, pos.lng);
 
             // Get and update address information
             getAddressFromCoordinates(pos.lat, pos.lng);
