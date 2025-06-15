@@ -1,4 +1,5 @@
-def test_request_example(client):
+def test_statistics_page_loads_and_contains_reports_heading(client):
+    """Test that the statistics page loads successfully and contains expected content."""
     response = client.get("/auswertungen")
-    text = bytes("Fundmeldungen", "utf-8")
-    assert text in response.data
+    assert response.status_code == 200
+    assert b"Fundmeldungen" in response.data
