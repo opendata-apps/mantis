@@ -20,6 +20,34 @@ import pytest
             },
             10.0
         ),
+        (
+            {
+                "id": 12,
+                "plz": "10117",
+                "city": "Berlin",
+                "street": "Unter den Linden",
+                "housenumber": "1",
+                "marker": [
+                    "52.516275",
+                    "13.388889"
+                ]
+            },
+            0.0  # Same location
+        ),
+        (
+            {
+                "id": 13,
+                "plz": "14467",
+                "city": "Potsdam",
+                "street": "Breite Straße",
+                "housenumber": "1",
+                "marker": [
+                    "52.520008",  # Berlin coordinates
+                    "13.404954"
+                ]
+            },
+            20.0  # Different city
+        ),
     ]
 )
 def test_distance_calculation(session, address_data, expected_min_distance):

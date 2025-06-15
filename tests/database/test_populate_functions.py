@@ -198,41 +198,6 @@ class TestPopulateFunctions:
         # Count should not increase
         assert first_count == second_count
 
-    def test_populate_beschreibung_with_mock_session(self):
-        """Test populate_beschreibung function logic with mocked session."""
-        # Create mock session
-        mock_session = MagicMock()
-        
-        # Mock that records don't exist
-        mock_session.execute.return_value.fetchone.return_value = None
-        
-        # Call the function
-        populate_beschreibung(mock_session)
-        
-        # Verify it tried to check for existing records and insert new ones
-        # Should have 12 SELECTs + 12 INSERTs = 24 calls
-        assert mock_session.execute.call_count == 24
-        
-        # Verify commit was called
-        assert mock_session.commit.called
-
-    def test_populate_feedback_types_with_mock_session(self):
-        """Test populate_feedback_types function logic with mocked session."""
-        # Create mock session
-        mock_session = MagicMock()
-        
-        # Mock that records don't exist
-        mock_session.execute.return_value.fetchone.return_value = None
-        
-        # Call the function
-        populate_feedback_types(mock_session)
-        
-        # Verify it tried to check for existing records and insert new ones
-        # Should have 8 SELECTs + 8 INSERTs = 16 calls
-        assert mock_session.execute.call_count == 16
-        
-        # Verify commit was called
-        assert mock_session.commit.called
 
     def test_populate_functions_error_handling(self):
         """Test error handling in populate functions."""

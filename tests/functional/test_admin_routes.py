@@ -368,7 +368,7 @@ class TestAdminRoutes:
         assert 'columns' in data
         assert len(data['data']) > 0  # Should have at least our test sighting
 
-    @pytest.mark.skip(reason="Requires materialized view to be populated with test data")
+    @pytest.mark.skip(reason="TODO: Fix test setup to populate all_data_view materialized view")
     def test_update_cell_valid_table(self, client, session):
         """Test updating a cell in a valid table."""
         # Set up session
@@ -393,7 +393,7 @@ class TestAdminRoutes:
         session.refresh(self.test_sighting)
         assert self.test_sighting.anm_melder == 'Updated comment'
 
-    @pytest.mark.skip(reason="Requires materialized view to be populated with test data")
+    @pytest.mark.skip(reason="TODO: Fix test setup to populate all_data_view materialized view")
     def test_update_cell_non_editable_field(self, client):
         """Test that non-editable fields cannot be updated."""
         # Set up session
