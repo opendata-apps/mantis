@@ -27,7 +27,7 @@ from app.database.models import (
 from app.forms import MantisSightingForm
 from app.tools.gen_user_id import get_new_id
 from app.tools.mtb_calc import get_mtb, pointInRect
-from app.tools.find_gemeinde import get_amt_full_scan
+from app.tools.gemeinde_finder import get_amt_full_scan
 from ..config import Config
 
 # Blueprints

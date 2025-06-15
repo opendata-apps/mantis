@@ -33,7 +33,7 @@ from pathlib import Path
 from flask import current_app
 from app.tools.send_reviewer_email import send_email
 from app.tools.mtb_calc import get_mtb, pointInRect
-from app.tools.find_gemeinde import get_amt_full_scan
+from app.tools.gemeinde_finder import get_amt_full_scan
 from app.tools.coordinate_validation import validate_and_normalize_coordinate
 from typing import Optional, Any
 
