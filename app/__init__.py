@@ -2,6 +2,7 @@ from datetime import datetime
 import shutil
 import os
 import click
+import logging
 from flask import Flask, render_template
 from flask.cli import with_appcontext
 from flask_migrate import Migrate
@@ -121,6 +122,17 @@ def insert_initial_data_command():
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
+    
+    # Simple logging setup with clean format
+    log_level = logging.DEBUG if app.debug else logging.INFO
+    logging.basicConfig(
+        level=log_level,
+        format='%(levelname)s - %(name)s - %(message)s'
+    )
+    
+    # Reduce werkzeug logging noise
+    logging.getLogger('werkzeug').setLevel(logging.WARNING)
+    
     csrf.init_app(app)
     db.init_app(app)
     limiter.init_app(app)
