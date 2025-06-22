@@ -1,8 +1,8 @@
 # Bilder aus dem datastore nicht ins Repo
-migrations
 datastore
 import
 .#*
+.*~ 
 \#*
 db-import.sh
 \.mantis

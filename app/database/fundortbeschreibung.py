@@ -1,6 +1,4 @@
 from app import db
-from ..database import Base
-
 
 class TblFundortBeschreibung(db.Model):
     __tablename__ = "beschreibung"

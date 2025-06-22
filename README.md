@@ -6,7 +6,6 @@ An interactive web application to track Mantis Religiosa sightings in Brandenbur
 
 Mantis Tracker allows users to report Mantis Religiosa sightings and view them on an interactive map, along with insightful statistics and helpful FAQs.
 
-
 ## 🌟 Features
 
 - 📚 Learn about the Mantis Religiosa
@@ -37,7 +36,13 @@ Stay tuned for updates on these exciting new features!
 ![Tailwind CSS](https://img.shields.io/badge/-Tailwind%20CSS-000000?style=flat&logo=tailwind-css)
 ![JavaScript](https://img.shields.io/badge/-JavaScript-000000?style=flat&logo=javascript)
 
-# 💻 Development Setup/Installation
+# 💻 Development Setup
+
+### Prerequisites
+
+- Python 3.8+
+- Node.js and npm
+- PostgreSQL
 
 ### Step 1: 📁 Clone the repository
 
@@ -46,76 +51,116 @@ git clone https://gitlab.com/opendata-apps/mantis.git
 cd mantis
 ```
 
-### Step 2: 🌐 Create a virtual environment and activate it
+### Step 2: 🌐 Create and activate virtual environment
 
 ```bash
-python -m venv .venv (or another name with . like .mantis)
+python -m venv .venv
 source .venv/bin/activate    # For Windows: .venv\Scripts\activate
 ```
 
-### Step 3: 📦 Install the dependencies
+### Step 3: 📦 Install Python dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### Step 4: 🗄️ Create a PostgreSQL database
+### Step 4: 🗄️ Set up PostgreSQL database
 
-Use the Program `psql`
+Using `psql`:
 
 ```bash
 psql -U postgres
 ```
 
+Preapare a database for production.
+
 ```sql
-CREATE DATABASE mantis_tracker;
 CREATE USER mantis_user WITH PASSWORD 'mantis';
+CREATE DATABASE mantis_tracker OWNER mantis_user;
 GRANT ALL PRIVILEGES ON DATABASE mantis_tracker TO mantis_user;
 -- MacOS only:
-GRANT usage, create ON SCHEMA public TO mantis_user;
+GRANT usage, create ON SCHEMA public TO mantis_tracker;
 \q
 ```
 
-> ⚠️: Only if there are any Database changes:
+Prepare a database for pytest
 
-```bash
-flask db init
-```
-
-```bash
-flask db migrate -m "your comment"
+```sql
+CREATE DATABASE mantis_tester OWNER mantis_user;
+GRANT ALL PRIVILEGES ON DATABASE mantis_tester TO mantis_user;
+-- MacOS only:
+GRANT usage, create ON SCHEMA public TO mantis_tester;
+\q
 ```
 
 ### Step 5: 🏗️ Create the database tables
 
 ```bash
-flask db upgrade
-```
-### Step 6: ☕ Fill the database tables 
 
-```bash
-flask create-mview
+flask db upgrade
+
+# aktuelle Version anzeigen
+flask db current
+
+# History anzeigen
+
+flask db history
+
 ```
+
+### Step 6: ☕ Fill the database tables
+
+If TESTING in config.py is set to TRUE also
+Demodata are inserted into the database.
 
 ```bash
 flask insert-initial-data
 ```
 
-
 ### Step 7: 🎨 Run the CSS watcher
 
 ```bash
-npm --proxy <your-proxy> install tailwindcss
+cd app/static
+npm install
 ```
+
+The project includes a convenient script to watch for CSS changes. Start it with:
 
 ```bash
-npx tailwindcss -i app/static/css/theme.css -o app/static/build/theme.css --watch
+npm run watch:css
 ```
 
-### Step 8: 🚀 Run the development server
+### Step 8: 🚀 Run the application
+
+#### Development server
 
 ```bash
 python run.py
+```
+
+### Step 9: 🚀 Connect as Reviewer
+
+```bash
+http://loclahost:5000/reviewer/9999
+```
+
+# Start with fresh databases
+
+- delete database mantis_tracker
+- delete database mantis_tester
+- start again with Step 4
+
+# Production setup
+
+- Edit Settings in app/config.py and make changes e.g.
+  - Connectionstring for DB
+  - TESTING = False
+  - Run Tests with pytest
+- Create the minified CSS file
+
+```bash
+cd app/static
+npm run build:css
 ```
 
 ### Step 9: 🏢 Run production server
@@ -124,11 +169,6 @@ python run.py
 gunicorn run:app    # For Windows: waitress-serve --listen=*:8000 run:app
 ```
 
-### Step 10: 🌐 Open http://localhost:5000 in your browser
+### Step 8: 🌐 Access the application
 
-### Meldung id error fix
-
-```bash
-SELECT setval('[TableName]_id_seq', (SELECT MAX(id) FROM [TableName]))
-```
-
+Open [http://localhost:5000](http://localhost:5000) in your browser.

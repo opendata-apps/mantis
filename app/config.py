@@ -6,7 +6,7 @@ from datetime import datetime
 load_dotenv(dotenv_path="app/.env")
 
 class Config:
-    SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:postgres@localhost/mantis_tracker'
+    SQLALCHEMY_DATABASE_URI = 'postgresql://mantis_user:mantis@localhost/mantis_tracker'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     MAP_CENTER_LONGITUDE = -122.4194
     MAP_CENTER_LATITUDE = 37.7749
@@ -20,32 +20,14 @@ class Config:
     sender_email = ""
     sender_pass = ""
     send_emails = False
-    esri = os.environ.get('ESRI_MAP_KEY') or 'no-key-found'
     UPLOAD_FOLDER = 'app/datastore'
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
     PERMANENT_SESSION_LIFETIME = timedelta(hours=1)
     CHECKLIST = {}
     PREFERRED_URL_SCHEME = 'https'
-    INITIAL_DATA = [
-        (1, 'Im Haus'),
-        (2, 'Im Garten'),
-        (3, 'Auf dem Balkon/auf der Terrasse'),
-        (4, 'Am Fenster/an der Hauswand'),
-        (5, 'Industriebrache'),
-        (6, 'Im Wald'),
-        (7, 'Wiese/Weide'),
-        (8, 'Heidelandschaft'),
-        (9, 'Straßengraben/Wegesrand/Ruderalflur'),
-        (10, 'Gewerbegebiet'),
-        (11, 'Im oder am Auto'),
-        (99, 'Anderer Fundort')
-    ]
     STATIC_FOLDER = 'app/static'
     CURRENT_YEAR = datetime.now().year
     MIN_MAP_YEAR = 2023
     CELEBRATION_THRESHOLD = 10000
-    
-class TestConfig(Config):
-    TESTING = True
-    SQLALCHEMY_DATABASE_URI = 'postgresql://mantis_user:mantis@localhost/mantis_tester' 
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    TESTING = False
+ 

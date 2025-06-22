@@ -1,0 +1,392 @@
+{% extends "layout.html" %}
+{% from 'report/form_components.html' import render_photo_upload, render_form_field, render_checkbox_field, render_step_navigation, render_review_section, render_review_item, render_review_text_block, render_review_info_block, render_feedback_section %}
+
+{% block title %}Sichtung melden - Gottesanbeterin{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@0.79.0/dist/L.Control.Locate.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@0.79.0/dist/L.Control.Locate.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exif-js/2.3.0/exif.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
+<script src="{{ url_for('static', filename='js/webp_converter.js') }}"></script>
+<script src="{{ url_for('static', filename='js/exif_handler.js') }}"></script>
+<script src="{{ url_for('static', filename='js/form_helpers.js') }}"></script>
+<script src="{{ url_for('static', filename='js/photo_handler.js') }}"></script>
+<script src="{{ url_for('static', filename='js/map_handler.js') }}"></script>
+<script src="{{ url_for('static', filename='js/report_form_app.js') }}"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<style>
+  .form-container {
+    min-height: calc(100vh - 240px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+  }
+  
+  .form-wrapper {
+    width: 100%;
+    max-width: 56rem;
+    margin: 0 auto;
+  }
+
+  .photo-dropzone {
+    border: 2px dashed #e5e7eb;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+  }
+  
+  .photo-dropzone:hover, .photo-dropzone.dragover {
+    border-color: #10b981;
+    background-color: rgba(16, 185, 129, 0.05);
+  }
+  
+  /* Readonly fields for prefilled user data */
+  input[readonly], select[readonly], textarea[readonly] {
+    background-color: #f9fafb !important;
+    color: #6b7280 !important;
+    cursor: not-allowed !important;
+  }
+  
+  textarea {
+    min-height: 100px !important;
+    max-height: 200px !important;
+    resize: vertical !important;
+  }
+  
+  .exif-panel {
+    background-color: #f3f4f6;
+    border-radius: 0.5rem;
+    border-left: 4px solid #10b981;
+  }
+  
+  .field-error-message {
+    color: #ef4444;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+  }
+  
+  .invalid {
+    border-color: #ef4444 !important;
+  }
+  
+  .processing-indicator {
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  
+  @media (max-width: 768px) {
+    .form-container {
+      min-height: calc(100vh - 200px);
+      padding: 1rem 0.5rem;
+    }
+  }
+  
+  @media (max-width: 640px) {
+    .form-container {
+      min-height: calc(100vh - 180px);
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+  <div class="form-wrapper">
+    <div id="loadingOverlay" class="fixed inset-0 z-50 flex flex-col items-center justify-center invisible transition-all duration-200 ease-in-out bg-white opacity-0 bg-opacity-80">
+      <div class="w-12 h-12 border-4 border-gray-200 rounded-full border-t-green-600 animate-spin"></div>
+      <div id="loadingMessage" class="mt-4 font-medium text-green-700">Wird verarbeitet...</div>
+    </div>
+
+    <form id="reportForm" method="POST" action="{{ url_for('report.melden', usrid=request.view_args.get('usrid')) if request.view_args.get('usrid') else url_for('report.melden') }}" enctype="multipart/form-data" class="space-y-8"
+          data-validate-url="{{ url_for('report.validate_step') }}">
+      {{ form.csrf_token }}
+      
+      <div class="step-container">
+        <!-- Step 1: Photo & Details -->
+        <div class="p-6 bg-white border border-gray-100 rounded-lg shadow-sm step active" id="step1">
+          <h3 class="mb-4 text-xl font-medium text-green-700">Foto & Details</h3>
+          
+          <p class="mb-4 text-sm text-gray-600">
+            <i class="w-4 h-4 mr-1 text-green-600 fas fa-camera"></i>
+            Bitte laden Sie ein Foto Ihrer Gottesanbeterin-Sichtung hoch und beschreiben Sie, was Sie gesehen haben.
+          </p>
+          
+          {{ render_photo_upload(form.photo) }}
+          
+          <div class="mt-6 space-y-4">
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {{ render_form_field(form.gender, attrs={'id': 'gender'}) }}
+              {{ render_form_field(form.location_description, attrs={'id': 'location_description'}) }}
+            </div>
+              
+            <div class="form-group">
+              {{ render_form_field(form.description, attrs={'id': 'description', 'rows': '4'}) }}
+              <p class="mt-1 text-xs text-gray-500">Verbleibende Zeichen: <span id="char-count" class="font-mono">500</span></p>
+            </div>
+          </div>
+          
+          {{ render_step_navigation(current_step=1, total_steps=4, show_prev=False, show_next=True) }}
+        </div>
+        
+        <!-- Step 2: Location & Date -->
+        <div class="hidden p-6 bg-white border border-gray-100 rounded-lg shadow-sm step" id="step2">
+          <h3 class="mb-4 text-xl font-medium text-green-700">Wann und Wo? (Ort & Datum)</h3>
+          
+          <p class="mb-3 text-sm italic text-gray-500">
+            <i class="w-4 h-4 mr-1 text-green-600 fas fa-map-marker-alt"></i>
+            Prüfen oder setzen Sie das Sichtungsdatum und markieren Sie den genauen Fundort auf der Karte.
+          </p>
+          
+          <div class="mb-4 form-group">
+            {{ render_form_field(form.sighting_date, attrs={'id': 'sighting_date', 'max': now().strftime('%Y-%m-%d')}) }}
+          </div>
+          
+          <div class="flex flex-col mb-4 md:flex-row md:space-x-6">
+            <!-- Map column -->
+            <div class="w-full mb-4 md:w-3/5 md:mb-0">
+              <div class="p-3 mb-2 rounded-md bg-gray-50">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-sm font-medium text-gray-700">Fundort auswählen</span>
+                  <span class="text-xs text-gray-500">Klicken Sie auf die Karte zum Zoomen oder geben Sie die Koordinaten ein</span>
+                </div>
+              </div>
+              <div id="map" class="w-full h-64 border border-gray-300 rounded-md shadow-sm sm:h-72 md:h-96 lg:h-[28rem]"></div>
+            </div>
+            
+            <!-- Form fields column -->
+            <div class="w-full space-y-4 md:w-2/5">
+              <!-- Manual coordinates input -->
+              <div class="p-4 border border-gray-200 rounded-md bg-gray-50">
+                <div class="mb-2">
+                  <span class="text-sm font-medium text-gray-700">Genaue Koordinaten</span>
+                  <div class="text-xs text-gray-500 mt-0.5">Klicken Sie auf die Karte oder geben Sie Werte ein</div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3">
+                  <div class="form-group">
+                    <label for="manual-latitude" class="block mb-1 text-xs font-medium text-gray-700">Breitengrad</label>
+                    <input type="text" id="manual-latitude" pattern="-?[0-9]+\.?[0-9]*" placeholder="z.B. 48.137154" 
+                      class="block w-full px-4 py-2 text-base text-gray-700 transition duration-300 ease-in-out bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200">
+                  </div>
+                  <div class="form-group">
+                    <label for="manual-longitude" class="block mb-1 text-xs font-medium text-gray-700">Längengrad</label>
+                    <input type="text" id="manual-longitude" pattern="-?[0-9]+\.?[0-9]*" placeholder="z.B. 11.576124"
+                      class="block w-full px-4 py-2 text-base text-gray-700 transition duration-300 ease-in-out bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200">
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Hidden coordinate fields for form submission -->
+              {{ form.latitude(id="latitude", style="display: none;") }}
+              {{ form.longitude(id="longitude", style="display: none;") }}
+              {% if form.latitude.errors or form.longitude.errors %}
+                <div class="text-sm text-red-500">
+                  {% if form.latitude.errors %}{{ form.latitude.errors[0] }}{% endif %}
+                  {% if form.longitude.errors %}{{ form.longitude.errors[0] }}{% endif %}
+                </div>
+              {% endif %}
+              
+              <!-- Address fields -->
+              <div class="p-4 bg-white border border-gray-200 rounded-md">
+                <h4 class="mb-3 text-sm font-medium text-gray-700">Adressinformationen</h4>
+                <div class="space-y-3">
+                  <div class="grid grid-cols-2 gap-3">
+                    {{ render_form_field(form.fund_zip_code, attrs={'id': 'fund_zip_code', 'class': 'w-full px-3 py-2 text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
+                    {{ render_form_field(form.fund_city, attrs={'id': 'fund_city', 'class': 'w-full px-3 py-2 text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
+                  </div>
+                  
+                  {{ render_form_field(form.fund_district, attrs={'id': 'fund_district', 'class': 'w-full px-3 py-2 text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
+                  {{ render_form_field(form.fund_state, attrs={'id': 'fund_state', 'class': 'w-full px-3 py-2 text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
+                  {{ render_form_field(form.fund_street, attrs={'id': 'fund_street', 'class': 'w-full px-3 py-2 text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
+                </div>
+              </div>
+            </div>
+          </div>
+                  
+          {{ render_step_navigation(current_step=2, total_steps=4, show_prev=True, show_next=True) }}
+        </div>
+        
+        <!-- Step 3: Contact Information -->
+        <div class="hidden p-6 bg-white border border-gray-100 rounded-lg shadow-sm step" id="step3">
+          <h3 class="mb-4 text-xl font-medium text-green-700">Ihre Kontaktdaten</h3>
+          
+          <div class="space-y-4">
+            <!-- Reporter fields - readonly if prefilled -->
+            {% if user_prefilled %}
+              {{ render_form_field(form.report_first_name, attrs={'id': 'report_first_name', 'readonly': true}) }}
+              {{ render_form_field(form.report_last_name, attrs={'id': 'report_last_name', 'readonly': true}) }}
+              {{ render_form_field(form.email, attrs={'id': 'email', 'readonly': true}) }}
+            {% else %}
+              {{ render_form_field(form.report_first_name, attrs={'id': 'report_first_name'}) }}
+              {{ render_form_field(form.report_last_name, attrs={'id': 'report_last_name'}) }}
+              {{ render_form_field(form.email, attrs={'id': 'email'}) }}
+            {% endif %}
+             
+            {{ render_checkbox_field(form.identical_finder_reporter, attrs={'id': 'identical_finder_reporter'}) }}
+             
+            <!-- Conditionally shown finder fields -->
+            <div id="finder_fields" class="hidden p-4 mt-4 space-y-4 rounded-md bg-gray-50">
+              {{ render_form_field(form.finder_first_name, attrs={'id': 'finder_first_name'}) }}
+              {{ render_form_field(form.finder_last_name, attrs={'id': 'finder_last_name'}) }}
+            </div>
+
+            <!-- Feedback section - only for new users -->
+            {% if not user_has_feedback %}
+              {{ render_feedback_section(form.feedback_source, form.feedback_detail) }}
+            {% endif %}
+
+            <!-- Honeypot spam protection -->
+            <div style="position:absolute; left:-5000px;" aria-hidden="true">
+              <label for="honeypot">If you are human, leave this field blank:</label>
+              {{ form.honeypot(id="honeypot", autocomplete="off", tabindex="-1") }}
+            </div>
+          </div>
+          
+          {{ render_step_navigation(current_step=3, total_steps=4, show_prev=True, show_next=True) }}
+        </div>
+        
+        <!-- Step 4: Review & Submit -->
+        <div class="hidden p-6 bg-white border border-gray-100 rounded-lg shadow-sm step" id="step4">
+          <h3 class="mb-4 text-xl font-medium text-green-700">Überprüfen & Absenden</h3>
+          
+          <p class="mb-6 text-sm text-gray-600">
+            <i class="w-4 h-4 mr-1 text-green-600 fas fa-check-circle"></i>
+            Bitte überprüfen Sie Ihre Angaben und senden Sie Ihre Meldung ab. Sie können jederzeit zurückgehen, um Änderungen vorzunehmen.
+          </p>
+          
+          <div class="space-y-6">
+            <!-- Photo & Details Review -->
+            {% call render_review_section(title='Foto & Details', icon_class='fas fa-image', step_to_edit=1) %}
+              <div class="flex flex-col md:flex-row md:space-x-6">
+                <div class="mb-4 md:w-1/3 md:mb-0">
+                  <div class="flex items-center justify-center h-40 overflow-hidden border border-gray-200 rounded-md bg-gray-50 md:h-48">
+                    <img id="review-photo" class="object-contain max-w-full max-h-full" src="" alt="Uploaded photo">
+                  </div>
+                </div>
+                <div class="md:w-2/3">
+                  <div class="grid grid-cols-1 gap-3 text-sm">
+                    {{ render_review_item(label='Entwicklungsstadium/Geschlecht', value_id='review-gender') }}
+                    {{ render_review_item(label='Fundortbeschreibung', value_id='review-location-desc') }}
+                    {{ render_review_text_block(label='Zusätzliche Details', value_id='review-description') }}
+                  </div>
+                </div>
+              </div>
+            {% endcall %}
+            
+            <!-- Location & Date Review -->
+            {% call render_review_section(title='Wann und Wo?', icon_class='fas fa-map-marker-alt', step_to_edit=2) %}
+              <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                {{ render_review_info_block(label='Datum der Sichtung', icon_class='fas fa-calendar-alt', value_id='review-date') }}
+                
+                {% call render_review_info_block(label='Genaue Koordinaten', icon_class='fas fa-location-dot', value_id='review-coordinates') %}
+                  <p class="text-xs italic text-gray-600">Bitte prüfen: Ist dies der genaue Fundort?</p> 
+                {% endcall %}
+                
+                <div class="md:col-span-2">
+                  {% call render_review_info_block(label='Adressinformationen', icon_class='fas fa-home') %}
+                    <div class="grid grid-cols-1 gap-2 ml-7 md:grid-cols-2">
+                      {{ render_review_item(label='Straße', value_id='review-street', container_class='', label_class='text-sm text-gray-600', value_class='text-gray-900 ml-1') }}
+                      {{ render_review_item(label='PLZ', value_id='review-zip', container_class='', label_class='text-sm text-gray-600', value_class='text-gray-900 ml-1') }}
+                      {{ render_review_item(label='Stadt/Ort', value_id='review-city', container_class='', label_class='text-sm text-gray-600', value_class='text-gray-900 ml-1') }}
+                      {{ render_review_item(label='Bundesland', value_id='review-state', container_class='', label_class='text-sm text-gray-600', value_class='text-gray-900 ml-1') }}
+                      {{ render_review_item(label='Landkreis', value_id='review-district', container_class='', label_class='text-sm text-gray-600', value_class='text-gray-900 ml-1') }}
+                    </div>
+                  {% endcall %}
+                </div>
+              </div>
+            {% endcall %}
+            
+            <!-- Contact Information Review -->
+            {% call render_review_section(title='Ihre Kontaktdaten', icon_class='fas fa-user', step_to_edit=3) %}
+              <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+                {{ render_review_info_block(label='Melder', icon_class='fas fa-user', value_id='review-reporter-name') }}
+                {{ render_review_info_block(label='E-Mail', icon_class='fas fa-envelope', value_id='review-email') }}
+                
+                <div id="review-finder-container" class="hidden md:col-span-2">
+                  {% call render_review_info_block(label='Finder', icon_class='fas fa-user') %}
+                    <div id="review-finder-name" class="text-gray-900 ml-7">-</div>
+                  {% endcall %}
+                </div>
+                  
+                {% if not user_has_feedback %}
+                  <div id="review-feedback-container" class="md:col-span-2">
+                    {% call render_review_info_block(label='Wie haben Sie von uns erfahren?', icon_class='fas fa-lightbulb') %}
+                      <div id="review-feedback-source" class="text-gray-900 ml-7">Nicht angegeben</div>
+                      <div id="review-feedback-detail" class="hidden mt-1 text-sm text-gray-600 ml-7"></div>
+                    {% endcall %}
+                  </div>
+                {% endif %}
+              </div>
+            {% endcall %}
+          
+            <!-- Final warning before submission -->
+            <div class="p-4 border rounded-lg shadow-sm bg-amber-50 border-amber-200">
+              <div class="flex">
+                <div class="flex-shrink-0">
+                  <i class="w-5 h-5 fas fa-exclamation-triangle text-amber-500"></i>
+                </div>
+                <div class="ml-3">
+                  <p class="text-sm text-amber-800">
+                    Bitte überprüfen Sie alle Angaben sorgfältig vor dem Absenden. Nach dem Absenden können die Daten nicht mehr geändert werden.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {{ render_step_navigation(current_step=4, total_steps=4, show_prev=True, show_submit=True) }}
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+// Feedback form interactions - only initialize if elements exist
+document.addEventListener('DOMContentLoaded', function() {
+    const feedbackSourceSelect = document.getElementById('feedback_source');
+    const feedbackDetailContainer = document.getElementById('feedback_detail_container');
+    const feedbackDetailInput = document.getElementById('feedback_detail');
+    
+    if (!feedbackSourceSelect || !feedbackDetailContainer || !feedbackDetailInput) return;
+    
+    function updateFeedbackDetail() {
+        const selectedValue = feedbackSourceSelect.value;
+        
+        if (selectedValue && selectedValue !== '') {
+            feedbackDetailContainer.classList.remove('hidden');
+            
+            // Set contextual placeholder based on selection
+            const placeholders = {
+                '1': 'z.B. Name der Veranstaltung, Ort',
+                '2': 'z.B. wo haben Sie den Flyer erhalten?',
+                '3': 'z.B. Name der Zeitung/Zeitschrift',
+                '4': 'z.B. Name des Senders/der Sendung',
+                '5': 'z.B. Suchmaschine, Website-Name',
+                '6': 'z.B. Facebook, Instagram, Twitter',
+                '7': 'z.B. Freund, Kollege, Familie',
+                '8': 'Bitte beschreiben Sie, wie Sie von uns erfahren haben'
+            };
+            
+            feedbackDetailInput.placeholder = placeholders[selectedValue] || 'z.B. Name der Veranstaltung, Website, etc.';
+        } else {
+            feedbackDetailContainer.classList.add('hidden');
+            feedbackDetailInput.value = '';
+        }
+    }
+    
+    feedbackSourceSelect.addEventListener('change', updateFeedbackDetail);
+    updateFeedbackDetail(); // Initialize on page load
+});
+</script>
+{% endblock %} 

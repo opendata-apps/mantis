@@ -1,7 +1,4 @@
 from app import db
-from ..database import Base
-from sqlalchemy import ForeignKey
-
 
 class TblMeldungUser(db.Model):
     __tablename__ = "melduser"

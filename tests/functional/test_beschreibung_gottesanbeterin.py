@@ -1,7 +1,5 @@
-from app import create_app
-
-
-def test_request_example(client):
+def test_mantis_description_page_contains_species_info(client):
+    """Test that the mantis description page loads and contains species information."""
     response = client.get("/mantis-religiosa")
-    text = bytes("Die faszinierende Welt der", "utf-8")
-    assert text in response.data
+    assert response.status_code == 200
+    assert "Die Europäische Gottesanbeterin".encode('utf-8') in response.data

@@ -216,13 +216,13 @@ def stats_bardiagram_datum(request, dbfields,
             result = conn.execute(sql)
 
         trace = {"x": [], "y": []}
-
+        
         if result:
             for record in result:
                 trace["x"].append(str(record[0]))
                 trace["y"].append(record[1])
         results[idx] = trace
-
+        print(results)
     return render_template(
         "statistics/" + page,
         menu=list_of_stats,
@@ -237,7 +237,7 @@ def stats_bardiagram_datum(request, dbfields,
 
 def stats_geschlecht(request=None):
     """Count sum of all kategories"""
-
+    
     start_date, end_date = get_date_interval(request)
     stm = f"""
       select sum(art_m) as "Männchen"
@@ -252,18 +252,18 @@ def stats_geschlecht(request=None):
             and deleted is NULL or 'f') as filtered;"""
 
     sql = text(stm)
-
+    userid = session["user_id"]
     with db.engine.connect() as conn:
         result = conn.execute(sql)
         res = []
         for row in result:
             row = row._mapping
             res = dict((name, val) for name, val in row.items())
-
+    
     return render_template(
         "statistics/stats-geschlecht.html",
         menu=list_of_stats,
-        user_id=session["user_id"],
+        user_id=userid,
         marker="geschlecht",
         dateFrom=start_date,
         dateTo=end_date,
@@ -354,7 +354,7 @@ def stats_laender(request, dateFrom, dateTo, marker):
     ).join(TblMeldungen).filter(
         TblMeldungen.dat_meld >= dateFrom,
         TblMeldungen.dat_meld <= dateTo,
-        or_(TblMeldungen.deleted.is_(None), TblMeldungen.deleted == False)
+        or_(TblMeldungen.deleted.is_(None), TblMeldungen.deleted.is_(False))
     ).group_by(
         func.substring(TblFundorte.amt, 1, 2)
     )
@@ -427,7 +427,7 @@ def stats_brb(request, dateFrom, dateTo, marker):
         TblMeldungen.dat_meld >= dateFrom,
         TblMeldungen.dat_meld <= dateTo,
         func.substring(TblFundorte.amt, 1, 2) == '12',
-        or_(TblMeldungen.deleted.is_(None), TblMeldungen.deleted == False)
+        or_(TblMeldungen.deleted.is_(None), TblMeldungen.deleted.is_(False))
     ).group_by(
         func.substring(TblFundorte.amt, 1, 5)
     )
@@ -502,7 +502,7 @@ def stats_berlin(request, dateFrom, dateTo, marker):
         TblMeldungen.dat_meld >= dateFrom,
         TblMeldungen.dat_meld <= dateTo,
         func.substring(TblFundorte.amt, 1, 2) == '11',
-        or_(TblMeldungen.deleted.is_(None), TblMeldungen.deleted == False)
+        or_(TblMeldungen.deleted.is_(None), TblMeldungen.deleted.is_(False))
     ).group_by(
         func.substring(TblFundorte.amt, 1, 8)
     )
@@ -603,7 +603,7 @@ def stats_gesamt(request, dateFrom, dateTo, marker):
     ).join(TblMeldungen).filter(
         TblMeldungen.dat_meld >= dateFrom,
         TblMeldungen.dat_meld <= dateTo,
-        or_(TblMeldungen.deleted.is_(None), TblMeldungen.deleted == False)
+        or_(TblMeldungen.deleted.is_(None), TblMeldungen.deleted.is_(False))
     ).group_by(
         TblFundorte.amt)
 
@@ -632,9 +632,9 @@ def stats_gesamt(request, dateFrom, dateTo, marker):
                     id, gemeinde = result[0].split(' -- ')
                     result_dict[f"{result[0][:5]}"][4].append(
                         [id, '', '', gemeinde, result[1]])
-        except:
-            print(result)
-                    
+        except Exception as e:
+            print(result, e)
+
     return render_template(
         "statistics/stats-table-all.html",
         user_id=session["user_id"],

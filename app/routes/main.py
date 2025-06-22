@@ -2,8 +2,6 @@
 import json
 import os
 import random
-from datetime import datetime, timedelta
-
 from flask import (
     Blueprint,
     Response,
@@ -21,7 +19,10 @@ from app.tools.check_reviewer import login_required
 from ..config import Config
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-FEATURE_FLAG_FILE = os.path.join(BASE_DIR, '..', 'static', 'celebration_flag.json')
+FEATURE_FLAG_FILE = os.path.join(BASE_DIR,
+                                 '..',
+                                 'static',
+                                 'celebration_flag.json')
 
 # Blueprints
 main = Blueprint("main", __name__)
@@ -34,13 +35,13 @@ def index():
     post_count = (
         db.session.query(TblMeldungen)
         .filter(TblMeldungen.dat_fund_von >= f"{Config.MIN_MAP_YEAR}-01-01")
-        .filter(TblMeldungen.dat_bear != None)
+        .filter(TblMeldungen.dat_bear.is_not(None))
         .filter(TblMeldungen.deleted.is_(None))
         .count()
     )
-    
+
     celebration_enabled = check_celebration_flag(post_count)
-    
+
     json_path = os.path.join(
         BASE_DIR, "..", "static", "images", "galerie", "galerie.json"
     )
@@ -59,12 +60,12 @@ def index():
         celebration_enabled=celebration_enabled,
         celebration_threshold=Config.CELEBRATION_THRESHOLD,
     )
-    
+
+
 def check_celebration_flag(post_count):
     if post_count <= Config.CELEBRATION_THRESHOLD:
         return False
     return True
-
 
 
 def styles():
@@ -144,6 +145,11 @@ def galerie():
         bilder=bilder,
         current_index=current_index,
     )
+    
+@main.route("/favicon.ico")
+def favicon():
+    "Return the favicon.ico file."
+    return send_from_directory("static", "images/favicon/favicon.ico")
 
 
 def not_found(e):

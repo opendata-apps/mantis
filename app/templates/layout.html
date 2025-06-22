@@ -3,7 +3,9 @@
 
 <head>
 	<meta charset="UTF-8" />
-	<link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" />
+	<link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon/favicon.ico') }}" />
+	<link rel="apple-touch-icon" href="{{ url_for('static', filename='images/favicon/apple-touch-icon.png') }}" />
+	<link rel="manifest" href="{{ url_for('static', filename='images/favicon/site.webmanifest') }}" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<meta http-equiv="X-UA-Compatible" content="ie=edge" />
 	<title> {% block page_title %}Mantis Religiosa Beobachtungen | Mitmachprojekt | Gottesanbeterin Gesucht{% endblock
@@ -32,7 +34,7 @@
 			<div class="hidden space-x-6 md:flex">
 				<a href="{{ url_for('main.index') }}" class="text-xl font-bold text-gray-100 hover:text-gray-300 link link-underline">Start</a>
 				<a href="{{ url_for('main.mantis_religiosa') }}" class="text-xl font-bold text-gray-100 hover:text-gray-300 link link-underline">Gottesanbeterin</a>
-				<a href="{{ url_for('data.report') }}" class="text-xl font-bold text-gray-100 hover:text-gray-300 link link-underline">Melden</a>
+				<a href="{{ url_for('report.melden') }}" class="text-xl font-bold text-gray-100 hover:text-gray-300 link link-underline">Melden</a>
 				<a href="{{ url_for('data.show_map', year=now.year) }}" class="text-xl font-bold text-gray-100 hover:text-gray-300 link link-underline">Auswertungen</a>
 				{% if request.path.startswith('/reviewer') or request.path.startswith('/statistik') or request.path.startswith('/galerie') or request.path.startswith('/alldata') %}
 				<div class="relative">
@@ -70,7 +72,7 @@
 			<div class="flex flex-col items-center px-2 pt-2 pb-3 space-y-1">
 				<a href="{{ url_for('main.index') }}" class="block px-3 py-2 text-base font-medium text-white transition duration-300 ease-in-out rounded-md hover:bg-green-700">Start</a>
 				<a href="{{ url_for('main.mantis_religiosa') }}" class="block px-3 py-2 text-base font-medium text-white transition duration-300 ease-in-out rounded-md hover:bg-green-700">Gottesanbeterin</a>
-				<a href="{{ url_for('data.report') }}" class="block px-3 py-2 text-base font-medium text-white transition duration-300 ease-in-out rounded-md hover:bg-green-700">Melden</a>
+				<a href="{{ url_for('report.melden') }}" class="block px-3 py-2 text-base font-medium text-white transition duration-300 ease-in-out rounded-md hover:bg-green-700">Melden</a>
 				<a href="{{ url_for('data.show_map', year=now.year) }}" class="block px-3 py-2 text-base font-medium text-white transition duration-300 ease-in-out rounded-md hover:bg-green-700">Auswertungen</a>
 				{% if request.path.startswith('/reviewer') or request.path.startswith('/statistik') or
 				request.path.startswith('/superuser') or request.path.startswith('/galerie') or
@@ -230,7 +232,7 @@
 				</span>
 				<span>Lizenz: <a href="/lizenz" class="font-medium text-green-600 hover:underline">MIT</a>
 				</span>
-				<span>2024</span>
+				<span><script>document.write(new Date().getFullYear())</script></span>
 				<span>P22</span>
 			</div>
 		</div>
