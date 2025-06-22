@@ -1,5 +1,5 @@
 from flask import Blueprint
-from flask import render_template, request
+from flask import render_template, request, current_app
 from flask import session, abort
 from sqlalchemy import func, text, or_
 from app import db
@@ -180,7 +180,7 @@ def stats_mtb(request, dateFrom, dateTo, marker):
                 mtb = int(row[0])
                 dbanswers.append((mtb, row[idx]))
             except ValueError as e:
-                print(e)
+                current_app.logger.error(f"Error parsing value: {e}")
 
     xml = create_measure_sheet(dataset=dbanswers)
     return render_template(
@@ -222,7 +222,7 @@ def stats_bardiagram_datum(request, dbfields,
                 trace["x"].append(str(record[0]))
                 trace["y"].append(record[1])
         results[idx] = trace
-        print(results)
+        # Debug logging removed - results logged if needed
     return render_template(
         "statistics/" + page,
         menu=list_of_stats,
@@ -318,7 +318,7 @@ def stats_amt(request, dateFrom, dateTo, marker):
                 try:
                     dbanswers[idx] += row[idx]
                 except ValueError as e:
-                    print(e)
+                    current_app.logger.error(f"Error parsing value: {e}")
 
     return render_template(
         "statistics/stats-gemeinde.html",
@@ -633,7 +633,7 @@ def stats_gesamt(request, dateFrom, dateTo, marker):
                     result_dict[f"{result[0][:5]}"][4].append(
                         [id, '', '', gemeinde, result[1]])
         except Exception as e:
-            print(result, e)
+            current_app.logger.error(f"Error in statistics query - Result: {result}, Error: {e}")
 
     return render_template(
         "statistics/stats-table-all.html",

@@ -2,8 +2,7 @@ from datetime import datetime
 import shutil
 import os
 import click
-import logging
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 from flask.cli import with_appcontext
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
@@ -123,15 +122,31 @@ def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
     
-    # Simple logging setup with clean format
-    log_level = logging.DEBUG if app.debug else logging.INFO
-    logging.basicConfig(
-        level=log_level,
-        format='%(levelname)s - %(name)s - %(message)s'
-    )
-    
-    # Reduce werkzeug logging noise
-    logging.getLogger('werkzeug').setLevel(logging.WARNING)
+    # Simple logging configuration
+    if not app.debug:
+        # Production logging - log to file with rotation
+        import logging
+        from logging.handlers import RotatingFileHandler
+        import os
+        
+        # Create logs directory if it doesn't exist
+        if not os.path.exists('logs'):
+            os.mkdir('logs')
+        
+        # Set up file handler with rotation
+        file_handler = RotatingFileHandler('logs/mantis.log', maxBytes=10240000, backupCount=10)
+        file_handler.setFormatter(logging.Formatter(
+            '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+        ))
+        
+        # Get log level from environment variable or default to INFO
+        log_level = os.environ.get('FLASK_LOG_LEVEL', 'INFO').upper()
+        file_handler.setLevel(log_level)
+        
+        # Add handlers to app logger
+        app.logger.addHandler(file_handler)
+        app.logger.setLevel(log_level)
+        app.logger.info('Mantis tracker startup')
     
     csrf.init_app(app)
     db.init_app(app)
@@ -179,13 +194,19 @@ def create_app(config_class=Config):
 
 
 def page_not_found(e):
+    from flask import current_app
+    current_app.logger.warning(f'Page not found: {request.url}')
     return render_template("error/404.html"), 404
 
 
 def forbidden(e):
+    from flask import current_app
+    current_app.logger.warning(f'Forbidden access: {request.url}')
     return render_template("error/403.html"), 403
 
 
 def too_many_requests(e):
     """Custom error handler for rate limiting (429 errors)"""
+    from flask import current_app
+    current_app.logger.warning(f'Rate limit exceeded: {request.url}')
     return render_template("error/429.html", error=e), 429

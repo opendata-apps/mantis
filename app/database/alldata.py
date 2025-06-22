@@ -101,7 +101,8 @@ def create_materialized_view(db=None, session=None):
         session.execute(dropGen(drop, None))
         session.commit()
     except Exception:
-        print('No existing view to drop, creating a new one.')
+        from flask import current_app
+        current_app.logger.info('No existing view to drop, creating a new one.')
 
     # Table Aliases
     meldungen = sa.table('meldungen',

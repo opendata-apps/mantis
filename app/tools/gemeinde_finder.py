@@ -6,15 +6,13 @@ area (Amt) contains a given coordinate point. It uses in-memory caching and spat
 indexing to avoid database queries on every lookup.
 """
 import json
-import logging
 from functools import lru_cache
 from threading import RLock
 from shapely.geometry import shape, Point, Polygon, MultiPolygon
 from shapely.strtree import STRtree
 from sqlalchemy import text
+from flask import current_app
 from app import db
-
-logger = logging.getLogger(__name__)
 
 
 class GemeindeFinder:
@@ -34,7 +32,7 @@ class GemeindeFinder:
                 return
             
             try:
-                logger.info("Loading administrative area polygons from database...")
+                current_app.logger.info("Loading administrative area polygons from database...")
                 polygons = []
                 
                 with db.engine.connect() as conn:
@@ -66,10 +64,10 @@ class GemeindeFinder:
                             if isinstance(geom, (Polygon, MultiPolygon)):
                                 polygons.append((geom, amt_string, gen))
                             else:
-                                logger.warning(f"Skipping non-polygon geometry for {amt_string}")
+                                current_app.logger.warning(f"Skipping non-polygon geometry for {amt_string}")
                                 
                         except (json.JSONDecodeError, KeyError, ValueError, Exception) as e:
-                            logger.error(f"Error parsing geometry for row (AGS: {ags}): {e}")
+                            current_app.logger.error(f"Error parsing geometry for row (AGS: {ags}): {e}")
                             continue
                 
                 # Create spatial index for efficient lookups
@@ -79,12 +77,12 @@ class GemeindeFinder:
                     geometries = [p[0] for p in polygons]
                     self._spatial_index = STRtree(geometries)
                     self._is_loaded = True
-                    logger.info(f"Loaded {len(self._polygons)} administrative area polygons")
+                    current_app.logger.info(f"Loaded {len(self._polygons)} administrative area polygons")
                 else:
-                    logger.warning("No administrative area polygons loaded")
+                    current_app.logger.warning("No administrative area polygons loaded")
                     
             except Exception as e:
-                logger.error(f"Failed to load administrative area data: {e}")
+                current_app.logger.error(f"Failed to load administrative area data: {e}")
                 # In production, we should not crash the app if gemeinde data fails to load
                 self._polygons = []
                 self._spatial_index = None
@@ -125,7 +123,7 @@ class GemeindeFinder:
             return None
             
         except Exception as e:
-            logger.error(f"Error finding AMT for point {point}: {e}")
+            current_app.logger.error(f"Error finding AMT for point {point}: {e}")
             return None
     
     def find_amt_with_details(self, point):
@@ -172,8 +170,7 @@ class GemeindeFinder:
 # Global instance for reuse
 _gemeinde_finder = GemeindeFinder()
 
-# Log initialization status on module import
-logger.info("GemeindeFinder module initialized")
+# Module initialization - logging will happen when used within app context
 
 
 def get_amt_optimized(point):
@@ -225,5 +222,5 @@ def get_amt_full_scan(point):
     try:
         return get_amt_optimized(point)
     except Exception as e:
-        logger.error(f"Error in get_amt_full_scan for point {point}: {e}")
+        current_app.logger.error(f"Error in get_amt_full_scan for point {point}: {e}")
         return None  # Return None instead of crashing in production

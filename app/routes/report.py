@@ -10,7 +10,8 @@ from flask import (
     request,
     url_for,
     abort,
-    session
+    session,
+    current_app
 )
 from werkzeug.datastructures import MultiDict
 from werkzeug.utils import secure_filename
@@ -266,8 +267,9 @@ def melden(usrid=None):
                     "message": "Vielen Dank, Ihre Meldung wurde erfolgreich gespeichert!"
                 }), 200
 
-            except Exception:
+            except Exception as e:
                 db.session.rollback()
+                current_app.logger.error(f'Failed to save report: {str(e)}')
                 flash("Ein Fehler ist beim Speichern Ihrer Meldung aufgetreten. Bitte versuchen Sie es erneut.", "error")
         
     return render_template(

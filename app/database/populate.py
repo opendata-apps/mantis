@@ -1,10 +1,6 @@
 from sqlalchemy import text
 from sqlalchemy.orm import Session
-import logging
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+from flask import current_app
 
 # Initial data for beschreibung table
 INITIAL_BESCHREIBUNG_DATA = [
@@ -36,7 +32,7 @@ INITIAL_FEEDBACK_TYPE_DATA = [
 
 def populate_beschreibung(session: Session):
     """Populates the beschreibung table with initial data."""
-    logger.info("Populating beschreibung table...")
+    current_app.logger.info("Populating beschreibung table...")
     count = 0
     # Use INITIAL_BESCHREIBUNG_DATA directly
     for id, beschreibung in INITIAL_BESCHREIBUNG_DATA:
@@ -54,22 +50,22 @@ def populate_beschreibung(session: Session):
                     ),
                     {"id": id, "beschreibung": beschreibung},
                 )
-                logger.info(f"Inserted beschreibung: {id} - {beschreibung}")
+                current_app.logger.info(f"Inserted beschreibung: {id} - {beschreibung}")
                 count += 1
             else:
-                logger.debug(f"Beschreibung record with id {id} already exists.")
+                current_app.logger.debug(f"Beschreibung record with id {id} already exists.")
         except Exception as e:
-            logger.error(f"Error inserting beschreibung record {id}: {e}")
+            current_app.logger.error(f"Error inserting beschreibung record {id}: {e}")
             session.rollback() # Rollback on error for this specific record
             raise # Re-raise the exception to potentially halt the process if critical
     if count > 0:
         session.commit()
-    logger.info(f"Beschreibung table population complete. Inserted {count} new records.")
+    current_app.logger.info(f"Beschreibung table population complete. Inserted {count} new records.")
 
 
 def populate_feedback_types(session: Session):
     """Populates the feedback_types table with initial data."""
-    logger.info("Populating feedback_types table...")
+    current_app.logger.info("Populating feedback_types table...")
     count = 0
     for id, name in INITIAL_FEEDBACK_TYPE_DATA:
         try:
@@ -86,22 +82,22 @@ def populate_feedback_types(session: Session):
                     ),
                     {"id": id, "name": name},
                 )
-                logger.info(f"Inserted feedback_type: {id} - {name}")
+                current_app.logger.info(f"Inserted feedback_type: {id} - {name}")
                 count += 1
             else:
-                 logger.debug(f"Feedback type record with id {id} or name '{name}' already exists.")
+                 current_app.logger.debug(f"Feedback type record with id {id} or name '{name}' already exists.")
         except Exception as e:
-            logger.error(f"Error inserting feedback_type record {id}: {e}")
+            current_app.logger.error(f"Error inserting feedback_type record {id}: {e}")
             session.rollback() # Rollback on error
             raise # Re-raise
     if count > 0:
         session.commit()
-    logger.info(f"Feedback_types table population complete. Inserted {count} new records.")
+    current_app.logger.info(f"Feedback_types table population complete. Inserted {count} new records.")
 
 
 def populate_all(db_engine, session: Session, vg5000_json_data):
     """Populates all required tables with initial data."""
-    logger.info("Starting initial data population...")
+    current_app.logger.info("Starting initial data population...")
     
     populate_beschreibung(session)
     populate_feedback_types(session)
@@ -110,14 +106,14 @@ def populate_all(db_engine, session: Session, vg5000_json_data):
     # We need to ensure the vg5000 module and its function are accessible
     try:
         from .vg5000_fill_aemter import import_aemter_data
-        logger.info("Populating VG5000 Aemter data...")
+        current_app.logger.info("Populating VG5000 Aemter data...")
         import_aemter_data(db_engine, vg5000_json_data)
-        logger.info("VG5000 Aemter data population complete.")
+        current_app.logger.info("VG5000 Aemter data population complete.")
     except ImportError:
-        logger.error("Could not import vg5000_fill_aemter. Skipping VG5000 data population.")
+        current_app.logger.error("Could not import vg5000_fill_aemter. Skipping VG5000 data population.")
     except Exception as e:
-        logger.error(f"Error during VG5000 data population: {e}")
+        current_app.logger.error(f"Error during VG5000 data population: {e}")
         # Decide if you want to rollback or continue
         # session.rollback()
     
-    logger.info("Initial data population finished.") 
+    current_app.logger.info("Initial data population finished.") 
