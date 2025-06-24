@@ -23,45 +23,46 @@
     </form>
     {% endif %}
     {% if fehler != True %}
-    <p class="mt-2 mb-5">Wurden folgende Meldungen erfasst:</p>
-    <p class="mt-2 text-xl"> {{result[0].split('--')[1]}}</p>
-    <p class="mt-2">Amtliche Gemeindekennzahl: {{result[0].split('--')[0]}}</p>
-    
-    <table class="table-fixed">
-      <thead>
-	<tr>
-	  <th style="width:80px">Art</th>
-	  <th style="widht:50px; text-align:right;">Anzahl</th>
-	</tr>
-      </thead>
-      <tbody>
-	<tr>
-	  <td>Männlich</td>
-	  <td style="text-align:right;">{{result[1]}}</td>
-	</tr>
-	<tr>
-	  <td>Weiblich</td>
-	  <td style="text-align:right;">{{result[2]}}</td>
-	</tr>
-	<tr>
-	  <td>Nymphe</td>
-	  <td style="text-align:right;">{{result[4]}}</td>
-	</tr>
-	<tr>
-	  <td>Oothek</td>
-	  <td style="text-align:right;">{{result[3]}}</td>
-	</tr>
-	<tr>
-	  <td>Andere</td>
-	  <td style="text-align:right;">{{result[5]}}</td>
-	</tr>
-	<tr class="border-t-2 border-b-4 border-green-500">
-	  <td>Gesamt</td>
-	  <td style="text-align:right;">{{result[6]}}</td>
-	</tr>
-      </tbody>
-    </table>
-    {% endif %}
+    <div class="m-4">
+      <p class="mt-2 mb-5">Wurden folgende Meldungen erfasst:</p>
+      <p class="mt-2 text-xl"> {{result[0].split('--')[1]}}</p>
+      <p class="mt-2">Amtliche Gemeindekennzahl: {{result[0].split('--')[0]}}</p>
+      <table class="table-fixed">
+	<thead>
+	  <tr>
+	    <th style="width:80px">Art</th>
+	    <th style="width:50px; text-align:right;">Anzahl</th>
+	  </tr>
+	</thead>
+	<tbody>
+	  <tr>
+	    <td>Männlich</td>
+	    <td style="text-align:right;">{{result[1]}}</td>
+	  </tr>
+	  <tr>
+	    <td>Weiblich</td>
+	    <td style="text-align:right;">{{result[2]}}</td>
+	  </tr>
+	  <tr>
+	    <td>Nymphe</td>
+	    <td style="text-align:right;">{{result[4]}}</td>
+	  </tr>
+	  <tr>
+	    <td>Oothek</td>
+	    <td style="text-align:right;">{{result[3]}}</td>
+	  </tr>
+	  <tr>
+	    <td>Andere</td>
+	    <td style="text-align:right;">{{result[5]}}</td>
+	  </tr>
+	  <tr class="border-t-2 border-b-4 border-green-500">
+	    <td>Gesamt</td>
+	    <td style="text-align:right;">{{result[6]}}</td>
+	  </tr>
+	</tbody>
+      </table>
+      {% endif %}
+    </div>
   </div>
   <p class="pt-5">Hinweis: Der Allgemeine Gemeinde Schlüssel (AGS) kann im Reviewer-Bereich gesucht werden.
     <br />

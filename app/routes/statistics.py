@@ -24,7 +24,8 @@ list_of_stats = {
     "meldungen_laender": "Meldungen Bundesländer",
     "meldungen_brb": "Meldungen Brandenburg",
     "meldungen_berlin": "Meldungen Berlin",
-    "meldungen_gesamt": "Alle Summen (Tabelle)"
+    "meldungen_gesamt": "Alle Summen (Tabelle)",
+    "feedback": "Feedback"
 }
 
 
@@ -124,6 +125,10 @@ def stats_start(usrid=None):
                             dateFrom=start_date,
                             dateTo=end_date,
                             marker="meldungen_gesamt")
+    elif value == "feedback":
+        return stats_feedback(request,
+                              marker="feedback",
+                              page='stats-feedback.html',)
     elif value == "start":
         return render_template(
             "statistics/statistiken.html",
@@ -644,3 +649,31 @@ def stats_gesamt(request, dateFrom, dateTo, marker):
         dateFrom=dateFrom,
         dateTo=dateTo
     )
+
+def stats_feedback(request, page, marker):
+    "Summary of the feedback questions provided"
+    
+    stm = f"""
+    SELECT ft.name, count(*)
+    from user_feedback uf join feedback_types ft
+    on uf.feedback_type_id = ft.id 
+    GROUP BY ft.name;
+    """
+    sql = text(stm)
+    with db.engine.connect() as conn:
+        result = conn.execute(sql)
+
+    feedback = []
+    
+    if result:
+        for record in result:
+            feedback.append(record)
+#            feedback["count"].append(record[1])
+
+    return render_template(
+        "statistics/" + page,
+        menu=list_of_stats,
+        marker=marker,
+        user_id=session["user_id"],
+        feedback=feedback)
+
