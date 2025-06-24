@@ -69,84 +69,85 @@ def stats_start(usrid=None):
     start_date, end_date = get_date_interval(request)
     value = request.form.get("stats", "start")
 
-    if value == "geschlecht":
-        return stats_geschlecht(request)
-    elif value == "meldungen_meldedatum":
-        return stats_bardiagram_datum(
-            request,
-            dbfields=['dat_meld'],
-            page='stats-meldedatum.html',
-            marker="meldungen_meldedatum",
-            dateFrom=start_date,
-            dateTo=end_date)
-    elif value == "meldungen_funddatum":
-        return stats_bardiagram_datum(
-            request,
-            dbfields=['dat_fund_von'],
-            page='stats-funddatum.html',
-            marker="meldungen_funddatum",
-            dateFrom=start_date,
-            dateTo=end_date)
-    elif value == "meldungen_meld_fund":
-        return stats_bardiagram_datum(
-            request,
-            dbfields=['dat_fund_von', 'dat_meld'],
-            page='stats-meld-fund.html',
-            marker="meldungen_meld_fund",
-            dateFrom=start_date,
-            dateTo=end_date)
-    elif value == "meldungen_mtb":
-        return stats_mtb(request,
-                         dateFrom=start_date,
-                         dateTo=end_date,
-                         marker="meldungen_mtb")
-    elif value == "meldungen_amt":
-        return stats_amt(request,
-                         dateFrom=start_date,
-                         dateTo=end_date,
-                         marker="meldungen_amt")
-    elif value == "meldungen_laender":
-        return stats_laender(request,
+    match value:
+        case "geschlecht":
+            return stats_geschlecht(request)
+        case "meldungen_meldedatum":
+            return stats_bardiagram_datum(
+                request,
+                dbfields=['dat_meld'],
+                page='stats-meldedatum.html',
+                marker="meldungen_meldedatum",
+                dateFrom=start_date,
+                dateTo=end_date)
+        case "meldungen_funddatum":
+            return stats_bardiagram_datum(
+                request,
+                dbfields=['dat_fund_von'],
+                page='stats-funddatum.html',
+                marker="meldungen_funddatum",
+                dateFrom=start_date,
+                dateTo=end_date)
+        case "meldungen_meld_fund":
+            return stats_bardiagram_datum(
+                request,
+                dbfields=['dat_fund_von', 'dat_meld'],
+                page='stats-meld-fund.html',
+                marker="meldungen_meld_fund",
+                dateFrom=start_date,
+                dateTo=end_date)
+        case "meldungen_mtb":
+            return stats_mtb(request,
                              dateFrom=start_date,
                              dateTo=end_date,
-                             marker="meldungen_laender")
-    elif value == "meldungen_brb":
-        return stats_brb(request,
-                         dateFrom=start_date,
-                         dateTo=end_date,
-                         marker="meldungen_brb")
-    elif value == "meldungen_berlin":
-        return stats_berlin(request,
-                            dateFrom=start_date,
-                            dateTo=end_date,
-                            marker="meldungen_berlin")
-    elif value == "meldungen_gesamt":
-        return stats_gesamt(request,
-                            dateFrom=start_date,
-                            dateTo=end_date,
-                            marker="meldungen_gesamt")
-    elif value == "feedback":
-        return stats_feedback(request,
-                              marker="feedback",
-                              page='stats-feedback.html',)
-    elif value == "start":
-        return render_template(
-            "statistics/statistiken.html",
-            user_id=session["user_id"],
-            menu=list_of_stats,
-            marker="start",
-            dateFrom=start_date,
-            dateTo=end_date
-        )
-    else:
-        return render_template(
-            "statistics/statistiken.html",
-            user_id=session["user_id"],
-            menu=list_of_stats,
-            marker="start",
-            dateFrom=start_date,
-            dateTo=end_date
-        )
+                             marker="meldungen_mtb")
+        case "meldungen_amt":
+            return stats_amt(request,
+                             dateFrom=start_date,
+                             dateTo=end_date,
+                             marker="meldungen_amt")
+        case "meldungen_laender":
+            return stats_laender(request,
+                                 dateFrom=start_date,
+                                 dateTo=end_date,
+                                 marker="meldungen_laender")
+        case "meldungen_brb":
+            return stats_brb(request,
+                             dateFrom=start_date,
+                             dateTo=end_date,
+                             marker="meldungen_brb")
+        case "meldungen_berlin":
+            return stats_berlin(request,
+                                dateFrom=start_date,
+                                dateTo=end_date,
+                                marker="meldungen_berlin")
+        case "meldungen_gesamt":
+            return stats_gesamt(request,
+                                dateFrom=start_date,
+                                dateTo=end_date,
+                                marker="meldungen_gesamt")
+        case "feedback":
+            return stats_feedback(request,
+                                  marker="feedback",
+                                  page='stats-feedback.html',)
+        case "start":
+            return render_template(
+                "statistics/statistiken.html",
+                user_id=session["user_id"],
+                menu=list_of_stats,
+                marker="start",
+                dateFrom=start_date,
+                dateTo=end_date
+            )
+        case _:
+            return render_template(
+                "statistics/statistiken.html",
+                user_id=session["user_id"],
+                menu=list_of_stats,
+                marker="start",
+                dateFrom=start_date,
+                dateTo=end_date
+            )
 
 
 def stats_mtb(request, dateFrom, dateTo, marker):
