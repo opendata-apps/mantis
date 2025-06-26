@@ -8,7 +8,7 @@
     <form action="" method="POST" class="space-y-3">
       {{ StatsMenu() }}
     </form>
-     <div class="m-4">
+    <div class="m-4">
       {% if fehler != True %}
       <p class="mt-2 mb-5">Folgende Antworten wurden gegeben:</p>
       <table class="table-fixed">
@@ -28,6 +28,14 @@
 	</tbody>
       </table>
       {% endif %}
+    </div>
+    <div class="m-4">
+      <h2 class="font-medium text-lg mb-4">Ergänzende Hinweise</h2>
+      <ul class="list-disc ml-4">
+	{% for d in details %}
+	<li class="">{{d}}</li>
+	{% endfor %}
+      </ul>
     </div>
   </div>
 </section>

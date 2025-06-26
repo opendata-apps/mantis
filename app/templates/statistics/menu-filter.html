@@ -1,7 +1,9 @@
 {% macro MenuFilter() -%}
-<div class="flex flex-wrap ">
-  <div class="flex items-center justify-center pt-5 text-sm font-medium text-gray-900 border border-gray-200 focus:z-10 focus:ring-4 focus:ring-gray-200">
-      <div class="flex mx-4 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg focus:z-10 focus:ring-4 focus:ring-gray-200">
+<div class="flex flex-wrap  bg-gray-200">
+  <div class="flex items-center justify-center pt-5 text-sm font-medium bg-gray-200 
+	      text-gray-900 border border-gray-200 focus:z-10 focus:ring-4 focus:ring-gray-200">
+    <div class="flex mx-4 text-sm font-medium text-gray-900 bg-white border bg-gray-200
+		border-gray-200 rounded-lg focus:z-10 focus:ring-4 focus:ring-gray-200">
 	<input type="hidden" id="usertId"
 	       name="userId"
 	       value="{{session['user_id']}}"

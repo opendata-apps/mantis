@@ -222,7 +222,7 @@ def stats_bardiagram_datum(request, dbfields,
             result = conn.execute(sql)
 
         trace = {"x": [], "y": []}
-        
+
         if result:
             for record in result:
                 trace["x"].append(str(record[0]))
@@ -243,7 +243,7 @@ def stats_bardiagram_datum(request, dbfields,
 
 def stats_geschlecht(request=None):
     """Count sum of all kategories"""
-    
+
     start_date, end_date = get_date_interval(request)
     stm = f"""
       select sum(art_m) as "Männchen"
@@ -265,7 +265,7 @@ def stats_geschlecht(request=None):
         for row in result:
             row = row._mapping
             res = dict((name, val) for name, val in row.items())
-    
+
     return render_template(
         "statistics/stats-geschlecht.html",
         menu=list_of_stats,
@@ -639,7 +639,9 @@ def stats_gesamt(request, dateFrom, dateTo, marker):
                     result_dict[f"{result[0][:5]}"][4].append(
                         [id, '', '', gemeinde, result[1]])
         except Exception as e:
-            current_app.logger.error(f"Error in statistics query - Result: {result}, Error: {e}")
+            current_app.logger.error(f"""
+            Error in statistics query - Result: {result}, Error: {e}
+            """)
 
     return render_template(
         "statistics/stats-table-all.html",
@@ -651,13 +653,14 @@ def stats_gesamt(request, dateFrom, dateTo, marker):
         dateTo=dateTo
     )
 
+
 def stats_feedback(request, page, marker):
     "Summary of the feedback questions provided"
-    
-    stm = f"""
+
+    stm = """
     SELECT ft.name, count(*)
     from user_feedback uf join feedback_types ft
-    on uf.feedback_type_id = ft.id 
+    on uf.feedback_type_id = ft.id
     GROUP BY ft.name;
     """
     sql = text(stm)
@@ -665,16 +668,31 @@ def stats_feedback(request, page, marker):
         result = conn.execute(sql)
 
     feedback = []
-    
+
     if result:
         for record in result:
             feedback.append(record)
-#            feedback["count"].append(record[1])
+
+    stm = """
+    SELECT source_detail
+    FROM user_feedback
+    where source_detail is not NULL
+    ORDER BY id desc Limit 20;
+    """
+    sql = text(stm)
+    with db.engine.connect() as conn:
+        result = conn.execute(sql)
+
+    details = []
+    if result:
+        for record in result:
+            if record[0] != '':
+                details.append(record[0])
 
     return render_template(
         "statistics/" + page,
         menu=list_of_stats,
         marker=marker,
         user_id=session["user_id"],
-        feedback=feedback)
-
+        feedback=feedback,
+        details=details)
