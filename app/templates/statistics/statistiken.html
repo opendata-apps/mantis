@@ -3,8 +3,8 @@
 {% block meta_keywords %} Auswertungen, Statistik {% endblock %}
 {% from 'statistics/menu-filter.html' import MenuFilter with context %}
 {% from 'statistics/filter-datum-typ.html' import StatsAuswahl with context %}
-
 {% block content %}
+<script src="{{ url_for('static', filename='node_modules/flowbite/dist/flowbite.min.js')}}"></script>
 <section class="container mx-auto mt-10">
   <form action="" method="POST" class="space-y-3">
    {{ MenuFilter() }}
