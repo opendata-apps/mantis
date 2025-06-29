@@ -8,7 +8,7 @@ from app.database.populate import (
 )
 from app.database.models import TblFundortBeschreibung, TblFeedbackType
 
-
+from flask import current_app
 class TestPopulateFunctions:
     """Test suite for database population functions."""
 
@@ -211,6 +211,7 @@ class TestPopulateFunctions:
     @patch('app.database.populate.logger')
     def test_populate_all_logging(self, mock_logger):
         """Test that populate_all logs its progress."""
+        
         mock_engine = MagicMock()
         mock_session = MagicMock()
         mock_json_data = '{"test": "data"}'
@@ -221,7 +222,7 @@ class TestPopulateFunctions:
                     populate_all(mock_engine, mock_session, mock_json_data)
         
         # Should have logged progress
-        assert mock_logger.info.called
+        # assert mock_logger.info.called
         # Check specific log messages
         mock_logger.info.assert_any_call("Starting initial data population...")
         mock_logger.info.assert_any_call("Initial data population finished.")
