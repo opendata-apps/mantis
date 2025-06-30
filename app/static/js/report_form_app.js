@@ -610,7 +610,7 @@ const ReportFormApp = {
             window.location.href = response.url;
         } else {
             const data = await response.json().catch(() => ({}));
-            window.location.href = data.redirect_url || '/thank-you';
+            window.location.href = data.redirect_url || '/success';
         }
     },
 
@@ -655,7 +655,7 @@ const ReportFormApp = {
         if (!container || container.querySelector('.field-error-message[data-general-submit-error]')) return;
         
         const errorEl = document.createElement('div');
-        errorEl.className = 'w-full mt-2 text-sm text-center text-red-500 field-error-message';
+        errorEl.className = 'mt-2 w-full text-sm text-center text-red-500 field-error-message';
         errorEl.dataset.generalSubmitError = 'true';
         errorEl.textContent = errorMessage;
         container.appendChild(errorEl);
