@@ -6,6 +6,7 @@ from email.utils import formataddr
 from app.config import Config
 from email.utils import make_msgid
 from email.utils import formatdate
+from email.header import Header
 
 
 def rendertextmsg(md):
@@ -228,23 +229,26 @@ def send_email(data):
     user_name = md['user_name']
     receiver_email = md['user_kontakt']
     message = MIMEMultipart("alternative")
-    message["Subject"] = subject
+    message["Subject"] = Header(subject, 'utf-8')
     message["From"] = formataddr(('Gottesanbeterin gesucht',
                                   Config.sender_email))
     message["To"] = formataddr((user_name, receiver_email))
-
-    # Set the Message-ID and Date headers
-    message["Message-ID"] = msgid.split('@')[0]
-    message["Message-ID"] += '@' + 'gottesanbeterin-gesucht.de>'
+    message["MIME-Version"] = "1.0"
+    
+    # Set the Message-ID and Date headers correctly
+    message["Message-ID"] = msgid
     message["Date"] = formatdate(localtime=True)
+    
+    # Add Reply-To header
+    message["Reply-To"] = Config.sender_email
 
     text = rendertextmsg(data)
     html = renderhtmlmsg(data)
 
-    # Convert both parts to MIMEText objects
+    # Convert both parts to MIMEText objects with UTF-8 encoding
     # and add them to the MIMEMultipart message
-    part1 = MIMEText(text, "plain")
-    part2 = MIMEText(html, "html")
+    part1 = MIMEText(text, "plain", "utf-8")
+    part2 = MIMEText(html, "html", "utf-8")
     message.attach(part1)
     message.attach(part2)
     context = ssl.create_default_context()
