@@ -16,7 +16,11 @@ const PhotoHandler = {
         this.elements.photoDropzone.addEventListener('dragover', this.handleDragOver.bind(this));
         this.elements.photoDropzone.addEventListener('dragleave', this.handleDragLeave.bind(this));
         this.elements.photoDropzone.addEventListener('drop', this.handleDrop.bind(this));
-        // Click handler removed - the label already handles clicks naturally
+        
+        // Click handler for the dropzone
+        this.elements.photoDropzone.addEventListener('click', () => {
+            this.elements.photoInput.click();
+        });
         
         if (this.elements.removePhotoBtn) {
             this.elements.removePhotoBtn.addEventListener('click', this.removePhoto.bind(this));
@@ -78,8 +82,16 @@ const PhotoHandler = {
         }
 
         const originalFileName = file.name || 'unknown.jpg';
+        let loadingTimeout = null;
         
         try {
+            // Set a maximum timeout for the entire process (15 seconds)
+            loadingTimeout = setTimeout(() => {
+                console.error('Image processing timeout - hiding loading indicator');
+                this.helpers.showDropzoneLoading(this.elements, false);
+                this.handleProcessingError(new Error('Bildverarbeitung hat zu lange gedauert. Bitte versuchen Sie es erneut.'));
+            }, 15000);
+            
             // Step 1: Initial validation and setup
             this.helpers.showDropzoneLoading(this.elements, true, "Bereite Bildverarbeitung vor...");
             await this.delay(100);
@@ -88,6 +100,11 @@ const PhotoHandler = {
             this.helpers.showDropzoneLoading(this.elements, true, "Lese Bildinformationen...");
             await this.delay(100);
             const exifResult = await this.processExifNonBlocking(file);
+            
+            // Check if EXIF extraction timed out or failed
+            if (exifResult && exifResult.timedOut) {
+                console.warn('EXIF extraction timed out, continuing without metadata');
+            }
             
             // Step 3: Image conversion and optimization (WebP converter handles HEIC internally)
             this.helpers.showDropzoneLoading(this.elements, true, "Optimiere Bild für Upload...");
@@ -124,6 +141,11 @@ const PhotoHandler = {
             console.error('Error processing image:', error);
             this.handleProcessingError(error);
         } finally {
+            // Clear the timeout if it hasn't fired
+            if (loadingTimeout) {
+                clearTimeout(loadingTimeout);
+            }
+            // Always hide the loading indicator
             this.helpers.showDropzoneLoading(this.elements, false);
         }
     },
@@ -209,8 +231,13 @@ const PhotoHandler = {
     applyExifData: function(result) {
         this.state.hasExifData = false;
         
-        if (result.error || !this.elements.exifDataDiv) {
-            console.warn('EXIF data error or elements missing:', result.error);
+        // Handle timeout, error, or missing result gracefully
+        if (!result || result.error || result.timedOut || !this.elements.exifDataDiv) {
+            if (result && result.timedOut) {
+                console.warn('EXIF extraction timed out - continuing without metadata');
+            } else if (result && result.error) {
+                console.warn('EXIF data error:', result.error);
+            }
             if (this.elements.exifDataDiv) this.elements.exifDataDiv.classList.add('hidden');
             return;
         }

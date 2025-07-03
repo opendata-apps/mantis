@@ -10,7 +10,15 @@
  * @returns {Promise} - A promise that resolves with EXIF data object
  */
 function extractExifData(file) {
-    return new Promise((resolve, reject) => {
+    // Create timeout promise that rejects after 5 seconds
+    const timeoutPromise = new Promise((resolve, reject) => {
+        setTimeout(() => {
+            reject(new Error('EXIF extraction timed out after 5 seconds'));
+        }, 5000);
+    });
+
+    // Create EXIF extraction promise
+    const exifPromise = new Promise((resolve, reject) => {
         try {
             // Check if EXIF.js is available
             if (typeof EXIF === 'undefined') {
@@ -51,6 +59,9 @@ function extractExifData(file) {
             reject(error);
         }
     });
+
+    // Race between EXIF extraction and timeout
+    return Promise.race([exifPromise, timeoutPromise]);
 }
 
 /**
@@ -113,17 +124,33 @@ function processImageExif(file) {
         })
         .catch(error => {
             console.error('Error processing EXIF data:', error);
+            const isTimeout = error.message && error.message.includes('timed out');
             return {
                 exifData: null,
                 gpsCoordinates: null,
-                error: error.message
+                error: error.message,
+                timedOut: isTimeout
             };
         });
 }
 
 const ExifProcessor = {
     processImageExif: async function(file) {
-        return new Promise((resolve, reject) => {
+        // Create timeout promise that resolves after 5 seconds
+        const timeoutPromise = new Promise((resolve) => {
+            setTimeout(() => {
+                console.warn('EXIF extraction timed out after 5 seconds');
+                resolve({ 
+                    exifData: null, 
+                    gpsCoordinates: null, 
+                    error: 'EXIF extraction timed out',
+                    timedOut: true 
+                });
+            }, 5000);
+        });
+
+        // Create EXIF extraction promise
+        const exifPromise = new Promise((resolve, reject) => {
             if (!file) {
                 return reject(new Error("No file provided."));
             }
@@ -175,6 +202,9 @@ const ExifProcessor = {
                  resolve({ exifData: null, gpsCoordinates: null, error: error.message });
             }
         });
+
+        // Race between EXIF extraction and timeout
+        return Promise.race([exifPromise, timeoutPromise]);
     },
 
     // Helper function to convert DMS (Degrees, Minutes, Seconds) to DD (Decimal Degrees)

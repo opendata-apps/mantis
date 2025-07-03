@@ -24,15 +24,67 @@
   .form-container {
     min-height: calc(100vh - 240px);
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
-    padding: 2rem 1rem;
+    padding: 3rem 1rem 2rem;
   }
   
   .form-wrapper {
     width: 100%;
-    max-width: 56rem;
+    max-width: 72rem; /* Increased from 56rem for better use of space */
     margin: 0 auto;
+  }
+  
+  /* Responsive container sizing */
+  @media (min-width: 1536px) {
+    .form-wrapper {
+      max-width: 80rem; /* Even wider on 2xl screens */
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .form-container {
+      padding: 2rem 0.75rem;
+      min-height: calc(100vh - 200px);
+    }
+  }
+  
+  @media (max-width: 640px) {
+    .form-container {
+      padding: 1.5rem 0.5rem;
+      min-height: calc(100vh - 180px);
+    }
+  }
+  
+  /* Improve form field sizing on different screens */
+  @media (min-width: 1024px) {
+    .form-group input[type="text"],
+    .form-group input[type="email"],
+    .form-group input[type="date"],
+    .form-group select,
+    .form-group textarea {
+      font-size: 1rem;
+    }
+  }
+  
+  @media (max-width: 640px) {
+    .form-group input[type="text"],
+    .form-group input[type="email"],
+    .form-group input[type="date"],
+    .form-group select,
+    .form-group textarea {
+      font-size: 0.875rem;
+      padding: 0.5rem 0.75rem;
+    }
+  }
+  
+  /* Navigation button improvements */
+  @media (max-width: 480px) {
+    .nav-button {
+      min-width: 5rem;
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+    }
   }
 
   .photo-dropzone {
@@ -151,20 +203,20 @@
             {{ render_form_field(form.sighting_date, attrs={'id': 'sighting_date', 'max': now().strftime('%Y-%m-%d')}) }}
           </div>
           
-          <div class="flex flex-col mb-4 md:flex-row md:space-x-6">
+          <div class="flex flex-col mb-4 lg:flex-row lg:space-x-6">
             <!-- Map column -->
-            <div class="w-full mb-4 md:w-3/5 md:mb-0">
+            <div class="w-full mb-4 lg:w-3/5 xl:w-2/3 lg:mb-0">
               <div class="p-3 mb-2 rounded-md bg-gray-50">
-                <div class="flex items-center justify-between mb-1">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
                   <span class="text-sm font-medium text-gray-700">Fundort auswählen</span>
-                  <span class="text-xs text-gray-500">Klicken Sie auf die Karte zum Zoomen oder geben Sie die Koordinaten ein</span>
+                  <span class="text-xs text-gray-500">Klicken Sie auf die Karte oder geben Sie Koordinaten ein</span>
                 </div>
               </div>
-              <div id="map" class="w-full h-64 border border-gray-300 rounded-md shadow-sm sm:h-72 md:h-96 lg:h-[28rem]"></div>
+              <div id="map" class="w-full h-64 border border-gray-300 rounded-md shadow-sm sm:h-80 md:h-96 lg:h-[28rem] xl:h-[32rem] 2xl:h-[36rem]"></div>
             </div>
             
             <!-- Form fields column -->
-            <div class="w-full space-y-4 md:w-2/5">
+            <div class="w-full space-y-4 lg:w-2/5 xl:w-1/3">
               <!-- Manual coordinates input -->
               <div class="p-4 border border-gray-200 rounded-md bg-gray-50">
                 <div class="mb-2">
@@ -200,9 +252,9 @@
               <div class="p-4 bg-white border border-gray-200 rounded-md">
                 <h4 class="mb-3 text-sm font-medium text-gray-700">Adressinformationen</h4>
                 <div class="space-y-3">
-                  <div class="grid grid-cols-2 gap-3">
-                    {{ render_form_field(form.fund_zip_code, attrs={'id': 'fund_zip_code', 'class': 'w-full px-3 py-2 text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
-                    {{ render_form_field(form.fund_city, attrs={'id': 'fund_city', 'class': 'w-full px-3 py-2 text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {{ render_form_field(form.fund_zip_code, attrs={'id': 'fund_zip_code', 'class': 'w-full px-3 py-2 text-sm md:text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
+                    {{ render_form_field(form.fund_city, attrs={'id': 'fund_city', 'class': 'w-full px-3 py-2 text-sm md:text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
                   </div>
                   
                   {{ render_form_field(form.fund_district, attrs={'id': 'fund_district', 'class': 'w-full px-3 py-2 text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}

@@ -58,18 +58,36 @@ const WebpConverter = {
                         const ctx = canvas.getContext('2d');
                         
                         // Calculate optimal dimensions to prevent memory issues
-                        const maxDimension = 4096; // Max width/height
+                        // Use smaller dimensions on mobile devices to prevent memory crashes
+                        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                        const maxDimension = isMobile ? 2048 : 4096; // Smaller limit for mobile
                         let { width, height } = WebpConverter.calculateOptimalDimensions(
                             img.naturalWidth, 
                             img.naturalHeight, 
                             maxDimension
                         );
                         
-                        canvas.width = width;
-                        canvas.height = height;
-                        
-                        // Draw image with potential resizing
-                        ctx.drawImage(img, 0, 0, width, height);
+                        try {
+                            canvas.width = width;
+                            canvas.height = height;
+                            
+                            // Draw image with potential resizing
+                            ctx.drawImage(img, 0, 0, width, height);
+                        } catch (canvasError) {
+                            console.error('Canvas operation failed, trying with smaller dimensions:', canvasError);
+                            // If canvas operations fail (likely due to memory), try with even smaller dimensions
+                            const fallbackDimension = isMobile ? 1024 : 2048;
+                            const fallback = WebpConverter.calculateOptimalDimensions(
+                                img.naturalWidth, 
+                                img.naturalHeight, 
+                                fallbackDimension
+                            );
+                            width = fallback.width;
+                            height = fallback.height;
+                            canvas.width = width;
+                            canvas.height = height;
+                            ctx.drawImage(img, 0, 0, width, height);
+                        }
                         
                         // Revoke Object URL if one was created
                         if (objectUrlCreated) { 

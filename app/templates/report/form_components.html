@@ -13,7 +13,7 @@
           d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
       </svg>
       <div class="flex flex-col text-sm text-gray-600">
-        <label for="{{ field.id }}" class="relative font-medium text-green-600 bg-white rounded-md cursor-pointer hover:text-green-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-green-500">
+        <label for="{{ field.id }}" class="relative font-medium text-green-600 bg-white rounded-md cursor-pointer">
           <span class="text-sm md:text-base">Klicken Sie, um ein Foto auszuwählen</span>
           {{ field(class="sr-only", required=true, accept=".jpg,.jpeg,.png,.webp,.heic,.heif") }}
         </label>
@@ -100,23 +100,23 @@
 {% macro render_step_navigation(current_step, total_steps, show_prev=True, show_next=False, show_submit=False) %}
 <div class="relative flex items-center justify-between h-10 mt-6">
   {% if show_prev %}
-    <button type="button" class="flex items-center justify-center w-24 px-4 py-2 font-medium text-white transition-colors duration-200 ease-in-out bg-gray-500 rounded-md shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500" id="prev{{ current_step }}">
-      <i class="w-4 h-4 mr-1 fas fa-chevron-left"></i> Zurück
+    <button type="button" class="nav-button flex items-center justify-center w-24 px-4 py-2 font-medium text-white transition-colors duration-200 ease-in-out bg-gray-500 rounded-md shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500" id="prev{{ current_step }}">
+      <i class="w-4 h-4 mr-1 fas fa-chevron-left"></i> <span class="hidden sm:inline">Zurück</span>
     </button>
   {% else %}
-    <span class="w-24"></span> <!-- Placeholder for alignment -->
+    <span class="nav-button w-24"></span> <!-- Placeholder for alignment -->
   {% endif %}
   
-  <span class="absolute text-sm text-gray-500 -translate-x-1/2 -translate-y-1/2 left-1/2 top-1/2 whitespace-nowrap">
-    Schritt {{ current_step }} von {{ total_steps }}
+  <span class="absolute text-xs sm:text-sm text-gray-500 -translate-x-1/2 -translate-y-1/2 left-1/2 top-1/2 whitespace-nowrap">
+    <span class="hidden sm:inline">Schritt</span> {{ current_step }}<span class="sm:hidden">/</span><span class="hidden sm:inline"> von </span>{{ total_steps }}
   </span>
   
   {% if show_next %}
-    <button type="button" class="flex items-center justify-center w-24 px-4 py-2 font-medium text-white transition-colors duration-200 ease-in-out bg-green-600 rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" id="next{{ current_step }}">
-      Weiter <i class="w-4 h-4 ml-1 fas fa-chevron-right"></i>
+    <button type="button" class="nav-button flex items-center justify-center w-24 px-4 py-2 font-medium text-white transition-colors duration-200 ease-in-out bg-green-600 rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" id="next{{ current_step }}">
+      <span class="hidden sm:inline">Weiter</span> <i class="w-4 h-4 ml-1 fas fa-chevron-right"></i>
     </button>
   {% elif show_submit %}
-    <button type="submit" class="flex items-center justify-center w-auto px-4 py-2 font-medium text-white transition-colors duration-200 ease-in-out bg-green-600 rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+    <button type="submit" class="nav-button flex items-center justify-center w-auto px-4 py-2 font-medium text-white transition-colors duration-200 ease-in-out bg-green-600 rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
       Absenden <i class="w-4 h-4 ml-1 fas fa-paper-plane"></i>
     </button>
   {% else %}
