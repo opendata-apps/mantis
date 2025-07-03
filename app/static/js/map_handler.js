@@ -288,8 +288,37 @@ const MapHandler = {
 
         if (fields.zipCode) fields.zipCode.value = address.postcode || '';
         if (fields.city) fields.city.value = address.city || address.town || address.village || address.hamlet || '';
-        if (fields.state) fields.state.value = address.state || '';
-        if (fields.district) fields.district.value = address.county || ''; 
+        
+        // Special handling for German city-states (Stadtstaaten)
+        const stadtstaaten = ['Berlin', 'Hamburg', 'Bremen'];
+        const isStadtstaat = stadtstaaten.includes(address.city) || 
+                           address.city === 'Stadtgebiet Bremen' ||
+                           (address.state === 'Bremen' && address.city === 'Bremen');
+        
+        if (isStadtstaat) {
+            // For city-states: state = city name, district = borough/district
+            const stateName = address.state === 'Bremen' ? 'Bremen' : address.city;
+            if (fields.state) fields.state.value = stateName;
+            if (fields.district) {
+                // Berlin uses 'borough', Hamburg uses 'borough' or 'city_district', Bremen uses 'city_district'
+                fields.district.value = address.borough || address.city_district || address.suburb || '';
+            }
+        } else {
+            if (fields.state) fields.state.value = address.state || '';
+            
+            // Handle German administrative divisions correctly
+            // For kreisfreie Städte (city districts), use the city name as the district
+            if (fields.district) {
+                if (address.county) {
+                    fields.district.value = address.county;
+                } else if (address.city && this.isKreisfreieStadt(address.city)) {
+                    fields.district.value = address.city;
+                } else {
+                    fields.district.value = '';
+                }
+            }
+        }
+        
         if (fields.street) {
             let street = address.road || '';
             if (address.house_number) {
@@ -335,5 +364,18 @@ const MapHandler = {
                 this.state.locateControl.start();
             }
         }
+    },
+
+    isKreisfreieStadt: function(cityName) {
+        // List of kreisfreie Städte (city districts) in Brandenburg and Berlin
+        const kreisfreieStaedte = [
+            'Potsdam',
+            'Cottbus',
+            'Brandenburg an der Havel',
+            'Frankfurt (Oder)',
+            'Berlin'  // Berlin is also its own administrative district
+        ];
+        
+        return kreisfreieStaedte.includes(cityName);
     }
 }; 
