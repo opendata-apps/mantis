@@ -16,7 +16,7 @@ const PhotoHandler = {
         this.elements.photoDropzone.addEventListener('dragover', this.handleDragOver.bind(this));
         this.elements.photoDropzone.addEventListener('dragleave', this.handleDragLeave.bind(this));
         this.elements.photoDropzone.addEventListener('drop', this.handleDrop.bind(this));
-        this.elements.photoDropzone.addEventListener('click', () => this.elements.photoInput.click());
+        // Click handler removed - the label already handles clicks naturally
         
         if (this.elements.removePhotoBtn) {
             this.elements.removePhotoBtn.addEventListener('click', this.removePhoto.bind(this));
