@@ -41,14 +41,15 @@ def _set_gender_fields(selected_gender_value):
         "Männlich": "art_m",
         "Weiblich": "art_w", 
         "Nymphe": "art_n",
-        "Oothek": "art_o",
-        "Unbekannt": "art_f"
+        "Oothek": "art_o"
+        # "Unbekannt" is no longer mapped to art_f
     }
     
     genders = {"art_m": 0, "art_w": 0, "art_n": 0, "art_o": 0, "art_f": 0}
     field_name = gender_mapping.get(selected_gender_value)
     if field_name:
         genders[field_name] = 1
+    # For "Unbekannt" or empty selection, all fields remain 0
     return genders
 
 def _process_uploaded_image(photo_file, sighting_date, city_name, user_id):
