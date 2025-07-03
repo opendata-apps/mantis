@@ -25,34 +25,53 @@ endblock %}
 {% block meta_description %} Schauen Sie sich die Auswertungen von Gottesanbeterin-Beobachtungen in Deutschland an. {%
 endblock %}
 {% block text %}
+<p class="mt-4 text-lg text-gray-200 sm:text-xl">
 {% if selected_year %}
-Übersicht zu allen bestätigten Meldungen im Jahr {{ selected_year }}.
+Erkunden Sie alle bestätigten Sichtungen der <span class="font-semibold text-green-300">Mantis religiosa</span> aus dem Jahr {{ selected_year }}
 {% else %}
-Übersicht zu allen bestätigten Meldungen.
+Entdecken Sie alle bestätigten Sichtungen der <span class="font-semibold text-green-300">Gottesanbeterin</span> in Deutschland
 {% endif %}
+</p>
 {% endblock text %}
 {% block content %}
 <script src="{{ url_for('static', filename='node_modules/flowbite/dist/flowbite.min.js')}}" defer></script>
-<div class="container px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
 
-  <!-- Information banner -->
-  <div class="flex justify-center mt-6 mb-6">
-    <div
-      class="flex items-center max-w-2xl p-4 my-2 space-x-2 text-sm text-black bg-white border border-gray-200 rounded-lg shadow-md sm:text-base">
-      <span class="flex items-center text-xl sm:text-2xl">
-        🔒
-        <span class="w-px h-5 mx-3 bg-gray-300"></span>
-      </span>
-      <p>Die Position der Marker kann von den gemeldeten Koordinaten abweichen (Datenschutz).</p>
+
+<!-- Map Section with improved styling -->
+<section class="py-12 bg-gradient-to-b from-white to-gray-50">
+  <div class="container px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+
+    <!-- Information banner with improved design -->
+    <div class="flex justify-center mb-8">
+      <div class="overflow-hidden relative bg-white rounded-2xl shadow-lg">
+        <div class="absolute inset-0 bg-gradient-to-r from-green-500 to-green-600 opacity-5"></div>
+        <div class="flex relative items-center px-6 py-4 space-x-3">
+          <div class="flex justify-center items-center w-12 h-12 bg-green-100 rounded-full">
+            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+            </svg>
+          </div>
+          <p class="text-base text-gray-700">
+            Die Position der Marker kann von den gemeldeten Koordinaten abweichen (Datenschutz).
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Enhanced map container with decorative elements -->
+    <div class="relative">
+      <!-- Decorative corner elements -->
+      <div class="absolute -top-4 -left-4 w-24 h-24 bg-green-100 rounded-full opacity-20 blur-2xl"></div>
+      <div class="absolute -right-4 -bottom-4 w-32 h-32 bg-green-200 rounded-full opacity-20 blur-3xl"></div>
+      
+      <!-- Map container with improved styling -->
+      <div id="map" class="relative z-10 h-[70vh] md:h-[75vh] rounded-2xl shadow-2xl overflow-hidden border-4 border-white" 
+           role="application" aria-label="Interaktive Karte der Gottesanbeterin-Sichtungen in Deutschland">
+      </div>
     </div>
   </div>
-
-  <!-- Map container -->
-  <div id="map" class="relative h-[60vh] md:h-[65vh] rounded-xl shadow-lg" role="application"
-    aria-label="Interaktive Karte der Gottesanbeterin-Sichtungen in Deutschland">
-  </div>
-</div>
-
+</section>
+  
 <!-- Animated counter section  -->
 <section class="py-12 bg-gray-100">
   <div class="container max-w-5xl px-4 mx-auto sm:px-6 lg:px-8">
@@ -359,6 +378,10 @@ endblock %}
     to {
       opacity: 1;
     }
+  }
+  
+  .animation-delay-300 {
+    animation-delay: 300ms;
   }
 
   @media (max-width: 640px) {
