@@ -286,52 +286,81 @@ const MapHandler = {
         const fields = this.elements.addressFields;
         if (!fields) return;
 
-        if (fields.zipCode) fields.zipCode.value = address.postcode || '';
-        if (fields.city) fields.city.value = address.city || address.town || address.village || address.hamlet || '';
+        // Process German administrative divisions
+        const administrativeDivisions = GermanAdministrativeDivisions.processAddress(address);
         
-        // Special handling for German city-states (Stadtstaaten)
-        const stadtstaaten = ['Berlin', 'Hamburg', 'Bremen'];
-        const isStadtstaat = stadtstaaten.includes(address.city) || 
-                           address.city === 'Stadtgebiet Bremen' ||
-                           (address.state === 'Bremen' && address.city === 'Bremen');
-        
-        if (isStadtstaat) {
-            // For city-states: state = city name, district = borough/district
-            const stateName = address.state === 'Bremen' ? 'Bremen' : address.city;
-            if (fields.state) fields.state.value = stateName;
-            if (fields.district) {
-                // Berlin uses 'borough', Hamburg uses 'borough' or 'city_district', Bremen uses 'city_district'
-                fields.district.value = address.borough || address.city_district || address.suburb || '';
-            }
-        } else {
-            if (fields.state) fields.state.value = address.state || '';
-            
-            // Handle German administrative divisions correctly
-            // For kreisfreie Städte (city districts), use the city name as the district
-            if (fields.district) {
-                if (address.county) {
-                    fields.district.value = address.county;
-                } else if (address.city && this.isKreisfreieStadt(address.city)) {
-                    fields.district.value = address.city;
-                } else {
-                    fields.district.value = '';
-                }
-            }
-        }
-        
-        if (fields.street) {
-            let street = address.road || '';
-            if (address.house_number) {
-                street += ' ' + address.house_number;
-            }
-            fields.street.value = street.trim();
-        }
-        
-        Object.keys(fields).forEach(key => {
-            if (fields[key]?.id) {
-                this.helpers.clearFieldError(this.elements, fields[key].id);
-            }
+        // Batch update all fields at once for better performance
+        this.updateAddressFields({
+            zipCode: address.postcode || '',
+            city: this.extractCityName(address),
+            state: administrativeDivisions.state,
+            district: administrativeDivisions.district,
+            street: this.formatStreetAddress(address)
         });
+        
+        // Clear any existing field errors
+        this.clearAllFieldErrors();
+    },
+    
+    /**
+     * Extracts city name from various possible fields
+     * @private
+     */
+    extractCityName: function(address) {
+        return address.city || address.town || address.village || address.hamlet || '';
+    },
+    
+    /**
+     * Formats street address with house number
+     * @private
+     */
+    formatStreetAddress: function(address) {
+        if (!address.road) return '';
+        
+        return address.house_number 
+            ? `${address.road} ${address.house_number}`.trim()
+            : address.road;
+    },
+    
+    /**
+     * Updates all address fields efficiently
+     * @private
+     */
+    updateAddressFields: function(values) {
+        const fields = this.elements.addressFields;
+        if (!fields) return;
+        
+        // Update only fields that exist and have changed
+        const fieldMap = {
+            zipCode: 'zipCode',
+            city: 'city',
+            state: 'state',
+            district: 'district',
+            street: 'street'
+        };
+        
+        for (const [key, fieldName] of Object.entries(fieldMap)) {
+            const field = fields[fieldName];
+            if (field && field.value !== values[key]) {
+                field.value = values[key];
+            }
+        }
+    },
+    
+    /**
+     * Clears all field errors efficiently
+     * @private
+     */
+    clearAllFieldErrors: function() {
+        const fields = this.elements.addressFields;
+        if (!fields || !this.helpers) return;
+        
+        // Use for...of for better performance than Object.keys().forEach()
+        for (const field of Object.values(fields)) {
+            if (field?.id) {
+                this.helpers.clearFieldError(this.elements, field.id);
+            }
+        }
     },
 
     showAddressLoading: function(isLoading) {
@@ -366,16 +395,11 @@ const MapHandler = {
         }
     },
 
-    isKreisfreieStadt: function(cityName) {
-        // List of kreisfreie Städte (city districts) in Brandenburg and Berlin
-        const kreisfreieStaedte = [
-            'Potsdam',
-            'Cottbus',
-            'Brandenburg an der Havel',
-            'Frankfurt (Oder)',
-            'Berlin'  // Berlin is also its own administrative district
-        ];
-        
-        return kreisfreieStaedte.includes(cityName);
+    /**
+     * @deprecated Removed - kreisfreie Stadt detection is now automatic
+     */
+    isKreisfreieStadt: function() {
+        console.warn('isKreisfreieStadt is deprecated. Kreisfreie Stadt detection is now automatic based on geocoding data.');
+        return false;
     }
 }; 

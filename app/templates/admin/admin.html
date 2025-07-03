@@ -5,6 +5,7 @@
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.css')}}" />
 <script src="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.js')}}"></script>
+<script src="{{ url_for('static', filename='js/german_administrative_divisions.js') }}"></script>
 {% endblock %}
 {% block content %}
 <script src="{{ url_for('static', filename='node_modules/flowbite/dist/flowbite.min.js')}}" defer></script>
@@ -1397,21 +1398,20 @@
 
                 const address = data.address || {};
 
-                // Extract relevant address components safely
+                // Process address using the centralized module
+                const administrativeDivisions = GermanAdministrativeDivisions.processAddress(address);
+                
+                // Extract address components
                 const zipCode = address.postcode || "";
-                const city = address.city || address.town || address.village || address.hamlet || address.suburb || address.locality || "";
-                const streetName = address.road || address.pedestrian || address.cycleway || address.path || address.footway || address.street || address.street_name || "";
+                const city = address.city || address.town || address.village || address.hamlet || "";
+                const streetName = address.road || address.pedestrian || address.cycleway || address.path || address.footway || "";
                 const houseNumber = address.house_number || "";
                 const street = `${streetName} ${houseNumber}`.trim();
-                const district = address.county || address.district || address.municipality || address.city_district || address.borough || address.suburb || "";
 
-                // Determine state (Bundesland), prioritize ISO code lookup
-                let state = address.state || address.region || "";
+                // Handle state from ISO code if not provided by the module
+                let state = administrativeDivisions.state;
                 if (!state && data.extratags && data.extratags["ISO3166-2"]) {
                     state = getStateNameFromISOCode(data.extratags["ISO3166-2"]);
-                }
-                if (!state && city && isCityState(city)) { // Fallback for city states
-                    state = city;
                 }
 
                 // Update UI with fetched address
@@ -1419,7 +1419,7 @@
                     street: street || 'Keine Straße gefunden', // Provide default if empty
                     zipCode,
                     city: city || 'Kein Ort gefunden',       // Provide default if empty
-                    district: district || 'Keine Region gefunden', // Provide default if empty
+                    district: administrativeDivisions.district || 'Keine Region gefunden', // Provide default if empty
                     state: state || 'Kein Land gefunden'      // Provide default if empty
                 });
 
@@ -1429,7 +1429,7 @@
                     ort: city,
                     strasse: street,
                     land: state,
-                    kreis: district
+                    kreis: administrativeDivisions.district
                 });
 
                 // Update marker popup with address details
@@ -1440,7 +1440,7 @@
                             ${street ? `<li><strong>Straße:</strong> ${street}</li>` : ''}
                             ${zipCode ? `<li><strong>Postleitzahl:</strong> ${zipCode}</li>` : ''}
                             ${city ? `<li><strong>Ort:</strong> ${city}</li>` : ''}
-                            ${district ? `<li><strong>Region:</strong> ${district}</li>` : ''}
+                            ${administrativeDivisions.district ? `<li><strong>Region:</strong> ${administrativeDivisions.district}</li>` : ''}
                             ${state ? `<li><strong>Land:</strong> ${state}</li>` : ''}
                         </ul>
                     </div>
@@ -1519,11 +1519,7 @@
         return isoToStateMap[isoCode] || '';
     }
 
-    // Helper function to check if a city is a city-state
-    function isCityState(cityName) {
-        const cityStates = ['Berlin', 'Hamburg', 'Bremen'];
-        return cityStates.includes(cityName);
-    }
+    // Note: City-state detection is now handled by GermanAdministrativeDivisions module
 
     function cancelMarkerPlacement() {
         const btn = document.getElementById('markerPlacementBtn');
