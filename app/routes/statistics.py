@@ -676,7 +676,7 @@ def stats_feedback(request, page, marker):
     stm = """
     SELECT source_detail
     FROM user_feedback
-    where source_detail is not NULL
+    where source_detail <> ''
     ORDER BY id desc Limit 20;
     """
     sql = text(stm)
@@ -686,8 +686,7 @@ def stats_feedback(request, page, marker):
     details = []
     if result:
         for record in result:
-            if record[0] != '':
-                details.append(record[0])
+            details.append(record[0])
 
     return render_template(
         "statistics/" + page,
