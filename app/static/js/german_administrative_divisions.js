@@ -70,15 +70,18 @@ const GermanAdministrativeDivisions = {
     processAddress: function(address) {
         if (this.isCityState(address)) {
             return {
-                state: this.getCityStateName(address),
-                district: this.getCityStateDistrict(address)
+                state: this.getCityStateName(address) || '',
+                district: this.getCityStateDistrict(address) || ''
             };
         }
         
         // Regular handling for non city-states
+        const state = address.state || '';
+        const district = this.getDistrict(address) || '';
+        
         return {
-            state: address.state || '',
-            district: this.getDistrict(address)
+            state: state,
+            district: district
         };
     },
     

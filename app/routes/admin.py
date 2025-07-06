@@ -13,6 +13,8 @@ from app.database.models import (
     TblUsers,
     TblAllData
 )
+from app.database.user_feedback import TblUserFeedback
+from app.database.feedback_type import TblFeedbackType
 from flask import session
 from flask import (
     Blueprint,
@@ -397,6 +399,24 @@ def get_sighting(id):
         for part in sighting:
             part_dict = {c.name: getattr(part, c.name) for c in part.__table__.columns}
             sighting_dict.update(part_dict)
+        
+        # Get feedback information for this user
+        meldung, fundort, beschreibung, melduser, user = sighting
+        feedback = (
+            db.session.query(TblUserFeedback, TblFeedbackType)
+            .join(TblFeedbackType, TblUserFeedback.feedback_type_id == TblFeedbackType.id)
+            .filter(TblUserFeedback.user_id == user.id)
+            .first()
+        )
+        
+        if feedback:
+            user_feedback, feedback_type = feedback
+            sighting_dict['feedback_type'] = feedback_type.name
+            sighting_dict['feedback_detail'] = user_feedback.source_detail
+        else:
+            sighting_dict['feedback_type'] = None
+            sighting_dict['feedback_detail'] = None
+            
         return jsonify(sighting_dict)
     else:
         return jsonify({"error": "Report not found"}), 404

@@ -30,7 +30,6 @@ const WebpConverter = {
             
             if (isActuallyHeic) {
                 if (typeof heic2any !== 'function') {
-                    console.error('heic2any library not loaded.');
                     return reject(new Error('HEIC conversion library not loaded.'));
                 }
                 try {
@@ -42,7 +41,6 @@ const WebpConverter = {
                     fileToProcess = conversionResult;
                     wasHeic = true;
                 } catch (heicError) {
-                    console.error('Error converting HEIC/HEIF:', heicError);
                     return reject(new Error(`HEIC/HEIF conversion failed: ${heicError.message || heicError}`));
                 }
             }
@@ -74,7 +72,6 @@ const WebpConverter = {
                             // Draw image with potential resizing
                             ctx.drawImage(img, 0, 0, width, height);
                         } catch (canvasError) {
-                            console.error('Canvas operation failed, trying with smaller dimensions:', canvasError);
                             // If canvas operations fail (likely due to memory), try with even smaller dimensions
                             const fallbackDimension = isMobile ? 1024 : 2048;
                             const fallback = WebpConverter.calculateOptimalDimensions(
@@ -105,8 +102,6 @@ const WebpConverter = {
                             // Create a data URL for preview purposes
                             const dataUrl = canvas.toDataURL('image/webp', quality);
                             
-                            console.log(`WebP conversion complete: ${(blob.size / 1024).toFixed(1)}KB (quality: ${quality})`);
-                            
                             resolve({
                                 blob: blob,
                                 dataUrl: dataUrl,
@@ -116,17 +111,15 @@ const WebpConverter = {
                         }, 'image/webp', quality);
                         
                     } catch (toBlobError) {
-                        console.error("Error during canvas processing:", toBlobError);
                         reject(new Error(`Failed to convert canvas to WebP: ${toBlobError.message}`));
                     }
                 };
                 
-                img.onerror = (error) => {
+                img.onerror = () => {
                     let objectUrlCreated = imageSource.startsWith('blob:');
                     if (objectUrlCreated) { 
                         URL.revokeObjectURL(img.src); 
                     }
-                    console.error("Error loading image for WebP conversion:", error);
                     reject(new Error('Could not load image data for conversion.'));
                 };
 
@@ -142,8 +135,7 @@ const WebpConverter = {
                 reader.onload = (event) => {
                     loadImageAndConvertToWebp(event.target.result); 
                 };
-                reader.onerror = (error) => {
-                    console.error("FileReader error:", error);
+                reader.onerror = () => {
                     reject(new Error('Error reading file.'));
                 };
                 reader.readAsDataURL(fileToProcess);

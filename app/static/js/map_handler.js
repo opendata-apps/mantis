@@ -289,12 +289,16 @@ const MapHandler = {
         // Process German administrative divisions
         const administrativeDivisions = GermanAdministrativeDivisions.processAddress(address);
         
+        // Ensure no undefined values - double fallback
+        const stateValue = administrativeDivisions.state || address.state || '';
+        const districtValue = administrativeDivisions.district || '';
+        
         // Batch update all fields at once for better performance
         this.updateAddressFields({
             zipCode: address.postcode || '',
             city: this.extractCityName(address),
-            state: administrativeDivisions.state,
-            district: administrativeDivisions.district,
+            state: stateValue,
+            district: districtValue,
             street: this.formatStreetAddress(address)
         });
         
@@ -307,7 +311,8 @@ const MapHandler = {
      * @private
      */
     extractCityName: function(address) {
-        return address.city || address.town || address.village || address.hamlet || '';
+        const city = address.city || address.town || address.village || address.hamlet || '';
+        return city === 'undefined' ? '' : city;
     },
     
     /**
@@ -315,11 +320,10 @@ const MapHandler = {
      * @private
      */
     formatStreetAddress: function(address) {
-        if (!address.road) return '';
+        if (!address.road || address.road === 'undefined') return '';
         
-        return address.house_number 
-            ? `${address.road} ${address.house_number}`.trim()
-            : address.road;
+        const houseNumber = (address.house_number && address.house_number !== 'undefined') ? address.house_number : '';
+        return houseNumber ? `${address.road} ${houseNumber}`.trim() : address.road;
     },
     
     /**
@@ -341,8 +345,14 @@ const MapHandler = {
         
         for (const [key, fieldName] of Object.entries(fieldMap)) {
             const field = fields[fieldName];
-            if (field && field.value !== values[key]) {
-                field.value = values[key];
+            if (field) {
+                // Ensure we never set undefined or null
+                const newValue = values[key];
+                const safeValue = (newValue === undefined || newValue === null || newValue === 'undefined') ? '' : String(newValue);
+                
+                if (field.value !== safeValue) {
+                    field.value = safeValue;
+                }
             }
         }
     },
@@ -399,7 +409,6 @@ const MapHandler = {
      * @deprecated Removed - kreisfreie Stadt detection is now automatic
      */
     isKreisfreieStadt: function() {
-        console.warn('isKreisfreieStadt is deprecated. Kreisfreie Stadt detection is now automatic based on geocoding data.');
         return false;
     }
 }; 
