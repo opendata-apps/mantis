@@ -6,7 +6,6 @@ from sqlalchemy.ext import compiler
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 from typing import Optional
-from flask import current_app
 from app import db
 
 meta = sa.MetaData()
@@ -93,6 +92,7 @@ def dropGen(element, compiler, **kwargs):
 def create_materialized_view(db: Optional[Engine] = None, session: Optional[Session] = None) -> None:
     'create or recreate a materialized view for admin data'
     if not db:
+        from flask import current_app
         db = sa.create_engine(
             current_app.config['SQLALCHEMY_DATABASE_URI']
         )
