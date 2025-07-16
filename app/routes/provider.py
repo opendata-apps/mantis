@@ -2,7 +2,6 @@ from flask import session  # import session
 from flask import render_template, Blueprint, send_from_directory
 from app import db
 from flask import abort
-from app.config import Config
 from app.database.models import (
     TblFundorte,
     TblMeldungen,
@@ -26,10 +25,11 @@ def melder_index(usrid):
     if not user or (user.user_rolle != "1" and user.user_rolle != "9"):
         abort(404)
 
-    # Store the userid in session
+    # Store the userid in session and make it permanent
     session["user_id"] = usrid
+    session.permanent = True
 
-    image_path = Config.UPLOAD_FOLDER.replace("app/", "")
+    image_path = current_app.config['UPLOAD_FOLDER'].replace("app/", "")
 
     # Get the user's email if provided
     user_email = user.user_kontakt if user.user_kontakt else None
@@ -97,6 +97,6 @@ def report_Img(filename):
     "Return the image file for the report with the given filename."
 
     return send_from_directory(
-        Config.UPLOAD_FOLDER, filename,
+        current_app.config['UPLOAD_FOLDER'], filename,
         mimetype="image/webp", as_attachment=False
     )

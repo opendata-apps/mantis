@@ -6,6 +6,7 @@ from sqlalchemy.ext import compiler
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 from typing import Optional
+from flask import current_app
 from app import db
 
 meta = sa.MetaData()
@@ -93,7 +94,7 @@ def create_materialized_view(db: Optional[Engine] = None, session: Optional[Sess
     'create or recreate a materialized view for admin data'
     if not db:
         db = sa.create_engine(
-            'postgresql://mantis_user:mantis@localhost/mantis_tracker'
+            current_app.config['SQLALCHEMY_DATABASE_URI']
         )
 
     if not session:

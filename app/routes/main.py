@@ -16,7 +16,6 @@ from app import db
 from app.database.models import TblMeldungen
 from app.tools.check_reviewer import login_required
 
-from ..config import Config
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FEATURE_FLAG_FILE = os.path.join(BASE_DIR,
@@ -34,7 +33,7 @@ def index():
     "Index page."
     post_count = (
         db.session.query(TblMeldungen)
-        .filter(TblMeldungen.dat_fund_von >= f"{Config.MIN_MAP_YEAR}-01-01")
+        .filter(TblMeldungen.dat_fund_von >= f"{current_app.config['MIN_MAP_YEAR']}-01-01")
         .filter(TblMeldungen.dat_bear.is_not(None))
         .filter(TblMeldungen.deleted.is_(None))
         .count()
@@ -58,12 +57,12 @@ def index():
         bilder=bilder,
         current_index=current_index,
         celebration_enabled=celebration_enabled,
-        celebration_threshold=Config.CELEBRATION_THRESHOLD,
+        celebration_threshold=current_app.config['CELEBRATION_THRESHOLD'],
     )
 
 
 def check_celebration_flag(post_count):
-    if post_count <= Config.CELEBRATION_THRESHOLD:
+    if post_count <= current_app.config['CELEBRATION_THRESHOLD']:
         return False
     return True
 

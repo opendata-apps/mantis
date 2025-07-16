@@ -124,7 +124,7 @@ def create_materialized_view(db: Optional[Engine] = None, session: Optional[Sess
     'create or recreate a materialized view for global search activities'
     if not db:
         db = sa.create_engine(
-            'postgresql://mantis_user:mantis@localhost/mantis_tracker'
+            current_app.config['SQLALCHEMY_DATABASE_URI']
         )
 
     if not session:

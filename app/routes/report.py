@@ -29,7 +29,6 @@ from app.forms import MantisSightingForm
 from app.tools.gen_user_id import get_new_id
 from app.tools.mtb_calc import get_mtb, pointInRect
 from app.tools.gemeinde_finder import get_amt_full_scan
-from ..config import Config
 
 # Blueprints
 report = Blueprint("report", __name__)
@@ -56,7 +55,7 @@ def _process_uploaded_image(photo_file, sighting_date, city_name, user_id):
     """Process uploaded image - trust client-optimized WebP files to avoid double compression."""
     year_str = sighting_date.strftime("%Y")
     date_str = sighting_date.strftime("%Y-%m-%d")
-    upload_dir = Path(Config.UPLOAD_FOLDER) / year_str / date_str
+    upload_dir = Path(current_app.config['UPLOAD_FOLDER']) / year_str / date_str
     upload_dir.mkdir(parents=True, exist_ok=True)
     
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")

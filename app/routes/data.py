@@ -14,7 +14,6 @@ from app.database.models import (TblFundorte,
                                  TblMeldungen,)
 from sqlalchemy import or_
 
-from ..config import Config
 
 # Blueprints
 data = Blueprint("data", __name__)
@@ -30,7 +29,7 @@ def show_map():
         )
         .distinct()
         .order_by("year")
-        .filter(TblMeldungen.dat_fund_von >= f"{Config.MIN_MAP_YEAR}-01-01")
+        .filter(TblMeldungen.dat_fund_von >= f"{current_app.config['MIN_MAP_YEAR']}-01-01")
     )
     years = [int(year[0]) for year in years]
     
@@ -57,7 +56,7 @@ def show_map():
         # Summe aller Meldungen für den Counter
         post_count = (
             db.session.query(TblMeldungen)
-            .filter(TblMeldungen.dat_fund_von >= f"{Config.MIN_MAP_YEAR}-01-01")
+            .filter(TblMeldungen.dat_fund_von >= f"{current_app.config['MIN_MAP_YEAR']}-01-01")
             .filter(TblMeldungen.dat_bear.is_not(None))
             .filter(or_(TblMeldungen.deleted.is_(None), TblMeldungen.deleted == False))  # noqa: E712
             .count()
