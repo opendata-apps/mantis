@@ -714,8 +714,6 @@ class TestAmtMtbRecalculation:
         ).first()
         
         if all_data_row:  # Only test if all_data_view exists
-            original_amt = self.test_location.amt
-            
             # Update latitude via all_data_view endpoint
             response = client.post(
                 '/admin/update_cell',

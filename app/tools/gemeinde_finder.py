@@ -6,7 +6,6 @@ area (Amt) contains a given coordinate point. It uses in-memory caching and spat
 indexing to avoid database queries on every lookup.
 """
 import json
-from functools import lru_cache
 from threading import RLock
 from shapely.geometry import shape, Point, Polygon, MultiPolygon
 from shapely.strtree import STRtree

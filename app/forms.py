@@ -14,7 +14,6 @@ from wtforms.validators import (
     Email,
     Optional,
     Length,
-    NumberRange,
     ValidationError,
     InputRequired,
 )
