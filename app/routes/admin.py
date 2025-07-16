@@ -299,12 +299,31 @@ def update_coordinates(id):
         return jsonify({"error": str(e)}), 500
 
 
-@admin.route("/<path:filename>")
+@admin.route("/images/<path:filename>")
 @login_required
 @limiter.exempt
 def report_Img(filename):
     "This function is used to serve the image of the report"
-    return send_from_directory("", filename, mimetype="image/webp", as_attachment=False)
+    # Validate that the filename doesn't contain dangerous patterns
+    if '..' in filename or filename.startswith('/') or '\\' in filename:
+        abort(403)
+    
+    # Construct the safe path within the upload folder
+    upload_folder = current_app.config['UPLOAD_FOLDER']
+    safe_path = os.path.join(upload_folder, filename)
+    
+    # Ensure the resolved path is within the upload folder
+    safe_path = os.path.abspath(safe_path)
+    upload_folder = os.path.abspath(upload_folder)
+    
+    if not safe_path.startswith(upload_folder):
+        abort(403)
+    
+    # Check if file exists
+    if not os.path.exists(safe_path):
+        abort(404)
+    
+    return send_file(safe_path, mimetype="image/webp")
 
 
 @admin.route("/toggle_approve_sighting/<id>", methods=["POST"])

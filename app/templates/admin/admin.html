@@ -324,9 +324,9 @@
             data-report-id="{{sighting.id}}" data-approved="{{ 'true' if sighting.dat_bear else 'false' }}"
             data-deleted="{{ 'true' if sighting.deleted else 'false' }}">
             <div class="relative">
-                <img loading="lazy" onclick="openImageModal('{{ url_for('admin.report_Img', filename=image_path + '/' + sighting.fundort.ablage) }}')"
+                <img loading="lazy" onclick="openImageModal('{{ url_for('admin.report_Img', filename=sighting.fundort.ablage) }}')"
                     class="object-cover w-full h-48 rounded-t-lg transition-transform duration-200 ease-in-out cursor-pointer md:h-64 hover:scale-105"
-                    src="{{ url_for('admin.report_Img', filename=image_path + '/' + sighting.fundort.ablage) }}"
+                    src="{{ url_for('admin.report_Img', filename=sighting.fundort.ablage) }}"
                     alt="Image not found">
                 <div title="{{sighting.ort}}&#13;&#10;Postleitzahl: {{sighting.plz}}&#13;&#10;Kreis: {{sighting.kreis}}&#13;&#10;Land: {{sighting.land}}"
                     class="absolute bottom-0 px-3 py-1 mb-4 ml-4 font-semibold text-gray-800 rounded-full backdrop-blur-md bg-white/80">
