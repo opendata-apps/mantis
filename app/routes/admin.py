@@ -632,8 +632,12 @@ def export_data(value):
 
 
 def update_report_image_date(report_id, new_date):
-    "Update the date in the image filename and the database"
-    new_date_obj = datetime.strptime(new_date, "%Y-%m-%d")
+    """Update the image location when dat_fund_von changes"""
+    # Handle both string and datetime objects
+    if isinstance(new_date, str):
+        new_date_obj = datetime.strptime(new_date, "%Y-%m-%d")
+    else:
+        new_date_obj = new_date
 
     # Fetch the report
     report = db.session.query(TblMeldungen).filter_by(id=report_id).first()
@@ -644,28 +648,46 @@ def update_report_image_date(report_id, new_date):
     fundorte_record = (
         db.session.query(TblFundorte).filter_by(id=report.fo_zuordnung).first()
     )
-    if not fundorte_record:
-        return {"error": "Fundorte record not found"}, 404
+    if not fundorte_record or not fundorte_record.ablage:
+        # No image to move
+        return {"status": "no_image"}, 200
 
     base_dir = Path(current_app.config["UPLOAD_FOLDER"])
     old_image_path = base_dir / fundorte_record.ablage
 
-    old_dir, old_filename = os.path.split(old_image_path)
-    location, _, usrid = old_filename.rsplit("-", 2)
+    # Check if the old image file exists
+    if not old_image_path.exists():
+        return {"error": f"Image file not found: {fundorte_record.ablage}"}, 404
 
     old_dir, old_filename = os.path.split(old_image_path)
-    location, _, usrid = old_filename.rsplit("-", 2)
+    # Extract location and user id from filename
+    filename_parts = old_filename.rsplit("-", 2)
+    if len(filename_parts) != 3:
+        return {"error": f"Invalid filename format: {old_filename}"}, 400
+    
+    location = filename_parts[0]
+    usrid_with_ext = filename_parts[2]
+    usrid = usrid_with_ext.replace(".webp", "")
 
     new_dir_path = _create_directory(new_date_obj)
     new_filename = _create_filename(location, usrid, new_date_obj)
     new_file_path = new_dir_path / (new_filename + ".webp")
 
+    # Skip if source and destination are the same
+    if str(old_image_path) == str(new_file_path):
+        return {"status": "no_change"}, 200
+
     try:
+        # Move the file
         shutil.move(str(old_image_path), str(new_file_path))
 
         # Check if old directory is empty, if yes, delete it
-        if not os.listdir(old_dir):
+        if os.path.exists(old_dir) and not os.listdir(old_dir):
             os.rmdir(old_dir)
+            # Also check parent year directory
+            old_year_dir = os.path.dirname(old_dir)
+            if os.path.exists(old_year_dir) and not os.listdir(old_year_dir):
+                os.rmdir(old_year_dir)
 
     except IOError as e:
         return {"error": f"Failed to move file: {e}"}, 500
@@ -674,7 +696,7 @@ def update_report_image_date(report_id, new_date):
     fundorte_record.ablage = str(new_file_path.relative_to(base_dir))
     db.session.commit()
 
-    return {"status": "success"}, 200
+    return {"status": "success", "old_path": str(old_image_path), "new_path": str(new_file_path)}, 200
 
 
 def _create_directory(new_date):
@@ -1058,6 +1080,20 @@ def update_cell():
             fundort = db.session.get(TblFundorte, fundorte_id)
             recalculate_amt_mtb(fundort)
         
+        # Handle dat_fund_von changes - move images to new date folder
+        if column_name == 'dat_fund_von' and table_name == 'all_data_view':
+            image_update_result = update_report_image_date(id_value, new_value)
+            if image_update_result[1] != 200:
+                # Rollback database change if image move failed
+                db.session.rollback()
+                error_msg = image_update_result[0].get('error', 'Failed to move image')
+                return jsonify({"error": f"Date update failed: {error_msg}"}), 500
+            elif image_update_result[0].get('status') == 'success':
+                current_app.logger.info(
+                    f"Moved image for report {id_value} from {image_update_result[0].get('old_path')} "
+                    f"to {image_update_result[0].get('new_path')}"
+                )
+
         db.session.commit()
 
         # Refresh materialized view after update
