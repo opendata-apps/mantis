@@ -8,6 +8,14 @@ load_dotenv(dotenv_path="app/.env")
 class Config:
     SQLALCHEMY_DATABASE_URI = 'postgresql://mantis_user:mantis@localhost/mantis_tracker'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    
+    # Connection Pooling Configuration
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        'pool_size': 10,           # Core pool size (persistent connections)
+        'max_overflow': 20,        # Additional connections during peak load
+        'pool_recycle': 3600,      # Recycle connections after 1 hour (prevents stale connections)
+        'pool_pre_ping': True,     # Test connections before use (prevents "server has gone away" errors)
+    }
     MAP_CENTER_LONGITUDE = -122.4194
     MAP_CENTER_LATITUDE = 37.7749
     MAP_ZOOM = 1
