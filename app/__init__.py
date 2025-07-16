@@ -105,13 +105,38 @@ def insert_initial_data_command():
         # Assuming insert_data_reports uses the same session
         insert_data_reports(session) 
 
+        # Copy gallery images with realistic filenames for test data
         src = 'app/datastore/gallerie/'
         trg = 'app/datastore/2025/2025-01-19/'
-        os.makedirs(os.path.dirname(trg), exist_ok=True)
+        os.makedirs(trg, exist_ok=True)
         
-        files=os.listdir(src)
-        for fname in files:
-            shutil.copy2(os.path.join(src,fname), trg)
+        # Map gallery images to realistic report filenames
+        image_mappings = [
+            ('mantis1.webp', 'Zossen-20250119100000-1001.webp'),
+            ('mantis2.webp', 'Ziesar-20250119101500-1002.webp'),
+            ('mantis3.webp', 'Cottbus-20250119103000-1003.webp'),
+            ('mantis4.webp', 'Treuenbrietzen-20250119104500-1004.webp'),
+            ('mantis5.webp', 'Pritzwalk-20250119110000-1005.webp'),
+            ('mantis6.webp', 'Halle_Saale-20250119111500-1006.webp'),
+            ('mantis1.webp', 'Fichtwald-20250119113000-1007.webp'),
+            ('mantis2.webp', 'Luckenwalde-20250119114500-1008.webp'),
+            ('mantis3.webp', 'Cottbus-20250119120000-1009.webp'),
+            ('mantis4.webp', 'Bad_Freienwalde_Oder-20250119121500-1010.webp'),
+            ('mantis5.webp', 'Berlin-20250119123000-1011.webp'),
+            ('mantis6.webp', 'Frankfurt_Oder-20250119124500-1012.webp'),
+            ('mantis5.webp', 'Caputh-20250119130000-1013.webp'),
+            ('mantis2.webp', 'Seevetal-20250119131500-1014.webp'),
+            ('mantis3.webp', 'Leipzig-20250119133000-1015.webp'),
+            ('mantis4.webp', 'Berlin-20250119134500-1016.webp'),
+            ('mantis5.webp', 'Elsterwerda-20250119140000-1017.webp'),
+            ('mantis6.webp', 'Jueterbog-20250119141500-1018.webp'),
+            ('mantis1.webp', 'Jessen_Elster-20250119143000-1019.webp'),
+            ('mantis2.webp', 'Friesack-20250119144500-1020.webp')
+        ]
+        
+        for src_file, target_file in image_mappings:
+            if os.path.exists(os.path.join(src, src_file)):
+                shutil.copy2(os.path.join(src, src_file), os.path.join(trg, target_file))
         click.echo("Inserted test reports and copied gallery files.") # Added echo for clarity
 
     # No separate call to vg5000.import_aemter_data needed here anymore

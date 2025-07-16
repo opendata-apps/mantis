@@ -104,26 +104,26 @@ from maxvals;
     ]
     
     fundorte = [
-        "insert into fundorte values (1 , '15806', 'Zossen', 'Oertelufer','Zossen', 'Teltow-Fläming', '12072477', '3746', 1, '13.440683', '52.217574', '2025/2025-01-19/mantis1.webp');",
-        "insert into fundorte values (2 , '14793', 'Ziesar', 'Wiesenweg','Potsdam-Mittelmark', 'Brandenburg', '12069696', '3739', 1, '12.281342', '52.257955', '2025/2025-01-19/mantis2.webp');",
-        "insert into fundorte values (3 , '03044', 'Cottbus', 'Querstraße 14','Schmellwitz', 'Brandenburg', '12052000', '4251', 1, '14.322739' , '51.785667', '2025/2025-01-19/mantis3.webp');",
-        "insert into fundorte values (4 , '14929', 'Treuenbrietzen', 'Brücker Straße','Potsdam-Mittelmark', 'Brandenburg', '12069632', '3843', 1, '12.241585', '51.746216', '2025/2025-01-19/mantis4.webp');",
-        "insert into fundorte values (5 , '16928', 'Pritzwalk', 'Bahnhofstraße 23','Prignitz', 'Brandenburg', '12070316', '2839', 1, '12.183323', '53.146346', '2025/2025-01-19/mantis5.webp');",
-        "insert into fundorte values (6 , '06116', 'Halle (Saale)', 'Messestraße','Kanena/Bruckdorf', 'Sachsen-Anhalt', '15002000', '4538', 1, '11.912951', '51.522037', '2025/2025-01-19/mantis6.webp');",
-        "insert into fundorte values (7 , '04936', 'Fichtwald', 'Dorfstraße 8','Elbe-Elster', 'Brandenburg', '12062134', '4246', 1, '13.440228' , '51.738052', '2025/2025-01-19/mantis1.webp');",
-        "insert into fundorte values (8 , '14943', 'Luckenwalde', 'Meisterweg','Teltow-Fläming', 'Brandenburg', '12072232', '3945', 1, '13.174152', '52.080641', '2025/2025-01-19/mantis2.webp');",
-        "insert into fundorte values (9 , '03050', 'Cottbus', 'Franz-Schubert-Straße 20','Madlow', 'Brandenburg', '12052000', '4252', 1, '14.348145' , '51.722646', '2025/2025-01-19/mantis3.webp');",
-        "insert into fundorte values (10, '16259', 'Bad Freienwalde (Oder)', 'Wriezener Straße','Märkisch-Oderland', 'Brandenburg', '12064044', '3250', 1, '14.044991', '52.780902', '2025/2025-01-19/mantis4.webp');",
-        "insert into fundorte values (11, '10719', 'Berlin', 'Pfalzburger Straße 23','Charlottenburg-Wilmersdorf', 'Berlin', '11000004', '3545', 1, '13.320923', '52.493207', '2025/2025-01-19/mantis5.webp');",
-        "insert into fundorte values (12, '15234', 'Frankfurt (Oder)', 'Riebestraße 5','Rosengarten/Pagram', 'Brandenburg', '12053000', '3652', 1, '14.487534', '52.350483', '2025/2025-01-19/mantis6.webp');",
-        "insert into fundorte values (13, '14548', 'Caputh', 'Schmerberger Weg 92a','Potsdam-Mittelmark', 'Brandenburg', '12069590', '4547', 1, '13.540649' , '51.464414', '2025/2025-01-19/mantis5.webp');",
-        "insert into fundorte values (14, '21217', 'Seevetal', 'Rehmendamm 49a','Harburg', 'Niedersachsen', '', '', 1, '10.053864', '53.428226', '2025/2025-01-19/mantis2.webp');",
-        "insert into fundorte values (15, '04289', 'Leipzig', 'Russenstraße 146','Leipzig', 'Sachsen', '14713000', '4640', 1, '12.447510', '51.302603', '2025/2025-01-19/mantis3.webp');",
-        "insert into fundorte values (16, '12349', 'Berlin', 'Warmensteinacher Straße 1','Neukölln', 'Berlin', '11000008', '3546', 1, '13.428040', '52.419952', '2025/2025-01-19/mantis4.webp');",
-        "insert into fundorte values (17, '04910', 'Elsterwerda', 'An den Kanitzen 6','Elbe-Elster', 'Brandenburg', '12062124', '4547', 1, '13.540649' , '51.464414', '2025/2025-01-19/mantis5.webp');",
-        "insert into fundorte values (18, '14913', 'Jüterbog', 'Ettmüllerstraße','Teltow-Fläming', 'Brandenburg', '12072169', '4044', 1, '13.075104', '51.996576', '2025/2025-01-19/mantis6.webp');",
-        "insert into fundorte values (19, '06917', 'Jessen (Elster)', 'Lindenstraße 41','Wittenberg', 'Sachsen-Anhalt', '15091145', '4243', 1, '12.958374', '51.785129', '2025/2025-01-19/mantis1.webp');",
-        "insert into fundorte values (20, '14662', 'Friesack', 'Industriegelände', 'Havelland','Brandenburg', '12063088', '3241', 1, '12.575226', '52.730663', '2025/2025-01-19/mantis2.webp');"
+        "insert into fundorte values (1 , '15806', 'Zossen', 'Oertelufer','Zossen', 'Teltow-Fläming', '12072477', '3746', 1, '13.440683', '52.217574', '2025/2025-01-19/Zossen-20250119100000-1001.webp');",
+        "insert into fundorte values (2 , '14793', 'Ziesar', 'Wiesenweg','Potsdam-Mittelmark', 'Brandenburg', '12069696', '3739', 1, '12.281342', '52.257955', '2025/2025-01-19/Ziesar-20250119101500-1002.webp');",
+        "insert into fundorte values (3 , '03044', 'Cottbus', 'Querstraße 14','Schmellwitz', 'Brandenburg', '12052000', '4251', 1, '14.322739' , '51.785667', '2025/2025-01-19/Cottbus-20250119103000-1003.webp');",
+        "insert into fundorte values (4 , '14929', 'Treuenbrietzen', 'Brücker Straße','Potsdam-Mittelmark', 'Brandenburg', '12069632', '3843', 1, '12.241585', '51.746216', '2025/2025-01-19/Treuenbrietzen-20250119104500-1004.webp');",
+        "insert into fundorte values (5 , '16928', 'Pritzwalk', 'Bahnhofstraße 23','Prignitz', 'Brandenburg', '12070316', '2839', 1, '12.183323', '53.146346', '2025/2025-01-19/Pritzwalk-20250119110000-1005.webp');",
+        "insert into fundorte values (6 , '06116', 'Halle (Saale)', 'Messestraße','Kanena/Bruckdorf', 'Sachsen-Anhalt', '15002000', '4538', 1, '11.912951', '51.522037', '2025/2025-01-19/Halle_Saale-20250119111500-1006.webp');",
+        "insert into fundorte values (7 , '04936', 'Fichtwald', 'Dorfstraße 8','Elbe-Elster', 'Brandenburg', '12062134', '4246', 1, '13.440228' , '51.738052', '2025/2025-01-19/Fichtwald-20250119113000-1007.webp');",
+        "insert into fundorte values (8 , '14943', 'Luckenwalde', 'Meisterweg','Teltow-Fläming', 'Brandenburg', '12072232', '3945', 1, '13.174152', '52.080641', '2025/2025-01-19/Luckenwalde-20250119114500-1008.webp');",
+        "insert into fundorte values (9 , '03050', 'Cottbus', 'Franz-Schubert-Straße 20','Madlow', 'Brandenburg', '12052000', '4252', 1, '14.348145' , '51.722646', '2025/2025-01-19/Cottbus-20250119120000-1009.webp');",
+        "insert into fundorte values (10, '16259', 'Bad Freienwalde (Oder)', 'Wriezener Straße','Märkisch-Oderland', 'Brandenburg', '12064044', '3250', 1, '14.044991', '52.780902', '2025/2025-01-19/Bad_Freienwalde_Oder-20250119121500-1010.webp');",
+        "insert into fundorte values (11, '10719', 'Berlin', 'Pfalzburger Straße 23','Charlottenburg-Wilmersdorf', 'Berlin', '11000004', '3545', 1, '13.320923', '52.493207', '2025/2025-01-19/Berlin-20250119123000-1011.webp');",
+        "insert into fundorte values (12, '15234', 'Frankfurt (Oder)', 'Riebestraße 5','Rosengarten/Pagram', 'Brandenburg', '12053000', '3652', 1, '14.487534', '52.350483', '2025/2025-01-19/Frankfurt_Oder-20250119124500-1012.webp');",
+        "insert into fundorte values (13, '14548', 'Caputh', 'Schmerberger Weg 92a','Potsdam-Mittelmark', 'Brandenburg', '12069590', '4547', 1, '13.540649' , '51.464414', '2025/2025-01-19/Caputh-20250119130000-1013.webp');",
+        "insert into fundorte values (14, '21217', 'Seevetal', 'Rehmendamm 49a','Harburg', 'Niedersachsen', '', '', 1, '10.053864', '53.428226', '2025/2025-01-19/Seevetal-20250119131500-1014.webp');",
+        "insert into fundorte values (15, '04289', 'Leipzig', 'Russenstraße 146','Leipzig', 'Sachsen', '14713000', '4640', 1, '12.447510', '51.302603', '2025/2025-01-19/Leipzig-20250119133000-1015.webp');",
+        "insert into fundorte values (16, '12349', 'Berlin', 'Warmensteinacher Straße 1','Neukölln', 'Berlin', '11000008', '3546', 1, '13.428040', '52.419952', '2025/2025-01-19/Berlin-20250119134500-1016.webp');",
+        "insert into fundorte values (17, '04910', 'Elsterwerda', 'An den Kanitzen 6','Elbe-Elster', 'Brandenburg', '12062124', '4547', 1, '13.540649' , '51.464414', '2025/2025-01-19/Elsterwerda-20250119140000-1017.webp');",
+        "insert into fundorte values (18, '14913', 'Jüterbog', 'Ettmüllerstraße','Teltow-Fläming', 'Brandenburg', '12072169', '4044', 1, '13.075104', '51.996576', '2025/2025-01-19/Jueterbog-20250119141500-1018.webp');",
+        "insert into fundorte values (19, '06917', 'Jessen (Elster)', 'Lindenstraße 41','Wittenberg', 'Sachsen-Anhalt', '15091145', '4243', 1, '12.958374', '51.785129', '2025/2025-01-19/Jessen_Elster-20250119143000-1019.webp');",
+        "insert into fundorte values (20, '14662', 'Friesack', 'Industriegelände', 'Havelland','Brandenburg', '12063088', '3241', 1, '12.575226', '52.730663', '2025/2025-01-19/Friesack-20250119144500-1020.webp');"
     ]
     
     meldungen = [
