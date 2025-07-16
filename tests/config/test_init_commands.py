@@ -53,27 +53,24 @@ def test_error_handlers_register():
     assert 403 in app.error_handler_spec[None]
     assert 429 in app.error_handler_spec[None]
 
-@patch('app.render_template')
-def test_error_handler_return_values(mock_render_template):
+def test_error_handler_return_values(app):
     """Test the return values of error handler functions."""
-    # Mock render_template to return a string value
-    mock_render_template.return_value = "Mocked template"
+    with app.test_request_context():
+        # Test each handler directly
+        response_404, status_404 = page_not_found(None)
+        assert isinstance(response_404, str)
+        assert status_404 == 404
+        assert "404" in response_404 or "nicht gefunden" in response_404.lower()
 
-    # Test each handler directly
-    response_404, status_404 = page_not_found(None)
-    assert response_404 == "Mocked template"
-    assert status_404 == 404
-    mock_render_template.assert_called_with("error/404.html")
+        response_403, status_403 = forbidden(None)
+        assert isinstance(response_403, str)
+        assert status_403 == 403
+        assert "403" in response_403 or "verboten" in response_403.lower()
 
-    response_403, status_403 = forbidden(None)
-    assert response_403 == "Mocked template"
-    assert status_403 == 403
-    mock_render_template.assert_called_with("error/403.html")
-
-    response_429, status_429 = too_many_requests(None)
-    assert response_429 == "Mocked template"
-    assert status_429 == 429
-    mock_render_template.assert_called_with("error/429.html", error=None)
+        response_429, status_429 = too_many_requests(None)
+        assert isinstance(response_429, str)
+        assert status_429 == 429
+        assert "429" in response_429 or "zu viele" in response_429.lower()
 
 def test_context_processor():
     """Test that the context processor for inject_now is registered."""

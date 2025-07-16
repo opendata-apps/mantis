@@ -8,7 +8,6 @@ from app.database.populate import (
 )
 from app.database.models import TblFundortBeschreibung, TblFeedbackType
 
-from flask import current_app
 class TestPopulateFunctions:
     """Test suite for database population functions."""
 
@@ -208,9 +207,12 @@ class TestPopulateFunctions:
         with pytest.raises(Exception):  # The function catches and re-raises as generic Exception
             populate_beschreibung(mock_session)
 
-    @patch('app.database.populate.logger')
-    def test_populate_all_logging(self, mock_logger):
+    @patch('app.database.populate.current_app')
+    def test_populate_all_logging(self, mock_current_app):
         """Test that populate_all logs its progress."""
+        
+        mock_logger = MagicMock()
+        mock_current_app.logger = mock_logger
         
         mock_engine = MagicMock()
         mock_session = MagicMock()
