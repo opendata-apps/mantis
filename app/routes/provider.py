@@ -25,10 +25,10 @@ def melder_index(usrid):
     if not user or (user.user_rolle != "1" and user.user_rolle != "9"):
         abort(404)
 
-    # Store the userid in session and make it permanent
+    # Store the userid in session
     session["user_id"] = usrid
-    session.permanent = True
 
+    from flask import current_app
     image_path = current_app.config['UPLOAD_FOLDER'].replace("app/", "")
 
     # Get the user's email if provided
@@ -96,6 +96,7 @@ def melder_index(usrid):
 def report_Img(filename):
     "Return the image file for the report with the given filename."
 
+    from flask import current_app
     return send_from_directory(
         current_app.config['UPLOAD_FOLDER'], filename,
         mimetype="image/webp", as_attachment=False
