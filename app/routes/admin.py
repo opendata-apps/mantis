@@ -50,7 +50,7 @@ NON_EDITABLE_FIELDS = {
     "fundorte": ["id", "ablage", "beschreibung"],
     "melduser": ["id", "id_finder", "id_meldung", "id_user"],
     "users": ["id", "user_id"],
-    "all_data_view": ["meldungen_id", "fo_zuordnung", "fundorte_id", "beschreibung_id", "dat_fund_von", "id_user", "user_id"]
+    "all_data_view": ["meldungen_id", "fo_zuordnung", "fundorte_id", "beschreibung_id", "id_user", "user_id"]
 }
 
 
