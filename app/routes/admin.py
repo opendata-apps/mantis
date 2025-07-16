@@ -1006,6 +1006,8 @@ def get_table_data(table_name):
 @login_required
 def update_cell():
     data = request.json
+    if data is None:
+        return jsonify({"error": "Invalid request"}), 400
     table_name = data['table']
     column_name = data['column']
     id_value = data['meldungen_id']
