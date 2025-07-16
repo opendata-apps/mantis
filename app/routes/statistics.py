@@ -204,7 +204,7 @@ def stats_bardiagram_datum(request, dbfields,
                            page, marker,
                            dateFrom, dateTo):
     "Calculate statistics by date"
-    results = {0: '', 1: ''}
+    results = {0: {}, 1: {}}
     for idx, dbfield in enumerate(dbfields):
         stm = f"""
            SELECT {dbfield} as Tag,

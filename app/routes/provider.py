@@ -97,6 +97,6 @@ def report_Img(filename):
     "Return the image file for the report with the given filename."
 
     return send_from_directory(
-        Config["UPLOAD_PATH"], filename,
+        Config.UPLOAD_FOLDER, filename,
         mimetype="image/webp", as_attachment=False
     )
