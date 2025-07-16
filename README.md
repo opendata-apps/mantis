@@ -40,7 +40,8 @@ Stay tuned for updates on these exciting new features!
 
 ### Prerequisites
 
-- Python 3.8+
+- Python 3.13+
+- [uv](https://github.com/astral-sh/uv) (Python package manager)
 - Node.js and npm
 - PostgreSQL
 
@@ -61,7 +62,14 @@ source .venv/bin/activate    # For Windows: .venv\Scripts\activate
 ### Step 3: 📦 Install Python dependencies
 
 ```bash
-pip install -r requirements.txt
+# Install production dependencies
+uv sync
+
+# For development (includes testing and linting tools)
+uv sync --extra dev
+
+# For documentation building
+uv sync --extra docs
 ```
 
 ### Step 4: 🗄️ Set up PostgreSQL database

@@ -88,12 +88,12 @@ def _create_user(first_name, last_name, email, role=1):
     """Create a new user with standardized name format."""
     user_id = get_new_id()
     name = f"{last_name.strip()} {first_name.strip()[0].upper()}."
-    return TblUsers(
-        user_id=user_id,
-        user_name=name,
-        user_rolle=role,
-        user_kontakt=email
-    )
+    user = TblUsers()
+    user.user_id = user_id
+    user.user_name = name
+    user.user_rolle = role
+    user.user_kontakt = email
+    return user
 
 def _parse_user_name(user_name):
     """Parse database user_name format 'Lastname F.' into components."""

@@ -72,7 +72,7 @@ def show_map():
         lat_valid, normalized_lat, _ = validate_and_normalize_coordinate(latitude, 'latitude')
         lon_valid, normalized_lon, _ = validate_and_normalize_coordinate(longitude, 'longitude')
         
-        if lat_valid and lon_valid:
+        if lat_valid and lon_valid and normalized_lat is not None and normalized_lon is not None:
             # Convert back to float for obfuscation
             lati = float(normalized_lat)
             long = float(normalized_lon)

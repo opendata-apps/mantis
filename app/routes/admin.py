@@ -461,6 +461,8 @@ def change_gender(id):
     new_gender = request.form.get("new_gender")
 
     sighting = db.session.get(TblMeldungen, id)
+    if sighting is None:
+        return "Sighting not found", 404
 
     # Reset all gender columns to 0
     sighting.art_m = 0
@@ -494,6 +496,8 @@ def change_mantis_count(id):
     new_count = request.form.get("new_count")
     mantis_type = request.form.get("type")
     sighting = db.session.get(TblMeldungen, id)
+    if sighting is None:
+        return "Sighting not found", 404
 
     # Update the count for the specified mantis type
     if mantis_type == "Männchen":
@@ -601,7 +605,7 @@ def export_data(value):
 
         # Write the DataFrame to an Excel file
         output = BytesIO()
-        with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
+        with pd.ExcelWriter(output, engine="xlsxwriter") as writer:  # type: ignore
             df.to_excel(writer, sheet_name="Daten", index=False)
             
             # Get the xlsxwriter worksheet object
@@ -807,8 +811,8 @@ def get_filtered_query(
         try:
             if search_type == "id":
                 try:
-                    search_query = int(search_query)
-                    query = query.filter(TblMeldungen.id == search_query)
+                    search_id = int(search_query)
+                    query = query.filter(TblMeldungen.id == search_id)
                 except ValueError:
                     search_type = "full_text"
 

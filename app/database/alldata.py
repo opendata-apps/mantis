@@ -1,11 +1,15 @@
 import sqlalchemy as sa
 import sqlalchemy.schema
 import sqlalchemy.orm as orm
+from sqlalchemy import text, event
+from sqlalchemy.ext import compiler
+from sqlalchemy.engine import Engine
+from sqlalchemy.orm import Session
+from typing import Optional
 from app import db
-from sqlalchemy import text
 
 meta = sa.MetaData()
-Base = sa.orm.declarative_base()
+Base = orm.declarative_base()
 
 class TblAllData(Base):
     __tablename__ = 'all_data_view'
@@ -60,11 +64,11 @@ class Create(sa.schema.DDLElement):
         self.schema = schema
         self.select = select
 
-        sa.event.listen(meta, 'after_create', self)
-        sa.event.listen(meta, 'before_drop', Drop(name, schema))
+        event.listen(meta, 'after_create', self)
+        event.listen(meta, 'before_drop', Drop(name, schema))
 
 
-@sa.ext.compiler.compiles(Create)
+@compiler.compiles(Create)
 def createGen(element, compiler, **kwargs):
     return 'CREATE MATERIALIZED VIEW {schema}."{name}" AS {select}'.format(
         name=element.name,
@@ -74,7 +78,7 @@ def createGen(element, compiler, **kwargs):
             literal_binds=True
         ),
     )
-@sa.ext.compiler.compiles(Drop)
+@compiler.compiles(Drop)
 def dropGen(element, compiler, **kwargs):
     # Den SQL-Ausdruck mit text() umschließen,
     # damit SQLAlchemy ihn korrekt behandelt
@@ -85,15 +89,16 @@ def dropGen(element, compiler, **kwargs):
     return text(sql)  # text() um den SQL-Ausdruck
 
 
-def create_materialized_view(db=None, session=None):
+def create_materialized_view(db: Optional[Engine] = None, session: Optional[Session] = None) -> None:
     'create or recreate a materialized view for admin data'
     if not db:
         db = sa.create_engine(
             'postgresql://mantis_user:mantis@localhost/mantis_tracker'
         )
 
-        Session = orm.sessionmaker(bind=db)
-        session = Session()
+    if not session:
+        SessionClass = orm.sessionmaker(bind=db)
+        session = SessionClass()
 
     # Drop the existing materialized view if it exists
     try:
