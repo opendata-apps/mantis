@@ -192,6 +192,16 @@ def create_app(config_class=Config):
     @app.context_processor
     def inject_now():
         return {"now": datetime.now()}
+    
+    # Security headers middleware
+    @app.after_request
+    def add_security_headers(response):
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+        response.headers['X-XSS-Protection'] = '1; mode=block'
+        if app.config.get('PREFERRED_URL_SCHEME') == 'https':
+            response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+        return response
 
     # Import the routes
     from app.routes.admin import admin
@@ -214,24 +224,42 @@ def create_app(config_class=Config):
     app.register_error_handler(404, page_not_found)
     app.register_error_handler(403, forbidden)
     app.register_error_handler(429, too_many_requests)
+    app.register_error_handler(500, internal_server_error)
+    
+    # Global exception handler
+    @app.errorhandler(Exception)
+    def handle_exception(e):
+        # Log the exception
+        app.logger.exception(f'Unhandled exception: {str(e)}')
+        
+        # Return 500 error for unhandled exceptions
+        if app.debug:
+            raise e  # Re-raise in debug mode
+        return render_template("error/500.html"), 500
 
     return app
 
 
 def page_not_found(e):
     from flask import current_app
-    current_app.logger.warning(f'Page not found: {request.url}')
+    current_app.logger.warning(f'Page not found: {request.url} - User Agent: {request.headers.get("User-Agent", "Unknown")}')
     return render_template("error/404.html"), 404
 
 
 def forbidden(e):
     from flask import current_app
-    current_app.logger.warning(f'Forbidden access: {request.url}')
+    current_app.logger.warning(f'Forbidden access: {request.url} - User Agent: {request.headers.get("User-Agent", "Unknown")}')
     return render_template("error/403.html"), 403
 
 
 def too_many_requests(e):
     """Custom error handler for rate limiting (429 errors)"""
     from flask import current_app
-    current_app.logger.warning(f'Rate limit exceeded: {request.url}')
+    current_app.logger.warning(f'Rate limit exceeded: {request.url} - User Agent: {request.headers.get("User-Agent", "Unknown")}')
     return render_template("error/429.html", error=e), 429
+
+
+def internal_server_error(e):
+    from flask import current_app
+    current_app.logger.error(f'Internal server error: {request.url} - Error: {str(e)}')
+    return render_template("error/500.html"), 500
