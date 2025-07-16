@@ -52,24 +52,25 @@ def create_measure_sheet(horizontal_range=(24, 46),
                          text_anchor='middle', font_size=(box_size/3)))
 
     # Zeichnen der Kreiszeichen und Beschriften basierend auf dbanswer
-    for coord, count in dataset:
-        x_coord = (coord % 100)
-        y_coord = (coord // 100)
-        vertical_offset = 1
-        distance_from_start_x = abs(x_coord - horizontal_size[0])
-        distance_from_start_y = abs(y_coord - vertical_size[0])
-        circle_center = (distance_from_start_x * box_size + (box_size * 1.5),
-                         distance_from_start_y * box_size + (box_size * 1.5))
-        dwg.add(dwg.circle(center=circle_center,
-                           r=box_size // 3,
-                           fill='black'))
-        dwg.add(dwg.text(f"{count}",
-                         insert=circle_center,
-                         fill='white',
-                         dominant_baseline='middle',
-                         text_anchor='middle',
-                         font_size=(box_size/3),
-                         dy=f"{vertical_offset}"))
+    if dataset is not None:
+        for coord, count in dataset:
+            x_coord = (coord % 100)
+            y_coord = (coord // 100)
+            vertical_offset = 1
+            distance_from_start_x = abs(x_coord - horizontal_size[0])
+            distance_from_start_y = abs(y_coord - vertical_size[0])
+            circle_center = (distance_from_start_x * box_size + (box_size * 1.5),
+                             distance_from_start_y * box_size + (box_size * 1.5))
+            dwg.add(dwg.circle(center=circle_center,
+                               r=box_size // 3,
+                               fill='black'))
+            dwg.add(dwg.text(f"{count}",
+                             insert=circle_center,
+                             fill='white',
+                             dominant_baseline='middle',
+                             text_anchor='middle',
+                             font_size=(box_size/3),
+                             dy=f"{vertical_offset}"))
 
     # Speichern der SVG-Datei
     # dwg.save()
