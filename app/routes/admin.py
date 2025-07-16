@@ -2,7 +2,6 @@ from datetime import datetime, timedelta
 from io import BytesIO
 import pandas as pd
 from app import db, limiter
-from app.config import Config
 import  app.database.alldata as ad
 import  app.database.full_text_search as fts
 from app.database.models import (
@@ -117,7 +116,7 @@ def reviewer(usrid):
     date_from = request.args.get("dateFrom", None)
     date_to = request.args.get("dateTo", None)
 
-    image_path = Config.UPLOAD_FOLDER.replace("app/", "")
+    image_path = current_app.config['UPLOAD_FOLDER'].replace("app/", "")
     inspector = inspect(db.engine)
     tables = inspector.get_table_names()
 
@@ -148,6 +147,13 @@ def reviewer(usrid):
 
     # Process the joined data for the template
     reported_sightings = []
+    
+    # Fetch all approvers in a single query to avoid N+1 problem
+    bearb_ids = [row[0].bearb_id for row in paginated_sightings.items if row[0].bearb_id]
+    approvers = {}
+    if bearb_ids:
+        approvers = {u.user_id: u.user_name for u in TblUsers.query.filter(TblUsers.user_id.in_(bearb_ids)).all()}
+    
     for row in paginated_sightings.items:
         meldung, fundort, beschreibung, _, user = row
         sighting = meldung
@@ -158,8 +164,7 @@ def reviewer(usrid):
         sighting.kreis = fundort.kreis
         sighting.land = fundort.land
         if sighting.bearb_id:
-            approver = TblUsers.query.filter_by(user_id=sighting.bearb_id).first()
-            sighting.approver_username = approver.user_name if approver else "Unknown"
+            sighting.approver_username = approvers.get(sighting.bearb_id, "Unknown")
         reported_sightings.append(sighting)
 
     return render_template(
@@ -326,7 +331,7 @@ def toggle_approve_sighting(id):
         current_app.logger.error(f"Sighting {id} not found for approval toggle.")
         return jsonify({"error": "Report not found"}), 404
 
-    if Config.send_emails:
+    if current_app.config.get('send_emails', False):
         # get data for E-Mail if send_email is True
         sighting = (
             db.session.query(
