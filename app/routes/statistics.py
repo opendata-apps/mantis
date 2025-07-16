@@ -39,10 +39,16 @@ def get_date_interval(request=None):
     if request:
         start_date = request.form.get("dateFrom", last_year)
         end_date = request.form.get("dateTo", now)
+    else:
+        start_date = last_year
+        end_date = now
+        
     if not end_date:
         end_date = now
     if not start_date:
         start_date = last_year
+    
+    
     return (start_date[:10], end_date[:10])
 
 
@@ -206,20 +212,22 @@ def stats_bardiagram_datum(request, dbfields,
     "Calculate statistics by date"
     results = {0: {}, 1: {}}
     for idx, dbfield in enumerate(dbfields):
+        
+        # Use parameterized query to prevent SQL injection
         stm = f"""
            SELECT {dbfield} as Tag,
            count({dbfield}) as Anzahl
            FROM (select {dbfield}
                 from meldungen
-                where {dbfield} BETWEEN '{dateFrom}'::date
-                                AND ('{dateTo}'::date)
+                where {dbfield} BETWEEN CAST(:date_from AS date)
+                                AND CAST(:date_to AS date)
                 and (deleted IS NULL or deleted != 'f')) as filtered
            GROUP BY filtered.{dbfield}
            ORDER by Tag;
         """
         sql = text(stm)
         with db.engine.connect() as conn:
-            result = conn.execute(sql)
+            result = conn.execute(sql, {"date_from": dateFrom, "date_to": dateTo})
 
         trace = {"x": [], "y": []}
 
@@ -245,7 +253,10 @@ def stats_geschlecht(request=None):
     """Count sum of all kategories"""
 
     start_date, end_date = get_date_interval(request)
-    stm = f"""
+    
+    
+    # Use parameterized query to prevent SQL injection
+    stm = """
       select sum(art_m) as "Männchen"
             , sum(art_w) as "Weibchen"
             , sum(art_n) as "Nymphen"
@@ -253,14 +264,14 @@ def stats_geschlecht(request=None):
             , sum(art_f) as "Andere"
       from (select art_m, art_w, art_n, art_o, art_f
             from meldungen
-            where dat_fund_von >= to_date('{start_date}', 'YYYY-MM-DD')
-            and dat_fund_von <= to_date('{end_date}', 'YYYY-MM-DD')
+            where dat_fund_von >= CAST(:start_date AS date)
+            and dat_fund_von <= CAST(:end_date AS date)
             and deleted is NULL or 'f') as filtered;"""
 
     sql = text(stm)
     userid = session["user_id"]
     with db.engine.connect() as conn:
-        result = conn.execute(sql)
+        result = conn.execute(sql, {"start_date": start_date, "end_date": end_date})
         res = []
         for row in result:
             row = row._mapping
@@ -281,7 +292,9 @@ def stats_amt(request, dateFrom, dateTo, marker):
     "Statistics pro Gemeinden (AGS))"
 
     gem = request.form.get('gemeinde', '000')
-    gem.split(' ')[0]
+    
+    
+    gem = gem.split(' ')[0]
     typeInput = ['amt', 'maennlich', 'weiblich',
                  'oothek', 'nymphe', 'andere', 'all']
     conn = db.session
