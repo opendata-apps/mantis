@@ -16,9 +16,9 @@
     <div
       class="mb-8 overflow-hidden transition-shadow duration-300 ease-in-out bg-white rounded-lg shadow-lg hover:shadow-2xl report-card">
       <div class="relative">
-        <img loading="lazy" onclick="openImageModal('{{ url_for('provider.report_Img', filename=image_path + "/" + sighting.ablage)}}')"
+        <img loading="lazy" onclick="openImageModal('{{ url_for('provider.report_Img', filename=sighting.ablage)}}')"
           class="object-cover w-full h-48 transition-transform duration-200 ease-in-out rounded-t-lg cursor-pointer md:h-64 hover:scale-105"
-          src="{{ url_for('provider.report_Img', filename=image_path + "/" + sighting.ablage)}}"
+          src="{{ url_for('provider.report_Img', filename=sighting.ablage)}}"
           alt="{{sighting.imagepath}}">
         <div
           title="{{sighting.ort}}&#13;&#10;Postleitzahl: {{sighting.plz}}&#13;&#10;Kreis: {{sighting.kreis}}&#13;&#10;Land: {{sighting.land}}"

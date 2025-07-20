@@ -39,5 +39,5 @@ class CoordinateValidator:
         is_valid, _, error_msg = validate_and_normalize_coordinate(field.data, self.coord_type)
         
         if not is_valid:
-            message = self.message or error_msg
+            message = self.message or error_msg or f"Invalid {self.coord_type}"
             raise ValidationError(message)

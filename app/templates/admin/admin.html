@@ -320,13 +320,13 @@
 
     <div class="grid grid-cols-1 gap-6 mb-4 sm:grid-cols-2 lg:grid-cols-3" id="reportContainer">
         {% for sighting in reported_sightings %}
-        <div class="overflow-hidden mb-4 bg-white rounded-lg shadow-lg transition-shadow duration-200 ease-in-out hover:shadow-xl report-card"
+        <div class="overflow-hidden mb-4 bg-white rounded-lg shadow-md transition-shadow duration-200 hover:shadow-lg report-card"
             data-report-id="{{sighting.id}}" data-approved="{{ 'true' if sighting.dat_bear else 'false' }}"
             data-deleted="{{ 'true' if sighting.deleted else 'false' }}">
             <div class="relative">
-                <img loading="lazy" onclick="openImageModal('{{ url_for('admin.report_Img', filename=image_path + '/' + sighting.fundort.ablage) }}')"
+                <img loading="lazy" onclick="openImageModal('{{ url_for('admin.report_Img', filename=sighting.fundort.ablage) }}')"
                     class="object-cover w-full h-48 rounded-t-lg transition-transform duration-200 ease-in-out cursor-pointer md:h-64 hover:scale-105"
-                    src="{{ url_for('admin.report_Img', filename=image_path + '/' + sighting.fundort.ablage) }}"
+                    src="{{ url_for('admin.report_Img', filename=sighting.fundort.ablage) }}"
                     alt="Image not found">
                 <div title="{{sighting.ort}}&#13;&#10;Postleitzahl: {{sighting.plz}}&#13;&#10;Kreis: {{sighting.kreis}}&#13;&#10;Land: {{sighting.land}}"
                     class="absolute bottom-0 px-3 py-1 mb-4 ml-4 font-semibold text-gray-800 rounded-full backdrop-blur-md bg-white/80">
@@ -463,18 +463,18 @@
 <div id="modal" class="hidden overflow-y-auto fixed inset-0 backdrop-blur-sm bg-gray-500/75" style="z-index: 9999;">
     <div class="flex justify-center items-center p-4 min-h-screen">
         <!-- Modal Container - Updated with better shadow and spacing -->
-        <div class="w-full bg-white rounded-xl shadow-2xl transition-all duration-300 md:max-w-5xl lg:max-w-6xl xl:max-w-7xl"
+        <div class="w-full bg-white rounded-lg shadow-xl transition-all duration-200 md:max-w-5xl lg:max-w-6xl xl:max-w-7xl"
             style="display: flex; flex-direction: column; height: calc(90vh - 2rem);">
 
             <!-- Header Section -->
-            <div class="overflow-hidden flex-grow p-8">
+            <div class="overflow-hidden flex-grow p-6">
                 <!-- Tab Buttons - Updated with better spacing and visual hierarchy -->
                 <div class="flex justify-center mb-6 space-x-4">
                     <button
-                        class="px-6 py-3 text-base font-semibold text-green-700 bg-green-100 rounded-lg shadow-sm transition-all duration-200 focus:outline-none hover:bg-green-600 hover:text-gray-100 focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                        class="px-6 py-3 text-base font-semibold text-green-700 bg-green-100 rounded-lg transition duration-200 focus:outline-none hover:bg-green-600 hover:text-white hover:shadow-md focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                         id="tab-general-info">General Information</button>
                     <button
-                        class="px-6 py-3 text-base font-semibold text-green-700 bg-green-100 rounded-lg shadow-sm transition-all duration-200 focus:outline-none hover:bg-green-600 hover:text-gray-100 focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                        class="px-6 py-3 text-base font-semibold text-green-700 bg-green-100 rounded-lg transition duration-200 focus:outline-none hover:bg-green-600 hover:text-white hover:shadow-md focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                         id="tab-location-info">Position auf der Karte</button>
                 </div>
 
@@ -486,11 +486,11 @@
             </div>
 
             <!-- Actions Footer - Updated with reduced height -->
-            <div class="px-6 py-4 bg-gray-50 rounded-b-xl border-t border-gray-200">
+            <div class="px-6 py-4 bg-gray-50 rounded-b-lg border-t border-gray-200">
                 <div class="flex justify-end space-x-4 action-container">
                     <!-- "Bearbeiten" button will be inserted here dynamically -->
                     <button type="button"
-                        class="px-5 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg shadow-sm transition-all duration-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
+                        class="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg transition duration-200 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
                         onclick="closeModal()">Schließen</button>
                 </div>
             </div>
@@ -1068,7 +1068,7 @@
         let gender_counts = [data.art_m, data.art_w, data.art_n, data.art_o, data.art_f, data.tiere];
 
         let html = `<div class="overflow-y-auto h-full">
-                        <div class="flex overflow-hidden flex-wrap -mx-4">
+                        <div class="flex overflow-hidden flex-wrap">
                             <div class="overflow-hidden px-4 my-4 w-full lg:w-1/2">
                                 <div class="p-6 bg-white rounded-lg shadow-md">
                                     <div class="grid grid-cols-2 gap-4">
@@ -1797,7 +1797,7 @@
             editButton.style.display = 'none';
             const saveButton = document.createElement('button');
             saveButton.type = 'button';
-            saveButton.className = 'save-button flex items-center justify-center px-4 py-2 mr-4 text-sm font-medium text-white transition-all duration-200 bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2';
+            saveButton.className = 'save-button flex items-center justify-center px-5 py-2.5 mr-4 text-sm font-medium text-white transition duration-200 bg-green-600 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2';
             saveButton.title = 'Klicken Sie hier, um die Änderungen zu speichern';
             saveButton.innerHTML = `
                 <svg class="mr-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

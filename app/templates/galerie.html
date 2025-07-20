@@ -14,7 +14,7 @@
     {{ popoverOld('hinweise-popover', 'Hinweise zur Bedienung', '<ul><li>Das Bild anklicken, Bilderserie startet …</li><li>Mit Pfeil nach rechts, vorblättern …</li><li>Mit Pfeil nach links, zurückblättern …</li><li>Mit ESC-Taste, die Bilderschau beenden …</li></ul>') }}
   </div>
   <div class="grid grid-cols-1 gap-4 px-2 md:grid-cols-3 lg:grid-cols-4 xl:px-8 auto-rows-[1fr]">
-    <link href="{{ url_for('static', filename='lb/css/lightbox.min.css')}}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='node_modules/lightbox2/dist/css/lightbox.min.css')}}" rel="stylesheet">
     
     {% for slide in bilder %}
     <div class="aspect-w-16 aspect-h-9">
@@ -32,7 +32,6 @@
   </div>
 </section>
 
-<script src="{{ url_for('static', filename='lb/jquery-3.3.1.slim.min.js')}}"></script>
-<script src="{{ url_for('static', filename='lb/js/lightbox-plus-jquery.js')}}"></script>
+<script src="{{ url_for('static', filename='node_modules/lightbox2/dist/js/lightbox-plus-jquery.min.js')}}"></script>
 
 {% endblock content %}

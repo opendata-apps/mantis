@@ -2,7 +2,6 @@ from datetime import datetime, timedelta
 from io import BytesIO
 import pandas as pd
 from app import db, limiter
-from app.config import Config
 import  app.database.alldata as ad
 import  app.database.full_text_search as fts
 from app.database.models import (
@@ -51,7 +50,7 @@ NON_EDITABLE_FIELDS = {
     "fundorte": ["id", "ablage", "beschreibung"],
     "melduser": ["id", "id_finder", "id_meldung", "id_user"],
     "users": ["id", "user_id"],
-    "all_data_view": ["meldungen_id", "fo_zuordnung", "fundorte_id", "beschreibung_id", "dat_fund_von", "id_user", "user_id"]
+    "all_data_view": ["meldungen_id", "fo_zuordnung", "fundorte_id", "beschreibung_id", "id_user", "user_id"]
 }
 
 
@@ -117,7 +116,7 @@ def reviewer(usrid):
     date_from = request.args.get("dateFrom", None)
     date_to = request.args.get("dateTo", None)
 
-    image_path = Config.UPLOAD_FOLDER.replace("app/", "")
+    image_path = current_app.config['UPLOAD_FOLDER'].replace("app/", "")
     inspector = inspect(db.engine)
     tables = inspector.get_table_names()
 
@@ -148,6 +147,13 @@ def reviewer(usrid):
 
     # Process the joined data for the template
     reported_sightings = []
+    
+    # Fetch all approvers in a single query to avoid N+1 problem
+    bearb_ids = [row[0].bearb_id for row in paginated_sightings.items if row[0].bearb_id]
+    approvers = {}
+    if bearb_ids:
+        approvers = {u.user_id: u.user_name for u in TblUsers.query.filter(TblUsers.user_id.in_(bearb_ids)).all()}
+    
     for row in paginated_sightings.items:
         meldung, fundort, beschreibung, _, user = row
         sighting = meldung
@@ -158,8 +164,7 @@ def reviewer(usrid):
         sighting.kreis = fundort.kreis
         sighting.land = fundort.land
         if sighting.bearb_id:
-            approver = TblUsers.query.filter_by(user_id=sighting.bearb_id).first()
-            sighting.approver_username = approver.user_name if approver else "Unknown"
+            sighting.approver_username = approvers.get(sighting.bearb_id, "Unknown")
         reported_sightings.append(sighting)
 
     return render_template(
@@ -294,12 +299,31 @@ def update_coordinates(id):
         return jsonify({"error": str(e)}), 500
 
 
-@admin.route("/<path:filename>")
+@admin.route("/images/<path:filename>")
 @login_required
 @limiter.exempt
 def report_Img(filename):
     "This function is used to serve the image of the report"
-    return send_from_directory("", filename, mimetype="image/webp", as_attachment=False)
+    # Validate that the filename doesn't contain dangerous patterns
+    if '..' in filename or filename.startswith('/') or '\\' in filename:
+        abort(403)
+    
+    # Construct the safe path within the upload folder
+    upload_folder = current_app.config['UPLOAD_FOLDER']
+    safe_path = os.path.join(upload_folder, filename)
+    
+    # Ensure the resolved path is within the upload folder
+    safe_path = os.path.abspath(safe_path)
+    upload_folder = os.path.abspath(upload_folder)
+    
+    if not safe_path.startswith(upload_folder):
+        abort(403)
+    
+    # Check if file exists
+    if not os.path.exists(safe_path):
+        abort(404)
+    
+    return send_file(safe_path, mimetype="image/webp")
 
 
 @admin.route("/toggle_approve_sighting/<id>", methods=["POST"])
@@ -326,7 +350,7 @@ def toggle_approve_sighting(id):
         current_app.logger.error(f"Sighting {id} not found for approval toggle.")
         return jsonify({"error": "Report not found"}), 404
 
-    if Config.send_emails:
+    if current_app.config.get('send_emails', False):
         # get data for E-Mail if send_email is True
         sighting = (
             db.session.query(
@@ -461,6 +485,8 @@ def change_gender(id):
     new_gender = request.form.get("new_gender")
 
     sighting = db.session.get(TblMeldungen, id)
+    if sighting is None:
+        return "Sighting not found", 404
 
     # Reset all gender columns to 0
     sighting.art_m = 0
@@ -494,6 +520,8 @@ def change_mantis_count(id):
     new_count = request.form.get("new_count")
     mantis_type = request.form.get("type")
     sighting = db.session.get(TblMeldungen, id)
+    if sighting is None:
+        return "Sighting not found", 404
 
     # Update the count for the specified mantis type
     if mantis_type == "Männchen":
@@ -601,7 +629,7 @@ def export_data(value):
 
         # Write the DataFrame to an Excel file
         output = BytesIO()
-        with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
+        with pd.ExcelWriter(output, engine="xlsxwriter") as writer:  # type: ignore
             df.to_excel(writer, sheet_name="Daten", index=False)
             
             # Get the xlsxwriter worksheet object
@@ -632,8 +660,12 @@ def export_data(value):
 
 
 def update_report_image_date(report_id, new_date):
-    "Update the date in the image filename and the database"
-    new_date_obj = datetime.strptime(new_date, "%Y-%m-%d")
+    """Update the image location when dat_fund_von changes"""
+    # Handle both string and datetime objects
+    if isinstance(new_date, str):
+        new_date_obj = datetime.strptime(new_date, "%Y-%m-%d")
+    else:
+        new_date_obj = new_date
 
     # Fetch the report
     report = db.session.query(TblMeldungen).filter_by(id=report_id).first()
@@ -644,28 +676,46 @@ def update_report_image_date(report_id, new_date):
     fundorte_record = (
         db.session.query(TblFundorte).filter_by(id=report.fo_zuordnung).first()
     )
-    if not fundorte_record:
-        return {"error": "Fundorte record not found"}, 404
+    if not fundorte_record or not fundorte_record.ablage:
+        # No image to move
+        return {"status": "no_image"}, 200
 
     base_dir = Path(current_app.config["UPLOAD_FOLDER"])
     old_image_path = base_dir / fundorte_record.ablage
 
-    old_dir, old_filename = os.path.split(old_image_path)
-    location, _, usrid = old_filename.rsplit("-", 2)
+    # Check if the old image file exists
+    if not old_image_path.exists():
+        return {"error": f"Image file not found: {fundorte_record.ablage}"}, 404
 
     old_dir, old_filename = os.path.split(old_image_path)
-    location, _, usrid = old_filename.rsplit("-", 2)
+    # Extract location and user id from filename
+    filename_parts = old_filename.rsplit("-", 2)
+    if len(filename_parts) != 3:
+        return {"error": f"Invalid filename format: {old_filename}"}, 400
+    
+    location = filename_parts[0]
+    usrid_with_ext = filename_parts[2]
+    usrid = usrid_with_ext.replace(".webp", "")
 
     new_dir_path = _create_directory(new_date_obj)
     new_filename = _create_filename(location, usrid, new_date_obj)
     new_file_path = new_dir_path / (new_filename + ".webp")
 
+    # Skip if source and destination are the same
+    if str(old_image_path) == str(new_file_path):
+        return {"status": "no_change"}, 200
+
     try:
+        # Move the file
         shutil.move(str(old_image_path), str(new_file_path))
 
         # Check if old directory is empty, if yes, delete it
-        if not os.listdir(old_dir):
+        if os.path.exists(old_dir) and not os.listdir(old_dir):
             os.rmdir(old_dir)
+            # Also check parent year directory
+            old_year_dir = os.path.dirname(old_dir)
+            if os.path.exists(old_year_dir) and not os.listdir(old_year_dir):
+                os.rmdir(old_year_dir)
 
     except IOError as e:
         return {"error": f"Failed to move file: {e}"}, 500
@@ -674,7 +724,7 @@ def update_report_image_date(report_id, new_date):
     fundorte_record.ablage = str(new_file_path.relative_to(base_dir))
     db.session.commit()
 
-    return {"status": "success"}, 200
+    return {"status": "success", "old_path": str(old_image_path), "new_path": str(new_file_path)}, 200
 
 
 def _create_directory(new_date):
@@ -785,8 +835,8 @@ def get_filtered_query(
         try:
             if search_type == "id":
                 try:
-                    search_query = int(search_query)
-                    query = query.filter(TblMeldungen.id == search_query)
+                    search_id = int(search_query)
+                    query = query.filter(TblMeldungen.id == search_id)
                 except ValueError:
                     search_type = "full_text"
 
@@ -980,6 +1030,8 @@ def get_table_data(table_name):
 @login_required
 def update_cell():
     data = request.json
+    if data is None:
+        return jsonify({"error": "Invalid request"}), 400
     table_name = data['table']
     column_name = data['column']
     id_value = data['meldungen_id']
@@ -1058,6 +1110,20 @@ def update_cell():
             fundort = db.session.get(TblFundorte, fundorte_id)
             recalculate_amt_mtb(fundort)
         
+        # Handle dat_fund_von changes - move images to new date folder
+        if column_name == 'dat_fund_von' and table_name == 'all_data_view':
+            image_update_result = update_report_image_date(id_value, new_value)
+            if image_update_result[1] != 200:
+                # Rollback database change if image move failed
+                db.session.rollback()
+                error_msg = image_update_result[0].get('error', 'Failed to move image')
+                return jsonify({"error": f"Date update failed: {error_msg}"}), 500
+            elif image_update_result[0].get('status') == 'success':
+                current_app.logger.info(
+                    f"Moved image for report {id_value} from {image_update_result[0].get('old_path')} "
+                    f"to {image_update_result[0].get('new_path')}"
+                )
+
         db.session.commit()
 
         # Refresh materialized view after update

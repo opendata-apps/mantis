@@ -3,6 +3,7 @@ from random import uniform
 
 from flask import (
     Blueprint,
+    current_app,
     jsonify,
     render_template,
     request,
@@ -14,7 +15,6 @@ from app.database.models import (TblFundorte,
                                  TblMeldungen,)
 from sqlalchemy import or_
 
-from ..config import Config
 
 # Blueprints
 data = Blueprint("data", __name__)
@@ -30,7 +30,7 @@ def show_map():
         )
         .distinct()
         .order_by("year")
-        .filter(TblMeldungen.dat_fund_von >= f"{Config.MIN_MAP_YEAR}-01-01")
+        .filter(TblMeldungen.dat_fund_von >= f"{current_app.config['MIN_MAP_YEAR']}-01-01")
     )
     years = [int(year[0]) for year in years]
     
@@ -57,7 +57,7 @@ def show_map():
         # Summe aller Meldungen für den Counter
         post_count = (
             db.session.query(TblMeldungen)
-            .filter(TblMeldungen.dat_fund_von >= f"{Config.MIN_MAP_YEAR}-01-01")
+            .filter(TblMeldungen.dat_fund_von >= f"{current_app.config['MIN_MAP_YEAR']}-01-01")
             .filter(TblMeldungen.dat_bear.is_not(None))
             .filter(or_(TblMeldungen.deleted.is_(None), TblMeldungen.deleted == False))  # noqa: E712
             .count()
@@ -72,7 +72,7 @@ def show_map():
         lat_valid, normalized_lat, _ = validate_and_normalize_coordinate(latitude, 'latitude')
         lon_valid, normalized_lon, _ = validate_and_normalize_coordinate(longitude, 'longitude')
         
-        if lat_valid and lon_valid:
+        if lat_valid and lon_valid and normalized_lat is not None and normalized_lon is not None:
             # Convert back to float for obfuscation
             lati = float(normalized_lat)
             long = float(normalized_lon)

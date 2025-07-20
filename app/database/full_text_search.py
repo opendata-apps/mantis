@@ -2,16 +2,19 @@ import sqlalchemy as sa
 import sqlalchemy.schema
 import sqlalchemy.ext.compiler
 import sqlalchemy.orm as orm
-from sqlalchemy import text
+from sqlalchemy import text, event
+from sqlalchemy.ext import compiler
 from sqlalchemy import Column, Integer 
 from sqlalchemy.dialects.postgresql import TSVECTOR
+from sqlalchemy.engine import Engine
+from sqlalchemy.orm import Session
 from typing import List, Optional
 from flask import current_app
 
 
 meta = sa.MetaData()
 
-Base = sa.orm.declarative_base()
+Base = orm.declarative_base()
 
 class FullTextSearch(Base):
     __tablename__ = 'full_text_search'
@@ -90,11 +93,11 @@ class Create(sa.schema.DDLElement):
         self.schema = schema
         self.select = select
 
-        sa.event.listen(meta, 'after_create', self)
-        sa.event.listen(meta, 'before_drop', Drop(name, schema))
+        event.listen(meta, 'after_create', self)
+        event.listen(meta, 'before_drop', Drop(name, schema))
 
 
-@sa.ext.compiler.compiles(Create)
+@compiler.compiles(Create)
 def createGen(element, compiler, **kwargs):
     return 'CREATE MATERIALIZED VIEW {schema}."{name}" AS {select}'.format(
         name=element.name,
@@ -106,7 +109,7 @@ def createGen(element, compiler, **kwargs):
     )
 
 
-@sa.ext.compiler.compiles(Drop)
+@compiler.compiles(Drop)
 def dropGen(element, compiler, **kwargs):
     # Den SQL-Ausdruck mit text() umschließen,
     # damit SQLAlchemy ihn korrekt behandelt
@@ -117,15 +120,16 @@ def dropGen(element, compiler, **kwargs):
     return text(sql)  # text() um den SQL-Ausdruck
 
 
-def create_materialized_view(db, session=None):
+def create_materialized_view(db: Optional[Engine] = None, session: Optional[Session] = None) -> None:
     'create or recreate a materialized view for global search activities'
     if not db:
         db = sa.create_engine(
-            'postgresql://mantis_user:mantis@localhost/mantis_tracker'
+            current_app.config['SQLALCHEMY_DATABASE_URI']
         )
 
-        Session = orm.sessionmaker(bind=db)
-        session = Session()
+    if not session:
+        SessionClass = orm.sessionmaker(bind=db)
+        session = SessionClass()
 
     # Drop the existing materialized view if it exists
     try:

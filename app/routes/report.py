@@ -29,7 +29,6 @@ from app.forms import MantisSightingForm
 from app.tools.gen_user_id import get_new_id
 from app.tools.mtb_calc import get_mtb, pointInRect
 from app.tools.gemeinde_finder import get_amt_full_scan
-from ..config import Config
 
 # Blueprints
 report = Blueprint("report", __name__)
@@ -56,7 +55,7 @@ def _process_uploaded_image(photo_file, sighting_date, city_name, user_id):
     """Process uploaded image - trust client-optimized WebP files to avoid double compression."""
     year_str = sighting_date.strftime("%Y")
     date_str = sighting_date.strftime("%Y-%m-%d")
-    upload_dir = Path(Config.UPLOAD_FOLDER) / year_str / date_str
+    upload_dir = Path(current_app.config['UPLOAD_FOLDER']) / year_str / date_str
     upload_dir.mkdir(parents=True, exist_ok=True)
     
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
@@ -88,12 +87,12 @@ def _create_user(first_name, last_name, email, role=1):
     """Create a new user with standardized name format."""
     user_id = get_new_id()
     name = f"{last_name.strip()} {first_name.strip()[0].upper()}."
-    return TblUsers(
-        user_id=user_id,
-        user_name=name,
-        user_rolle=role,
-        user_kontakt=email
-    )
+    user = TblUsers()
+    user.user_id = user_id
+    user.user_name = name
+    user.user_rolle = role
+    user.user_kontakt = email
+    return user
 
 def _parse_user_name(user_name):
     """Parse database user_name format 'Lastname F.' into components."""
@@ -184,11 +183,10 @@ def melden(usrid=None):
                         existing_feedback = TblUserFeedback.query.filter_by(user_id=reporter.id).first()
                         
                         if not existing_feedback:
-                            user_feedback = TblUserFeedback(
-                                user_id=reporter.id,
-                                feedback_type_id=feedback_type_id,
-                                source_detail=form.feedback_detail.data
-                            )
+                            user_feedback = TblUserFeedback()
+                            user_feedback.user_id = reporter.id
+                            user_feedback.feedback_type_id = feedback_type_id
+                            user_feedback.source_detail = form.feedback_detail.data
                             db.session.add(user_feedback)
                     except (ValueError, TypeError):
                         pass  # Invalid feedback data, skip silently
@@ -218,42 +216,42 @@ def melden(usrid=None):
                     except (ValueError, TypeError):
                         pass
                 
-                fundort = TblFundorte(
-                    plz=form.fund_zip_code.data or "0",
-                    ort=form.fund_city.data,
-                    strasse=form.fund_street.data,
-                    kreis=form.fund_district.data,
-                    land=form.fund_state.data,
-                    longitude=lon,
-                    latitude=lat,
-                    mtb=mtb_value,
-                    amt=amt_value,
-                    beschreibung=location_description,
-                    ablage=db_image_path
-                )
+                fundort = TblFundorte()
+                fundort.plz = form.fund_zip_code.data or "0"
+                fundort.ort = form.fund_city.data
+                fundort.strasse = form.fund_street.data
+                fundort.kreis = form.fund_district.data
+                fundort.land = form.fund_state.data
+                fundort.longitude = lon
+                fundort.latitude = lat
+                fundort.mtb = mtb_value
+                fundort.amt = amt_value
+                fundort.beschreibung = location_description
+                fundort.ablage = db_image_path
                 db.session.add(fundort)
                 db.session.flush()
 
                 # 6. Create sighting record
                 gender_fields = _set_gender_fields(form.gender.data)
-                meldung = TblMeldungen(
-                    dat_fund_von=form.sighting_date.data,
-                    dat_meld=datetime.now(),
-                    fo_zuordnung=fundort.id,
-                    fo_quelle="F",
-                    tiere="1",
-                    anm_melder=form.description.data,
-                    **gender_fields
-                )
+                meldung = TblMeldungen()
+                meldung.dat_fund_von = form.sighting_date.data
+                meldung.dat_meld = datetime.now()
+                meldung.fo_zuordnung = fundort.id
+                meldung.fo_quelle = "F"
+                meldung.tiere = "1"
+                meldung.anm_melder = form.description.data
+                
+                # Set gender fields
+                for field, value in gender_fields.items():
+                    setattr(meldung, field, value)
                 db.session.add(meldung)
                 db.session.flush()
 
                 # 7. Link user to sighting
-                user_link = TblMeldungUser(
-                    id_meldung=meldung.id,
-                    id_user=reporter.id,
-                    id_finder=finder_instance.id if finder_instance else None
-                )
+                user_link = TblMeldungUser()
+                user_link.id_meldung = meldung.id
+                user_link.id_user = reporter.id
+                user_link.id_finder = finder_instance.id if finder_instance else None
                 db.session.add(user_link)
                 db.session.commit()
 
@@ -315,6 +313,8 @@ def get_step_fields(step):
 def validate_step():
     """Validate form step via AJAX."""
     data = request.json
+    if data is None:
+        return jsonify({"valid": False, "errors": {"general": "Invalid request"}})
     step = data.get("step", 1)
     step_fields = get_step_fields(step)
     

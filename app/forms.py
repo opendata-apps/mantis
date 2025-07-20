@@ -199,9 +199,9 @@ class MantisSightingForm(FlaskForm):
             last_name_filled = bool(self.finder_last_name.data)
 
             if first_name_filled and not last_name_filled:
-                self.finder_last_name.errors.append('Nachname des Finders ist erforderlich, wenn Vorname angegeben wurde.')
+                self.finder_last_name.errors.append('Nachname des Finders ist erforderlich, wenn Vorname angegeben wurde.')  # type: ignore
                 return False
             if last_name_filled and not first_name_filled:
-                self.finder_first_name.errors.append('Vorname des Finders ist erforderlich, wenn Nachname angegeben wurde.')
+                self.finder_first_name.errors.append('Vorname des Finders ist erforderlich, wenn Nachname angegeben wurde.')  # type: ignore
                 return False
         return True

@@ -31,8 +31,8 @@ class TblMeldungen(db.Model):
         return {
             "id": self.id,
             "deleted": self.deleted,
-            "dat_fund_von": self.dat_fund,
-            "dat_fund_bis": self.dat_fund,
+            "dat_fund_von": self.dat_fund_von,
+            "dat_fund_bis": self.dat_fund_bis,
             "dat_meld": self.dat_meld,
             "dat_bear": self.dat_bear,
             "bearb_id": self.bearb_id,
@@ -45,6 +45,6 @@ class TblMeldungen(db.Model):
             "fo_zuordung": self.fo_zuordnung,
             "fo_quelle": self.fo_quelle,
             "fo_beleg": self.fo_beleg,
-            "anm_melder": self.anmerkung,
-            "anm_bearbeiter": self.anmerkung,
+            "anm_melder": self.anm_melder,
+            "anm_bearbeiter": self.anm_bearbeiter,
         }

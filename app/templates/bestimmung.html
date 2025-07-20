@@ -6,7 +6,7 @@ Gottesanbeterin Bestimmung, Mantis religiosa Identifikation, Merkmale, Untersche
 {% block page_title %}Gottesanbeterin Bestimmung | Merkmale & Bestimmungschlüssel {% endblock %}
 {% block title %}Bestimmungsschlüssel{% endblock title %}
 {% block head %}
-<link href="{{ url_for('static', filename='lb/css/lightbox.min.css')}}" rel="stylesheet">
+<link href="{{ url_for('static', filename='node_modules/lightbox2/dist/css/lightbox.min.css')}}" rel="stylesheet">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -459,8 +459,7 @@ Gottesanbeterin Bestimmung, Mantis religiosa Identifikation, Merkmale, Untersche
   </div>
 </section>
 
-<script src="{{ url_for('static', filename='lb/jquery-3.3.1.slim.min.js')}}"></script>
-<script src="{{ url_for('static', filename='lb/js/lightbox-plus-jquery.js')}}"></script>
+<script src="{{ url_for('static', filename='node_modules/lightbox2/dist/js/lightbox-plus-jquery.min.js')}}"></script>
 <script>
   // Enhance smooth scrolling with offset
   document.addEventListener('DOMContentLoaded', function() {

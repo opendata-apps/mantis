@@ -211,6 +211,9 @@ class TestPopulateFunctions:
     def test_populate_all_logging(self, mock_current_app):
         """Test that populate_all logs its progress."""
         
+        mock_logger = MagicMock()
+        mock_current_app.logger = mock_logger
+        
         mock_engine = MagicMock()
         mock_session = MagicMock()
         mock_json_data = '{"test": "data"}'

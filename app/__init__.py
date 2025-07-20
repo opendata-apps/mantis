@@ -105,13 +105,38 @@ def insert_initial_data_command():
         # Assuming insert_data_reports uses the same session
         insert_data_reports(session) 
 
+        # Copy gallery images with realistic filenames for test data
         src = 'app/datastore/gallerie/'
         trg = 'app/datastore/2025/2025-01-19/'
-        os.makedirs(os.path.dirname(trg), exist_ok=True)
+        os.makedirs(trg, exist_ok=True)
         
-        files=os.listdir(src)
-        for fname in files:
-            shutil.copy2(os.path.join(src,fname), trg)
+        # Map gallery images to realistic report filenames with actual user_ids
+        image_mappings = [
+            ('mantis1.webp', 'Zossen-20250119100000-9999.webp'),
+            ('mantis2.webp', 'Ziesar-20250119101500-f04ad4e0b099b6404b1ccda0af0282cf49693b43.webp'),
+            ('mantis3.webp', 'Cottbus-20250119103000-5843c1093f94be44442ff876cac6185a2d36310e.webp'),
+            ('mantis4.webp', 'Treuenbrietzen-20250119104500-264aca7e20e15aa2401f042dceed384da6d7747a.webp'),
+            ('mantis5.webp', 'Pritzwalk-20250119110000-2ab71517482f824f925d09b9aa6e387df99befa7.webp'),
+            ('mantis6.webp', 'Halle_Saale-20250119111500-874208b1da349f20a88862f38a856bd711c2e165.webp'),
+            ('mantis1.webp', 'Fichtwald-20250119113000-1fb0cfb0be3b0c75c537a50c57e0060ba8b6837e.webp'),
+            ('mantis2.webp', 'Luckenwalde-20250119114500-c56fe0b6262dc626a5faf21c55b1f34f7babcfb1.webp'),
+            ('mantis3.webp', 'Cottbus-20250119120000-2d7345fd039eaef8796047c61ab760cac52b67e4.webp'),
+            ('mantis4.webp', 'Bad_Freienwalde_Oder-20250119121500-9b9d6a941dea27e46f4e5c79284f7df4c82fca49.webp'),
+            ('mantis5.webp', 'Berlin-20250119123000-a88de66aa7976cb7990af54c16c0fd2c067515f9.webp'),
+            ('mantis6.webp', 'Frankfurt_Oder-20250119124500-d2c830fd84ccabe149aff154c5e1ddcef662f052.webp'),
+            ('mantis5.webp', 'Caputh-20250119130000-0c7571741c04d2365aa7816efd298e8df9091122.webp'),
+            ('mantis2.webp', 'Seevetal-20250119131500-166bc2da77cb1d6e9a07f3d6fd61c841b394f3c6.webp'),
+            ('mantis3.webp', 'Leipzig-20250119133000-6325e4e69ee6789a7aa0ebb9a0e0b63cdf67795a.webp'),
+            ('mantis4.webp', 'Berlin-20250119134500-086cd63464247668799cc5a508235012b64a4bf9.webp'),
+            ('mantis5.webp', 'Elsterwerda-20250119140000-a1a0c14a53b7bbd010fc48ab2ac42d35d959d2b8.webp'),
+            ('mantis6.webp', 'Jueterbog-20250119141500-5f4a7fec84fb0801a5157cf1ce41835774a92704.webp'),
+            ('mantis1.webp', 'Jessen_Elster-20250119143000-7228ef93c5b4347ffdcfe63d77bd8617fdb080e5.webp'),
+            ('mantis2.webp', 'Friesack-20250119144500-c56782d029b8a62160175fd7112b74f573cd101f.webp')
+        ]
+        
+        for src_file, target_file in image_mappings:
+            if os.path.exists(os.path.join(src, src_file)):
+                shutil.copy2(os.path.join(src, src_file), os.path.join(trg, target_file))
         click.echo("Inserted test reports and copied gallery files.") # Added echo for clarity
 
     # No separate call to vg5000.import_aemter_data needed here anymore
@@ -167,6 +192,16 @@ def create_app(config_class=Config):
     @app.context_processor
     def inject_now():
         return {"now": datetime.now()}
+    
+    # Security headers middleware
+    @app.after_request
+    def add_security_headers(response):
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+        response.headers['X-XSS-Protection'] = '1; mode=block'
+        if app.config.get('PREFERRED_URL_SCHEME') == 'https':
+            response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+        return response
 
     # Import the routes
     from app.routes.admin import admin
@@ -189,24 +224,42 @@ def create_app(config_class=Config):
     app.register_error_handler(404, page_not_found)
     app.register_error_handler(403, forbidden)
     app.register_error_handler(429, too_many_requests)
+    app.register_error_handler(500, internal_server_error)
+    
+    # Global exception handler
+    @app.errorhandler(Exception)
+    def handle_exception(e):
+        # Log the exception
+        app.logger.exception(f'Unhandled exception: {str(e)}')
+        
+        # Return 500 error for unhandled exceptions
+        if app.debug:
+            raise e  # Re-raise in debug mode
+        return render_template("error/500.html"), 500
 
     return app
 
 
 def page_not_found(e):
     from flask import current_app
-    current_app.logger.warning(f'Page not found: {request.url}')
+    current_app.logger.warning(f'Page not found: {request.url} - User Agent: {request.headers.get("User-Agent", "Unknown")}')
     return render_template("error/404.html"), 404
 
 
 def forbidden(e):
     from flask import current_app
-    current_app.logger.warning(f'Forbidden access: {request.url}')
+    current_app.logger.warning(f'Forbidden access: {request.url} - User Agent: {request.headers.get("User-Agent", "Unknown")}')
     return render_template("error/403.html"), 403
 
 
 def too_many_requests(e):
     """Custom error handler for rate limiting (429 errors)"""
     from flask import current_app
-    current_app.logger.warning(f'Rate limit exceeded: {request.url}')
+    current_app.logger.warning(f'Rate limit exceeded: {request.url} - User Agent: {request.headers.get("User-Agent", "Unknown")}')
     return render_template("error/429.html", error=e), 429
+
+
+def internal_server_error(e):
+    from flask import current_app
+    current_app.logger.error(f'Internal server error: {request.url} - Error: {str(e)}')
+    return render_template("error/500.html"), 500
