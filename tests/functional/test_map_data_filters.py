@@ -1,8 +1,8 @@
 """Test map data generation to ensure is_() comparisons work correctly."""
 import pytest
 import json
-from datetime import datetime, timedelta
-from app.database.models import TblMeldungen, TblFundorte, TblUsers, TblMeldungUser
+from datetime import datetime
+from app.database.models import TblMeldungen, TblFundorte
 from bs4 import BeautifulSoup
 
 

@@ -1,5 +1,4 @@
 """Unit tests for coordinate validation module."""
-import pytest
 from app.tools.coordinate_validation import (
     validate_and_normalize_coordinate,
     validate_coordinate_pair,

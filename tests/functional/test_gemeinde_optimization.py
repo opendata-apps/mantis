@@ -1,7 +1,6 @@
 """Functional tests for gemeinde finder optimization."""
 import pytest
 import time
-from app import db
 from app.tools.find_gemeinde import get_amt_full_scan
 from app.tools.gemeinde_finder import get_amt_optimized, reload_gemeinde_cache
 from app.database.aemter_koordinaten import TblAemterCoordinaten
@@ -174,7 +173,7 @@ class TestGemeindeOptimization:
         reload_gemeinde_cache()
         
         # Should not crash when searching
-        result = get_amt_optimized((13.0, 52.0))
+        get_amt_optimized((13.0, 52.0))
         # Result doesn't matter, just shouldn't crash
         
         # Cleanup

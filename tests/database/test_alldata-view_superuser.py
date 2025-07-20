@@ -1,5 +1,4 @@
 """Tests for the full-text search functionality using materialized views."""
-from datetime import datetime
 
 def test_view_alldata_search(client):
     """Test the direct search method in the FullTextSearch class.

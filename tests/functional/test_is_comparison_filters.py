@@ -1,6 +1,6 @@
 """Test that is_() comparisons work correctly in filters."""
 import pytest
-from datetime import datetime, timedelta
+from datetime import datetime
 from app.database.models import TblMeldungen
 from app.routes.admin import get_filtered_query
 
@@ -61,7 +61,7 @@ class TestIsComparisonFilters:
 
     def test_null_deleted_handled_correctly(self, session):
         """Test that NULL deleted values are treated as not deleted."""
-        from app.database.models import TblMeldungUser, TblUsers
+        from app.database.models import TblMeldungUser
         
         # Get any existing sighting with full relationships
         existing = session.query(TblMeldungen).first()
