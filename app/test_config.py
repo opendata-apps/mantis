@@ -25,3 +25,8 @@ class Config:
     CELEBRATION_THRESHOLD = 10000
     SECRET_KEY = os.environ.get(
         'SECRET_KEY') or 'do-not-get-tired-youll-never-find'
+    UPLOAD_FOLDER = 'app/datastore'
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
+    MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
+    WTF_CSRF_ENABLED = False  # Disable CSRF for testing
+    RATELIMIT_ENABLED = False  # Disable rate limiting for testing

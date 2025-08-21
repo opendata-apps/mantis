@@ -226,6 +226,13 @@ def create_app(config_class=Config):
     app.register_error_handler(429, too_many_requests)
     app.register_error_handler(500, internal_server_error)
     
+    # CSRF error handler
+    from flask_wtf.csrf import CSRFError
+    @app.errorhandler(CSRFError)
+    def handle_csrf_error(e):
+        app.logger.warning(f'CSRF error: {str(e)}')
+        return render_template("error/403.html"), 403
+    
     # Global exception handler
     @app.errorhandler(Exception)
     def handle_exception(e):

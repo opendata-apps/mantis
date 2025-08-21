@@ -46,7 +46,7 @@ def test_error_handlers_register():
     # Test 404 handler
     with app.test_client() as client:
         response = client.get('/nonexistent-page-12345')
-        assert response.status_code == 403  # In this app, unknown routes return 403
+        assert response.status_code == 404  # Unknown routes return 404
         
     # Test that error handlers are actually registered
     assert 404 in app.error_handler_spec[None]

@@ -26,7 +26,7 @@ from flask import (
     send_from_directory,
     url_for,
 )
-from sqlalchemy import inspect, or_, cast, String, update
+from sqlalchemy import inspect, or_, cast, String, update, select
 from app.tools.check_reviewer import login_required
 import shutil
 from werkzeug.utils import secure_filename
@@ -86,7 +86,7 @@ def recalculate_amt_mtb(fundort):
 def reviewer(usrid):
     "This function is used to display the reviewer page"
     # Fetch the user based on the 'usrid' parameter
-    user = TblUsers.query.filter_by(user_id=usrid).first()
+    user = db.session.scalar(select(TblUsers).where(TblUsers.user_id == usrid))
 
     # If the user doesn't exist or the role isn't 9, return 404
     if not user or user.user_rolle != "9":
@@ -152,7 +152,7 @@ def reviewer(usrid):
     bearb_ids = [row[0].bearb_id for row in paginated_sightings.items if row[0].bearb_id]
     approvers = {}
     if bearb_ids:
-        approvers = {u.user_id: u.user_name for u in TblUsers.query.filter(TblUsers.user_id.in_(bearb_ids)).all()}
+        approvers = {u.user_id: u.user_name for u in db.session.scalars(select(TblUsers).where(TblUsers.user_id.in_(bearb_ids))).all()}
     
     for row in paginated_sightings.items:
         meldung, fundort, beschreibung, _, user = row
@@ -619,7 +619,7 @@ def export_data(value):
             
             # Add approver info if available
             if meldung.bearb_id:
-                approver = TblUsers.query.filter_by(user_id=meldung.bearb_id).first()
+                approver = db.session.scalar(select(TblUsers).where(TblUsers.user_id == meldung.bearb_id))
                 entry['Bearbeiter'] = approver.user_name if approver else "Unknown"
             
             processed_data.append(entry)
@@ -668,13 +668,13 @@ def update_report_image_date(report_id, new_date):
         new_date_obj = new_date
 
     # Fetch the report
-    report = db.session.query(TblMeldungen).filter_by(id=report_id).first()
+    report = db.session.scalar(select(TblMeldungen).where(TblMeldungen.id == report_id))
     if not report:
         return {"error": "Report not found"}, 404
 
     # Fetch the corresponding fundorte record
     fundorte_record = (
-        db.session.query(TblFundorte).filter_by(id=report.fo_zuordnung).first()
+        db.session.scalar(select(TblFundorte).where(TblFundorte.id == report.fo_zuordnung))
     )
     if not fundorte_record or not fundorte_record.ablage:
         # No image to move
@@ -1050,8 +1050,8 @@ def update_cell():
             return jsonify({"error": "Unable to find original table and column"}), 400
 
         # Fetch the corresponding row from all_data_view
-        all_data_row = db.session.query(TblAllData).filter(
-            TblAllData.meldungen_id == id_value).first()
+        all_data_row = db.session.scalar(select(TblAllData).where(
+            TblAllData.meldungen_id == id_value))
         if not all_data_row:
             return jsonify({"error": "Record not found"}), 404
 

@@ -2,6 +2,7 @@ from flask import session  # import session
 from flask import render_template, Blueprint, send_from_directory, send_file
 from app import db
 from flask import abort
+from sqlalchemy import select
 from app.database.models import (
     TblFundorte,
     TblMeldungen,
@@ -19,7 +20,7 @@ provider = Blueprint("provider", __name__)
 def melder_index(usrid):
     "Index page for the provider. The users reports are displayed here."
     # First find the user making the request with role 1 or 9
-    user = TblUsers.query.filter_by(user_id=usrid).first()
+    user = db.session.scalar(select(TblUsers).where(TblUsers.user_id == usrid))
 
     # If the user doesn't exist or the role isn't 1 or 9, return 404
     if not user or (user.user_rolle != "1" and user.user_rolle != "9"):

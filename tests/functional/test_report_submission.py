@@ -54,14 +54,19 @@ def report_form_data():
         'fund_city': 'Berlin',
         'fund_state': 'Berlin',
         'fund_district': 'Mitte',
-        'fund_street': 'Alexanderplatz',
-        'fund_zip_code': '10178',
+        'fund_street': 'Alexanderplatz',  # Correct field name
+        'fund_zip_code': '10178',  # Correct field name
         'report_first_name': 'Test',
         'report_last_name': 'Reporter',
+        'email': 'test@example.com',  # Added email field
         'contact': 'test@example.com',
         'sighting_date': sighting_date,
-        'gender': 'Männchen',
-        'picture_description': 'Spotted on a plant',
+        'gender': 'Männlich',  # Fixed: Changed from 'Männchen' to 'Männlich'
+        'location_description': '1',  # Added required field
+        'description': 'Spotted on a plant',  # Fixed field name
+        'identical_finder_reporter': True,  # Added missing field
+        'feedback_source': '',  # Optional feedback field
+        'feedback_detail': '',  # Optional feedback detail
         'honeypot': '',  # Should be empty to pass spam check
     }
 
@@ -438,13 +443,22 @@ class TestReportSubmission:
             post_users_count = session.query(TblUsers).count()
             post_relation_count = session.query(TblMeldungUser).count()
 
-            assert post_submission_count > pre_submission_count, "No new sighting record was created"
-            assert post_location_count > pre_location_count, "No new location record was created"
-            assert post_users_count >= pre_users_count, "User record may not have been created if using existing user"
-            assert post_relation_count > pre_relation_count, "No new user-sighting relation was created"
+            assert post_submission_count > pre_submission_count, f"No new sighting record was created (pre={pre_submission_count}, post={post_submission_count})"
+            assert post_location_count > pre_location_count, f"No new location record was created (pre={pre_location_count}, post={post_location_count})"
+            assert post_users_count >= pre_users_count, f"User record may not have been created if using existing user (pre={pre_users_count}, post={post_users_count})"
+            assert post_relation_count > pre_relation_count, f"No new user-sighting relation was created (pre={pre_relation_count}, post={post_relation_count})"
 
             # Find the most recent records for detailed validation
-            latest_sighting = session.query(TblMeldungen).order_by(TblMeldungen.id.desc()).first()
+            # Don't use order_by id.desc() as test fixtures may have high IDs like 99999
+            # Instead, find the sighting created after our pre-count
+            all_sightings = session.query(TblMeldungen).all()
+            latest_sighting = None
+            for sighting in all_sightings:
+                # Find a sighting that wasn't in the pre-count set
+                # and has the expected description
+                if sighting.anm_melder == form_data.get('description'):
+                    latest_sighting = sighting
+                    break
 
             if latest_sighting:
                 # Track for cleanup
@@ -465,7 +479,7 @@ class TestReportSubmission:
                 if gender_field:
                     assert getattr(latest_sighting, gender_field) == expected_value, f"Gender field {gender_field} should be {expected_value}"
 
-                assert latest_sighting.anm_melder == form_data['picture_description'], "Picture description wasn't saved correctly"
+                assert latest_sighting.anm_melder == form_data['description'], "Description wasn't saved correctly"
 
                 # Check related location record
                 location = session.query(TblFundorte).filter_by(id=latest_sighting.fo_zuordnung).first()
@@ -521,10 +535,10 @@ class TestReportSubmission:
 
     @pytest.mark.parametrize("field,invalid_value,error_message", [
         ('sighting_date', lambda: (datetime.datetime.now() + datetime.timedelta(days=10)).strftime('%Y-%m-%d'),
-         'Das Datum darf nicht in der Zukunft liegen'),
-        ('longitude', '200.0', 'Der Längengrad muss zwischen -180 und 180 liegen'),
-        ('latitude', '100.0', 'Der Breitengrad muss zwischen -90 und 90 liegen'),
-        ('contact', 'invalid-email', 'Die Email Adresse ist ungültig'),
+         'Datum darf nicht in der Zukunft liegen'),
+        ('longitude', '200.0', 'Längengrad muss zwischen -180 und 180 liegen'),
+        ('latitude', '100.0', 'Breitengrad muss zwischen -90 und 90 liegen'),
+        ('email', 'invalid-email', 'Bitte geben Sie eine gültige E-Mail-Adresse ein'),
     ])
     def test_field_validation_errors_parameterized(self,
                                                   client, report_form_data, field, invalid_value,
@@ -659,19 +673,19 @@ class TestReportSubmission:
         """
         # Prepare form data with honeypot filled (simulating bot submission)
         form_data = report_form_data.copy()
-        form_data['honeypot'] = 'spam content'  # Bots would fill this field
+        form_data['honeypot'] = 'x'  # Bots would fill this field (max 1 char allowed)
         form_data['location_description'] = '1'
 
         # Ensure all required fields are valid so we test only the honeypot
         # Add any other required fields to isolate the honeypot test
-        if 'picture' not in form_data:
-            # Create valid form data with picture
+        if 'photo' not in form_data:
+            # Create valid form data with photo
             test_image = create_test_image()
 
             # Submit form with honeypot trap filled
             response = client.post(
                 '/melden',
-                data={**form_data, 'picture': test_image},
+                data={**form_data, 'photo': test_image},
                 content_type='multipart/form-data',
                 follow_redirects=True
             )

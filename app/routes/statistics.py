@@ -1,7 +1,7 @@
 from flask import Blueprint
 from flask import render_template, request, current_app
 from flask import session, abort
-from sqlalchemy import func, text, or_
+from sqlalchemy import func, text, or_, select
 from app import db
 from app.database.models import TblUsers
 from app.tools.check_reviewer import login_required
@@ -59,7 +59,7 @@ def stats_start(usrid=None):
     "Startseite für alle Statistiken"
     date_from, date_to = get_date_interval(request)
     user_id = session["user_id"]
-    user = TblUsers.query.filter_by(user_id=user_id).first()
+    user = db.session.scalar(select(TblUsers).where(TblUsers.user_id == user_id))
 
     # If the user doesn't exist or the role isn't 9, return 404
     if not user or user.user_rolle != "9":

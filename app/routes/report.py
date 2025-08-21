@@ -18,6 +18,7 @@ from werkzeug.utils import secure_filename
 from PIL import Image
 
 from app import db, limiter, csrf
+from sqlalchemy import select
 from app.database.models import (
     TblFundorte,
     TblMeldungen,
@@ -122,7 +123,7 @@ def melden(usrid=None):
 
     # Handle GET request with user prefilling
     if request.method == "GET" and usrid:
-        user_to_prefill = TblUsers.query.filter_by(user_id=usrid).first()
+        user_to_prefill = db.session.scalar(select(TblUsers).where(TblUsers.user_id == usrid))
         if user_to_prefill:
             last_name, first_name = _parse_user_name(user_to_prefill.user_name)
             
@@ -131,7 +132,7 @@ def melden(usrid=None):
             form.email.data = user_to_prefill.user_kontakt or ""
             
             # Check if user already provided feedback
-            user_has_feedback = TblUserFeedback.query.filter_by(user_id=user_to_prefill.id).first() is not None
+            user_has_feedback = db.session.scalar(select(TblUserFeedback).where(TblUserFeedback.user_id == user_to_prefill.id)) is not None
             user_prefilled_data = True
 
     if request.method == "POST":
@@ -143,7 +144,7 @@ def melden(usrid=None):
             try:
                 # 1. Handle reporter user (existing or new)
                 if usrid:
-                    reporter = TblUsers.query.filter_by(user_id=usrid).first()
+                    reporter = db.session.scalar(select(TblUsers).where(TblUsers.user_id == usrid))
                     if not reporter:
                         # User ID provided but not found, create new user
                         reporter = _create_user(
@@ -180,7 +181,7 @@ def melden(usrid=None):
                 if form.feedback_source.data:
                     try:
                         feedback_type_id = int(form.feedback_source.data)
-                        existing_feedback = TblUserFeedback.query.filter_by(user_id=reporter.id).first()
+                        existing_feedback = db.session.scalar(select(TblUserFeedback).where(TblUserFeedback.user_id == reporter.id))
                         
                         if not existing_feedback:
                             user_feedback = TblUserFeedback()
