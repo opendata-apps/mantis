@@ -33,7 +33,6 @@ Entdecken Sie alle bestätigten Sichtungen der <span class="font-semibold text-g
 {% endif %}
 </p>
 {% endblock text %}
-{% block content %}
 {% block canonical %}{{ url_for('data.show_map', _external=True) }}{% endblock %}
 
 {% block og_meta %}
@@ -61,6 +60,7 @@ Entdecken Sie alle bestätigten Sichtungen der <span class="font-semibold text-g
 <meta name="twitter:image" content="{{ url_for('static', filename='images/berger03.avif', _external=True) }}" />
 <meta name="twitter:url" content="{{ url_for('data.show_map', _external=True) }}" />
 {% endblock %}
+{% block content %}
 <script src="{{ url_for('static', filename='node_modules/flowbite/dist/flowbite.min.js')}}" defer></script>
 
 
