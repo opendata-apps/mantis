@@ -12,14 +12,18 @@ import secrets
 
 def test_admin_post_without_csrf_is_rejected(app, authenticated_client):
     """Admin POST endpoints should reject requests without a CSRF token."""
-    app.config["WTF_CSRF_ENABLED"] = True
+    old = app.config.get("WTF_CSRF_ENABLED", False)
+    try:
+        app.config["WTF_CSRF_ENABLED"] = True
 
-    # Ensure authenticated reviewer session
-    authenticated_client.get("/reviewer/9999", follow_redirects=True)
+        # Ensure authenticated reviewer session
+        authenticated_client.get("/reviewer/9999", follow_redirects=True)
 
-    # Missing CSRF header → 403
-    resp = authenticated_client.post("/toggle_approve_sighting/1")
-    assert resp.status_code == 403
+        # Missing CSRF header → 403
+        resp = authenticated_client.post("/toggle_approve_sighting/1")
+        assert resp.status_code == 403
+    finally:
+        app.config["WTF_CSRF_ENABLED"] = old
 
 
 ## Note: We avoid a direct token roundtrip test here because Flask-WTF caches
@@ -31,10 +35,14 @@ def test_admin_post_without_csrf_is_rejected(app, authenticated_client):
 
 def test_statistics_post_is_exempt_from_csrf(app, authenticated_client):
     """Statistics blueprint is explicitly CSRF-exempt; POST should work without token."""
-    app.config["WTF_CSRF_ENABLED"] = True
+    old = app.config.get("WTF_CSRF_ENABLED", False)
+    try:
+        app.config["WTF_CSRF_ENABLED"] = True
 
-    # Ensure authenticated reviewer session
-    authenticated_client.get("/reviewer/9999", follow_redirects=True)
+        # Ensure authenticated reviewer session
+        authenticated_client.get("/reviewer/9999", follow_redirects=True)
 
-    resp = authenticated_client.post("/statistik/9999", data={"stats": "start"})
-    assert resp.status_code == 200
+        resp = authenticated_client.post("/statistik/9999", data={"stats": "start"})
+        assert resp.status_code == 200
+    finally:
+        app.config["WTF_CSRF_ENABLED"] = old
