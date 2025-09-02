@@ -34,6 +34,33 @@ Entdecken Sie alle bestätigten Sichtungen der <span class="font-semibold text-g
 </p>
 {% endblock text %}
 {% block content %}
+{% block canonical %}{{ url_for('data.show_map', _external=True) }}{% endblock %}
+
+{% block og_meta %}
+{% if selected_year %}
+  <meta property="og:title" content="Fundmeldungen {{ selected_year }} – Gottesanbeterin in Deutschland" />
+{% else %}
+  <meta property="og:title" content="Auswertungen der Beobachtungen – Gottesanbeterin in Deutschland" />
+{% endif %}
+<meta property="og:type" content="website" />
+<meta property="og:url" content="{{ url_for('data.show_map', _external=True) }}" />
+<meta property="og:image" content="{{ url_for('static', filename='images/berger03.avif', _external=True) }}" />
+<meta property="og:description" content="Interaktive Karte mit bestätigten Sichtungen der Europäischen Gottesanbeterin (Mantis religiosa) – filtern Sie nach Jahren und entdecken Sie Hotspots." />
+<meta property="og:site_name" content="Gottesanbeterin Gesucht" />
+<meta property="og:locale" content="de_DE" />
+{% endblock %}
+
+{% block twitter_meta %}
+<meta name="twitter:card" content="summary_large_image" />
+{% if selected_year %}
+  <meta name="twitter:title" content="Fundmeldungen {{ selected_year }} – Gottesanbeterin" />
+{% else %}
+  <meta name="twitter:title" content="Auswertungen der Beobachtungen – Gottesanbeterin" />
+{% endif %}
+<meta name="twitter:description" content="Interaktive Karte der Gottesanbeterin-Sichtungen in Deutschland." />
+<meta name="twitter:image" content="{{ url_for('static', filename='images/berger03.avif', _external=True) }}" />
+<meta name="twitter:url" content="{{ url_for('data.show_map', _external=True) }}" />
+{% endblock %}
 <script src="{{ url_for('static', filename='node_modules/flowbite/dist/flowbite.min.js')}}" defer></script>
 
 

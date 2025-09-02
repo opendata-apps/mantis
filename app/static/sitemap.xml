@@ -5,52 +5,50 @@
       xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
             http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
 
-
-<url>
-  <loc>https://gottesanbeterin-gesucht.de/</loc>
-  <lastmod>2023-09-20T20:58:21+00:00</lastmod>
-  <priority>1.00</priority>
-</url>
-<url>
-  <loc>https://gottesanbeterin-gesucht.de/mantis-religiosa</loc>
-  <lastmod>2023-09-20T20:58:21+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://gottesanbeterin-gesucht.de/melden</loc>
-  <lastmod>2023-09-20T20:58:21+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://gottesanbeterin-gesucht.de/auswertungen</loc>
-  <lastmod>2023-09-20T20:58:21+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://gottesanbeterin-gesucht.de/faq</loc>
-  <lastmod>2023-09-20T20:58:21+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://gottesanbeterin-gesucht.de/impressum</loc>
-  <lastmod>2023-09-20T20:58:21+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://gottesanbeterin-gesucht.de/lizenz</loc>
-  <lastmod>2023-09-20T20:58:21+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://gottesanbeterin-gesucht.de/datenschutz</loc>
-  <lastmod>2023-09-20T20:58:21+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://gottesanbeterin-gesucht.de/bestimmung</loc>
-  <lastmod>2023-09-20T20:58:21+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-
+  <url>
+    <loc>https://gottesanbeterin-gesucht.de/</loc>
+    <lastmod>2025-09-02T00:00:00+00:00</lastmod>
+    <priority>1.00</priority>
+  </url>
+  <url>
+    <loc>https://gottesanbeterin-gesucht.de/mantis-religiosa</loc>
+    <lastmod>2025-09-02T00:00:00+00:00</lastmod>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://gottesanbeterin-gesucht.de/bestimmung</loc>
+    <lastmod>2025-09-02T00:00:00+00:00</lastmod>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://gottesanbeterin-gesucht.de/auswertungen</loc>
+    <lastmod>2025-09-02T00:00:00+00:00</lastmod>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://gottesanbeterin-gesucht.de/melden</loc>
+    <lastmod>2025-09-02T00:00:00+00:00</lastmod>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://gottesanbeterin-gesucht.de/faq</loc>
+    <lastmod>2025-09-02T00:00:00+00:00</lastmod>
+    <priority>0.64</priority>
+  </url>
+  <url>
+    <loc>https://gottesanbeterin-gesucht.de/impressum</loc>
+    <lastmod>2025-09-02T00:00:00+00:00</lastmod>
+    <priority>0.64</priority>
+  </url>
+  <url>
+    <loc>https://gottesanbeterin-gesucht.de/lizenz</loc>
+    <lastmod>2025-09-02T00:00:00+00:00</lastmod>
+    <priority>0.64</priority>
+  </url>
+  <url>
+    <loc>https://gottesanbeterin-gesucht.de/datenschutz</loc>
+    <lastmod>2025-09-02T00:00:00+00:00</lastmod>
+    <priority>0.64</priority>
+  </url>
 
 </urlset>

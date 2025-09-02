@@ -1,4 +1,26 @@
 {% extends "layout.html" %}
+{% block page_title %}Sichtung melden | Gottesanbeterin (Mantis religiosa){% endblock %}
+{% block meta_description %}Melden Sie Ihre Beobachtung der Europäischen Gottesanbeterin (Mantis religiosa): Foto hochladen, Fundort markieren, Entwicklungsstadium angeben und zur Forschung beitragen.{% endblock %}
+{% block meta_keywords %}Sichtung melden, Gottesanbeterin melden, Mantis religiosa melden, Fundmeldung, Oothek, Nymphe, Brandenburg, Berlin{% endblock %}
+{% block canonical %}{{ url_for('report.melden', _external=True) }}{% endblock %}
+
+{% block og_meta %}
+<meta property="og:title" content="Sichtung melden – Gottesanbeterin (Mantis religiosa)" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="{{ url_for('report.melden', _external=True) }}" />
+<meta property="og:image" content="{{ url_for('static', filename='images/weibchen-mit-oothek.avif', _external=True) }}" />
+<meta property="og:description" content="Foto hochladen, Fundort markieren und Ihre Beobachtung der Gottesanbeterin melden – einfach und schnell." />
+<meta property="og:site_name" content="Gottesanbeterin Gesucht" />
+<meta property="og:locale" content="de_DE" />
+{% endblock %}
+
+{% block twitter_meta %}
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Sichtung melden – Gottesanbeterin (Mantis religiosa)" />
+<meta name="twitter:description" content="Helfen Sie der Forschung: Gottesanbeterin-Sichtung mit Foto und Fundort melden." />
+<meta name="twitter:image" content="{{ url_for('static', filename='images/weibchen-mit-oothek.avif', _external=True) }}" />
+<meta name="twitter:url" content="{{ url_for('report.melden', _external=True) }}" />
+{% endblock %}
 {% from 'report/form_components.html' import render_photo_upload, render_form_field, render_checkbox_field, render_step_navigation, render_review_section, render_review_item, render_review_text_block, render_review_info_block, render_feedback_section %}
 
 {% block title %}Sichtung melden - Gottesanbeterin{% endblock %}

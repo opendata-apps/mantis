@@ -12,14 +12,25 @@
     page_title %} </title>
 	<meta name="description" content="{% block meta_description %} Gottesanbeterin in Deutschland gesichtet? Melden Sie Ihre Beobachtung, unterstützen Sie Forschung zu Mantis religiosa. {% endblock %}" />
 	<meta name="keywords" content="{% block meta_keywords %}Mantis religiosa, Gottesanbeterin, Mitmachprojekt, Beobachtungen, Meldung, Citizen Science, Naturkundemuseum, Potsdam, Deutschland, Gottesanbeterin gefunden, Gottesanbeterin gesichtet, Mantis entdeckt, Brandenburg, Berlin {% endblock %}" />
-	<link rel="canonical" href="{{ request.url | replace('http:', 'https:') }}" />
+	<link rel="canonical" href="{% block canonical %}{{ request.url | replace('http:', 'https:') }}{% endblock %}" />
 	<!-- Open Graph data -->
+	{% block og_meta %}
 	<meta property="og:title" content="Gottesanbeterin Gesucht | Mitmachprojekt | Mantis Religiosa Beobachtungen" />
 	<meta property="og:type" content="website" />
-	<meta property="og:url" content="https://gottesanbeterin-gesucht.de/" />
-	<meta property="og:image" content="{{ url_for('static', filename='images/berger03.avif') }}" />
+	<meta property="og:url" content="{{ request.url | replace('http:', 'https:') }}" />
+	<meta property="og:image" content="{{ url_for('static', filename='images/berger03.avif', _external=True) }}" />
 	<meta property="og:description" content="Beobachtungen der Gottesanbeterin (Mantis religiosa) in Deutschland. Melden Sie Ihre Beobachtungen und unterstützen Sie die Forschung zur Verbreitung dieser Art." />
 	<meta property="og:site_name" content="Gottesanbeterin Gesucht" />
+	<meta property="og:locale" content="de_DE" />
+	{% endblock %}
+
+	{% block twitter_meta %}
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:title" content="Gottesanbeterin Gesucht | Mitmachprojekt | Mantis Religiosa Beobachtungen" />
+	<meta name="twitter:description" content="Beobachtungen der Gottesanbeterin (Mantis religiosa) in Deutschland. Melden Sie Ihre Beobachtungen und unterstützen Sie die Forschung zur Verbreitung dieser Art." />
+	<meta name="twitter:image" content="{{ url_for('static', filename='images/berger03.avif', _external=True) }}" />
+	<meta name="twitter:url" content="{{ request.url | replace('http:', 'https:') }}" />
+	{% endblock %}
 	<meta property="fb:admins" content="Facebook numberic ID" />
 	<link rel="stylesheet" href="{{ url_for('static', filename='build/theme.css') }}" /> {% block head %} {% endblock head%}
 </head>

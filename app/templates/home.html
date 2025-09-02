@@ -1,5 +1,43 @@
-{% extends "layout.html" %} {% block title %}Gottesanbeterin gesucht!{% endblock
-title %} {% from "macro.html" import popover %} {% block content %}
+{% extends "layout.html" %}
+{% block page_title %}Gottesanbeterin gesucht! | Mitmachprojekt Brandenburg & Berlin{% endblock %}
+{% block meta_description %}Melden Sie Sichtungen der Europäischen Gottesanbeterin (Mantis religiosa) in Brandenburg & Berlin. Foto hochladen, Fundort markieren und Forschung unterstützen.{% endblock %}
+{% block meta_keywords %}Gottesanbeterin melden, Mantis religiosa melden, Sichtung melden, Brandenburg, Berlin, Oothek, Nymphe, Fangschrecke{% endblock %}
+{% block canonical %}{{ url_for('main.index', _external=True) }}{% endblock %}
+
+{% block og_meta %}
+<meta property="og:title" content="Gottesanbeterin gesucht! – Mitmachprojekt Brandenburg & Berlin" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="{{ url_for('main.index', _external=True) }}" />
+<meta property="og:image" content="{{ url_for('static', filename='images/berger03.avif', _external=True) }}" />
+<meta property="og:description" content="Melden Sie Sichtungen der Europäischen Gottesanbeterin (Mantis religiosa) in Brandenburg & Berlin – helfen Sie Forschung und Kartierung." />
+<meta property="og:site_name" content="Gottesanbeterin Gesucht" />
+<meta property="og:locale" content="de_DE" />
+{% endblock %}
+
+{% block twitter_meta %}
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Gottesanbeterin gesucht! – Mitmachprojekt Brandenburg & Berlin" />
+<meta name="twitter:description" content="Sichtungen melden, Fotos teilen und die Verbreitung der Gottesanbeterin erforschen helfen." />
+<meta name="twitter:image" content="{{ url_for('static', filename='images/berger03.avif', _external=True) }}" />
+<meta name="twitter:url" content="{{ url_for('main.index', _external=True) }}" />
+{% endblock %}
+
+{% block head %}
+{{ super() }}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Gottesanbeterin Gesucht",
+  "url": "{{ url_for('main.index', _external=True) }}",
+  "logo": "{{ url_for('static', filename='images/favicon/apple-touch-icon.png', _external=True) }}"
+}
+</script>
+{% endblock %}
+
+{% block title %}Gottesanbeterin gesucht!{% endblock title %}
+{% from "macro.html" import popover %}
+{% block content %}
 
 <!--Projektbeschreibung section -->
 <section id="Projektbeschreibung" class="relative px-4 py-20 overflow-hidden sm:px-6 lg:px-8">
