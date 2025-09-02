@@ -303,6 +303,21 @@ Gottesanbeterin Bestimmung, Mantis religiosa Identifikation, Merkmale, Untersche
         <div class="mt-4">
           <h3 class="mb-4 text-xl font-semibold text-gray-800">Schritt 3: Geschlechtsbestimmung</h3>
           <div class="space-y-6">
+            <!-- Bild 7 zuerst: Pärchen (Reihenfolge korrigiert) -->
+            <div class="flex justify-center mt-4">
+              <div class="max-w-sm overflow-hidden transition-all duration-300 bg-white rounded-lg shadow-sm hover:shadow-md">
+                <a href="{{ url_for('static', filename='images/bestimmung/paerchengross.jpg')}}"
+                   rel="lightbox[Adult]"
+                   title="Bild 7: Pärchen"
+                   aria-label="Vergrößern: Pärchen (links Weibchen, rechts Männchen)">
+                  <img src="{{ url_for('static', filename='images/bestimmung/paerchengross.jpg')}}"
+                       alt="Bild 7: Pärchen"
+                       class="object-cover w-full transition-transform duration-500 hover:scale-110"
+                       loading="lazy">
+                </a>
+                <div class="p-2 text-sm text-center text-gray-700">Bild 7: Pärchen (links Weibchen, rechts Männchen)</div>
+              </div>
+            </div>
             <!-- Option 3a -->
             <div class="p-4 transition-all duration-300 border border-green-200 rounded-lg hover:shadow-md">
               <div class="flex items-start">
@@ -377,21 +392,6 @@ Gottesanbeterin Bestimmung, Mantis religiosa Identifikation, Merkmale, Untersche
               </div>
             </div>
             
-            <!-- Image for both -->
-            <div class="flex justify-center mt-4">
-              <div class="max-w-sm overflow-hidden transition-all duration-300 bg-white rounded-lg shadow-sm hover:shadow-md">
-                <a href="{{ url_for('static', filename='images/bestimmung/paerchengross.jpg')}}"
-                   rel="lightbox[Adult]"
-                   title="Bild 7: Pärchen"
-                   aria-label="Vergrößern: Pärchen (links Männchen, rechts Weibchen)">
-                  <img src="{{ url_for('static', filename='images/bestimmung/paerchengross.jpg')}}"
-                       alt="Bild 7: Pärchen"
-                       class="object-cover w-full transition-transform duration-500 hover:scale-110"
-                       loading="lazy">
-                </a>
-                <div class="p-2 text-sm text-center text-gray-700">Bild 7: Pärchen (links Männchen, rechts Weibchen)</div>
-              </div>
-            </div>
             
             <!-- Option 3c -->
             <div class="p-4 transition-all duration-300 border border-green-200 rounded-lg hover:shadow-md">
