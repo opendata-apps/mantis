@@ -10,6 +10,7 @@
 	<meta http-equiv="X-UA-Compatible" content="ie=edge" />
 	<title> {% block page_title %}Mantis Religiosa Beobachtungen | Mitmachprojekt | Gottesanbeterin Gesucht{% endblock
     page_title %} </title>
+	<meta name="robots" content="{% block meta_robots %}index,follow{% endblock %}">
 	<meta name="description" content="{% block meta_description %} Gottesanbeterin in Deutschland gesichtet? Melden Sie Ihre Beobachtung, unterstützen Sie Forschung zu Mantis religiosa. {% endblock %}" />
 	<meta name="keywords" content="{% block meta_keywords %}Mantis religiosa, Gottesanbeterin, Mitmachprojekt, Beobachtungen, Meldung, Citizen Science, Naturkundemuseum, Potsdam, Deutschland, Gottesanbeterin gefunden, Gottesanbeterin gesichtet, Mantis entdeckt, Brandenburg, Berlin {% endblock %}" />
 	<link rel="canonical" href="{% block canonical %}{{ request.url | replace('http:', 'https:') }}{% endblock %}" />
@@ -32,6 +33,7 @@
 	<meta name="twitter:url" content="{{ request.url | replace('http:', 'https:') }}" />
 	{% endblock %}
 	<meta property="fb:admins" content="Facebook numberic ID" />
+	<link rel="preload" as="image" href="{{ url_for('static', filename='images/berger03.avif') }}" />
 	<link rel="stylesheet" href="{{ url_for('static', filename='build/theme.css') }}" /> {% block head %} {% endblock head%}
 </head>
 

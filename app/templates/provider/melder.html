@@ -1,4 +1,5 @@
 {% extends "layout.html" %}
+{% block meta_robots %}noindex,nofollow{% endblock %}
 {% block title %} Meine Sichtungen {% endblock title %}
 {% block button_ref %} "/melden/{{ session['user_id'] }}" {% endblock %}
 {% block content %}
