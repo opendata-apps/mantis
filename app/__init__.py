@@ -210,8 +210,9 @@ def create_app(config_class=Config):
     from app.routes.provider import provider
     from app.routes.statistics import stats
     from app.routes.report import report
+    # Keep selective CSRF exemptions only where strictly needed.
     csrf.exempt(main)
-    csrf.exempt(admin)
+    # Admin CSRF is enforced; do not exempt admin.
     csrf.exempt(stats)
     csrf.exempt(provider)
 

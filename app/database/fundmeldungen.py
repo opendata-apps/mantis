@@ -28,7 +28,8 @@ class TblMeldungen(db.Model):
         return f"<Report {self.id}>"
 
     def to_dict(self):
-        return {
+        # Transitional compatibility removed; only correct key is exposed.
+        data = {
             "id": self.id,
             "deleted": self.deleted,
             "dat_fund_von": self.dat_fund_von,
@@ -42,9 +43,10 @@ class TblMeldungen(db.Model):
             "art_n": self.art_n,
             "art_o": self.art_o,
             "art_f": self.art_f,
-            "fo_zuordung": self.fo_zuordnung,
+            "fo_zuordnung": self.fo_zuordnung,  # correct key
             "fo_quelle": self.fo_quelle,
             "fo_beleg": self.fo_beleg,
             "anm_melder": self.anm_melder,
             "anm_bearbeiter": self.anm_bearbeiter,
         }
+        return data

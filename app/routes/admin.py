@@ -27,7 +27,7 @@ from flask import (
     url_for,
 )
 from sqlalchemy import inspect, or_, cast, String, update, select
-from app.tools.check_reviewer import login_required
+from app.tools.check_reviewer import login_required, reviewer_required
 import shutil
 from werkzeug.utils import secure_filename
 from pathlib import Path
@@ -184,7 +184,7 @@ def reviewer(usrid):
 
 
 @admin.route("/change_mantis_meta_data/<int:id>", methods=["POST"])
-@login_required
+@reviewer_required
 def change_mantis_meta_data(id):
     "Change mantis report metadata"
     new_data = request.form.get("new_data")
@@ -249,7 +249,7 @@ def change_mantis_meta_data(id):
 
 
 @admin.route("/update_coordinates/<int:id>", methods=["POST"])
-@login_required
+@reviewer_required
 def update_coordinates(id):
     """Update both coordinates at once and recalculate AMT/MTB"""
     try:
@@ -300,7 +300,7 @@ def update_coordinates(id):
 
 
 @admin.route("/images/<path:filename>")
-@login_required
+@reviewer_required
 @limiter.exempt
 def report_Img(filename):
     "This function is used to serve the image of the report"
@@ -327,7 +327,7 @@ def report_Img(filename):
 
 
 @admin.route("/toggle_approve_sighting/<id>", methods=["POST"])
-@login_required
+@reviewer_required
 def toggle_approve_sighting(id):
     "Find ID and mark as edited with a date in column dat_bear"
 
@@ -398,7 +398,7 @@ def toggle_approve_sighting(id):
 
 
 @admin.route("/get_sighting/<id>", methods=["GET", "POST"])
-@login_required
+@reviewer_required
 def get_sighting(id):
     "Find the sighting by id and return it as a JSON object"
     # Find the report by id
@@ -447,7 +447,7 @@ def get_sighting(id):
 
 
 @admin.route("/delete_sighting/<id>", methods=["POST"])
-@login_required
+@reviewer_required
 def delete_sighting(id):
     "Delete sighting based on id"
     # Find the report by id
@@ -463,7 +463,7 @@ def delete_sighting(id):
 
 
 @admin.route("/undelete_sighting/<id>", methods=["POST"])
-@login_required
+@reviewer_required
 def undelete_sighting(id):
     "Undelete sighting based on id"
     # Find the report by id
@@ -479,7 +479,7 @@ def undelete_sighting(id):
 
 
 @admin.route("/change_mantis_gender/<int:id>", methods=["POST"])
-@login_required
+@reviewer_required
 def change_gender(id):
     "Change mantis gender or type"
     new_gender = request.form.get("new_gender")
@@ -514,7 +514,7 @@ def change_gender(id):
 
 
 @admin.route("/change_mantis_count/<int:id>", methods=["POST"])
-@login_required
+@reviewer_required
 def change_mantis_count(id):
     "Change mantis count for a specific type"
     new_count = request.form.get("new_count")
@@ -544,7 +544,7 @@ def change_mantis_count(id):
 
 
 @admin.route("/admin/export/xlsx/<string:value>")
-@login_required
+@reviewer_required
 def export_data(value):
     "Export the data from the database as an Excel file"
     try:
@@ -885,7 +885,7 @@ def get_filtered_query(
 
 
 @admin.route("/alldata")
-@login_required
+@reviewer_required
 def database_view():
     
     last_updated = session.get("last_updated_all_data_view")
@@ -903,7 +903,7 @@ def database_view():
     return render_template("admin/database.html", user_id=user_id)
 
 @admin.route("/admin/get_table_data/<table_name>")
-@login_required
+@reviewer_required
 def get_table_data(table_name):
     if table_name != 'all_data_view':
         return jsonify({"error": "Only all_data_view is available"}), 403
@@ -1027,7 +1027,7 @@ def get_table_data(table_name):
         return jsonify({"error": f"An error occurred while fetching table data: {str(e)}"}), 500
 
 @admin.route("/admin/update_cell", methods=["POST"])
-@login_required
+@reviewer_required
 def update_cell():
     data = request.json
     if data is None:

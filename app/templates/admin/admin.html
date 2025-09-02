@@ -10,6 +10,8 @@
 {% block content %}
 <script src="{{ url_for('static', filename='node_modules/flowbite/dist/flowbite.min.js')}}" defer></script>
 
+<!-- CSRF Token for JavaScript -->
+<meta name="csrf-token" content="{{ csrf_token() }}">
 
 <div class="container px-4 mx-auto my-10 md:px-12">
 
@@ -616,6 +618,12 @@
     // Add global variable for edit mode state
     let isEditModeActive = false;
 
+    // CSRF Token helper function
+    function getCSRFToken() {
+        const token = document.querySelector('meta[name="csrf-token"]');
+        return token ? token.getAttribute('content') : '';
+    }
+
     // Initialize functions
     function openModal(id) {
         document.body.style.overflow = 'hidden';
@@ -782,6 +790,7 @@
             body: new URLSearchParams({ new_gender: newGender }),
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': getCSRFToken()
             },
         })
             .then(response => response.json())
@@ -823,7 +832,12 @@
 
     // Function to toggle approve a sighting
     function toggleApprove(id) {
-        fetch('/toggle_approve_sighting/' + id, { method: 'POST' })
+        fetch('/toggle_approve_sighting/' + id, { 
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken()
+            }
+        })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
@@ -975,7 +989,10 @@
         fetch(`/change_mantis_count/${id}`, {
             method: 'POST',
             body: new URLSearchParams({ type: type, new_count: newCount }),
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+            headers: { 
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': getCSRFToken()
+            }
         })
             .then(response => response.json())
             .then(data => {
@@ -991,7 +1008,10 @@
         fetch(`/change_mantis_meta_data/${id}`, {
             method: 'POST',
             body: new URLSearchParams({ id: id, type: type, new_data: newContent }),
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+            headers: { 
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': getCSRFToken()
+            }
         })
             .then(response => response.json())
             .then(data => {
@@ -1011,7 +1031,10 @@
         // Send both coordinates in a single request
         fetch(`/update_coordinates/${id}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
             body: JSON.stringify({ latitude: lat, longitude: lng })
         })
         .then(response => response.json())
@@ -1606,7 +1629,12 @@
     function deleteSighting(id) {
         let confirmDelete = confirm('Sind Sie sicher, dass Sie die Meldung löschen möchten?');
         if (confirmDelete) {
-            fetch('/delete_sighting/' + id, { method: 'POST' })
+            fetch('/delete_sighting/' + id, { 
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCSRFToken()
+                }
+            })
                 .then(response => response.json())
                 .then(data => {
                     removeCardFromView(id);
@@ -1619,7 +1647,12 @@
     function undoDelete(id) {
         let confirmUndo = confirm('Sind Sie sicher, dass Sie die Löschung der Meldung rückgängig machen möchten?');
         if (confirmUndo) {
-            fetch('/undelete_sighting/' + id, { method: 'POST' })
+            fetch('/undelete_sighting/' + id, { 
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCSRFToken()
+                }
+            })
                 .then(response => response.json())
                 .then(data => {
                     removeCardFromView(id);
