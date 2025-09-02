@@ -299,7 +299,7 @@ def update_coordinates(id):
         return jsonify({"error": str(e)}), 500
 
 
-@admin.route("/images/<path:filename>")
+@admin.route("/admin/images/<path:filename>")
 @reviewer_required
 @limiter.exempt
 def report_Img(filename):
