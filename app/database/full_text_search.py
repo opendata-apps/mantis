@@ -4,7 +4,7 @@ import sqlalchemy.ext.compiler
 import sqlalchemy.orm as orm
 from sqlalchemy import text, event
 from sqlalchemy.ext import compiler
-from sqlalchemy import Column, Integer 
+from sqlalchemy import Column, Integer
 from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
@@ -22,19 +22,19 @@ class FullTextSearch(Base):
 
     meldungen_id = Column(Integer, primary_key=True)
     doc = Column(TSVECTOR)
-  
+
     @classmethod
     def search(cls, query: str, limit: Optional[int] = None) -> List[int]:
         """
         Perform a full-text search using websearch_to_tsquery.
-        
+
         Args:
             query: The search query string using websearch syntax
             limit: Optional limit for the number of results
-            
+
         Returns:
             List of meldungen_id that match the search criteria
-            
+
         Example:
             >>> FullTextSearch.search('"exact phrase" -exclude')
             >>> FullTextSearch.search('word1 OR word2')
@@ -46,7 +46,7 @@ class FullTextSearch(Base):
             # Handle email searches separately
             if '@' in query:
                 sql = text("""
-                    SELECT DISTINCT m.id 
+                    SELECT DISTINCT m.id
                     FROM meldungen m
                     JOIN melduser mu ON m.id = mu.id_meldung
                     JOIN users u ON mu.id_user = u.id
@@ -55,17 +55,19 @@ class FullTextSearch(Base):
                 """)
                 if limit:
                     sql = text(str(sql) + " LIMIT :limit")
-                    result = session.execute(sql, {'query': f'%{query}%', 'limit': limit})
+                    result = session.execute(sql, {'query': f'%{query}%',
+                                                   'limit': limit})
                 else:
                     result = session.execute(sql, {'query': f'%{query}%'})
                 return [row[0] for row in result]
 
             # For regular searches, use websearch_to_tsquery
             sql = text("""
-                SELECT meldungen_id 
-                FROM full_text_search 
+                SELECT meldungen_id
+                FROM full_text_search
                 WHERE doc @@ websearch_to_tsquery('german', :query)
-                ORDER BY ts_rank(doc, websearch_to_tsquery('german', :query)) DESC
+                ORDER BY ts_rank(doc, websearch_to_tsquery('german', :query))
+                DESC
             """)
 
             if limit:
@@ -120,7 +122,8 @@ def dropGen(element, compiler, **kwargs):
     return text(sql)  # text() um den SQL-Ausdruck
 
 
-def create_materialized_view(db: Optional[Engine] = None, session: Optional[Session] = None) -> None:
+def create_materialized_view(db: Optional[Engine] = None,
+                             session: Optional[Session] = None) -> None:
     'create or recreate a materialized view for global search activities'
     if not db:
         db = sa.create_engine(
@@ -195,9 +198,10 @@ def create_materialized_view(db: Optional[Engine] = None, session: Optional[Sess
     meta.create_all(bind=db, checkfirst=True)
     session.commit()
     session.close()
-    
+
 def refresh_materialized_view(db):
     "Refresh the materialized view"
+
     db.session.execute(text('REFRESH MATERIALIZED VIEW full_text_search'))
     db.session.commit()
 

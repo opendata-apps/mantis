@@ -42,15 +42,13 @@ def get_date_interval(request=None):
     else:
         start_date = last_year
         end_date = now
-        
+
     if not end_date:
         end_date = now
     if not start_date:
         start_date = last_year
-    
-    
-    return (start_date[:10], end_date[:10])
 
+    return (start_date[:10], end_date[:10])
 
 @stats.route("/statistik", methods=["POST", "GET"])
 @stats.route("/statistik/<usrid>", methods=["POST", "GET"])
@@ -59,7 +57,9 @@ def stats_start(usrid=None):
     "Startseite für alle Statistiken"
     date_from, date_to = get_date_interval(request)
     user_id = session["user_id"]
-    user = db.session.scalar(select(TblUsers).where(TblUsers.user_id == user_id))
+    user = db.session.scalar(select(TblUsers).where(
+        TblUsers.user_id == user_id)
+                             )
 
     # If the user doesn't exist or the role isn't 9, return 404
     if not user or user.user_rolle != "9":
@@ -253,9 +253,6 @@ def stats_geschlecht(request=None):
     """Count sum of all kategories"""
 
     start_date, end_date = get_date_interval(request)
-    
-    
-    # Use parameterized query to prevent SQL injection
     stm = """
       select sum(art_m) as "Männchen"
             , sum(art_w) as "Weibchen"
@@ -271,7 +268,8 @@ def stats_geschlecht(request=None):
     sql = text(stm)
     userid = session["user_id"]
     with db.engine.connect() as conn:
-        result = conn.execute(sql, {"start_date": start_date, "end_date": end_date})
+        result = conn.execute(sql, {"start_date": start_date,
+                                    "end_date": end_date})
         res = []
         for row in result:
             row = row._mapping
@@ -292,8 +290,6 @@ def stats_amt(request, dateFrom, dateTo, marker):
     "Statistics pro Gemeinden (AGS))"
 
     gem = request.form.get('gemeinde', '000')
-    
-    
     gem = gem.split(' ')[0]
     typeInput = ['amt', 'maennlich', 'weiblich',
                  'oothek', 'nymphe', 'andere', 'all']
