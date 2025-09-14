@@ -32,12 +32,16 @@ class Config:
             UserWarning
         )
     WTF_CSRF_ENABLED = True
-    host = ""
-    port = 25
-    tls = True
-    sender_email = ""
-    sender_pass = ""
+
+    MAIL_SERVER = "mail.mantis-projekt.de"
+    MAIL_PORT = 587
+    MAIL_USE_TLS = True
+    MAIL_USE_SSL = False
+    MAIL_USERNAME = ""
+    MAIL_PASSWORD = ""
+    MAIL_DEFAULT_SENDER = ("Mantis-Projekt", "mantis@projekt.de")
     send_emails = False
+
     UPLOAD_FOLDER = 'app/datastore'
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
     PERMANENT_SESSION_LIFETIME = timedelta(hours=1)
