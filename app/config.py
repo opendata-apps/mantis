@@ -34,7 +34,7 @@ class Config:
     WTF_CSRF_ENABLED = True
 
     MAIL_SERVER = "mail.mantis-projekt.de"
-    MAIL_PORT = 587
+    MAIL_PORT = 25
     MAIL_USE_TLS = True
     MAIL_USE_SSL = False
     MAIL_USERNAME = ""
