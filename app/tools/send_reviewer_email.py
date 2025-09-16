@@ -84,6 +84,9 @@ def send_email(data):
 
 
 if __name__ == "__main__":
+    # check script with real data and:
+    # cd project-root
+    # python -m app.tools.send_reviewer_email
 
     data = {
         "user_id": "xxxxxxxxx",
