@@ -40,7 +40,7 @@ class Config:
     MAIL_USERNAME = ""
     MAIL_PASSWORD = ""
     MAIL_DEFAULT_SENDER = ("Mantis-Projekt", "mantis@projekt.de")
-    send_emails = False
+    REVIEWERMAIL = False
 
     UPLOAD_FOLDER = 'app/datastore'
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}

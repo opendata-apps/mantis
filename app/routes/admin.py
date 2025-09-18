@@ -350,8 +350,7 @@ def toggle_approve_sighting(id):
         current_app.logger.error(f"Sighting {id} not found for approval toggle.")
         return jsonify({"error": "Report not found"}), 404
 
-    if current_app.config.get('send_emails', False):
-        # get data for E-Mail if send_email is True
+    if current_app.config.get('REVIEWERMAIL', False):
         sighting = (
             db.session.query(
                 TblMeldungen,

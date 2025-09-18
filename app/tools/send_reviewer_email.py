@@ -35,9 +35,9 @@ def rendertextmsg(md):
     {'PLZ:':<21}  {str(md['plz']):>22}
     {'Ort:':<21}  {md['ort']:>22}
     {'Straße:':<21}  {md['strasse']:>22}
-    {'Bundesland:':<21} {md['land']:>22}
-    {'Kreis:':<21} {md['kreis']:>22}
-    {'Funddatum:':<21} {md['datum']:>22}
+    {'Bundesland:':<22} {md['land']:>22}
+    {'Kreis:':<22} {md['kreis']:>22}
+    {'Funddatum:':<22} {md['datum']:>22}
 
     ==========
 
