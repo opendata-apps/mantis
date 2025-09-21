@@ -72,7 +72,7 @@ def send_email(data):
     md['datum'] = string_from_date
 
     msg = Message(
-        subject="Reviewer-E-Mail",
+        subject="[Gottesanbeterin-Gesucht] Meldung überprüft",
         recipients=[data["user_kontakt"]],
         body=(rendertextmsg(md))
     )
@@ -92,8 +92,8 @@ if __name__ == "__main__":
         "user_id": "xxxxxxxxx",
         "user_kontakt": "test@example.com",
         "anm_bearbeiter": "",
-        "datum": datetime.today(),
-        "dat_fund_von": datetime.today(),
+        "datum": datetime.datetime.today(),
+        "dat_fund_von": datetime.datetime.today(),
         "latitude": "3.14",
         "longitude": "6.28",
         "plz": "123456",
