@@ -175,10 +175,12 @@
 {% endblock %}
 
 {% block content %}
+<p style="text-align:center">Zeit der Eiablage: Melden Sie bitte auch Ootheken, sie sind der Start für die nächste Generation im kommenden Jahr.</p>
+
 <div class="form-container">
   <div class="form-wrapper">
-    <div id="loadingOverlay" class="fixed inset-0 z-50 flex flex-col items-center justify-center invisible transition-all duration-200 ease-in-out bg-white opacity-0 bg-opacity-80">
-      <div class="w-12 h-12 border-4 border-gray-200 rounded-full border-t-green-600 animate-spin"></div>
+    <div id="loadingOverlay" class="flex fixed inset-0 invisible z-50 flex-col justify-center items-center bg-white bg-opacity-80 opacity-0 transition-all duration-200 ease-in-out">
+      <div class="w-12 h-12 rounded-full border-4 border-gray-200 animate-spin border-t-green-600"></div>
       <div id="loadingMessage" class="mt-4 font-medium text-green-700">Wird verarbeitet...</div>
     </div>
 
@@ -188,11 +190,11 @@
       
       <div class="step-container">
         <!-- Step 1: Photo & Details -->
-        <div class="p-6 bg-white border border-gray-100 rounded-lg shadow-sm step active" id="step1">
+        <div class="p-6 bg-white rounded-lg border border-gray-100 shadow-sm step active" id="step1">
           <h3 class="mb-4 text-xl font-medium text-green-700">Foto & Details</h3>
           
           <p class="mb-4 text-sm text-gray-600">
-            <i class="w-4 h-4 mr-1 text-green-600 fas fa-camera"></i>
+            <i class="mr-1 w-4 h-4 text-green-600 fas fa-camera"></i>
             Bitte laden Sie ein Foto Ihrer Gottesanbeterin-Sichtung hoch und beschreiben Sie, was Sie gesehen haben.
           </p>
           
@@ -214,11 +216,11 @@
         </div>
         
         <!-- Step 2: Location & Date -->
-        <div class="hidden p-6 bg-white border border-gray-100 rounded-lg shadow-sm step" id="step2">
+        <div class="hidden p-6 bg-white rounded-lg border border-gray-100 shadow-sm step" id="step2">
           <h3 class="mb-4 text-xl font-medium text-green-700">Wann und Wo? (Ort & Datum)</h3>
           
           <p class="mb-3 text-sm italic text-gray-500">
-            <i class="w-4 h-4 mr-1 text-green-600 fas fa-map-marker-alt"></i>
+            <i class="mr-1 w-4 h-4 text-green-600 fas fa-map-marker-alt"></i>
             Prüfen oder setzen Sie das Sichtungsdatum und markieren Sie den genauen Fundort auf der Karte.
           </p>
           
@@ -228,9 +230,9 @@
           
           <div class="flex flex-col mb-4 lg:flex-row lg:space-x-6">
             <!-- Map column -->
-            <div class="w-full mb-4 lg:w-3/5 xl:w-2/3 lg:mb-0">
-              <div class="p-3 mb-2 rounded-md bg-gray-50">
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+            <div class="mb-4 w-full lg:w-3/5 xl:w-2/3 lg:mb-0">
+              <div class="p-3 mb-2 bg-gray-50 rounded-md">
+                <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                   <span class="text-sm font-medium text-gray-700">Fundort auswählen</span>
                   <span class="text-xs text-gray-500">Klicken Sie auf die Karte oder geben Sie Koordinaten ein</span>
                 </div>
@@ -239,24 +241,24 @@
             </div>
             
             <!-- Form fields column -->
-            <div class="w-full space-y-4 lg:w-2/5 xl:w-1/3">
+            <div class="space-y-4 w-full lg:w-2/5 xl:w-1/3">
               <!-- Manual coordinates input -->
-              <div class="p-4 border border-gray-200 rounded-md bg-gray-50">
+              <div class="p-4 bg-gray-50 rounded-md border border-gray-200">
                 <div class="mb-2">
                   <span class="text-sm font-medium text-gray-700">Genaue Koordinaten</span>
-                  <div class="text-xs text-gray-500 mt-0.5">Klicken Sie auf die Karte oder geben Sie Werte ein</div>
+                  <div class="mt-0.5 text-xs text-gray-500">Klicken Sie auf die Karte oder geben Sie Werte ein</div>
                 </div>
                 
                 <div class="grid grid-cols-2 gap-3">
                   <div class="form-group">
                     <label for="manual-latitude" class="block mb-1 text-xs font-medium text-gray-700">Breitengrad</label>
                     <input type="text" id="manual-latitude" pattern="-?[0-9]+\.?[0-9]*" placeholder="z.B. 48.137154" 
-                      class="block w-full px-4 py-2 text-base text-gray-700 transition duration-300 ease-in-out bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200">
+                      class="block px-4 py-2 w-full text-base text-gray-700 bg-white rounded-lg border border-gray-300 shadow-sm transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200">
                   </div>
                   <div class="form-group">
                     <label for="manual-longitude" class="block mb-1 text-xs font-medium text-gray-700">Längengrad</label>
                     <input type="text" id="manual-longitude" pattern="-?[0-9]+\.?[0-9]*" placeholder="z.B. 11.576124"
-                      class="block w-full px-4 py-2 text-base text-gray-700 transition duration-300 ease-in-out bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200">
+                      class="block px-4 py-2 w-full text-base text-gray-700 bg-white rounded-lg border border-gray-300 shadow-sm transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200">
                   </div>
                 </div>
               </div>
@@ -272,10 +274,10 @@
               {% endif %}
               
               <!-- Address fields -->
-              <div class="p-4 bg-white border border-gray-200 rounded-md">
+              <div class="p-4 bg-white rounded-md border border-gray-200">
                 <h4 class="mb-3 text-sm font-medium text-gray-700">Adressinformationen</h4>
                 <div class="space-y-3">
-                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     {{ render_form_field(form.fund_zip_code, attrs={'id': 'fund_zip_code', 'class': 'w-full px-3 py-2 text-sm md:text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
                     {{ render_form_field(form.fund_city, attrs={'id': 'fund_city', 'class': 'w-full px-3 py-2 text-sm md:text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
                   </div>
@@ -292,7 +294,7 @@
         </div>
         
         <!-- Step 3: Contact Information -->
-        <div class="hidden p-6 bg-white border border-gray-100 rounded-lg shadow-sm step" id="step3">
+        <div class="hidden p-6 bg-white rounded-lg border border-gray-100 shadow-sm step" id="step3">
           <h3 class="mb-4 text-xl font-medium text-green-700">Ihre Kontaktdaten</h3>
           
           <div class="space-y-4">
@@ -310,7 +312,7 @@
             {{ render_checkbox_field(form.identical_finder_reporter, attrs={'id': 'identical_finder_reporter'}) }}
              
             <!-- Conditionally shown finder fields -->
-            <div id="finder_fields" class="hidden p-4 mt-4 space-y-4 rounded-md bg-gray-50">
+            <div id="finder_fields" class="hidden p-4 mt-4 space-y-4 bg-gray-50 rounded-md">
               {{ render_form_field(form.finder_first_name, attrs={'id': 'finder_first_name'}) }}
               {{ render_form_field(form.finder_last_name, attrs={'id': 'finder_last_name'}) }}
             </div>
@@ -331,11 +333,11 @@
         </div>
         
         <!-- Step 4: Review & Submit -->
-        <div class="hidden p-6 bg-white border border-gray-100 rounded-lg shadow-sm step" id="step4">
+        <div class="hidden p-6 bg-white rounded-lg border border-gray-100 shadow-sm step" id="step4">
           <h3 class="mb-4 text-xl font-medium text-green-700">Überprüfen & Absenden</h3>
           
           <p class="mb-6 text-sm text-gray-600">
-            <i class="w-4 h-4 mr-1 text-green-600 fas fa-check-circle"></i>
+            <i class="mr-1 w-4 h-4 text-green-600 fas fa-check-circle"></i>
             Bitte überprüfen Sie Ihre Angaben und senden Sie Ihre Meldung ab. Sie können jederzeit zurückgehen, um Änderungen vorzunehmen.
           </p>
           
@@ -344,7 +346,7 @@
             {% call render_review_section(title='Foto & Details', icon_class='fas fa-image', step_to_edit=1) %}
               <div class="flex flex-col md:flex-row md:space-x-6">
                 <div class="mb-4 md:w-1/3 md:mb-0">
-                  <div class="flex items-center justify-center h-40 overflow-hidden border border-gray-200 rounded-md bg-gray-50 md:h-48">
+                  <div class="flex overflow-hidden justify-center items-center h-40 bg-gray-50 rounded-md border border-gray-200 md:h-48">
                     <img id="review-photo" class="object-contain max-w-full max-h-full" src="" alt="Uploaded photo">
                   </div>
                 </div>
@@ -389,15 +391,15 @@
                 
                 <div id="review-finder-container" class="hidden md:col-span-2">
                   {% call render_review_info_block(label='Finder', icon_class='fas fa-user') %}
-                    <div id="review-finder-name" class="text-gray-900 ml-7">-</div>
+                    <div id="review-finder-name" class="ml-7 text-gray-900">-</div>
                   {% endcall %}
                 </div>
                   
                 {% if not user_has_feedback %}
                   <div id="review-feedback-container" class="md:col-span-2">
                     {% call render_review_info_block(label='Wie haben Sie von uns erfahren?', icon_class='fas fa-lightbulb') %}
-                      <div id="review-feedback-source" class="text-gray-900 ml-7">Nicht angegeben</div>
-                      <div id="review-feedback-detail" class="hidden mt-1 text-sm text-gray-600 ml-7"></div>
+                      <div id="review-feedback-source" class="ml-7 text-gray-900">Nicht angegeben</div>
+                      <div id="review-feedback-detail" class="hidden mt-1 ml-7 text-sm text-gray-600"></div>
                     {% endcall %}
                   </div>
                 {% endif %}
@@ -405,10 +407,10 @@
             {% endcall %}
           
             <!-- Final warning before submission -->
-            <div class="p-4 border rounded-lg shadow-sm bg-amber-50 border-amber-200">
+            <div class="p-4 bg-amber-50 rounded-lg border border-amber-200 shadow-sm">
               <div class="flex">
                 <div class="flex-shrink-0">
-                  <i class="w-5 h-5 fas fa-exclamation-triangle text-amber-500"></i>
+                  <i class="w-5 h-5 text-amber-500 fas fa-exclamation-triangle"></i>
                 </div>
                 <div class="ml-3">
                   <p class="text-sm text-amber-800">
