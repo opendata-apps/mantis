@@ -223,6 +223,8 @@ def create_app(config_class=Config):
     app.register_error_handler(429, too_many_requests)
     app.register_error_handler(500, internal_server_error)
 
+    # Exempt admin blueprint from rate limiting
+    limiter.exempt(admin)
     # CSRF error handler
     from flask_wtf.csrf import CSRFError
     @app.errorhandler(CSRFError)
