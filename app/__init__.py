@@ -8,6 +8,7 @@ from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
 from flask_mail import Mail
+from flask_favicon import FlaskFavicon
 from werkzeug.middleware.proxy_fix import ProxyFix
 import sqlalchemy as sa
 import sqlalchemy.schema
@@ -30,6 +31,7 @@ limiter = Limiter(
     headers_enabled=True
 )
 mail = Mail()
+flaskFavicon = FlaskFavicon()
 
 
 # Define the custom command for creating the materialized view
@@ -172,6 +174,13 @@ def create_app(config_class=Config):
     csrf.init_app(app)
     db.init_app(app)
     limiter.init_app(app)
+    flaskFavicon.init_app(app)
+
+    # Register favicons
+    flaskFavicon.register_favicon('app/static/images/logo.png', 'default')
+    # You can register additional favicons for different sections
+    # For example, a special one for admin pages:
+    # flaskFavicon.register_favicon('app/static/images/admin-logo.png', 'admin')
 
     migrate.init_app(app, db)
 

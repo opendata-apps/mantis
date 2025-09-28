@@ -493,7 +493,7 @@
                 <div class="flex justify-end space-x-4 action-container">
                     <!-- "Bearbeiten" button will be inserted here dynamically -->
                     <button type="button"
-                        class="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg transition duration-200 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                        class="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white rounded-lg border border-gray-300 transition duration-200 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
                         onclick="closeModal()">Schließen</button>
                 </div>
             </div>
@@ -659,7 +659,7 @@
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Fehler beim Laden der Daten. Bitte versuchen Sie es später erneut.');
+                alert('Fehler beim Laden der Daten. Bitte versuchen Sie es später erneut. ' + error);
             });
     }
 

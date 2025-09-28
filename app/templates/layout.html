@@ -3,9 +3,7 @@
 
 <head>
 	<meta charset="UTF-8" />
-	<link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon/favicon.ico') }}" />
-	<link rel="apple-touch-icon" href="{{ url_for('static', filename='images/favicon/apple-touch-icon.png') }}" />
-	<link rel="manifest" href="{{ url_for('static', filename='images/favicon/site.webmanifest') }}" />
+	{% include "flask-favicon.html" %}
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<meta http-equiv="X-UA-Compatible" content="ie=edge" />
 	<title> {% block page_title %}Mantis Religiosa Beobachtungen | Mitmachprojekt | Gottesanbeterin Gesucht{% endblock
@@ -41,7 +39,7 @@
 	<header class="fixed top-0 right-0 left-0 transition-colors duration-300" style="z-index: 9998;">
 		<nav class="container flex justify-between items-center px-4 py-3 mx-auto">
 			<a href="/" class="flex items-center text-2xl font-extrabold text-gray-100">
-				<img loading="lazy" src="{{ url_for('static', filename='favicon.ico') }}" alt="Logo des Mantis-Religiosa-Projekts" class="mr-2 h-8 sm:h-10" />
+				<img loading="lazy" src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo des Mantis-Religiosa-Projekts" class="mr-2 h-8 sm:h-10" />
 				<span class="link link-underline">Mitmachprojekt</span>
 			</a>
 			<div class="hidden space-x-6 md:flex">

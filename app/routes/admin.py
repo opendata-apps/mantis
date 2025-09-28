@@ -301,7 +301,6 @@ def update_coordinates(id):
 
 @admin.route("/admin/images/<path:filename>")
 @reviewer_required
-@limiter.exempt
 def report_Img(filename):
     "This function is used to serve the image of the report"
     # Validate that the filename doesn't contain dangerous patterns
