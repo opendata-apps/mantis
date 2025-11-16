@@ -6,8 +6,6 @@ Covers:
 - Exempt routes accept POST without CSRF token.
 """
 
-from flask_wtf.csrf import generate_csrf
-import secrets
 
 
 def test_admin_post_without_csrf_is_rejected(app, authenticated_client):

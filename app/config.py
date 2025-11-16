@@ -3,23 +3,33 @@ from dotenv import load_dotenv
 from datetime import timedelta
 from datetime import datetime
 
-load_dotenv(dotenv_path="app/.env")
+# Load .env file from project root
+load_dotenv()
 
 class Config:
-    SQLALCHEMY_DATABASE_URI = 'postgresql://mantis_user:mantis@localhost/mantis_tracker'
+    # Database Configuration
+    SQLALCHEMY_DATABASE_URI = os.getenv(
+        'SQLALCHEMY_DATABASE_URI',
+        'postgresql://mantis_user:mantis@localhost/mantis_tracker'
+    )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    
+
     # Connection Pooling Configuration
     SQLALCHEMY_ENGINE_OPTIONS = {
-        'pool_size': 10,           # Core pool size (persistent connections)
-        'max_overflow': 20,        # Additional connections during peak load
-        'pool_recycle': 3600,      # Recycle connections after 1 hour (prevents stale connections)
-        'pool_pre_ping': True,     # Test connections before use (prevents "server has gone away" errors)
+        'pool_size': int(os.getenv('DB_POOL_SIZE', 10)),
+        'max_overflow': int(os.getenv('DB_MAX_OVERFLOW', 20)),
+        'pool_recycle': int(os.getenv('DB_POOL_RECYCLE', 3600)),
+        'pool_pre_ping': True,
     }
-    MAP_CENTER_LONGITUDE = -122.4194
-    MAP_CENTER_LATITUDE = 37.7749
-    MAP_ZOOM = 1
-    SECRET_KEY = os.environ.get('SECRET_KEY')
+
+    # Map Configuration (Static - Brandenburg, Germany)
+    MAP_CENTER_LONGITUDE = 13.0
+    MAP_CENTER_LATITUDE = 52.4
+    MAP_ZOOM = 8
+    MIN_MAP_YEAR = 2023
+
+    # Security Configuration
+    SECRET_KEY = os.getenv('SECRET_KEY')
     if not SECRET_KEY:
         # Generate a secure secret key in development
         import secrets
@@ -33,33 +43,39 @@ class Config:
         )
     WTF_CSRF_ENABLED = True
 
-    MAIL_SERVER = "mail.mantis-projekt.de"
-    MAIL_PORT = 25
-    MAIL_USE_TLS = True
-    MAIL_USE_SSL = False
-    MAIL_USERNAME = ""
-    MAIL_PASSWORD = ""
-    MAIL_DEFAULT_SENDER = ("Mantis-Projekt", "mantis@projekt.de")
-    REVIEWERMAIL = False
+    # Email Configuration
+    MAIL_SERVER = os.getenv('MAIL_SERVER', 'mail.mantis-projekt.de')
+    MAIL_PORT = int(os.getenv('MAIL_PORT', 25))
+    MAIL_USE_TLS = os.getenv('MAIL_USE_TLS', 'True').lower() in ('true', '1', 'yes')
+    MAIL_USE_SSL = os.getenv('MAIL_USE_SSL', 'False').lower() in ('true', '1', 'yes')
+    MAIL_USERNAME = os.getenv('MAIL_USERNAME', '')
+    MAIL_PASSWORD = os.getenv('MAIL_PASSWORD', '')
+    MAIL_DEFAULT_SENDER = (
+        os.getenv('MAIL_DEFAULT_SENDER_NAME', 'Mantis-Projekt'),
+        os.getenv('MAIL_DEFAULT_SENDER', 'mantis@projekt.de')
+    )
+    REVIEWERMAIL = os.getenv('REVIEWERMAIL', 'False').lower() in ('true', '1', 'yes')
 
+    # Upload Configuration
     UPLOAD_FOLDER = 'app/datastore'
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
+
+    # Session Configuration
     PERMANENT_SESSION_LIFETIME = timedelta(hours=1)
-    CHECKLIST = {}
-    PREFERRED_URL_SCHEME = 'https'
-    
-    # Session Security Settings
-    SESSION_COOKIE_SECURE = True
-    SESSION_COOKIE_HTTPONLY = True
-    SESSION_COOKIE_SAMESITE = 'Lax'
-    
-    # DoS Prevention
+    PREFERRED_URL_SCHEME = os.getenv('PREFERRED_URL_SCHEME', 'https')
+    SESSION_COOKIE_SECURE = os.getenv('SESSION_COOKIE_SECURE', 'True').lower() in ('true', '1', 'yes')
+    SESSION_COOKIE_HTTPONLY = True  # Always True for security
+    SESSION_COOKIE_SAMESITE = 'Lax'  # Always Lax for CSRF protection
+
+    # DoS Prevention (Static Security Settings)
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
     MAX_FORM_MEMORY_SIZE = 500 * 1024  # 500KB max form data
     MAX_FORM_PARTS = 1000  # max 1000 form fields
+
+    # Application Settings
     STATIC_FOLDER = 'app/static'
     CURRENT_YEAR = datetime.now().year
-    MIN_MAP_YEAR = 2023
     CELEBRATION_THRESHOLD = 10000
-    TESTING = False
+    TESTING = os.getenv('TESTING', 'False').lower() in ('true', '1', 'yes')
+    CHECKLIST = {}
  
