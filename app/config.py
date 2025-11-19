@@ -75,7 +75,7 @@ class Config:
     # Application Settings
     STATIC_FOLDER = 'app/static'
     CURRENT_YEAR = datetime.now().year
-    CELEBRATION_THRESHOLD = os.getenv('CELEBRATION_THRESHOLD')
+    CELEBRATION_THRESHOLD = int(os.getenv('CELEBRATION_THRESHOLD', '10000'))
     TESTING = os.getenv('TESTING', 'False').lower() in ('true', '1', 'yes')
     CHECKLIST = {}
  
