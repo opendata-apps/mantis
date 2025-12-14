@@ -37,12 +37,18 @@ flaskFavicon = FlaskFavicon()
 @with_appcontext
 def create_all_data_view():
     """Create the materialized view."""
-
     import app.database.alldata as ad
+    import app.database.full_text_search as fts
+    
+    conn = Config.SQLALCHEMY_DATABASE_URI
+    # Renamed for clarity, used by populate_all
+    db_engine = sa.create_engine(conn)
+    Session = orm.sessionmaker(bind=db_engine)
+    session = Session()
 
-    ad.create_materialized_view()
-    click.echo("Materialized view created.")
-
+    ad.create_materialized_view(db_engine, session=session)
+    fts.create_materialized_view(db_engine, session=session)
+    click.echo("Materialized views created.")
 
 @click.command("insert_initial_data")
 @with_appcontext
@@ -59,7 +65,7 @@ def insert_initial_data_command():
     db_engine = sa.create_engine(conn)
     Session = orm.sessionmaker(bind=db_engine)
     session = Session()
-
+    
     # Determine the source of VG5000 data
     if Config.TESTING:
         from tests.database.jsondata import data as jsondata
@@ -69,11 +75,12 @@ def insert_initial_data_command():
     # Call the centralized population function
     # It handles beschreibung, feedback_types, and vg5000_aemter
     populate_all(db_engine, session, jsondata)
-
+    ad.create_materialized_view()
+    click.echo("Materialized view created.")
     # Keep the creation/refresh of materialized views
     # Ensure these run *after* all initial data is potentially populated
-    fts.create_materialized_view(db_engine, session=session)
     ad.create_materialized_view(db_engine, session=session)
+    fts.create_materialized_view(db_engine, session=session)
 
     # Keep testing-specific data insertion and file operations
     if Config.TESTING:
