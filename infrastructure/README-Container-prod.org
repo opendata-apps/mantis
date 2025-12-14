@@ -1,6 +1,9 @@
 * Produktion
 - Es werden keine Demodaten importiert
 - Es muss ein erster Benutzer mit Admin-Rechten angelegt werden
+- in .env sind folgende Werte gesetzt:
+  - LOAD_DEMO_DATA=False
+  - TESTING=False
   
 ** Ersten reviewer anlegen
 
