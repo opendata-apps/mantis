@@ -6,7 +6,7 @@ from datetime import datetime
 load_dotenv(dotenv_path="app/.env")
 
 class Config:
-    SQLALCHEMY_DATABASE_URI = 'postgresql://mantis_user:mantis@localhost/mantis_tracker'
+    SQLALCHEMY_DATABASE_URI = os.getenv("SQLALCHEMY_DATABASE_URI")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # Connection Pooling Configuration
@@ -42,7 +42,7 @@ class Config:
     MAIL_DEFAULT_SENDER = ("Mantis-Projekt", "mantis@projekt.de")
     REVIEWERMAIL = False
 
-    UPLOAD_FOLDER = 'app/datastore'
+    UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER")
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
     PERMANENT_SESSION_LIFETIME = timedelta(hours=1)
     CHECKLIST = {}
@@ -61,5 +61,5 @@ class Config:
     CURRENT_YEAR = datetime.now().year
     MIN_MAP_YEAR = 2023
     CELEBRATION_THRESHOLD = 10000
-    TESTING = False
+    TESTING = os.getenv("TESTING")
  

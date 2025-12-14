@@ -1,0 +1,187 @@
+* Übersicht
+
+|-------------------------+---------------------------------|
+| Datei                   | Zweck                           |
+|-------------------------+---------------------------------|
+| podman-compose.prod.yml | Prod-Services: Flask + DB       |
+| podman-compose.dev.yml  | Dev-Erweiterung: Tailwind,      |
+|                         | Volumes, Hot-Reload             |
+| Dockerfile              | Python-Image + App-Dependencies |
+|-------------------------+---------------------------------|
+
+* Arbeiten mit Podman/Podman-Compose
+** Stoppen
+*** Anhalten: Stoppen 
+#+begin_src bash
+
+  cd infrastructure
+  # podman-compose down
+  podman-compose -f podman-compose.prod.yml -f podman-compose.dev.yml down
+
+  # if production
+
+  podman-compose -f podman-compose.prod.yml down
+  
+#+end_src
+
+*** Anhalten: Stoppen und Volumes löschen
+Falls alles frisch aufzusetzen ist:
+
+#+begin_src bash
+
+  podman-compose down -v
+
+#+end_src
+
+(-v entfernt auch die Volumes, also deine PostgreSQL-Daten!)
+** Löschen: Altes Image
+
+#+begin_src bash
+  
+  podman images
+  podman image rm <image_name_or_id>
+    
+#+end_src
+** Löschen: <none> - Images
+#+begin_src bash
+  podman image ls -a | grep '<none>' | awk '{print $3}' | xargs podman rmi -f
+#+end_src
+** Löschen: Tailwind-Image
+
+#+begin_src bash
+
+  podman volume ls                  # Liste aller Volumes
+  podman volume rm tailwind_build
+
+  # Danach Dev-Container neu starten:
+
+  podman-compose -f podman-compose.prod.yml -f podman-compose.dev.yml up
+  
+#+end_src
+
+** Neu bauen: Podman-Compose
+
+
+Alles neu bauen ...
+
+#+begin_src bash
+
+  podman-compose build --no-cache
+    
+#+end_src
+
+** Starten:
+*** Podman-Compose -- development
+
+#+begin_src bash
+    # 1. Dependencies installieren (einmalig / CI)
+    bun install
+
+    # 2. Tailwind CSS im Watch-Mode starten
+    bun run watch:css
+
+    # 3. Container starten
+    podman-compose -f podman-compose.prod.yml -f podman-compose.dev.yml up
+
+#+end_src
+
+*** Podman-Compose -- production
+
+#+begin_src bash
+
+    # 1. Fertige CSS bauen
+    bun run build:css
+
+    # 2. Docker Image bauen
+    podman build -t mantis_web ..
+
+    # 3. Container starten
+    podman-compose -f podman-compose.prod.yml up -d
+
+#+end_src
+
+** Logs: überwachen -- tailwind
+#+begin_src bash
+
+podman-compose logs -f tailwind
+  
+#+end_src
+
+** Logs: überwachen -- web
+#+begin_src bash
+
+  podman logs -f infrastructure_web_1
+  
+#+end_src
+
+** Logs: überwachen -- db
+#+begin_src bash
+
+  podman logs -f infrastructure_db_1
+    
+#+end_src
+
+** Logs: überwachen -- alles zusammen
+#+begin_src bash
+
+podman-compose logs -f
+  
+#+end_src
+
+** Check: Datenbank -- separat
+
+#+begin_src bash
+
+podman exec -it infrastructure_db_1 psql -U mantis_user -d mantis_tracker
+  
+#+end_src
+
+** Check: Tailwind -- Dateien finden
+#+begin_src bash
+
+  bun run build:css
+  
+#+end_src
+*** leeres theme.css
+
+Leere theme.css → Content-Pfade in tailwind.config.js prüfen:
+
+#+begin_src bash
+
+content: [
+  '../templates/**/*.html',
+  './node_modules/flowbite/**/*.js'
+]
+
+#+end_src
+
+** Check: Web -- separat
+
+Wenn das Image läuft:
+
+#+begin_src bash
+
+  podman ps -a
+  
+#+end_src
+
+Dann eine separete Shell starten
+
+#+begin_src bash
+
+  podman exec -it infrastructure_web_1 sh
+  
+#+end_src
+
+* Manuelle Nacharbeit
+** Ersten reviewer anlegen
+Wenn im Testmode
+#+begin_src sql
+
+    podman exec -it infrastructure_web_1 bash
+    flask insert_initial_data
+     insert into users values (1, 999, 'reviewer 1', 9, 'reviewer@mantis.org');
+        
+#+end_src
+
+

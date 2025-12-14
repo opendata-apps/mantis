@@ -1,0 +1,15 @@
+* Produktion
+- Es werden keine Demodaten importiert
+- Es muss ein erster Benutzer mit Admin-Rechten angelegt werden
+  
+** Ersten reviewer anlegen
+
+#+begin_src sql
+
+  podman exec -it infrastructure_db_1 psql -U mantis_user -d mantis_tracker
+  insert into users values (1, 9999, 'reviewer 1', 9, 'reviewer@mantis.org');
+         
+#+end_src
+
+
+

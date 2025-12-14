@@ -1,7 +1,7 @@
 module.exports = {
   mode: 'jit',
   content: [
-    '../templates/**/*.html',
+      './app/templates/**/*.html',
     './node_modules/flowbite/**/*.js'
   ],
   theme: {

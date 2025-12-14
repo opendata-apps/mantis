@@ -18,8 +18,6 @@ from .config import Config
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
-from app.demodata.filldb import insert_data_reports
-
 csrf = CSRFProtect()
 db = SQLAlchemy()
 migrate = Migrate()
@@ -46,7 +44,7 @@ def create_all_data_view():
     click.echo("Materialized view created.")
 
 
-@click.command("insert-initial-data")
+@click.command("insert_initial_data")
 @with_appcontext
 def insert_initial_data_command():
     """Insert initial data into the database using the populate script."""
@@ -54,7 +52,8 @@ def insert_initial_data_command():
     import app.database.alldata as ad
     import app.database.full_text_search as fts
     from app.database.populate import populate_all
-
+    from app.demodata.filldb import insert_data_reports
+    
     conn = Config.SQLALCHEMY_DATABASE_URI
     # Renamed for clarity, used by populate_all
     db_engine = sa.create_engine(conn)

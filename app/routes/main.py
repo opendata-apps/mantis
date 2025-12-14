@@ -60,6 +60,12 @@ def index():
         celebration_threshold=current_app.config['CELEBRATION_THRESHOLD'],
     )
 
+@main.route("/env-check")
+def env_check():
+    return {
+        "DATABASE_URL": os.getenv("DATABASE_URL"),
+        "SECRET_KEY": os.getenv("SECRET_KEY"),
+    }
 
 def check_celebration_flag(post_count):
     if post_count <= current_app.config['CELEBRATION_THRESHOLD']:

@@ -3,8 +3,8 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "watch:css": "tailwindcss -i css/theme.css -o build/theme.css --watch",
-    "build:css": "tailwindcss -i css/theme.css -o build/theme.css --minify"
+      "watch:css": "tailwindcss -i app/static/css/theme.css -o app/static/build/theme.css --watch",
+      "build:css": "tailwindcss -i app/static/css/theme.css -o app/static/build/theme.css --minify"
   },
   "dependencies": {
     "canvas-confetti": "^1.9.3",

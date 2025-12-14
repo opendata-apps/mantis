@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    env_file:
+      - ../.env
+    environment:
+      POSTGRES_DB: mantis_tracker
+      POSTGRES_USER: mantis_user
+      POSTGRES_PASSWORD: mantis
+    volumes:
+      - mantis_data:/var/lib/postgresql/data
+    networks:
+      - mantis_backend
+
+  web:
+    build: ..
+    depends_on:
+      - db
+    env_file:
+      - ../.env
+    environment:
+      DATABASE_URL: postgresql://mantis_user:mantis@db:5432/mantis_tracker
+    networks:
+      - mantis_backend
+    ports:
+      - "5000:5000"
+
+volumes:
+  mantis_data:
+
+networks:
+  mantis_backend:
+

@@ -1,0 +1,26 @@
+# Node / Bun Dependencies
+node_modules/
+bun.lock
+
+# Dev-Builds / temporäre Dateien
+static/build/
+*.log
+*.tmp
+*.swp
+
+# Python Cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Version Control
+.git/
+.gitignore
+
+# Sensible Konfiguration
+.env
+
+# Optional: Editor / OS Files
+.vscode/
+.idea/
+.DS_Store

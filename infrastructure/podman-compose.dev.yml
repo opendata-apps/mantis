@@ -1,0 +1,47 @@
+version: '3.8'
+
+# Dieses Dockerfile wird von podman-compose.yml (Service: web)
+# aus dem Verzeichnis infrastructure/ mit `build: ..` verwendet.
+
+services:
+  db:
+    image: postgres:16-alpine
+    env_file:
+      - ../.env
+    environment:
+      POSTGRES_DB: mantis_tracker
+      POSTGRES_USER: mantis_user
+      POSTGRES_PASSWORD: mantis
+    volumes:
+      - mantis_data:/var/lib/postgresql/data
+    networks:
+      - mantis_backend
+
+  web:
+    # build: nutzt automatisch ../Dockerfile
+    build: ..
+    depends_on:
+      - db
+    env_file:
+      - ../.env
+    environment:
+      DATABASE_URL: postgresql://mantis_user:mantis@db:5432/mantis_tracker
+    networks:
+      - mantis_backend
+    ports:
+      - "5000:5000"
+
+  tailwind:
+    image: oven/bun:latest
+    working_dir: /app
+    command: bun run watch:css
+    # command: tail -f /dev/null
+    volumes:
+      - ..:/app
+      #- tailwind_build:/app/mantis/app/static/build
+volumes:
+  mantis_data:
+  #tailwind_build:
+
+networks:
+  mantis_backend:
