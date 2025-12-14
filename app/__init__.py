@@ -50,101 +50,66 @@ def create_all_data_view():
     fts.create_materialized_view(db_engine, session=session)
     click.echo("Materialized views created.")
 
-@click.command("insert_initial_data")
+@click.command("seed")
+@click.option('--demo', is_flag=True, help='Include demo reports and images')
 @with_appcontext
-def insert_initial_data_command():
-    """Insert initial data into the database using the populate script."""
-
+def seed_command(demo):
+    """Seed database with base data. Use --demo to include sample reports."""
     import app.database.alldata as ad
     import app.database.full_text_search as fts
     from app.database.populate import populate_all
-    from app.demodata.filldb import insert_data_reports
-    
-    conn = Config.SQLALCHEMY_DATABASE_URI
-    # Renamed for clarity, used by populate_all
-    db_engine = sa.create_engine(conn)
-    Session = orm.sessionmaker(bind=db_engine)
-    session = Session()
-    
-    # Determine the source of VG5000 data
-    if Config.TESTING:
-        from tests.database.jsondata import data as jsondata
-    else:
-        from app.database.vg5000_gem import data as jsondata
+    from app.database.vg5000_gem import data as jsondata
 
-    # Call the centralized population function
-    # It handles beschreibung, feedback_types, and vg5000_aemter
+    db_engine = sa.create_engine(Config.SQLALCHEMY_DATABASE_URI)
+    session = orm.sessionmaker(bind=db_engine)()
+
+    # Always populate base data (idempotent)
     populate_all(db_engine, session, jsondata)
+    click.echo("Base data seeded.")
 
-    # Refresh materialized views after data insertion
-    # Views are already created by flask create_all_data_view
+    if demo:
+        from app.demodata.filldb import insert_data_reports
+        insert_data_reports(session)
+        _copy_demo_images()
+        click.echo("Demo data seeded.")
+
+    # Refresh views
     from app import db as flask_db
     ad.refresh_materialized_view(flask_db)
     fts.refresh_materialized_view(flask_db)
-    click.echo("Materialized views refreshed.")
+    click.echo("Done.")
 
-    # Keep testing-specific data insertion and file operations
-    if Config.TESTING:
-        # Assuming insert_data_reports uses the same session
-        insert_data_reports(session)
 
-        # Copy gallery images with realistic filenames for test data
-        src = 'app/datastore/gallerie/'
-        trg = 'app/datastore/2025/2025-01-19/'
-        os.makedirs(trg, exist_ok=True)
-
-        # Map gallery images to realistic report filenames with actual user_ids
-        image_mappings = [
-            ('mantis1.webp',
-             'Zossen-20250119100000-9999.webp'),
-            ('mantis2.webp',
-             'Ziesar-20250119101500-f04ad4e0b099b6404b1ccda0af0282cf49693b43.webp'),
-            ('mantis3.webp',
-             'Cottbus-20250119103000-5843c1093f94be44442ff876cac6185a2d36310e.webp'),
-            ('mantis4.webp',
-             'Treuenbrietzen-20250119104500-264aca7e20e15aa2401f042dceed384da6d7747a.webp'),
-            ('mantis5.webp',
-             'Pritzwalk-20250119110000-2ab71517482f824f925d09b9aa6e387df99befa7.webp'),
-            ('mantis6.webp',
-             'Halle_Saale-20250119111500-874208b1da349f20a88862f38a856bd711c2e165.webp'),
-            ('mantis1.webp',
-             'Fichtwald-20250119113000-1fb0cfb0be3b0c75c537a50c57e0060ba8b6837e.webp'),
-            ('mantis2.webp',
-             'Luckenwalde-20250119114500-c56fe0b6262dc626a5faf21c55b1f34f7babcfb1.webp'),
-            ('mantis3.webp',
-             'Cottbus-20250119120000-2d7345fd039eaef8796047c61ab760cac52b67e4.webp'),
-            ('mantis4.webp',
-             'Bad_Freienwalde_Oder-20250119121500-9b9d6a941dea27e46f4e5c79284f7df4c82fca49.webp'),
-            ('mantis5.webp',
-             'Berlin-20250119123000-a88de66aa7976cb7990af54c16c0fd2c067515f9.webp'),
-            ('mantis6.webp',
-             'Frankfurt_Oder-20250119124500-d2c830fd84ccabe149aff154c5e1ddcef662f052.webp'),
-            ('mantis5.webp',
-             'Caputh-20250119130000-0c7571741c04d2365aa7816efd298e8df9091122.webp'),
-            ('mantis2.webp',
-             'Seevetal-20250119131500-166bc2da77cb1d6e9a07f3d6fd61c841b394f3c6.webp'),
-            ('mantis3.webp',
-             'Leipzig-20250119133000-6325e4e69ee6789a7aa0ebb9a0e0b63cdf67795a.webp'),
-            ('mantis4.webp',
-             'Berlin-20250119134500-086cd63464247668799cc5a508235012b64a4bf9.webp'),
-            ('mantis5.webp',
-             'Elsterwerda-20250119140000-a1a0c14a53b7bbd010fc48ab2ac42d35d959d2b8.webp'),
-            ('mantis6.webp',
-             'Jueterbog-20250119141500-5f4a7fec84fb0801a5157cf1ce41835774a92704.webp'),
-            ('mantis1.webp',
-             'Jessen_Elster-20250119143000-7228ef93c5b4347ffdcfe63d77bd8617fdb080e5.webp'),
-            ('mantis2.webp',
-             'Friesack-20250119144500-c56782d029b8a62160175fd7112b74f573cd101f.webp')
-        ]
-
-        for src_file, target_file in image_mappings:
-            if os.path.exists(os.path.join(src, src_file)):
-                shutil.copy2(os.path.join(src, src_file),
-                             os.path.join(trg, target_file))
-        click.echo("Inserted test reports and copied gallery files.")
-
-    # No separate call to vg5000.import_aemter_data needed here anymore
-    click.echo("Initial data population process finished.")
+def _copy_demo_images():
+    """Copy gallery images for demo reports."""
+    src, trg = 'app/datastore/gallerie/', 'app/datastore/2025/2025-01-19/'
+    os.makedirs(trg, exist_ok=True)
+    mappings = [
+        ('mantis1.webp', 'Zossen-20250119100000-9999.webp'),
+        ('mantis2.webp', 'Ziesar-20250119101500-f04ad4e0b099b6404b1ccda0af0282cf49693b43.webp'),
+        ('mantis3.webp', 'Cottbus-20250119103000-5843c1093f94be44442ff876cac6185a2d36310e.webp'),
+        ('mantis4.webp', 'Treuenbrietzen-20250119104500-264aca7e20e15aa2401f042dceed384da6d7747a.webp'),
+        ('mantis5.webp', 'Pritzwalk-20250119110000-2ab71517482f824f925d09b9aa6e387df99befa7.webp'),
+        ('mantis6.webp', 'Halle_Saale-20250119111500-874208b1da349f20a88862f38a856bd711c2e165.webp'),
+        ('mantis1.webp', 'Fichtwald-20250119113000-1fb0cfb0be3b0c75c537a50c57e0060ba8b6837e.webp'),
+        ('mantis2.webp', 'Luckenwalde-20250119114500-c56fe0b6262dc626a5faf21c55b1f34f7babcfb1.webp'),
+        ('mantis3.webp', 'Cottbus-20250119120000-2d7345fd039eaef8796047c61ab760cac52b67e4.webp'),
+        ('mantis4.webp', 'Bad_Freienwalde_Oder-20250119121500-9b9d6a941dea27e46f4e5c79284f7df4c82fca49.webp'),
+        ('mantis5.webp', 'Berlin-20250119123000-a88de66aa7976cb7990af54c16c0fd2c067515f9.webp'),
+        ('mantis6.webp', 'Frankfurt_Oder-20250119124500-d2c830fd84ccabe149aff154c5e1ddcef662f052.webp'),
+        ('mantis5.webp', 'Caputh-20250119130000-0c7571741c04d2365aa7816efd298e8df9091122.webp'),
+        ('mantis2.webp', 'Seevetal-20250119131500-166bc2da77cb1d6e9a07f3d6fd61c841b394f3c6.webp'),
+        ('mantis3.webp', 'Leipzig-20250119133000-6325e4e69ee6789a7aa0ebb9a0e0b63cdf67795a.webp'),
+        ('mantis4.webp', 'Berlin-20250119134500-086cd63464247668799cc5a508235012b64a4bf9.webp'),
+        ('mantis5.webp', 'Elsterwerda-20250119140000-a1a0c14a53b7bbd010fc48ab2ac42d35d959d2b8.webp'),
+        ('mantis6.webp', 'Jueterbog-20250119141500-5f4a7fec84fb0801a5157cf1ce41835774a92704.webp'),
+        ('mantis1.webp', 'Jessen_Elster-20250119143000-7228ef93c5b4347ffdcfe63d77bd8617fdb080e5.webp'),
+        ('mantis2.webp', 'Friesack-20250119144500-c56782d029b8a62160175fd7112b74f573cd101f.webp'),
+    ]
+    for src_file, target_file in mappings:
+        src_path = os.path.join(src, src_file)
+        if os.path.exists(src_path):
+            shutil.copy2(src_path, os.path.join(trg, target_file))
 
 
 def create_app(config_class=Config):
@@ -191,11 +156,9 @@ def create_app(config_class=Config):
 
     migrate.init_app(app, db)
 
-    # Register the custom commands
-
+    # Register CLI commands
     app.cli.add_command(create_all_data_view)
-    # app.cli.add_command(upgrade_fts_command)
-    app.cli.add_command(insert_initial_data_command)
+    app.cli.add_command(seed_command)
 
     # If using Flask-App behind Nginx
     # https://flask.palletsprojects.com/en/2.3.x/deploying/proxy_fix/

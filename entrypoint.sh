@@ -17,14 +17,12 @@ flask db upgrade
 
 flask create_all_data_view
 
-if [ "$LOAD_DEMO_DATA" = "True" ]; then
-    if [ ! -f /app/.demo_loaded ]; then
-        echo "xx Demodaten werden geladen..."
-        flask insert_initial_data
-        touch /app/.demo_loaded
-    else
-        echo "Demodaten wurden bereits geladen – überspringe."
-    fi
+# Seed database (idempotent)
+# Development mode gets demo data, production gets base only
+if [ "$FLASK_ENV" = "development" ]; then
+    flask seed --demo
+else
+    flask seed
 fi
 
 echo "Starte Flask..."

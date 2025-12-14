@@ -61,5 +61,4 @@ class Config:
     CURRENT_YEAR = datetime.now().year
     MIN_MAP_YEAR = 2023
     CELEBRATION_THRESHOLD = 10000
-    TESTING = os.getenv("TESTING")
  
