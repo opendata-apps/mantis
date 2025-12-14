@@ -10,7 +10,7 @@
 #+begin_src sql
 
   podman exec -it infrastructure_db_1 psql -U mantis_user -d mantis_tracker
-  insert into users values (1, 9999, 'reviewer 1', 9, 'reviewer@mantis.org');
+  INSERT INTO users (user_id, user_name, user_rolle, user_kontakt) VALUES ('9999', 'Reviewer 1', '9', 'reviewer@mantis.org');
          
 #+end_src
 
