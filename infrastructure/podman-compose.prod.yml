@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   db:
@@ -32,4 +32,7 @@ volumes:
 
 networks:
   mantis_backend:
-
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24

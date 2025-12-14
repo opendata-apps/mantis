@@ -103,12 +103,10 @@ def create_materialized_view(db: Optional[Engine] = None, session: Optional[Sess
 
     # Drop the existing materialized view if it exists
     try:
-        drop = Drop(name='all_data_view', schema='public')
-        session.execute(dropGen(drop, None))
+        session.execute(text('DROP MATERIALIZED VIEW IF EXISTS public."all_data_view"'))
         session.commit()
     except Exception:
-        from flask import current_app
-        current_app.logger.info('No existing view to drop, creating a new one.')
+        session.rollback()
 
     # Table Aliases
     meldungen = sa.table('meldungen',

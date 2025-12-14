@@ -136,11 +136,10 @@ def create_materialized_view(db: Optional[Engine] = None,
 
     # Drop the existing materialized view if it exists
     try:
-        drop = Drop(name='full_text_search', schema='public')
-        session.execute(dropGen(drop, None))
+        session.execute(text('DROP MATERIALIZED VIEW IF EXISTS public."full_text_search"'))
         session.commit()
     except Exception:
-        current_app.logger.info('No existing view to drop, creating a new one.')
+        session.rollback()
 
     # Table Aliases
     meldungen = sa.table('meldungen', sa.column('id'), sa.column('bearb_id'),

@@ -75,12 +75,13 @@ def insert_initial_data_command():
     # Call the centralized population function
     # It handles beschreibung, feedback_types, and vg5000_aemter
     populate_all(db_engine, session, jsondata)
-    ad.create_materialized_view()
-    click.echo("Materialized view created.")
-    # Keep the creation/refresh of materialized views
-    # Ensure these run *after* all initial data is potentially populated
-    ad.create_materialized_view(db_engine, session=session)
-    fts.create_materialized_view(db_engine, session=session)
+
+    # Refresh materialized views after data insertion
+    # Views are already created by flask create_all_data_view
+    from app import db as flask_db
+    ad.refresh_materialized_view(flask_db)
+    fts.refresh_materialized_view(flask_db)
+    click.echo("Materialized views refreshed.")
 
     # Keep testing-specific data insertion and file operations
     if Config.TESTING:
