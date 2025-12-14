@@ -7,8 +7,8 @@
 bearbeitet.
 
 Siehe infrastrukture/podman-compose.yml und
-infrastrukure/README-Container.org
-
+infrastrukure/README-Container-dev.org
+```
 +---------------------+        +------------------------+
 |                     |        |                        |
 |   Tailwind Service  |        |       Flask Web        |
@@ -30,3 +30,4 @@ infrastrukure/README-Container.org
    |  Dev-Container Host / Repo       |
    |  (source CSS in css/, templates) |
    +----------------------------------+
+```
