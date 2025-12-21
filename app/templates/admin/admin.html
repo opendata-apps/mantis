@@ -4,12 +4,10 @@
 {% block text %} {{user_name}} {% endblock text %}
 {% from "macro.html" import render_pagination %}
 {% block head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.css')}}" />
-<script src="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.js')}}"></script>
-<script src="{{ url_for('static', filename='js/german_administrative_divisions.js') }}"></script>
+{{ vite_tags('js/map.js') }}
 {% endblock %}
 {% block content %}
-<script src="{{ url_for('static', filename='node_modules/flowbite/dist/flowbite.min.js')}}" defer></script>
+<script type="module" src="{{ vite_asset('js/vendor.js') }}"></script>
 
 <!-- CSRF Token for JavaScript -->
 <meta name="csrf-token" content="{{ csrf_token() }}">

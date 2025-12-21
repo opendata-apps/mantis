@@ -32,7 +32,7 @@
 	{% endblock %}
 	<meta property="fb:admins" content="Facebook numberic ID" />
 	<link rel="preload" as="image" href="{{ url_for('static', filename='images/berger03.avif') }}" />
-	<link rel="stylesheet" href="{{ url_for('static', filename='build/theme.css') }}" /> {% block head %} {% endblock head%}
+	<link rel="stylesheet" href="{{ vite_asset('css/theme.css') }}" /> {% block head %} {% endblock head%}
 </head>
 
 <body class="antialiased bg-gray-100">

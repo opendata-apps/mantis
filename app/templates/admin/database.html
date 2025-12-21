@@ -1,6 +1,6 @@
 {% extends "layout.html" %} {% block meta_robots %}noindex,nofollow{% endblock %} {% block title %}Database Admin{% endblock %} {%
 block content %}
-<script src="{{ url_for('static', filename='node_modules/flowbite/dist/flowbite.min.js')}}" defer></script>
+<script type="module" src="{{ vite_asset('js/vendor.js') }}"></script>
 
 <div class="container px-4 py-8 mx-auto">
   <h1 class="mb-6 text-3xl font-bold text-gray-800">Database Administration</h1>

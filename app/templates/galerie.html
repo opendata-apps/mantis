@@ -4,8 +4,10 @@
 {% block meta_robots %}noindex,nofollow{% endblock %}
 {% block title %}Bildergalerie{% endblock title %}
 {% block meta_keywords %}Auswertungen, Bilder, Gottesanbeterin, Mantis religiosa Auswertungen{% endblock %}
+{% block head %}
+{{ vite_tags('js/gallery.js') }}
+{% endblock %}
 {% block content %}
-<script src="{{ url_for('static', filename='node_modules/flowbite/dist/flowbite.min.js')}}" defer></script>
 <section class="container mx-auto mt-10">
   <div class="flex items-center justify-center mb-6">
     <h2 class="text-4xl font-extrabold text-center text-gray-900 sm:flex sm:flex-col sm:items-center">
@@ -15,7 +17,6 @@
     {{ popoverOld('hinweise-popover', 'Hinweise zur Bedienung', '<ul><li>Das Bild anklicken, Bilderserie startet …</li><li>Mit Pfeil nach rechts, vorblättern …</li><li>Mit Pfeil nach links, zurückblättern …</li><li>Mit ESC-Taste, die Bilderschau beenden …</li></ul>') }}
   </div>
   <div class="grid grid-cols-1 gap-4 px-2 md:grid-cols-3 lg:grid-cols-4 xl:px-8 auto-rows-[1fr]">
-    <link href="{{ url_for('static', filename='node_modules/lightbox2/dist/css/lightbox.min.css')}}" rel="stylesheet">
     
     {% for slide in bilder %}
     <div class="aspect-w-16 aspect-h-9">
@@ -32,7 +33,5 @@
     
   </div>
 </section>
-
-<script src="{{ url_for('static', filename='node_modules/lightbox2/dist/js/lightbox-plus-jquery.min.js')}}"></script>
 
 {% endblock content %}

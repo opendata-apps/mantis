@@ -14,7 +14,6 @@ Mantis Religiosa: Die Europäische Gottesanbeterin in Brandenburg & Berlin | Got
 
 {% block head %}
 {{ super() }}
-<link href="{{ url_for('static', filename='node_modules/lightbox2/dist/css/lightbox.min.css')}}" rel="stylesheet">
 <meta property="og:type" content="article" />
 <meta property="og:title" content="Mantis Religiosa: Die Europäische Gottesanbeterin in Brandenburg & Berlin" />
 <meta property="og:description" content="Umfassende Informationen zur Europäischen Gottesanbeterin: Merkmale, Verbreitung, Beobachtungstipps und mehr." />
@@ -519,24 +518,7 @@ Mantis Religiosa: Die Europäische Gottesanbeterin in Brandenburg & Berlin | Got
   </div>
 </main>
 
-<script src="{{ url_for('static', filename='node_modules/lightbox2/dist/js/lightbox-plus-jquery.min.js')}}" defer></script>
-<script>
-  // Initialize lightbox
-  document.addEventListener('DOMContentLoaded', function() {
-    lightbox.option({
-      'resizeDuration': 200,
-      'wrapAround': true,
-      'albumLabel': "Bild %1 von %2",
-      'fadeDuration': 300
-    });
-    
-    // Add hover style to image elements
-    const lightboxImages = document.querySelectorAll('a[data-lightbox]');
-    lightboxImages.forEach(function(image) {
-      image.setAttribute('title', 'Klicken zum Vergrößern');
-    });
-  });
-</script>
+{{ vite_tags('js/gallery.js') }}
 
 <style>
   @media (max-width: 767px) {

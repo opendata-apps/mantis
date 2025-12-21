@@ -2,27 +2,23 @@
 {% block title %}Statistiken{% endblock title %}
 {% block meta_keywords %}Auswertungen, Statistik{% endblock %}
 {% from 'statistics/menu-stats.html' import StatsMenu with context %}
+{% block head %}
+<script src="{{ url_for('static', filename='build/plotly.min.js') }}"></script>
+{% endblock %}
 {% block content %}
-<script
-  src="{{ url_for('static', filename='node_modules/plotly.js/dist/plotly.min.js')}}"
-  charset="utf-8">
-</script>
 <section class="container mx-auto mt-10">
  <div class="sticky z-30 col-span-2 row-span-2 duration-500 bg-gray-200 border-4 border-gray-200 rounded-md top-3 hover:shadow-xl">
   <form action="" method="POST" class="space-y-3">
     {{StatsMenu() }}
   </form>
   <p class="m-4">Für den Zeitraum vom {{dateFrom}} bis {{dateTo}}.</p>
-   <div id='myDiv'
-	class="wx-92">
-   <!-- Grafik -->
-   </div>
-   <script>
+   <div id='myDiv' class="wx-92"></div>
+
+   <script type="module">
      let keys = ['Männchen', 'Weibchen', 'Nymphen', 'Ootheken', 'Andere'];
      var daten = {{ values|tojson }};
      var xValues = [];
      var yValues = [];
-     //separate keys and values in two lists
      for (let i in keys) {
 	 key = keys[i];
 	 if (daten.hasOwnProperty(key)) {
@@ -39,7 +35,7 @@
 	 textposition: 'auto',
 	 hoverinfo: 'none',
 	 marker: {
-	     color: '#5bae31', //'rgb(158,202,225)',
+	     color: '#5bae31',
 	     opacity: 0.6,
 	     line: {
 		 color: 'rgb(8,48,107)',
@@ -48,16 +44,13 @@
 	 }
      };
 
-
      var data = [trace1];
      var layout = {
 	 title: 'Summen Geschlecht/Entwicklungsstadium',
 	 barmode: 'stack'
      };
 
-
      Plotly.newPlot('myDiv', data, layout, {displayModeBar: false});
-
    </script>
 </section>
 {% endblock content %}

@@ -6,7 +6,6 @@ Gottesanbeterin Bestimmung, Mantis religiosa Identifikation, Merkmale, Untersche
 {% block page_title %}Gottesanbeterin Bestimmung | Merkmale & Bestimmungschlüssel {% endblock %}
 {% block title %}Bestimmungsschlüssel{% endblock title %}
 {% block head %}
-<link href="{{ url_for('static', filename='node_modules/lightbox2/dist/css/lightbox.min.css')}}" rel="stylesheet">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -469,35 +468,6 @@ Gottesanbeterin Bestimmung, Mantis religiosa Identifikation, Merkmale, Untersche
   </div>
 </section>
 
-<script src="{{ url_for('static', filename='node_modules/lightbox2/dist/js/lightbox-plus-jquery.min.js')}}"></script>
-<script>
-  // Enhance smooth scrolling with offset
-  document.addEventListener('DOMContentLoaded', function() {
-    const scrollLinks = document.querySelectorAll('a[href^="#schritt"]');
-    
-    scrollLinks.forEach(link => {
-      link.addEventListener('click', function(e) {
-        e.preventDefault();
-        
-        const targetId = this.getAttribute('href');
-        const targetElement = document.querySelector(targetId);
-        
-        if (targetElement) {
-          // Get the target's position
-          const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset;
-          
-          // Apply offset (adjust the -100 value as needed based on your header height)
-          const offsetPosition = targetPosition - 100;
-          
-          // Scroll to the target with the offset
-          window.scrollTo({
-            top: offsetPosition,
-            behavior: 'smooth'
-          });
-        }
-      });
-    });
-  });
-</script>
+{{ vite_tags('js/gallery.js') }}
 
 {% endblock content %}

@@ -7,17 +7,7 @@ Fundmeldungen gesamt
 {% endif %}
 {% endblock title %}
 {% block head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.css')}}" />
-<link rel="stylesheet"
-  href="{{ url_for('static', filename='node_modules/leaflet.markercluster/dist/MarkerCluster.css')}}" />
-<link rel="stylesheet"
-  href="{{ url_for('static', filename='node_modules/leaflet.markercluster/dist/MarkerCluster.Default.css')}}" />
-<link rel="stylesheet"
-  href="{{ url_for('static', filename='node_modules/leaflet.locatecontrol/dist/L.Control.Locate.min.css')}}" />
-<script src="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.js')}}"></script>
-<script
-  src="{{url_for('static', filename='node_modules/leaflet.markercluster/dist/leaflet.markercluster.js')}}"></script>
-
+{{ vite_tags('js/map.js') }}
 {% endblock %}
 {% block page_title %}Auswertungen der Beobachtungen | Mantis Religiosa Mitmachprojekt | Gottesanbeterin Gesucht{%
 endblock %}
@@ -61,9 +51,6 @@ Entdecken Sie alle bestätigten Sichtungen der <span class="font-semibold text-g
 <meta name="twitter:url" content="{{ url_for('data.show_map', _external=True) }}" />
 {% endblock %}
 {% block content %}
-<script src="{{ url_for('static', filename='node_modules/flowbite/dist/flowbite.min.js')}}" defer></script>
-
-
 <!-- Map Section with improved styling -->
 <section class="py-12 bg-gradient-to-b from-white to-gray-50">
   <div class="container px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
@@ -90,15 +77,15 @@ Entdecken Sie alle bestätigten Sichtungen der <span class="font-semibold text-g
       <!-- Decorative corner elements -->
       <div class="absolute -top-4 -left-4 w-24 h-24 bg-green-100 rounded-full opacity-20 blur-2xl"></div>
       <div class="absolute -right-4 -bottom-4 w-32 h-32 bg-green-200 rounded-full opacity-20 blur-3xl"></div>
-      
+
       <!-- Map container with improved styling -->
-      <div id="map" class="relative z-10 h-[70vh] md:h-[75vh] rounded-2xl shadow-2xl overflow-hidden border-4 border-white" 
+      <div id="map" class="relative z-10 h-[70vh] md:h-[75vh] rounded-2xl shadow-2xl overflow-hidden border-4 border-white"
            role="application" aria-label="Interaktive Karte der Gottesanbeterin-Sichtungen in Deutschland">
       </div>
     </div>
   </div>
 </section>
-  
+
 <!-- Animated counter section  -->
 <section class="py-12 bg-gradient-to-b from-gray-50 to-gray-100">
   <div class="container max-w-5xl px-4 mx-auto sm:px-6 lg:px-8">
@@ -121,12 +108,12 @@ Entdecken Sie alle bestätigten Sichtungen der <span class="font-semibold text-g
   </div>
 </section>
 
-<script>
+<script type="module">
   // Counter animation
   const counter = document.querySelector('.counter');
   const target = +counter.dataset.target;
   const duration = 2000;
-  const frameRate = 1000 / 30; // 30 FPS
+  const frameRate = 1000 / 30;
   let startTime = null;
 
   function easeOutExpo(t) {
@@ -135,287 +122,111 @@ Entdecken Sie alle bestätigten Sichtungen der <span class="font-semibold text-g
 
   function animateCounter(currentTime) {
     if (!startTime) startTime = currentTime;
-    const elapsedTime = currentTime - startTime;
-    const progress = Math.min(elapsedTime / duration, 1);
-
+    const progress = Math.min((currentTime - startTime) / duration, 1);
     if (progress < 1) {
-      const nextValue = Math.floor(easeOutExpo(progress) * target);
-      if (counter.innerText !== nextValue.toString()) {
-        counter.innerText = nextValue;
-      }
+      counter.innerText = Math.floor(easeOutExpo(progress) * target);
       setTimeout(() => requestAnimationFrame(animateCounter), frameRate);
     } else {
       counter.innerText = target;
     }
   }
 
-  // Intersection Observer
-  const observer = new IntersectionObserver(
-    entries => {
-      if (entries[0].isIntersecting) {
-        requestAnimationFrame(animateCounter);
-        observer.disconnect();
-      }
-    },
-    { threshold: 0.1 }
-  );
-
+  const observer = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting) {
+      requestAnimationFrame(animateCounter);
+      observer.disconnect();
+    }
+  }, { threshold: 0.1 });
   observer.observe(counter);
 
-  let map;
-  let userMarker;
-
-  // Custom control for year selection
+  // Year selector control
   L.Control.YearSelector = L.Control.extend({
     onAdd: function (map) {
       var div = L.DomUtil.create('div', 'leaflet-control leaflet-bar');
       var select = L.DomUtil.create('select', 'year-selector', div);
       select.id = 'yearSelect';
-      select.name = 'year';
       select.setAttribute('aria-label', 'Jahr der Sichtungen auswählen');
-      select.setAttribute('role', 'combobox');
 
       var option = L.DomUtil.create('option', '', select);
       option.value = '';
       option.innerHTML = 'Alle Jahre';
-      {% if not selected_year %}
-      option.selected = true;
-      {% endif %}
+      {% if not selected_year %}option.selected = true;{% endif %}
 
       {% for year in years | sort(reverse = true) %}
-      var option = L.DomUtil.create('option', '', select);
-      option.value = '{{ year }}';
-      option.innerHTML = '{{ year }}';
-      {% if selected_year == year %}
-      option.selected = true;
-      {% endif %}
+      var opt = L.DomUtil.create('option', '', select);
+      opt.value = '{{ year }}';
+      opt.innerHTML = '{{ year }}';
+      {% if selected_year == year %}opt.selected = true;{% endif %}
       {% endfor %}
 
-      L.DomEvent.on(select, 'change', function (e) {
-        filterByYear(e.target.value);
+      L.DomEvent.on(select, 'change', e => {
+        const v = e.target.value;
+        window.location.href = v ? `/auswertungen?year=${v}` : '/auswertungen';
       });
-
       return div;
-    },
-
-    onRemove: function (map) {
-      // Nothing to do here
     }
   });
+  L.control.yearSelector = opts => new L.Control.YearSelector(opts);
 
-  L.control.yearSelector = function (opts) {
-    return new L.Control.YearSelector(opts);
-  }
+  // Init map
+  const germanyBounds = [[47.270111, 5.866342], [55.058347, 15.041896]];
+  const map = L.map('map', {
+    renderer: L.canvas(),
+    maxBounds: germanyBounds,
+    maxBoundsViscosity: 1.0,
+    keyboard: true,
+    keyboardPanDelta: 100
+  }).setView([51.991649, 13.080113], 9);
 
-  function initMap() {
-    // Define the boundary box for Germany
-    const germanyBounds = [
-      [47.270111, 5.866342],
-      [55.058347, 15.041896]
-    ];
+  const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 12
+  });
+  const esriImagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 12, attribution: 'Tiles &copy; Esri'
+  });
+  const esriLabels = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 12, attribution: 'Tiles &copy; Esri'
+  });
 
-    map = L.map('map', {
-      renderer: L.canvas(),
-      maxBounds: germanyBounds,
-      maxBoundsViscosity: 1.0,
-      keyboard: true,
-      keyboardPanDelta: 100
-    }).setView([51.991649, 13.080113], 9);
+  map.addLayer(osmLayer);
+  L.control.layers({ 'Karte': osmLayer, 'Satellit': L.layerGroup([esriImagery, esriLabels]) }).addTo(map);
+  L.control.yearSelector({ position: 'topleft' }).addTo(map);
 
-    // Free base map layers
-    const openStreetMapLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      maxZoom: 12
+  // Markers
+  const markers = L.markerClusterGroup({ showCoverageOnHover: false });
+  const customIcon = L.icon({
+    iconUrl: "{{ url_for('static', filename='images/map/marker-icon.png') }}",
+    iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34]
+  });
+
+  const reports = {{ reportsJson | safe }};
+  reports.forEach(r => {
+    const marker = L.marker([r.latitude, r.longitude], { icon: customIcon });
+    marker.bindPopup("<div class='popup-loading'>Daten werden geladen...</div>");
+    marker.on('popupopen', e => {
+      fetch(`/get_marker_data/${r.report_id}`)
+        .then(res => res.json())
+        .then(data => {
+          let html = `<div class="popup-content"><h2>Melde ID: ${data.id}</h2><ul class="popup-list">`;
+          if (data.dat_meld) html += `<li><strong>Melde Datum:</strong> ${data.dat_meld}</li>`;
+          if (data.dat_fund_von) html += `<li><strong>Fund Datum:</strong> ${data.dat_fund_von}</li>`;
+          if (data.ort) html += `<li><strong>Ort:</strong> ${data.ort}</li>`;
+          if (data.kreis) html += `<li><strong>Lkr./Kr./Bez.:</strong> ${data.kreis}</li>`;
+          html += '</ul></div>';
+          e.popup.setContent(html);
+        })
+        .catch(() => e.popup.setContent("<div class='popup-error'>Fehler beim Laden.</div>"));
     });
+    markers.addLayer(marker);
+  });
+  map.addLayer(markers);
 
-    // ESRI World Imagery
-    const esriWorldImagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-      minZoom: 0,
-      maxZoom: 12,
-      attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-    });
-
-    // ESRI Reference Labels Layer
-    const esriLabelsLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
-      minZoom: 0,
-      maxZoom: 12,
-      attribution: 'Tiles &copy; Esri &mdash; Source: Esri'
-    });
-
-    // ESRI World Imagery with Labels (combined layer)
-    const esriImageryWithLabels = L.layerGroup([
-      esriWorldImagery,
-      esriLabelsLayer
-    ]);
-
-    map.addLayer(openStreetMapLayer);
-
-    var baseMaps = {
-      "Karte": openStreetMapLayer,
-      "Satellit": esriImageryWithLabels,
-    };
-
-    L.control.layers(baseMaps).addTo(map);
-
-    // Add the custom year selector control to the left side
-    L.control.yearSelector({ position: 'topleft' }).addTo(map);
-
-    var markers = L.markerClusterGroup({
-      showCoverageOnHover: false,
-    });
-
-    // Custom marker icon configuration
-    var customIcon = L.icon({
-      iconUrl: "{{ url_for('static', filename='images/map/marker-icon.png') }}",
-      iconSize: [25, 41],     // Size of the icon
-      iconAnchor: [12, 41],   // Point of the icon which will correspond to marker's location
-      popupAnchor: [1, -34]   // Point from which the popup should open relative to the iconAnchor
-    });
-
-    var reports = JSON.parse('{{ reportsJson | safe }}');
-
-    reports.forEach(report => {
-      const marker = L.marker([report.latitude, report.longitude], {
-        icon: customIcon,
-        alt: 'Gottesanbeterin-Sichtung an Position ' + report.latitude + ', ' + report.longitude
-      });
-
-      marker.bindPopup("<div class='popup-loading' role='status'>Daten werden geladen...</div>");
-
-      marker.on('popupopen', function (e) {
-        fetch(`/get_marker_data/${report.report_id}`)
-          .then(response => response.json())
-          .then(data => {
-            let popupContent = '<div class="popup-content" role="dialog" aria-label="Sichtungsdetails">' +
-              '<h2>Melde ID: ' + data.id + '</h2>' +
-              '<ul class="popup-list">';
-
-            if (data.dat_meld) {
-              popupContent += '<li><strong>Melde Datum:</strong> ' + data.dat_meld + '</li>';
-            }
-
-            if (data.dat_fund_von) {
-              popupContent += '<li><strong>Fund Datum:</strong> ' + data.dat_fund_von + '</li>';
-            }
-
-            if (data.ort) {
-              popupContent += '<li><strong>Ort:</strong> ' + data.ort + '</li>';
-            }
-
-            if (data.kreis) {
-              popupContent += '<li><strong>Lkr./Kr./Bez.:</strong> ' + data.kreis + '</li>';
-            }
-
-            popupContent += '</ul></div>';
-
-            e.popup.setContent(popupContent);
-          })
-          .catch(error => {
-            e.popup.setContent("<div class='popup-error' role='alert'>Fehler beim Laden der Daten. Bitte versuchen Sie es später erneut.</div>");
-          });
-      });
-
-      markers.addLayer(marker);
-    });
-
-    map.addLayer(markers);
-
-    // Zoom restrictions
-    const MAX_ZOOM_LEVEL = 12;
-    const MIN_ZOOM_LEVEL = 6;
-    map.on('zoomend', function () {
-      if (map.getZoom() > MAX_ZOOM_LEVEL) {
-        map.setZoom(MAX_ZOOM_LEVEL);
-      }
-      if (map.getZoom() < MIN_ZOOM_LEVEL) {
-        map.setZoom(MIN_ZOOM_LEVEL);
-      }
-    });
-  };
-
-  initMap();
-
-  function filterByYear(year) {
-    if (year === '') {
-      window.location.href = '/auswertungen';
-    } else {
-      window.location.href = `/auswertungen?year=${year}`;
-    }
-  }
-
+  // Zoom restrictions
+  map.on('zoomend', () => {
+    if (map.getZoom() > 12) map.setZoom(12);
+    if (map.getZoom() < 6) map.setZoom(6);
+  });
 </script>
 
-
-<style>
-  #yearSelect {
-    border-radius: 2px;
-    border: 2px;
-    background-clip: padding-box;
-  }
-
-  .leaflet-popup-content-wrapper {
-    background: rgba(22, 101, 52, 0.8);
-    border-radius: 12px;
-    color: #ffffff;
-    font-family: 'Arial', sans-serif;
-    opacity: 0;
-    animation: fadeIn ease 1s;
-    animation-fill-mode: forwards;
-  }
-
-  .leaflet-popup-tip {
-    background: rgba(22, 101, 52, 0.8);
-  }
-
-  .leaflet-popup-content {
-    padding: 10px;
-  }
-
-  .popup-content h2 {
-    margin-bottom: 10px;
-    font-size: 1.1em;
-    color: #f3f4f6;
-  }
-
-  .popup-list {
-    list-style-type: none;
-    padding: 0;
-    font-size: 0.9em;
-  }
-
-  .popup-list li {
-    margin-bottom: 5px;
-  }
-
-  .popup-loading,
-  .popup-error {
-    text-align: center;
-    font-weight: bold;
-  }
-
-  .popup-error {
-    color: #FF6347;
-  }
-
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-    }
-
-    to {
-      opacity: 1;
-    }
-  }
-  
-  .animation-delay-300 {
-    animation-delay: 300ms;
-  }
-
-  @media (max-width: 640px) {
-    #map {
-      margin-left: 10px;
-      margin-right: 10px;
-    }
-  }
-</style>
 {% endblock content %}
