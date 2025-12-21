@@ -1,15 +1,25 @@
 version: "3.8"
 
-# Dev override: adds tailwind watcher and mounts source for hot-reload
+# Dev override: mounts source for hot-reload, adds Vite watcher
+# Usage: podman-compose -f podman-compose.prod.yml -f podman-compose.dev.yml up
 
 services:
   web:
+    # Mount source code for hot-reload (Flask debug mode)
     volumes:
       - ..:/app:z
+      - ../datastore:/app/datastore:z
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
 
-  tailwind:
-    image: oven/bun:latest
+  vite:
+    image: docker.io/oven/bun:1
     working_dir: /app
-    command: bun run watch:css
+    command: bun run watch
     volumes:
       - ..:/app:z
+    networks:
+      - mantis_backend
+    depends_on:
+      - web

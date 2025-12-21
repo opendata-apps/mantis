@@ -1,29 +1,29 @@
 #!/bin/bash
 set -e
 
-echo "Warte auf die Datenbank..."
-while ! nc -z db 5432; do
-  sleep 1
-done
-echo "Datenbank ist bereit."
-
-# Initialisiere die DB (nur wenn keine Alembic Umgebung existiert)
-if [ ! -d "migrations" ]; then
-  flask db init
-fi
-
-flask db migrate -m "Initialisierung" || true
+# Run migrations
 flask db upgrade
 
+# Create materialized view
 flask create_all_data_view
 
 # Seed database (idempotent)
-# Development mode gets demo data, production gets base only
 if [ "$FLASK_ENV" = "development" ]; then
     flask seed --demo
 else
     flask seed
 fi
 
-echo "Starte Flask..."
-exec flask run --host=0.0.0.0 --port=5000
+echo "Starting application..."
+
+# Gunicorn in production, Flask dev server in development
+if [ "$FLASK_ENV" = "development" ]; then
+    exec flask run --host=0.0.0.0 --port=5000
+else
+    exec gunicorn run:app \
+        --bind 0.0.0.0:5000 \
+        --workers 2 \
+        --threads 2 \
+        --access-logfile - \
+        --error-logfile -
+fi

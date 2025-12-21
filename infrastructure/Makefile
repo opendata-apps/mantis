@@ -1,33 +1,38 @@
-# Projekt-Name
 PROJECT_NAME=mantis
 
 help:
-	@echo "Verfügbare Make-Kommandos:"
+	@echo "Available commands:"
 	@grep -E '^[a-zA-Z_-]+:.*?## ' Makefile | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
-# Standardbefehle
-up: ## Startet die Container im Hintergrund
-	podman-compose up -d --build
+# Production
+prod-up: ## Start production containers
+	podman-compose -f podman-compose.prod.yml up -d --build
 
-down: ## Stoppt und entfernt die Container
-	podman-compose down
+prod-down: ## Stop production containers
+	podman-compose -f podman-compose.prod.yml down
 
-restart: down up
+prod-logs: ## View production logs
+	podman-compose -f podman-compose.prod.yml logs -f
 
-logs: ## Logs ausgeben
-	podman-compose logs -f
+# Development
+dev-up: ## Start dev containers (with hot-reload)
+	podman-compose -f podman-compose.prod.yml -f podman-compose.dev.yml up --build
 
-build: ## neu erstellen
-	podman-compose build
+dev-down: ## Stop dev containers
+	podman-compose -f podman-compose.prod.yml -f podman-compose.dev.yml down
 
-ps: ## Liste der Container
-	podman-compose ps
+dev-logs: ## View dev logs
+	podman-compose -f podman-compose.prod.yml -f podman-compose.dev.yml logs -f
 
-sh-web: ## interaktiv in den Web-Container
-	podman exec -it $(PROJECT_NAME)-web /bin/sh
+# Utilities
+clean: ## Remove containers and volumes
+	podman-compose -f podman-compose.prod.yml down -v
 
-sh-db: ## interaktiv in den Datenbank-Container
-	podman exec -it $(PROJECT_NAME)-db psql -U app -d appdb
+shell-web: ## Shell into web container
+	podman exec -it $(PROJECT_NAME)-web /bin/bash
 
-clean: ## alles löschen als Vorbereiung für neues build
-	podman-compose down -v
+shell-db: ## Connect to database
+	podman exec -it $(PROJECT_NAME)-db psql -U mantis_user -d mantis_tracker
+
+ps: ## List running containers
+	podman-compose -f podman-compose.prod.yml ps

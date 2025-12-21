@@ -3,29 +3,39 @@ version: "3.8"
 services:
   db:
     image: postgres:16-alpine
+    restart: unless-stopped
     env_file:
       - ../.env
-    environment:
-      POSTGRES_DB: mantis_tracker
-      POSTGRES_USER: mantis_user
-      POSTGRES_PASSWORD: mantis
     volumes:
       - mantis_data:/var/lib/postgresql/data
     networks:
       - mantis_backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h localhost -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   web:
     build: ..
+    restart: unless-stopped
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     env_file:
       - ../.env
-    environment:
-      DATABASE_URL: postgresql://mantis_user:mantis@db:5432/mantis_tracker
+    volumes:
+      - ../datastore:/app/datastore:z
     networks:
       - mantis_backend
     ports:
-      - "5000:5000"
+      - "${WEB_PORT:-5000}:5000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
 volumes:
   mantis_data:

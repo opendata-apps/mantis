@@ -78,7 +78,7 @@ Alles neu bauen ...
     bun install
 
     # 2. Tailwind CSS im Watch-Mode starten
-    bun run watch:css
+    bun run watch
 
     # 3. Container starten
     podman-compose -f podman-compose.prod.yml -f podman-compose.dev.yml up
