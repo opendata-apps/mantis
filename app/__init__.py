@@ -81,8 +81,12 @@ def seed_command(demo):
 
 
 def _copy_demo_images():
-    """Copy gallery images for demo reports."""
-    src, trg = 'app/datastore/gallerie/', 'app/datastore/2025/2025-01-19/'
+    """Copy demo images for sample reports."""
+    from app.config import Config
+    # Source: demodata folder (tracked in git, not publicly served)
+    src = os.path.join(os.path.dirname(__file__), 'demodata', 'images')
+    # Target: user uploads folder for demo reports
+    trg = os.path.join(Config.UPLOAD_FOLDER, '2025', '2025-01-19')
     os.makedirs(trg, exist_ok=True)
     mappings = [
         ('mantis1.webp', 'Zossen-20250119100000-9999.webp'),
