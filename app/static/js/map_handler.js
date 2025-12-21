@@ -411,4 +411,7 @@ const MapHandler = {
     isKreisfreieStadt: function() {
         return false;
     }
-}; 
+};
+
+// Export to global scope for bundled modules
+window.MapHandler = MapHandler; 

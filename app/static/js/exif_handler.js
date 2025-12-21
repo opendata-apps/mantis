@@ -246,4 +246,5 @@ const ExifProcessor = {
 // Make functions available globally
 window.extractExifData = extractExifData;
 window.extractGpsCoordinates = extractGpsCoordinates;
-window.processImageExif = processImageExif; 
+window.processImageExif = processImageExif;
+window.ExifProcessor = ExifProcessor; 

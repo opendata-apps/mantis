@@ -27,13 +27,12 @@ const WebpConverter = {
             // --- HEIC/HEIF Conversion (if necessary) ---
             // Check if file is actually HEIC/HEIF by MIME type (not just filename)
             const isActuallyHeic = file.type === 'image/heic' || file.type === 'image/heif';
-            
+
             if (isActuallyHeic) {
-                if (typeof heic2any !== 'function') {
-                    return reject(new Error('HEIC conversion library not loaded.'));
-                }
                 try {
-                    const conversionResult = await heic2any({ 
+                    // Lazy load heic2any only when needed (1.3MB library)
+                    const { default: heic2any } = await import('heic2any');
+                    const conversionResult = await heic2any({
                         blob: file,
                         toType: "image/jpeg",
                         quality: 0.85
@@ -185,7 +184,10 @@ const WebpConverter = {
         } else if (pixels > 4000000) { // > 4MP
             quality = Math.min(quality, 0.7);
         }
-        
+
         return Math.max(0.5, quality); // Never go below 0.5 quality
     }
 };
+
+// Export to global scope for bundled modules
+window.WebpConverter = WebpConverter;

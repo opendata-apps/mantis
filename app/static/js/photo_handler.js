@@ -300,4 +300,7 @@ const PhotoHandler = {
             this.elements.exifDataDiv.classList.remove('hidden');
         }
     }
-}; 
+};
+
+// Export to global scope for bundled modules
+window.PhotoHandler = PhotoHandler; 

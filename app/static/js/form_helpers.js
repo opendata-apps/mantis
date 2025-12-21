@@ -186,4 +186,7 @@ const FormHelpers = {
     isValidImageSize: function(file) {
         return file.size <= 12 * 1024 * 1024; // 12MB
     }
-}; 
+};
+
+// Export to global scope for bundled modules
+window.FormHelpers = FormHelpers; 

@@ -109,3 +109,6 @@ const GermanAdministrativeDivisions = {
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = GermanAdministrativeDivisions;
 }
+
+// Export to global scope for bundled modules
+window.GermanAdministrativeDivisions = GermanAdministrativeDivisions;
