@@ -174,3 +174,8 @@ node_modules/
 AI/
 .demo_loaded
 app/static/node_modules
+
+# Local assets and config
+assets/
+.claude/
+CLAUDE.md
