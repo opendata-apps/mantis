@@ -6,6 +6,11 @@ from datetime import datetime
 # Load .env file from project root
 load_dotenv()
 
+# Compute absolute paths based on project structure (Flask best practice)
+# This ensures paths work regardless of current working directory
+_config_dir = os.path.dirname(os.path.abspath(__file__))  # app/
+_project_root = os.path.dirname(_config_dir)  # project root
+
 class Config:
     # Database Configuration
     SQLALCHEMY_DATABASE_URI = os.getenv(
@@ -56,8 +61,9 @@ class Config:
     )
     REVIEWERMAIL = os.getenv('REVIEWERMAIL', 'False').lower() in ('true', '1', 'yes')
 
-    # Upload Configuration
-    UPLOAD_FOLDER = os.getenv('UPLOAD_FOLDER', 'app/datastore')
+    # Upload Configuration - use absolute path for reliability
+    # Env var can override with absolute path if needed (e.g., /data/uploads in container)
+    UPLOAD_FOLDER = os.getenv('UPLOAD_FOLDER') or os.path.join(_project_root, 'datastore')
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
 
     # Session Configuration
@@ -73,7 +79,8 @@ class Config:
     MAX_FORM_PARTS = 1000  # max 1000 form fields
 
     # Application Settings
-    STATIC_FOLDER = 'app/static'
+    STATIC_FOLDER = os.path.join(_config_dir, 'static')
+    FAVICON_BUILD_DIR = os.path.join(_config_dir, 'static', 'favicon')
     CURRENT_YEAR = datetime.now().year
     CELEBRATION_THRESHOLD = int(os.getenv('CELEBRATION_THRESHOLD', '10000'))
  

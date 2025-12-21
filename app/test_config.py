@@ -1,6 +1,10 @@
 import os
 from datetime import datetime
 
+# Compute absolute paths based on project structure (Flask best practice)
+_config_dir = os.path.dirname(os.path.abspath(__file__))  # app/
+_project_root = os.path.dirname(_config_dir)  # project root
+
 class Config:
     TESTING = True
     URI = 'postgresql://mantis_user:mantis@localhost/mantis_tester'
@@ -25,7 +29,7 @@ class Config:
     CELEBRATION_THRESHOLD = 10000
     SECRET_KEY = os.environ.get(
         'SECRET_KEY') or 'do-not-get-tired-youll-never-find'
-    UPLOAD_FOLDER = 'app/datastore'
+    UPLOAD_FOLDER = os.path.join(_project_root, 'datastore')
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
     WTF_CSRF_ENABLED = False  # Disable CSRF for testing

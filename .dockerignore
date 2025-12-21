@@ -1,26 +1,43 @@
-# Node / Bun Dependencies
+# Dependencies (rebuilt in container)
 node_modules/
-bun.lock
 
-# Dev-Builds / temporäre Dateien
-static/build/
-*.log
-*.tmp
-*.swp
+# Build output (rebuilt in container)
+app/static/build/
 
-# Python Cache
+# Python cache
 __pycache__/
 *.pyc
 *.pyo
+.pytest_cache/
+*.egg-info/
+.venv/
 
-# Version Control
+# Version control
 .git/
 .gitignore
 
-# Sensible Konfiguration
+# Environment (use container env vars)
 .env
 
-# Optional: Editor / OS Files
+# Development files
+*.log
+*.tmp
+*.swp
 .vscode/
 .idea/
 .DS_Store
+Thumbs.db
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Tests (not needed in production image)
+tests/
+pytest.ini
+.coverage
+htmlcov/
+
+# Local data (user uploads mounted via volume, not baked into image)
+datastore/
