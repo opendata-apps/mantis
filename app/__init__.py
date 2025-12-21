@@ -156,6 +156,10 @@ def create_app(config_class=Config):
 
     migrate.init_app(app, db)
 
+    # Initialize Vite asset helper
+    from app.tools import vite
+    vite.init_app(app)
+
     # Register CLI commands
     app.cli.add_command(create_all_data_view)
     app.cli.add_command(seed_command)

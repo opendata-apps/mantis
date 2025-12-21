@@ -1,0 +1,73 @@
+/* Leaflet CSS */
+@import 'leaflet/dist/leaflet.css';
+@import 'leaflet.markercluster/dist/MarkerCluster.css';
+@import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
+@import 'leaflet.locatecontrol/dist/L.Control.Locate.min.css';
+
+/* Year selector control */
+#yearSelect {
+  border-radius: 2px;
+  border: 2px;
+  background-clip: padding-box;
+}
+
+/* Popup styles */
+.leaflet-popup-content-wrapper {
+  background: rgba(22, 101, 52, 0.8);
+  border-radius: 12px;
+  color: #ffffff;
+  font-family: 'Arial', sans-serif;
+  opacity: 0;
+  animation: fadeIn ease 1s;
+  animation-fill-mode: forwards;
+}
+
+.leaflet-popup-tip {
+  background: rgba(22, 101, 52, 0.8);
+}
+
+.leaflet-popup-content {
+  padding: 10px;
+}
+
+.popup-content h2 {
+  margin-bottom: 10px;
+  font-size: 1.1em;
+  color: #f3f4f6;
+}
+
+.popup-list {
+  list-style-type: none;
+  padding: 0;
+  font-size: 0.9em;
+}
+
+.popup-list li {
+  margin-bottom: 5px;
+}
+
+.popup-loading,
+.popup-error {
+  text-align: center;
+  font-weight: bold;
+}
+
+.popup-error {
+  color: #FF6347;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 640px) {
+  #map {
+    margin-left: 10px;
+    margin-right: 10px;
+  }
+}
