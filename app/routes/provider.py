@@ -1,7 +1,12 @@
-from flask import session  # import session
-from flask import render_template, Blueprint, send_from_directory, send_file
+from flask import (
+    session,
+    render_template,
+    Blueprint,
+    send_file,
+    abort,
+    current_app,
+)
 from app import db
-from flask import abort
 from sqlalchemy import select
 from app.database.models import (
     TblFundorte,
@@ -10,6 +15,7 @@ from app.database.models import (
     TblFundortBeschreibung,
     TblMeldungUser,
 )
+import os
 
 # Blueprints
 provider = Blueprint("provider", __name__)
@@ -29,7 +35,6 @@ def melder_index(usrid):
     # Store the userid in session
     session["user_id"] = usrid
 
-    from flask import current_app
     image_path = current_app.config['UPLOAD_FOLDER'].replace("app/", "")
 
     # Get the user's email if provided
@@ -95,28 +100,24 @@ def melder_index(usrid):
 
 @provider.route("/images/<path:filename>")
 def report_Img(filename):
-    "Return the image file for the report with the given filename."
-
-    from flask import current_app
-    import os
-    
+    "This function is used to serve the image of the report"
     # Validate that the filename doesn't contain dangerous patterns
     if '..' in filename or filename.startswith('/') or '\\' in filename:
         abort(403)
-    
+
     # Construct the safe path within the upload folder
     upload_folder = current_app.config['UPLOAD_FOLDER']
     safe_path = os.path.join(upload_folder, filename)
-    
+
     # Ensure the resolved path is within the upload folder
     safe_path = os.path.abspath(safe_path)
     upload_folder = os.path.abspath(upload_folder)
-    
+
     if not safe_path.startswith(upload_folder):
         abort(403)
-    
+
     # Check if file exists
     if not os.path.exists(safe_path):
         abort(404)
-    
+
     return send_file(safe_path, mimetype="image/webp")

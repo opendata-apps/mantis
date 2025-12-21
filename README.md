@@ -42,8 +42,8 @@ Stay tuned for updates on these exciting new features!
 
 - Python 3.13+
 - [uv](https://github.com/astral-sh/uv) (Python package manager)
-- Node.js and npm
-- PostgreSQL
+- [Bun](https://bun.sh/) or npm (for frontend dependencies)
+- PostgreSQL 18+
 
 ### Step 1: 📁 Clone the repository
 
@@ -52,131 +52,141 @@ git clone https://gitlab.com/opendata-apps/mantis.git
 cd mantis
 ```
 
-### Step 2: 🌐 Create and activate virtual environment
+### Step 2: ⚙️ Configure environment variables
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate    # For Windows: .venv\Scripts\activate
+# Copy the example .env file
+cp .env.example .env
+
+# Generate a secure SECRET_KEY
+python -c "import secrets; print(secrets.token_hex(32))"
+
+# Edit .env and add your SECRET_KEY
+nano .env  # or your preferred editor
 ```
 
-### Step 3: 📦 Install Python dependencies
+See `ENV_SETUP.md` for detailed configuration options.
+
+### Step 3: 📦 Install dependencies
 
 ```bash
-# Install production dependencies
-uv sync
-
-# For development (includes testing and linting tools)
+# Python dependencies (using uv)
 uv sync --extra dev
 
-# For documentation building
-uv sync --extra docs
+# Frontend dependencies (using bun - recommended)
+cd app/static && bun install
+
+# Or use npm if you prefer
+# cd app/static && npm install
 ```
 
 ### Step 4: 🗄️ Set up PostgreSQL database
 
-Using `psql`:
+**Requirements:** PostgreSQL 18 or higher
 
 ```bash
-psql -U postgres
+# Connect as postgres superuser
+PGPASSWORD=postgres psql -U postgres -h localhost -d postgres
 ```
 
-Preapare a database for production.
+Then run the following SQL commands:
 
 ```sql
 CREATE USER mantis_user WITH PASSWORD 'mantis';
 CREATE DATABASE mantis_tracker OWNER mantis_user;
-GRANT ALL PRIVILEGES ON DATABASE mantis_tracker TO mantis_user;
--- MacOS only:
-GRANT usage, create ON SCHEMA public TO mantis_tracker;
-\q
-```
-
-Prepare a database for pytest
-
-```sql
 CREATE DATABASE mantis_tester OWNER mantis_user;
-GRANT ALL PRIVILEGES ON DATABASE mantis_tester TO mantis_user;
--- MacOS only:
-GRANT usage, create ON SCHEMA public TO mantis_tester;
 \q
 ```
 
-### Step 5: 🏗️ Create the database tables
+**Note:** Authentication uses md5 (password-based). If you have issues, check your `pg_hba.conf` configuration.
+
+### Step 5: 🏗️ Initialize database
 
 ```bash
+# Run migrations
+uv run flask db upgrade
 
-flask db upgrade
+# Populate initial data (beschreibung, feedback_types, VG5000 areas)
+uv run flask insert-initial-data
 
-# aktuelle Version anzeigen
-flask db current
-
-# History anzeigen
-
-flask db history
-
+# Optional: Add demo data for development
+# Set TESTING=True in .env, then run insert-initial-data again
 ```
 
-### Step 6: ☕ Fill the database tables
-
-If TESTING in config.py is set to TRUE also
-Demodata are inserted into the database.
+### Step 6: 🚀 Run the application
 
 ```bash
-flask insert-initial-data
+# Development server (includes Tailwind CSS watcher)
+uv run python run.py
 ```
 
-### Step 7: 🎨 Run the CSS watcher
+The app will be available at [http://localhost:5000](http://localhost:5000)
+
+**Reviewer access:** [http://localhost:5000/reviewer/9999](http://localhost:5000/reviewer/9999)
+
+## 🧪 Testing
 
 ```bash
-cd app/static
-npm install
+# Run all tests
+uv run pytest
+
+# Run with coverage
+uv run pytest --cov=app --cov-report=html
+
+# Run specific test file
+uv run pytest tests/functional/test_csrf_protection.py -v
 ```
 
-The project includes a convenient script to watch for CSS changes. Start it with:
+## 🏭 Production Deployment
 
+### 1. Configure production environment
+
+Edit `.env`:
 ```bash
-npm run watch:css
+FLASK_ENV=production
+FLASK_DEBUG=0
+SECRET_KEY=your-production-secret-key
+SQLALCHEMY_DATABASE_URI=postgresql://mantis_user:secure_password@localhost/mantis_tracker
+PREFERRED_URL_SCHEME=https
+SESSION_COOKIE_SECURE=True
 ```
 
-### Step 8: 🚀 Run the application
-
-#### Development server
-
-```bash
-python run.py
-```
-
-### Step 9: 🚀 Connect as Reviewer
-
-```bash
-http://loclahost:5000/reviewer/9999
-```
-
-# Start with fresh databases
-
-- delete database mantis_tracker
-- delete database mantis_tester
-- start again with Step 4
-
-# Production setup
-
-- Edit Settings in app/config.py and make changes e.g.
-  - Connectionstring for DB
-  - TESTING = False
-  - Run Tests with pytest
-- Create the minified CSS file
+### 2. Build production CSS
 
 ```bash
 cd app/static
-npm run build:css
+bun run build:css  # or: npm run build:css
 ```
 
-### Step 9: 🏢 Run production server
+### 3. Run with production server
 
 ```bash
-gunicorn run:app    # For Windows: waitress-serve --listen=*:8000 run:app
+# Using Gunicorn (Linux/Mac)
+gunicorn run:app --workers 4 --bind 0.0.0.0:8000
+
+# Using Waitress (Windows)
+waitress-serve --listen=*:8000 run:app
 ```
 
-### Step 8: 🌐 Access the application
+## 📚 Additional Documentation
 
-Open [http://localhost:5000](http://localhost:5000) in your browser.
+- **Environment Setup:** See `ENV_SETUP.md` for detailed .env configuration
+- **Database Schema:** Managed via Flask-Migrate in `migrations/`
+- **API Endpoints:** See route blueprints in `app/routes/`
+
+## 🔄 Database Management
+
+```bash
+# Create new migration
+uv run flask db migrate -m "description"
+
+# Apply migrations
+uv run flask db upgrade
+
+# Check current version
+uv run flask db current
+
+# Reset database (development only)
+dropdb mantis_tracker && createdb mantis_tracker -O mantis_user
+uv run flask db upgrade && uv run flask insert-initial-data
+```
