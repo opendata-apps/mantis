@@ -35,7 +35,7 @@ def melder_index(usrid):
     # Store the userid in session
     session["user_id"] = usrid
 
-    image_path = current_app.config['UPLOAD_FOLDER'].replace("app/", "")
+    image_path = current_app.config['UPLOAD_FOLDER']
 
     # Get the user's email if provided
     user_email = user.user_kontakt if user.user_kontakt else None

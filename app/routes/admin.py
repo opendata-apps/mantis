@@ -115,7 +115,7 @@ def reviewer(usrid):
     date_from = request.args.get("dateFrom", None)
     date_to = request.args.get("dateTo", None)
 
-    image_path = current_app.config['UPLOAD_FOLDER'].replace("app/", "")
+    image_path = current_app.config['UPLOAD_FOLDER']
     inspector = inspect(db.engine)
     tables = inspector.get_table_names()
 

@@ -12,6 +12,7 @@ from flask import (
     session,
 )
 
+from sqlalchemy import text
 from app import db
 from app.database.models import TblMeldungen
 from app.tools.check_reviewer import login_required
@@ -60,12 +61,14 @@ def index():
         celebration_threshold=current_app.config['CELEBRATION_THRESHOLD'],
     )
 
-@main.route("/env-check")
-def env_check():
-    return {
-        "DATABASE_URL": os.getenv("DATABASE_URL"),
-        "SECRET_KEY": os.getenv("SECRET_KEY"),
-    }
+@main.route("/health")
+def health():
+    """Health check endpoint."""
+    try:
+        db.session.execute(text("SELECT 1"))
+        return {"status": "healthy"}, 200
+    except Exception:
+        return {"status": "unhealthy"}, 503
 
 def check_celebration_flag(post_count):
     if post_count <= current_app.config['CELEBRATION_THRESHOLD']:
