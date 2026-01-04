@@ -92,6 +92,9 @@ CREATE DATABASE mantis_tester OWNER mantis_user;
 # Run migrations
 uv run flask db upgrade
 
+# Create materialized views
+uv run flask create_all_data_view
+
 # Populate initial data (beschreibung, feedback_types, VG5000 areas)
 uv run flask seed
 
@@ -235,5 +238,5 @@ uv run flask db current
 
 # Reset database (development only)
 dropdb mantis_tracker && createdb mantis_tracker -O mantis_user
-uv run flask db upgrade && uv run flask seed
+uv run flask db upgrade && uv run flask create_all_data_view && uv run flask seed
 ```
