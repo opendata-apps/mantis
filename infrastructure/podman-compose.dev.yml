@@ -16,7 +16,7 @@ services:
   vite:
     image: docker.io/oven/bun:1
     working_dir: /app
-    command: bun run watch
+    command: ["sh", "-c", "bun install && bunx vite build --watch"]
     volumes:
       - ..:/app:z
     networks:

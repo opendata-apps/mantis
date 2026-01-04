@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && cp node_modules/plotly.js-dist-min/plotly.min.js app/static/build/",
+    "build": "vite build",
     "preview": "vite preview",
     "watch": "vite build --watch"
   },
