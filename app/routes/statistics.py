@@ -1,9 +1,12 @@
 from flask import Blueprint
 from flask import render_template, request, current_app
 from flask import session, abort
+from flask import jsonify
 from sqlalchemy import func, text, or_, select
+from sqlalchemy import cast, String
 from app import db
 from app.database.models import TblUsers
+from app.database.models import TblAemterCoordinaten
 from app.tools.check_reviewer import login_required
 from app.tools.gen_messtisch_svg import create_measure_sheet
 from app.database.models import TblFundorte, TblMeldungen
@@ -28,6 +31,41 @@ list_of_stats = {
     "feedback": "Feedback"
 }
 
+@stats.route("/statistik/ags", methods=["POST", "GET"])
+def autocomplete_ags():
+    q = request.args.get("ags", "").strip()
+    session['ags'] = q
+    if len(q) < 2:
+        return jsonify([])
+    #dbsession = db.session
+    #session = SessionLocal()
+    try:
+        stmt = (
+            select(TblAemterCoordinaten.ags, TblAemterCoordinaten.gen)
+            .where(
+                (cast(TblAemterCoordinaten.ags, String).startswith(q)) |
+                (TblAemterCoordinaten.gen.ilike(f"{q}%"))
+            )
+            .order_by(TblAemterCoordinaten.gen)
+            .limit(10)
+        )
+        
+        rows = db.session.execute(stmt).all()
+        return "".join(
+            f"""
+            <li
+                class="suggestion"
+                data-ags="{ags}"
+                data-gen="{gen}"
+            >
+                <strong>{ags}</strong>: {gen}
+            </li>
+            """
+            for ags, gen in rows
+        )
+
+    finally:
+        db.session.close()
 
 def get_date_interval(request=None):
     "Calculate and format start and end date"
@@ -55,12 +93,15 @@ def get_date_interval(request=None):
 @login_required
 def stats_start(usrid=None):
     "Startseite für alle Statistiken"
+    session['date_from'], session['date_to'] = get_date_interval(request)
     date_from, date_to = get_date_interval(request)
     user_id = session["user_id"]
     user = db.session.scalar(select(TblUsers).where(
         TblUsers.user_id == user_id)
                              )
-
+    print(session)
+    ags=session.get('ags')
+    print(ags)
     # If the user doesn't exist or the role isn't 9, return 404
     if not user or user.user_rolle != "9":
         abort(403)
@@ -85,7 +126,8 @@ def stats_start(usrid=None):
                 page='stats-meldedatum.html',
                 marker="meldungen_meldedatum",
                 dateFrom=start_date,
-                dateTo=end_date)
+                dateTo=end_date,
+                ags=session.get('ags', 'nix'))
         case "meldungen_funddatum":
             return stats_bardiagram_datum(
                 request,
@@ -93,7 +135,8 @@ def stats_start(usrid=None):
                 page='stats-funddatum.html',
                 marker="meldungen_funddatum",
                 dateFrom=start_date,
-                dateTo=end_date)
+                dateTo=end_date,
+                ags=session.get('ags', 'nix'))
         case "meldungen_meld_fund":
             return stats_bardiagram_datum(
                 request,
@@ -101,12 +144,14 @@ def stats_start(usrid=None):
                 page='stats-meld-fund.html',
                 marker="meldungen_meld_fund",
                 dateFrom=start_date,
-                dateTo=end_date)
+                dateTo=end_date,
+                ags=session.get('ags', 'nix'))
         case "meldungen_mtb":
             return stats_mtb(request,
                              dateFrom=start_date,
                              dateTo=end_date,
-                             marker="meldungen_mtb")
+                             marker="meldungen_mtb",
+                             ags=session.get('ags', 'nix'))
         case "meldungen_amt":
             return stats_amt(request,
                              dateFrom=start_date,
@@ -156,9 +201,9 @@ def stats_start(usrid=None):
             )
 
 
-def stats_mtb(request, dateFrom, dateTo, marker):
+def stats_mtb(request, dateFrom, dateTo, marker,ags=None):
     "Results as MTB (Messtischblatt-Raster)"
-
+    print(ags, "<---- stats_mtb")
     art = request.form.get('typeInput', 'all')
     typeInput = ['mtb', 'maennlich', 'weiblich', 'oothek',
                  'nymphe', 'andere', 'all']
@@ -202,13 +247,15 @@ def stats_mtb(request, dateFrom, dateTo, marker):
         marker=marker,
         svg=xml,
         dateFrom=dateFrom,
-        dateTo=dateTo
+        dateTo=dateTo,
+        ags=ags
     )
 
 
 def stats_bardiagram_datum(request, dbfields,
                            page, marker,
-                           dateFrom, dateTo):
+                           dateFrom, dateTo,
+                           ags=None):
     "Calculate statistics by date"
     results = {0: {}, 1: {}}
     for idx, dbfield in enumerate(dbfields):
