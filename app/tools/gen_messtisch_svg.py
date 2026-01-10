@@ -6,6 +6,7 @@ def create_measure_sheet(horizontal_range=(24, 46),
                          vertical_range=(33, 54),
                          box_size=50,
                          dataset=None):
+    print(f"{dataset =}")
     vertical_size = (24, 46)
     horizontal_size = (33, 54)
     # Breite und Höhe der SVG-Datei
