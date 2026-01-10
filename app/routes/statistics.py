@@ -1,9 +1,12 @@
 from flask import Blueprint
 from flask import render_template, request, current_app
 from flask import session, abort
-from sqlalchemy import func, text, or_, select
+from flask import jsonify
+from sqlalchemy import func, text,  or_, select
+from sqlalchemy import cast, String
 from app import db
 from app.database.models import TblUsers
+from app.database.models import TblAemterCoordinaten
 from app.tools.check_reviewer import login_required
 from app.tools.gen_messtisch_svg import create_measure_sheet
 from app.database.models import TblFundorte, TblMeldungen
@@ -29,51 +32,72 @@ list_of_stats = {
 }
 
 
+@stats.route("/statistik/ags", methods=["GET"])
+def autocomplete_ags():
+    q = request.args.get("ags_input", "").strip()
+    if len(q) < 2:
+        return jsonify([])
+    dbsession = db.session
+    try:
+        stmt = (
+            select(TblAemterCoordinaten.ags, TblAemterCoordinaten.gen)
+            .where(
+                (cast(TblAemterCoordinaten.ags, String).startswith(q)) |
+                (TblAemterCoordinaten.gen.ilike(f"{q}%"))
+            )
+            .order_by(TblAemterCoordinaten.gen)
+            .limit(10)
+        )
+
+        rows = dbsession.execute(stmt).all()
+        return "".join(
+            f"""
+            <li
+                class="suggestion"
+                data-ags="{ags}"
+                data-gen="{gen}"
+            >
+                <strong>{ags}</strong>: {gen}
+            </li>
+            """
+            for ags, gen in rows
+        )
+
+    finally:
+        dbsession.close()
+
+
 def get_date_interval(request=None):
     "Calculate and format start and end date"
 
     now = datetime.now().isoformat()
     last_year = datetime.now() - timedelta(weeks=52)
     last_year = last_year.isoformat()
-
-    if request:
-        start_date = request.form.get("dateFrom", last_year)
-        end_date = request.form.get("dateTo", now)
-    else:
-        start_date = last_year
-        end_date = now
-
-    if not end_date:
-        end_date = now
-    if not start_date:
-        start_date = last_year
+    start_date = request.form.get("dateFrom",
+                                  session.get('date_from', last_year))
+    end_date = request.form.get("dateTo: str",  session.get('date_to', now))
 
     return (start_date[:10], end_date[:10])
+
 
 @stats.route("/statistik", methods=["POST", "GET"])
 @stats.route("/statistik/<usrid>", methods=["POST", "GET"])
 @login_required
 def stats_start(usrid=None):
     "Startseite für alle Statistiken"
-    date_from, date_to = get_date_interval(request)
+
+    session['date_from'], session['date_to'] = get_date_interval(request)
+    session["ags"] = request.form.get("ags", session.get('ags', '')).strip()
     user_id = session["user_id"]
     user = db.session.scalar(select(TblUsers).where(
         TblUsers.user_id == user_id)
                              )
-
     # If the user doesn't exist or the role isn't 9, return 404
     if not user or user.user_rolle != "9":
         abort(403)
-    """[
-    ('statusInput', 'all'),
-    ('typeInput', 'all'),
-    ('dateFrom', ''),
-    ('dateTo', ''),
-    ('userId', '9999'),
-    ('stats', 'geschlecht')]
-    """
-    start_date, end_date = get_date_interval(request)
+
     value = request.form.get("stats", "start")
+    session["marker"] = value
 
     match value:
         case "geschlecht":
@@ -82,55 +106,33 @@ def stats_start(usrid=None):
             return stats_bardiagram_datum(
                 request,
                 dbfields=['dat_meld'],
-                page='stats-meldedatum.html',
-                marker="meldungen_meldedatum",
-                dateFrom=start_date,
-                dateTo=end_date)
+                page='stats-meldedatum.html')
         case "meldungen_funddatum":
             return stats_bardiagram_datum(
                 request,
                 dbfields=['dat_fund_von'],
-                page='stats-funddatum.html',
-                marker="meldungen_funddatum",
-                dateFrom=start_date,
-                dateTo=end_date)
+                page='stats-funddatum.html')
         case "meldungen_meld_fund":
             return stats_bardiagram_datum(
                 request,
                 dbfields=['dat_fund_von', 'dat_meld'],
-                page='stats-meld-fund.html',
-                marker="meldungen_meld_fund",
-                dateFrom=start_date,
-                dateTo=end_date)
+                page='stats-meld-fund.html')
         case "meldungen_mtb":
-            return stats_mtb(request,
-                             dateFrom=start_date,
-                             dateTo=end_date,
-                             marker="meldungen_mtb")
+            return stats_mtb(request)
         case "meldungen_amt":
             return stats_amt(request,
-                             dateFrom=start_date,
-                             dateTo=end_date,
                              marker="meldungen_amt")
         case "meldungen_laender":
             return stats_laender(request,
-                                 dateFrom=start_date,
-                                 dateTo=end_date,
                                  marker="meldungen_laender")
         case "meldungen_brb":
             return stats_brb(request,
-                             dateFrom=start_date,
-                             dateTo=end_date,
                              marker="meldungen_brb")
         case "meldungen_berlin":
             return stats_berlin(request,
-                                dateFrom=start_date,
-                                dateTo=end_date,
                                 marker="meldungen_berlin")
         case "meldungen_gesamt":
             return stats_gesamt(request,
-                                dateFrom=start_date,
-                                dateTo=end_date,
                                 marker="meldungen_gesamt")
         case "feedback":
             return stats_feedback(request,
@@ -139,26 +141,17 @@ def stats_start(usrid=None):
         case "start":
             return render_template(
                 "statistics/statistiken.html",
-                user_id=session["user_id"],
-                menu=list_of_stats,
-                marker="start",
-                dateFrom=start_date,
-                dateTo=end_date
+                menu=list_of_stats
             )
         case _:
             return render_template(
                 "statistics/statistiken.html",
-                user_id=session["user_id"],
-                menu=list_of_stats,
-                marker="start",
-                dateFrom=start_date,
-                dateTo=end_date
+                menu=list_of_stats
             )
 
 
-def stats_mtb(request, dateFrom, dateTo, marker):
+def stats_mtb(request):
     "Results as MTB (Messtischblatt-Raster)"
-
     art = request.form.get('typeInput', 'all')
     typeInput = ['mtb', 'maennlich', 'weiblich', 'oothek',
                  'nymphe', 'andere', 'all']
@@ -177,16 +170,18 @@ def stats_mtb(request, dateFrom, dateTo, marker):
                  func.COALESCE(TblMeldungen.art_n, 0) +
                  func.COALESCE(TblMeldungen.art_f, 0)).label('gesamt')
     ).join(TblMeldungen).filter(
-        func.age(TblMeldungen.dat_meld, dateFrom) >= '0 days',
-        func.age(TblMeldungen.dat_meld, dateTo) < '1 day'
+        func.age(TblMeldungen.dat_fund_von, session["date_from"]) >= '0 days',
+        func.age(TblMeldungen.dat_fund_von, session["date_to"]) < '1 day'
+    ).filter(
+        TblFundorte.amt.like(f'{session["ags"]}%')
     ).group_by(
         TblFundorte.mtb
     )
-    results = query.all()
 
+    results = query.all()
     idx = typeInput.index(art)
 
-    for row in results[1:]:
+    for row in results[:]:
         if row[idx] > 0 and row[0] is not None:
             try:
                 mtb = int(row[0])
@@ -197,22 +192,18 @@ def stats_mtb(request, dateFrom, dateTo, marker):
     xml = create_measure_sheet(dataset=dbanswers)
     return render_template(
         "statistics/stats-messtischblatt.html",
-        user_id=session["user_id"],
         menu=list_of_stats,
-        marker=marker,
-        svg=xml,
-        dateFrom=dateFrom,
-        dateTo=dateTo
+        svg=xml
     )
 
 
 def stats_bardiagram_datum(request, dbfields,
-                           page, marker,
-                           dateFrom, dateTo):
+                           page):
     "Calculate statistics by date"
+
     results = {0: {}, 1: {}}
     for idx, dbfield in enumerate(dbfields):
-        
+
         # Use parameterized query to prevent SQL injection
         stm = f"""
            SELECT {dbfield} as Tag,
@@ -227,7 +218,9 @@ def stats_bardiagram_datum(request, dbfields,
         """
         sql = text(stm)
         with db.engine.connect() as conn:
-            result = conn.execute(sql, {"date_from": dateFrom, "date_to": dateTo})
+            result = conn.execute(sql,
+                                  {"date_from": session["date_from"],
+                                   "date_to": session["date_to"]})
 
         trace = {"x": [], "y": []}
 
@@ -236,16 +229,12 @@ def stats_bardiagram_datum(request, dbfields,
                 trace["x"].append(str(record[0]))
                 trace["y"].append(record[1])
         results[idx] = trace
-        # Debug logging removed - results logged if needed
+
     return render_template(
         "statistics/" + page,
         menu=list_of_stats,
-        marker=marker,
-        user_id=session["user_id"],
         trace1=results[0],
         trace2=results[1],
-        dateFrom=dateFrom,
-        dateTo=dateTo
     )
 
 
@@ -253,49 +242,54 @@ def stats_geschlecht(request=None):
     """Count sum of all kategories"""
 
     start_date, end_date = get_date_interval(request)
-    stm = """
-      select sum(art_m) as "Männchen"
-            , sum(art_w) as "Weibchen"
-            , sum(art_n) as "Nymphen"
-            , sum(art_o) as "Ootheken"
-            , sum(art_f) as "Andere"
-      from (select art_m, art_w, art_n, art_o, art_f
-            from meldungen
-            where dat_fund_von >= CAST(:start_date AS date)
-            and dat_fund_von <= CAST(:end_date AS date)
-            and deleted is NULL or 'f') as filtered;"""
 
-    sql = text(stm)
-    userid = session["user_id"]
-    with db.engine.connect() as conn:
-        result = conn.execute(sql, {"start_date": start_date,
-                                    "end_date": end_date})
-        res = []
-        for row in result:
-            row = row._mapping
-            res = dict((name, val) for name, val in row.items())
+    query = (
+        db.session.query(
+            func.sum(func.coalesce(TblMeldungen.art_m, 0)).label("Männchen"),
+            func.sum(func.coalesce(TblMeldungen.art_w, 0)).label("Weibchen"),
+            func.sum(func.coalesce(TblMeldungen.art_n, 0)).label("Nymphen"),
+            func.sum(func.coalesce(TblMeldungen.art_o, 0)).label("Ootheken"),
+            func.sum(func.coalesce(TblMeldungen.art_f, 0)).label("Andere"),
+
+            func.sum(
+                func.coalesce(TblMeldungen.art_m, 0) +
+                func.coalesce(TblMeldungen.art_w, 0) +
+                func.coalesce(TblMeldungen.art_n, 0) +
+                func.coalesce(TblMeldungen.art_o, 0) +
+                func.coalesce(TblMeldungen.art_f, 0)
+            ).label("Gesamt"),
+        )
+        .join(TblFundorte, TblFundorte.id == TblMeldungen.fo_zuordnung)
+        .filter(
+            TblMeldungen.dat_fund_von >= session["date_from"],
+            TblMeldungen.dat_fund_von <= session["date_to"],
+            TblFundorte.amt.like(f'{session["ags"]}%'),
+            or_(
+                TblMeldungen.deleted.is_(None),
+                TblMeldungen.deleted == "f"
+            )
+        )
+    )
+
+    result = query.all()
+    res = []
+    for row in result:
+        row = row._mapping
+        res = dict((name, val) for name, val in row.items())
 
     return render_template(
         "statistics/stats-geschlecht.html",
         menu=list_of_stats,
-        user_id=userid,
-        marker="geschlecht",
-        dateFrom=start_date,
-        dateTo=end_date,
-        values=res,
-    )
+        values=res)
 
 
-def stats_amt(request, dateFrom, dateTo, marker):
+def stats_amt(request, marker):
     "Statistics pro Gemeinden (AGS))"
 
-    gem = request.form.get('gemeinde', '000')
-    gem = gem.split(' ')[0]
     typeInput = ['amt', 'maennlich', 'weiblich',
                  'oothek', 'nymphe', 'andere', 'all']
     conn = db.session
     dbanswers = ['', 0, 0, 0, 0, 0, 0]
-    search = f"{gem}%"
     fehler = False
 
     query = conn.query(
@@ -311,14 +305,12 @@ def stats_amt(request, dateFrom, dateTo, marker):
                  func.COALESCE(TblMeldungen.art_n, 0) +
                  func.COALESCE(TblMeldungen.art_f, 0)).label('gesamt')
     ).join(TblMeldungen).filter(
-        func.age(TblMeldungen.dat_meld, dateFrom) >= '0 days',
-        func.age(TblMeldungen.dat_meld, dateTo) < '1 day',
-
+        func.age(TblMeldungen.dat_meld, session["date_from"]) >= '0 days',
+        func.age(TblMeldungen.dat_meld, session["date_to"]) < '1 day',
     ).filter(
-        TblFundorte.amt.like(search)
+        TblFundorte.amt.like(f'{session["ags"]}%')
     ).group_by(
-        TblFundorte.amt
-    )
+        TblFundorte.amt)
     results = query.all()
 
     if results:
@@ -337,23 +329,17 @@ def stats_amt(request, dateFrom, dateTo, marker):
 
     return render_template(
         "statistics/stats-gemeinde.html",
-        user_id=session["user_id"],
         menu=list_of_stats,
-        marker=marker,
         result=dbanswers,
-        dateFrom=dateFrom,
-        dateTo=dateTo,
         gemeinde=gemeinde,
-        fehler=fehler
-    )
+        fehler=fehler)
 
 
-def stats_laender(request, dateFrom, dateTo, marker):
+def stats_laender(request, marker):
     "Statistics pro Bundesland (AGS))"
 
     conn = db.session
 
-    # Abfrage erstellen
     query = conn.query(
         func.substring(TblFundorte.amt, 1, 2).label('amt_group'),
         func.sum(func.COALESCE(TblMeldungen.art_m, 0)).label('maennlich'),
@@ -367,14 +353,12 @@ def stats_laender(request, dateFrom, dateTo, marker):
                  func.COALESCE(TblMeldungen.art_n, 0) +
                  func.COALESCE(TblMeldungen.art_f, 0)).label('gesamt')
     ).join(TblMeldungen).filter(
-        TblMeldungen.dat_meld >= dateFrom,
-        TblMeldungen.dat_meld <= dateTo,
+        TblMeldungen.dat_meld >= session["date_from"],
+        TblMeldungen.dat_meld <= session["date_to"],
         or_(TblMeldungen.deleted.is_(None), TblMeldungen.deleted.is_(False))
     ).group_by(
-        func.substring(TblFundorte.amt, 1, 2)
-    )
+        func.substring(TblFundorte.amt, 1, 2))
 
-    # Die Abfrage ausführen
     results = query.all()
 
     laender = {'01': 'Schleswig-Holstein',
@@ -395,7 +379,6 @@ def stats_laender(request, dateFrom, dateTo, marker):
                '16': 'Freistaat Thüringen'
                }
 
-    # Ergebnisse in einem Dictionary speichern
     result_dict = defaultdict(dict)
     for result in results:
         if result.amt_group:
@@ -411,21 +394,16 @@ def stats_laender(request, dateFrom, dateTo, marker):
             }
     return render_template(
         "statistics/stats-laender.html",
-        user_id=session["user_id"],
         menu=list_of_stats,
-        marker=marker,
         result=result_dict,
-        dateFrom=dateFrom,
-        dateTo=dateTo
     )
 
 
-def stats_brb(request, dateFrom, dateTo, marker):
+def stats_brb(request, marker):
     "Statistics pro Landkreis Brandenburg (AGS))"
 
     conn = db.session
 
-    # Abfrage erstellen
     query = conn.query(
         func.substring(TblFundorte.amt, 1, 5).label('amt_group'),
         func.sum(func.COALESCE(TblMeldungen.art_m, 0)).label('maennlich'),
@@ -439,15 +417,14 @@ def stats_brb(request, dateFrom, dateTo, marker):
                  func.COALESCE(TblMeldungen.art_n, 0) +
                  func.COALESCE(TblMeldungen.art_f, 0)).label('gesamt')
     ).join(TblMeldungen).filter(
-        TblMeldungen.dat_meld >= dateFrom,
-        TblMeldungen.dat_meld <= dateTo,
+        TblMeldungen.dat_meld >= session["date_from"],
+        TblMeldungen.dat_meld <= session["date_to"],
         func.substring(TblFundorte.amt, 1, 2) == '12',
         or_(TblMeldungen.deleted.is_(None), TblMeldungen.deleted.is_(False))
     ).group_by(
         func.substring(TblFundorte.amt, 1, 5)
     )
 
-    # Die Abfrage ausführen
     results = query.all()
 
     laender = {'12060': 'Landkreis Barnim',
@@ -470,7 +447,6 @@ def stats_brb(request, dateFrom, dateTo, marker):
                '12054': 'Potsdam'
                }
 
-    # Ergebnisse in einem Dictionary speichern
     result_dict = defaultdict(dict)
     for result in results:
         if result.amt_group:
@@ -487,16 +463,12 @@ def stats_brb(request, dateFrom, dateTo, marker):
 
     return render_template(
         "statistics/stats-brb.html",
-        user_id=session["user_id"],
         menu=list_of_stats,
-        marker=marker,
-        result=result_dict,
-        dateFrom=dateFrom,
-        dateTo=dateTo
+        result=result_dict
     )
 
 
-def stats_berlin(request, dateFrom, dateTo, marker):
+def stats_berlin(request, marker):
     "Statistics Berlin nach Stadtbezirken (AGS))"
 
     conn = db.session
@@ -514,15 +486,14 @@ def stats_berlin(request, dateFrom, dateTo, marker):
                  func.COALESCE(TblMeldungen.art_n, 0) +
                  func.COALESCE(TblMeldungen.art_f, 0)).label('gesamt')
     ).join(TblMeldungen).filter(
-        TblMeldungen.dat_meld >= dateFrom,
-        TblMeldungen.dat_meld <= dateTo,
+        TblMeldungen.dat_meld >= session["date_from"],
+        TblMeldungen.dat_meld <= session["date_to"],
         func.substring(TblFundorte.amt, 1, 2) == '11',
         or_(TblMeldungen.deleted.is_(None), TblMeldungen.deleted.is_(False))
     ).group_by(
         func.substring(TblFundorte.amt, 1, 8)
     )
 
-    # Die Abfrage ausführen
     results = query.all()
 
     laender = {'11000000': 'Berlin (allgemein)',
@@ -540,7 +511,6 @@ def stats_berlin(request, dateFrom, dateTo, marker):
                '11000012': 'Reinickendorf'
                }
 
-    # Ergebnisse in einem Dictionary speichern
     result_dict = defaultdict(dict)
     for result in results:
         if result.amt_group:
@@ -557,16 +527,12 @@ def stats_berlin(request, dateFrom, dateTo, marker):
 
     return render_template(
         "statistics/stats-brb.html",
-        user_id=session["user_id"],
         menu=list_of_stats,
-        marker=marker,
         result=result_dict,
-        dateFrom=dateFrom,
-        dateTo=dateTo
     )
 
 
-def stats_gesamt(request, dateFrom, dateTo, marker):
+def stats_gesamt(request, marker):
     "Get sum for  Bundesland, Landkreis/Stadtbezirk and Amt"
 
     result_dict = {
@@ -616,13 +582,12 @@ def stats_gesamt(request, dateFrom, dateTo, marker):
                  func.COALESCE(TblMeldungen.art_n, 0) +
                  func.COALESCE(TblMeldungen.art_f, 0)).label('gesamt')
     ).join(TblMeldungen).filter(
-        TblMeldungen.dat_meld >= dateFrom,
-        TblMeldungen.dat_meld <= dateTo,
+        TblMeldungen.dat_meld >= session["date_from"],
+        TblMeldungen.dat_meld <= session["date_to"],
         or_(TblMeldungen.deleted.is_(None), TblMeldungen.deleted.is_(False))
     ).group_by(
         TblFundorte.amt)
 
-    # Die Abfrage ausführen
     results = query.all()
     keys = list(result_dict.keys())
     for result in results:
@@ -654,12 +619,8 @@ def stats_gesamt(request, dateFrom, dateTo, marker):
 
     return render_template(
         "statistics/stats-table-all.html",
-        user_id=session["user_id"],
         menu=list_of_stats,
-        marker=marker,
         result=result_dict,
-        dateFrom=dateFrom,
-        dateTo=dateTo
     )
 
 
@@ -700,7 +661,5 @@ def stats_feedback(request, page, marker):
     return render_template(
         "statistics/" + page,
         menu=list_of_stats,
-        marker=marker,
-        user_id=session["user_id"],
         feedback=feedback,
         details=details)

@@ -1,32 +1,57 @@
 {% macro StatsAuswahl() -%}
 <div class="flex flex-wrap ">
-  <div class="flex items-center justify-center text-sm font-medium text-gray-900 bg-gray-200 border border-gray-200 rounded-lg focus:outline-none hover:bg-gray-100 focus:z-10 focus:ring-4 focus:ring-gray-200">
-    <div id="filterDropdown" class="z-50 w-64 p-4 space-y-3 bg-white divide-y divide-gray-100 rounded-lg shadow-lg  sm:w-80">
-        <div class="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
-          <div class="w-full md:w-1/2">
-            <label for="dateFrom" class="block text-sm font-semibold text-gray-700">Funddatum von</label>
-            <input type="date" id="dateFrom" name="dateFrom" value="{{ dateFrom }}"
-		   class="w-full p-2 text-sm rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
-          </div>
-          <div class="w-full md:w-1/2">
-            <label for="dateTo" class="block text-sm font-semibold text-gray-700">Funddatum bis</label>
-            <input type="date" id="dateTo" name="dateTo" value="{{ dateTo }}"
-		   class="w-full p-2 text-sm rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
-          </div>
+  <div class="flex items-center justify-center text-sm font-medium text-gray-900
+	      bg-gray-200 border border-gray-200 rounded-lg focus:outline-none
+	      hover:bg-gray-100 focus:z-10 focus:ring-4 focus:ring-gray-200">
+    <div id="filterDropdown" class="z-50 w-64 p-4 space-y-3 bg-white
+				    divide-y divide-gray-100 rounded-lg shadow-lg  sm:w-80">
+      <div class="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
+        <div class="w-full md:w-1/2">
+          <label for="dateFrom" class="block text-sm font-semibold text-gray-700">Funddatum von</label>
+          <input type="date" id="dateFrom" name="dateFrom" value="{{ session["date_from"] }}"
+		 class="w-full p-2 text-sm rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
         </div>
-        <div class="flex justify-between mt-4 space-x-4">
-          <button id="clearFilters" type="button"
-		  class="flex items-center justify-center w-24 px-2 py-1 text-sm text-red-500 border border-red-500 rounded-md shadow-sm hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:border-transparent">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-4 h-4 mr-1">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-            Löschen
-          </button>
-          <button type="submit"
-		  class="w-1/2 px-4 py-2 text-white bg-green-500 rounded-md shadow-sm hover:bg-green-600 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:border-transparent">
-            Filtern
-          </button>
+        <div class="w-full md:w-1/2">
+          <label for="dateTo" class="block text-sm font-semibold text-gray-700">Funddatum bis</label>
+          <input type="date" id="dateTo" name="dateTo" value="{{ session["date_to"] }}"
+		 class="w-full p-2 text-sm rounded-md shadow-sm
+			focus:ring-2 focus:ring-green-500 focus:border-transparent">
         </div>
+      </div>
+      <div class="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
+        <div class="w-full md:w-1/2">
+	  <label for="ags_input" class="block text-sm font-semibold text-gray-700">Gebiet</label>
+	  <input
+	    type="text"
+	    name="ags_input"
+	    id="ags_input"
+	    autocomplete="off"
+	    hx-get="/statistik/ags"
+	    hx-trigger="keyup changed delay:300ms"
+	    hx-target="#vorschlaege"
+	    hx-swap="innerHTML"
+	    >
+	</div>
+      </div>
+      <div class="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
+	<div class="w-full md:w-1/2">
+	  <label for="ags_input" class="block text-sm font-semibold text-gray-700">AGS</label>
+	  <input type="text" value="{{session["ags"]}}" name="ags" id="ags">
+	</div>
+      </div>
+      <div class="flex justify-center mt-4 space-x-4">
+        <button type="submit"
+		class="px-4 py-2 text-white bg-green-500 rounded-md shadow-sm
+		       hover:bg-green-600 focus:ring-2 focus:ring-green-500
+		       focus:ring-offset-2 focus:border-transparent">
+          Auswahl aktualisieren
+        </button>
+      </div>	    
+      <div class="w-full md:w-1/2">
+	<ul id="vorschlaege"></ul>
+      </div>
+      <input type="hidden" id="dateTo" name="dateTo" value="{{ session["date_to"] }}" />
+      <input type="hidden" id="dateFrom" name="dateFrom" value="{{ session["date_from"] }}" />
     </div>
   </div>
 </div>

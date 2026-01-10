@@ -9,13 +9,16 @@
     <form action="" method="POST" class="space-y-3">
       {{ StatsMenu() }}
     </form>
-    <p class="m-4">Meldungen für den Zeitraum vom {{dateFrom}} bis {{dateTo}}.</p>
+    <p class="m-2">Für den Zeitraum vom {{session['date_from']}} bis {{session['date_to']}} und</p>
+    <p class="m-2">das Gebiet: {{session["ags"]}}, wurden folgende Werte erfaßt.</p>
     {% if marker == "meldungen_amt" %}
     <form action="/statistik" method="POST">
       <div class="bg-gray-200 ">
 	<input type="text" id="gemeinde" name="gemeinde"
 	       value="{{ gemeinde }}"
-	       class="w-full px-4 py-2 ml-3 text-sm font-medium text-gray-900 border border-gray-200 rounded-lg md:w-auto md:mb-0 focus:outline-none hover:bg-gray-10 focus:z-10 focus:ring-4 focus:ring-gray-200"
+	       class="w-full px-4 py-2 ml-3 text-sm font-medium text-gray-900
+		      border border-gray-200 rounded-lg md:w-auto md:mb-0
+		      focus:outline-none hover:bg-gray-10 focus:z-10 focus:ring-4 focus:ring-gray-200"
                placeholder="Eine gültige AGS eingeben" required />
       </div>
       <input type="hidden" name="stats" value="meldungen_amt"/>
@@ -24,9 +27,7 @@
     {% if fehler != True %}
     <div class="flex flex-wrap justify-center">
       <div class="m-4">
-	<p class="mt-2 mb-5">Wurden folgende Meldungen erfasst:</p>
-	<p class="mt-2 text-xl"> {{result[0].split('--')[1]}}</p>
-	<p class="mt-2">Amtliche Gemeindekennzahl: {{result[0].split('--')[0]}}</p>
+	
 	<table class="table-fixed">
 	  <thead>
 	    <tr>
@@ -62,12 +63,8 @@
 	  </tbody>
 	</table>
 	{% endif %}
+      </div>
     </div>
-    </div>
-  </div>
-  <p class="pt-5">Hinweis: Der Allgemeine Gemeinde Schlüssel (AGS) kann im Reviewer-Bereich gesucht werden.
-    <br />
-    Zu jeder Meldung ist die AGS und die Bezeichnung der Gemeinde gespeichert.
-  </p> 
+  </div> 
 </section>
 {% endblock content %}

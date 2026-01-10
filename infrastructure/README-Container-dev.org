@@ -1,3 +1,7 @@
+#+STARTUP: overview
+#+OPTIONS: toc:nil
+#+OPTIONS: num:nil
+
 * Übersicht
 
 |-------------------------+---------------------------------|
@@ -77,10 +81,11 @@ Alles neu bauen ...
     # 1. Dependencies installieren (einmalig / CI)
     bun install
 
-    # 2. Tailwind CSS im Watch-Mode starten
-    bun run watch
-
+  # 2. Tailwind CSS im Watch-Mode starten
+    bun run watch:css
+  
     # 3. Container starten
+    cd infrastructure
     podman-compose -f podman-compose.prod.yml -f podman-compose.dev.yml up
 
 #+end_src
@@ -89,14 +94,15 @@ Alles neu bauen ...
 
 #+begin_src bash
 
-    # 1. Fertige CSS bauen
-    bun run build:css
+  # 1. Fertige CSS bauen
+  bun run build:css
 
-    # 2. Docker Image bauen
-    podman build -t mantis_web ..
+  # 2. Docker Image bauen
+  podman build -t mantis_web ..
 
-    # 3. Container starten
-    podman-compose -f podman-compose.prod.yml up -d
+  # 3. Container starten
+  podman-compose -f podman-compose.prod.yml up -d
+  podman-compose -f podman-compose.prod.yml up -d --build
 
 #+end_src
 
