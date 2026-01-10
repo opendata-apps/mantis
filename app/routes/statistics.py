@@ -48,8 +48,8 @@ def autocomplete_ags():
             .order_by(TblAemterCoordinaten.gen)
             .limit(10)
         )
-        
-        rows = db.session.execute(stmt).all()
+
+        rows = dbsession.execute(stmt).all()
         return "".join(
             f"""
             <li
@@ -64,7 +64,8 @@ def autocomplete_ags():
         )
 
     finally:
-        db.session.close()
+        dbsession.close()
+
 
 def get_date_interval(request=None):
     "Calculate and format start and end date"
