@@ -57,10 +57,10 @@
 					<div id="dropdownReviewer" class="hidden w-44 bg-white rounded divide-y divide-gray-100 shadow">
 						<ul class="py-1 text-sm text-gray-700" aria-labelledby="dropdownReviewerButton">
 							<li>
-								<a href="{{'/reviewer/'+ user_id }}" class="block px-4 py-2 hover:bg-gray-200">Reviewer</a>
+								<a href="{{'/reviewer/'+ session["user_id"]}}" class="block px-4 py-2 hover:bg-gray-200">Reviewer</a>
 							</li>
 							<li>
-								<a href="{{'/statistik/'+ user_id }}" class="block px-4 py-2 hover:bg-gray-200">Statistics</a>
+								<a href="{{'/statistik/'+ session["user_id"] }}" class="block px-4 py-2 hover:bg-gray-200">Statistics</a>
 							</li>
 							<li>
 								<a href="/galerie" class="block px-4 py-2 hover:bg-gray-200">Galerie</a>
@@ -88,8 +88,8 @@
 				{% if request.path.startswith('/reviewer') or request.path.startswith('/statistik') or
 				request.path.startswith('/superuser') or request.path.startswith('/galerie') or
 				request.path.startswith('/alldataPanel') %}
-				<a href="{{'/reviewer/'+ user_id }}" class="block px-3 py-2 text-base font-medium text-white rounded-md transition duration-300 ease-in-out hover:bg-green-700">Reviewer</a>
-				<a href="{{'/statistik/'+ user_id }}" class="block px-3 py-2 text-base font-medium text-white rounded-md transition duration-300 ease-in-out hover:bg-green-700">Statistics</a>
+				<a href="{{'/reviewer/'+ session["user_id"] }}" class="block px-3 py-2 text-base font-medium text-white rounded-md transition duration-300 ease-in-out hover:bg-green-700">Reviewer</a>
+				<a href="{{'/statistik/'+ session["user_id"] }}" class="block px-3 py-2 text-base font-medium text-white rounded-md transition duration-300 ease-in-out hover:bg-green-700">Statistics</a>
 				<a href="/galerie" class="block px-3 py-2 text-base font-medium text-white rounded-md transition duration-300 ease-in-out hover:bg-green-700">Galerie</a>
 				<a href="/alldata" class="block px-3 py-2 text-base font-medium text-white rounded-md transition duration-300 ease-in-out hover:bg-green-700">Superuser</a>
 				{% endif %}
