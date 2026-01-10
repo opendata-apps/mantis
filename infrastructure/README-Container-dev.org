@@ -78,14 +78,15 @@ Alles neu bauen ...
 *** Podman-Compose -- development
 
 #+begin_src bash
-    # 1. Dependencies installieren (einmalig / CI)
-    bun install
+  # 1. Dependencies installieren (einmalig / CI)
+  bun install
 
-    # 2. Tailwind CSS im Watch-Mode starten
-    bun run watch
+  # 2. Tailwind CSS im Watch-Mode starten
+  bun run watch:css
 
-    # 3. Container starten
-    podman-compose -f podman-compose.prod.yml -f podman-compose.dev.yml up
+  # 3. Container starten
+  cd infrastructure
+  podman-compose -f podman-compose.prod.yml -f podman-compose.dev.yml up
 
 #+end_src
 
