@@ -2,7 +2,7 @@ from flask import Blueprint
 from flask import render_template, request, current_app
 from flask import session, abort
 from flask import jsonify
-from sqlalchemy import func, text, or_, select
+from sqlalchemy import func, text,  or_, select
 from sqlalchemy import cast, String
 from app import db
 from app.database.models import TblUsers
