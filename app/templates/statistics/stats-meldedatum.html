@@ -4,7 +4,7 @@
 {% from 'statistics/menu-stats.html' import StatsMenu with context %}
 {% block content %}
 <script
-  src="{{ url_for('static', filename='node_modules/plotly.js/dist/plotly.min.js')}}"
+  src="{{ url_for('static', filename='build/plotly.min.js')}}"
   charset="utf-8">
 </script>
 <section class="container mx-auto mt-10">
@@ -13,7 +13,7 @@
    <form action="" method="POST" class="space-y-3">
      {{ StatsMenu() }}
    </form>
-   <p class="m-4">Für den Zeitraum vom {{dateFrom}} bis {{dateTo}}.</p>
+   <p class="m-4">Für den Zeitraum vom {{ session["date_from"] }} bis {{ session["date_to"] }}.</p>
    <h1 class="pt-2 pb-2 text-lg text-center">Meldungen nach Meldedatum</h1>
    <div id='meld'
 	class="wx-92">
