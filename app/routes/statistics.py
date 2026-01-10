@@ -31,14 +31,13 @@ list_of_stats = {
     "feedback": "Feedback"
 }
 
-@stats.route("/statistik/ags", methods=["POST", "GET"])
+
+@stats.route("/statistik/ags", methods=["GET"])
 def autocomplete_ags():
-    q = request.args.get("ags", "").strip()
-    session['ags'] = q
+    q = request.args.get("ags_input", "").strip()
     if len(q) < 2:
         return jsonify([])
-    #dbsession = db.session
-    #session = SessionLocal()
+    dbsession = db.session
     try:
         stmt = (
             select(TblAemterCoordinaten.ags, TblAemterCoordinaten.gen)
