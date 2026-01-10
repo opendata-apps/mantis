@@ -73,48 +73,31 @@ def get_date_interval(request=None):
     now = datetime.now().isoformat()
     last_year = datetime.now() - timedelta(weeks=52)
     last_year = last_year.isoformat()
-
-    if request:
-        start_date = request.form.get("dateFrom", last_year)
-        end_date = request.form.get("dateTo", now)
-    else:
-        start_date = last_year
-        end_date = now
-
-    if not end_date:
-        end_date = now
-    if not start_date:
-        start_date = last_year
+    start_date = request.form.get("dateFrom",
+                                  session.get('date_from', last_year))
+    end_date = request.form.get("dateTo: str",  session.get('date_to', now))
 
     return (start_date[:10], end_date[:10])
+
 
 @stats.route("/statistik", methods=["POST", "GET"])
 @stats.route("/statistik/<usrid>", methods=["POST", "GET"])
 @login_required
 def stats_start(usrid=None):
     "Startseite für alle Statistiken"
+
     session['date_from'], session['date_to'] = get_date_interval(request)
-    date_from, date_to = get_date_interval(request)
+    session["ags"] = request.form.get("ags", session.get('ags', '')).strip()
     user_id = session["user_id"]
     user = db.session.scalar(select(TblUsers).where(
         TblUsers.user_id == user_id)
                              )
-    print(session)
-    ags=session.get('ags')
-    print(ags)
     # If the user doesn't exist or the role isn't 9, return 404
     if not user or user.user_rolle != "9":
         abort(403)
-    """[
-    ('statusInput', 'all'),
-    ('typeInput', 'all'),
-    ('dateFrom', ''),
-    ('dateTo', ''),
-    ('userId', '9999'),
-    ('stats', 'geschlecht')]
-    """
-    start_date, end_date = get_date_interval(request)
+
     value = request.form.get("stats", "start")
+    session["marker"] = value
 
     match value:
         case "geschlecht":
