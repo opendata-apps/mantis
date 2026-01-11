@@ -472,9 +472,6 @@ def stats_bundesland(request, marker):
 
     results = query.all()
     
-    print(f"{results =}")
-    
-
     result_dict = defaultdict(dict)
     for result in results:
         if result.amt_group:
