@@ -9,7 +9,8 @@
     <form action="" method="POST" class="space-y-3">
       {{ StatsMenu() }}
     </form>
-    <p class="m-4">Meldungen für den Zeitraum vom {{dateFrom}} bis {{dateTo}}.</p>
+    <p class="m-4">Fuer den Zeitraum vom {{session['date_from']}} bis {{session['date_to']}}.</p>
+    <p class="m-4">Gebietskennzahl: {{session['ags']}}</p>
     {% if marker == "meldungen_gesamt" %}
     {% endif %}
     <div class="">

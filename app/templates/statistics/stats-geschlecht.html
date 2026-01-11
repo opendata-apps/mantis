@@ -2,6 +2,7 @@
 {% block title %}Statistiken{% endblock title %}
 {% block meta_keywords %}Auswertungen, Statistik{% endblock %}
 {% from 'statistics/menu-stats.html' import StatsMenu with context %}
+
 {% block content %}
 <script
   src="{{ url_for('static', filename='build/plotly.min.js')}}"

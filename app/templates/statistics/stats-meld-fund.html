@@ -13,7 +13,8 @@
     <form action="" method="POST" class="space-y-3">
       {{ StatsMenu() }}
     </form>
-    <p class="m-4">Für den Zeitraum vom {{dateFrom}} bis {{dateTo}}.</p>
+    <p class="m-4">Fuer den Zeitraum vom {{session['date_from']}} bis {{session['date_to']}}.</p>
+    <p class="m-4">Gebietskennzahl: {{session['ags']}}</p>
     <h1 class="pt-2 pb-2 text-lg text-center">Meldungen nach Fund- und Meldedatum</h1>
     <div id='meld'
 	 class="wx-92">
@@ -56,6 +57,5 @@
       Plotly.newPlot('meld', data, layout);
       
     </script>    
->>>>>>> podman-container-statistic
 </section>
 {% endblock content %}
