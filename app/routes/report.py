@@ -308,16 +308,36 @@ def get_step_fields(step):
     }
     return step_fields.get(step, [])
 
-def get_visible_error_fields(step):
-    """Return field names that have visible error containers (for OOB clearing)."""
-    # Excludes hidden fields like latitude/longitude (use 'coordinates' instead)
+def get_visible_error_fields(step, form_data=None):
+    """Return field names that have visible error containers (for OOB clearing).
+
+    Args:
+        step: The current form step
+        form_data: Optional form data dict to determine conditional field visibility
+    """
+    # Base visible fields per step (excludes hidden fields like latitude/longitude)
     visible_fields = {
         1: ['photo', 'gender', 'location_description', 'description'],
         2: ['sighting_date', 'fund_city', 'fund_state', 'fund_zip_code', 'fund_district', 'fund_street'],
-        3: ['report_first_name', 'report_last_name', 'email', 'finder_first_name', 'finder_last_name', 'feedback_source', 'feedback_detail'],
+        3: ['report_first_name', 'report_last_name', 'email'],
         4: []
     }
-    return visible_fields.get(step, [])
+
+    fields = visible_fields.get(step, []).copy()
+
+    # Step 3: Conditionally include finder fields based on checkbox state
+    if step == 3 and form_data:
+        is_identical = form_data.get('identical_finder_reporter') in ('true', 'on', '1', 'True')
+        if not is_identical:
+            # Finder fields are visible when checkbox is unchecked
+            fields.extend(['finder_first_name', 'finder_last_name'])
+
+        # feedback_detail is only visible when feedback_source requires it
+        feedback_source = form_data.get('feedback_source', '')
+        if feedback_source == 'Andere':
+            fields.append('feedback_detail')
+
+    return fields
 
 @report.route("/validate_step", methods=["POST"])
 @csrf.exempt
@@ -447,8 +467,8 @@ def htmx_validate_step():
     if is_valid:
         # Return a trigger to advance to next step + clear any previous errors via OOB
         from flask import make_response
-        visible_fields = get_visible_error_fields(step)
-        clear_html = render_template("report/partials/clear_errors.html", fields=visible_fields)
+        visible_fields = get_visible_error_fields(step, request.form)
+        clear_html = render_template("report/partials/clear_errors.html", fields=visible_fields, step=step)
         response = make_response(clear_html)
         response.headers['HX-Trigger'] = f'{{"stepValid": {{"step": {step}, "nextStep": {step + 1}}}}}'
         return response

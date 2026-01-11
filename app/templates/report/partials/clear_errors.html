@@ -2,5 +2,6 @@
 {% for field in fields %}
 <div id="error-{{ field }}" class="field-error-message" hx-swap-oob="innerHTML"></div>
 {% endfor %}
-{# Also clear special fields #}
+{% if step == 2 %}
 <div id="error-coordinates" class="field-error-message" hx-swap-oob="innerHTML"></div>
+{% endif %}
