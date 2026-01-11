@@ -3,56 +3,54 @@
 {% block meta_keywords %}Auswertungen, Statistik{% endblock %}
 {% from 'statistics/menu-stats.html' import StatsMenu with context %}
 {% block content %}
-<script
-  src="{{ url_for('static', filename='build/plotly.min.js')}}"
-  charset="utf-8">
-</script>
 <section class="container mx-auto mt-10">
- <div
-   class="sticky z-30 col-span-2 row-span-2 duration-500 bg-gray-200 border-4 border-gray-200 rounded-md top-3 hover:shadow-xl">
-   <form action="" method="POST" class="space-y-3">
-     {{ StatsMenu() }}
-   </form>
-   <p class="m-4">Für den Zeitraum vom {{ session["date_from"] }} bis {{ session["date_to"] }}.</p>
-   <h1 class="pt-2 pb-2 text-lg text-center">Meldungen nach Meldedatum</h1>
-   <div id='meld' class="wx-92"></div>
+  <div
+    class="sticky z-30 col-span-2 row-span-2 duration-500 bg-gray-200 border-4 border-gray-200 rounded-md top-3 hover:shadow-xl">
+    <form action="" method="POST" class="space-y-3">
+      {{ StatsMenu() }}
+    </form>
+    <p class="m-4">Für den Zeitraum vom {{ session["date_from"] }} bis {{ session["date_to"] }}.</p>
+    <h1 class="pt-2 pb-2 text-lg text-center">Meldungen nach Meldedatum</h1>
+    <div id='meld' class="wx-92"></div>
 
-  <script type="module">
-     var daten = {{ trace1 | tojson }};
-     var xValues = daten.x;
-     var yValues = daten.y;
+    <script type="module">
+      var daten = {{ trace1 | tojson }};
+      var xValues = daten.x;
+      var yValues = daten.y;
 
-     const trace1 = {
-     	 x: xValues,
-     	 y: yValues,
-     	 type: "bar",
-	 text: yValues.map(String),
-	 textposition: 'auto',
-	 hoverinfo: 'none',
-	 marker: {
-	     color: '#5bae31',
-	     opacity: 0.6,
-	     line: {
-		 color: 'rgb(8,48,107)',
-		 width: 1.5
-	     }
-	 }
-     };
-     const data = [trace1];
-     const layout = {
+      const trace1 = {
+        x: xValues,
+        y: yValues,
+        type: "bar",
+        text: yValues.map(String),
+        textposition: 'auto',
+        hoverinfo: 'none',
+        marker: {
+          color: '#5bae31',
+          opacity: 0.6,
+          line: {
+            color: 'rgb(8,48,107)',
+            width: 1.5
+          }
+        }
+      };
+      const data = [trace1];
+      const layout = {
         showlegend: false,
-     	margin: {
-     	    l: 30,
-     	    r: 10,
-     	    b: 20,
-     	    t: 20,
-     	    pad: 4
-     	},
-     };
-     var config = {scrollZoom: true,
-     		  displayModeBar: false};
-     Plotly.newPlot("meld", data, layout, config);
-   </script>
+        margin: {
+          l: 30,
+          r: 10,
+          b: 20,
+          t: 20,
+          pad: 4
+        },
+      };
+      var config = {
+        scrollZoom: true,
+        displayModeBar: false
+      };
+      Plotly.newPlot("meld", data, layout, config);
+    </script>
 
 </section>
 {% endblock content %}

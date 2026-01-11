@@ -4,25 +4,20 @@
 {% from 'statistics/menu-filter.html' import MenuFilter with context %}
 {% from 'statistics/filter-datum-typ.html' import StatsAuswahl with context %}
 {% block content %}
-<script src="{{ url_for('static', filename='build/flowbite.min.js')}}"></script>
-<script src="{{ url_for('static', filename='build/htmx.min.js')}}"></script>
 <section class="container mx-auto mt-10">
-  <form action="" method="POST" class="space-y-3">
-    {{ MenuFilter() }}
-    <div class="sticky col-span-2 row-span-2 duration-500 bg-gray-200 border-4 border-gray-200 rounded-md  hover:shadow-xl">
-      <p class="m-4">Zeitraum, für alle Statistiken festlegen.</p>
-      <div class="m-4">
-	{{ StatsAuswahl() }}
-      </div>
-      <input type="hidden"
-	     id="stats"
-	     name="stats"
-	     value="start"
-	     class="rounded-lg">
-    </div>
-  </form>
-  <h2 class="m-4">Erläuterung zur Gebietswahl<h2>
-      <pre>
+	<form action="" method="POST" class="space-y-3">
+		{{ MenuFilter() }}
+		<div
+			class="sticky col-span-2 row-span-2 duration-500 bg-gray-200 border-4 border-gray-200 rounded-md hover:shadow-xl">
+			<p class="m-4">Zeitraum, für alle Statistiken festlegen.</p>
+			<div class="m-4">
+				{{ StatsAuswahl() }}
+			</div>
+			<input type="hidden" id="stats" name="stats" value="start" class="rounded-lg">
+		</div>
+	</form>
+	<h2 class="m-4">Erläuterung zur Gebietswahl<h2>
+			<pre>
 	1.–2. Stelle   = Kennzahl des Bundeslandes
 	3. Stelle      = Kennzahl des Regierungsbezirks; wenn nicht vorhanden: 0
 	4.–5. Stelle   = Kennzahl des Landkreises oder der kreisfreien Stadt
@@ -38,24 +33,24 @@
 	64  Landkreis Märkisch-Oderland
 	340 Gemeinde Neuhardenberg
       </pre>
-      <p class="m-4">
-	Siehe auch:  https://de.wikipedia.org/wiki/Amtlicher_Gemeindeschl%C3%BCssel
-      <p>
-	
-	<script>
-	  document.addEventListener("click", function(e) {
-	      const li = e.target.closest("#vorschlaege li");
-	      if (!li) return;
+			<p class="m-4">
+				Siehe auch: https://de.wikipedia.org/wiki/Amtlicher_Gemeindeschl%C3%BCssel
+			<p>
 
-	      // Eingabe für User sichtbar
-	      document.getElementById("ags_input").value = li.dataset.gen;
+				<script>
+					document.addEventListener("click", function (e) {
+						const li = e.target.closest("#vorschlaege li");
+						if (!li) return;
 
-	      // Hidden-Feld für Submit
-	      document.getElementById("ags").value = li.dataset.ags;
+						// Eingabe für User sichtbar
+						document.getElementById("ags_input").value = li.dataset.gen;
 
-	      // Vorschläge löschen
-	      document.getElementById("vorschlaege").innerHTML = "";
-	  });
-	</script>
+						// Hidden-Feld für Submit
+						document.getElementById("ags").value = li.dataset.ags;
+
+						// Vorschläge löschen
+						document.getElementById("vorschlaege").innerHTML = "";
+					});
+				</script>
 </section>
 {% endblock content %}

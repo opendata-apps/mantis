@@ -19,25 +19,10 @@ function copyPlotly() {
   }
 }
 
-// Plugin to copy htmx.min.js after each build (including watch rebuilds)
-function copyHTMX() {
-  return {
-    name: 'copy-htmx',
-    closeBundle() {
-      const src = resolve(__dirname, 'node_modules/htmx.org/dist/htmx.min.js')
-      const dest = resolve(__dirname, 'app/static/build/htmx.min.js')
-      if (existsSync(src)) {
-        copyFileSync(src, dest)
-        console.log('✓ Copied htmx.min.js to build/')
-      }
-    }
-  }
-}
-
 export default defineConfig({
   root: 'app/static',
   base: '/static/build/',
-    plugins: [copyPlotly(), copyHTMX()],
+  plugins: [copyPlotly()],
 
   build: {
     outDir: 'build',
@@ -46,6 +31,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         vendor: resolve(__dirname, 'app/static/js/vendor.js'),
+        htmx: resolve(__dirname, 'app/static/js/htmx.js'),
         map: resolve(__dirname, 'app/static/js/map.js'),
         'report-form': resolve(__dirname, 'app/static/js/report-form.js'),
         gallery: resolve(__dirname, 'app/static/js/gallery.js'),
