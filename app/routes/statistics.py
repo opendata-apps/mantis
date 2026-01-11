@@ -126,11 +126,11 @@ def stats_start(usrid=None):
             return stats_laender(request,
                                  marker="meldungen_laender")
         case "meldungen_brb":
-            return stats_brb(request,
-                             marker="meldungen_brb")
+            return stats_bundesland(request,
+                                    marker="meldungen_brb")
         case "meldungen_berlin":
-            return stats_berlin(request,
-                                marker="meldungen_berlin")
+            return stats_bundesland(request,
+                                    marker="meldungen_berlin")
         case "meldungen_gesamt":
             return stats_gesamt(request,
                                 marker="meldungen_gesamt")
@@ -399,13 +399,58 @@ def stats_laender(request, marker):
     )
 
 
-def stats_brb(request, marker):
-    "Statistics pro Landkreis Brandenburg (AGS))"
+def stats_bundesland(request, marker):
+    """
+    Statistik für:
+    - Brandenburg
+    - Berlin nach Stadtbezirken (AGS))
+    """
 
+    if marker == "meldungen_berlin":
+        ags = '11'
+        maxchars = 8
+        land = "Berlin"
+        laender = {'11000000': 'Berlin (allgemein)',
+                   '11000001': 'Mitte',
+                   '11000002': 'Friedrichshain-Kreuzberg',
+                   '11000003': 'Pankow',
+                   '11000004': 'Charlottenburg-Wilmersdorf',
+                   '11000005': 'Spandau',
+                   '11000006': 'Steglitz-Zehlendorf',
+                   '11000007': 'Tempelhof-Schöneberg',
+                   '11000008': 'Neukölln',
+                   '11000009': 'Treptow-Köpenick',
+                   '11000010': 'Marzahn-Hellersdorf',
+                   '11000011': 'Lichtenberg',
+                   '11000012': 'Reinickendorf'
+                   }
+    elif marker == "meldungen_brb":
+        ags = '12'
+        maxchars = 5
+        land = "Brandenburg"
+        laender = {'12060': 'Landkreis Barnim',
+                   '12061': 'Landkreis Dahme-Spreewald',
+                   '12062': 'Landkreis Elbe-Elster',
+                   '12063': 'Landkreis Havelland',
+                   '12064': 'Landkreis Märkisch-Oderland',
+                   '12065': 'Landkreis Oberhavel',
+                   '12066': 'Landkreis Oberspreewald-Lausitz',
+                   '12067': 'Landkreis Oder-Spree',
+                   '12068': 'Landkreis Ostprignitz-Ruppin',
+                   '12069': 'Landkreis Potsdam-Mittelmark',
+                   '12070': 'Landkreis Prignitz',
+                   '12071': 'Landkreis Spree-Neiße',
+                   '12072': 'Landkreis Teltow-Fläming',
+                   '12073': 'Landkreis Uckermark',
+                   '12051': 'Brandenburg an der Havel',
+                   '12052': 'Cottbus',
+                   '12053': 'Frankfurt (Oder)',
+                   '12054': 'Potsdam'
+                   }
     conn = db.session
 
     query = conn.query(
-        func.substring(TblFundorte.amt, 1, 5).label('amt_group'),
+        func.substring(TblFundorte.amt, 1, maxchars).label('amt_group'),
         func.sum(func.COALESCE(TblMeldungen.art_m, 0)).label('maennlich'),
         func.sum(func.COALESCE(TblMeldungen.art_w, 0)).label('weiblich'),
         func.sum(func.COALESCE(TblMeldungen.art_o, 0)).label('oothek'),
@@ -419,33 +464,16 @@ def stats_brb(request, marker):
     ).join(TblMeldungen).filter(
         TblMeldungen.dat_meld >= session["date_from"],
         TblMeldungen.dat_meld <= session["date_to"],
-        func.substring(TblFundorte.amt, 1, 2) == '12',
+        func.substring(TblFundorte.amt, 1, 2) == ags,
         or_(TblMeldungen.deleted.is_(None), TblMeldungen.deleted.is_(False))
     ).group_by(
-        func.substring(TblFundorte.amt, 1, 5)
+        func.substring(TblFundorte.amt, 1, maxchars)
     )
 
     results = query.all()
-
-    laender = {'12060': 'Landkreis Barnim',
-               '12061': 'Landkreis Dahme-Spreewald',
-               '12062': 'Landkreis Elbe-Elster',
-               '12063': 'Landkreis Havelland',
-               '12064': 'Landkreis Märkisch-Oderland',
-               '12065': 'Landkreis Oberhavel',
-               '12066': 'Landkreis Oberspreewald-Lausitz',
-               '12067': 'Landkreis Oder-Spree',
-               '12068': 'Landkreis Ostprignitz-Ruppin',
-               '12069': 'Landkreis Potsdam-Mittelmark',
-               '12070': 'Landkreis Prignitz',
-               '12071': 'Landkreis Spree-Neiße',
-               '12072': 'Landkreis Teltow-Fläming',
-               '12073': 'Landkreis Uckermark',
-               '12051': 'Brandenburg an der Havel',
-               '12052': 'Cottbus',
-               '12053': 'Frankfurt (Oder)',
-               '12054': 'Potsdam'
-               }
+    
+    print(f"{results =}")
+    
 
     result_dict = defaultdict(dict)
     for result in results:
@@ -462,73 +490,11 @@ def stats_brb(request, marker):
             }
 
     return render_template(
-        "statistics/stats-brb.html",
-        menu=list_of_stats,
-        result=result_dict
-    )
-
-
-def stats_berlin(request, marker):
-    "Statistics Berlin nach Stadtbezirken (AGS))"
-
-    conn = db.session
-
-    query = conn.query(
-        func.substring(TblFundorte.amt, 1, 8).label('amt_group'),
-        func.sum(func.COALESCE(TblMeldungen.art_m, 0)).label('maennlich'),
-        func.sum(func.COALESCE(TblMeldungen.art_w, 0)).label('weiblich'),
-        func.sum(func.COALESCE(TblMeldungen.art_o, 0)).label('oothek'),
-        func.sum(func.COALESCE(TblMeldungen.art_n, 0)).label('nymphe'),
-        func.sum(func.COALESCE(TblMeldungen.art_f, 0)).label('andere'),
-        func.sum(func.COALESCE(TblMeldungen.art_m, 0) +
-                 func.COALESCE(TblMeldungen.art_w, 0) +
-                 func.COALESCE(TblMeldungen.art_o, 0) +
-                 func.COALESCE(TblMeldungen.art_n, 0) +
-                 func.COALESCE(TblMeldungen.art_f, 0)).label('gesamt')
-    ).join(TblMeldungen).filter(
-        TblMeldungen.dat_meld >= session["date_from"],
-        TblMeldungen.dat_meld <= session["date_to"],
-        func.substring(TblFundorte.amt, 1, 2) == '11',
-        or_(TblMeldungen.deleted.is_(None), TblMeldungen.deleted.is_(False))
-    ).group_by(
-        func.substring(TblFundorte.amt, 1, 8)
-    )
-
-    results = query.all()
-
-    laender = {'11000000': 'Berlin (allgemein)',
-               '11000001': 'Mitte',
-               '11000002': 'Friedrichshain-Kreuzberg',
-               '11000003': 'Pankow',
-               '11000004': 'Charlottenburg-Wilmersdorf',
-               '11000005': 'Spandau',
-               '11000006': 'Steglitz-Zehlendorf',
-               '11000007': 'Tempelhof-Schöneberg',
-               '11000008': 'Neukölln',
-               '11000009': 'Treptow-Köpenick',
-               '11000010': 'Marzahn-Hellersdorf',
-               '11000011': 'Lichtenberg',
-               '11000012': 'Reinickendorf'
-               }
-
-    result_dict = defaultdict(dict)
-    for result in results:
-        if result.amt_group:
-            result_dict[
-                f"{result.amt_group} -- {laender[result.amt_group]}"
-            ] = {
-                'maennlich': result.maennlich,
-                'weiblich': result.weiblich,
-                'oothek': result.oothek,
-                'nymphe': result.nymphe,
-                'andere': result.andere,
-                'gesamt': result.gesamt
-            }
-
-    return render_template(
-        "statistics/stats-brb.html",
+        "statistics/stats-bundesland.html",
         menu=list_of_stats,
         result=result_dict,
+        ags=ags,
+        land=land
     )
 
 
