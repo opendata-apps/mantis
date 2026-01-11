@@ -308,6 +308,17 @@ def get_step_fields(step):
     }
     return step_fields.get(step, [])
 
+def get_visible_error_fields(step):
+    """Return field names that have visible error containers (for OOB clearing)."""
+    # Excludes hidden fields like latitude/longitude (use 'coordinates' instead)
+    visible_fields = {
+        1: ['photo', 'gender', 'location_description', 'description'],
+        2: ['sighting_date', 'fund_city', 'fund_state', 'fund_zip_code', 'fund_district', 'fund_street'],
+        3: ['report_first_name', 'report_last_name', 'email', 'finder_first_name', 'finder_last_name', 'feedback_source', 'feedback_detail'],
+        4: []
+    }
+    return visible_fields.get(step, [])
+
 @report.route("/validate_step", methods=["POST"])
 @csrf.exempt
 @limiter.limit("30 per minute")
@@ -367,3 +378,247 @@ def validate_step():
                 errors["coordinates"] = ["Ungültiges Koordinatenformat"]
     
     return jsonify({"valid": is_valid, "errors": errors})
+
+
+# ============================================================================
+# HTMX Routes for Form Interactions
+# ============================================================================
+
+def _is_htmx_request():
+    """Check if the current request is an HTMX request."""
+    return request.headers.get('HX-Request') == 'true'
+
+
+@report.route("/melden/htmx/validate-step", methods=["POST"])
+@csrf.exempt
+@limiter.limit("60 per minute")
+def htmx_validate_step():
+    """HTMX endpoint for step validation - returns HTML partial with errors or success indicator."""
+    if not _is_htmx_request():
+        abort(400)
+
+    step = request.form.get("step", type=int, default=1)
+    step_fields = get_step_fields(step)
+
+    # Build form data from request
+    form_data = MultiDict(request.form)
+    if 'identical_finder_reporter' in request.form:
+        form_data['identical_finder_reporter'] = request.form.get('identical_finder_reporter') in ('true', 'on', '1', 'True')
+
+    form = MantisSightingForm(formdata=form_data, meta={'csrf': False})
+
+    is_valid = True
+    errors = {}
+
+    # Validate step-specific fields
+    for field_name in step_fields:
+        field = getattr(form, field_name, None)
+        if field and not field.validate(form):
+            is_valid = False
+            errors[field_name] = field.errors
+
+    # Step 3: Cross-field validation for finder names
+    if is_valid and step == 3:
+        if not form.validate_finder_names_dependency():
+            is_valid = False
+            if form.finder_first_name.errors:
+                errors['finder_first_name'] = form.finder_first_name.errors
+            if form.finder_last_name.errors:
+                errors['finder_last_name'] = form.finder_last_name.errors
+
+    # Step 2: Coordinate validation
+    if is_valid and step == 2:
+        lat = request.form.get("latitude", "")
+        lng = request.form.get("longitude", "")
+
+        if not lat or not lng:
+            is_valid = False
+            errors["coordinates"] = ["Bitte wählen Sie einen Standort auf der Karte"]
+        else:
+            try:
+                lat_float, lng_float = float(lat), float(lng)
+                if not (-90 <= lat_float <= 90) or not (-180 <= lng_float <= 180):
+                    is_valid = False
+                    errors["coordinates"] = ["Ungültige Koordinaten. Bitte wählen Sie einen gültigen Standort."]
+            except ValueError:
+                is_valid = False
+                errors["coordinates"] = ["Ungültiges Koordinatenformat"]
+
+    if is_valid:
+        # Return a trigger to advance to next step + clear any previous errors via OOB
+        from flask import make_response
+        visible_fields = get_visible_error_fields(step)
+        clear_html = render_template("report/partials/clear_errors.html", fields=visible_fields)
+        response = make_response(clear_html)
+        response.headers['HX-Trigger'] = f'{{"stepValid": {{"step": {step}, "nextStep": {step + 1}}}}}'
+        return response
+    else:
+        # Return inline error messages via OOB swaps
+        return render_template("report/partials/validation_errors.html", errors=errors)
+
+
+@report.route("/melden/htmx/toggle-finder", methods=["POST"])
+@csrf.exempt
+def htmx_toggle_finder():
+    """HTMX endpoint to toggle finder fields visibility."""
+    if not _is_htmx_request():
+        abort(400)
+
+    is_identical = request.form.get('identical_finder_reporter') in ('true', 'on', '1', 'True')
+
+    if is_identical:
+        # Return hidden/empty finder fields
+        return render_template("report/partials/finder_fields.html", show=False)
+    else:
+        # Return visible finder fields
+        form = MantisSightingForm()
+        return render_template("report/partials/finder_fields.html", show=True, form=form)
+
+
+@report.route("/melden/htmx/feedback-detail", methods=["POST"])
+@csrf.exempt
+def htmx_feedback_detail():
+    """HTMX endpoint to show/hide feedback detail field based on selection."""
+    if not _is_htmx_request():
+        abort(400)
+
+    feedback_source = request.form.get('feedback_source', '')
+
+    # Placeholders for different feedback sources
+    placeholders = {
+        '1': 'z.B. Name der Veranstaltung, Ort',
+        '2': 'z.B. wo haben Sie den Flyer erhalten?',
+        '3': 'z.B. Name der Zeitung/Zeitschrift',
+        '4': 'z.B. Name des Senders/der Sendung',
+        '5': 'z.B. Suchmaschine, Website-Name',
+        '6': 'z.B. Facebook, Instagram, Twitter',
+        '7': 'z.B. Freund, Kollege, Familie',
+        '8': 'Bitte beschreiben Sie, wie Sie von uns erfahren haben'
+    }
+
+    if feedback_source and feedback_source in placeholders:
+        return render_template(
+            "report/partials/feedback_detail.html",
+            show=True,
+            placeholder=placeholders[feedback_source]
+        )
+    else:
+        return render_template("report/partials/feedback_detail.html", show=False)
+
+
+@report.route("/melden/htmx/review", methods=["POST"])
+@csrf.exempt
+def htmx_review():
+    """HTMX endpoint to generate the review section content from form data."""
+    if not _is_htmx_request():
+        abort(400)
+
+    # Collect all form data for the review
+    review_data = {
+        # Step 1: Photo & Details
+        'gender': _get_gender_display(request.form.get('gender', '')),
+        'location_description': _get_location_description_display(request.form.get('location_description', '')),
+        'description': request.form.get('description', '-') or '-',
+        'photo_data': request.form.get('photo_preview_data', ''),  # Base64 from client
+
+        # Step 2: Location & Date
+        'sighting_date': _format_date(request.form.get('sighting_date', '')),
+        'latitude': request.form.get('latitude', ''),
+        'longitude': request.form.get('longitude', ''),
+        'coordinates': _format_coordinates(
+            request.form.get('latitude', ''),
+            request.form.get('longitude', '')
+        ),
+        'fund_city': request.form.get('fund_city', '-') or '-',
+        'fund_state': request.form.get('fund_state', '-') or '-',
+        'fund_district': request.form.get('fund_district', '-') or '-',
+        'fund_street': request.form.get('fund_street', '-') or '-',
+        'fund_zip_code': request.form.get('fund_zip_code', '-') or '-',
+
+        # Step 3: Contact
+        'reporter_name': f"{request.form.get('report_first_name', '')} {request.form.get('report_last_name', '')}".strip() or '-',
+        'email': request.form.get('email', '-') or '-',
+        'identical_finder': request.form.get('identical_finder_reporter') in ('true', 'on', '1', 'True'),
+        'finder_name': _get_finder_name(request.form),
+        'feedback_source': _get_feedback_source_display(request.form.get('feedback_source', '')),
+        'feedback_detail': request.form.get('feedback_detail', '')
+    }
+
+    return render_template("report/partials/review_content.html", review=review_data)
+
+
+@report.route("/melden/htmx/char-count", methods=["POST"])
+@csrf.exempt
+def htmx_char_count():
+    """HTMX endpoint to update character count display."""
+    if not _is_htmx_request():
+        abort(400)
+
+    description = request.form.get('description', '')
+    max_length = 500
+    remaining = max_length - len(description)
+    is_over = remaining < 0
+
+    return render_template(
+        "report/partials/char_count.html",
+        remaining=remaining,
+        is_over=is_over
+    )
+
+
+# Helper functions for review display
+def _get_gender_display(gender_value):
+    """Convert gender field value to display text."""
+    from app.forms import GENDER_CHOICES
+    for value, label in GENDER_CHOICES:
+        if value == gender_value:
+            return label
+    return '-'
+
+
+def _get_location_description_display(location_value):
+    """Convert location description value to display text."""
+    from app.forms import LOCATION_DESCRIPTION_CHOICES
+    for value, label in LOCATION_DESCRIPTION_CHOICES:
+        if value == location_value:
+            return label
+    return '-'
+
+
+def _get_feedback_source_display(feedback_value):
+    """Convert feedback source value to display text."""
+    from app.forms import FEEDBACK_SOURCE_CHOICES
+    for value, label in FEEDBACK_SOURCE_CHOICES:
+        if value == feedback_value:
+            return label
+    return 'Nicht angegeben'
+
+
+def _format_date(date_str):
+    """Format date string for display."""
+    if not date_str:
+        return '-'
+    try:
+        from datetime import datetime
+        date_obj = datetime.strptime(date_str, '%Y-%m-%d')
+        return date_obj.strftime('%d.%m.%Y')
+    except ValueError:
+        return date_str
+
+
+def _format_coordinates(lat, lng):
+    """Format coordinates for display."""
+    if lat and lng:
+        try:
+            return f"{float(lat):.6f}, {float(lng):.6f}"
+        except ValueError:
+            pass
+    return '-'
+
+
+def _get_finder_name(form_data):
+    """Get finder name from form data."""
+    first = form_data.get('finder_first_name', '')
+    last = form_data.get('finder_last_name', '')
+    name = f"{first} {last}".strip()
+    return name if name else '-'

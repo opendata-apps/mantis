@@ -1,0 +1,183 @@
+{# HTMX partial: Complete review section content #}
+<div id="review-content" class="space-y-6">
+
+  {# Photo & Details Review #}
+  <div class="overflow-hidden bg-white border border-gray-200 rounded-lg shadow-sm review-section">
+    <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-gray-50">
+      <h4 class="flex items-center font-medium text-gray-700 text-md">
+        <i class="fas fa-image w-5 h-5 mr-2 text-green-600"></i>
+        Foto & Details
+      </h4>
+      <button type="button" class="edit-btn flex items-center p-1 text-sm font-medium text-green-600 rounded hover:text-green-800 hover:bg-green-50" data-step="1">
+        <i class="w-4 h-4 mr-1 fas fa-pencil-alt"></i>
+        Bearbeiten
+      </button>
+    </div>
+    <div class="p-4">
+      <div class="flex flex-col md:flex-row md:space-x-6">
+        <div class="mb-4 md:w-1/3 md:mb-0">
+          <div class="flex overflow-hidden justify-center items-center h-40 bg-gray-50 rounded-md border border-gray-200 md:h-48">
+            {% if review.photo_data %}
+            <img id="review-photo" class="object-contain max-w-full max-h-full" src="{{ review.photo_data }}" alt="Uploaded photo">
+            {% else %}
+            <span class="text-gray-400 text-sm">Foto wird geladen...</span>
+            {% endif %}
+          </div>
+        </div>
+        <div class="md:w-2/3">
+          <div class="grid grid-cols-1 gap-3 text-sm">
+            <div class="border-b border-gray-100 pb-2">
+              <span class="font-medium text-gray-700">Entwicklungsstadium/Geschlecht:</span>
+              <span class="text-gray-900 ml-1">{{ review.gender }}</span>
+            </div>
+            <div class="border-b border-gray-100 pb-2">
+              <span class="font-medium text-gray-700">Fundortbeschreibung:</span>
+              <span class="text-gray-900 ml-1">{{ review.location_description }}</span>
+            </div>
+            <div>
+              <span class="font-medium text-gray-700">Zusätzliche Details:</span>
+              <div class="p-2 mt-1 overflow-y-auto text-gray-900 break-words rounded-md bg-gray-50 max-h-32">{{ review.description }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# Location & Date Review #}
+  <div class="overflow-hidden bg-white border border-gray-200 rounded-lg shadow-sm review-section">
+    <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-gray-50">
+      <h4 class="flex items-center font-medium text-gray-700 text-md">
+        <i class="fas fa-map-marker-alt w-5 h-5 mr-2 text-green-600"></i>
+        Wann und Wo?
+      </h4>
+      <button type="button" class="edit-btn flex items-center p-1 text-sm font-medium text-green-600 rounded hover:text-green-800 hover:bg-green-50" data-step="2">
+        <i class="w-4 h-4 mr-1 fas fa-pencil-alt"></i>
+        Bearbeiten
+      </button>
+    </div>
+    <div class="p-4">
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div class="p-3 rounded-md bg-gray-50">
+          <div class="flex items-center mb-2">
+            <i class="fas fa-calendar-alt w-5 h-5 text-green-500 mr-2"></i>
+            <span class="font-medium text-gray-700">Datum der Sichtung</span>
+          </div>
+          <div class="text-gray-900 ml-7">{{ review.sighting_date }}</div>
+        </div>
+
+        <div class="p-3 rounded-md bg-gray-50">
+          <div class="flex items-center mb-2">
+            <i class="fas fa-location-dot w-5 h-5 text-green-500 mr-2"></i>
+            <span class="font-medium text-gray-700">Genaue Koordinaten</span>
+          </div>
+          <div class="text-gray-900 ml-7">{{ review.coordinates }}</div>
+          <p class="text-xs italic text-gray-600 ml-7">Bitte prüfen: Ist dies der genaue Fundort?</p>
+        </div>
+
+        <div class="md:col-span-2">
+          <div class="p-3 rounded-md bg-gray-50">
+            <div class="flex items-center mb-2">
+              <i class="fas fa-home w-5 h-5 text-green-500 mr-2"></i>
+              <span class="font-medium text-gray-700">Adressinformationen</span>
+            </div>
+            <div class="grid grid-cols-1 gap-2 ml-7 md:grid-cols-2">
+              <div>
+                <span class="text-sm text-gray-600">Straße:</span>
+                <span class="text-gray-900 ml-1">{{ review.fund_street }}</span>
+              </div>
+              <div>
+                <span class="text-sm text-gray-600">PLZ:</span>
+                <span class="text-gray-900 ml-1">{{ review.fund_zip_code }}</span>
+              </div>
+              <div>
+                <span class="text-sm text-gray-600">Stadt/Ort:</span>
+                <span class="text-gray-900 ml-1">{{ review.fund_city }}</span>
+              </div>
+              <div>
+                <span class="text-sm text-gray-600">Bundesland:</span>
+                <span class="text-gray-900 ml-1">{{ review.fund_state }}</span>
+              </div>
+              <div>
+                <span class="text-sm text-gray-600">Landkreis:</span>
+                <span class="text-gray-900 ml-1">{{ review.fund_district }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# Contact Information Review #}
+  <div class="overflow-hidden bg-white border border-gray-200 rounded-lg shadow-sm review-section">
+    <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-gray-50">
+      <h4 class="flex items-center font-medium text-gray-700 text-md">
+        <i class="fas fa-user w-5 h-5 mr-2 text-green-600"></i>
+        Ihre Kontaktdaten
+      </h4>
+      <button type="button" class="edit-btn flex items-center p-1 text-sm font-medium text-green-600 rounded hover:text-green-800 hover:bg-green-50" data-step="3">
+        <i class="w-4 h-4 mr-1 fas fa-pencil-alt"></i>
+        Bearbeiten
+      </button>
+    </div>
+    <div class="p-4">
+      <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+        <div class="p-3 rounded-md bg-gray-50">
+          <div class="flex items-center mb-2">
+            <i class="fas fa-user w-5 h-5 text-green-500 mr-2"></i>
+            <span class="font-medium text-gray-700">Melder</span>
+          </div>
+          <div class="text-gray-900 ml-7">{{ review.reporter_name }}</div>
+        </div>
+
+        <div class="p-3 rounded-md bg-gray-50">
+          <div class="flex items-center mb-2">
+            <i class="fas fa-envelope w-5 h-5 text-green-500 mr-2"></i>
+            <span class="font-medium text-gray-700">E-Mail</span>
+          </div>
+          <div class="text-gray-900 ml-7">{{ review.email }}</div>
+        </div>
+
+        {% if not review.identical_finder and review.finder_name != '-' %}
+        <div class="md:col-span-2">
+          <div class="p-3 rounded-md bg-gray-50">
+            <div class="flex items-center mb-2">
+              <i class="fas fa-user w-5 h-5 text-green-500 mr-2"></i>
+              <span class="font-medium text-gray-700">Finder</span>
+            </div>
+            <div class="text-gray-900 ml-7">{{ review.finder_name }}</div>
+          </div>
+        </div>
+        {% endif %}
+
+        <div class="md:col-span-2">
+          <div class="p-3 rounded-md bg-gray-50">
+            <div class="flex items-center mb-2">
+              <i class="fas fa-lightbulb w-5 h-5 text-green-500 mr-2"></i>
+              <span class="font-medium text-gray-700">Wie haben Sie von uns erfahren?</span>
+            </div>
+            <div class="text-gray-900 ml-7">{{ review.feedback_source }}</div>
+            {% if review.feedback_detail %}
+            <div class="mt-1 ml-7 text-sm text-gray-600">Details: {{ review.feedback_detail }}</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# Final warning #}
+  <div class="p-4 bg-amber-50 rounded-lg border border-amber-200 shadow-sm">
+    <div class="flex">
+      <div class="flex-shrink-0">
+        <i class="w-5 h-5 text-amber-500 fas fa-exclamation-triangle"></i>
+      </div>
+      <div class="ml-3">
+        <p class="text-sm text-amber-800">
+          Bitte überprüfen Sie alle Angaben sorgfältig vor dem Absenden. Nach dem Absenden können die Daten nicht mehr geändert werden.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

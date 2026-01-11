@@ -33,7 +33,7 @@ export default defineConfig({
         vendor: resolve(__dirname, 'app/static/js/vendor.js'),
         htmx: resolve(__dirname, 'app/static/js/htmx.js'),
         map: resolve(__dirname, 'app/static/js/map.js'),
-        'report-form': resolve(__dirname, 'app/static/js/report-form.js'),
+        'report-form': resolve(__dirname, 'app/static/js/report-form-htmx.js'),
         gallery: resolve(__dirname, 'app/static/js/gallery.js'),
         confetti: resolve(__dirname, 'app/static/js/confetti.js'),
         theme: resolve(__dirname, 'app/static/css/theme.css'),

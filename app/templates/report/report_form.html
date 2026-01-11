@@ -21,12 +21,12 @@
 <meta name="twitter:image" content="{{ url_for('static', filename='images/weibchen-mit-oothek.avif', _external=True) }}" />
 <meta name="twitter:url" content="{{ url_for('report.melden', _external=True) }}" />
 {% endblock %}
-{% from 'report/form_components.html' import render_photo_upload, render_form_field, render_checkbox_field, render_step_navigation, render_review_section, render_review_item, render_review_text_block, render_review_info_block, render_feedback_section %}
+{% from 'report/form_components.html' import render_photo_upload, render_form_field, render_step_navigation, render_feedback_section %}
 
 {% block title %}Sichtung melden - Gottesanbeterin{% endblock %}
 
 {% block head %}
-{{ vite_tags('js/report-form.js') }}
+{{ vite_tags('js/report-form-htmx.js') }}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
 <style>
@@ -139,23 +139,10 @@
   .processing-indicator {
     animation: pulse 1.5s ease-in-out infinite;
   }
-  
+
   @keyframes pulse {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.5; }
-  }
-  
-  @media (max-width: 768px) {
-    .form-container {
-      min-height: calc(100vh - 200px);
-      padding: 1rem 0.5rem;
-    }
-  }
-  
-  @media (max-width: 640px) {
-    .form-container {
-      min-height: calc(100vh - 180px);
-    }
   }
 </style>
 {% endblock %}
@@ -170,9 +157,11 @@
       <div id="loadingMessage" class="mt-4 font-medium text-green-700">Wird verarbeitet...</div>
     </div>
 
-    <form id="reportForm" method="POST" action="{{ url_for('report.melden', usrid=request.view_args.get('usrid')) if request.view_args.get('usrid') else url_for('report.melden') }}" enctype="multipart/form-data" class="space-y-8"
-          data-validate-url="{{ url_for('report.validate_step') }}">
+    <form id="reportForm" method="POST" action="{{ url_for('report.melden', usrid=request.view_args.get('usrid')) if request.view_args.get('usrid') else url_for('report.melden') }}" enctype="multipart/form-data" class="space-y-8">
       {{ form.csrf_token }}
+
+      {# Hidden target for htmx validation - actual errors use OOB swaps #}
+      <div id="validation-errors-container" style="display:none"></div>
       
       <div class="step-container">
         <!-- Step 1: Photo & Details -->
@@ -224,6 +213,8 @@
                 </div>
               </div>
               <div id="map" class="w-full h-64 border border-gray-300 rounded-md shadow-sm sm:h-80 md:h-96 lg:h-[28rem] xl:h-[32rem] 2xl:h-[36rem]"></div>
+              {# Inline error container for coordinates - supports HTMX OOB swaps #}
+              <div id="error-coordinates" class="field-error-message"></div>
             </div>
             
             <!-- Form fields column -->
@@ -295,12 +286,21 @@
               {{ render_form_field(form.email, attrs={'id': 'email'}) }}
             {% endif %}
              
-            {{ render_checkbox_field(form.identical_finder_reporter, attrs={'id': 'identical_finder_reporter'}) }}
-             
-            <!-- Conditionally shown finder fields -->
-            <div id="finder_fields" class="hidden p-4 mt-4 space-y-4 bg-gray-50 rounded-md">
-              {{ render_form_field(form.finder_first_name, attrs={'id': 'finder_first_name'}) }}
-              {{ render_form_field(form.finder_last_name, attrs={'id': 'finder_last_name'}) }}
+            {# Checkbox with htmx toggle for finder fields #}
+            <div class="flex items-center space-x-2">
+              <input type="checkbox" id="identical_finder_reporter" name="identical_finder_reporter"
+                     class="form-checkbox w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded shadow-sm transition duration-150 ease-in-out"
+                     checked
+                     hx-post="{{ url_for('report.htmx_toggle_finder') }}"
+                     hx-trigger="change"
+                     hx-target="#finder_fields_container"
+                     hx-swap="innerHTML">
+              <label for="identical_finder_reporter" class="text-sm text-gray-700">{{ form.identical_finder_reporter.label.text }}</label>
+            </div>
+
+            {# HTMX-managed finder fields container #}
+            <div id="finder_fields_container">
+              {% include 'report/partials/finder_fields.html' with context %}
             </div>
 
             <!-- Feedback section - only for new users -->
@@ -318,95 +318,23 @@
           {{ render_step_navigation(current_step=3, total_steps=4, show_prev=True, show_next=True) }}
         </div>
         
-        <!-- Step 4: Review & Submit -->
+        <!-- Step 4: Review & Submit - Content loaded via htmx -->
         <div class="hidden p-6 bg-white rounded-lg border border-gray-100 shadow-sm step" id="step4">
           <h3 class="mb-4 text-xl font-medium text-green-700">Überprüfen & Absenden</h3>
-          
+
           <p class="mb-6 text-sm text-gray-600">
             <i class="mr-1 w-4 h-4 text-green-600 fas fa-check-circle"></i>
             Bitte überprüfen Sie Ihre Angaben und senden Sie Ihre Meldung ab. Sie können jederzeit zurückgehen, um Änderungen vorzunehmen.
           </p>
-          
-          <div class="space-y-6">
-            <!-- Photo & Details Review -->
-            {% call render_review_section(title='Foto & Details', icon_class='fas fa-image', step_to_edit=1) %}
-              <div class="flex flex-col md:flex-row md:space-x-6">
-                <div class="mb-4 md:w-1/3 md:mb-0">
-                  <div class="flex overflow-hidden justify-center items-center h-40 bg-gray-50 rounded-md border border-gray-200 md:h-48">
-                    <img id="review-photo" class="object-contain max-w-full max-h-full" src="" alt="Uploaded photo">
-                  </div>
-                </div>
-                <div class="md:w-2/3">
-                  <div class="grid grid-cols-1 gap-3 text-sm">
-                    {{ render_review_item(label='Entwicklungsstadium/Geschlecht', value_id='review-gender') }}
-                    {{ render_review_item(label='Fundortbeschreibung', value_id='review-location-desc') }}
-                    {{ render_review_text_block(label='Zusätzliche Details', value_id='review-description') }}
-                  </div>
-                </div>
-              </div>
-            {% endcall %}
-            
-            <!-- Location & Date Review -->
-            {% call render_review_section(title='Wann und Wo?', icon_class='fas fa-map-marker-alt', step_to_edit=2) %}
-              <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                {{ render_review_info_block(label='Datum der Sichtung', icon_class='fas fa-calendar-alt', value_id='review-date') }}
-                
-                {% call render_review_info_block(label='Genaue Koordinaten', icon_class='fas fa-location-dot', value_id='review-coordinates') %}
-                  <p class="text-xs italic text-gray-600">Bitte prüfen: Ist dies der genaue Fundort?</p> 
-                {% endcall %}
-                
-                <div class="md:col-span-2">
-                  {% call render_review_info_block(label='Adressinformationen', icon_class='fas fa-home') %}
-                    <div class="grid grid-cols-1 gap-2 ml-7 md:grid-cols-2">
-                      {{ render_review_item(label='Straße', value_id='review-street', container_class='', label_class='text-sm text-gray-600', value_class='text-gray-900 ml-1') }}
-                      {{ render_review_item(label='PLZ', value_id='review-zip', container_class='', label_class='text-sm text-gray-600', value_class='text-gray-900 ml-1') }}
-                      {{ render_review_item(label='Stadt/Ort', value_id='review-city', container_class='', label_class='text-sm text-gray-600', value_class='text-gray-900 ml-1') }}
-                      {{ render_review_item(label='Bundesland', value_id='review-state', container_class='', label_class='text-sm text-gray-600', value_class='text-gray-900 ml-1') }}
-                      {{ render_review_item(label='Landkreis', value_id='review-district', container_class='', label_class='text-sm text-gray-600', value_class='text-gray-900 ml-1') }}
-                    </div>
-                  {% endcall %}
-                </div>
-              </div>
-            {% endcall %}
-            
-            <!-- Contact Information Review -->
-            {% call render_review_section(title='Ihre Kontaktdaten', icon_class='fas fa-user', step_to_edit=3) %}
-              <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
-                {{ render_review_info_block(label='Melder', icon_class='fas fa-user', value_id='review-reporter-name') }}
-                {{ render_review_info_block(label='E-Mail', icon_class='fas fa-envelope', value_id='review-email') }}
-                
-                <div id="review-finder-container" class="hidden md:col-span-2">
-                  {% call render_review_info_block(label='Finder', icon_class='fas fa-user') %}
-                    <div id="review-finder-name" class="ml-7 text-gray-900">-</div>
-                  {% endcall %}
-                </div>
-                  
-                {% if not user_has_feedback %}
-                  <div id="review-feedback-container" class="md:col-span-2">
-                    {% call render_review_info_block(label='Wie haben Sie von uns erfahren?', icon_class='fas fa-lightbulb') %}
-                      <div id="review-feedback-source" class="ml-7 text-gray-900">Nicht angegeben</div>
-                      <div id="review-feedback-detail" class="hidden mt-1 ml-7 text-sm text-gray-600"></div>
-                    {% endcall %}
-                  </div>
-                {% endif %}
-              </div>
-            {% endcall %}
-          
-            <!-- Final warning before submission -->
-            <div class="p-4 bg-amber-50 rounded-lg border border-amber-200 shadow-sm">
-              <div class="flex">
-                <div class="flex-shrink-0">
-                  <i class="w-5 h-5 text-amber-500 fas fa-exclamation-triangle"></i>
-                </div>
-                <div class="ml-3">
-                  <p class="text-sm text-amber-800">
-                    Bitte überprüfen Sie alle Angaben sorgfältig vor dem Absenden. Nach dem Absenden können die Daten nicht mehr geändert werden.
-                  </p>
-                </div>
-              </div>
+
+          {# HTMX-loaded review content container #}
+          <div id="review-content-container">
+            <div class="flex justify-center items-center py-12">
+              <div class="w-8 h-8 rounded-full border-4 border-gray-200 animate-spin border-t-green-600"></div>
+              <span class="ml-3 text-gray-500">Lade Zusammenfassung...</span>
             </div>
           </div>
-          
+
           {{ render_step_navigation(current_step=4, total_steps=4, show_prev=True, show_submit=True) }}
         </div>
       </div>
@@ -414,42 +342,5 @@
   </div>
 </div>
 
-<script>
-// Feedback form interactions - only initialize if elements exist
-document.addEventListener('DOMContentLoaded', function() {
-    const feedbackSourceSelect = document.getElementById('feedback_source');
-    const feedbackDetailContainer = document.getElementById('feedback_detail_container');
-    const feedbackDetailInput = document.getElementById('feedback_detail');
-    
-    if (!feedbackSourceSelect || !feedbackDetailContainer || !feedbackDetailInput) return;
-    
-    function updateFeedbackDetail() {
-        const selectedValue = feedbackSourceSelect.value;
-        
-        if (selectedValue && selectedValue !== '') {
-            feedbackDetailContainer.classList.remove('hidden');
-            
-            // Set contextual placeholder based on selection
-            const placeholders = {
-                '1': 'z.B. Name der Veranstaltung, Ort',
-                '2': 'z.B. wo haben Sie den Flyer erhalten?',
-                '3': 'z.B. Name der Zeitung/Zeitschrift',
-                '4': 'z.B. Name des Senders/der Sendung',
-                '5': 'z.B. Suchmaschine, Website-Name',
-                '6': 'z.B. Facebook, Instagram, Twitter',
-                '7': 'z.B. Freund, Kollege, Familie',
-                '8': 'Bitte beschreiben Sie, wie Sie von uns erfahren haben'
-            };
-            
-            feedbackDetailInput.placeholder = placeholders[selectedValue] || 'z.B. Name der Veranstaltung, Website, etc.';
-        } else {
-            feedbackDetailContainer.classList.add('hidden');
-            feedbackDetailInput.value = '';
-        }
-    }
-    
-    feedbackSourceSelect.addEventListener('change', updateFeedbackDetail);
-    updateFeedbackDetail(); // Initialize on page load
-});
-</script>
+{# Feedback interactions now handled via htmx #}
 {% endblock %} 
