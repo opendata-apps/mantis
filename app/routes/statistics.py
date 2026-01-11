@@ -31,7 +31,6 @@ list_of_stats = {
     "feedback": "Feedback"
 }
 
-
 @stats.route("/statistik/ags", methods=["GET"])
 def autocomplete_ags():
     q = request.args.get("ags_input", "").strip()
@@ -65,7 +64,7 @@ def autocomplete_ags():
 
     finally:
         dbsession.close()
-
+        
 
 def get_date_interval(request=None):
     "Calculate and format start and end date"
@@ -566,15 +565,15 @@ def stats_gesamt(request, marker):
                     result_dict[f"{result[0]}"][3] += result[1]
                 # Berliner Stadtbezirke
                 if result[0].startswith('11'):
-                    id, gemeinde = result[0].split(' -- ')
+                    id, gemeinde = result[0][:2]
                     result_dict['11'][4].append(
-                        [id, '', '', gemeinde, result[1]])
+                        [result[0], '', '', gemeinde, result[1]])
 
-                # Ämter
+                # Brandenburg
                 if result[0].startswith('12'):
-                    id, gemeinde = result[0].split(' -- ')
+                    id, gemeinde = result[0][:2]
                     result_dict[f"{result[0][:5]}"][4].append(
-                        [id, '', '', gemeinde, result[1]])
+                        [result[0], '', '', gemeinde, result[1]])
         except Exception as e:
             current_app.logger.error(f"""
             Error in statistics query - Result: {result}, Error: {e}
