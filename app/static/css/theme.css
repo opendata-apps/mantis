@@ -88,6 +88,55 @@
 }
 
 @layer utilities {
+  /* ==========================================================================
+     Reusable Component Classes
+     Extracted from repeated patterns across templates to reduce duplication.
+     ========================================================================== */
+
+  /* Primary Button - Green CTA buttons (30+ occurrences across 12 files)
+     Usage: <a class="btn-primary">...</a> or <button class="btn-primary">...</button>
+     Supports: group hover effects when parent has "group" class */
+  .btn-primary {
+    @apply inline-flex items-center justify-center px-6 py-3 text-base font-medium 
+           text-white bg-green-600 rounded-lg shadow-md transition duration-300 
+           hover:bg-green-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 
+           focus:ring-green-500;
+  }
+
+  /* Small variant for compact buttons */
+  .btn-primary-sm {
+    @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium 
+           text-white bg-green-600 rounded-md shadow-xs transition duration-200 
+           hover:bg-green-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 
+           focus:ring-green-500;
+  }
+
+  /* Prose Content - Body text for content pages (41 occurrences in 5 files)
+     Usage: <p class="prose-content">...</p> or <div class="prose-content">...</div> */
+  .prose-content {
+    @apply text-lg leading-relaxed text-gray-700;
+  }
+
+  /* Prose Content with bottom margin (most common variant) */
+  .prose-content-spaced {
+    @apply mb-4 text-lg leading-relaxed text-gray-700;
+  }
+
+  /* Section Heading - Green headings for content sections
+     Usage: <h2 class="section-heading">...</h2> */
+  .section-heading {
+    @apply mb-6 text-3xl font-semibold text-green-700;
+  }
+
+  /* Sub-section Heading */
+  .section-subheading {
+    @apply mb-4 text-2xl font-semibold text-green-700;
+  }
+
+  /* ==========================================================================
+     Original utility classes (preserved)
+     ========================================================================== */
+
   .mantis-footer-link {
     @apply text-gray-700 transition hover:text-gray-800/75;
   }
