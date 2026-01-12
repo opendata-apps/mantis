@@ -116,7 +116,7 @@
     {% set start_page = [pagination.page - 2, 1] | max %}
     {% set end_page = [pagination.page + 2, pagination.pages] | min %}
     {% if pagination.has_prev %}
-      <a href="{{ url_for(endpoint, page=pagination.prev_num, usrid=usrid, statusInput=current_filter_status, sort_order=current_sort_order, q=search_query, dateFrom=date_from, dateTo=date_to) }}" class="flex items-center justify-center px-3 py-2 text-green-700 transition-all duration-300 ease-in-out border border-green-600 rounded-sm hover:bg-green-100 hover:scale-105" title="Previous page">
+      <a href="{{ url_for(endpoint, page=pagination.prev_num, usrid=usrid, statusInput=current_filter_status, sort_order=current_sort_order, q=search_query, dateFrom=date_from, dateTo=date_to) }}" class="flex items-center justify-center px-3 py-2 text-green-500 transition-all duration-300 ease-in-out border border-green-500 rounded-sm hover:bg-green-100 hover:scale-105" title="Previous page">
         <span class="sr-only">Previous</span>
         <svg class="w-3 h-3 mx-auto" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
           <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 1 1 5l4 4"/>
@@ -125,17 +125,17 @@
     {% endif %}
     {% for page in range(start_page, end_page + 1) %}
       {% if page != pagination.page %}
-      <a href="{{ url_for(endpoint, page=page, usrid=usrid, statusInput=current_filter_status, sort_order=current_sort_order, q=search_query, dateFrom=date_from, dateTo=date_to) }}" class="px-3 py-2 text-green-700 transition-all duration-300 ease-in-out border border-green-600 rounded-sm hover:bg-green-100 hover:scale-105">
+      <a href="{{ url_for(endpoint, page=page, usrid=usrid, statusInput=current_filter_status, sort_order=current_sort_order, q=search_query, dateFrom=date_from, dateTo=date_to) }}" class="px-3 py-2 text-green-500 transition-all duration-300 ease-in-out border border-green-500 rounded-sm hover:bg-green-100 hover:scale-105">
         {{ page }}
       </a>
       {% else %}
-        <span class="px-3 py-2 text-white scale-110 bg-green-600 border border-green-600 rounded-sm shadow-lg">
+        <span class="px-3 py-2 text-gray-100 scale-110 bg-green-500 border border-green-500 rounded-sm shadow-lg">
           {{ page }}
         </span>
       {% endif %}
     {% endfor %}
     {% if pagination.has_next %}
-    <a href="{{ url_for(endpoint, page=pagination.next_num, usrid=usrid, statusInput=current_filter_status, sort_order=current_sort_order, q=search_query, dateFrom=date_from, dateTo=date_to) }}" class="flex items-center justify-center px-3 py-2 text-green-700 transition-all duration-300 ease-in-out border border-green-600 rounded-sm hover:bg-green-100 hover:scale-105" title="Next page">        <span class="sr-only">Next</span>
+    <a href="{{ url_for(endpoint, page=pagination.next_num, usrid=usrid, statusInput=current_filter_status, sort_order=current_sort_order, q=search_query, dateFrom=date_from, dateTo=date_to) }}" class="flex items-center justify-center px-3 py-2 text-green-500 transition-all duration-300 ease-in-out border border-green-500 rounded-sm hover:bg-green-100 hover:scale-105" title="Next page">        <span class="sr-only">Next</span>
         <svg class="w-3 h-3 mx-auto" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
           <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
         </svg>
