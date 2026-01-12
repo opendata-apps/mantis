@@ -2,6 +2,7 @@ import pytest
 from unittest.mock import patch
 from datetime import datetime
 from app.database.models import TblMeldungen
+from app.config import Config
 
 
 @pytest.fixture
@@ -71,7 +72,7 @@ class TestAdminApproval:
     ):
         """Test that an admin can toggle the approval status of a sighting."""
         # Turn off email sending for this test
-        with patch("app.config.Config.send_emails", False):
+        with patch.object(Config, "REVIEWERMAIL", False):
             # Test approving the sighting
             response = authenticated_admin_client.post(
                 f"/toggle_approve_sighting/{mock_sighting.id}"

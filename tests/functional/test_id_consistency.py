@@ -81,16 +81,26 @@ class TestIDConsistency:
         # Parse the HTML
         soup = BeautifulSoup(response.data, "html.parser")
 
-        # Find the reports JSON in the script
+        # Find the reports JSON in the script - it's rendered as {{ reportsJson | safe }}
         script_tags = soup.find_all("script")
         reports_json = None
 
         for script in script_tags:
-            if script.string and "var reports = JSON.parse(" in script.string:
-                start = script.string.find("JSON.parse('") + len("JSON.parse('")
-                end = script.string.find("');", start)
+            if script.string and "const reports = " in script.string:
+                # Extract the JSON from "const reports = [...];"
+                start = script.string.find("const reports = ") + len("const reports = ")
+                # Find the end of the array (next semicolon after the array)
+                bracket_count = 0
+                end = start
+                for i, char in enumerate(script.string[start:], start):
+                    if char == "[":
+                        bracket_count += 1
+                    elif char == "]":
+                        bracket_count -= 1
+                        if bracket_count == 0:
+                            end = i + 1
+                            break
                 json_str = script.string[start:end]
-                json_str = json_str.encode().decode("unicode_escape")
                 reports_json = json.loads(json_str)
                 break
 

@@ -1,5 +1,6 @@
 import pytest
 from unittest.mock import patch
+from flask import session as flask_session
 from app.routes.statistics import stats_bardiagram_datum
 
 
@@ -19,21 +20,18 @@ def test_stats_funddatum(custom_date_request, session):
     """Test dass die stats_bardiagram_datum Funktion korrekte Daten liefert
     für den Fundort-Datumsbereich."""
 
+    flask_session["date_from"] = "2024-01-07"
+    flask_session["date_to"] = "2024-03-06"
+
     with patch("app.routes.statistics.render_template") as mock_render_template:
-        # Mock-Rückgabewert setzen
         mock_render_template.return_value = None
 
-        # Funktion aufrufen
         stats_bardiagram_datum(
             request=custom_date_request,
             dbfields=["dat_fund_von"],
             page="stats-funddatum.html",
-            marker="meldungen_funddatum",
-            dateFrom="2024-01-07",
-            dateTo="2024-03-06",
         )
 
-        # Nur trace1 (Werte für die Grafik) prüfen
         mock_render_template.assert_called_once()
         actual_values = mock_render_template.call_args[1]["trace1"]
 

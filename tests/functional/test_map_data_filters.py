@@ -81,21 +81,25 @@ class TestMapDataFilters:
         response = client.get("/auswertungen")
         assert response.status_code == 200
 
-        # Parse the HTML response
         soup = BeautifulSoup(response.data, "html.parser")
 
-        # Find the script tag containing reportsJson
         script_tags = soup.find_all("script")
         reports_json = None
 
         for script in script_tags:
-            if script.string and "var reports = JSON.parse(" in script.string:
-                # Extract the JSON string
-                start = script.string.find("JSON.parse('") + len("JSON.parse('")
-                end = script.string.find("');", start)
+            if script.string and "const reports = " in script.string:
+                start = script.string.find("const reports = ") + len("const reports = ")
+                bracket_count = 0
+                end = start
+                for i, char in enumerate(script.string[start:], start):
+                    if char == "[":
+                        bracket_count += 1
+                    elif char == "]":
+                        bracket_count -= 1
+                        if bracket_count == 0:
+                            end = i + 1
+                            break
                 json_str = script.string[start:end]
-                # Unescape the JSON
-                json_str = json_str.encode().decode("unicode_escape")
                 reports_json = json.loads(json_str)
                 break
 
@@ -126,23 +130,29 @@ class TestMapDataFilters:
         response = client.get(f"/auswertungen?year={current_year}")
         assert response.status_code == 200
 
-        # Parse response and extract reports
         soup = BeautifulSoup(response.data, "html.parser")
         script_tags = soup.find_all("script")
         reports_json = None
 
         for script in script_tags:
-            if script.string and "var reports = JSON.parse(" in script.string:
-                start = script.string.find("JSON.parse('") + len("JSON.parse('")
-                end = script.string.find("');", start)
+            if script.string and "const reports = " in script.string:
+                start = script.string.find("const reports = ") + len("const reports = ")
+                bracket_count = 0
+                end = start
+                for i, char in enumerate(script.string[start:], start):
+                    if char == "[":
+                        bracket_count += 1
+                    elif char == "]":
+                        bracket_count -= 1
+                        if bracket_count == 0:
+                            end = i + 1
+                            break
                 json_str = script.string[start:end]
-                json_str = json_str.encode().decode("unicode_escape")
                 reports_json = json.loads(json_str)
                 break
 
         if reports_json:
             report_ids = [report["report_id"] for report in reports_json]
-            # Same filtering rules should apply
             assert self.deleted_sighting.id not in report_ids
             assert self.unapproved_sighting.id not in report_ids
 
@@ -165,7 +175,6 @@ class TestMapDataFilters:
     def test_edge_case_combinations(self, client, session):
         """Test various edge case combinations of approved/deleted states."""
         test_cases = [
-            # (dat_bear, deleted, should_appear, description)
             (datetime.now(), None, True, "approved + null deleted"),
             (datetime.now(), False, True, "approved + false deleted"),
             (datetime.now(), True, False, "approved + true deleted"),
@@ -183,7 +192,7 @@ class TestMapDataFilters:
                 fo_zuordnung=self.location.id,
                 dat_bear=dat_bear,
                 deleted=deleted,
-                anm_melder=desc,  # For identification
+                anm_melder=desc,
             )
             session.add(sighting)
             session.flush()
@@ -191,21 +200,27 @@ class TestMapDataFilters:
 
         session.commit()
 
-        # Check map data
         response = client.get("/auswertungen")
         assert response.status_code == 200
 
-        # Extract reports JSON
         soup = BeautifulSoup(response.data, "html.parser")
         script_tags = soup.find_all("script")
         reports_json = None
 
         for script in script_tags:
-            if script.string and "var reports = JSON.parse(" in script.string:
-                start = script.string.find("JSON.parse('") + len("JSON.parse('")
-                end = script.string.find("');", start)
+            if script.string and "const reports = " in script.string:
+                start = script.string.find("const reports = ") + len("const reports = ")
+                bracket_count = 0
+                end = start
+                for i, char in enumerate(script.string[start:], start):
+                    if char == "[":
+                        bracket_count += 1
+                    elif char == "]":
+                        bracket_count -= 1
+                        if bracket_count == 0:
+                            end = i + 1
+                            break
                 json_str = script.string[start:end]
-                json_str = json_str.encode().decode("unicode_escape")
                 reports_json = json.loads(json_str)
                 break
 
