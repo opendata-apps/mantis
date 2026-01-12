@@ -19,7 +19,6 @@ from app.tools.check_reviewer import login_required
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-FEATURE_FLAG_FILE = os.path.join(BASE_DIR, "..", "static", "celebration_flag.json")
 
 # Blueprints
 main = Blueprint("main", __name__)
