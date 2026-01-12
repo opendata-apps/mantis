@@ -10,6 +10,15 @@ import 'leaflet.locatecontrol/dist/L.Control.Locate.min.css';
 import EXIF from 'exif-js';
 import htmx from 'htmx.org';
 
+// Configure HTMX to include CSRF token in all requests
+// This is the recommended approach from Flask-WTF documentation for AJAX requests
+document.body.addEventListener('htmx:configRequest', (event) => {
+    const csrfToken = document.querySelector('input[name="csrf_token"]')?.value;
+    if (csrfToken) {
+        event.detail.headers['X-CSRFToken'] = csrfToken;
+    }
+});
+
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
     iconUrl: '/static/images/map/marker-icon.png',
@@ -91,12 +100,22 @@ const ReportForm = {
             e.preventDefault();
             this.submit(form);
         });
+
+        // Inject photo preview after review content is swapped in (avoids ~4MB base64 round-trip)
+        document.body.addEventListener('htmx:afterSwap', (e) => {
+            if (e.detail.target.id === 'review-content-container') {
+                const img = document.getElementById('review-photo');
+                if (img && this.webpData?.dataUrl) {
+                    img.src = this.webpData.dataUrl;
+                }
+            }
+        });
     },
 
     loadReview() {
         const form = document.getElementById('reportForm');
         const data = new FormData(form);
-        if (this.webpData?.dataUrl) data.set('photo_preview_data', this.webpData.dataUrl);
+        // photo_preview_data NOT sent - injected client-side via htmx:afterSwap
         htmx.ajax('POST', '/melden/htmx/review', {
             target: '#review-content-container',
             swap: 'innerHTML',

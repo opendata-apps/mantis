@@ -11,20 +11,20 @@ from flask import (
     url_for,
     abort,
     session,
-    current_app
+    current_app,
 )
 from werkzeug.datastructures import MultiDict
 from werkzeug.utils import secure_filename
 from PIL import Image
 
-from app import db, limiter, csrf
+from app import db, limiter
 from sqlalchemy import select
 from app.database.models import (
     TblFundorte,
     TblMeldungen,
     TblMeldungUser,
     TblUsers,
-    TblUserFeedback
+    TblUserFeedback,
 )
 from app.forms import MantisSightingForm
 from app.tools.gen_user_id import get_new_id
@@ -34,17 +34,18 @@ from app.tools.gemeinde_finder import get_amt_full_scan
 # Blueprints
 report = Blueprint("report", __name__)
 
+
 # Helper function to determine gender fields for TblMeldungen
 def _set_gender_fields(selected_gender_value):
     """Maps gender string to TblMeldungen database fields."""
     gender_mapping = {
         "Männlich": "art_m",
-        "Weiblich": "art_w", 
+        "Weiblich": "art_w",
         "Nymphe": "art_n",
-        "Oothek": "art_o"
+        "Oothek": "art_o",
         # "Unbekannt" is no longer mapped to art_f
     }
-    
+
     genders = {"art_m": 0, "art_w": 0, "art_n": 0, "art_o": 0, "art_f": 0}
     field_name = gender_mapping.get(selected_gender_value)
     if field_name:
@@ -52,37 +53,39 @@ def _set_gender_fields(selected_gender_value):
     # For "Unbekannt" or empty selection, all fields remain 0
     return genders
 
+
 def _process_uploaded_image(photo_file, sighting_date, city_name, user_id):
     """Process uploaded image - trust client-optimized WebP files to avoid double compression."""
     year_str = sighting_date.strftime("%Y")
     date_str = sighting_date.strftime("%Y-%m-%d")
-    upload_dir = Path(current_app.config['UPLOAD_FOLDER']) / year_str / date_str
+    upload_dir = Path(current_app.config["UPLOAD_FOLDER"]) / year_str / date_str
     upload_dir.mkdir(parents=True, exist_ok=True)
-    
+
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     city_part = secure_filename(city_name or "unknown_city")
     filename = f"{city_part}-{timestamp}-{secure_filename(user_id)}.webp"
     full_path = upload_dir / filename
-    
+
     image_bytes = photo_file.read()
     photo_file.seek(0)
-    
+
     with Image.open(io.BytesIO(image_bytes)) as img:
         file_size_mb = len(image_bytes) / (1024 * 1024)
-        
-        if img.format == 'WEBP' and file_size_mb <= 8.0:
+
+        if img.format == "WEBP" and file_size_mb <= 8.0:
             # Trust client-optimized WebP
             image_bytes_to_save = image_bytes
         else:
             # Re-compress if needed
             output_buffer = io.BytesIO()
-            img.save(output_buffer, format='WEBP', quality=60)
+            img.save(output_buffer, format="WEBP", quality=60)
             image_bytes_to_save = output_buffer.getvalue()
-    
-    with open(full_path, 'wb') as f:
+
+    with open(full_path, "wb") as f:
         f.write(image_bytes_to_save)
-    
+
     return str(Path(year_str) / date_str / filename)
+
 
 def _create_user(first_name, last_name, email, role=1):
     """Create a new user with standardized name format."""
@@ -95,11 +98,12 @@ def _create_user(first_name, last_name, email, role=1):
     user.user_kontakt = email
     return user
 
+
 def _parse_user_name(user_name):
     """Parse database user_name format 'Lastname F.' into components."""
     name_parts = user_name.split(" ", 1)
     last_name = name_parts[0]
-    
+
     if len(name_parts) >= 2:
         initial_part = name_parts[1].strip()
         if initial_part.endswith(".") and len(initial_part) == 2:
@@ -108,8 +112,9 @@ def _parse_user_name(user_name):
             first_name = initial_part
     else:
         first_name = name_parts[0][0] if name_parts[0] else "X"
-    
+
     return last_name, first_name
+
 
 @report.route("/melden", methods=["GET", "POST"])
 @report.route("/melden/<usrid>", methods=["GET", "POST"])
@@ -123,16 +128,25 @@ def melden(usrid=None):
 
     # Handle GET request with user prefilling
     if request.method == "GET" and usrid:
-        user_to_prefill = db.session.scalar(select(TblUsers).where(TblUsers.user_id == usrid))
+        user_to_prefill = db.session.scalar(
+            select(TblUsers).where(TblUsers.user_id == usrid)
+        )
         if user_to_prefill:
             last_name, first_name = _parse_user_name(user_to_prefill.user_name)
-            
+
             form.report_last_name.data = last_name
             form.report_first_name.data = first_name
             form.email.data = user_to_prefill.user_kontakt or ""
-            
+
             # Check if user already provided feedback
-            user_has_feedback = db.session.scalar(select(TblUserFeedback).where(TblUserFeedback.user_id == user_to_prefill.id)) is not None
+            user_has_feedback = (
+                db.session.scalar(
+                    select(TblUserFeedback).where(
+                        TblUserFeedback.user_id == user_to_prefill.id
+                    )
+                )
+                is not None
+            )
             user_prefilled_data = True
 
     if request.method == "POST":
@@ -140,17 +154,19 @@ def melden(usrid=None):
             # Security: Check honeypot field
             if form.honeypot.data:
                 abort(403)
-            
+
             try:
                 # 1. Handle reporter user (existing or new)
                 if usrid:
-                    reporter = db.session.scalar(select(TblUsers).where(TblUsers.user_id == usrid))
+                    reporter = db.session.scalar(
+                        select(TblUsers).where(TblUsers.user_id == usrid)
+                    )
                     if not reporter:
                         # User ID provided but not found, create new user
                         reporter = _create_user(
                             form.report_first_name.data,
                             form.report_last_name.data,
-                            form.email.data
+                            form.email.data,
                         )
                         db.session.add(reporter)
                         db.session.flush()
@@ -159,7 +175,7 @@ def melden(usrid=None):
                     reporter = _create_user(
                         form.report_first_name.data,
                         form.report_last_name.data,
-                        form.email.data
+                        form.email.data,
                     )
                     db.session.add(reporter)
                     db.session.flush()
@@ -172,7 +188,7 @@ def melden(usrid=None):
                             form.finder_first_name.data,
                             form.finder_last_name.data,
                             "",
-                            role=2
+                            role=2,
                         )
                         db.session.add(finder_instance)
                         db.session.flush()
@@ -181,8 +197,12 @@ def melden(usrid=None):
                 if form.feedback_source.data:
                     try:
                         feedback_type_id = int(form.feedback_source.data)
-                        existing_feedback = db.session.scalar(select(TblUserFeedback).where(TblUserFeedback.user_id == reporter.id))
-                        
+                        existing_feedback = db.session.scalar(
+                            select(TblUserFeedback).where(
+                                TblUserFeedback.user_id == reporter.id
+                            )
+                        )
+
                         if not existing_feedback:
                             user_feedback = TblUserFeedback()
                             user_feedback.user_id = reporter.id
@@ -196,27 +216,27 @@ def melden(usrid=None):
                 db_image_path = None
                 if form.photo.data:
                     db_image_path = _process_uploaded_image(
-                        form.photo.data, 
-                        form.sighting_date.data, 
-                        form.fund_city.data, 
-                        reporter.user_id
+                        form.photo.data,
+                        form.sighting_date.data,
+                        form.fund_city.data,
+                        reporter.user_id,
                     )
 
                 # 5. Create location record
                 lat, lon = form.latitude.data, form.longitude.data
                 mtb_value = amt_value = ""
-                
+
                 if lat is not None and lon is not None and pointInRect((lat, lon)):
                     mtb_value = get_mtb(lat, lon)
                     amt_value = get_amt_full_scan((lon, lat))
-                
+
                 location_description = 0
                 if form.location_description.data:
                     try:
                         location_description = int(form.location_description.data)
                     except (ValueError, TypeError):
                         pass
-                
+
                 fundort = TblFundorte()
                 fundort.plz = form.fund_zip_code.data or "0"
                 fundort.ort = form.fund_city.data
@@ -241,7 +261,7 @@ def melden(usrid=None):
                 meldung.fo_quelle = "F"
                 meldung.tiere = "1"
                 meldung.anm_melder = form.description.data
-                
+
                 # Set gender fields
                 for field, value in gender_fields.items():
                     setattr(meldung, field, value)
@@ -261,30 +281,36 @@ def melden(usrid=None):
                 session["last_submission_reporter_id"] = reporter.user_id
                 session["submission_had_email"] = bool(reporter.user_kontakt)
 
-                return jsonify({
-                    "success": True, 
-                    "redirect_url": url_for("report.success"),
-                    "message": "Vielen Dank, Ihre Meldung wurde erfolgreich gespeichert!"
-                }), 200
+                return jsonify(
+                    {
+                        "success": True,
+                        "redirect_url": url_for("report.success"),
+                        "message": "Vielen Dank, Ihre Meldung wurde erfolgreich gespeichert!",
+                    }
+                ), 200
 
             except Exception as e:
                 db.session.rollback()
-                current_app.logger.error(f'Failed to save report: {str(e)}')
-                flash("Ein Fehler ist beim Speichern Ihrer Meldung aufgetreten. Bitte versuchen Sie es erneut.", "error")
-        
+                current_app.logger.error(f"Failed to save report: {str(e)}")
+                flash(
+                    "Ein Fehler ist beim Speichern Ihrer Meldung aufgetreten. Bitte versuchen Sie es erneut.",
+                    "error",
+                )
+
     return render_template(
-        "report/report_form.html", 
-        form=form, 
-        now=datetime.now, 
-        user_prefilled=user_prefilled_data, 
-        user_has_feedback=user_has_feedback
+        "report/report_form.html",
+        form=form,
+        now=datetime.now,
+        user_prefilled=user_prefilled_data,
+        user_has_feedback=user_has_feedback,
     )
+
 
 @report.route("/success")
 def success():
     """Display success page after form submission with session validation."""
     was_successful_submission = session.pop("report_submission_successful", False)
-    
+
     if was_successful_submission:
         last_reporter_id = session.pop("last_submission_reporter_id", None)
         had_email = session.pop("submission_had_email", False)
@@ -293,54 +319,63 @@ def success():
         had_email = False
 
     return render_template(
-        "report/success-new.html", 
-        usrid=last_reporter_id, 
-        addresse=str(had_email)
+        "report/success-new.html", usrid=last_reporter_id, addresse=str(had_email)
     )
+
 
 def get_step_fields(step):
     """Return field names for form step validation."""
     step_fields = {
-        1: ['gender', 'location_description', 'description'],
-        2: ['sighting_date', 'latitude', 'longitude', 'fund_city', 'fund_state', 'fund_zip_code', 'fund_district', 'fund_street'],
-        3: ['report_first_name', 'report_last_name', 'email', 'identical_finder_reporter', 'finder_first_name', 'finder_last_name', 'feedback_source', 'feedback_detail'],
-        4: []  # Review step has no specific field validation
+        1: ["gender", "location_description", "description"],
+        2: [
+            "sighting_date",
+            "latitude",
+            "longitude",
+            "fund_city",
+            "fund_state",
+            "fund_zip_code",
+            "fund_district",
+            "fund_street",
+        ],
+        3: [
+            "report_first_name",
+            "report_last_name",
+            "email",
+            "identical_finder_reporter",
+            "finder_first_name",
+            "finder_last_name",
+            "feedback_source",
+            "feedback_detail",
+        ],
+        4: [],  # Review step has no specific field validation
     }
     return step_fields.get(step, [])
 
-def get_visible_error_fields(step, form_data=None):
+
+def get_visible_error_fields(step):
     """Return field names that have visible error containers (for OOB clearing).
 
-    Args:
-        step: The current form step
-        form_data: Optional form data dict to determine conditional field visibility
+    Note: Only includes fields rendered via render_form_field macro (which creates error divs).
+    Excludes: latitude/longitude (use 'coordinates'), finder fields (no error containers),
+              feedback_source/feedback_detail (rendered manually without error containers).
     """
-    # Base visible fields per step (excludes hidden fields like latitude/longitude)
     visible_fields = {
-        1: ['photo', 'gender', 'location_description', 'description'],
-        2: ['sighting_date', 'fund_city', 'fund_state', 'fund_zip_code', 'fund_district', 'fund_street'],
-        3: ['report_first_name', 'report_last_name', 'email'],
-        4: []
+        1: ["photo", "gender", "location_description", "description"],
+        2: [
+            "sighting_date",
+            "fund_city",
+            "fund_state",
+            "fund_zip_code",
+            "fund_district",
+            "fund_street",
+        ],
+        3: ["report_first_name", "report_last_name", "email"],
+        4: [],
     }
+    return visible_fields.get(step, [])
 
-    fields = visible_fields.get(step, []).copy()
-
-    # Step 3: Conditionally include finder fields based on checkbox state
-    if step == 3 and form_data:
-        is_identical = form_data.get('identical_finder_reporter') in ('true', 'on', '1', 'True')
-        if not is_identical:
-            # Finder fields are visible when checkbox is unchecked
-            fields.extend(['finder_first_name', 'finder_last_name'])
-
-        # feedback_detail is only visible when feedback_source requires it
-        feedback_source = form_data.get('feedback_source', '')
-        if feedback_source == 'Andere':
-            fields.append('feedback_detail')
-
-    return fields
 
 @report.route("/validate_step", methods=["POST"])
-@csrf.exempt
 @limiter.limit("30 per minute")
 def validate_step():
     """Validate form step via AJAX."""
@@ -349,20 +384,23 @@ def validate_step():
         return jsonify({"valid": False, "errors": {"general": "Invalid request"}})
     step = data.get("step", 1)
     step_fields = get_step_fields(step)
-    
+
     if not step_fields:
         return jsonify({"valid": True, "errors": {}})
-    
+
     # Prepare form data for validation
     form_data = MultiDict(data)
-    if 'identical_finder_reporter' in data:
-        form_data['identical_finder_reporter'] = data['identical_finder_reporter'] in ('true', True)
-    
+    if "identical_finder_reporter" in data:
+        form_data["identical_finder_reporter"] = data["identical_finder_reporter"] in (
+            "true",
+            True,
+        )
+
     form = MantisSightingForm(formdata=form_data, csrf_enabled=False)
-    
+
     is_valid = True
     errors = {}
-    
+
     # Validate step-specific fields
     for field_name in step_fields:
         field = getattr(form, field_name, None)
@@ -374,16 +412,16 @@ def validate_step():
     if is_valid and step == 3:
         if not form.validate_finder_names_dependency():
             is_valid = False
-            if 'finder_first_name' in form.errors:
-                errors['finder_first_name'] = form.errors['finder_first_name']
-            if 'finder_last_name' in form.errors:
-                errors['finder_last_name'] = form.errors['finder_last_name']
+            if "finder_first_name" in form.errors:
+                errors["finder_first_name"] = form.errors["finder_first_name"]
+            if "finder_last_name" in form.errors:
+                errors["finder_last_name"] = form.errors["finder_last_name"]
 
     # Step 2: Coordinate validation
     if is_valid and step == 2:
         lat = data.get("latitude", "")
         lng = data.get("longitude", "")
-        
+
         if not lat or not lng:
             is_valid = False
             errors["coordinates"] = ["Bitte wählen Sie einen Standort auf der Karte"]
@@ -392,11 +430,13 @@ def validate_step():
                 lat_float, lng_float = float(lat), float(lng)
                 if not (-90 <= lat_float <= 90) or not (-180 <= lng_float <= 180):
                     is_valid = False
-                    errors["coordinates"] = ["Ungültige Koordinaten. Bitte wählen Sie einen gültigen Standort."]
+                    errors["coordinates"] = [
+                        "Ungültige Koordinaten. Bitte wählen Sie einen gültigen Standort."
+                    ]
             except ValueError:
                 is_valid = False
                 errors["coordinates"] = ["Ungültiges Koordinatenformat"]
-    
+
     return jsonify({"valid": is_valid, "errors": errors})
 
 
@@ -404,13 +444,13 @@ def validate_step():
 # HTMX Routes for Form Interactions
 # ============================================================================
 
+
 def _is_htmx_request():
     """Check if the current request is an HTMX request."""
-    return request.headers.get('HX-Request') == 'true'
+    return request.headers.get("HX-Request") == "true"
 
 
 @report.route("/melden/htmx/validate-step", methods=["POST"])
-@csrf.exempt
 @limiter.limit("60 per minute")
 def htmx_validate_step():
     """HTMX endpoint for step validation - returns HTML partial with errors or success indicator."""
@@ -422,10 +462,12 @@ def htmx_validate_step():
 
     # Build form data from request
     form_data = MultiDict(request.form)
-    if 'identical_finder_reporter' in request.form:
-        form_data['identical_finder_reporter'] = request.form.get('identical_finder_reporter') in ('true', 'on', '1', 'True')
+    if "identical_finder_reporter" in request.form:
+        form_data["identical_finder_reporter"] = request.form.get(
+            "identical_finder_reporter"
+        ) in ("true", "on", "1", "True")
 
-    form = MantisSightingForm(formdata=form_data, meta={'csrf': False})
+    form = MantisSightingForm(formdata=form_data, meta={"csrf": False})
 
     is_valid = True
     errors = {}
@@ -442,9 +484,9 @@ def htmx_validate_step():
         if not form.validate_finder_names_dependency():
             is_valid = False
             if form.finder_first_name.errors:
-                errors['finder_first_name'] = form.finder_first_name.errors
+                errors["finder_first_name"] = form.finder_first_name.errors
             if form.finder_last_name.errors:
-                errors['finder_last_name'] = form.finder_last_name.errors
+                errors["finder_last_name"] = form.finder_last_name.errors
 
     # Step 2: Coordinate validation
     if is_valid and step == 2:
@@ -459,7 +501,9 @@ def htmx_validate_step():
                 lat_float, lng_float = float(lat), float(lng)
                 if not (-90 <= lat_float <= 90) or not (-180 <= lng_float <= 180):
                     is_valid = False
-                    errors["coordinates"] = ["Ungültige Koordinaten. Bitte wählen Sie einen gültigen Standort."]
+                    errors["coordinates"] = [
+                        "Ungültige Koordinaten. Bitte wählen Sie einen gültigen Standort."
+                    ]
             except ValueError:
                 is_valid = False
                 errors["coordinates"] = ["Ungültiges Koordinatenformat"]
@@ -467,10 +511,15 @@ def htmx_validate_step():
     if is_valid:
         # Return a trigger to advance to next step + clear any previous errors via OOB
         from flask import make_response
-        visible_fields = get_visible_error_fields(step, request.form)
-        clear_html = render_template("report/partials/clear_errors.html", fields=visible_fields, step=step)
+
+        visible_fields = get_visible_error_fields(step)
+        clear_html = render_template(
+            "report/partials/clear_errors.html", fields=visible_fields, step=step
+        )
         response = make_response(clear_html)
-        response.headers['HX-Trigger'] = f'{{"stepValid": {{"step": {step}, "nextStep": {step + 1}}}}}'
+        response.headers["HX-Trigger"] = (
+            f'{{"stepValid": {{"step": {step}, "nextStep": {step + 1}}}}}'
+        )
         return response
     else:
         # Return inline error messages via OOB swaps
@@ -478,13 +527,17 @@ def htmx_validate_step():
 
 
 @report.route("/melden/htmx/toggle-finder", methods=["POST"])
-@csrf.exempt
 def htmx_toggle_finder():
     """HTMX endpoint to toggle finder fields visibility."""
     if not _is_htmx_request():
         abort(400)
 
-    is_identical = request.form.get('identical_finder_reporter') in ('true', 'on', '1', 'True')
+    is_identical = request.form.get("identical_finder_reporter") in (
+        "true",
+        "on",
+        "1",
+        "True",
+    )
 
     if is_identical:
         # Return hidden/empty finder fields
@@ -492,42 +545,43 @@ def htmx_toggle_finder():
     else:
         # Return visible finder fields
         form = MantisSightingForm()
-        return render_template("report/partials/finder_fields.html", show=True, form=form)
+        return render_template(
+            "report/partials/finder_fields.html", show=True, form=form
+        )
 
 
 @report.route("/melden/htmx/feedback-detail", methods=["POST"])
-@csrf.exempt
 def htmx_feedback_detail():
     """HTMX endpoint to show/hide feedback detail field based on selection."""
     if not _is_htmx_request():
         abort(400)
 
-    feedback_source = request.form.get('feedback_source', '')
+    feedback_source = request.form.get("feedback_source", "")
 
     # Placeholders for different feedback sources
     placeholders = {
-        '1': 'z.B. Name der Veranstaltung, Ort',
-        '2': 'z.B. wo haben Sie den Flyer erhalten?',
-        '3': 'z.B. Name der Zeitung/Zeitschrift',
-        '4': 'z.B. Name des Senders/der Sendung',
-        '5': 'z.B. Suchmaschine, Website-Name',
-        '6': 'z.B. Facebook, Instagram, Twitter',
-        '7': 'z.B. Freund, Kollege, Familie',
-        '8': 'Bitte beschreiben Sie, wie Sie von uns erfahren haben'
+        "1": "z.B. Name der Veranstaltung, Ort",
+        "2": "z.B. wo haben Sie den Flyer erhalten?",
+        "3": "z.B. Name der Zeitung/Zeitschrift",
+        "4": "z.B. Name des Senders/der Sendung",
+        "5": "z.B. Suchmaschine, Website-Name",
+        "6": "z.B. Facebook, Instagram, Twitter",
+        "7": "z.B. Freund, Kollege, Familie",
+        "8": "Bitte beschreiben Sie, wie Sie von uns erfahren haben",
     }
 
     if feedback_source and feedback_source in placeholders:
         return render_template(
             "report/partials/feedback_detail.html",
             show=True,
-            placeholder=placeholders[feedback_source]
+            placeholder=placeholders[feedback_source],
         )
     else:
         return render_template("report/partials/feedback_detail.html", show=False)
 
 
 @report.route("/melden/htmx/review", methods=["POST"])
-@csrf.exempt
+@limiter.limit("30 per minute")
 def htmx_review():
     """HTMX endpoint to generate the review section content from form data."""
     if not _is_htmx_request():
@@ -536,53 +590,54 @@ def htmx_review():
     # Collect all form data for the review
     review_data = {
         # Step 1: Photo & Details
-        'gender': _get_gender_display(request.form.get('gender', '')),
-        'location_description': _get_location_description_display(request.form.get('location_description', '')),
-        'description': request.form.get('description', '-') or '-',
-        'photo_data': request.form.get('photo_preview_data', ''),  # Base64 from client
-
-        # Step 2: Location & Date
-        'sighting_date': _format_date(request.form.get('sighting_date', '')),
-        'latitude': request.form.get('latitude', ''),
-        'longitude': request.form.get('longitude', ''),
-        'coordinates': _format_coordinates(
-            request.form.get('latitude', ''),
-            request.form.get('longitude', '')
+        "gender": _get_gender_display(request.form.get("gender", "")),
+        "location_description": _get_location_description_display(
+            request.form.get("location_description", "")
         ),
-        'fund_city': request.form.get('fund_city', '-') or '-',
-        'fund_state': request.form.get('fund_state', '-') or '-',
-        'fund_district': request.form.get('fund_district', '-') or '-',
-        'fund_street': request.form.get('fund_street', '-') or '-',
-        'fund_zip_code': request.form.get('fund_zip_code', '-') or '-',
-
+        "description": request.form.get("description", "-") or "-",
+        # photo_data injected client-side via htmx:afterSwap to avoid ~4MB round-trip
+        "photo_data": "",
+        # Step 2: Location & Date
+        "sighting_date": _format_date(request.form.get("sighting_date", "")),
+        "latitude": request.form.get("latitude", ""),
+        "longitude": request.form.get("longitude", ""),
+        "coordinates": _format_coordinates(
+            request.form.get("latitude", ""), request.form.get("longitude", "")
+        ),
+        "fund_city": request.form.get("fund_city", "-") or "-",
+        "fund_state": request.form.get("fund_state", "-") or "-",
+        "fund_district": request.form.get("fund_district", "-") or "-",
+        "fund_street": request.form.get("fund_street", "-") or "-",
+        "fund_zip_code": request.form.get("fund_zip_code", "-") or "-",
         # Step 3: Contact
-        'reporter_name': f"{request.form.get('report_first_name', '')} {request.form.get('report_last_name', '')}".strip() or '-',
-        'email': request.form.get('email', '-') or '-',
-        'identical_finder': request.form.get('identical_finder_reporter') in ('true', 'on', '1', 'True'),
-        'finder_name': _get_finder_name(request.form),
-        'feedback_source': _get_feedback_source_display(request.form.get('feedback_source', '')),
-        'feedback_detail': request.form.get('feedback_detail', '')
+        "reporter_name": f"{request.form.get('report_first_name', '')} {request.form.get('report_last_name', '')}".strip()
+        or "-",
+        "email": request.form.get("email", "-") or "-",
+        "identical_finder": request.form.get("identical_finder_reporter")
+        in ("true", "on", "1", "True"),
+        "finder_name": _get_finder_name(request.form),
+        "feedback_source": _get_feedback_source_display(
+            request.form.get("feedback_source", "")
+        ),
+        "feedback_detail": request.form.get("feedback_detail", ""),
     }
 
     return render_template("report/partials/review_content.html", review=review_data)
 
 
 @report.route("/melden/htmx/char-count", methods=["POST"])
-@csrf.exempt
 def htmx_char_count():
     """HTMX endpoint to update character count display."""
     if not _is_htmx_request():
         abort(400)
 
-    description = request.form.get('description', '')
+    description = request.form.get("description", "")
     max_length = 500
     remaining = max_length - len(description)
     is_over = remaining < 0
 
     return render_template(
-        "report/partials/char_count.html",
-        remaining=remaining,
-        is_over=is_over
+        "report/partials/char_count.html", remaining=remaining, is_over=is_over
     )
 
 
@@ -590,38 +645,42 @@ def htmx_char_count():
 def _get_gender_display(gender_value):
     """Convert gender field value to display text."""
     from app.forms import GENDER_CHOICES
+
     for value, label in GENDER_CHOICES:
         if value == gender_value:
             return label
-    return '-'
+    return "-"
 
 
 def _get_location_description_display(location_value):
     """Convert location description value to display text."""
     from app.forms import LOCATION_DESCRIPTION_CHOICES
+
     for value, label in LOCATION_DESCRIPTION_CHOICES:
         if value == location_value:
             return label
-    return '-'
+    return "-"
 
 
 def _get_feedback_source_display(feedback_value):
     """Convert feedback source value to display text."""
     from app.forms import FEEDBACK_SOURCE_CHOICES
+
     for value, label in FEEDBACK_SOURCE_CHOICES:
         if value == feedback_value:
             return label
-    return 'Nicht angegeben'
+    return "Nicht angegeben"
 
 
 def _format_date(date_str):
     """Format date string for display."""
     if not date_str:
-        return '-'
+        return "-"
     try:
         from datetime import datetime
-        date_obj = datetime.strptime(date_str, '%Y-%m-%d')
-        return date_obj.strftime('%d.%m.%Y')
+
+        date_obj = datetime.strptime(date_str, "%Y-%m-%d")
+        return date_obj.strftime("%d.%m.%Y")
     except ValueError:
         return date_str
 
@@ -633,12 +692,12 @@ def _format_coordinates(lat, lng):
             return f"{float(lat):.6f}, {float(lng):.6f}"
         except ValueError:
             pass
-    return '-'
+    return "-"
 
 
 def _get_finder_name(form_data):
     """Get finder name from form data."""
-    first = form_data.get('finder_first_name', '')
-    last = form_data.get('finder_last_name', '')
+    first = form_data.get("finder_first_name", "")
+    last = form_data.get("finder_last_name", "")
     name = f"{first} {last}".strip()
-    return name if name else '-'
+    return name if name else "-"
