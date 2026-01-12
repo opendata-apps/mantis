@@ -13,9 +13,9 @@
 
 /* Popup styles */
 .leaflet-popup-content-wrapper {
-  background: rgba(22, 101, 52, 0.8);
+  background: color-mix(in srgb, var(--color-green-800) 80%, transparent);
   border-radius: 12px;
-  color: #ffffff;
+  color: white;
   font-family: 'Arial', sans-serif;
   opacity: 0;
   animation: fadeIn ease 1s;
@@ -23,7 +23,7 @@
 }
 
 .leaflet-popup-tip {
-  background: rgba(22, 101, 52, 0.8);
+  background: color-mix(in srgb, var(--color-green-800) 80%, transparent);
 }
 
 .leaflet-popup-content {
@@ -33,7 +33,7 @@
 .popup-content h2 {
   margin-bottom: 10px;
   font-size: 1.1em;
-  color: #f3f4f6;
+  color: var(--color-gray-100);
 }
 
 .popup-list {
@@ -53,7 +53,7 @@
 }
 
 .popup-error {
-  color: #FF6347;
+  color: var(--color-red-500);
 }
 
 @keyframes fadeIn {

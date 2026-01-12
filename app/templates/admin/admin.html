@@ -8,6 +8,7 @@
 {% endblock %}
 {% block content %}
 <script type="module" src="{{ vite_asset('js/vendor.js') }}"></script>
+<script type="module" src="{{ vite_asset('js/admin.js') }}"></script>
 
 <!-- CSRF Token for JavaScript -->
 <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -18,14 +19,14 @@
     {% if messages %}
     {% for category, message in messages %}
     {% if category == 'error' %}
-    <div class="flex justify-between items-center p-4 mb-4 text-red-700 bg-red-100 rounded-md border-l-4 border-red-500"
+    <div class="flex justify-between items-center p-4 mb-4 text-red-800 bg-red-100 rounded-md border-l-4 border-red-500"
         role="alert" id="errorAlert">
         <div>
             <strong class="font-bold">Error!</strong>
             <span class="block sm:inline">{{ message }}</span>
         </div>
         <button onclick="document.getElementById('errorAlert').style.display='none'"
-            class="text-red-700 hover:text-red-900">
+            class="text-red-800 hover:text-red-900">
             <svg class="w-6 h-6 fill-current" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                 <title>Close</title>
                 <path
@@ -36,14 +37,14 @@
     </div>
     {% endif %}
     {% if category == 'info' %}
-    <div class="flex justify-between items-center p-4 mb-4 text-red-700 bg-red-100 rounded-md border-l-4 border-red-500"
+    <div class="flex justify-between items-center p-4 mb-4 text-blue-800 bg-blue-100 rounded-md border-l-4 border-blue-500"
         role="alert" id="errorAlert">
         <div>
             <strong class="font-bold">Info: </strong>
             <span class="block sm:inline">{{ message | safe}}</span>
         </div>
         <button onclick="document.getElementById('errorAlert').style.display='none'"
-            class="text-red-700 hover:text-red-900">
+            class="text-blue-800 hover:text-blue-900">
             <svg class="w-6 h-6 fill-current" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                 <title>Close</title>
                 <path
@@ -59,34 +60,30 @@
 
     <div class="flex flex-wrap justify-between items-center mb-5 md:space-x-6 lg:space-x-8 xl:space-x-4">
         <div class="flex flex-wrap items-center space-x-4 w-full md:space-x-0 md:space-y-4 md:flex-col md:w-auto">
-            <!-- Filter button -->
-            <button id="filterDropdownButton" data-dropdown-toggle="filterDropdown"
-                data-dropdown-ignore-click-outside-class="datepicker"
-                class="flex justify-center items-center px-4 py-2 mb-2 w-full text-sm font-medium text-gray-700 bg-white rounded-lg border border-gray-200 transition-all duration-200 md:w-auto md:mb-0 focus:outline-none hover:bg-gray-50 hover:border-gray-300 hover:text-gray-900 focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-                type="button">
-                <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="mr-2 w-4 h-4 text-gray-500 transition-colors duration-200 group-hover:text-gray-700"
-                    viewbox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd"
-                        d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"
-                        clip-rule="evenodd" />
-                </svg>
-                Filter
-                <svg class="-mr-1 ml-1.5 w-5 h-5 text-gray-500 transition-colors duration-200 group-hover:text-gray-700" fill="currentColor" viewbox="0 0 20 20"
-                    xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <path clip-rule="evenodd" fill-rule="evenodd"
-                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
-                </svg>
-            </button>
-
-            <div id="filterDropdown"
-                class="hidden z-10 p-4 space-y-3 w-64 bg-white rounded-lg divide-y divide-gray-100 shadow-lg sm:w-80">
+            <!-- Filter dropdown -->
+            <details class="relative dropdown">
+                <summary class="flex justify-center items-center px-4 py-2 mb-2 w-full text-sm font-medium text-gray-700 bg-white rounded-lg border border-gray-200 transition-all duration-200 md:w-auto md:mb-0 focus:outline-hidden hover:bg-gray-50 hover:border-gray-300 hover:text-gray-900 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 cursor-pointer list-none">
+                    <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="mr-2 w-4 h-4 text-gray-500 transition-colors duration-200 group-hover:text-gray-700"
+                        viewbox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd"
+                            d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"
+                            clip-rule="evenodd" />
+                    </svg>
+                    Filter
+                    <svg class="-mr-1 ml-1.5 w-5 h-5 text-gray-500 transition-colors duration-200 group-hover:text-gray-700" fill="currentColor" viewbox="0 0 20 20"
+                        xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path clip-rule="evenodd" fill-rule="evenodd"
+                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                    </svg>
+                </summary>
+                <div class="absolute left-0 z-10 p-4 space-y-3 w-64 bg-white rounded-lg divide-y divide-gray-100 shadow-lg sm:w-80 mt-1">
                 <form action="{{ url_for('admin.reviewer', usrid=session['user_id']) }}" method="GET" class="space-y-3">
                     <div class="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
                         <div class="space-y-1 w-full md:w-1/2">
                             <label for="statusInput"
                                 class="block text-sm font-semibold text-left text-gray-700">Status</label>
                             <select id="statusInput" name="statusInput"
-                                class="p-2 w-full text-sm rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                class="p-2 w-full text-sm rounded-md shadow-xs focus:ring-2 focus:ring-green-500 focus:border-transparent">
                                 <option value="all" {% if filters.status=="all" %}selected{% endif %}>Alle</option>
                                 <option value="bearbeitet" {% if filters.status=="bearbeitet" %}selected{% endif %}>
                                     Bearbeitet</option>
@@ -99,7 +96,7 @@
                             <label for="typeInput"
                                 class="block text-sm font-semibold text-left text-gray-700">Typ</label>
                             <select id="typeInput" name="typeInput"
-                                class="p-2 w-full text-sm rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                class="p-2 w-full text-sm rounded-md shadow-xs focus:ring-2 focus:ring-green-500 focus:border-transparent">
                                 <option value="all" {% if filters.type=="all" %}selected{% endif %}>Alle</option>
                                 <option value="maennlich" {% if filters.type=="maennlich" %}selected{% endif %}>Männlich
                                 </option>
@@ -150,7 +147,7 @@
 
                     <div class="flex justify-between mt-4 space-x-4">
                         <button id="clearFilters" type="button"
-                            class="flex justify-center items-center px-2 py-1 w-24 text-sm text-red-500 rounded-md border border-red-500 shadow-sm hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:border-transparent">
+                            class="flex justify-center items-center px-2 py-1 w-24 text-sm text-red-500 rounded-md border border-red-500 shadow-xs hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:border-transparent">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor" class="mr-1 w-4 h-4">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
@@ -159,7 +156,7 @@
                             Löschen
                         </button>
                         <button type="submit"
-                            class="px-4 py-2 w-1/2 text-white bg-green-500 rounded-md shadow-sm hover:bg-green-600 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:border-transparent">
+                            class="px-4 py-2 w-1/2 text-white bg-green-500 rounded-md shadow-xs hover:bg-green-600 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:border-transparent">
                             Filtern
                         </button>
                     </div>
@@ -167,13 +164,14 @@
                     <input type="hidden" name="sort_order" value="{{ request.args.get('sort_order', '') }}">
                     <input type="hidden" name="search_type" value="{{ request.args.get('search_type', '') }}">
                 </form>
-            </div>
+                </div>
+            </details>
         </div>
-        <div class="flex relative flex-grow items-center mb-2 w-full rounded-lg shadow-sm md:w-auto md:mb-0">
+        <div class="flex relative grow items-center mb-2 w-full rounded-lg shadow-xs md:w-auto md:mb-0">
             <form action="{{ url_for('admin.reviewer', usrid=session['user_id']) }}" method="GET"
                 class="flex items-center w-full bg-white rounded-lg transition-all duration-300 focus-within:ring-2 focus-within:ring-green-500">
                 <!-- Search Bar -->
-                <div class="relative flex-grow">
+                <div class="relative grow">
                     <button type="submit" class="flex absolute inset-y-0 left-0 items-center pl-3 group" title="Suchsyntax:
 &#8226; Exakte Phrase: &quot;berlin mitte&quot;
 &#8226; ODER-Suche: berlin OR hamburg
@@ -190,7 +188,7 @@
                         value="{{ request.args.get('q', '') }}" maxlength="50"
                         class="py-2 pr-4 pl-10 w-full h-full bg-transparent rounded-l-lg transition-shadow duration-300 search focus:ring-0 focus:border-transparent">
                     <button type="button" onclick="clearSearch()" title="löschen"
-                        class="absolute right-5 top-1/2 p-1 bg-white rounded-full transform -translate-y-1/2 hover:bg-gray-200 focus:outline-none">
+                        class="absolute right-5 top-1/2 p-1 bg-white rounded-full transform -translate-y-1/2 hover:bg-gray-200 focus:outline-hidden">
                         <svg focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16"
                             height="16">
                             <path
@@ -219,19 +217,17 @@
 
 
         <div class="flex items-center space-x-4 w-full md:w-auto">
-            <!-- Sortieren Button -->
-            <button id="dropdownSortButton" data-dropdown-toggle="sortDropdown"
-                class="flex flex-grow justify-center items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white rounded-lg border border-gray-200 transition-all duration-200 focus:outline-none hover:bg-gray-50 hover:border-gray-300 hover:text-gray-900 focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
-                <span id="sortText">Sortieren...</span>
-                <svg class="-mr-1 ml-1.5 w-5 h-5 text-gray-500 transition-colors duration-200 group-hover:text-gray-700" fill="currentColor" viewbox="0 0 20 20"
-                    xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <path clip-rule="evenodd" fill-rule="evenodd"
-                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
-                </svg>
-            </button>
-
-            <!-- Custom Dropdown Menu -->
-            <div id="sortDropdown" class="hidden z-10 w-48 bg-white rounded-lg divide-y divide-gray-100 shadow-lg">
+            <!-- Sortieren Dropdown -->
+            <details class="relative dropdown">
+                <summary class="flex grow justify-center items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white rounded-lg border border-gray-200 transition-all duration-200 focus:outline-hidden hover:bg-gray-50 hover:border-gray-300 hover:text-gray-900 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 cursor-pointer list-none">
+                    <span id="sortText">Sortieren...</span>
+                    <svg class="-mr-1 ml-1.5 w-5 h-5 text-gray-500 transition-colors duration-200 group-hover:text-gray-700" fill="currentColor" viewbox="0 0 20 20"
+                        xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path clip-rule="evenodd" fill-rule="evenodd"
+                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                    </svg>
+                </summary>
+                <div class="absolute right-0 z-10 w-48 bg-white rounded-lg divide-y divide-gray-100 shadow-lg mt-1">
                 <ul class="py-2 text-sm text-gray-700" aria-labelledby="dropdownSortButton">
                     <li>
                         <button onclick="setSortOrder('id_asc')" 
@@ -245,7 +241,7 @@
                                 <path
                                     d="M4.5 13.5a.5.5 0 0 1-1 0V3.707L2.354 4.854a.5.5 0 1 1-.708-.708l2-1.999.007-.007a.498.498 0 0 1 .7.006l2 2a.5.5 0 1 1-.707.708L4.5 3.707V13.5z" />
                             </svg>
-                            <span class="flex-grow">Aufsteigend</span>
+                            <span class="grow">Aufsteigend</span>
                         </button>
                     </li>
                     <li>
@@ -260,11 +256,12 @@
                                 <path
                                     d="M4.5 2.5a.5.5 0 0 0-1 0v9.793l-1.146-1.147a.5.5 0 0 0-.708.708l2 1.999.007.007a.497.497 0 0 0 .7-.006l2-2a.5.5 0 0 0-.707-.708L4.5 12.293V2.5z" />
                             </svg>
-                            <span class="flex-grow">Absteigend</span>
+                            <span class="grow">Absteigend</span>
                         </button>
                     </li>
                 </ul>
-            </div>
+                </div>
+            </details>
 
             <!-- Hidden actual select for form submission -->
             <select id="sortInput" class="hidden" onchange="updateSortOrder()">
@@ -273,49 +270,45 @@
                 <option value="id_desc" {% if current_sort_order=="id_desc" %}selected{% endif %}></option>
             </select>
 
-
-            <div class="flex items-center space-x-4 w-full md:w-auto">
-                <!-- Export button -->
-                <button id="dropdownExportButton" data-dropdown-toggle="dropdown"
-                    class="flex flex-grow justify-center items-center px-4 py-2 text-sm font-medium text-gray-100 bg-green-500 rounded-md transition-all duration-200 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+            <!-- Export Dropdown -->
+            <details class="relative dropdown">
+                <summary class="flex grow justify-center items-center px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md transition-all duration-200 hover:bg-green-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-green-500 cursor-pointer list-none">
                     <svg class="mr-2 w-4 h-4 transition-transform duration-200 group-hover:scale-110" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                         stroke-width="2" stroke="currentColor" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
                     </svg>
                     Export
-                </button>
-
-                <!-- Dropdown menu -->
-                <div id="dropdown" class="hidden z-10 w-56 bg-white rounded-lg divide-y divide-gray-100 shadow-lg">
+                </summary>
+                <div class="absolute right-0 z-10 w-56 bg-white rounded-lg divide-y divide-gray-100 shadow-lg mt-1">
                     <ul class="py-2 text-sm text-gray-700" aria-labelledby="dropdownExportButton">
                         <li>
                             <button onclick="exportData('all')"
                                 class="flex items-center px-4 py-2.5 w-full text-left text-gray-700 transition-all duration-200 hover:bg-gray-200 hover:text-gray-900">
-                                <span class="flex-grow">Export alle Meldungen</span>
+                                <span class="grow">Export alle Meldungen</span>
                             </button>
                         </li>
                         <li>
                             <button onclick="exportData('accepted')"
                                 class="flex items-center px-4 py-2.5 w-full text-left text-gray-700 transition-all duration-200 hover:bg-gray-200 hover:text-gray-900">
-                                <span class="flex-grow">Export angenommene Meldungen</span>
+                                <span class="grow">Export angenommene Meldungen</span>
                             </button>
                         </li>
                         <li>
                             <button onclick="exportData('non_accepted')"
                                 class="flex items-center px-4 py-2.5 w-full text-left text-gray-700 transition-all duration-200 hover:bg-gray-200 hover:text-gray-900">
-                                <span class="flex-grow">Export nicht angenommene Meldungen</span>
+                                <span class="grow">Export nicht angenommene Meldungen</span>
                             </button>
                         </li>
                         <li>
                             <button onclick="exportData('searched')"
                                 class="flex items-center px-4 py-2.5 w-full text-left text-gray-700 transition-all duration-200 hover:bg-gray-200 hover:text-gray-900">
-                                <span class="flex-grow">Export gesuchte Meldungen</span>
+                                <span class="grow">Export gesuchte Meldungen</span>
                             </button>
                         </li>
                     </ul>
                 </div>
-            </div>
+            </details>
         </div>
     </div>
 
@@ -338,7 +331,7 @@
                     Gelöscht
                     <button title="Wiederherstellen" 
                         onclick="undoDelete('{{sighting.id}}')"
-                        class="px-2 py-1 ml-2 text-xs font-semibold text-red-500 bg-white rounded-full hover:bg-gray-200 focus:outline-none">
+                        class="px-2 py-1 ml-2 text-xs font-semibold text-red-500 bg-white rounded-full hover:bg-gray-200 focus:outline-hidden">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" id="arrow-u-up-left"
                             class="w-4 h-4 fill-current">
                             <rect width="256" height="256" fill="none"></rect>
@@ -352,7 +345,7 @@
                 </div>
                 {% endif %}
                 <span
-                    class="inline-block absolute top-2 left-2 px-2 py-1 font-semibold tracking-wide leading-none text-gray-100 uppercase bg-green-500 rounded-full">{{
+                    class="inline-block absolute top-2 left-2 px-2 py-1 font-semibold tracking-wide leading-none text-white uppercase bg-green-600 rounded-full">{{
                     sighting.id }}</span>
             </div>
             <div class="p-4 bg-white rounded-lg">
@@ -378,14 +371,14 @@
                         <button 
                             onclick="openModal('{{sighting.id}}')" 
                             style="min-width: 2rem;"
-                            class="p-1 rounded transition-colors duration-200 focus:outline-none hover:bg-green-200">
+                            class="p-1 rounded-sm transition-colors duration-200 focus:outline-hidden hover:bg-green-200">
                             <img loading="lazy" src="/static/images/svg/edit.svg" alt="Edit"
                                 class="w-4 h-4 md:w-5 md:h-5">
                         </button>
                         {% if not sighting.deleted %}
                         <button 
                             onclick="deleteSighting('{{sighting.id}}')"
-                            class="p-1 ml-2 rounded transition-colors duration-200 md:ml-4 focus:outline-none hover:bg-red-200"
+                            class="p-1 ml-2 rounded-sm transition-colors duration-200 md:ml-4 focus:outline-hidden hover:bg-red-200"
                             style="min-width: 2 rem;">
                             <img loading="lazy" src="/static/images/svg/delete.svg" alt="Delete"
                                 class="w-4 h-4 md:w-5 md:h-5">
@@ -403,7 +396,7 @@
                         {% else %}
                         <button 
                             onclick="toggleApprove('{{sighting.id}}')"
-                            class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-100 bg-green-500 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                            class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                             Annehmen
                         </button>
                         {% endif %}
@@ -422,13 +415,10 @@
 
 
 
-<div id="imageModal" class="hidden overflow-y-auto fixed inset-0" style="z-index: 9999;"
+<div id="imageModal" class="hidden overflow-y-auto fixed inset-0 backdrop-blur-xs bg-gray-500/75" style="z-index: 9999;"
     aria-labelledby="imageModalLabel" tabindex="-1"
     title="Um das Bild weiter zu vergrößern klicken sie auf den Button unten">
-    <div class="flex justify-center items-center px-4 pt-4 pb-20 min-h-screen text-center sm:block sm:p-0">
-        <div id="imageModalBackdrop" class="fixed inset-0 transition-opacity" aria-hidden="true">
-            <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
-        </div>
+    <div id="imageModalBackdrop" class="flex justify-center items-center px-4 pt-4 pb-20 min-h-screen text-center sm:p-0">
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
         <div
             class="inline-block overflow-hidden px-4 pt-5 pb-4 text-left align-bottom bg-white rounded-lg shadow-xl transition-all transform sm:my-8 sm:align-middle sm:max-w-full sm:w-11/12 md:w-3/4 lg:w-1/2 xl:w-1/3 sm:p-6">
@@ -438,14 +428,14 @@
             </div>
             <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
                 <button type="button" onclick="closeImageModal()"
-                    class="inline-flex justify-center px-4 py-2 mb-2 w-full text-base font-medium text-gray-100 bg-green-600 rounded-md border border-transparent shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:mb-0 sm:ml-3 sm:w-auto sm:text-sm"
+                    class="inline-flex justify-center px-4 py-2 mb-2 w-full text-base font-medium text-white bg-green-600 rounded-md border border-transparent shadow-xs hover:bg-green-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:mb-0 sm:ml-3 sm:w-auto sm:text-sm"
                     title="Schließen Sie das Fenster">
                     Close
                 </button>
                 <button type="button" onclick="openImageNewTab()"
-                    class="inline-flex justify-center px-4 py-2 mb-2 w-full text-base font-medium text-gray-100 bg-green-600 rounded-md border border-transparent shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:mb-0 sm:ml-3 sm:w-auto sm:text-sm"
+                    class="inline-flex justify-center px-4 py-2 mb-2 w-full text-base font-medium text-white bg-green-600 rounded-md border border-transparent shadow-xs hover:bg-green-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:mb-0 sm:ml-3 sm:w-auto sm:text-sm"
                     title="Öffnen Sie das Bild in einem neuen Tab">
-                    <svg class="w-[16px] h-[16px] text-gray-100" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                    <svg class="w-[16px] h-[16px] text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                         fill="none" viewBox="0 0 18 18">
                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M15 11v4.833A1.166 1.166 0 0 1 13.833 17H2.167A1.167 1.167 0 0 1 1 15.833V4.167A1.166 1.166 0 0 1 2.167 3h4.618m4.447-2H17v5.768M9.111 8.889l7.778-7.778" />
@@ -461,21 +451,21 @@
 
 
 <!-- Modal -->
-<div id="modal" class="hidden overflow-y-auto fixed inset-0 backdrop-blur-sm bg-gray-500/75" style="z-index: 9999;">
+<div id="modal" class="hidden overflow-y-auto fixed inset-0 backdrop-blur-xs bg-gray-500/75" style="z-index: 9999;">
     <div class="flex justify-center items-center p-4 min-h-screen">
         <!-- Modal Container - Updated with better shadow and spacing -->
         <div class="w-full bg-white rounded-lg shadow-xl transition-all duration-200 md:max-w-5xl lg:max-w-6xl xl:max-w-7xl"
             style="display: flex; flex-direction: column; height: calc(90vh - 2rem);">
 
             <!-- Header Section -->
-            <div class="overflow-hidden flex-grow p-6">
+            <div class="overflow-hidden grow p-6">
                 <!-- Tab Buttons - Updated with better spacing and visual hierarchy -->
                 <div class="flex justify-center mb-6 space-x-4">
                     <button
-                        class="px-6 py-3 text-base font-semibold text-green-700 bg-green-100 rounded-lg transition duration-200 focus:outline-none hover:bg-green-600 hover:text-white hover:shadow-md focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                        class="px-6 py-3 text-base font-semibold text-green-800 bg-green-100 rounded-lg transition duration-200 focus:outline-hidden hover:bg-green-600 hover:text-white hover:shadow-md focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                         id="tab-general-info">General Information</button>
                     <button
-                        class="px-6 py-3 text-base font-semibold text-green-700 bg-green-100 rounded-lg transition duration-200 focus:outline-none hover:bg-green-600 hover:text-white hover:shadow-md focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                        class="px-6 py-3 text-base font-semibold text-green-800 bg-green-100 rounded-lg transition duration-200 focus:outline-hidden hover:bg-green-600 hover:text-white hover:shadow-md focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                         id="tab-location-info">Position auf der Karte</button>
                 </div>
 
@@ -491,7 +481,7 @@
                 <div class="flex justify-end space-x-4 action-container">
                     <!-- "Bearbeiten" button will be inserted here dynamically -->
                     <button type="button"
-                        class="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white rounded-lg border border-gray-300 transition duration-200 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                        class="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white rounded-lg border border-gray-300 transition duration-200 hover:bg-gray-50 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
                         onclick="closeModal()">Schließen</button>
                 </div>
             </div>
@@ -508,9 +498,9 @@
     }
 
     .leaflet-popup-content-wrapper {
-        background: rgba(22, 101, 52, 0.8);
+        background: color-mix(in srgb, var(--color-green-800) 80%, transparent);
         border-radius: 12px;
-        color: #ffffff;
+        color: white;
         font-family: 'Arial', sans-serif;
         opacity: 0;
         animation: fadeIn ease 1s;
@@ -518,7 +508,7 @@
     }
 
     .leaflet-popup-tip {
-        background: rgba(22, 101, 52, 0.8);
+        background: color-mix(in srgb, var(--color-green-800) 80%, transparent);
     }
 
     .leaflet-popup-content {
@@ -528,7 +518,7 @@
     .popup-content h2 {
         margin-bottom: 10px;
         font-size: 1.3em;
-        color: #f3f4f6;
+        color: var(--color-gray-100);
     }
 
     .popup-list {
@@ -547,7 +537,7 @@
     }
 
     .popup-error {
-        color: #FF6347;
+        color: var(--color-red-500);
     }
 
     @keyframes fadeIn {
@@ -566,22 +556,22 @@
     }
 
     #tab-content::-webkit-scrollbar-track {
-        background: #f1f1f1 !important;
+        background: var(--color-gray-100) !important;
         border-radius: 4px !important;
     }
 
     #tab-content::-webkit-scrollbar-thumb {
-        background: #888 !important;
+        background: var(--color-gray-500) !important;
         border-radius: 4px !important;
     }
 
     #tab-content::-webkit-scrollbar-thumb:hover {
-        background: #666 !important;
+        background: var(--color-gray-600) !important;
     }
 
     /* Active tab styling */
     .active-tab {
-        @apply bg-green-600 text-gray-100 shadow-md !important;
+        @apply bg-green-600 text-white shadow-md !important;
         transform: translateY(-1px) !important;
     }
 
@@ -1118,7 +1108,7 @@
                                             <strong>User ID:</strong>
                                             <span class="ml-1 font-mono text-sm" id="userId-${data.id_meldung}" title="${data.user_id}">${data.user_id.length > 15 ? data.user_id.substring(0, 12) + '...' : data.user_id}</span>
                                             <button onclick="copyUserId('${data.user_id}')" 
-                                                class="p-1 ml-2 text-gray-400 rounded transition-colors duration-150 hover:text-gray-600 hover:bg-gray-200"
+                                                class="p-1 ml-2 text-gray-500 rounded-sm transition-colors duration-150 hover:text-gray-700 hover:bg-gray-200"
                                                 title="User ID kopieren">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
@@ -1162,7 +1152,7 @@
 
                                 <div>
                                     <p class="font-semibold">Messtischblatt:</p>
-                                    <a href="${'https://susudata.de/messtisch/tk25.html?lat=' + (data.latitude) + '&lng=' + (data.longitude) + '&zoom=15&marker=Fundort'}" target="_blank" class="text-blue-500 underline">Karte</a>
+                                    <a href="${'https://susudata.de/messtisch/tk25.html?lat=' + (data.latitude) + '&lng=' + (data.longitude) + '&zoom=15&marker=Fundort'}" target="_blank" class="text-blue-600 underline">Karte</a>
                                     <input type="text" class="mt-1 w-full input-field-admin"
                                             name="mtb"
                                             onchange="changeMetaData(${data.id_meldung},'mtb', this.value)"
@@ -1172,7 +1162,7 @@
                                 <div>
                                     <p class="mb-2 font-semibold">Kommentar (Reviewer):</p>
                                     <div class="overflow-auto px-3 py-2 mr-3 bg-gray-100 rounded-lg details-text" style="max-height: 150px;">
-                                         <textarea class="w-full h-full bg-transparent border-none outline-none resize-none textInputAdmin"
+                                         <textarea class="w-full h-full bg-transparent border-none outline-hidden resize-none textInputAdmin"
                                                    name="anm_bearbeiter"
                                                    onchange="changeMetaData(${data.id_meldung},'anm_bearbeiter', this.value)"
                                                    >${data.anm_bearbeiter || ""}</textarea>
@@ -1235,7 +1225,7 @@
                                 </div>
                                 <div class="space-y-3">
                                     <button onclick="toggleMarkerPlacement()" 
-                                        class="flex justify-center items-center px-4 py-3 w-full text-sm font-medium text-white bg-green-600 rounded-md transition-all duration-200 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                                        class="flex justify-center items-center px-4 py-3 w-full text-sm font-medium text-white bg-green-600 rounded-md transition-all duration-200 hover:bg-green-700 focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                                         id="markerPlacementBtn"
                                         title="Klicken Sie hier, um einen neuen Marker auf der Karte zu platzieren">
                                         <svg class="mr-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1248,14 +1238,14 @@
                                     </button>
                                     <div id="confirmationButtons" class="hidden space-y-2">
                                         <button onclick="confirmMarkerPlacement()" 
-                                            class="flex justify-center items-center px-4 py-3 w-full text-sm font-medium text-white bg-green-600 rounded-md transition-all duration-200 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                                            class="flex justify-center items-center px-4 py-3 w-full text-sm font-medium text-white bg-green-600 rounded-md transition-all duration-200 hover:bg-green-700 focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
                                             <svg class="mr-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                                             </svg>
                                             Position bestätigen
                                         </button>
                                         <button onclick="cancelMarkerPlacement()" 
-                                            class="flex justify-center items-center px-4 py-3 w-full text-sm font-medium text-gray-700 bg-gray-100 rounded-md border border-gray-300 transition-all duration-200 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2">
+                                            class="flex justify-center items-center px-4 py-3 w-full text-sm font-medium text-gray-700 bg-gray-100 rounded-md border border-gray-300 transition-all duration-200 hover:bg-gray-200 focus:outline-hidden focus:ring-2 focus:ring-gray-400 focus:ring-offset-2">
                                             <svg class="mr-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                             </svg>
@@ -1266,7 +1256,7 @@
                             </div>
                             
                             <button onclick="resetMarker(${data.latitude}, ${data.longitude})" 
-                                class="flex justify-center items-center px-4 py-3 w-full text-sm font-medium text-gray-700 bg-gray-100 rounded-md border border-gray-300 transition-all duration-200 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2">
+                                class="flex justify-center items-center px-4 py-3 w-full text-sm font-medium text-gray-700 bg-gray-100 rounded-md border border-gray-300 transition-all duration-200 hover:bg-gray-200 focus:outline-hidden focus:ring-2 focus:ring-gray-400 focus:ring-offset-2">
                                 <svg class="mr-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                                         d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
@@ -1771,7 +1761,7 @@
         if (isApproved) {
             const editButton = document.createElement('button');
             editButton.type = 'button';
-            editButton.className = 'edit-button flex items-center justify-center px-4 py-2 mr-4 text-sm font-medium text-gray-700 transition-all duration-200 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2';
+            editButton.className = 'edit-button flex items-center justify-center px-4 py-2 mr-4 text-sm font-medium text-gray-700 transition-all duration-200 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-hidden focus:ring-2 focus:ring-gray-400 focus:ring-offset-2';
             editButton.title = 'Klicken Sie hier, um die Meldung zu bearbeiten';
             editButton.innerHTML = `
                 <svg class="mr-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1790,7 +1780,7 @@
             // Add approve button for unapproved reports
             const approveButton = document.createElement('button');
             approveButton.type = 'button';
-            approveButton.className = 'approve-button flex items-center justify-center px-4 py-2 mr-4 text-sm font-medium text-gray-100 bg-green-500 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500';
+            approveButton.className = 'approve-button flex items-center justify-center px-4 py-2 mr-4 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-green-500';
             approveButton.title = 'Klicken Sie hier, um die Meldung anzunehmen';
             approveButton.innerHTML = 'Annehmen';
             approveButton.onclick = function() {
@@ -1829,7 +1819,7 @@
             editButton.style.display = 'none';
             const saveButton = document.createElement('button');
             saveButton.type = 'button';
-            saveButton.className = 'save-button flex items-center justify-center px-5 py-2.5 mr-4 text-sm font-medium text-white transition duration-200 bg-green-600 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2';
+            saveButton.className = 'save-button flex items-center justify-center px-5 py-2.5 mr-4 text-sm font-medium text-white transition duration-200 bg-green-600 rounded-lg hover:bg-green-700 focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:ring-offset-2';
             saveButton.title = 'Klicken Sie hier, um die Änderungen zu speichern';
             saveButton.innerHTML = `
                 <svg class="mr-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1927,7 +1917,7 @@
             // Change icon to checkmark
             svg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>';
             button.title = 'Kopiert!';
-            button.classList.remove('text-gray-400');
+            button.classList.remove('text-gray-500');
             button.classList.add('text-green-600');
             
             // Reset after 1.5 seconds
@@ -1936,7 +1926,7 @@
                 svg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>';
                 button.title = originalTitle;
                 button.classList.remove('text-green-600');
-                button.classList.add('text-gray-400');
+                button.classList.add('text-gray-500');
             }, 1500);
         } catch (err) {
             console.error('Failed to copy user ID:', err);

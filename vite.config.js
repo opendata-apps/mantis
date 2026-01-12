@@ -1,8 +1,7 @@
 import { defineConfig } from 'vite'
 import { resolve } from 'path'
 import { copyFileSync, existsSync } from 'fs'
-import tailwindcss from 'tailwindcss'
-import autoprefixer from 'autoprefixer'
+import tailwindcss from '@tailwindcss/vite'
 
 // Plugin to copy plotly.min.js after each build (including watch rebuilds)
 function copyPlotly() {
@@ -22,7 +21,7 @@ function copyPlotly() {
 export default defineConfig({
   root: 'app/static',
   base: '/static/build/',
-  plugins: [copyPlotly()],
+  plugins: [tailwindcss(), copyPlotly()],
 
   build: {
     outDir: 'build',
@@ -36,6 +35,7 @@ export default defineConfig({
         'report-form': resolve(__dirname, 'app/static/js/report-form-htmx.js'),
         gallery: resolve(__dirname, 'app/static/js/gallery.js'),
         confetti: resolve(__dirname, 'app/static/js/confetti.js'),
+        admin: resolve(__dirname, 'app/static/js/admin.js'),
         theme: resolve(__dirname, 'app/static/css/theme.css'),
       },
       output: {
@@ -43,12 +43,6 @@ export default defineConfig({
         chunkFileNames: '[name]-[hash].js',
         assetFileNames: '[name]-[hash][extname]',
       },
-    },
-  },
-
-  css: {
-    postcss: {
-      plugins: [tailwindcss, autoprefixer],
     },
   },
 

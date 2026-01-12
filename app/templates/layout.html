@@ -48,38 +48,36 @@
 				<a href="{{ url_for('report.melden') }}" class="text-xl font-bold text-gray-100 hover:text-gray-300 link link-underline">Melden</a>
 				<a href="{{ url_for('data.show_map', year=now.year) }}" class="text-xl font-bold text-gray-100 hover:text-gray-300 link link-underline">Auswertungen</a>
 				{% if request.path.startswith('/reviewer') or request.path.startswith('/statistik') or request.path.startswith('/galerie') or request.path.startswith('/alldata') %}
-				<div class="relative">
-					<button id="dropdownReviewerButton" data-dropdown-toggle="dropdownReviewer" class="inline-flex items-center px-4 py-2.5 text-sm font-medium text-center text-gray-100 bg-green-600 rounded-lg hover:bg-green-500 focus:ring-4 focus:ring-green-600" type="button" aria-expanded="false" aria-haspopup="true">
+				<details class="relative dropdown">
+					<summary class="inline-flex items-center px-4 py-2.5 text-sm font-medium text-center text-white bg-green-600 rounded-lg hover:bg-green-700 focus:ring-4 focus:ring-green-600 cursor-pointer list-none">
 						<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
 						</svg>
-					</button>
-					<div id="dropdownReviewer" class="hidden w-44 bg-white rounded divide-y divide-gray-100 shadow">
-						<ul class="py-1 text-sm text-gray-700" aria-labelledby="dropdownReviewerButton">
-							<li>
-								<a href="{{'/reviewer/'+ session["user_id"]}}" class="block px-4 py-2 hover:bg-gray-200">Reviewer</a>
-							</li>
-							<li>
-								<a href="{{'/statistik/'+ session["user_id"] }}" class="block px-4 py-2 hover:bg-gray-200">Statistics</a>
-							</li>
-							<li>
-								<a href="/galerie" class="block px-4 py-2 hover:bg-gray-200">Galerie</a>
-							</li>
-							<li>
-								<a href="/alldata" class="block px-4 py-2 hover:bg-gray-200">Superuser</a>
-							</li>
-						</ul>
-					</div>
-				</div>
+					</summary>
+					<ul class="absolute right-0 z-10 mt-1 w-44 bg-white rounded-sm divide-y divide-gray-100 shadow-lg py-1 text-sm text-gray-700">
+						<li>
+							<a href="{{'/reviewer/'+ session["user_id"]}}" class="block px-4 py-2 hover:bg-gray-200">Reviewer</a>
+						</li>
+						<li>
+							<a href="{{'/statistik/'+ session["user_id"] }}" class="block px-4 py-2 hover:bg-gray-200">Statistics</a>
+						</li>
+						<li>
+							<a href="/galerie" class="block px-4 py-2 hover:bg-gray-200">Galerie</a>
+						</li>
+						<li>
+							<a href="/alldata" class="block px-4 py-2 hover:bg-gray-200">Superuser</a>
+						</li>
+					</ul>
+				</details>
 				{% endif %}
 			</div>
-			<button id="mobile-menu-button" class="text-gray-100 md:hidden focus:outline-none" aria-label="Toggle menu">
+			<button id="mobile-menu-button" class="text-gray-100 md:hidden focus:outline-hidden" aria-label="Toggle menu">
 				<svg class="w-6 h-6 transition-transform duration-300 ease-in-out" id="menu-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
 				</svg>
 			</button>
 		</nav>
-		<div id="mobile-menu" class="overflow-hidden absolute right-0 left-0 top-full max-h-0 bg-green-800 bg-opacity-95 backdrop-filter backdrop-blur-lg transition-all duration-300 ease-in-out md:hidden">
+		<div id="mobile-menu" class="overflow-hidden absolute right-0 left-0 top-full max-h-0 bg-green-800/95 backdrop-filter backdrop-blur-lg transition-all duration-300 ease-in-out md:hidden">
 			<div class="flex flex-col items-center px-2 pt-2 pb-3 space-y-1">
 				<a href="{{ url_for('main.index') }}" class="block px-3 py-2 text-base font-medium text-white rounded-md transition duration-300 ease-in-out hover:bg-green-700">Start</a>
 				<a href="{{ url_for('main.mantis_religiosa') }}" class="block px-3 py-2 text-base font-medium text-white rounded-md transition duration-300 ease-in-out hover:bg-green-700">Gottesanbeterin</a>
@@ -105,10 +103,10 @@
 
 	window.addEventListener("scroll", () => {
 		if (window.scrollY > 0) {
-			header.classList.add("bg-green-800", "bg-opacity-80", "backdrop-filter", "backdrop-blur-lg");
+			header.classList.add("bg-green-800/80", "backdrop-filter", "backdrop-blur-lg");
 		} else {
 			if (!isMobileMenuOpen) {
-				header.classList.remove("bg-green-800", "bg-opacity-80", "backdrop-filter", "backdrop-blur-lg");
+				header.classList.remove("bg-green-800/80", "backdrop-filter", "backdrop-blur-lg");
 			}
 		}
 	});
@@ -117,13 +115,13 @@
 		isMobileMenuOpen = !isMobileMenuOpen;
 		if (isMobileMenuOpen) {
 			mobileMenu.style.maxHeight = `${mobileMenu.scrollHeight}px`;
-			header.classList.add("bg-green-800", "bg-opacity-95", "backdrop-filter", "backdrop-blur-lg");
+			header.classList.add("bg-green-800/95", "backdrop-filter", "backdrop-blur-lg");
 			menuIcon.classList.add('rotate-90');
 			menuIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>';
 		} else {
 			mobileMenu.style.maxHeight = '0';
 			if (window.scrollY === 0) {
-				header.classList.remove("bg-green-800", "bg-opacity-95", "backdrop-filter", "backdrop-blur-lg");
+				header.classList.remove("bg-green-800/95", "backdrop-filter", "backdrop-blur-lg");
 			}
 			menuIcon.classList.remove('rotate-90');
 			menuIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>';
@@ -138,7 +136,7 @@
 			mobileMenu.style.maxHeight = '0';
 			isMobileMenuOpen = false;
 			if (window.scrollY === 0) {
-				header.classList.remove("bg-green-800", "bg-opacity-95", "backdrop-filter", "backdrop-blur-lg");
+				header.classList.remove("bg-green-800/95", "backdrop-filter", "backdrop-blur-lg");
 			}
 			menuIcon.classList.remove('rotate-90');
 			menuIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>';
@@ -151,7 +149,7 @@
 			mobileMenu.style.maxHeight = '0';
 			isMobileMenuOpen = false;
 			if (window.scrollY === 0) {
-				header.classList.remove("bg-green-800", "bg-opacity-95", "backdrop-filter", "backdrop-blur-lg");
+				header.classList.remove("bg-green-800/95", "backdrop-filter", "backdrop-blur-lg");
 			}
 			menuIcon.classList.remove('rotate-90');
 			menuIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>';
@@ -159,18 +157,18 @@
 	});
 	</script>
 	<section class="relative flex items-center justify-center h-[240px] max-h-[240px] bg-fixed bg-center bg-no-repeat bg-cover" style="background-image: url('{{ url_for('static', filename='images/berger03.avif') }}');">
-		<div id="overlay" class="absolute inset-0 z-10 bg-black bg-opacity-50"></div>
+		<div id="overlay" class="absolute inset-0 z-10 bg-black/50"></div>
 		<div class="relative z-20 mt-14 text-center">
 			<h1 class="mb-6 text-4xl font-bold text-gray-100 md:text-5xl lg:text-6xl"> {% block title %}{% endblock title %} </h1> {% if request.path == '/' or request.path.startswith("/start") or request.path.startswith("/sichtungen") or
-        request.path.startswith("/report") %} <a href={% block button_ref %} "/melden" {% endblock %} class="inline-block overflow-hidden relative px-12 py-4 font-medium text-gray-100 bg-green-600 rounded-lg transition-all duration-300 ease-out group hover:bg-gradient-to-r hover:from-green-600 hover:to-green-500 hover:ring-2 hover:ring-offset-2 hover:ring-green-500">
+        request.path.startswith("/report") %} <a href={% block button_ref %} "/melden" {% endblock %} class="inline-block overflow-hidden relative px-12 py-4 font-medium text-white bg-green-600 rounded-lg transition-all duration-300 ease-out group hover:bg-linear-to-r hover:from-green-600 hover:to-green-500 hover:ring-2 hover:ring-offset-2 hover:ring-green-500">
 				<span class="absolute bottom-0 left-0 -ml-2 h-full">
 					<svg viewBox="0 0 487 487" class="w-auto h-full opacity-100 object-stretch" xmlns="http://www.w3.org/2000/svg">
-						<path d="M0 .3c67 2.1 134.1 4.3 186.3 37 52.2 32.7 89.6 95.8 112.8 150.6 23.2 54.8 32.3 101.4 61.2 149.9 28.9 48.4 77.7 98.8 126.4 149.2H0V.3z" fill="#FFF" fill-rule="nonzero" fill-opacity=".1"></path>
+						<path d="M0 .3c67 2.1 134.1 4.3 186.3 37 52.2 32.7 89.6 95.8 112.8 150.6 23.2 54.8 32.3 101.4 61.2 149.9 28.9 48.4 77.7 98.8 126.4 149.2H0V.3z" fill="white" fill-rule="nonzero" fill-opacity=".1"></path>
 					</svg>
 				</span>
 				<span class="absolute top-0 right-0 w-12">
 					<svg viewBox="0 0 487 487" class="object-cover w-full h-full" xmlns="http://www.w3.org/2000/svg">
-						<path d="M487 486.7c-66.1-3.6-132.3-7.3-186.3-37s-95.9-85.3-126.2-137.2c-30.4-51.8-49.3-99.9-76.5-151.4C70.9 109.6 35.6 54.8.3 0H487v486.7z" fill="#FFF" fill-rule="nonzero" fill-opacity=".1"></path>
+						<path d="M487 486.7c-66.1-3.6-132.3-7.3-186.3-37s-95.9-85.3-126.2-137.2c-30.4-51.8-49.3-99.9-76.5-151.4C70.9 109.6 35.6 54.8.3 0H487v486.7z" fill="white" fill-rule="nonzero" fill-opacity=".1"></path>
 					</svg>
 				</span>
 				<span class="absolute right-0 -mt-12 w-8 h-32 bg-white opacity-10 transition-all duration-1000 transform rotate-12 translate-x-12 group-hover:-translate-x-40 ease"></span>
@@ -188,10 +186,10 @@
 	<!--! Start Footer -->
 	<footer id="links" class="bg-gray-200 border-t border-gray-300 footer">
 		<div class="px-4 py-8 mx-auto space-y-6 max-w-5xl sm:px-6 lg:px-8 sm:space-y-8">
-			<div class="flex justify-center mb-5 text-green-600">
-				<a href="/" class="text-2xl tracking-wider transition-colors font- sm:text-3xl hover:text-green-700">MITMACHPROJEKT</a>
+			<div class="flex justify-center mb-5">
+				<a href="/" class="text-2xl tracking-wider transition-colors font- sm:text-3xl text-green-700 hover:text-green-800">MITMACHPROJEKT</a>
 			</div>
-			<p class="mx-auto mb-6 max-w-xl text-sm leading-relaxed text-center text-gray-500 sm:text-base"> Die Gottesanbeterin ( <i>Mantis religiosa </i> L., 1758) ist eine faszinierende Insektenart mit einer einzigartigen Jagdstrategie. </p>
+			<p class="mx-auto mb-6 max-w-xl text-sm leading-relaxed text-center text-gray-600 sm:text-base"> Die Gottesanbeterin ( <i>Mantis religiosa </i> L., 1758) ist eine faszinierende Insektenart mit einer einzigartigen Jagdstrategie. </p>
 			<ul class="flex flex-wrap gap-6 justify-center sm:gap-8">
 				<li>
 					<a class="text-gray-700 transition hover:text-gray-800/75" href="https://mantis-religiosa.readthedocs.io/de/latest/index.html" target="_blank" rel="noreferrer noopener"> Dokumentation </a>
@@ -239,9 +237,9 @@
 				</li>
 			</ul>
 			<div class="flex flex-col justify-center pt-8 mt-8 space-y-4 text-center text-gray-600 border-t border-gray-300 sm:space-y-0 sm:mt-10 sm:flex-row sm:space-x-10 sm:text-left">
-				<span>Python/Flask-App: <a href="https://gitlab.com/opendata-apps/mantis/-/commits/v0.13.7" class="font-medium text-green-600 hover:underline">v0.13.7</a>
-				</span>
-				<span>Lizenz: <a href="/lizenz" class="font-medium text-green-600 hover:underline">MIT</a>
+			<span>Python/Flask-App: <a href="https://gitlab.com/opendata-apps/mantis/-/commits/v0.13.7" class="font-medium text-green-700 hover:underline">v0.13.7</a>
+			</span>
+			<span>Lizenz: <a href="/lizenz" class="font-medium text-green-700 hover:underline">MIT</a>
 				</span>
 				<span><script>document.write(new Date().getFullYear())</script></span>
 			</div>

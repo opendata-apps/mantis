@@ -97,20 +97,20 @@
   }
 
   .photo-dropzone {
-    border: 2px dashed #e5e7eb;
+    border: 2px dashed var(--color-gray-200);
     border-radius: 0.5rem;
     transition: all 0.3s ease;
   }
   
   .photo-dropzone:hover, .photo-dropzone.dragover {
-    border-color: #10b981;
-    background-color: rgba(16, 185, 129, 0.05);
+    border-color: var(--color-green-500);
+    background-color: color-mix(in srgb, var(--color-green-500) 5%, transparent);
   }
   
   /* Readonly fields for prefilled user data */
   input[readonly], select[readonly], textarea[readonly] {
-    background-color: #f9fafb !important;
-    color: #6b7280 !important;
+    background-color: var(--color-gray-50) !important;
+    color: var(--color-gray-500) !important;
     cursor: not-allowed !important;
   }
   
@@ -121,19 +121,19 @@
   }
   
   .exif-panel {
-    background-color: #f3f4f6;
+    background-color: var(--color-gray-100);
     border-radius: 0.5rem;
-    border-left: 4px solid #10b981;
+    border-left: 4px solid var(--color-green-500);
   }
   
   .field-error-message {
-    color: #ef4444;
+    color: var(--color-red-500);
     font-size: 0.875rem;
     margin-top: 0.25rem;
   }
   
   .invalid {
-    border-color: #ef4444 !important;
+    border-color: var(--color-red-500) !important;
   }
   
   .processing-indicator {
@@ -152,7 +152,7 @@
 
 <div class="form-container">
   <div class="form-wrapper">
-    <div id="loadingOverlay" class="flex fixed inset-0 invisible z-50 flex-col justify-center items-center bg-white bg-opacity-80 opacity-0 transition-all duration-200 ease-in-out">
+    <div id="loadingOverlay" class="flex fixed inset-0 invisible z-50 flex-col justify-center items-center bg-white/80 opacity-0 transition-all duration-200 ease-in-out">
       <div class="w-12 h-12 rounded-full border-4 border-gray-200 animate-spin border-t-green-600"></div>
       <div id="loadingMessage" class="mt-4 font-medium text-green-700">Wird verarbeitet...</div>
     </div>
@@ -165,7 +165,7 @@
       
       <div class="step-container">
         <!-- Step 1: Photo & Details -->
-        <div class="p-6 bg-white rounded-lg border border-gray-100 shadow-sm step active" id="step1">
+        <div class="p-6 bg-white rounded-lg border border-gray-100 shadow-xs step active" id="step1">
           <h3 class="mb-4 text-xl font-medium text-green-700">Foto & Details</h3>
           
           <p class="mb-4 text-sm text-gray-600">
@@ -183,7 +183,7 @@
               
             <div class="form-group">
               {{ render_form_field(form.description, attrs={'id': 'description', 'rows': '4'}) }}
-              <p class="mt-1 text-xs text-gray-500">Verbleibende Zeichen: <span id="char-count" class="font-mono">500</span></p>
+              <p class="mt-1 text-xs text-gray-600">Verbleibende Zeichen: <span id="char-count" class="font-mono">500</span></p>
             </div>
           </div>
           
@@ -191,10 +191,10 @@
         </div>
         
         <!-- Step 2: Location & Date -->
-        <div class="hidden p-6 bg-white rounded-lg border border-gray-100 shadow-sm step" id="step2">
+        <div class="hidden p-6 bg-white rounded-lg border border-gray-100 shadow-xs step" id="step2">
           <h3 class="mb-4 text-xl font-medium text-green-700">Wann und Wo? (Ort & Datum)</h3>
           
-          <p class="mb-3 text-sm italic text-gray-500">
+          <p class="mb-3 text-sm italic text-gray-600">
             <i class="mr-1 w-4 h-4 text-green-600 fas fa-map-marker-alt"></i>
             Prüfen oder setzen Sie das Sichtungsdatum und markieren Sie den genauen Fundort auf der Karte.
           </p>
@@ -209,10 +209,10 @@
               <div class="p-3 mb-2 bg-gray-50 rounded-md">
                 <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                   <span class="text-sm font-medium text-gray-700">Fundort auswählen</span>
-                  <span class="text-xs text-gray-500">Klicken Sie auf die Karte oder geben Sie Koordinaten ein</span>
+                  <span class="text-xs text-gray-600">Klicken Sie auf die Karte oder geben Sie Koordinaten ein</span>
                 </div>
               </div>
-              <div id="map" class="w-full h-64 border border-gray-300 rounded-md shadow-sm sm:h-80 md:h-96 lg:h-[28rem] xl:h-[32rem] 2xl:h-[36rem]"></div>
+              <div id="map" class="w-full h-64 border border-gray-300 rounded-md shadow-xs sm:h-80 md:h-96 lg:h-112 xl:h-128 2xl:h-144"></div>
               {# Inline error container for coordinates - supports HTMX OOB swaps #}
               <div id="error-coordinates" class="field-error-message"></div>
             </div>
@@ -223,19 +223,19 @@
               <div class="p-4 bg-gray-50 rounded-md border border-gray-200">
                 <div class="mb-2">
                   <span class="text-sm font-medium text-gray-700">Genaue Koordinaten</span>
-                  <div class="mt-0.5 text-xs text-gray-500">Klicken Sie auf die Karte oder geben Sie Werte ein</div>
+                  <div class="mt-0.5 text-xs text-gray-600">Klicken Sie auf die Karte oder geben Sie Werte ein</div>
                 </div>
                 
                 <div class="grid grid-cols-2 gap-3">
                   <div class="form-group">
                     <label for="manual-latitude" class="block mb-1 text-xs font-medium text-gray-700">Breitengrad</label>
                     <input type="text" id="manual-latitude" pattern="-?[0-9]+\.?[0-9]*" placeholder="z.B. 48.137154" 
-                      class="block px-4 py-2 w-full text-base text-gray-700 bg-white rounded-lg border border-gray-300 shadow-sm transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200">
+                      class="block px-4 py-2 w-full text-base text-gray-700 bg-white rounded-lg border border-gray-300 shadow-xs transition duration-300 ease-in-out focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200">
                   </div>
                   <div class="form-group">
                     <label for="manual-longitude" class="block mb-1 text-xs font-medium text-gray-700">Längengrad</label>
                     <input type="text" id="manual-longitude" pattern="-?[0-9]+\.?[0-9]*" placeholder="z.B. 11.576124"
-                      class="block px-4 py-2 w-full text-base text-gray-700 bg-white rounded-lg border border-gray-300 shadow-sm transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200">
+                      class="block px-4 py-2 w-full text-base text-gray-700 bg-white rounded-lg border border-gray-300 shadow-xs transition duration-300 ease-in-out focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200">
                   </div>
                 </div>
               </div>
@@ -244,7 +244,7 @@
               {{ form.latitude(id="latitude", style="display: none;") }}
               {{ form.longitude(id="longitude", style="display: none;") }}
               {% if form.latitude.errors or form.longitude.errors %}
-                <div class="text-sm text-red-500">
+                <div class="text-sm text-red-600">
                   {% if form.latitude.errors %}{{ form.latitude.errors[0] }}{% endif %}
                   {% if form.longitude.errors %}{{ form.longitude.errors[0] }}{% endif %}
                 </div>
@@ -255,13 +255,13 @@
                 <h4 class="mb-3 text-sm font-medium text-gray-700">Adressinformationen</h4>
                 <div class="space-y-3">
                   <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    {{ render_form_field(form.fund_zip_code, attrs={'id': 'fund_zip_code', 'class': 'w-full px-3 py-2 text-sm md:text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
-                    {{ render_form_field(form.fund_city, attrs={'id': 'fund_city', 'class': 'w-full px-3 py-2 text-sm md:text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
+                    {{ render_form_field(form.fund_zip_code, attrs={'id': 'fund_zip_code', 'class': 'w-full px-3 py-2 text-sm md:text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-xs focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
+                    {{ render_form_field(form.fund_city, attrs={'id': 'fund_city', 'class': 'w-full px-3 py-2 text-sm md:text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-xs focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
                   </div>
                   
-                  {{ render_form_field(form.fund_district, attrs={'id': 'fund_district', 'class': 'w-full px-3 py-2 text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
-                  {{ render_form_field(form.fund_state, attrs={'id': 'fund_state', 'class': 'w-full px-3 py-2 text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
-                  {{ render_form_field(form.fund_street, attrs={'id': 'fund_street', 'class': 'w-full px-3 py-2 text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
+                  {{ render_form_field(form.fund_district, attrs={'id': 'fund_district', 'class': 'w-full px-3 py-2 text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-xs focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
+                  {{ render_form_field(form.fund_state, attrs={'id': 'fund_state', 'class': 'w-full px-3 py-2 text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-xs focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
+                  {{ render_form_field(form.fund_street, attrs={'id': 'fund_street', 'class': 'w-full px-3 py-2 text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-xs focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
                 </div>
               </div>
             </div>
@@ -271,7 +271,7 @@
         </div>
         
         <!-- Step 3: Contact Information -->
-        <div class="hidden p-6 bg-white rounded-lg border border-gray-100 shadow-sm step" id="step3">
+        <div class="hidden p-6 bg-white rounded-lg border border-gray-100 shadow-xs step" id="step3">
           <h3 class="mb-4 text-xl font-medium text-green-700">Ihre Kontaktdaten</h3>
           
           <div class="space-y-4">
@@ -289,7 +289,7 @@
             {# Checkbox with htmx toggle for finder fields #}
             <div class="flex items-center space-x-2">
               <input type="checkbox" id="identical_finder_reporter" name="identical_finder_reporter"
-                     class="form-checkbox w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded shadow-sm transition duration-150 ease-in-out"
+                     class="form-checkbox w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded-sm shadow-xs transition duration-150 ease-in-out"
                      checked
                      hx-post="{{ url_for('report.htmx_toggle_finder') }}"
                      hx-trigger="change"
@@ -319,7 +319,7 @@
         </div>
         
         <!-- Step 4: Review & Submit - Content loaded via htmx -->
-        <div class="hidden p-6 bg-white rounded-lg border border-gray-100 shadow-sm step" id="step4">
+        <div class="hidden p-6 bg-white rounded-lg border border-gray-100 shadow-xs step" id="step4">
           <h3 class="mb-4 text-xl font-medium text-green-700">Überprüfen & Absenden</h3>
 
           <p class="mb-6 text-sm text-gray-600">
@@ -331,7 +331,7 @@
           <div id="review-content-container">
             <div class="flex justify-center items-center py-12">
               <div class="w-8 h-8 rounded-full border-4 border-gray-200 animate-spin border-t-green-600"></div>
-              <span class="ml-3 text-gray-500">Lade Zusammenfassung...</span>
+              <span class="ml-3 text-gray-600">Lade Zusammenfassung...</span>
             </div>
           </div>
 

@@ -70,7 +70,7 @@ Mantis Religiosa: Die Europäische Gottesanbeterin in Brandenburg & Berlin | Got
   
   .article-thumb img {
     border-radius: 0.5rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 4px 6px -1px color-mix(in srgb, black 10%, transparent), 0 2px 4px -1px color-mix(in srgb, black 6%, transparent);
     transition: transform 0.3s ease;
   }
   
@@ -82,7 +82,7 @@ Mantis Religiosa: Die Europäische Gottesanbeterin in Brandenburg & Berlin | Got
     margin-top: 0.5rem;
     font-size: 0.8rem;
     text-align: center;
-    color: #6b7280;
+    color: var(--color-gray-500);
   }
   
   /* Species info box */
@@ -90,10 +90,10 @@ Mantis Religiosa: Die Europäische Gottesanbeterin in Brandenburg & Berlin | Got
     float: right;
     margin: 0 0 1em 1em;
     padding: 0.75rem;
-    border: 1px solid #e5e7eb;
-    background-color: #f9fafb;
+    border: 1px solid var(--color-gray-200);
+    background-color: var(--color-gray-50);
     border-radius: 0.5rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 4px 6px -1px color-mix(in srgb, black 10%, transparent), 0 2px 4px -1px color-mix(in srgb, black 6%, transparent);
     font-size: 0.9rem;
     max-width: 18rem;
   }
@@ -117,8 +117,8 @@ Mantis Religiosa: Die Europäische Gottesanbeterin in Brandenburg & Berlin | Got
     max-width: fit-content;
     margin: 1.5rem 0;
     padding: 1rem;
-    background-color: #f0fdf4;
-    border-left: 4px solid #22c55e;
+    background-color: var(--color-green-50);
+    border-left: 4px solid var(--color-green-500);
     border-radius: 0.375rem;
   }
   
@@ -128,9 +128,9 @@ Mantis Religiosa: Die Europäische Gottesanbeterin in Brandenburg & Berlin | Got
     max-width: fit-content;
     margin: 1.5rem 0;
     padding: 1rem;
-    background-color: #f9fafb;
-    border-top: 1px solid #e5e7eb;
-    border-bottom: 1px solid #e5e7eb;
+    background-color: var(--color-gray-50);
+    border-top: 1px solid var(--color-gray-200);
+    border-bottom: 1px solid var(--color-gray-200);
   }
 </style>
 {% endblock %}
@@ -151,47 +151,47 @@ Mantis Religiosa: Die Europäische Gottesanbeterin in Brandenburg & Berlin | Got
           </div>
           <ul class="p-3">
             <li class="py-1">
-              <a href="#steckbrief" class="block px-2 py-1 text-gray-700 transition-colors rounded hover:bg-gray-100 hover:text-green-600">
+              <a href="#steckbrief" class="block px-2 py-1 text-gray-700 transition-colors rounded-sm hover:bg-gray-100 hover:text-green-700">
                 Steckbrief
               </a>
             </li>
             <li class="py-1">
-              <a href="#ueberblick" class="block px-2 py-1 text-gray-700 transition-colors rounded hover:bg-gray-100 hover:text-green-600">
+              <a href="#ueberblick" class="block px-2 py-1 text-gray-700 transition-colors rounded-sm hover:bg-gray-100 hover:text-green-700">
                 Überblick
               </a>
             </li>
             <li class="py-1">
-              <a href="#habitat" class="block px-2 py-1 text-gray-700 transition-colors rounded hover:bg-gray-100 hover:text-green-600">
+              <a href="#habitat" class="block px-2 py-1 text-gray-700 transition-colors rounded-sm hover:bg-gray-100 hover:text-green-700">
                 Habitat
               </a>
             </li>
             <li class="py-1">
-              <a href="#verbreitungsgebiet" class="block px-2 py-1 text-gray-700 transition-colors rounded hover:bg-gray-100 hover:text-green-600">
+              <a href="#verbreitungsgebiet" class="block px-2 py-1 text-gray-700 transition-colors rounded-sm hover:bg-gray-100 hover:text-green-700">
                 Verbreitungsgebiet
               </a>
             </li>
             <li class="py-1">
-              <a href="#lebenszyklus" class="block px-2 py-1 text-gray-700 transition-colors rounded hover:bg-gray-100 hover:text-green-600">
+              <a href="#lebenszyklus" class="block px-2 py-1 text-gray-700 transition-colors rounded-sm hover:bg-gray-100 hover:text-green-700">
                 Lebenszyklus
               </a>
             </li>
             <li class="py-1">
-              <a href="#beobachtungstipps" class="block px-2 py-1 text-gray-700 transition-colors rounded hover:bg-gray-100 hover:text-green-600">
+              <a href="#beobachtungstipps" class="block px-2 py-1 text-gray-700 transition-colors rounded-sm hover:bg-gray-100 hover:text-green-700">
                 Beobachtungstipps
               </a>
             </li>
             <li class="py-1">
-              <a href="#bestimmung" class="block px-2 py-1 text-gray-700 transition-colors rounded hover:bg-gray-100 hover:text-green-600">
+              <a href="#bestimmung" class="block px-2 py-1 text-gray-700 transition-colors rounded-sm hover:bg-gray-100 hover:text-green-700">
                 Bestimmungsschlüssel
               </a>
             </li>
             <li class="py-1">
-              <a href="#weiterfuehrende-links" class="block px-2 py-1 text-gray-700 transition-colors rounded hover:bg-gray-100 hover:text-green-600">
+              <a href="#weiterfuehrende-links" class="block px-2 py-1 text-gray-700 transition-colors rounded-sm hover:bg-gray-100 hover:text-green-700">
                 Weiterführende Links
               </a>
             </li>
             <li class="py-1">
-              <a href="#meldeformular" class="block px-2 py-1 text-gray-700 transition-colors rounded hover:bg-gray-100 hover:text-green-600">
+              <a href="#meldeformular" class="block px-2 py-1 text-gray-700 transition-colors rounded-sm hover:bg-gray-100 hover:text-green-700">
                 Meldeformular
               </a>
             </li>
@@ -201,7 +201,7 @@ Mantis Religiosa: Die Europäische Gottesanbeterin in Brandenburg & Berlin | Got
     </aside>
     <article class="order-1 md:col-span-3 md:order-2" itemscope itemtype="https://schema.org/Article">
       <div class="p-8 bg-white rounded-lg shadow-lg">
-        <h1 class="pb-4 mb-6 text-3xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-green-400" itemprop="headline">
+        <h1 class="pb-4 mb-6 text-3xl font-bold tracking-tight text-transparent bg-clip-text bg-linear-to-r from-green-600 to-green-400" itemprop="headline">
           Die Europäische Gottesanbeterin (<i>Mantis religiosa</i> L., 1758)
         </h1>
 
@@ -216,7 +216,7 @@ Mantis Religiosa: Die Europäische Gottesanbeterin in Brandenburg & Berlin | Got
                data-title="Männliche Mantis religiosa">
               <img src="{{ url_for('static', filename='images/mantis--maennchen__krueger.webp') }}" 
                    alt="Männliche Mantis religiosa (Europäische Gottesanbeterin) in Lauerstellung" 
-                   class="inline-block w-full max-w-xs mb-2 rounded hover:opacity-90"
+                   class="inline-block w-full max-w-xs mb-2 rounded-sm hover:opacity-90"
                    itemprop="image">
             </a>
             <div class="mb-4 text-sm italic text-gray-600">Männliche Mantis religiosa</div>
@@ -247,7 +247,7 @@ Mantis Religiosa: Die Europäische Gottesanbeterin in Brandenburg & Berlin | Got
 
         <p class="mb-6 text-lg leading-relaxed text-gray-700">
           Die <span class="font-semibold text-green-600">Europäische Gottesanbeterin</span> ist eine
-          <a href="https://de.wikipedia.org/wiki/Fangschrecken" target="_blank" rel="noopener" class="text-green-600 hover:underline">Fangschreckenart</a>,
+          <a href="https://de.wikipedia.org/wiki/Fangschrecken" target="_blank" rel="noopener" class="text-green-700 hover:underline">Fangschreckenart</a>,
           die in Europa, Asien und Teilen Afrikas verbreitet ist. Ihren Namen verdankt sie der charakteristischen Haltung ihrer Vorderbeine, 
           die an betende Hände erinnert. In Deutschland war die Art ursprünglich nur in wärmebegünstigten Gebieten in Rheinland-Pfalz, 
           Baden-Württemberg und dem Saarland heimisch, breitet sich jedoch seit den 1990er Jahren immer weiter Richtung Norden aus.
@@ -281,7 +281,7 @@ Mantis Religiosa: Die Europäische Gottesanbeterin in Brandenburg & Berlin | Got
             </div>
             <div class="p-3 border border-gray-100 rounded-md">
               <dt class="font-semibold text-green-600">Ordnung:</dt>
-              <dd class="mt-1"><a href="https://de.wikipedia.org/wiki/Mantodea" target="_blank" class="text-green-600 hover:underline">Fangschrecken (Mantodea)</a></dd>
+              <dd class="mt-1"><a href="https://de.wikipedia.org/wiki/Mantodea" target="_blank" class="text-green-700 hover:underline">Fangschrecken (Mantodea)</a></dd>
             </div>
             <div class="p-3 border border-gray-100 rounded-md">
               <dt class="font-semibold text-green-600">Größe:</dt>
@@ -445,7 +445,7 @@ Mantis Religiosa: Die Europäische Gottesanbeterin in Brandenburg & Berlin | Got
               <li>Männlichen Gottesanbeterinnen</li>
               <li>Weiblichen Gottesanbeterinnen</li>
             </ul>
-            <a href="/bestimmung" target="_blank" class="inline-flex items-center px-4 py-2 font-medium text-white transition-colors duration-200 bg-green-500 rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+            <a href="/bestimmung" target="_blank" class="inline-flex items-center px-4 py-2 font-medium text-white transition-colors duration-200 bg-green-600 rounded-lg hover:bg-green-700 focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
               <span>Zum Bestimmungsschlüssel</span>
               <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
@@ -459,7 +459,7 @@ Mantis Religiosa: Die Europäische Gottesanbeterin in Brandenburg & Berlin | Got
           <h2 class="pb-2 mb-4 text-2xl font-bold tracking-tight text-gray-800 border-b border-gray-200">Weiterführende Links</h2>
           <ul class="space-y-3">
             <li class="flex">
-              <svg class="flex-shrink-0 w-6 h-6 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <svg class="shrink-0 w-6 h-6 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
               </svg>
               <div>
@@ -469,7 +469,7 @@ Mantis Religiosa: Die Europäische Gottesanbeterin in Brandenburg & Berlin | Got
               </div>
             </li>
             <li class="flex">
-              <svg class="flex-shrink-0 w-6 h-6 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <svg class="shrink-0 w-6 h-6 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
               </svg>
               <div>
@@ -479,7 +479,7 @@ Mantis Religiosa: Die Europäische Gottesanbeterin in Brandenburg & Berlin | Got
               </div>
             </li>
             <li class="flex">
-              <svg class="flex-shrink-0 w-6 h-6 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <svg class="shrink-0 w-6 h-6 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
               </svg>
               <div>
@@ -504,7 +504,7 @@ Mantis Religiosa: Die Europäische Gottesanbeterin in Brandenburg & Berlin | Got
                 Ihre Meldung trägt wichtige Daten zu unserem Forschungsprojekt bei und hilft uns, die Ausbreitung der Art zu verstehen.
               </p>
             </div>
-            <a class="inline-flex items-center self-center px-6 py-3 text-lg font-semibold text-white transition-colors duration-200 bg-green-600 border border-transparent rounded-full shadow-lg hover:bg-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+            <a class="inline-flex items-center self-center px-6 py-3 text-lg font-semibold text-white transition-colors duration-200 bg-green-600 border border-transparent rounded-full shadow-lg hover:bg-green-700 focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                href="{{ url_for('report.melden') }}" rel="nofollow">
               <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>

@@ -7,46 +7,44 @@ block content %}
 
   <div class="flex flex-wrap items-center justify-between mb-5 md:space-x-6 lg:space-x-8 xl:space-x-4">
     <div class="flex flex-wrap items-center w-full space-x-4 md:space-x-4 md:w-auto">
-      <!-- Filter button -->
-      <button id="filterDropdownButton" data-dropdown-toggle="filterDropdown"
-        class="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg md:w-auto focus:outline-none hover:bg-gray-100 focus:z-10 focus:ring-4 focus:ring-gray-200"
-        type="button">
-        <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="w-4 h-4 mr-2 text-gray-400"
-          viewbox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd"
-            d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"
-            clip-rule="evenodd" />
-        </svg>
-        Filter
-        <svg class="-mr-1 ml-1.5 w-5 h-5" fill="currentColor" viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true">
-          <path clip-rule="evenodd" fill-rule="evenodd"
-            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
-        </svg>
-      </button>
-
-      <div id="filterDropdown"
-        class="z-50 hidden w-64 p-4 space-y-3 bg-white divide-y divide-gray-100 rounded-lg shadow-lg sm:w-80">
-        <div class="p-4 bg-gray-100 rounded-lg shadow-md">
-          <p class="text-sm text-gray-700">
-            <strong>Hinweis:</strong> Hier könnte eine Filterfunktion eingebunden werden.
-          </p>
-          <p class="text-sm font-bold text-red-500">
-            Vorschläge für Filter sind willkommen!
-          </p>
+      <!-- Filter dropdown -->
+      <details class="relative dropdown">
+        <summary class="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg md:w-auto focus:outline-hidden hover:bg-gray-100 focus:z-10 focus:ring-4 focus:ring-gray-200 cursor-pointer list-none">
+          <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="w-4 h-4 mr-2 text-gray-500"
+            viewbox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd"
+              d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"
+              clip-rule="evenodd" />
+          </svg>
+          Filter
+          <svg class="-mr-1 ml-1.5 w-5 h-5" fill="currentColor" viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true">
+            <path clip-rule="evenodd" fill-rule="evenodd"
+              d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+          </svg>
+        </summary>
+        <div class="absolute left-0 z-50 w-64 p-4 space-y-3 bg-white divide-y divide-gray-100 rounded-lg shadow-lg sm:w-80 mt-1">
+          <div class="p-4 bg-gray-100 rounded-lg shadow-md">
+            <p class="text-sm text-gray-700">
+              <strong>Hinweis:</strong> Hier könnte eine Filterfunktion eingebunden werden.
+            </p>
+            <p class="text-sm font-bold text-red-600">
+              Vorschläge für Filter sind willkommen!
+            </p>
+          </div>
+          <button type="button"
+            class="w-full px-4 py-2 mt-3 text-white bg-green-500 rounded-md shadow-xs hover:bg-green-600 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:border-transparent">
+            Filter anwenden
+          </button>
         </div>
-        <button type="button"
-          class="w-full px-4 py-2 mt-3 text-white bg-green-500 rounded-md shadow-sm hover:bg-green-600 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:border-transparent">
-          Filter anwenden
-        </button>
-      </div>
+      </details>
     </div>
 
-    <div class="relative flex items-center flex-grow w-full mb-2 rounded-lg shadow-sm md:w-auto md:mb-0">
+    <div class="relative flex items-center grow w-full mb-2 rounded-lg shadow-xs md:w-auto md:mb-0">
       <form id="searchForm"
         class="flex items-center w-full transition-all duration-300 bg-white rounded-lg focus-within:ring-2 focus-within:ring-green-500">
         <!-- Search Bar -->
-        <div class="relative flex-grow">
+        <div class="relative grow">
           <button type="submit" class="absolute inset-y-0 left-0 flex items-center pl-3">
             <svg class="w-5 h-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
               fill="currentColor" aria-hidden="true">
@@ -58,7 +56,7 @@ block content %}
           <input type="text" id="searchInput" name="search" placeholder="Search..."
             class="w-full h-full py-2 pl-10 pr-4 transition-shadow duration-300 bg-transparent rounded-l-lg search focus:ring-0 focus:border-transparent" />
           <button type="button" onclick="clearSearch()" title="Clear"
-            class="absolute p-1 transform -translate-y-1/2 bg-white rounded-full right-5 top-1/2 hover:bg-gray-200 focus:outline-none">
+            class="absolute p-1 transform -translate-y-1/2 bg-white rounded-full right-5 top-1/2 hover:bg-gray-200 focus:outline-hidden">
             <svg focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16">
               <path
                 d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z">
@@ -79,7 +77,7 @@ block content %}
 
     <!-- <div class="flex items-center w-full space-x-4 md:w-auto">
       <button id="dropdownExportButton" data-dropdown-toggle="filterForm"
-        class="flex items-center justify-center flex-grow px-4 py-2 text-sm font-medium text-gray-100 bg-green-600 border border-green-400 rounded-lg focus:outline-none hover:bg-green-600 focus:z-10 focus:ring-4 focus:ring-gray-200">
+        class="flex items-center justify-center grow px-4 py-2 text-sm font-medium text-white bg-green-600 border border-green-400 rounded-lg focus:outline-hidden hover:bg-green-600 focus:z-10 focus:ring-4 focus:ring-gray-200">
         <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="2"
           stroke="currentColor" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round"
@@ -88,7 +86,7 @@ block content %}
         Export
       </button>
 
-      <div id="filterForm" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44">
+      <div id="filterForm" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow-sm w-44">
         <ul class="py-2 text-sm text-gray-700" aria-labelledby="dropdownExportButton">
           <li>
             <button onclick="exportCsv()" class="block w-full px-4 py-2 text-left hover:bg-gray-100">
@@ -105,7 +103,7 @@ block content %}
 
     <div class="overflow-x-auto shadow-md sm:rounded-lg">
       <div id="scrollContainer" class="overflow-y-auto h-[66vh]">
-        <table id="dataTable" class="w-full text-sm text-left text-gray-500">
+        <table id="dataTable" class="w-full text-sm text-left text-gray-600">
           <thead class="sticky top-0 text-xs text-gray-700 uppercase bg-gray-50">
             <tr id="tableHeader"></tr>
           </thead>
@@ -122,46 +120,41 @@ block content %}
 </div>
 
 <!-- Edit Modal -->
-<div id="editModal" tabindex="-1" data-modal-backdrop="static"
-  class="fixed inset-0 z-50 flex items-center justify-center hidden overflow-y-auto">
-  <div class="relative w-full h-full max-w-md p-4 md:h-auto">
-    <!-- Modal content -->
-    <div class="relative bg-white rounded-lg shadow">
-      <!-- Modal header -->
-      <div class="flex items-start justify-between p-4 border-b rounded-t">
-        <h3 class="text-xl font-semibold text-gray-900">Edit Field</h3>
-        <!-- Optional: Remove the close button or ensure it doesn't have data-modal-hide -->
-      </div>
-      <!-- Modal body -->
-      <div class="p-6 space-y-6">
-        <div id="modalInputContainer"></div>
-      </div>
-      <!-- Modal footer -->
-      <div class="flex items-center p-6 space-x-2 border-t border-gray-200 rounded-b">
-        <button type="button" id="saveEditButton"
-          class="text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
-          Save
-        </button>
-        <button type="button" id="cancelEditButton"
-          class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10">
-          Cancel
-        </button>
-        <button type="button" id="resetEditButton"
-          class="text-red-500 bg-white hover:bg-red-100 focus:ring-4 focus:ring-red-200 rounded-lg border border-red-200 text-sm font-medium px-5 py-2.5 hover:text-red-700 focus:z-10">
-          Reset
-        </button>
-      </div>
+<dialog id="editModal" class="p-0 rounded-lg shadow-lg backdrop:bg-black/50 max-w-md w-full">
+  <div class="bg-white rounded-lg">
+    <!-- Modal header -->
+    <div class="flex items-start justify-between p-4 border-b rounded-t">
+      <h3 class="text-xl font-semibold text-gray-900">Edit Field</h3>
+    </div>
+    <!-- Modal body -->
+    <div class="p-6 space-y-6">
+      <div id="modalInputContainer"></div>
+    </div>
+    <!-- Modal footer -->
+    <div class="flex items-center p-6 space-x-2 border-t border-gray-200 rounded-b">
+      <button type="button" id="saveEditButton"
+        class="text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+        Save
+      </button>
+      <button type="button" id="cancelEditButton"
+        class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10">
+        Cancel
+      </button>
+      <button type="button" id="resetEditButton"
+        class="text-red-500 bg-white hover:bg-red-100 focus:ring-4 focus:ring-red-200 rounded-lg border border-red-200 text-sm font-medium px-5 py-2.5 hover:text-red-700 focus:z-10">
+        Reset
+      </button>
     </div>
   </div>
-</div>
+</dialog>
 
 <style>
   #dataTable thead {
     position: sticky;
     top: 0;
     z-index: 10;
-    background-color: #f8fafc;
-    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    background-color: var(--color-gray-50);
+    box-shadow: 0 1px 2px 0 color-mix(in srgb, black 5%, transparent);
   }
 
   @media (max-width: 768px) {
@@ -192,12 +185,12 @@ block content %}
   }
 
   .selected-cell {
-    background-color: #dcfce7 !important;
-    border-left: 2px solid #16a34a !important;
+    background-color: var(--color-green-100) !important;
+    border-left: 2px solid var(--color-green-600) !important;
   }
 
   .loader {
-    border-top-color: #16a34a;
+    border-top-color: var(--color-green-600);
     animation: spin 1s linear infinite;
   }
 
@@ -214,7 +207,7 @@ block content %}
     background: white;
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    box-shadow: 0 1px 3px 0 color-mix(in srgb, black 10%, transparent), 0 1px 2px -1px color-mix(in srgb, black 10%, transparent);
   }
 
   #dataTable th {
@@ -223,22 +216,22 @@ block content %}
     text-transform: uppercase;
     letter-spacing: 0.05em;
     font-size: 12px;
-    color: #475569;
-    background-color: #f8fafc;
-    border-bottom: 2px solid #e2e8f0;
+    color: var(--color-gray-600);
+    background-color: var(--color-gray-50);
+    border-bottom: 2px solid var(--color-gray-200);
     transition: background-color 0.2s;
   }
 
   #dataTable th:hover {
-    background-color: #f1f5f9;
+    background-color: var(--color-gray-100);
     cursor: pointer;
   }
 
   #dataTable td {
     padding: 12px 16px;
     font-size: 14px;
-    color: #1e293b;
-    border-bottom: 1px solid #e2e8f0;
+    color: var(--color-gray-800);
+    border-bottom: 1px solid var(--color-gray-200);
     transition: all 0.2s;
   }
 
@@ -247,7 +240,7 @@ block content %}
   }
 
   #dataTable tr:hover td {
-    background-color: #f8fafc;
+    background-color: var(--color-gray-50);
   }
 
   #dataTable td.editable {
@@ -255,7 +248,7 @@ block content %}
   }
 
   #dataTable td.editable:hover {
-    background-color: #f1f5f9;
+    background-color: var(--color-gray-100);
     cursor: pointer;
   }
 
@@ -267,7 +260,7 @@ block content %}
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background-color: #16a34a;
+    background-color: var(--color-green-600);
     opacity: 0;
     transition: opacity 0.2s;
   }
@@ -277,15 +270,15 @@ block content %}
   }
 
   #dataTable td.bg-gray-50 {
-    color: #64748b;
-    background-color: #f8fafc;
+    color: var(--color-gray-500);
+    background-color: var(--color-gray-50);
     font-style: italic;
   }
 
   .sort-indicator {
     display: inline-block;
     font-size: 10px;
-    color: #16a34a;
+    color: var(--color-green-600);
     min-width: 8px;
   }
 
@@ -297,7 +290,7 @@ block content %}
   }
 
   #scrollContainer {
-    scrollbar-color: #16a34a #f8f9f1;
+    scrollbar-color: var(--color-green-600) var(--color-gray-50);
   }
 
   #scrollContainer::-webkit-scrollbar {
@@ -306,18 +299,18 @@ block content %}
   }
 
   #scrollContainer::-webkit-scrollbar-track {
-    background: #f1f5f9;
+    background: var(--color-gray-100);
     border-radius: 4px;
   }
 
   #scrollContainer::-webkit-scrollbar-thumb {
-    background-color: #cbd5e1;
+    background-color: var(--color-gray-300);
     border-radius: 4px;
-    border: 2px solid #f1f5f9;
+    border: 2px solid var(--color-gray-100);
   }
 
   #scrollContainer::-webkit-scrollbar-thumb:hover {
-    background-color: #94a3b8;
+    background-color: var(--color-gray-400);
   }
 </style>
 
@@ -336,7 +329,7 @@ block content %}
   let debounceTimer;
   let currentlyEditingCell = null;
   let currentlyEditingCellData = null;
-  let editModalInstance;
+  const editModal = document.getElementById("editModal");
   let observer;
   let previouslySelectedCell = null;
   let sentinel = null;
@@ -420,14 +413,14 @@ block content %}
           newValue,
           currentlyEditingCell
         );
-        editModalInstance.hide();
+        editModal.close();
       });
     }
 
     const cancelEditButton = document.getElementById("cancelEditButton");
     if (cancelEditButton) {
       cancelEditButton.addEventListener("click", function () {
-        editModalInstance.hide();
+        editModal.close();
       });
     }
 
@@ -441,16 +434,22 @@ block content %}
       });
     }
 
-    // Initialize Modal
-    const modalElement = document.getElementById("editModal");
-    if (modalElement) {
-      editModalInstance = new Modal(modalElement, {
-        backdrop: "static",
-        closable: false,
-        onHide: () => {
-          currentlyEditingCell = null;
-          currentlyEditingCellData = null;
-        },
+    // Initialize Modal (native dialog)
+    if (editModal) {
+      // Handle close event
+      editModal.addEventListener('close', () => {
+        currentlyEditingCell = null;
+        currentlyEditingCellData = null;
+      });
+      // Prevent closing on backdrop click (static backdrop behavior)
+      editModal.addEventListener('click', (e) => {
+        if (e.target === editModal) {
+          e.preventDefault();
+        }
+      });
+      // Prevent ESC key closing
+      editModal.addEventListener('cancel', (e) => {
+        e.preventDefault();
       });
     }
 
@@ -803,7 +802,7 @@ block content %}
     input.id = "modalInputField";
     modalInputContainer.appendChild(input);
 
-    editModalInstance.show();
+    editModal.showModal();
   }
 
   function formatValueForInput(type, value) {
@@ -835,7 +834,7 @@ block content %}
     switch (type) {
       case "boolean":
         input = document.createElement("select");
-        input.classList.add("w-full", "p-2", "border", "rounded", "allow-select");
+        input.classList.add("w-full", "p-2", "border", "rounded-sm", "allow-select");
         input.innerHTML = `
           <option value="true" ${currentValue === "true" ? "selected" : ""
           }>true</option>
@@ -847,13 +846,13 @@ block content %}
         input = document.createElement("input");
         input.type = "date";
         input.value = formatValueForInput("date", currentValue);
-        input.classList.add("w-full", "p-2", "border", "rounded", "allow-select");
+        input.classList.add("w-full", "p-2", "border", "rounded-sm", "allow-select");
         break;
       case "datetime":
         input = document.createElement("input");
         input.type = "datetime-local";
         input.value = formatValueForInput("datetime", currentValue);
-        input.classList.add("w-full", "p-2", "border", "rounded", "allow-select");
+        input.classList.add("w-full", "p-2", "border", "rounded-sm", "allow-select");
         break;
       case "integer":
       case "float":
@@ -862,7 +861,7 @@ block content %}
         input.type = type === "integer" ? "number" : "text";
         if (type === "float") input.step = "any";
         input.value = formatValueForInput(type, currentValue);
-        input.classList.add("w-full", "p-2", "border", "rounded", "allow-select");
+        input.classList.add("w-full", "p-2", "border", "rounded-sm", "allow-select");
         break;
     }
     return input;

@@ -1,75 +1,155 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
 
-.mantis-footer-link{
-@apply text-gray-700 transition hover:text-gray-800/75
+@source "../../templates/**/*.html";
+@source "../js/**/*.js";
+
+/* Safelist dynamic classes used in JavaScript (classList.add/remove) */
+@source inline("bg-green-800/80 bg-green-800/95 backdrop-filter backdrop-blur-lg");
+
+@plugin "@tailwindcss/forms";
+
+/*
+  Override colors with Flowbite palette to match production.
+  Production uses Flowbite's emerald-based green colors (darker/more muted than TW v4 emerald).
+*/
+@theme {
+  /* Green palette - Flowbite colors (matches production) */
+  --color-green-50: #F3FAF7;
+  --color-green-100: #DEF7EC;
+  --color-green-200: #BCF0DA;
+  --color-green-300: #84E1BC;
+  --color-green-400: #31C48D;
+  --color-green-500: #0E9F6E;
+  --color-green-600: #057A55;
+  --color-green-700: #046C4E;
+  --color-green-800: #03543F;
+  --color-green-900: #014737;
+
+  /* Gray palette - v3 hex values */
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #6b7280;
+  --color-gray-600: #4b5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1f2937;
+  --color-gray-900: #111827;
+
+  /* Red palette - v3 hex values */
+  --color-red-50: #fef2f2;
+  --color-red-100: #fee2e2;
+  --color-red-200: #fecaca;
+  --color-red-500: #ef4444;
+  --color-red-600: #dc2626;
+  --color-red-700: #b91c1c;
+  --color-red-900: #7f1d1d;
+
+  /* Blue palette - for links (v3 hex values) */
+  --color-blue-500: #3b82f6;
+  --color-blue-600: #2563eb;
+
+  /* Yellow palette - for warnings/status (v3 hex values) */
+  --color-yellow-500: #eab308;
+  --color-yellow-600: #ca8a04;
+
+  /* Amber palette - for warning messages (v3 hex values) */
+  --color-amber-50: #fffbeb;
+  --color-amber-200: #fde68a;
+  --color-amber-500: #f59e0b;
+  --color-amber-800: #92400e;
 }
-.input-field {
-  @apply block w-full px-4 py-2 text-base text-gray-700 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200 transition ease-in-out duration-300;
-}
 
-.input-field-admin {
-  @apply block px-4 py-2  text-base text-gray-700 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200 transition-colors;
-}
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
 
-.error-field {
-  @apply border-red-500 bg-red-100 focus:ring-red-500;
-}
-
-.form-error {
-  @apply text-red-500 mt-2;
-}
-
-
-.active-tab {
-  @apply bg-green-600 text-white;
-}
-
-.above {
-  z-index: 999999 !important;
-}
-
-.invalid-input {
-  border: 1px solid red !important;
-}
-
-.topContainer {
-  position: relative;
-}
-
-@media (max-width: 768px) {
-  .navbar a {
-    font-size: 1.2em !important;
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
   }
 }
 
-@media (max-width: 768px) {
-  .title {
-    font-size: 1.8rem !important;
+@utility fade-out {
+  animation: fadeOut 0.5s forwards;
+}
+
+@utility slide-in {
+  animation: slideIn 0.5s forwards;
+}
+
+@layer utilities {
+  .mantis-footer-link {
+    @apply text-gray-700 transition hover:text-gray-800/75;
   }
-}
+  .input-field {
+    @apply block w-full px-4 py-2 text-base text-gray-700 bg-white rounded-lg shadow-xs focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200 transition ease-in-out duration-300;
+  }
 
-.table-responsive {
-  display: block !important;
-  width: 100% !important;
-  overflow-x: auto !important;
-  -webkit-overflow-scrolling: touch !important;
-}
+  .input-field-admin {
+    @apply block px-4 py-2  text-base text-gray-700 bg-white rounded-lg shadow-xs focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200 transition-colors;
+  }
 
-html {
-  scroll-behavior: smooth !important;
-  font-size: 100% !important;
-  overscroll-behavior: none;
+  .error-field {
+    @apply border-red-500 bg-red-100 focus:ring-red-500;
+  }
+
+  .form-error {
+    @apply text-red-500 mt-2;
+  }
+
+  .active-tab {
+    @apply bg-green-600 text-white;
+  }
+
+  .above {
+    z-index: 999999 !important;
+  }
+
+  .invalid-input {
+    border: 1px solid var(--color-red-500) !important;
+  }
+
+  .topContainer {
+    position: relative;
+  }
+
+  @media (max-width: 768px) {
+    .navbar a {
+      font-size: 1.2em !important;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .title {
+      font-size: 1.8rem !important;
+    }
+  }
+
+  .table-responsive {
+    display: block !important;
+    width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  html {
+    scroll-behavior: smooth !important;
+    font-size: 100% !important;
+    overscroll-behavior: none;
+  }
 }
 
 @layer components {
-  .fade-out {
-    animation: fadeOut 0.5s forwards;
-  }
-  .slide-in {
-    animation: slideIn 0.5s forwards;
-  }
   @keyframes fadeOut {
     from {
       opacity: 1;
@@ -106,8 +186,8 @@ html {
 
 .toggle-checkbox:checked {
   right: 0 !important;
-  border-color: #4b5563 !important;
-  background-color: #4b5563 !important;
+  border-color: var(--color-gray-600) !important;
+  background-color: var(--color-gray-600) !important;
 }
 
 .toggle-label {
@@ -115,13 +195,13 @@ html {
 }
 
 .toggle-checkbox:checked + .toggle-label {
-  background-color: #10b981 !important;
+  background-color: var(--color-green-500) !important;
 }
 
 .link-underline {
   border-bottom-width: 0 !important;
   background-image: linear-gradient(transparent, transparent),
-    linear-gradient(#fff, #fff) !important;
+    linear-gradient(white, white) !important;
   background-size: 0 3px !important;
   background-position: 0 100% !important;
   background-repeat: no-repeat !important;
@@ -136,7 +216,7 @@ html {
 }
 
 .details-text {
-  border: 1px solid #ddd !important;
+  border: 1px solid var(--color-gray-300) !important;
   padding: 10px !important;
   border-radius: 5px !important;
 }
@@ -147,5 +227,198 @@ html {
 
 .oben {
   margin-top: -14px !important;
+}
+
+/* Flowbite Datepicker Base Styles */
+.datepicker {
+  display: none;
+}
+.datepicker.active {
+  display: block;
+}
+.datepicker.hidden {
+  display: none;
+}
+.datepicker-dropdown {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 50;
+  padding-top: 4px;
+}
+.datepicker-dropdown.datepicker-orient-top {
+  padding-top: 0;
+  padding-bottom: 4px;
+}
+.datepicker-picker {
+  display: inline-block;
+  border-radius: 0.5rem;
+  background-color: white;
+  box-shadow: 0 4px 6px -1px color-mix(in srgb, black 10%, transparent), 0 2px 4px -2px color-mix(in srgb, black 10%, transparent);
+  border: 1px solid var(--color-gray-200);
+}
+.datepicker-picker span {
+  display: block;
+  flex: 1;
+  border: 0;
+  border-radius: 0.375rem;
+  cursor: default;
+  text-align: center;
+  user-select: none;
+}
+.datepicker-main {
+  padding: 0.5rem;
+}
+.datepicker-footer {
+  box-shadow: inset 0 1px 1px color-mix(in srgb, black 10%, transparent);
+  background-color: var(--color-gray-50);
+  border-radius: 0 0 0.5rem 0.5rem;
+}
+.datepicker-controls, .datepicker-view, .datepicker-view .days-of-week, .datepicker-grid {
+  display: flex;
+}
+.datepicker-grid {
+  flex-wrap: wrap;
+}
+.datepicker-view .dow, .datepicker-view .days .datepicker-cell {
+  flex-basis: 14.28571%;
+}
+.datepicker-view.datepicker-grid .datepicker-cell {
+  flex-basis: 25%;
+}
+.datepicker-view .week, .datepicker-cell {
+  height: 2.25rem;
+  line-height: 2.25rem;
+}
+.datepicker-title {
+  box-shadow: inset 0 -1px 1px color-mix(in srgb, black 10%, transparent);
+  background-color: var(--color-gray-50);
+  padding: 0.375rem 0.75rem;
+  text-align: center;
+  font-weight: 700;
+}
+.datepicker-header .datepicker-controls {
+  padding: 0.25rem 0.25rem 0;
+}
+.datepicker-controls .button {
+  display: inline-flex;
+  position: relative;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  border: 1px solid var(--color-gray-300);
+  border-radius: 0.375rem;
+  box-shadow: none;
+  background-color: white;
+  cursor: pointer;
+  padding: calc(0.375em - 1px) 0.75em;
+  height: 2.25em;
+  vertical-align: top;
+  text-align: center;
+  line-height: 1.5;
+  white-space: nowrap;
+  color: var(--color-gray-700);
+  font-size: 0.875rem;
+}
+.datepicker-controls .button:hover {
+  background-color: var(--color-gray-50);
+}
+.datepicker-controls .button:focus {
+  outline: none;
+  border-color: var(--color-green-500);
+}
+.datepicker-header .datepicker-controls .button {
+  border-color: transparent;
+  font-weight: 600;
+}
+.datepicker-footer .datepicker-controls .button {
+  margin: calc(0.375rem - 1px) 0.375rem;
+  border-radius: 0.25rem;
+  width: 100%;
+  font-size: 0.75rem;
+}
+.datepicker-controls .view-switch {
+  flex: auto;
+}
+.datepicker-controls .prev-btn,
+.datepicker-controls .next-btn {
+  padding-right: 0.375rem;
+  padding-left: 0.375rem;
+  width: 2.25rem;
+}
+.datepicker-controls .prev-btn.disabled,
+.datepicker-controls .next-btn.disabled {
+  visibility: hidden;
+}
+.datepicker-view .dow {
+  height: 1.5rem;
+  line-height: 1.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-gray-500);
+}
+.datepicker-view .week {
+  width: 2.25rem;
+  color: var(--color-gray-400);
+  font-size: 0.75rem;
+}
+.datepicker-grid {
+  width: 15.75rem;
+}
+.datepicker-cell:not(.disabled):hover {
+  background-color: var(--color-gray-100);
+  cursor: pointer;
+}
+.datepicker-cell.focused:not(.selected) {
+  background-color: var(--color-gray-200);
+}
+.datepicker-cell.selected, .datepicker-cell.selected:hover {
+  background-color: var(--color-green-500);
+  color: white;
+  font-weight: 600;
+}
+.datepicker-cell.disabled {
+  color: var(--color-gray-300);
+}
+.datepicker-cell.prev:not(.disabled), .datepicker-cell.next:not(.disabled) {
+  color: var(--color-gray-400);
+}
+.datepicker-cell.prev.selected, .datepicker-cell.next.selected {
+  color: var(--color-green-100);
+}
+.datepicker-cell.today:not(.selected) {
+  background-color: var(--color-green-100);
+  color: var(--color-green-700);
+  font-weight: 600;
+}
+.datepicker-cell.today.focused:not(.selected) {
+  background-color: var(--color-green-200);
+}
+.datepicker-cell.range-start:not(.selected), .datepicker-cell.range-end:not(.selected) {
+  background-color: var(--color-green-400);
+  color: white;
+}
+.datepicker-cell.range-start {
+  border-radius: 0.375rem 0 0 0.375rem;
+}
+.datepicker-cell.range-end {
+  border-radius: 0 0.375rem 0.375rem 0;
+}
+.datepicker-cell.range {
+  border-radius: 0;
+  background-color: var(--color-green-100);
+}
+.datepicker-cell.range:not(.disabled):not(.focused):not(.today):hover {
+  background-color: var(--color-green-200);
+}
+.datepicker-view.datepicker-grid .datepicker-cell {
+  height: 4.5rem;
+  line-height: 4.5rem;
+}
+.datepicker-input.in-edit {
+  border-color: var(--color-green-500);
+}
+.datepicker-input.in-edit:focus, .datepicker-input.in-edit:active {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-green-500) 20%, transparent);
 }
 

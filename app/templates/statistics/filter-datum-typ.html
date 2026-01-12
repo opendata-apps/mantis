@@ -1,7 +1,7 @@
 {% macro StatsAuswahl() -%}
 <div class="flex flex-wrap ">
   <div class="flex items-center justify-center text-sm font-medium text-gray-900
-	      bg-gray-200 border border-gray-200 rounded-lg focus:outline-none
+	      bg-gray-200 border border-gray-200 rounded-lg focus:outline-hidden
 	      hover:bg-gray-100 focus:z-10 focus:ring-4 focus:ring-gray-200">
     <div id="filterDropdown" class="z-50 w-64 p-4 space-y-3 bg-white
 				    divide-y divide-gray-100 rounded-lg shadow-lg  sm:w-80">
@@ -9,12 +9,12 @@
         <div class="w-full md:w-1/2">
           <label for="dateFrom" class="block text-sm font-semibold text-gray-700">Funddatum von</label>
           <input type="date" id="dateFrom" name="dateFrom" value="{{ session["date_from"] }}"
-		 class="w-full p-2 text-sm rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent">
+		 class="w-full p-2 text-sm rounded-md shadow-xs focus:ring-2 focus:ring-green-500 focus:border-transparent">
         </div>
         <div class="w-full md:w-1/2">
           <label for="dateTo" class="block text-sm font-semibold text-gray-700">Funddatum bis</label>
           <input type="date" id="dateTo" name="dateTo" value="{{ session["date_to"] }}"
-		 class="w-full p-2 text-sm rounded-md shadow-sm
+		 class="w-full p-2 text-sm rounded-md shadow-xs
 			focus:ring-2 focus:ring-green-500 focus:border-transparent">
         </div>
       </div>
@@ -41,8 +41,8 @@
       </div>
       <div class="flex justify-center mt-4 space-x-4">
         <button type="submit"
-		class="px-4 py-2 text-white bg-green-500 rounded-md shadow-sm
-		       hover:bg-green-600 focus:ring-2 focus:ring-green-500
+		class="px-4 py-2 text-white bg-green-600 rounded-md shadow-xs
+		       hover:bg-green-700 focus:ring-2 focus:ring-green-500
 		       focus:ring-offset-2 focus:border-transparent">
           Auswahl aktualisieren
         </button>

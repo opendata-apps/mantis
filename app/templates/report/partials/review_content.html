@@ -2,13 +2,13 @@
 <div id="review-content" class="space-y-6">
 
   {# Photo & Details Review #}
-  <div class="overflow-hidden bg-white border border-gray-200 rounded-lg shadow-sm review-section">
+  <div class="overflow-hidden bg-white border border-gray-200 rounded-lg shadow-xs review-section">
     <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-gray-50">
       <h4 class="flex items-center font-medium text-gray-700 text-md">
         <i class="fas fa-image w-5 h-5 mr-2 text-green-600"></i>
         Foto & Details
       </h4>
-      <button type="button" class="edit-btn flex items-center p-1 text-sm font-medium text-green-600 rounded hover:text-green-800 hover:bg-green-50" data-step="1">
+      <button type="button" class="edit-btn flex items-center p-1 text-sm font-medium text-green-700 rounded-sm hover:text-green-800 hover:bg-green-50" data-step="1">
         <i class="w-4 h-4 mr-1 fas fa-pencil-alt"></i>
         Bearbeiten
       </button>
@@ -33,7 +33,7 @@
             </div>
             <div>
               <span class="font-medium text-gray-700">Zusätzliche Details:</span>
-              <div class="p-2 mt-1 overflow-y-auto text-gray-900 break-words rounded-md bg-gray-50 max-h-32">{{ review.description }}</div>
+              <div class="p-2 mt-1 overflow-y-auto text-gray-900 wrap-break-word rounded-md bg-gray-50 max-h-32">{{ review.description }}</div>
             </div>
           </div>
         </div>
@@ -42,13 +42,13 @@
   </div>
 
   {# Location & Date Review #}
-  <div class="overflow-hidden bg-white border border-gray-200 rounded-lg shadow-sm review-section">
+  <div class="overflow-hidden bg-white border border-gray-200 rounded-lg shadow-xs review-section">
     <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-gray-50">
       <h4 class="flex items-center font-medium text-gray-700 text-md">
         <i class="fas fa-map-marker-alt w-5 h-5 mr-2 text-green-600"></i>
         Wann und Wo?
       </h4>
-      <button type="button" class="edit-btn flex items-center p-1 text-sm font-medium text-green-600 rounded hover:text-green-800 hover:bg-green-50" data-step="2">
+      <button type="button" class="edit-btn flex items-center p-1 text-sm font-medium text-green-700 rounded-sm hover:text-green-800 hover:bg-green-50" data-step="2">
         <i class="w-4 h-4 mr-1 fas fa-pencil-alt"></i>
         Bearbeiten
       </button>
@@ -107,13 +107,13 @@
   </div>
 
   {# Contact Information Review #}
-  <div class="overflow-hidden bg-white border border-gray-200 rounded-lg shadow-sm review-section">
+  <div class="overflow-hidden bg-white border border-gray-200 rounded-lg shadow-xs review-section">
     <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-gray-50">
       <h4 class="flex items-center font-medium text-gray-700 text-md">
         <i class="fas fa-user w-5 h-5 mr-2 text-green-600"></i>
         Ihre Kontaktdaten
       </h4>
-      <button type="button" class="edit-btn flex items-center p-1 text-sm font-medium text-green-600 rounded hover:text-green-800 hover:bg-green-50" data-step="3">
+      <button type="button" class="edit-btn flex items-center p-1 text-sm font-medium text-green-700 rounded-sm hover:text-green-800 hover:bg-green-50" data-step="3">
         <i class="w-4 h-4 mr-1 fas fa-pencil-alt"></i>
         Bearbeiten
       </button>
@@ -165,9 +165,9 @@
   </div>
 
   {# Final warning #}
-  <div class="p-4 bg-amber-50 rounded-lg border border-amber-200 shadow-sm">
+  <div class="p-4 bg-amber-50 rounded-lg border border-amber-200 shadow-xs">
     <div class="flex">
-      <div class="flex-shrink-0">
+      <div class="shrink-0">
         <i class="w-5 h-5 text-amber-500 fas fa-exclamation-triangle"></i>
       </div>
       <div class="ml-3">
