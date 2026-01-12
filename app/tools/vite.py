@@ -6,6 +6,7 @@ to include the correct hashed asset URLs with proper preload hints.
 Based on Vite backend integration best practices:
 https://vite.dev/guide/backend-integration
 """
+
 import json
 import os
 from flask import current_app, url_for
@@ -17,7 +18,7 @@ _manifest_cache = {}
 
 def _get_manifest_path(app):
     """Get the path to the Vite manifest file."""
-    return os.path.join(app.static_folder, 'build', '.vite', 'manifest.json')
+    return os.path.join(app.static_folder, "build", ".vite", "manifest.json")
 
 
 def _load_manifest(app):
@@ -31,15 +32,15 @@ def _load_manifest(app):
         return None
 
     # Cache in production
-    if 'manifest' not in _manifest_cache:
+    if "manifest" not in _manifest_cache:
         manifest_path = _get_manifest_path(app)
         if os.path.exists(manifest_path):
             with open(manifest_path) as f:
-                _manifest_cache['manifest'] = json.load(f)
+                _manifest_cache["manifest"] = json.load(f)
         else:
-            _manifest_cache['manifest'] = None
+            _manifest_cache["manifest"] = None
 
-    return _manifest_cache.get('manifest')
+    return _manifest_cache.get("manifest")
 
 
 def _collect_css_recursive(manifest, entry_key, collected=None):
@@ -53,13 +54,13 @@ def _collect_css_recursive(manifest, entry_key, collected=None):
     entry = manifest[entry_key]
 
     # Add direct CSS
-    if 'css' in entry:
-        for css_file in entry['css']:
+    if "css" in entry:
+        for css_file in entry["css"]:
             collected.add(css_file)
 
     # Recurse into imports
-    if 'imports' in entry:
-        for import_key in entry['imports']:
+    if "imports" in entry:
+        for import_key in entry["imports"]:
             _collect_css_recursive(manifest, import_key, collected)
 
     return collected
@@ -76,10 +77,10 @@ def _collect_imports_recursive(manifest, entry_key, collected=None):
     entry = manifest[entry_key]
 
     # Add imports (not the entry itself)
-    if 'imports' in entry:
-        for import_key in entry['imports']:
+    if "imports" in entry:
+        for import_key in entry["imports"]:
             if import_key in manifest:
-                collected.add(manifest[import_key]['file'])
+                collected.add(manifest[import_key]["file"])
                 _collect_imports_recursive(manifest, import_key, collected)
 
     return collected
@@ -99,11 +100,11 @@ def vite_asset(entry: str) -> str:
     manifest = _load_manifest(current_app)
 
     if manifest and entry in manifest:
-        hashed_file = manifest[entry]['file']
-        return url_for('static', filename=f'build/{hashed_file}')
+        hashed_file = manifest[entry]["file"]
+        return url_for("static", filename=f"build/{hashed_file}")
 
     # Fallback: return unbundled path
-    return url_for('static', filename=entry)
+    return url_for("static", filename=entry)
 
 
 def vite_css(entry: str) -> list:
@@ -124,7 +125,7 @@ def vite_css(entry: str) -> list:
     css_files = _collect_css_recursive(manifest, entry)
 
     return [
-        url_for('static', filename=f'build/{css_file}')
+        url_for("static", filename=f"build/{css_file}")
         for css_file in sorted(css_files)  # Sort for consistent ordering
     ]
 
@@ -144,20 +145,20 @@ def vite_preload(entry: str) -> Markup:
     manifest = _load_manifest(current_app)
 
     if not manifest or entry not in manifest:
-        return Markup('')
+        return Markup("")
 
     # Collect all imported chunks
     import_files = _collect_imports_recursive(manifest, entry)
 
     if not import_files:
-        return Markup('')
+        return Markup("")
 
     links = []
     for file in sorted(import_files):
-        url = url_for('static', filename=f'build/{file}')
+        url = url_for("static", filename=f"build/{file}")
         links.append(f'<link rel="modulepreload" href="{url}">')
 
-    return Markup('\n'.join(links))
+    return Markup("\n".join(links))
 
 
 def vite_tags(entry: str) -> Markup:
@@ -178,7 +179,9 @@ def vite_tags(entry: str) -> Markup:
 
     if not manifest or entry not in manifest:
         # Fallback for development
-        return Markup(f'<script type="module" src="{url_for("static", filename=entry)}"></script>')
+        return Markup(
+            f'<script type="module" src="{url_for("static", filename=entry)}"></script>'
+        )
 
     tags = []
 
@@ -195,7 +198,7 @@ def vite_tags(entry: str) -> Markup:
     script_url = vite_asset(entry)
     tags.append(f'<script type="module" src="{script_url}"></script>')
 
-    return Markup('\n'.join(tags))
+    return Markup("\n".join(tags))
 
 
 def init_app(app):
@@ -204,8 +207,8 @@ def init_app(app):
     @app.context_processor
     def vite_context():
         return {
-            'vite_asset': vite_asset,
-            'vite_css': vite_css,
-            'vite_preload': vite_preload,
-            'vite_tags': vite_tags,
+            "vite_asset": vite_asset,
+            "vite_css": vite_css,
+            "vite_preload": vite_preload,
+            "vite_tags": vite_tags,
         }

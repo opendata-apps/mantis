@@ -7,7 +7,6 @@ Covers:
 """
 
 
-
 def test_admin_post_without_csrf_is_rejected(app, authenticated_client):
     """Admin POST endpoints should reject requests without a CSRF token."""
     old = app.config.get("WTF_CSRF_ENABLED", False)

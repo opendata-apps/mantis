@@ -8,23 +8,15 @@ def mock_response():
     """Create a mock response object to simulate the Overpass API response."""
     mock_resp = Mock()
     mock_resp.json.return_value = {
-        'elements': [
-            {
-                'tags': {
-                    'name': 'Schenkenberg'
-                }
-            },
-            {
-                'tags': {
-                    'name': 'Nearby Town'
-                }
-            }
+        "elements": [
+            {"tags": {"name": "Schenkenberg"}},
+            {"tags": {"name": "Nearby Town"}},
         ]
     }
     return mock_resp
 
 
-@patch('requests.get')
+@patch("requests.get")
 def test_check_location_match(mock_get, mock_response):
     """Test that check_location correctly identifies when a location matches."""
     mock_get.return_value = mock_response
@@ -42,7 +34,7 @@ def test_check_location_match(mock_get, mock_response):
     assert any("Schenkenberg" in result for result in results)
 
 
-@patch('requests.get')
+@patch("requests.get")
 def test_check_location_no_match(mock_get, mock_response):
     """Test that check_location correctly handles when a location doesn't match."""
     mock_get.return_value = mock_response
@@ -59,7 +51,7 @@ def test_check_location_no_match(mock_get, mock_response):
     assert any("<-- Prüfen!" in result for result in results) or results
 
 
-@patch('requests.get')
+@patch("requests.get")
 def test_check_location_exception(mock_get):
     """Test that check_location handles exceptions gracefully."""
     # Make the request.get call raise an exception

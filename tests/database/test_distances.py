@@ -1,4 +1,5 @@
 """Tests for distance calculation functionality."""
+
 from app.tools.check_distance import get_coordinates_from_address, calculate_distance
 import pytest
 
@@ -13,12 +14,9 @@ import pytest
                 "city": "Caputh",
                 "street": "Schmerberger Weg 92a",
                 "housenumber": None,
-                "marker": [
-                    "51.464414",
-                    "13.540649"
-                ]
+                "marker": ["51.464414", "13.540649"],
             },
-            10.0
+            10.0,
         ),
         (
             {
@@ -27,12 +25,9 @@ import pytest
                 "city": "Berlin",
                 "street": "Unter den Linden",
                 "housenumber": "1",
-                "marker": [
-                    "52.516275",
-                    "13.388889"
-                ]
+                "marker": ["52.516275", "13.388889"],
             },
-            0.0  # Same location
+            0.0,  # Same location
         ),
         (
             {
@@ -43,21 +38,21 @@ import pytest
                 "housenumber": "1",
                 "marker": [
                     "52.520008",  # Berlin coordinates
-                    "13.404954"
-                ]
+                    "13.404954",
+                ],
             },
-            20.0  # Different city
+            20.0,  # Different city
         ),
-    ]
+    ],
 )
 def test_distance_calculation(session, address_data, expected_min_distance):
     """Test the distance calculation between geocoded address and provided coordinates.
-    
+
     This test verifies that:
     1. The geocoding function can retrieve coordinates from an address
     2. The distance calculation function works as expected
     3. The calculated distance meets the expected minimum distance
-    
+
     Parameters:
         session: The database session fixture
         address_data: Dictionary containing address information and marker coordinates
@@ -68,16 +63,18 @@ def test_distance_calculation(session, address_data, expected_min_distance):
         address_data["street"],
         address_data["city"],
         address_data["plz"],
-        address_data["housenumber"]
+        address_data["housenumber"],
     )
 
     # Get the marker coordinates
-    coord2 = address_data['marker']
+    coord2 = address_data["marker"]
 
     # Calculate the distance between coordinates if both are available
     if coord1 and coord2:
         distance = calculate_distance(coord1, coord2)
         # Assert that the distance is greater than the expected minimum
-        assert distance > expected_min_distance, f"Distance should be greater than {expected_min_distance}km"
+        assert distance > expected_min_distance, (
+            f"Distance should be greater than {expected_min_distance}km"
+        )
     else:
         pytest.skip("Could not retrieve coordinates for the address")

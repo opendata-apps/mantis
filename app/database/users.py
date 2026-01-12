@@ -1,6 +1,7 @@
 from app import db
 from sqlalchemy.orm import relationship
 
+
 class TblUsers(db.Model):
     __tablename__ = "users"
 
@@ -12,7 +13,10 @@ class TblUsers(db.Model):
 
     # Relationship to the feedback source
     feedback_source = relationship(
-        "TblUserFeedback", back_populates="user", uselist=False, cascade="all, delete-orphan"
+        "TblUserFeedback",
+        back_populates="user",
+        uselist=False,
+        cascade="all, delete-orphan",
     )
 
     def __repr__(self):

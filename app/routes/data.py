@@ -11,18 +11,21 @@ from flask import (
 from app.tools.coordinate_validation import validate_and_normalize_coordinate
 
 from app import db
-from app.database.models import (TblFundorte,
-                                 TblMeldungen,)
+from app.database.models import (
+    TblFundorte,
+    TblMeldungen,
+)
 from sqlalchemy import or_
 
 
 # Blueprints
 data = Blueprint("data", __name__)
 
+
 @data.route("/auswertungen")
 def show_map():
     selected_year = request.args.get("year", None, type=int)
-    
+
     # Get distinct years from dat_fund_von begginning with MIN_MAP_YEAR
     years = (
         db.session.query(
@@ -30,18 +33,18 @@ def show_map():
         )
         .distinct()
         .order_by("year")
-        .filter(TblMeldungen.dat_fund_von >= f"{current_app.config['MIN_MAP_YEAR']}-01-01")
+        .filter(
+            TblMeldungen.dat_fund_von >= f"{current_app.config['MIN_MAP_YEAR']}-01-01"
+        )
     )
     years = [int(year[0]) for year in years]
-    
+
     # Validate selected_year exists in available years
     if selected_year is not None and selected_year not in years:
         selected_year = None
 
     reports_query = (
-        db.session.query(TblMeldungen.id,
-                         TblFundorte.latitude,
-                         TblFundorte.longitude)
+        db.session.query(TblMeldungen.id, TblFundorte.latitude, TblFundorte.longitude)
         .join(TblFundorte, TblMeldungen.fo_zuordnung == TblFundorte.id)
         .filter(TblMeldungen.dat_bear.is_not(None))
         .filter(or_(TblMeldungen.deleted.is_(None), TblMeldungen.deleted == False))  # noqa: E712
@@ -57,7 +60,10 @@ def show_map():
         # Summe aller Meldungen für den Counter
         post_count = (
             db.session.query(TblMeldungen)
-            .filter(TblMeldungen.dat_fund_von >= f"{current_app.config['MIN_MAP_YEAR']}-01-01")
+            .filter(
+                TblMeldungen.dat_fund_von
+                >= f"{current_app.config['MIN_MAP_YEAR']}-01-01"
+            )
             .filter(TblMeldungen.dat_bear.is_not(None))
             .filter(or_(TblMeldungen.deleted.is_(None), TblMeldungen.deleted == False))  # noqa: E712
             .count()
@@ -69,10 +75,19 @@ def show_map():
     koords = []
     for report_id, latitude, longitude in reports:
         # Validate and normalize coordinates using centralized function
-        lat_valid, normalized_lat, _ = validate_and_normalize_coordinate(latitude, 'latitude')
-        lon_valid, normalized_lon, _ = validate_and_normalize_coordinate(longitude, 'longitude')
-        
-        if lat_valid and lon_valid and normalized_lat is not None and normalized_lon is not None:
+        lat_valid, normalized_lat, _ = validate_and_normalize_coordinate(
+            latitude, "latitude"
+        )
+        lon_valid, normalized_lon, _ = validate_and_normalize_coordinate(
+            longitude, "longitude"
+        )
+
+        if (
+            lat_valid
+            and lon_valid
+            and normalized_lat is not None
+            and normalized_lon is not None
+        ):
             # Convert back to float for obfuscation
             lati = float(normalized_lat)
             long = float(normalized_lon)

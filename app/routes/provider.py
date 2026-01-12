@@ -35,7 +35,7 @@ def melder_index(usrid):
     # Store the userid in session
     session["user_id"] = usrid
 
-    image_path = current_app.config['UPLOAD_FOLDER']
+    image_path = current_app.config["UPLOAD_FOLDER"]
 
     # Get the user's email if provided
     user_email = user.user_kontakt if user.user_kontakt else None
@@ -45,7 +45,7 @@ def melder_index(usrid):
         db.session.query(
             TblMeldungen.id,
             TblMeldungen.dat_fund_von,
-            TblMeldungen.dat_fund_bis, 
+            TblMeldungen.dat_fund_bis,
             TblMeldungen.dat_meld,
             TblMeldungen.dat_bear,
             TblMeldungen.tiere,
@@ -92,9 +92,7 @@ def melder_index(usrid):
         sichtungen.append(sighting_dict)
 
     return render_template(
-        "provider/melder.html",
-        reported_sightings=sichtungen,
-        image_path=image_path
+        "provider/melder.html", reported_sightings=sichtungen, image_path=image_path
     )
 
 
@@ -102,11 +100,11 @@ def melder_index(usrid):
 def report_Img(filename):
     "This function is used to serve the image of the report"
     # Validate that the filename doesn't contain dangerous patterns
-    if '..' in filename or filename.startswith('/') or '\\' in filename:
+    if ".." in filename or filename.startswith("/") or "\\" in filename:
         abort(403)
 
     # Construct the safe path within the upload folder
-    upload_folder = current_app.config['UPLOAD_FOLDER']
+    upload_folder = current_app.config["UPLOAD_FOLDER"]
     safe_path = os.path.join(upload_folder, filename)
 
     # Ensure the resolved path is within the upload folder

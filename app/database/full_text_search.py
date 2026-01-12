@@ -16,9 +16,10 @@ meta = sa.MetaData()
 
 Base = orm.declarative_base()
 
+
 class FullTextSearch(Base):
-    __tablename__ = 'full_text_search'
-    __table_args__ = {'schema': 'public'}
+    __tablename__ = "full_text_search"
+    __table_args__ = {"schema": "public"}
 
     meldungen_id = Column(Integer, primary_key=True)
     doc = Column(TSVECTOR)
@@ -41,10 +42,11 @@ class FullTextSearch(Base):
         """
         try:
             from app import db
+
             session = db.session
 
             # Handle email searches separately
-            if '@' in query:
+            if "@" in query:
                 sql = text("""
                     SELECT DISTINCT m.id
                     FROM meldungen m
@@ -55,10 +57,11 @@ class FullTextSearch(Base):
                 """)
                 if limit:
                     sql = text(str(sql) + " LIMIT :limit")
-                    result = session.execute(sql, {'query': f'%{query}%',
-                                                   'limit': limit})
+                    result = session.execute(
+                        sql, {"query": f"%{query}%", "limit": limit}
+                    )
                 else:
-                    result = session.execute(sql, {'query': f'%{query}%'})
+                    result = session.execute(sql, {"query": f"%{query}%"})
                 return [row[0] for row in result]
 
             # For regular searches, use websearch_to_tsquery
@@ -72,9 +75,9 @@ class FullTextSearch(Base):
 
             if limit:
                 sql = text(str(sql) + " LIMIT :limit")
-                result = session.execute(sql, {'query': query, 'limit': limit})
+                result = session.execute(sql, {"query": query, "limit": limit})
             else:
-                result = session.execute(sql, {'query': query})
+                result = session.execute(sql, {"query": query})
 
             return [row[0] for row in result]
 
@@ -90,13 +93,13 @@ class Drop(sa.schema.DDLElement):
 
 
 class Create(sa.schema.DDLElement):
-    def __init__(self, name, select, schema='public'):
+    def __init__(self, name, select, schema="public"):
         self.name = name
         self.schema = schema
         self.select = select
 
-        event.listen(meta, 'after_create', self)
-        event.listen(meta, 'before_drop', Drop(name, schema))
+        event.listen(meta, "after_create", self)
+        event.listen(meta, "before_drop", Drop(name, schema))
 
 
 @compiler.compiles(Create)
@@ -104,10 +107,7 @@ def createGen(element, compiler, **kwargs):
     return 'CREATE MATERIALIZED VIEW {schema}."{name}" AS {select}'.format(
         name=element.name,
         schema=element.schema,
-        select=compiler.sql_compiler.process(
-            element.select,
-            literal_binds=True
-        ),
+        select=compiler.sql_compiler.process(element.select, literal_binds=True),
     )
 
 
@@ -116,19 +116,17 @@ def dropGen(element, compiler, **kwargs):
     # Den SQL-Ausdruck mit text() umschließen,
     # damit SQLAlchemy ihn korrekt behandelt
     sql = 'DROP MATERIALIZED VIEW {schema}."{name}"'.format(
-        name=element.name,
-        schema=element.schema
+        name=element.name, schema=element.schema
     )
     return text(sql)  # text() um den SQL-Ausdruck
 
 
-def create_materialized_view(db: Optional[Engine] = None,
-                             session: Optional[Session] = None) -> None:
-    'create or recreate a materialized view for global search activities'
+def create_materialized_view(
+    db: Optional[Engine] = None, session: Optional[Session] = None
+) -> None:
+    "create or recreate a materialized view for global search activities"
     if not db:
-        db = sa.create_engine(
-            current_app.config['SQLALCHEMY_DATABASE_URI']
-        )
+        db = sa.create_engine(current_app.config["SQLALCHEMY_DATABASE_URI"])
 
     if not session:
         SessionClass = orm.sessionmaker(bind=db)
@@ -136,80 +134,114 @@ def create_materialized_view(db: Optional[Engine] = None,
 
     # Drop the existing materialized view if it exists
     try:
-        session.execute(text('DROP MATERIALIZED VIEW IF EXISTS public."full_text_search"'))
+        session.execute(
+            text('DROP MATERIALIZED VIEW IF EXISTS public."full_text_search"')
+        )
         session.commit()
     except Exception:
         session.rollback()
 
     # Table Aliases
-    meldungen = sa.table('meldungen', sa.column('id'), sa.column('bearb_id'),
-                         sa.column('anm_melder'), sa.column('anm_bearbeiter'),
-                         sa.column('fo_zuordnung'))
-    fundorte = sa.table('fundorte', sa.column('id'),
-                        sa.column('ort'), sa.column('strasse'),
-                        sa.column('kreis'), sa.column('land'),
-                        sa.column('amt'), sa.column('plz'),
-                        sa.column('mtb'), sa.column('beschreibung'))
-    beschreibung = sa.table('beschreibung', sa.column('id'),
-                            sa.column('beschreibung'))
-    melduser = sa.table('melduser', sa.column('id_meldung'),
-                        sa.column('id_user'), sa.column('id_finder'))
-    users = sa.table('users', sa.column('id'), sa.column('user_id'),
-                     sa.column('user_name'), sa.column('user_kontakt'))
+    meldungen = sa.table(
+        "meldungen",
+        sa.column("id"),
+        sa.column("bearb_id"),
+        sa.column("anm_melder"),
+        sa.column("anm_bearbeiter"),
+        sa.column("fo_zuordnung"),
+    )
+    fundorte = sa.table(
+        "fundorte",
+        sa.column("id"),
+        sa.column("ort"),
+        sa.column("strasse"),
+        sa.column("kreis"),
+        sa.column("land"),
+        sa.column("amt"),
+        sa.column("plz"),
+        sa.column("mtb"),
+        sa.column("beschreibung"),
+    )
+    beschreibung = sa.table("beschreibung", sa.column("id"), sa.column("beschreibung"))
+    melduser = sa.table(
+        "melduser",
+        sa.column("id_meldung"),
+        sa.column("id_user"),
+        sa.column("id_finder"),
+    )
+    users = sa.table(
+        "users",
+        sa.column("id"),
+        sa.column("user_id"),
+        sa.column("user_name"),
+        sa.column("user_kontakt"),
+    )
     # Full-Text Vector
     fts_vector = sa.func.to_tsvector(
         text("'german'"),
-        sa.func.coalesce(meldungen.c.bearb_id, '') + ' ' +
-        sa.func.coalesce(meldungen.c.anm_melder, '') + ' ' +
-        sa.func.coalesce(meldungen.c.anm_bearbeiter, '') + ' ' +
-        sa.func.coalesce(fundorte.c.ort, '') + ' ' +
-        sa.func.coalesce(fundorte.c.strasse, '') + ' ' +
-        sa.func.coalesce(fundorte.c.kreis, '') + ' ' +
-        sa.func.coalesce(fundorte.c.land, '') + ' ' +
-        sa.func.coalesce(fundorte.c.amt, '') + ' ' +
-        sa.func.coalesce(fundorte.c.plz.cast(sa.String), '') + ' ' +
-        sa.func.coalesce(fundorte.c.mtb, '') + ' ' +
-        sa.func.coalesce(beschreibung.c.beschreibung, '') + ' ' +
-        sa.func.coalesce(melduser.c.id_user.cast(sa.String), '') + ' ' +
-        sa.func.coalesce(melduser.c.id_finder.cast(sa.String), '') + ' ' +
-        sa.func.coalesce(users.c.user_id, '') + ' ' +
-        sa.func.coalesce(users.c.user_name, '') + ' ' +
-        sa.func.coalesce(users.c.user_kontakt, '')
-    ).label('doc')
+        sa.func.coalesce(meldungen.c.bearb_id, "")
+        + " "
+        + sa.func.coalesce(meldungen.c.anm_melder, "")
+        + " "
+        + sa.func.coalesce(meldungen.c.anm_bearbeiter, "")
+        + " "
+        + sa.func.coalesce(fundorte.c.ort, "")
+        + " "
+        + sa.func.coalesce(fundorte.c.strasse, "")
+        + " "
+        + sa.func.coalesce(fundorte.c.kreis, "")
+        + " "
+        + sa.func.coalesce(fundorte.c.land, "")
+        + " "
+        + sa.func.coalesce(fundorte.c.amt, "")
+        + " "
+        + sa.func.coalesce(fundorte.c.plz.cast(sa.String), "")
+        + " "
+        + sa.func.coalesce(fundorte.c.mtb, "")
+        + " "
+        + sa.func.coalesce(beschreibung.c.beschreibung, "")
+        + " "
+        + sa.func.coalesce(melduser.c.id_user.cast(sa.String), "")
+        + " "
+        + sa.func.coalesce(melduser.c.id_finder.cast(sa.String), "")
+        + " "
+        + sa.func.coalesce(users.c.user_id, "")
+        + " "
+        + sa.func.coalesce(users.c.user_name, "")
+        + " "
+        + sa.func.coalesce(users.c.user_kontakt, ""),
+    ).label("doc")
 
     # Query Definition
     view_query = sa.select(
-        meldungen.c.id.label('meldungen_id'),
-        fts_vector
+        meldungen.c.id.label("meldungen_id"), fts_vector
     ).select_from(
-        meldungen
-        .outerjoin(fundorte, meldungen.c.fo_zuordnung == fundorte.c.id)
+        meldungen.outerjoin(fundorte, meldungen.c.fo_zuordnung == fundorte.c.id)
         .outerjoin(beschreibung, fundorte.c.beschreibung == beschreibung.c.id)
         .outerjoin(melduser, meldungen.c.id == melduser.c.id_meldung)
         .outerjoin(users, melduser.c.id_user == users.c.id)
     )
 
     # Create View
-    Create(
-        name='full_text_search',
-        select=view_query
-    )
+    Create(name="full_text_search", select=view_query)
     meta.create_all(bind=db, checkfirst=True)
     session.commit()
     session.close()
 
+
 def refresh_materialized_view(db):
     "Refresh the materialized view"
 
-    db.session.execute(text('REFRESH MATERIALIZED VIEW full_text_search'))
+    db.session.execute(text("REFRESH MATERIALIZED VIEW full_text_search"))
     db.session.commit()
 
-if __name__ == '__main__':
-    #try:
+
+if __name__ == "__main__":
+    # try:
     #    drop = Drop(name='full_text_search', schema='public')
     #    # You can call dropGen directly with the `drop` object
     #    session.execute(dropGen(drop, None))
     #    session.commit()
-    #except:
+    # except:
     #    print('No view to drop.')
     create_materialized_view()

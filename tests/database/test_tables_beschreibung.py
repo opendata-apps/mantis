@@ -1,11 +1,12 @@
 """Tests for the Beschreibung (description) database table functionality."""
+
 from app.database.fundortbeschreibung import TblFundortBeschreibung
 import sqlalchemy as sa
 
 
 def test_table_beschreibung_record_count(session):
     """Test that the description table contains the expected number of records.
-    
+
     This test verifies that the initial data load includes the correct
     number of location description categories.
     """
@@ -18,7 +19,7 @@ def test_table_beschreibung_record_count(session):
 
 def test_table_beschreibung_create_and_query(session):
     """Test creating and querying a new description record.
-    
+
     This test verifies the ORM functionality for creating and
     retrieving description records.
     """
@@ -28,8 +29,7 @@ def test_table_beschreibung_create_and_query(session):
 
     # Create a new test description
     new_description = TblFundortBeschreibung(
-        id=test_id,
-        beschreibung="Test Description"
+        id=test_id, beschreibung="Test Description"
     )
 
     # Add and commit to the database
@@ -37,9 +37,11 @@ def test_table_beschreibung_create_and_query(session):
     session.commit()
 
     # Query the record back using ORM
-    result = session.query(TblFundortBeschreibung).filter(
-        TblFundortBeschreibung.id == test_id
-    ).first()
+    result = (
+        session.query(TblFundortBeschreibung)
+        .filter(TblFundortBeschreibung.id == test_id)
+        .first()
+    )
 
     # Verify the record was created correctly
     assert result is not None, "Should find the new description record"

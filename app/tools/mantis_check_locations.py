@@ -13,7 +13,7 @@ def check_location(fundort):
     place_names = set()
     try:
         while weiter:
-            overpass_query = f'''
+            overpass_query = f"""
                 [out:json];
                 (
                   node["place"~"village|town|city|hamlet|suburb"](around:{dist},{lat},{lon});
@@ -27,14 +27,13 @@ def check_location(fundort):
                 for (t["name"]) {{
                   out body;
                 }}
-            '''
-            response = requests.get(overpass_url,
-                                    params={'data': overpass_query})
+            """
+            response = requests.get(overpass_url, params={"data": overpass_query})
             data = response.json()
-            for element in data['elements']:
-                if 'tags' in element and 'name' in element['tags']:
-                    place_names.add(element['tags']['name'])
-            name_set = ', '.join(place_names)
+            for element in data["elements"]:
+                if "tags" in element and "name" in element["tags"]:
+                    place_names.add(element["tags"]["name"])
+            name_set = ", ".join(place_names)
             orte = re.findall(r"[\w']+", name_set)
 
             # Extrahieren der Ortsnamen
@@ -59,7 +58,6 @@ def check_location(fundort):
 
 
 if __name__ == "__main__":
-
     locations = [
         (52.38948, 12.70295, "Schenkenberg", 1908),
     ]
@@ -69,7 +67,7 @@ if __name__ == "__main__":
     #    (51.72459, 14.63499,"Forst (Lausitz)", 166)
     # (52.00539,14.5071,"Schenkendöbern",716),
     # ]
-    with open('ergebnis', 'w') as fh:
+    with open("ergebnis", "w") as fh:
         for fundort in locations:
             if fundort[2] != "Berlin":
                 fh.write("".join(check_location(fundort=fundort)))

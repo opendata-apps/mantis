@@ -26,16 +26,14 @@ def get_coordinates_from_address(street, city, plz=None, housenumber=None):
 
     # setup parameters
     params = {
-        'q': full_address,        # Detailierte Adresse
-        'format': 'json',         # result as JSON
-        'addressdetails': 1,
-        'limit': 1                # first result if more than one
+        "q": full_address,  # Detailierte Adresse
+        "format": "json",  # result as JSON
+        "addressdetails": 1,
+        "limit": 1,  # first result if more than one
     }
     # Header with  User-Agent für Nominatim API (mandatory)
     # change URL to your setup
-    headers = {
-        'User-Agent': 'Python/GeocodingScript (https://example.com)'
-    }
+    headers = {"User-Agent": "Python/GeocodingScript (https://example.com)"}
 
     # send request to  Nominatim API
     response = requests.get(url, params=params, headers=headers)
@@ -58,7 +56,7 @@ def calculate_distance(coord1, coord2):
     return geodesic(coord1, coord2).km
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     try:
         from fundorte_data import adresses  # type: ignore
     except ImportError:
@@ -68,18 +66,20 @@ if __name__ == '__main__':
         for ort in adresses:
             time.sleep(1.0)
             coord1 = get_coordinates_from_address(
-                ort["street"],
-                ort["city"],
-                ort["plz"],
-                ort["housenumber"])
-            coord2 = ort['marker']
+                ort["street"], ort["city"], ort["plz"], ort["housenumber"]
+            )
+            coord2 = ort["marker"]
 
             if coord1 and coord2:
                 distance = calculate_distance(coord1, coord2)
-                fh.write(f"{distance:.2f}.km, id={ort['id']} , \
+                fh.write(
+                    f"{distance:.2f}.km, id={ort['id']} , \
                 between Marker and address {ort['city']}, \
-                {ort['street']}, {ort['housenumber']}\n")
+                {ort['street']}, {ort['housenumber']}\n"
+                )
             else:
-                fh.write(f"Error, meldeid={ort['id']}, address \
-                {ort['city']}, {ort['street']}, {ort['housenumber']}\n")
+                fh.write(
+                    f"Error, meldeid={ort['id']}, address \
+                {ort['city']}, {ort['street']}, {ort['housenumber']}\n"
+                )
             fh.flush()

@@ -1,6 +1,7 @@
 from app import db
 from sqlalchemy.orm import relationship
 
+
 class TblUserFeedback(db.Model):
     __tablename__ = "user_feedback"
 
@@ -21,14 +22,20 @@ class TblUserFeedback(db.Model):
     feedback_type_rel = relationship("TblFeedbackType", back_populates="user_feedbacks")
 
     def __repr__(self):
-        source_name = self.feedback_type_rel.name if self.feedback_type_rel else 'Unknown'
-        return f"<UserFeedback id={self.id} user_id={self.user_id} source='{source_name}'>"
+        source_name = (
+            self.feedback_type_rel.name if self.feedback_type_rel else "Unknown"
+        )
+        return (
+            f"<UserFeedback id={self.id} user_id={self.user_id} source='{source_name}'>"
+        )
 
     def to_dict(self):
         return {
             "id": self.id,
             "user_id": self.user_id,
-            "source_type": self.feedback_type_rel.name if self.feedback_type_rel else None, 
+            "source_type": self.feedback_type_rel.name
+            if self.feedback_type_rel
+            else None,
             "source_detail": self.source_detail,
-            "feedback_type_id": self.feedback_type_id
-        } 
+            "feedback_type_id": self.feedback_type_id,
+        }

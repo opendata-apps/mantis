@@ -1,5 +1,6 @@
 from sqlalchemy import text
 
+
 def insert_data_reports(session):
     """A set of twenty reports for testing (idempotent - safe to run multiple times)"""
 
@@ -22,7 +23,8 @@ def insert_data_reports(session):
     """
 
     # Batch insert users (id, user_id, user_name, user_rolle, user_kontakt)
-    session.execute(text("""
+    session.execute(
+        text("""
         INSERT INTO users (id, user_id, user_name, user_rolle, user_kontakt) VALUES
         (1,  '9999', 'Geisel K.', '9', 'rspiess@example.net'),
         (2,  'e40adafa23250fdd5024c9887544317a1101534d', 'Graf K.', '2', ''),
@@ -65,10 +67,12 @@ def insert_data_reports(session):
         (39, 'c56782d029b8a62160175fd7112b74f573cd101f', 'Putz B.', '1', 'sandrobohnbach@example.com'),
         (40, 'f6ebc5f7cdc4dcd125a095731a95b66117e533bd', 'Bärer R.', '2', '')
         ON CONFLICT DO NOTHING
-    """))
+    """)
+    )
 
     # Batch insert fundorte (id, plz, ort, strasse, kreis, land, amt, mtb, beschreibung, longitude, latitude, ablage)
-    session.execute(text("""
+    session.execute(
+        text("""
         INSERT INTO fundorte (id, plz, ort, strasse, kreis, land, amt, mtb, beschreibung, longitude, latitude, ablage) VALUES
         (1,  '15806', 'Zossen', 'Oertelufer', 'Zossen', 'Teltow-Fläming', '12072477', '3746', 1, '13.440683', '52.217574', '2025/2025-01-19/Zossen-20250119100000-9999.webp'),
         (2,  '14793', 'Ziesar', 'Wiesenweg', 'Potsdam-Mittelmark', 'Brandenburg', '12069696', '3739', 1, '12.281342', '52.257955', '2025/2025-01-19/Ziesar-20250119101500-f04ad4e0b099b6404b1ccda0af0282cf49693b43.webp'),
@@ -91,10 +95,12 @@ def insert_data_reports(session):
         (19, '06917', 'Jessen (Elster)', 'Lindenstraße 41', 'Wittenberg', 'Sachsen-Anhalt', '15091145', '4243', 1, '12.958374', '51.785129', '2025/2025-01-19/Jessen_Elster-20250119143000-7228ef93c5b4347ffdcfe63d77bd8617fdb080e5.webp'),
         (20, '14662', 'Friesack', 'Industriegelände', 'Havelland', 'Brandenburg', '12063088', '3241', 1, '12.575226', '52.730663', '2025/2025-01-19/Friesack-20250119144500-c56782d029b8a62160175fd7112b74f573cd101f.webp')
         ON CONFLICT DO NOTHING
-    """))
+    """)
+    )
 
     # Batch insert meldungen (id, deleted, dat_fund_von, dat_fund_bis, dat_meld, dat_bear, bearb_id, tiere, art_m, art_w, art_n, art_o, art_f, fo_zuordnung, fo_quelle, fo_beleg, anm_melder, anm_bearbeiter)
-    session.execute(text("""
+    session.execute(
+        text("""
         INSERT INTO meldungen (id, deleted, dat_fund_von, dat_fund_bis, dat_meld, dat_bear, bearb_id, tiere, art_m, art_w, art_n, art_o, art_f, fo_zuordnung, fo_quelle, fo_beleg, anm_melder, anm_bearbeiter) VALUES
         (1,  NULL, '2024-10-03', NULL, '2025-02-01', '2025-02-03', '9999', 1, 1, 0, 0, 0, 0, 1,  'F', '', 'Lieber arm ab, als arm dran.', ''),
         (2,  NULL, '2024-08-24', NULL, '2025-02-01', NULL, NULL, 1, 0, 0, 1, 0, 0, 2,  'F', '', 'Lieber ein Ende mit Schrecken, als ein Schrecken ohne Ende.', ''),
@@ -117,10 +123,12 @@ def insert_data_reports(session):
         (19, NULL, '2024-12-23', NULL, '2025-02-02', NULL, NULL, 1, 0, 0, 0, 1, 0, 19, 'F', '', 'Lieber einmal um den Block laufen, als nie den Weg finden.', ''),
         (20, NULL, '2024-01-20', NULL, '2025-02-01', NULL, NULL, 1, 0, 1, 0, 0, 0, 20, 'F', '', 'Lieber ein Ende mit Weinen, als ein Leben ohne Lachen.', '')
         ON CONFLICT DO NOTHING
-    """))
+    """)
+    )
 
     # Batch insert melduser (id, id_meldung, id_user, id_finder)
-    session.execute(text("""
+    session.execute(
+        text("""
         INSERT INTO melduser (id, id_meldung, id_user, id_finder) VALUES
         (1,  1,  1,  2),  (2,  2,  3,  4),  (3,  3,  5,  6),  (4,  4,  7,  8),
         (5,  5,  9,  10), (6,  6,  11, 12), (7,  7,  13, 14), (8,  8,  15, 16),
@@ -128,7 +136,8 @@ def insert_data_reports(session):
         (13, 13, 25, 26), (14, 14, 27, 28), (15, 15, 29, 30), (16, 16, 31, 32),
         (17, 17, 33, 34), (18, 18, 35, 36), (19, 19, 37, 38), (20, 20, 39, 40)
         ON CONFLICT DO NOTHING
-    """))
+    """)
+    )
 
     session.commit()
 

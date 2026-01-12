@@ -2,15 +2,15 @@ from datetime import datetime, timedelta
 from io import BytesIO
 import pandas as pd
 from app import db
-import  app.database.alldata as ad
-import  app.database.full_text_search as fts
+import app.database.alldata as ad
+import app.database.full_text_search as fts
 from app.database.models import (
     TblFundortBeschreibung,
     TblFundorte,
     TblMeldungen,
     TblMeldungUser,
     TblUsers,
-    TblAllData
+    TblAllData,
 )
 from app.database.user_feedback import TblUserFeedback
 from app.database.feedback_type import TblFeedbackType
@@ -49,7 +49,14 @@ NON_EDITABLE_FIELDS = {
     "fundorte": ["id", "ablage", "beschreibung"],
     "melduser": ["id", "id_finder", "id_meldung", "id_user"],
     "users": ["id", "user_id"],
-    "all_data_view": ["meldungen_id", "fo_zuordnung", "fundorte_id", "beschreibung_id", "id_user", "user_id"]
+    "all_data_view": [
+        "meldungen_id",
+        "fo_zuordnung",
+        "fundorte_id",
+        "beschreibung_id",
+        "id_user",
+        "user_id",
+    ],
 }
 
 
@@ -57,12 +64,12 @@ def recalculate_amt_mtb(fundort):
     """Recalculate AMT and MTB values for a fundort based on its coordinates."""
     if not fundort or not fundort.latitude or not fundort.longitude:
         return
-    
+
     try:
         # Strip whitespace and convert to float
         lat = float(fundort.latitude.strip())
         lon = float(fundort.longitude.strip())
-        
+
         if -90 <= lat <= 90 and -180 <= lon <= 180:
             if pointInRect((lat, lon)):
                 fundort.mtb = get_mtb(lat, lon)
@@ -99,9 +106,9 @@ def reviewer(usrid):
     last_updated = session.get("last_updated")
     # Store the userid in session
     session["user_id"] = usrid
-    
+
     # Handle case where session datetime might have timezone info from serialization
-    if last_updated and hasattr(last_updated, 'tzinfo') and last_updated.tzinfo:
+    if last_updated and hasattr(last_updated, "tzinfo") and last_updated.tzinfo:
         last_updated = last_updated.replace(tzinfo=None)
     if last_updated is None or now - last_updated > timedelta(minutes=1):
         fts.refresh_materialized_view(db)
@@ -115,14 +122,17 @@ def reviewer(usrid):
     date_from = request.args.get("dateFrom", None)
     date_to = request.args.get("dateTo", None)
 
-    image_path = current_app.config['UPLOAD_FOLDER']
+    image_path = current_app.config["UPLOAD_FOLDER"]
     inspector = inspect(db.engine)
     tables = inspector.get_table_names()
 
     if "statusInput" not in request.args and "sort_order" not in request.args:
         return redirect(
             url_for(
-                "admin.reviewer", usrid=usrid, statusInput="offen", sort_order="id_desc"  # Changed to desc
+                "admin.reviewer",
+                usrid=usrid,
+                statusInput="offen",
+                sort_order="id_desc",  # Changed to desc
             )
         )
 
@@ -133,7 +143,7 @@ def reviewer(usrid):
         search_query=search_query,
         search_type=search_type,
         date_from=date_from,
-        date_to=date_to
+        date_to=date_to,
     )
 
     # Apply sort order
@@ -146,13 +156,20 @@ def reviewer(usrid):
 
     # Process the joined data for the template
     reported_sightings = []
-    
+
     # Fetch all approvers in a single query to avoid N+1 problem
-    bearb_ids = [row[0].bearb_id for row in paginated_sightings.items if row[0].bearb_id]
+    bearb_ids = [
+        row[0].bearb_id for row in paginated_sightings.items if row[0].bearb_id
+    ]
     approvers = {}
     if bearb_ids:
-        approvers = {u.user_id: u.user_name for u in db.session.scalars(select(TblUsers).where(TblUsers.user_id.in_(bearb_ids))).all()}
-    
+        approvers = {
+            u.user_id: u.user_name
+            for u in db.session.scalars(
+                select(TblUsers).where(TblUsers.user_id.in_(bearb_ids))
+            ).all()
+        }
+
     for row in paginated_sightings.items:
         meldung, fundort, beschreibung, _, user = row
         sighting = meldung
@@ -223,21 +240,25 @@ def change_mantis_meta_data(id):
     if field_to_update:
         # Normalize coordinate values before storing
         if fieldname in ["latitude", "longitude"]:
-            is_valid, normalized_value, error_msg = validate_and_normalize_coordinate(new_data, fieldname)
+            is_valid, normalized_value, error_msg = validate_and_normalize_coordinate(
+                new_data, fieldname
+            )
             if not is_valid:
                 return jsonify({"error": error_msg}), 400
             new_data = normalized_value
-        
+
         setattr(sighting_obj, field_to_update, new_data)
-        
+
         # If coordinates were updated, recalculate AMT and MTB
         if fieldname in ["latitude", "longitude"]:
             recalculate_amt_mtb(sighting_obj)
-        
+
         try:
             db.session.commit()
-            current_app.logger.info(f"Report {id} metadata updated: {fieldname} to {new_data} by user {session['user_id']}")
-            
+            current_app.logger.info(
+                f"Report {id} metadata updated: {fieldname} to {new_data} by user {session['user_id']}"
+            )
+
             return jsonify({"success": True})
         except Exception as e:
             db.session.rollback()
@@ -253,43 +274,45 @@ def update_coordinates(id):
     """Update both coordinates at once and recalculate AMT/MTB"""
     try:
         data = request.get_json()
-        if not data or 'latitude' not in data or 'longitude' not in data:
+        if not data or "latitude" not in data or "longitude" not in data:
             return jsonify({"error": "Missing coordinates"}), 400
-        
+
         # Validate and normalize both coordinates
-        lat_valid, normalized_lat, lat_error = validate_and_normalize_coordinate(data['latitude'], 'latitude')
-        lon_valid, normalized_lon, lon_error = validate_and_normalize_coordinate(data['longitude'], 'longitude')
-        
+        lat_valid, normalized_lat, lat_error = validate_and_normalize_coordinate(
+            data["latitude"], "latitude"
+        )
+        lon_valid, normalized_lon, lon_error = validate_and_normalize_coordinate(
+            data["longitude"], "longitude"
+        )
+
         if not lat_valid:
             return jsonify({"error": lat_error}), 400
         if not lon_valid:
             return jsonify({"error": lon_error}), 400
-        
+
         # Get the sighting and its location
         sighting = db.session.get(TblMeldungen, id)
         if not sighting:
             return jsonify({"error": "Report not found"}), 404
-            
+
         fundort = db.session.get(TblFundorte, sighting.fo_zuordnung)
         if not fundort:
             return jsonify({"error": "Location not found"}), 404
-        
+
         # Update coordinates and recalculate
         fundort.latitude = normalized_lat
         fundort.longitude = normalized_lon
         recalculate_amt_mtb(fundort)
-        
+
         # Update bearer ID
         sighting.bearb_id = session["user_id"]
-        
+
         db.session.commit()
-        
-        return jsonify({
-            "success": True,
-            "amt": fundort.amt or "",
-            "mtb": fundort.mtb or ""
-        })
-        
+
+        return jsonify(
+            {"success": True, "amt": fundort.amt or "", "mtb": fundort.mtb or ""}
+        )
+
     except ValueError:
         return jsonify({"error": "Invalid coordinate format"}), 400
     except Exception as e:
@@ -303,24 +326,24 @@ def update_coordinates(id):
 def report_Img(filename):
     "This function is used to serve the image of the report"
     # Validate that the filename doesn't contain dangerous patterns
-    if '..' in filename or filename.startswith('/') or '\\' in filename:
+    if ".." in filename or filename.startswith("/") or "\\" in filename:
         abort(403)
-    
+
     # Construct the safe path within the upload folder
-    upload_folder = current_app.config['UPLOAD_FOLDER']
+    upload_folder = current_app.config["UPLOAD_FOLDER"]
     safe_path = os.path.join(upload_folder, filename)
-    
+
     # Ensure the resolved path is within the upload folder
     safe_path = os.path.abspath(safe_path)
     upload_folder = os.path.abspath(upload_folder)
-    
+
     if not safe_path.startswith(upload_folder):
         abort(403)
-    
+
     # Check if file exists
     if not os.path.exists(safe_path):
         abort(404)
-    
+
     return send_file(safe_path, mimetype="image/webp")
 
 
@@ -348,7 +371,7 @@ def toggle_approve_sighting(id):
         current_app.logger.error(f"Sighting {id} not found for approval toggle.")
         return jsonify({"error": "Report not found"}), 404
 
-    if current_app.config.get('REVIEWERMAIL', False):
+    if current_app.config.get("REVIEWERMAIL", False):
         sighting = (
             db.session.query(
                 TblMeldungen,
@@ -420,24 +443,26 @@ def get_sighting(id):
         for part in sighting:
             part_dict = {c.name: getattr(part, c.name) for c in part.__table__.columns}
             sighting_dict.update(part_dict)
-        
+
         # Get feedback information for this user
         meldung, fundort, beschreibung, melduser, user = sighting
         feedback = (
             db.session.query(TblUserFeedback, TblFeedbackType)
-            .join(TblFeedbackType, TblUserFeedback.feedback_type_id == TblFeedbackType.id)
+            .join(
+                TblFeedbackType, TblUserFeedback.feedback_type_id == TblFeedbackType.id
+            )
             .filter(TblUserFeedback.user_id == user.id)
             .first()
         )
-        
+
         if feedback:
             user_feedback, feedback_type = feedback
-            sighting_dict['feedback_type'] = feedback_type.name
-            sighting_dict['feedback_detail'] = user_feedback.source_detail
+            sighting_dict["feedback_type"] = feedback_type.name
+            sighting_dict["feedback_detail"] = user_feedback.source_detail
         else:
-            sighting_dict['feedback_type'] = None
-            sighting_dict['feedback_detail'] = None
-            
+            sighting_dict["feedback_type"] = None
+            sighting_dict["feedback_detail"] = None
+
         return jsonify(sighting_dict)
     else:
         return jsonify({"error": "Report not found"}), 404
@@ -574,51 +599,61 @@ def export_data(value):
                 search_query=search_query,
                 search_type=search_type,
                 date_from=date_from,
-                date_to=date_to
+                date_to=date_to,
             )
         else:
             abort(404, description="Resource not found")
 
         data = query.all()
-        
+
         # Process the data to match the reviewer view format
         processed_data = []
         for row in data:
             meldung, fundort, beschreibung, melduser, user = row
             entry = {
-                'ID': meldung.id,
-                'Status': 'Gelöscht' if meldung.deleted else ('Bearbeitet' if meldung.dat_bear else 'Offen'),
-                'Fund-Datum': meldung.dat_fund_von.strftime('%d.%m.%Y') if meldung.dat_fund_von else '',
-                'Melde-Datum': meldung.dat_meld.strftime('%d.%m.%Y') if meldung.dat_meld else '',
-                'Bearbeitungs-Datum': meldung.dat_bear.strftime('%d.%m.%Y') if meldung.dat_bear else '',
-                'Anzahl Tiere': meldung.tiere,
-                'Männchen': meldung.art_m,
-                'Weibchen': meldung.art_w,
-                'Nymphen': meldung.art_n,
-                'Ootheken': meldung.art_o,
-                'Andere': meldung.art_f,
-                'Fundort-Quelle': meldung.fo_quelle,
-                'Anmerkung Melder': meldung.anm_melder,
-                'Anmerkung Bearbeiter': meldung.anm_bearbeiter,
-                'PLZ': fundort.plz,
-                'Ort': fundort.ort,
-                'Straße': fundort.strasse,
-                'Kreis': fundort.kreis,
-                'Land': fundort.land,
-                'Amt': fundort.amt,
-                'MTB': fundort.mtb,
-                'Längengrad': fundort.longitude,
-                'Breitengrad': fundort.latitude,
-                'Beschreibung': beschreibung.beschreibung,
-                'Melder Name': user.user_name,
-                'Melder Kontakt': user.user_kontakt
+                "ID": meldung.id,
+                "Status": "Gelöscht"
+                if meldung.deleted
+                else ("Bearbeitet" if meldung.dat_bear else "Offen"),
+                "Fund-Datum": meldung.dat_fund_von.strftime("%d.%m.%Y")
+                if meldung.dat_fund_von
+                else "",
+                "Melde-Datum": meldung.dat_meld.strftime("%d.%m.%Y")
+                if meldung.dat_meld
+                else "",
+                "Bearbeitungs-Datum": meldung.dat_bear.strftime("%d.%m.%Y")
+                if meldung.dat_bear
+                else "",
+                "Anzahl Tiere": meldung.tiere,
+                "Männchen": meldung.art_m,
+                "Weibchen": meldung.art_w,
+                "Nymphen": meldung.art_n,
+                "Ootheken": meldung.art_o,
+                "Andere": meldung.art_f,
+                "Fundort-Quelle": meldung.fo_quelle,
+                "Anmerkung Melder": meldung.anm_melder,
+                "Anmerkung Bearbeiter": meldung.anm_bearbeiter,
+                "PLZ": fundort.plz,
+                "Ort": fundort.ort,
+                "Straße": fundort.strasse,
+                "Kreis": fundort.kreis,
+                "Land": fundort.land,
+                "Amt": fundort.amt,
+                "MTB": fundort.mtb,
+                "Längengrad": fundort.longitude,
+                "Breitengrad": fundort.latitude,
+                "Beschreibung": beschreibung.beschreibung,
+                "Melder Name": user.user_name,
+                "Melder Kontakt": user.user_kontakt,
             }
-            
+
             # Add approver info if available
             if meldung.bearb_id:
-                approver = db.session.scalar(select(TblUsers).where(TblUsers.user_id == meldung.bearb_id))
-                entry['Bearbeiter'] = approver.user_name if approver else "Unknown"
-            
+                approver = db.session.scalar(
+                    select(TblUsers).where(TblUsers.user_id == meldung.bearb_id)
+                )
+                entry["Bearbeiter"] = approver.user_name if approver else "Unknown"
+
             processed_data.append(entry)
 
         # Create DataFrame from processed data
@@ -628,18 +663,21 @@ def export_data(value):
         output = BytesIO()
         with pd.ExcelWriter(output, engine="xlsxwriter") as writer:  # type: ignore
             df.to_excel(writer, sheet_name="Daten", index=False)
-            
+
             # Get the xlsxwriter worksheet object
             worksheet = writer.sheets["Daten"]
-            
+
             # Add a table to the worksheet
             (max_row, max_col) = df.shape
-            column_settings = [{'header': column} for column in df.columns]
-            worksheet.add_table(0, 0, max_row, max_col - 1, {
-                'columns': column_settings,
-                'style': 'Table Style Medium 9'
-            })
-            
+            column_settings = [{"header": column} for column in df.columns]
+            worksheet.add_table(
+                0,
+                0,
+                max_row,
+                max_col - 1,
+                {"columns": column_settings, "style": "Table Style Medium 9"},
+            )
+
             # Auto-adjust columns' width
             for i, col in enumerate(df.columns):
                 column_len = max(df[col].astype(str).map(len).max(), len(col))
@@ -650,7 +688,9 @@ def export_data(value):
 
         # Send the file
         mime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        return send_file(output, mimetype=mime, as_attachment=True, download_name=filename)
+        return send_file(
+            output, mimetype=mime, as_attachment=True, download_name=filename
+        )
     except Exception:
         current_app.logger.exception("Error in export_data")
         return jsonify({"error": "An error occurred during export"}), 500
@@ -670,8 +710,8 @@ def update_report_image_date(report_id, new_date):
         return {"error": "Report not found"}, 404
 
     # Fetch the corresponding fundorte record
-    fundorte_record = (
-        db.session.scalar(select(TblFundorte).where(TblFundorte.id == report.fo_zuordnung))
+    fundorte_record = db.session.scalar(
+        select(TblFundorte).where(TblFundorte.id == report.fo_zuordnung)
     )
     if not fundorte_record or not fundorte_record.ablage:
         # No image to move
@@ -689,7 +729,7 @@ def update_report_image_date(report_id, new_date):
     filename_parts = old_filename.rsplit("-", 2)
     if len(filename_parts) != 3:
         return {"error": f"Invalid filename format: {old_filename}"}, 400
-    
+
     location = filename_parts[0]
     usrid_with_ext = filename_parts[2]
     usrid = usrid_with_ext.replace(".webp", "")
@@ -721,7 +761,11 @@ def update_report_image_date(report_id, new_date):
     fundorte_record.ablage = str(new_file_path.relative_to(base_dir))
     db.session.commit()
 
-    return {"status": "success", "old_path": str(old_image_path), "new_path": str(new_file_path)}, 200
+    return {
+        "status": "success",
+        "old_path": str(old_image_path),
+        "new_path": str(new_file_path),
+    }, 200
 
 
 def _create_directory(new_date):
@@ -759,7 +803,7 @@ def get_filtered_query(
     search_query: Optional[str] = None,
     search_type: Optional[str] = None,
     date_from: Optional[str] = None,
-    date_to: Optional[str] = None
+    date_to: Optional[str] = None,
 ) -> Any:
     """Get filtered query based on parameters."""
     # Always include all necessary joins for better performance
@@ -839,7 +883,9 @@ def get_filtered_query(
 
             if search_type == "full_text":
                 if "@" in search_query:
-                    query = query.filter(TblUsers.user_kontakt.ilike(f"%{search_query}%"))
+                    query = query.filter(
+                        TblUsers.user_kontakt.ilike(f"%{search_query}%")
+                    )
                 else:
                     # Use the new FTS search method
                     matching_ids = fts.FullTextSearch.search(search_query)
@@ -850,7 +896,9 @@ def get_filtered_query(
                         query = query.filter(TblMeldungen.id == -1)
         except Exception as e:
             current_app.logger.error(f"Search error: {e}")
-            query = query.filter(TblMeldungen.id == -1)  # Return empty result set on error
+            query = query.filter(
+                TblMeldungen.id == -1
+            )  # Return empty result set on error
 
     # Apply date filters
     if date_from and date_to:
@@ -884,78 +932,80 @@ def get_filtered_query(
 @admin.route("/alldata")
 @reviewer_required
 def database_view():
-    
     last_updated = session.get("last_updated_all_data_view")
     now = datetime.now()
     # Handle case where session datetime might have timezone info from serialization
-    if last_updated and hasattr(last_updated, 'tzinfo') and last_updated.tzinfo:
+    if last_updated and hasattr(last_updated, "tzinfo") and last_updated.tzinfo:
         last_updated = last_updated.replace(tzinfo=None)
     if last_updated is None or now - last_updated > timedelta(minutes=1):
-         #if last_updated is None or now - last_updated > timedelta(minutes=1):
+        # if last_updated is None or now - last_updated > timedelta(minutes=1):
         ad.refresh_materialized_view(db)
         session["last_updated_all_data_view"] = now
     # Get user_id from session, default to None if not found
-    user_id = session.get('user_id')
+    user_id = session.get("user_id")
 
     return render_template("admin/database.html", user_id=user_id)
+
 
 @admin.route("/admin/get_table_data/<table_name>")
 @reviewer_required
 def get_table_data(table_name):
-    if table_name != 'all_data_view':
+    if table_name != "all_data_view":
         return jsonify({"error": "Only all_data_view is available"}), 403
     try:
-        page = request.args.get('page', 1, type=int)
-        per_page = request.args.get('per_page', 10, type=int)
-        search = request.args.get('search', '')
-        search_type = request.args.get('search_type', 'full_text')
-        sort_column = request.args.get('sort_column', 'meldungen_id')
-        sort_direction = request.args.get('sort_direction', 'asc')
+        page = request.args.get("page", 1, type=int)
+        per_page = request.args.get("per_page", 10, type=int)
+        search = request.args.get("search", "")
+        search_type = request.args.get("search_type", "full_text")
+        sort_column = request.args.get("sort_column", "meldungen_id")
+        sort_direction = request.args.get("sort_direction", "asc")
 
         # Check if it's time to refresh the materialized view
-        last_updated = session.get('last_updated_all_data_view')
+        last_updated = session.get("last_updated_all_data_view")
         now = datetime.now()
         # Handle case where session datetime might have timezone info from serialization
-        if last_updated and hasattr(last_updated, 'tzinfo') and last_updated.tzinfo:
+        if last_updated and hasattr(last_updated, "tzinfo") and last_updated.tzinfo:
             last_updated = last_updated.replace(tzinfo=None)
         if last_updated is None or (now - last_updated > timedelta(minutes=1)):
             ad.refresh_materialized_view(db)
-            session['last_updated_all_data_view'] = now
+            session["last_updated_all_data_view"] = now
 
         # Get the table object - we only work with TblAllData now
         table = TblAllData.__table__
-        
+
         columns = [column.name for column in table.columns]
 
         # Validate sort_column to prevent SQL injection
         if sort_column not in columns:
-            sort_column = 'meldungen_id'
+            sort_column = "meldungen_id"
 
         # Create a select statement
         stmt = db.select(table)
 
         # Apply search filter if search term is provided
         if search:
-            if search_type == 'id':
+            if search_type == "id":
                 try:
                     # Try to convert search term to integer for ID search
                     search_id = int(search)
                     stmt = stmt.where(table.c.meldungen_id == search_id)
                 except ValueError:
                     # If conversion fails, return no results
-                    stmt = stmt.where(table.c.meldungen_id == -1)  # This ensures no results
+                    stmt = stmt.where(
+                        table.c.meldungen_id == -1
+                    )  # This ensures no results
             else:  # full_text search
                 search_filters = []
                 for column in table.columns:
                     if isinstance(column.type, db.String):
-                        search_filters.append(column.ilike(f'%{search}%'))
+                        search_filters.append(column.ilike(f"%{search}%"))
                     elif isinstance(column.type, (db.Integer, db.Float)):
-                        search_filters.append(cast(column, String).ilike(f'%{search}%'))
+                        search_filters.append(cast(column, String).ilike(f"%{search}%"))
                 if search_filters:
                     stmt = stmt.where(or_(*search_filters))
 
         # Apply sorting
-        if sort_direction == 'asc':
+        if sort_direction == "asc":
             stmt = stmt.order_by(table.c[sort_column].asc())
         else:
             stmt = stmt.order_by(table.c[sort_column].desc())
@@ -963,12 +1013,16 @@ def get_table_data(table_name):
         # Get total count for pagination
         total_items_stmt = db.select(db.func.count()).select_from(table)
         if search:
-            if search_type == 'id':
+            if search_type == "id":
                 try:
                     search_id = int(search)
-                    total_items_stmt = total_items_stmt.where(table.c.meldungen_id == search_id)
+                    total_items_stmt = total_items_stmt.where(
+                        table.c.meldungen_id == search_id
+                    )
                 except ValueError:
-                    total_items_stmt = total_items_stmt.where(table.c.meldungen_id == -1)
+                    total_items_stmt = total_items_stmt.where(
+                        table.c.meldungen_id == -1
+                    )
             else:
                 if search_filters:
                     total_items_stmt = total_items_stmt.where(or_(*search_filters))
@@ -982,46 +1036,65 @@ def get_table_data(table_name):
 
         def get_standard_type(column_type):
             if isinstance(column_type, db.Integer):
-                return 'integer'
+                return "integer"
             elif isinstance(column_type, db.String):
-                return 'string'
+                return "string"
             elif isinstance(column_type, db.Boolean):
-                return 'boolean'
+                return "boolean"
             elif isinstance(column_type, db.Date):
-                return 'date'
+                return "date"
             elif isinstance(column_type, db.DateTime):
-                return 'datetime'
+                return "datetime"
             elif isinstance(column_type, db.Float):
-                return 'float'
+                return "float"
             else:
-                return 'string'
+                return "string"
 
         # Get column names and types
-        column_types = {column.name: get_standard_type(column.type) for column in table.columns}
+        column_types = {
+            column.name: get_standard_type(column.type) for column in table.columns
+        }
 
         # Exclude sensitive columns
-        EXCLUDED_COLUMNS = ['id_user', 'id_finder', 'fundorte_id', 'beschreibung_id',
-                            'dat_fund_bis', 'fo_beleg', 'bearb_id', 'ablage']
+        EXCLUDED_COLUMNS = [
+            "id_user",
+            "id_finder",
+            "fundorte_id",
+            "beschreibung_id",
+            "dat_fund_bis",
+            "fo_beleg",
+            "bearb_id",
+            "ablage",
+        ]
         columns_with_excluded = columns.copy()
         columns = [col for col in columns if col not in EXCLUDED_COLUMNS]
         column_types = {col: column_types[col] for col in columns}
 
         # Convert results to list of lists
         data = [
-            [getattr(row, col) for col in columns_with_excluded if col not in EXCLUDED_COLUMNS]
+            [
+                getattr(row, col)
+                for col in columns_with_excluded
+                if col not in EXCLUDED_COLUMNS
+            ]
             for row in results
         ]
 
-        return jsonify({
-            "columns": columns,
-            "data": data,
-            "column_types": column_types,
-            "non_editable_fields": NON_EDITABLE_FIELDS.get('all_data_view', []),
-            "total_items": total_items
-        })
+        return jsonify(
+            {
+                "columns": columns,
+                "data": data,
+                "column_types": column_types,
+                "non_editable_fields": NON_EDITABLE_FIELDS.get("all_data_view", []),
+                "total_items": total_items,
+            }
+        )
     except Exception as e:
         current_app.logger.exception(f"Error in get_table_data: {str(e)}")
-        return jsonify({"error": f"An error occurred while fetching table data: {str(e)}"}), 500
+        return jsonify(
+            {"error": f"An error occurred while fetching table data: {str(e)}"}
+        ), 500
+
 
 @admin.route("/admin/update_cell", methods=["POST"])
 @reviewer_required
@@ -1029,15 +1102,18 @@ def update_cell():
     data = request.json
     if data is None:
         return jsonify({"error": "Invalid request"}), 400
-    table_name = data['table']
-    column_name = data['column']
-    id_value = data['meldungen_id']
-    new_value = data['value']
+    table_name = data["table"]
+    column_name = data["column"]
+    id_value = data["meldungen_id"]
+    new_value = data["value"]
 
-    if table_name != 'all_data_view':
+    if table_name != "all_data_view":
         return jsonify({"error": "Only all_data_view is supported"}), 403
 
-    if table_name in NON_EDITABLE_FIELDS and column_name in NON_EDITABLE_FIELDS[table_name]:
+    if (
+        table_name in NON_EDITABLE_FIELDS
+        and column_name in NON_EDITABLE_FIELDS[table_name]
+    ):
         return jsonify({"error": "This field is not editable"}), 403
 
     try:
@@ -1047,8 +1123,9 @@ def update_cell():
             return jsonify({"error": "Unable to find original table and column"}), 400
 
         # Fetch the corresponding row from all_data_view
-        all_data_row = db.session.scalar(select(TblAllData).where(
-            TblAllData.meldungen_id == id_value))
+        all_data_row = db.session.scalar(
+            select(TblAllData).where(TblAllData.meldungen_id == id_value)
+        )
         if not all_data_row:
             return jsonify({"error": "Record not found"}), 404
 
@@ -1065,14 +1142,16 @@ def update_cell():
             fundorte_id = all_data_row.fundorte_id
             if not fundorte_id:
                 return jsonify({"error": "Fundorte ID not found in the record"}), 400
-            
+
             # Validate and normalize coordinates before storing
-            if original_column in ['latitude', 'longitude']:
-                is_valid, normalized_value, error_msg = validate_and_normalize_coordinate(new_value, original_column)
+            if original_column in ["latitude", "longitude"]:
+                is_valid, normalized_value, error_msg = (
+                    validate_and_normalize_coordinate(new_value, original_column)
+                )
                 if not is_valid:
                     return jsonify({"error": error_msg}), 400
                 new_value = normalized_value
-            
+
             stmt = (
                 update(original_table)
                 .where(original_table.id == fundorte_id)
@@ -1082,7 +1161,8 @@ def update_cell():
             beschreibung_id = all_data_row.beschreibung_id
             if not beschreibung_id:
                 return jsonify(
-                    {"error": "Beschreibung ID not found in the record"}), 400
+                    {"error": "Beschreibung ID not found in the record"}
+                ), 400
             stmt = (
                 update(original_table)
                 .where(original_table.id == beschreibung_id)
@@ -1098,24 +1178,24 @@ def update_cell():
 
         # Execute the update
         result = db.session.execute(stmt)
-        
+
         if result.rowcount == 0:
             return jsonify({"error": "Record not found"}), 404
-        
+
         # If coordinates were updated, recalculate AMT and MTB
-        if column_name in ['latitude', 'longitude'] and original_table == TblFundorte:
+        if column_name in ["latitude", "longitude"] and original_table == TblFundorte:
             fundort = db.session.get(TblFundorte, fundorte_id)
             recalculate_amt_mtb(fundort)
-        
+
         # Handle dat_fund_von changes - move images to new date folder
-        if column_name == 'dat_fund_von' and table_name == 'all_data_view':
+        if column_name == "dat_fund_von" and table_name == "all_data_view":
             image_update_result = update_report_image_date(id_value, new_value)
             if image_update_result[1] != 200:
                 # Rollback database change if image move failed
                 db.session.rollback()
-                error_msg = image_update_result[0].get('error', 'Failed to move image')
+                error_msg = image_update_result[0].get("error", "Failed to move image")
                 return jsonify({"error": f"Date update failed: {error_msg}"}), 500
-            elif image_update_result[0].get('status') == 'success':
+            elif image_update_result[0].get("status") == "success":
                 current_app.logger.info(
                     f"Moved image for report {id_value} from {image_update_result[0].get('old_path')} "
                     f"to {image_update_result[0].get('new_path')}"
@@ -1132,45 +1212,43 @@ def update_cell():
     except Exception as e:
         db.session.rollback()
         current_app.logger.exception(f"Error in update_cell: {str(e)}")
-        errmsg = jsonify(
-            {"error": f"Error while updating the cell: {str(e)}"}
-        )
+        errmsg = jsonify({"error": f"Error while updating the cell: {str(e)}"})
         return errmsg, 500
 
 
 def find_original_table_and_column(column_name):
     table_column_mapping = {
-        'meldungen_id': (TblMeldungen, 'id'),
-        'deleted': (TblMeldungen, 'deleted'),
-        'dat_fund_von': (TblMeldungen, 'dat_fund_von'),
-        'dat_fund_bis': (TblMeldungen, 'dat_fund_bis'),
-        'dat_meld': (TblMeldungen, 'dat_meld'),
-        'dat_bear': (TblMeldungen, 'dat_bear'),
-        'bearb_id': (TblMeldungen, 'bearb_id'),
-        'tiere': (TblMeldungen, 'tiere'),
-        'art_m': (TblMeldungen, 'art_m'),
-        'art_w': (TblMeldungen, 'art_w'),
-        'art_n': (TblMeldungen, 'art_n'),
-        'art_o': (TblMeldungen, 'art_o'),
-        'art_f': (TblMeldungen, 'art_f'),
-        'fo_zuordnung': (TblMeldungen, 'fo_zuordnung'),
-        'fo_quelle': (TblMeldungen, 'fo_quelle'),
-        'fo_beleg': (TblMeldungen, 'fo_beleg'),
-        'anm_melder': (TblMeldungen, 'anm_melder'),
-        'anm_bearbeiter': (TblMeldungen, 'anm_bearbeiter'),
-        'plz': (TblFundorte, 'plz'),
-        'ort': (TblFundorte, 'ort'),
-        'strasse': (TblFundorte, 'strasse'),
-        'kreis': (TblFundorte, 'kreis'),
-        'land': (TblFundorte, 'land'),
-        'amt': (TblFundorte, 'amt'),
-        'mtb': (TblFundorte, 'mtb'),
-        'longitude': (TblFundorte, 'longitude'),
-        'latitude': (TblFundorte, 'latitude'),
-        'ablage': (TblFundorte, 'ablage'),
-        'beschreibung': (TblFundortBeschreibung, 'beschreibung'),
-        'user_id': (TblUsers, 'user_id'),
-        'user_name': (TblUsers, 'user_name'),
-        'user_kontakt': (TblUsers, 'user_kontakt')
+        "meldungen_id": (TblMeldungen, "id"),
+        "deleted": (TblMeldungen, "deleted"),
+        "dat_fund_von": (TblMeldungen, "dat_fund_von"),
+        "dat_fund_bis": (TblMeldungen, "dat_fund_bis"),
+        "dat_meld": (TblMeldungen, "dat_meld"),
+        "dat_bear": (TblMeldungen, "dat_bear"),
+        "bearb_id": (TblMeldungen, "bearb_id"),
+        "tiere": (TblMeldungen, "tiere"),
+        "art_m": (TblMeldungen, "art_m"),
+        "art_w": (TblMeldungen, "art_w"),
+        "art_n": (TblMeldungen, "art_n"),
+        "art_o": (TblMeldungen, "art_o"),
+        "art_f": (TblMeldungen, "art_f"),
+        "fo_zuordnung": (TblMeldungen, "fo_zuordnung"),
+        "fo_quelle": (TblMeldungen, "fo_quelle"),
+        "fo_beleg": (TblMeldungen, "fo_beleg"),
+        "anm_melder": (TblMeldungen, "anm_melder"),
+        "anm_bearbeiter": (TblMeldungen, "anm_bearbeiter"),
+        "plz": (TblFundorte, "plz"),
+        "ort": (TblFundorte, "ort"),
+        "strasse": (TblFundorte, "strasse"),
+        "kreis": (TblFundorte, "kreis"),
+        "land": (TblFundorte, "land"),
+        "amt": (TblFundorte, "amt"),
+        "mtb": (TblFundorte, "mtb"),
+        "longitude": (TblFundorte, "longitude"),
+        "latitude": (TblFundorte, "latitude"),
+        "ablage": (TblFundorte, "ablage"),
+        "beschreibung": (TblFundortBeschreibung, "beschreibung"),
+        "user_id": (TblUsers, "user_id"),
+        "user_name": (TblUsers, "user_name"),
+        "user_kontakt": (TblUsers, "user_kontakt"),
     }
     return table_column_mapping.get(column_name, (None, None))

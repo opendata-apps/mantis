@@ -17,6 +17,7 @@ def login_required(f):
 
 def reviewer_required(f):
     """Require an authenticated user with reviewer role ('9')."""
+
     @wraps(f)
     def decorated_function(*args, **kwargs):
         user_id = session.get("user_id")
@@ -26,4 +27,5 @@ def reviewer_required(f):
         if not user or user.user_rolle != "9":
             abort(403)
         return f(*args, **kwargs)
+
     return decorated_function

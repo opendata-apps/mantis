@@ -1,8 +1,8 @@
 import smtplib
 from email.mime.text import MIMEText
 
-SMTP_SERVER = ""   # oder Provider
-SMTP_PORT = 587    # 587 = TLS, 465 = SSL
+SMTP_SERVER = ""  # oder Provider
+SMTP_PORT = 587  # 587 = TLS, 465 = SSL
 SMTP_USER = ""
 SMTP_PASS = ""
 FROM_ADDR = ""

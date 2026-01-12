@@ -1,5 +1,5 @@
-""" Tabelle  'aemter' mit Datensätzen
-    aus vg5000_gem füllen
+"""Tabelle  'aemter' mit Datensätzen
+aus vg5000_gem füllen
 """
 
 import json
@@ -8,23 +8,22 @@ import sqlalchemy.orm as orm
 
 
 def import_aemter_data(db, jsondata):
-
     data = json.loads(jsondata)
 
     # Create a session
     Session = orm.sessionmaker(bind=db)
     session = Session()
 
-    for row in data['features']:
-        ags = row['properties']['AGS']
-        gen = row['properties']['GEN']
-        
+    for row in data["features"]:
+        ags = row["properties"]["AGS"]
+        gen = row["properties"]["GEN"]
+
         # Check if record with this AGS already exists
         check_stm = f"SELECT ags FROM aemter WHERE ags = {ags}"
         existing = session.execute(text(check_stm)).fetchone()
-        
+
         if not existing:
-            geo = str(row['geometry']).replace("'", '"')
+            geo = str(row["geometry"]).replace("'", '"')
             stm = f"""
             INSERT into aemter (ags, gen, properties)
             VALUES ({ags},
@@ -33,6 +32,6 @@ def import_aemter_data(db, jsondata):
             session.execute(text(stm))
         else:
             return
-    
+
     session.commit()
     session.close()

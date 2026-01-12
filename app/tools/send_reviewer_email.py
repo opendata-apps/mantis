@@ -4,7 +4,6 @@ import datetime
 
 
 def rendertextmsg(md):
-
     return f"""
     Liebe Mantis-Freundin, lieber Mantis-Freund,
 
@@ -28,16 +27,16 @@ def rendertextmsg(md):
 
     Folgende Daten haben wir erhalten:
     ==================================
-    Kontakt: {md['user_kontakt']}
+    Kontakt: {md["user_kontakt"]}
 
-    {'Latitude:':<21}  {md['latitude']:>22}
-    {'Longitude:':<21}  {md['longitude']:>22}
-    {'PLZ:':<21}  {str(md['plz']):>22}
-    {'Ort:':<21}  {md['ort']:>22}
-    {'Straße:':<21}  {md['strasse']:>22}
-    {'Bundesland:':<22} {md['land']:>22}
-    {'Kreis:':<22} {md['kreis']:>22}
-    {'Funddatum:':<22} {md['datum']:>22}
+    {"Latitude:":<21}  {md["latitude"]:>22}
+    {"Longitude:":<21}  {md["longitude"]:>22}
+    {"PLZ:":<21}  {str(md["plz"]):>22}
+    {"Ort:":<21}  {md["ort"]:>22}
+    {"Straße:":<21}  {md["strasse"]:>22}
+    {"Bundesland:":<22} {md["land"]:>22}
+    {"Kreis:":<22} {md["kreis"]:>22}
+    {"Funddatum:":<22} {md["datum"]:>22}
 
     ==========
 
@@ -45,14 +44,14 @@ def rendertextmsg(md):
 
     (siehe auch:  https://gottesanbeterin-gesucht.de/bestimmung)
 
-    {'Männchen:':<10} {str(md['art_m']) + " ":10}
-    {'Weibchen:':<10} {str(md['art_w']) + " ":<10}
-    {'Nymphe(n):':<10} {str(md['art_n']) + " ":<10}
-    {'Oothek(n):':<10} {str(md['art_o']) + " ":<10}
-    {md['anm_bearbeiter']}
+    {"Männchen:":<10} {str(md["art_m"]) + " ":10}
+    {"Weibchen:":<10} {str(md["art_w"]) + " ":<10}
+    {"Nymphe(n):":<10} {str(md["art_n"]) + " ":<10}
+    {"Oothek(n):":<10} {str(md["art_o"]) + " ":<10}
+    {md["anm_bearbeiter"]}
 
     Ihr Link für neue Meldungen:
-    https://gottesanbeterin-gesucht.de/report/{md['user_id']}
+    https://gottesanbeterin-gesucht.de/report/{md["user_id"]}
 
     WICHTIGER HINWEIS:
 
@@ -63,18 +62,18 @@ def rendertextmsg(md):
 
 def send_email(data):
     md = data
-    if not md['anm_bearbeiter']:
+    if not md["anm_bearbeiter"]:
         text = "Keine Anmerkung(en) vom Reviewer."
     else:
         text = f"Anmerkung(en) vom Reviewer: {md['anm_bearbeiter']}"
-    md['anm_bearbeiter'] = text
-    string_from_date = md['dat_fund_von'].strftime('%d.%m.%Y')
-    md['datum'] = string_from_date
+    md["anm_bearbeiter"] = text
+    string_from_date = md["dat_fund_von"].strftime("%d.%m.%Y")
+    md["datum"] = string_from_date
 
     msg = Message(
         subject="[Gottesanbeterin-Gesucht] Meldung überprüft",
         recipients=[data["user_kontakt"]],
-        body=(rendertextmsg(md))
+        body=(rendertextmsg(md)),
     )
 
     app = create_app()

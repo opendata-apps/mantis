@@ -1,5 +1,6 @@
 from app import db
 
+
 class TblMeldungUser(db.Model):
     __tablename__ = "melduser"
 

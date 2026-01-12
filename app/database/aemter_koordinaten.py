@@ -6,6 +6,7 @@ Koordinaten ein Amt zuzuordnen.
 from app import db
 from sqlalchemy.dialects.postgresql import JSONB
 
+
 class TblAemterCoordinaten(db.Model):
     __tablename__ = "aemter"
 

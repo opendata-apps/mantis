@@ -60,32 +60,48 @@ FEEDBACK_SOURCE_CHOICES = [
     ("8", "Andere"),
 ]
 
+
 # Custom validators
 def validate_past_date(form, field):
     if field.data:
         today = date.today()
         if field.data > today:
             raise ValidationError("Datum darf nicht in der Zukunft liegen.")
-        five_years_ago = today - timedelta(days=5*365)
+        five_years_ago = today - timedelta(days=5 * 365)
         if field.data < five_years_ago:
-             raise ValidationError("Datum liegt zu weit zurück (max. 5 Jahre).")
+            raise ValidationError("Datum liegt zu weit zurück (max. 5 Jahre).")
 
 
 def validate_zip_code(form, field):
     if field.data and not re.match(r"^\d{5}$", field.data):
         raise ValidationError("Postleitzahl muss genau 5 Ziffern haben.")
 
+
 # Define WTForms form class for the sighting report
 class MantisSightingForm(FlaskForm):
     # Observer Information
     report_first_name = StringField(
         "Vorname *",
-        validators=[DataRequired(message="Vorname ist erforderlich."), Length(min=1, max=50, message="Vorname muss zwischen 1 und 50 Zeichen lang sein.")],
+        validators=[
+            DataRequired(message="Vorname ist erforderlich."),
+            Length(
+                min=1,
+                max=50,
+                message="Vorname muss zwischen 1 und 50 Zeichen lang sein.",
+            ),
+        ],
         render_kw={"placeholder": "Ihr Vorname", "autocomplete": "given-name"},
     )
     report_last_name = StringField(
         "Nachname *",
-        validators=[DataRequired(message="Nachname ist erforderlich."), Length(min=1, max=50, message="Nachname muss zwischen 1 und 50 Zeichen lang sein.")],
+        validators=[
+            DataRequired(message="Nachname ist erforderlich."),
+            Length(
+                min=1,
+                max=50,
+                message="Nachname muss zwischen 1 und 50 Zeichen lang sein.",
+            ),
+        ],
         render_kw={"placeholder": "Ihr Nachname", "autocomplete": "family-name"},
     )
     email = StringField(
@@ -105,12 +121,26 @@ class MantisSightingForm(FlaskForm):
     )
     finder_first_name = StringField(
         "Vorname des Finders",
-        validators=[Optional(), Length(min=1, max=50, message="Vorname muss zwischen 1 und 50 Zeichen lang sein.")],
+        validators=[
+            Optional(),
+            Length(
+                min=1,
+                max=50,
+                message="Vorname muss zwischen 1 und 50 Zeichen lang sein.",
+            ),
+        ],
         render_kw={"placeholder": "Vorname (falls abweichend)", "autocomplete": "off"},
     )
     finder_last_name = StringField(
         "Nachname des Finders",
-        validators=[Optional(), Length(min=1, max=50, message="Nachname muss zwischen 1 und 50 Zeichen lang sein.")],
+        validators=[
+            Optional(),
+            Length(
+                min=1,
+                max=50,
+                message="Nachname muss zwischen 1 und 50 Zeichen lang sein.",
+            ),
+        ],
         render_kw={"placeholder": "Nachname (falls abweichend)", "autocomplete": "off"},
     )
 
@@ -119,12 +149,18 @@ class MantisSightingForm(FlaskForm):
         "Wie sind Sie auf unser Projekt aufmerksam geworden?",
         choices=FEEDBACK_SOURCE_CHOICES,
         validators=[Optional()],
-        render_kw={"title": "Feedback-Quelle auswählen"}
+        render_kw={"title": "Feedback-Quelle auswählen"},
     )
     feedback_detail = StringField(
         "Details (optional)",
-        validators=[Optional(), Length(max=255, message="Details dürfen maximal 255 Zeichen lang sein.")],
-        render_kw={"placeholder": "z.B. Name der Veranstaltung, Website, etc.", "autocomplete": "off"},
+        validators=[
+            Optional(),
+            Length(max=255, message="Details dürfen maximal 255 Zeichen lang sein."),
+        ],
+        render_kw={
+            "placeholder": "z.B. Name der Veranstaltung, Website, etc.",
+            "autocomplete": "off",
+        },
     )
 
     # Sighting Details
@@ -135,7 +171,7 @@ class MantisSightingForm(FlaskForm):
             DataRequired(message="Sichtungsdatum ist erforderlich."),
             validate_past_date,
         ],
-        render_kw={"placeholder": "JJJJ-MM-TT", "autocomplete": "off"}
+        render_kw={"placeholder": "JJJJ-MM-TT", "autocomplete": "off"},
     )
 
     # Location Information
@@ -143,65 +179,122 @@ class MantisSightingForm(FlaskForm):
         "Breitengrad *",
         validators=[
             InputRequired(message="Breitengrad ist erforderlich (Karte nutzen)."),
-            CoordinateValidator('latitude', message="Breitengrad muss zwischen -90 und 90 liegen.")
+            CoordinateValidator(
+                "latitude", message="Breitengrad muss zwischen -90 und 90 liegen."
+            ),
         ],
-        render_kw={"readonly": True, "aria-label": "Breitengrad (von Karte gesetzt)"}
+        render_kw={"readonly": True, "aria-label": "Breitengrad (von Karte gesetzt)"},
     )
     longitude = FloatField(
         "Längengrad *",
         validators=[
             InputRequired(message="Längengrad ist erforderlich (Karte nutzen)."),
-            CoordinateValidator('longitude', message="Längengrad muss zwischen -180 und 180 liegen.")
+            CoordinateValidator(
+                "longitude", message="Längengrad muss zwischen -180 und 180 liegen."
+            ),
         ],
-         render_kw={"readonly": True, "aria-label": "Längengrad (von Karte gesetzt)"}
+        render_kw={"readonly": True, "aria-label": "Längengrad (von Karte gesetzt)"},
     )
-    fund_zip_code = StringField("Postleitzahl", validators=[Optional(), Length(min=5, max=5, message="PLZ muss 5 Ziffern haben."), validate_zip_code], render_kw={"placeholder": "z.B. 10115", "autocomplete": "postal-code"})
-    fund_city = StringField("Stadt/Ort *", validators=[DataRequired(message="Stadt/Ort ist erforderlich."), Length(max=100)], render_kw={"placeholder": "Name der Stadt oder des Ortes", "autocomplete": "address-level2"})
-    fund_street = StringField("Straße", validators=[Optional(), Length(max=100)], render_kw={"placeholder": "Straßenname (optional)", "autocomplete": "address-line1"})
-    fund_state = StringField("Bundesland *", validators=[DataRequired(message="Bundesland ist erforderlich."), Length(max=50)], render_kw={"placeholder": "Bundesland", "autocomplete": "address-level1"})
-    fund_district = StringField("Landkreis", validators=[Optional(), Length(max=100)], render_kw={"placeholder": "Landkreis oder Bezirk (optional)", "autocomplete": "address-level3"})
-
+    fund_zip_code = StringField(
+        "Postleitzahl",
+        validators=[
+            Optional(),
+            Length(min=5, max=5, message="PLZ muss 5 Ziffern haben."),
+            validate_zip_code,
+        ],
+        render_kw={"placeholder": "z.B. 10115", "autocomplete": "postal-code"},
+    )
+    fund_city = StringField(
+        "Stadt/Ort *",
+        validators=[
+            DataRequired(message="Stadt/Ort ist erforderlich."),
+            Length(max=100),
+        ],
+        render_kw={
+            "placeholder": "Name der Stadt oder des Ortes",
+            "autocomplete": "address-level2",
+        },
+    )
+    fund_street = StringField(
+        "Straße",
+        validators=[Optional(), Length(max=100)],
+        render_kw={
+            "placeholder": "Straßenname (optional)",
+            "autocomplete": "address-line1",
+        },
+    )
+    fund_state = StringField(
+        "Bundesland *",
+        validators=[
+            DataRequired(message="Bundesland ist erforderlich."),
+            Length(max=50),
+        ],
+        render_kw={"placeholder": "Bundesland", "autocomplete": "address-level1"},
+    )
+    fund_district = StringField(
+        "Landkreis",
+        validators=[Optional(), Length(max=100)],
+        render_kw={
+            "placeholder": "Landkreis oder Bezirk (optional)",
+            "autocomplete": "address-level3",
+        },
+    )
 
     # Mantis Details
     gender = SelectField(
         "Entwicklungsstadium/Geschlecht *",
         choices=GENDER_CHOICES,
         validators=[DataRequired(message="Bitte wählen Sie eine Option aus.")],
-        render_kw={"title": "Entwicklungsstadium auswählen"}
+        render_kw={"title": "Entwicklungsstadium auswählen"},
     )
     location_description = SelectField(
         "Fundortbeschreibung *",
         choices=LOCATION_DESCRIPTION_CHOICES,
         validators=[DataRequired(message="Bitte wählen Sie einen Ortstyp aus.")],
-        render_kw={"title": "Fundortbeschreibung auswählen"}
+        render_kw={"title": "Fundortbeschreibung auswählen"},
     )
-    description = TextAreaField("Details zum Fundort", validators=[Optional(), Length(max=500)], render_kw={"placeholder": "Weitere Details (max. 500 Zeichen)", "rows": 3})
+    description = TextAreaField(
+        "Details zum Fundort",
+        validators=[Optional(), Length(max=500)],
+        render_kw={"placeholder": "Weitere Details (max. 500 Zeichen)", "rows": 3},
+    )
 
     # Photo Upload
     photo = FileField(
         "Foto (max. 12MB) *",
         validators=[
             FileRequired(message="Ein Foto ist erforderlich."),
-            FileAllowed(['jpg', 'jpeg', 'png', 'webp', 'heic', 'heif'], 'Nur Bilddateien (JPG, PNG, WEBP, HEIC, HEIF) sind erlaubt.'),
-            FileSize(max_size=12 * 1024 * 1024, message="Das Bild darf maximal 12MB groß sein.")
-        ]
+            FileAllowed(
+                ["jpg", "jpeg", "png", "webp", "heic", "heif"],
+                "Nur Bilddateien (JPG, PNG, WEBP, HEIC, HEIF) sind erlaubt.",
+            ),
+            FileSize(
+                max_size=12 * 1024 * 1024,
+                message="Das Bild darf maximal 12MB groß sein.",
+            ),
+        ],
     )
 
     # Honeypot field for spam prevention
-    honeypot = StringField(validators=[Optional(), Length(max=1)]) # max=1 is a small defense
+    honeypot = StringField(
+        validators=[Optional(), Length(max=1)]
+    )  # max=1 is a small defense
 
     submit = SubmitField("Bericht einreichen")
 
     def validate_finder_names_dependency(self, extra_validators=None):
-
         if not self.identical_finder_reporter.data:
             first_name_filled = bool(self.finder_first_name.data)
             last_name_filled = bool(self.finder_last_name.data)
 
             if first_name_filled and not last_name_filled:
-                self.finder_last_name.errors.append('Nachname des Finders ist erforderlich, wenn Vorname angegeben wurde.')  # type: ignore
+                self.finder_last_name.errors.append(
+                    "Nachname des Finders ist erforderlich, wenn Vorname angegeben wurde."
+                )  # type: ignore
                 return False
             if last_name_filled and not first_name_filled:
-                self.finder_first_name.errors.append('Vorname des Finders ist erforderlich, wenn Nachname angegeben wurde.')  # type: ignore
+                self.finder_first_name.errors.append(
+                    "Vorname des Finders ist erforderlich, wenn Nachname angegeben wurde."
+                )  # type: ignore
                 return False
         return True
