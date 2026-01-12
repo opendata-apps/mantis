@@ -786,17 +786,6 @@ def _create_filename(location, usrid, new_date):
     )
 
 
-# Define a function to convert a row to a dictionary
-def row2dict(row):
-    "Convert a row to a dictionary"
-    d = {}
-    for item in row:
-        for column in item.__table__.columns:
-            d[column.name] = str(getattr(item, column.name))
-
-    return d
-
-
 def get_filtered_query(
     filter_status: Optional[str] = None,
     filter_type: Optional[str] = None,
