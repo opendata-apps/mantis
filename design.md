@@ -277,6 +277,74 @@
 - **Brand Alignment**
   - Ensure the design reflects the brand's identity and values.
 
+### 15. Color & Accessibility
+
+#### The Accessibility-Aesthetics Balance
+
+Accessible design and aesthetic design are not opposites. The goal is to satisfy WCAG requirements while maintaining visual appeal. This project targets **WCAG AA compliance** (4.5:1 contrast minimum) as the baseline, with AAA (7:1) achieved where practical.
+
+#### Contrast Guidelines
+
+| Element | Minimum Ratio | Target | Notes |
+|---------|---------------|--------|-------|
+| Body text | 4.5:1 (AA) | 7:1+ (AAA) | `text-gray-900` on white = ~16:1 |
+| Large text (18px+) | 3:1 | 4.5:1 | Headings can use `text-gray-700` |
+| UI components | 3:1 | 4.5:1 | Borders, icons, form controls |
+| Decorative | No requirement | - | Non-informational elements |
+
+#### Current Color Choices (Rationale)
+
+**Text colors:**
+- `text-gray-900` (#111827) - Primary body text. Contrast ~16:1 on white. Slightly off-black reduces harshness for extended reading while exceeding AAA requirements.
+- `text-gray-700` (#374151) - Secondary text, large headings. Contrast ~8.5:1 on white (AAA compliant).
+- `text-gray-500` (#6b7280) - Tertiary/muted text. Contrast ~4.6:1 (AA compliant). Use sparingly and only for non-critical information.
+
+**Background colors:**
+- `bg-white` (#FFFFFF) - Primary background. Pure white is acceptable and preferred for maximum contrast.
+- `bg-gray-50` (#f9fafb) - Subtle section differentiation. Near-white maintains excellent contrast.
+- `bg-gray-100` (#f3f4f6) - Card backgrounds, hover states.
+
+**Why not use pure black (#000000)?**
+Research is contested, but practical considerations:
+1. `gray-900` (#111827) provides ~16:1 contrast - far exceeding AAA (7:1)
+2. Slightly warmer tone integrates better with the green brand palette
+3. No accessibility penalty - low-vision users benefit equally from 16:1 as 21:1
+4. Tailwind convention - `gray-900` is the standard "black" in design systems
+
+**Why not use off-white backgrounds?**
+- Pure white (#FFFFFF) provides maximum contrast for accessibility
+- Off-white is a preference, not a requirement
+- Users who need reduced brightness use OS/browser dark mode or accessibility settings
+- Consistent white backgrounds simplify the color system
+
+#### Contested Claims (Debunked)
+
+| Claim | Reality |
+|-------|---------|
+| "Pure black on white causes eye strain" | No peer-reviewed evidence. The cited Nature study discusses myopia development, not eye strain. |
+| "High contrast is harsh for normal vision users" | Subjective aesthetic preference, not a usability issue. Many users prefer high contrast. |
+| "WCAG has maximum contrast limits" | False. WCAG only defines minimums. Higher contrast improves accessibility. |
+| "Low vision users can use assistive tech" | True, but don't use this as an excuse. Native high contrast benefits everyone. |
+
+#### Practical Rules
+
+1. **Always meet AA minimum (4.5:1)** for all text
+2. **Prefer AAA (7:1+)** for body text - we achieve this with `gray-900` on white
+3. **Use `gray-500` or lighter text sparingly** - only for truly supplementary info
+4. **Never sacrifice readability for aesthetics** - if in doubt, increase contrast
+5. **Test with contrast checkers** - WebAIM, browser DevTools accessibility panel
+6. **Consider `prefers-contrast: more`** - future CSS media query for high-contrast preference
+
+#### Transparency & Overlays
+
+When using transparency, ensure the resulting contrast still meets requirements:
+```css
+/* Good: Maintains contrast */
+background: color-mix(in srgb, var(--color-green-800) 80%, transparent);
+
+/* Verify: Test actual rendered contrast, not theoretical */
+```
+
 ---
 
 By adhering to these comprehensive design principles, you can create user interfaces that are visually appealing, intuitive, and user-friendly. Keep the focus on design elements that enhance usability and aesthetics, ensuring a seamless experience for users across various devices and platforms.
