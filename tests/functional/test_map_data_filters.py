@@ -1,9 +1,9 @@
-"""Test map data generation to ensure is_() comparisons work correctly."""
+"""Test map data generation to ensure status filtering works correctly."""
 
 import pytest
 import json
 from datetime import datetime
-from app.database.models import TblMeldungen, TblFundorte
+from app.database.models import TblMeldungen, TblFundorte, ReportStatus
 from bs4 import BeautifulSoup
 
 
@@ -35,8 +35,9 @@ class TestMapDataFilters:
             dat_fund_von=datetime.now().date(),
             dat_meld=datetime.now().date(),
             fo_zuordnung=self.location.id,
-            dat_bear=datetime.now(),  # Approved
-            deleted=None,  # Not deleted (NULL)
+            dat_bear=datetime.now(),
+            deleted=None,
+            status=ReportStatus.APPR.value,  # Approved status
             art_m=1,
         )
         session.add(self.approved_sighting)
@@ -47,7 +48,8 @@ class TestMapDataFilters:
             dat_meld=datetime.now().date(),
             fo_zuordnung=self.location.id,
             dat_bear=datetime.now(),
-            deleted=False,  # Explicitly false
+            deleted=False,
+            status=ReportStatus.APPR.value,  # Approved status
             art_o=1,
         )
         session.add(self.approved_not_deleted)
@@ -57,8 +59,9 @@ class TestMapDataFilters:
             dat_fund_von=datetime.now().date(),
             dat_meld=datetime.now().date(),
             fo_zuordnung=self.location.id,
-            dat_bear=None,  # Not approved
+            dat_bear=None,
             deleted=None,
+            status=ReportStatus.OPEN.value,  # Open status (not approved)
             art_w=1,
         )
         session.add(self.unapproved_sighting)
@@ -68,8 +71,9 @@ class TestMapDataFilters:
             dat_fund_von=datetime.now().date(),
             dat_meld=datetime.now().date(),
             fo_zuordnung=self.location.id,
-            dat_bear=datetime.now(),  # Approved
-            deleted=True,  # But deleted
+            dat_bear=datetime.now(),
+            deleted=True,
+            status=ReportStatus.DEL.value,  # Deleted status
             art_n=1,
         )
         session.add(self.deleted_sighting)
@@ -173,25 +177,26 @@ class TestMapDataFilters:
             assert "id" in data
 
     def test_edge_case_combinations(self, client, session):
-        """Test various edge case combinations of approved/deleted states."""
+        """Test various edge case combinations of status values."""
+        # Test cases: (status, should_appear, description)
         test_cases = [
-            (datetime.now(), None, True, "approved + null deleted"),
-            (datetime.now(), False, True, "approved + false deleted"),
-            (datetime.now(), True, False, "approved + true deleted"),
-            (None, None, False, "not approved + null deleted"),
-            (None, False, False, "not approved + false deleted"),
-            (None, True, False, "not approved + true deleted"),
+            (ReportStatus.APPR.value, True, "approved status"),
+            (ReportStatus.OPEN.value, False, "open status"),
+            (ReportStatus.DEL.value, False, "deleted status"),
+            (ReportStatus.INFO.value, False, "info status"),
+            (ReportStatus.UNKL.value, False, "unclear status"),
         ]
 
         created_sightings = []
 
-        for dat_bear, deleted, should_appear, desc in test_cases:
+        for status, should_appear, desc in test_cases:
             sighting = TblMeldungen(
                 dat_fund_von=datetime.now().date(),
                 dat_meld=datetime.now().date(),
                 fo_zuordnung=self.location.id,
-                dat_bear=dat_bear,
-                deleted=deleted,
+                dat_bear=datetime.now() if status == ReportStatus.APPR.value else None,
+                deleted=(status == ReportStatus.DEL.value),
+                status=status,
                 anm_melder=desc,
             )
             session.add(sighting)

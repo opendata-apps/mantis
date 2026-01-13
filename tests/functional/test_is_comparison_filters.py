@@ -1,53 +1,45 @@
-"""Test that is_() comparisons work correctly in filters."""
+"""Test that status-based filtering works correctly."""
 
 import pytest
 from datetime import datetime
-from app.database.models import TblMeldungen
+from app.database.models import TblMeldungen, ReportStatus
 from app.routes.admin import get_filtered_query
 
 
 class TestIsComparisonFilters:
-    """Direct unit tests for the filter query logic with is_() comparisons."""
+    """Direct unit tests for the filter query logic with status-based filtering."""
 
     def test_open_filter_query(self, session):
-        """Test the open filter excludes approved and deleted items."""
-        # Get the filtered query
+        """Test the open filter shows only OPEN status items."""
         query = get_filtered_query(filter_status="offen")
         results = query.all()
 
-        # Check that all results have dat_bear=None and deleted!=True
         for row in results:
             meldung = row[0]  # First element is TblMeldungen
-            assert meldung.dat_bear is None, (
-                f"Sighting {meldung.id} has dat_bear={meldung.dat_bear}, expected None"
-            )
-            assert meldung.deleted is not True, (
-                f"Sighting {meldung.id} is deleted but shown in open filter"
+            assert meldung.status == ReportStatus.OPEN.value, (
+                f"Sighting {meldung.id} has status={meldung.status}, expected OPEN"
             )
 
     def test_approved_filter_query(self, session):
-        """Test the approved filter only shows approved, non-deleted items."""
+        """Test the approved filter only shows APPR status items."""
         query = get_filtered_query(filter_status="bearbeitet")
         results = query.all()
 
         for row in results:
             meldung = row[0]
-            assert meldung.dat_bear is not None, (
-                f"Sighting {meldung.id} has no dat_bear but shown in approved filter"
-            )
-            assert meldung.deleted is not True, (
-                f"Sighting {meldung.id} is deleted but shown in approved filter"
+            assert meldung.status == ReportStatus.APPR.value, (
+                f"Sighting {meldung.id} has status={meldung.status}, expected APPR"
             )
 
     def test_deleted_filter_query(self, session):
-        """Test the deleted filter only shows deleted items."""
+        """Test the deleted filter only shows DEL status items."""
         query = get_filtered_query(filter_status="geloescht")
         results = query.all()
 
         for row in results:
             meldung = row[0]
-            assert meldung.deleted is True, (
-                f"Sighting {meldung.id} has deleted={meldung.deleted}, expected True"
+            assert meldung.status == ReportStatus.DEL.value, (
+                f"Sighting {meldung.id} has status={meldung.status}, expected DEL"
             )
 
     def test_all_filter_query(self, session):
@@ -76,36 +68,35 @@ class TestIsComparisonFilters:
             "All filter shows fewer results than deleted filter"
         )
 
-    def test_null_deleted_handled_correctly(self, session):
-        """Test that NULL deleted values are treated as not deleted."""
+    def test_open_status_handled_correctly(self, session):
+        """Test that OPEN status sightings appear in open filter."""
         from app.database.models import TblMeldungUser
 
         # Get any existing sighting with full relationships
         existing = session.query(TblMeldungen).first()
         if not existing:
-            # Skip test if no data
             pytest.skip("No existing sightings in test database")
 
-        # Create a sighting with deleted=None
-        null_deleted = TblMeldungen(
+        # Create a sighting with OPEN status
+        open_sighting = TblMeldungen(
             dat_fund_von=datetime.now().date(),
             dat_meld=datetime.now().date(),
-            fo_zuordnung=existing.fo_zuordnung,  # Use same location
-            deleted=None,  # Explicitly NULL
-            art_m=1,  # Add some data
+            fo_zuordnung=existing.fo_zuordnung,
+            status=ReportStatus.OPEN.value,
+            deleted=None,
+            art_m=1,
         )
-        session.add(null_deleted)
+        session.add(open_sighting)
         session.flush()
 
         # Create the user relationship (required for the join)
-        # Get the user from the existing relationship
         existing_rel = (
             session.query(TblMeldungUser).filter_by(id_meldung=existing.id).first()
         )
 
         if existing_rel:
             new_rel = TblMeldungUser(
-                id_meldung=null_deleted.id, id_user=existing_rel.id_user
+                id_meldung=open_sighting.id, id_user=existing_rel.id_user
             )
             session.add(new_rel)
 
@@ -114,15 +105,15 @@ class TestIsComparisonFilters:
         # Check it appears in open filter
         open_query = get_filtered_query(filter_status="offen")
         open_ids = [row[0].id for row in open_query.all()]
-        assert null_deleted.id in open_ids, (
-            f"NULL deleted sighting (id={null_deleted.id}) not shown in open filter. Open IDs: {open_ids}"
+        assert open_sighting.id in open_ids, (
+            f"OPEN status sighting (id={open_sighting.id}) not shown in open filter"
         )
 
         # Check it doesn't appear in deleted filter
         deleted_query = get_filtered_query(filter_status="geloescht")
         deleted_ids = [row[0].id for row in deleted_query.all()]
-        assert null_deleted.id not in deleted_ids, (
-            "NULL deleted sighting shown in deleted filter"
+        assert open_sighting.id not in deleted_ids, (
+            "OPEN status sighting shown in deleted filter"
         )
 
     def test_unspecified_gender_filter(self, session):
@@ -147,8 +138,7 @@ class TestIsComparisonFilters:
 
         for row in results:
             meldung = row[0]
-            assert meldung.dat_bear is None, "Approved sighting in open filter"
-            assert meldung.deleted is not True, "Deleted sighting in open filter"
+            assert meldung.status == ReportStatus.OPEN.value, "Non-OPEN status in open filter"
             assert meldung.art_m >= 1, "Non-male sighting in male filter"
 
     def test_default_filter_behavior(self, session):
@@ -159,12 +149,12 @@ class TestIsComparisonFilters:
 
         for row in results:
             meldung = row[0]
-            assert meldung.deleted is not True, (
+            assert meldung.status != ReportStatus.DEL.value, (
                 f"Deleted sighting {meldung.id} shown in default view"
             )
 
-    def test_boolean_field_edge_cases(self, session):
-        """Test edge cases with boolean deleted field."""
+    def test_status_field_edge_cases(self, session):
+        """Test edge cases with all status values."""
         from app.database.models import TblMeldungUser
 
         # Get any existing sighting with full relationships to use as template
@@ -175,21 +165,24 @@ class TestIsComparisonFilters:
             session.query(TblMeldungUser).filter_by(id_meldung=existing.id).first()
         )
 
-        # Create test sightings with different deleted values
+        # Create test sightings with different status values
         test_cases = [
-            (True, "deleted_true"),
-            (False, "deleted_false"),
-            (None, "deleted_null"),
+            (ReportStatus.OPEN.value, "status_open"),
+            (ReportStatus.APPR.value, "status_approved"),
+            (ReportStatus.DEL.value, "status_deleted"),
+            (ReportStatus.INFO.value, "status_info"),
+            (ReportStatus.UNKL.value, "status_unclear"),
         ]
 
         created_sightings = {}
-        for deleted_val, name in test_cases:
+        for status_val, name in test_cases:
             sighting = TblMeldungen(
                 dat_fund_von=datetime.now().date(),
                 dat_meld=datetime.now().date(),
                 fo_zuordnung=existing.fo_zuordnung,
-                deleted=deleted_val,
-                anm_melder=name,  # To identify in results
+                status=status_val,
+                deleted=(status_val == ReportStatus.DEL.value),
+                anm_melder=name,
             )
             session.add(sighting)
             session.flush()
@@ -206,9 +199,12 @@ class TestIsComparisonFilters:
 
         # Test each filter
         filters_expected = {
-            "offen": ["deleted_false", "deleted_null"],
-            "geloescht": ["deleted_true"],
-            "all": ["deleted_true", "deleted_false", "deleted_null"],
+            "offen": ["status_open"],
+            "bearbeitet": ["status_approved"],
+            "geloescht": ["status_deleted"],
+            "informiert": ["status_info"],
+            "unklar": ["status_unclear"],
+            "all": ["status_open", "status_approved", "status_deleted", "status_info", "status_unclear"],
         }
 
         for filter_status, expected_names in filters_expected.items():
@@ -222,7 +218,3 @@ class TestIsComparisonFilters:
                     assert sighting_id in result_ids, (
                         f"{name} sighting not in {filter_status} filter"
                     )
-                else:
-                    # Only check if it shouldn't be there if we're looking at our specific test data
-                    # (other sightings might match the filter)
-                    pass
