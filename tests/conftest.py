@@ -215,13 +215,24 @@ def upgrade():
     Executes all database migrations to bring the schema
     to the latest version before running tests.
     """
+    import sqlalchemy as sa
+
     connstring = "postgresql://mantis_user:mantis@localhost/mantis_tester"
     alembic_cfg = Config("migrations/alembic.ini")
     alembic_cfg.set_main_option("sqlalchemy.url", connstring)
     alembic_cfg.set_main_option("script_location", "migrations")
 
+    # Drop alembic_version table to ensure clean migration state
+    # This is necessary because test database may have inconsistent state
+    # (e.g., stamped but tables not created)
+    engine = sa.create_engine(connstring)
+    with engine.connect() as conn:
+        conn.execute(sa.text("DROP TABLE IF EXISTS alembic_version"))
+        conn.commit()
+    engine.dispose()
+
     try:
-        # Execute migrations to the latest version
+        # Execute migrations from base to latest version
         command.upgrade(alembic_cfg, "heads")
     except Exception as e:
         print("Error during migration:", e)

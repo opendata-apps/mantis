@@ -2,6 +2,8 @@
 
 import pytest
 from datetime import datetime
+from sqlalchemy import select, func
+from app import db
 from app.database.models import TblMeldungen, ReportStatus
 from app.routes.admin import get_filtered_query
 
@@ -11,8 +13,8 @@ class TestIsComparisonFilters:
 
     def test_open_filter_query(self, session):
         """Test the open filter shows only OPEN status items."""
-        query = get_filtered_query(filter_status="offen")
-        results = query.all()
+        stmt = get_filtered_query(filter_status="offen")
+        results = db.session.execute(stmt).all()
 
         for row in results:
             meldung = row[0]  # First element is TblMeldungen
@@ -22,8 +24,8 @@ class TestIsComparisonFilters:
 
     def test_approved_filter_query(self, session):
         """Test the approved filter only shows APPR status items."""
-        query = get_filtered_query(filter_status="bearbeitet")
-        results = query.all()
+        stmt = get_filtered_query(filter_status="bearbeitet")
+        results = db.session.execute(stmt).all()
 
         for row in results:
             meldung = row[0]
@@ -33,8 +35,8 @@ class TestIsComparisonFilters:
 
     def test_deleted_filter_query(self, session):
         """Test the deleted filter only shows DEL status items."""
-        query = get_filtered_query(filter_status="geloescht")
-        results = query.all()
+        stmt = get_filtered_query(filter_status="geloescht")
+        results = db.session.execute(stmt).all()
 
         for row in results:
             meldung = row[0]
@@ -44,17 +46,23 @@ class TestIsComparisonFilters:
 
     def test_all_filter_query(self, session):
         """Test the all filter shows everything."""
-        query = get_filtered_query(filter_status="all")
-        all_results = query.all()
+        stmt = get_filtered_query(filter_status="all")
+        all_results = db.session.execute(stmt).all()
 
-        # Get counts of each type
-        open_query = get_filtered_query(filter_status="offen")
-        approved_query = get_filtered_query(filter_status="bearbeitet")
-        deleted_query = get_filtered_query(filter_status="geloescht")
+        # Get counts of each type using count queries
+        open_stmt = get_filtered_query(filter_status="offen")
+        approved_stmt = get_filtered_query(filter_status="bearbeitet")
+        deleted_stmt = get_filtered_query(filter_status="geloescht")
 
-        open_count = open_query.count()
-        approved_count = approved_query.count()
-        deleted_count = deleted_query.count()
+        open_count = db.session.execute(
+            select(func.count()).select_from(open_stmt.subquery())
+        ).scalar()
+        approved_count = db.session.execute(
+            select(func.count()).select_from(approved_stmt.subquery())
+        ).scalar()
+        deleted_count = db.session.execute(
+            select(func.count()).select_from(deleted_stmt.subquery())
+        ).scalar()
         all_count = len(all_results)
 
         # All count should be >= sum of individual filters (some might overlap)
@@ -73,7 +81,7 @@ class TestIsComparisonFilters:
         from app.database.models import TblMeldungUser
 
         # Get any existing sighting with full relationships
-        existing = session.query(TblMeldungen).first()
+        existing = session.scalar(select(TblMeldungen))
         if not existing:
             pytest.skip("No existing sightings in test database")
 
@@ -90,8 +98,8 @@ class TestIsComparisonFilters:
         session.flush()
 
         # Create the user relationship (required for the join)
-        existing_rel = (
-            session.query(TblMeldungUser).filter_by(id_meldung=existing.id).first()
+        existing_rel = session.scalar(
+            select(TblMeldungUser).where(TblMeldungUser.id_meldung == existing.id)
         )
 
         if existing_rel:
@@ -103,23 +111,23 @@ class TestIsComparisonFilters:
         session.commit()
 
         # Check it appears in open filter
-        open_query = get_filtered_query(filter_status="offen")
-        open_ids = [row[0].id for row in open_query.all()]
+        open_stmt = get_filtered_query(filter_status="offen")
+        open_ids = [row[0].id for row in db.session.execute(open_stmt).all()]
         assert open_sighting.id in open_ids, (
             f"OPEN status sighting (id={open_sighting.id}) not shown in open filter"
         )
 
         # Check it doesn't appear in deleted filter
-        deleted_query = get_filtered_query(filter_status="geloescht")
-        deleted_ids = [row[0].id for row in deleted_query.all()]
+        deleted_stmt = get_filtered_query(filter_status="geloescht")
+        deleted_ids = [row[0].id for row in db.session.execute(deleted_stmt).all()]
         assert open_sighting.id not in deleted_ids, (
             "OPEN status sighting shown in deleted filter"
         )
 
     def test_unspecified_gender_filter(self, session):
         """Test the nicht_bestimmt filter for unspecified gender."""
-        query = get_filtered_query(filter_type="nicht_bestimmt")
-        results = query.all()
+        stmt = get_filtered_query(filter_type="nicht_bestimmt")
+        results = db.session.execute(stmt).all()
 
         for row in results:
             meldung = row[0]
@@ -133,8 +141,8 @@ class TestIsComparisonFilters:
     def test_combined_status_and_type_filters(self, session):
         """Test combining status and type filters."""
         # Test open + male
-        query = get_filtered_query(filter_status="offen", filter_type="maennlich")
-        results = query.all()
+        stmt = get_filtered_query(filter_status="offen", filter_type="maennlich")
+        results = db.session.execute(stmt).all()
 
         for row in results:
             meldung = row[0]
@@ -144,8 +152,8 @@ class TestIsComparisonFilters:
     def test_default_filter_behavior(self, session):
         """Test default behavior when no filter specified."""
         # Default should exclude deleted items
-        query = get_filtered_query()
-        results = query.all()
+        stmt = get_filtered_query()
+        results = db.session.execute(stmt).all()
 
         for row in results:
             meldung = row[0]
@@ -158,11 +166,11 @@ class TestIsComparisonFilters:
         from app.database.models import TblMeldungUser
 
         # Get any existing sighting with full relationships to use as template
-        existing = session.query(TblMeldungen).first()
+        existing = session.scalar(select(TblMeldungen))
         if not existing:
             pytest.skip("No existing sightings in test database")
-        existing_rel = (
-            session.query(TblMeldungUser).filter_by(id_meldung=existing.id).first()
+        existing_rel = session.scalar(
+            select(TblMeldungUser).where(TblMeldungUser.id_meldung == existing.id)
         )
 
         # Create test sightings with different status values
@@ -208,8 +216,8 @@ class TestIsComparisonFilters:
         }
 
         for filter_status, expected_names in filters_expected.items():
-            query = get_filtered_query(filter_status=filter_status)
-            results = query.all()
+            stmt = get_filtered_query(filter_status=filter_status)
+            results = db.session.execute(stmt).all()
 
             result_ids = [row[0].id for row in results]
 

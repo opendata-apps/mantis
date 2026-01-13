@@ -1,7 +1,7 @@
 """Tests for the Beschreibung (description) database table functionality."""
 
+from sqlalchemy import select, func
 from app.database.fundortbeschreibung import TblFundortBeschreibung
-import sqlalchemy as sa
 
 
 def test_table_beschreibung_record_count(session):
@@ -10,8 +10,8 @@ def test_table_beschreibung_record_count(session):
     This test verifies that the initial data load includes the correct
     number of location description categories.
     """
-    # Use ORM query instead of raw SQL
-    result = session.query(TblFundortBeschreibung).all()
+    # Use SQLAlchemy 2.0 select() pattern
+    result = session.scalars(select(TblFundortBeschreibung)).all()
 
     # Verify the expected number of records
     assert len(result) == 12, "Expected 12 description categories in the test database"
@@ -24,7 +24,7 @@ def test_table_beschreibung_create_and_query(session):
     retrieving description records.
     """
     # Find the maximum ID currently in the table to avoid duplicates
-    max_id = session.query(sa.func.max(TblFundortBeschreibung.id)).scalar() or 0
+    max_id = session.scalar(select(func.max(TblFundortBeschreibung.id))) or 0
     test_id = max_id + 1
 
     # Create a new test description
@@ -36,11 +36,9 @@ def test_table_beschreibung_create_and_query(session):
     session.add(new_description)
     session.commit()
 
-    # Query the record back using ORM
-    result = (
-        session.query(TblFundortBeschreibung)
-        .filter(TblFundortBeschreibung.id == test_id)
-        .first()
+    # Query the record back using SQLAlchemy 2.0 select() pattern
+    result = session.scalar(
+        select(TblFundortBeschreibung).where(TblFundortBeschreibung.id == test_id)
     )
 
     # Verify the record was created correctly

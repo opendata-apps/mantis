@@ -4,6 +4,7 @@ import pytest
 from datetime import datetime, timedelta
 from unittest.mock import patch
 import json
+from sqlalchemy import select
 
 from app.database.models import (
     TblMeldungen,
@@ -41,12 +42,12 @@ class TestAdminRoutes:
         session.add(self.regular_user)
 
         # Use an existing description from the pre-populated data
-        self.test_description = (
-            session.query(TblFundortBeschreibung).filter_by(id=1).first()
+        self.test_description = session.scalar(
+            select(TblFundortBeschreibung).where(TblFundortBeschreibung.id == 1)
         )
         if not self.test_description:
             # Fallback if somehow the initial data isn't there
-            self.test_description = session.query(TblFundortBeschreibung).first()
+            self.test_description = session.scalar(select(TblFundortBeschreibung))
 
         assert self.test_description, "No beschreibung records found in database"
 

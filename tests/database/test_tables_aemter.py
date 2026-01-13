@@ -1,5 +1,6 @@
 """Tests for the Aemter (administrative areas) database table functionality."""
 
+from sqlalchemy import select
 from app.database.aemter_koordinaten import TblAemterCoordinaten
 
 
@@ -26,11 +27,9 @@ def test_table_aemter_structure(session):
     session.add(test_area)
     session.commit()
 
-    # Query the data back
-    result = (
-        session.query(TblAemterCoordinaten)
-        .filter(TblAemterCoordinaten.ags == 12345)
-        .first()
+    # Query the data back using SQLAlchemy 2.0 select() pattern
+    result = session.scalar(
+        select(TblAemterCoordinaten).where(TblAemterCoordinaten.ags == 12345)
     )
 
     # Verify the record was inserted correctly
@@ -50,11 +49,9 @@ def test_table_aemter_manual_insert(session):
     session.add(new_area)
     session.commit()
 
-    # Verify it was inserted correctly
-    test_area = (
-        session.query(TblAemterCoordinaten)
-        .filter(TblAemterCoordinaten.ags == 99999)
-        .first()
+    # Verify it was inserted correctly using SQLAlchemy 2.0 select() pattern
+    test_area = session.scalar(
+        select(TblAemterCoordinaten).where(TblAemterCoordinaten.ags == 99999)
     )
 
     assert test_area is not None

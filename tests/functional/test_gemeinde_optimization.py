@@ -2,6 +2,7 @@
 
 import pytest
 import time
+from sqlalchemy import select, delete
 from app.tools.find_gemeinde import get_amt_full_scan
 from app.tools.gemeinde_finder import get_amt_optimized, reload_gemeinde_cache
 from app.database.aemter_koordinaten import TblAemterCoordinaten
@@ -16,9 +17,11 @@ class TestGemeindeOptimization:
         self.session = session
 
         # Clear any existing test data
-        session.query(TblAemterCoordinaten).filter(
-            TblAemterCoordinaten.ags.in_([99999901, 99999902, 99999903])
-        ).delete()
+        session.execute(
+            delete(TblAemterCoordinaten).where(
+                TblAemterCoordinaten.ags.in_([99999901, 99999902, 99999903])
+            )
+        )
 
         # Add test administrative areas
         test_areas = [
@@ -82,9 +85,11 @@ class TestGemeindeOptimization:
         yield
 
         # Cleanup
-        session.query(TblAemterCoordinaten).filter(
-            TblAemterCoordinaten.ags.in_([99999901, 99999902, 99999903, 1234567])
-        ).delete()
+        session.execute(
+            delete(TblAemterCoordinaten).where(
+                TblAemterCoordinaten.ags.in_([99999901, 99999902, 99999903, 1234567])
+            )
+        )
         session.commit()
 
     def test_both_implementations_return_same_result(self, session):
@@ -166,9 +171,9 @@ class TestGemeindeOptimization:
         )
 
         # Cleanup performance test data
-        session.query(TblAemterCoordinaten).filter(
-            TblAemterCoordinaten.ags >= 90000000
-        ).delete()
+        session.execute(
+            delete(TblAemterCoordinaten).where(TblAemterCoordinaten.ags >= 90000000)
+        )
         session.commit()
 
     def test_handles_malformed_data(self, session):
@@ -190,7 +195,9 @@ class TestGemeindeOptimization:
         # Result doesn't matter, just shouldn't crash
 
         # Cleanup
-        session.query(TblAemterCoordinaten).filter_by(ags=88888888).delete()
+        session.execute(
+            delete(TblAemterCoordinaten).where(TblAemterCoordinaten.ags == 88888888)
+        )
         session.commit()
 
     def test_multipolygon_support(self, session):
@@ -240,5 +247,7 @@ class TestGemeindeOptimization:
         assert result2 == "77777777 -- Multi Area"
 
         # Cleanup
-        session.query(TblAemterCoordinaten).filter_by(ags=77777777).delete()
+        session.execute(
+            delete(TblAemterCoordinaten).where(TblAemterCoordinaten.ags == 77777777)
+        )
         session.commit()

@@ -40,8 +40,8 @@ def melder_index(usrid):
     user_email = user.user_kontakt if user.user_kontakt else None
 
     # Base query with all the necessary joins
-    base_query = (
-        db.session.query(
+    base_stmt = (
+        select(
             TblMeldungen.id,
             TblMeldungen.dat_fund_von,
             TblMeldungen.dat_fund_bis,
@@ -79,9 +79,11 @@ def melder_index(usrid):
 
     # Apply email filter only if user has an email
     if user_email:
-        sichtungen_query = base_query.filter(TblUsers.user_kontakt == user_email).all()
+        stmt = base_stmt.where(TblUsers.user_kontakt == user_email)
     else:
-        sichtungen_query = base_query.filter(TblUsers.user_id == usrid).all()
+        stmt = base_stmt.where(TblUsers.user_id == usrid)
+
+    sichtungen_query = db.session.execute(stmt).all()
 
     # Process query results
     sichtungen = []

@@ -141,34 +141,33 @@ def stats_mtb(request):
     "Results as MTB (Messtischblatt-Raster)"
     art = request.form.get("typeInput", "all")
     typeInput = ["mtb", "maennlich", "weiblich", "oothek", "nymphe", "andere", "all"]
-    conn = db.session
     dbanswers = []
-    query = (
-        conn.query(
+    stmt = (
+        select(
             TblFundorte.mtb,
-            func.sum(func.COALESCE(TblMeldungen.art_m, 0)).label("maennlich"),
-            func.sum(func.COALESCE(TblMeldungen.art_w, 0)).label("weiblich"),
-            func.sum(func.COALESCE(TblMeldungen.art_o, 0)).label("oothek"),
-            func.sum(func.COALESCE(TblMeldungen.art_n, 0)).label("nymphe"),
-            func.sum(func.COALESCE(TblMeldungen.art_f, 0)).label("andere"),
+            func.sum(func.coalesce(TblMeldungen.art_m, 0)).label("maennlich"),
+            func.sum(func.coalesce(TblMeldungen.art_w, 0)).label("weiblich"),
+            func.sum(func.coalesce(TblMeldungen.art_o, 0)).label("oothek"),
+            func.sum(func.coalesce(TblMeldungen.art_n, 0)).label("nymphe"),
+            func.sum(func.coalesce(TblMeldungen.art_f, 0)).label("andere"),
             func.sum(
-                func.COALESCE(TblMeldungen.art_m, 0)
-                + func.COALESCE(TblMeldungen.art_w, 0)
-                + func.COALESCE(TblMeldungen.art_o, 0)
-                + func.COALESCE(TblMeldungen.art_n, 0)
-                + func.COALESCE(TblMeldungen.art_f, 0)
+                func.coalesce(TblMeldungen.art_m, 0)
+                + func.coalesce(TblMeldungen.art_w, 0)
+                + func.coalesce(TblMeldungen.art_o, 0)
+                + func.coalesce(TblMeldungen.art_n, 0)
+                + func.coalesce(TblMeldungen.art_f, 0)
             ).label("gesamt"),
         )
         .join(TblMeldungen)
-        .filter(
+        .where(
             func.age(TblMeldungen.dat_fund_von, session["date_from"]) >= "0 days",
             func.age(TblMeldungen.dat_fund_von, session["date_to"]) < "1 day",
         )
-        .filter(TblFundorte.amt.like(f"{session['ags']}%"))
+        .where(TblFundorte.amt.like(f"{session['ags']}%"))
         .group_by(TblFundorte.mtb)
     )
 
-    results = query.all()
+    results = db.session.execute(stmt).all()
     idx = typeInput.index(art)
 
     for row in results[:]:
@@ -229,8 +228,8 @@ def stats_geschlecht(request=None):
 
     start_date, end_date = get_date_interval(request)
 
-    query = (
-        db.session.query(
+    stmt = (
+        select(
             func.sum(func.coalesce(TblMeldungen.art_m, 0)).label("Männchen"),
             func.sum(func.coalesce(TblMeldungen.art_w, 0)).label("Weibchen"),
             func.sum(func.coalesce(TblMeldungen.art_n, 0)).label("Nymphen"),
@@ -245,7 +244,7 @@ def stats_geschlecht(request=None):
             ).label("Gesamt"),
         )
         .join(TblFundorte, TblFundorte.id == TblMeldungen.fo_zuordnung)
-        .filter(
+        .where(
             TblMeldungen.dat_fund_von >= session["date_from"],
             TblMeldungen.dat_fund_von <= session["date_to"],
             TblFundorte.amt.like(f"{session['ags']}%"),
@@ -253,7 +252,7 @@ def stats_geschlecht(request=None):
         )
     )
 
-    result = query.all()
+    result = db.session.execute(stmt).all()
     res = []
     for row in result:
         row = row._mapping
@@ -268,35 +267,34 @@ def stats_amt(request, marker):
     "Statistics pro Gemeinden (AGS))"
 
     typeInput = ["amt", "maennlich", "weiblich", "oothek", "nymphe", "andere", "all"]
-    conn = db.session
     dbanswers = ["", 0, 0, 0, 0, 0, 0]
     fehler = False
 
-    query = (
-        conn.query(
+    stmt = (
+        select(
             TblFundorte.amt,
-            func.sum(func.COALESCE(TblMeldungen.art_m, 0)).label("maennlich"),
-            func.sum(func.COALESCE(TblMeldungen.art_w, 0)).label("weiblich"),
-            func.sum(func.COALESCE(TblMeldungen.art_o, 0)).label("oothek"),
-            func.sum(func.COALESCE(TblMeldungen.art_n, 0)).label("nymphe"),
-            func.sum(func.COALESCE(TblMeldungen.art_f, 0)).label("andere"),
+            func.sum(func.coalesce(TblMeldungen.art_m, 0)).label("maennlich"),
+            func.sum(func.coalesce(TblMeldungen.art_w, 0)).label("weiblich"),
+            func.sum(func.coalesce(TblMeldungen.art_o, 0)).label("oothek"),
+            func.sum(func.coalesce(TblMeldungen.art_n, 0)).label("nymphe"),
+            func.sum(func.coalesce(TblMeldungen.art_f, 0)).label("andere"),
             func.sum(
-                func.COALESCE(TblMeldungen.art_m, 0)
-                + func.COALESCE(TblMeldungen.art_w, 0)
-                + func.COALESCE(TblMeldungen.art_o, 0)
-                + func.COALESCE(TblMeldungen.art_n, 0)
-                + func.COALESCE(TblMeldungen.art_f, 0)
+                func.coalesce(TblMeldungen.art_m, 0)
+                + func.coalesce(TblMeldungen.art_w, 0)
+                + func.coalesce(TblMeldungen.art_o, 0)
+                + func.coalesce(TblMeldungen.art_n, 0)
+                + func.coalesce(TblMeldungen.art_f, 0)
             ).label("gesamt"),
         )
         .join(TblMeldungen)
-        .filter(
+        .where(
             func.age(TblMeldungen.dat_meld, session["date_from"]) >= "0 days",
             func.age(TblMeldungen.dat_meld, session["date_to"]) < "1 day",
         )
-        .filter(TblFundorte.amt.like(f"{session['ags']}%"))
+        .where(TblFundorte.amt.like(f"{session['ags']}%"))
         .group_by(TblFundorte.amt)
     )
-    results = query.all()
+    results = db.session.execute(stmt).all()
 
     if results:
         gemeinde = results[0][0]
@@ -324,26 +322,24 @@ def stats_amt(request, marker):
 def stats_laender(request, marker):
     "Statistics pro Bundesland (AGS))"
 
-    conn = db.session
-
-    query = (
-        conn.query(
+    stmt = (
+        select(
             func.substring(TblFundorte.amt, 1, 2).label("amt_group"),
-            func.sum(func.COALESCE(TblMeldungen.art_m, 0)).label("maennlich"),
-            func.sum(func.COALESCE(TblMeldungen.art_w, 0)).label("weiblich"),
-            func.sum(func.COALESCE(TblMeldungen.art_o, 0)).label("oothek"),
-            func.sum(func.COALESCE(TblMeldungen.art_n, 0)).label("nymphe"),
-            func.sum(func.COALESCE(TblMeldungen.art_f, 0)).label("andere"),
+            func.sum(func.coalesce(TblMeldungen.art_m, 0)).label("maennlich"),
+            func.sum(func.coalesce(TblMeldungen.art_w, 0)).label("weiblich"),
+            func.sum(func.coalesce(TblMeldungen.art_o, 0)).label("oothek"),
+            func.sum(func.coalesce(TblMeldungen.art_n, 0)).label("nymphe"),
+            func.sum(func.coalesce(TblMeldungen.art_f, 0)).label("andere"),
             func.sum(
-                func.COALESCE(TblMeldungen.art_m, 0)
-                + func.COALESCE(TblMeldungen.art_w, 0)
-                + func.COALESCE(TblMeldungen.art_o, 0)
-                + func.COALESCE(TblMeldungen.art_n, 0)
-                + func.COALESCE(TblMeldungen.art_f, 0)
+                func.coalesce(TblMeldungen.art_m, 0)
+                + func.coalesce(TblMeldungen.art_w, 0)
+                + func.coalesce(TblMeldungen.art_o, 0)
+                + func.coalesce(TblMeldungen.art_n, 0)
+                + func.coalesce(TblMeldungen.art_f, 0)
             ).label("gesamt"),
         )
         .join(TblMeldungen)
-        .filter(
+        .where(
             TblMeldungen.dat_meld >= session["date_from"],
             TblMeldungen.dat_meld <= session["date_to"],
             TblMeldungen.status != ReportStatus.DEL,
@@ -351,7 +347,7 @@ def stats_laender(request, marker):
         .group_by(func.substring(TblFundorte.amt, 1, 2))
     )
 
-    results = query.all()
+    results = db.session.execute(stmt).all()
 
     laender = {
         "01": "Schleswig-Holstein",
@@ -440,26 +436,25 @@ def stats_bundesland(request, marker):
             "12053": "Frankfurt (Oder)",
             "12054": "Potsdam",
         }
-    conn = db.session
 
-    query = (
-        conn.query(
+    stmt = (
+        select(
             func.substring(TblFundorte.amt, 1, maxchars).label("amt_group"),
-            func.sum(func.COALESCE(TblMeldungen.art_m, 0)).label("maennlich"),
-            func.sum(func.COALESCE(TblMeldungen.art_w, 0)).label("weiblich"),
-            func.sum(func.COALESCE(TblMeldungen.art_o, 0)).label("oothek"),
-            func.sum(func.COALESCE(TblMeldungen.art_n, 0)).label("nymphe"),
-            func.sum(func.COALESCE(TblMeldungen.art_f, 0)).label("andere"),
+            func.sum(func.coalesce(TblMeldungen.art_m, 0)).label("maennlich"),
+            func.sum(func.coalesce(TblMeldungen.art_w, 0)).label("weiblich"),
+            func.sum(func.coalesce(TblMeldungen.art_o, 0)).label("oothek"),
+            func.sum(func.coalesce(TblMeldungen.art_n, 0)).label("nymphe"),
+            func.sum(func.coalesce(TblMeldungen.art_f, 0)).label("andere"),
             func.sum(
-                func.COALESCE(TblMeldungen.art_m, 0)
-                + func.COALESCE(TblMeldungen.art_w, 0)
-                + func.COALESCE(TblMeldungen.art_o, 0)
-                + func.COALESCE(TblMeldungen.art_n, 0)
-                + func.COALESCE(TblMeldungen.art_f, 0)
+                func.coalesce(TblMeldungen.art_m, 0)
+                + func.coalesce(TblMeldungen.art_w, 0)
+                + func.coalesce(TblMeldungen.art_o, 0)
+                + func.coalesce(TblMeldungen.art_n, 0)
+                + func.coalesce(TblMeldungen.art_f, 0)
             ).label("gesamt"),
         )
         .join(TblMeldungen)
-        .filter(
+        .where(
             TblMeldungen.dat_meld >= session["date_from"],
             TblMeldungen.dat_meld <= session["date_to"],
             func.substring(TblFundorte.amt, 1, 2) == ags,
@@ -468,7 +463,7 @@ def stats_bundesland(request, marker):
         .group_by(func.substring(TblFundorte.amt, 1, maxchars))
     )
 
-    results = query.all()
+    results = db.session.execute(stmt).all()
 
     result_dict = defaultdict(dict)
     for result in results:
@@ -531,21 +526,19 @@ def stats_gesamt(request, marker):
         "10": ["Saarland⁠", "", "", 0, []],
     }
 
-    conn = db.session
-
-    query = (
-        conn.query(
+    stmt = (
+        select(
             TblFundorte.amt,
             func.sum(
-                func.COALESCE(TblMeldungen.art_m, 0)
-                + func.COALESCE(TblMeldungen.art_w, 0)
-                + func.COALESCE(TblMeldungen.art_o, 0)
-                + func.COALESCE(TblMeldungen.art_n, 0)
-                + func.COALESCE(TblMeldungen.art_f, 0)
+                func.coalesce(TblMeldungen.art_m, 0)
+                + func.coalesce(TblMeldungen.art_w, 0)
+                + func.coalesce(TblMeldungen.art_o, 0)
+                + func.coalesce(TblMeldungen.art_n, 0)
+                + func.coalesce(TblMeldungen.art_f, 0)
             ).label("gesamt"),
         )
         .join(TblMeldungen)
-        .filter(
+        .where(
             TblMeldungen.dat_meld >= session["date_from"],
             TblMeldungen.dat_meld <= session["date_to"],
             TblMeldungen.status != ReportStatus.DEL,
@@ -553,7 +546,7 @@ def stats_gesamt(request, marker):
         .group_by(TblFundorte.amt)
     )
 
-    results = query.all()
+    results = db.session.execute(stmt).all()
     keys = list(result_dict.keys())
     for result in results:
         try:

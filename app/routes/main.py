@@ -13,7 +13,7 @@ from flask import (
     session,
 )
 
-from sqlalchemy import text
+from sqlalchemy import select, func, text
 from app import db
 from app.database.models import TblMeldungen, ReportStatus
 from app.tools.check_reviewer import login_required
@@ -29,14 +29,13 @@ main = Blueprint("main", __name__)
 @main.route("/start")
 def index():
     "Index page."
-    post_count = (
-        db.session.query(TblMeldungen)
-        .filter(
-            TblMeldungen.dat_fund_von >= f"{current_app.config['MIN_MAP_YEAR']}-01-01"
-        )
-        .filter(TblMeldungen.status == ReportStatus.APPR)
-        .count()
+    count_stmt = (
+        select(func.count())
+        .select_from(TblMeldungen)
+        .where(TblMeldungen.dat_fund_von >= f"{current_app.config['MIN_MAP_YEAR']}-01-01")
+        .where(TblMeldungen.status == ReportStatus.APPR)
     )
+    post_count = db.session.execute(count_stmt).scalar()
 
     celebration_enabled = check_celebration_flag(post_count)
 

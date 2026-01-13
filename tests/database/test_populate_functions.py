@@ -2,6 +2,7 @@
 
 import pytest
 from unittest.mock import patch, MagicMock
+from sqlalchemy import select, func, delete
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.database.populate import (
@@ -18,19 +19,24 @@ class TestPopulateFunctions:
     def test_populate_beschreibung_already_populated(self, session):
         """Test that populate_beschreibung is idempotent with existing data."""
         # Check that table already has data (from conftest setup)
-        initial_count = session.query(TblFundortBeschreibung).count()
+        initial_count = session.scalar(
+            select(func.count()).select_from(TblFundortBeschreibung)
+        )
         assert initial_count > 0
 
         # Run populate again
         populate_beschreibung(session)
 
         # Count should remain the same (no duplicates)
-        final_count = session.query(TblFundortBeschreibung).count()
+        final_count = session.scalar(
+            select(func.count()).select_from(TblFundortBeschreibung)
+        )
         assert final_count == initial_count
 
         # Verify expected records exist
         record_dict = {
-            r.id: r.beschreibung for r in session.query(TblFundortBeschreibung).all()
+            r.id: r.beschreibung
+            for r in session.scalars(select(TblFundortBeschreibung)).all()
         }
         assert 1 in record_dict
         assert 6 in record_dict
@@ -39,21 +45,29 @@ class TestPopulateFunctions:
     def test_populate_beschreibung_existing_records(self, session):
         """Test populating beschreibung table with existing records."""
         # The table already has all 12 records from conftest setup
-        initial_count = session.query(TblFundortBeschreibung).count()
+        initial_count = session.scalar(
+            select(func.count()).select_from(TblFundortBeschreibung)
+        )
 
         # Get original value of record 1
-        original_record = session.query(TblFundortBeschreibung).filter_by(id=1).first()
+        original_record = session.scalar(
+            select(TblFundortBeschreibung).where(TblFundortBeschreibung.id == 1)
+        )
         original_beschreibung = original_record.beschreibung
 
         # Populate should not fail or duplicate
         populate_beschreibung(session)
 
         # Should still have the same number of records
-        final_count = session.query(TblFundortBeschreibung).count()
+        final_count = session.scalar(
+            select(func.count()).select_from(TblFundortBeschreibung)
+        )
         assert final_count == initial_count
 
         # Original record should be preserved
-        record = session.query(TblFundortBeschreibung).filter_by(id=1).first()
+        record = session.scalar(
+            select(TblFundortBeschreibung).where(TblFundortBeschreibung.id == 1)
+        )
         assert record.beschreibung == original_beschreibung
 
     def test_populate_beschreibung_database_error(self, session):
@@ -66,17 +80,17 @@ class TestPopulateFunctions:
     def test_populate_feedback_types_empty_table(self, session):
         """Test populating feedback types table when empty."""
         # Clear existing data for this test
-        session.query(TblFeedbackType).delete()
+        session.execute(delete(TblFeedbackType))
         session.commit()
 
         # Ensure table is empty
-        assert session.query(TblFeedbackType).count() == 0
+        assert session.scalar(select(func.count()).select_from(TblFeedbackType)) == 0
 
         # Populate the table
         populate_feedback_types(session)
 
         # Verify all records were inserted
-        records = session.query(TblFeedbackType).all()
+        records = session.scalars(select(TblFeedbackType)).all()
         assert len(records) == 8
 
         # Verify specific records
@@ -88,7 +102,7 @@ class TestPopulateFunctions:
     def test_populate_feedback_types_existing_records(self, session):
         """Test populating feedback types with existing records."""
         # Clear feedback types first (they may not have FK constraints)
-        session.query(TblFeedbackType).delete()
+        session.execute(delete(TblFeedbackType))
         session.commit()
 
         # Add an existing record with custom name
@@ -100,11 +114,13 @@ class TestPopulateFunctions:
         populate_feedback_types(session)
 
         # Should have all expected records (existing + new ones)
-        records = session.query(TblFeedbackType).all()
+        records = session.scalars(select(TblFeedbackType)).all()
         assert len(records) == 8  # 1 custom + 7 others (2-8)
 
         # Original should be preserved with custom name
-        record = session.query(TblFeedbackType).filter_by(id=1).first()
+        record = session.scalar(
+            select(TblFeedbackType).where(TblFeedbackType.id == 1)
+        )
         assert record.name == "Custom Type"
 
     @patch("app.database.vg5000_fill_aemter.import_aemter_data")
@@ -172,21 +188,27 @@ class TestPopulateFunctions:
         """Test that populate_beschreibung handles partial data correctly."""
         # Since table is already populated, let's verify the function correctly checks for existing records
         # Get current count
-        initial_count = session.query(TblFundortBeschreibung).count()
+        initial_count = session.scalar(
+            select(func.count()).select_from(TblFundortBeschreibung)
+        )
         assert initial_count == 12
 
         # Run populate - should check each record and not add duplicates
         populate_beschreibung(session)
 
         # Should still have exactly 12 records
-        final_count = session.query(TblFundortBeschreibung).count()
+        final_count = session.scalar(
+            select(func.count()).select_from(TblFundortBeschreibung)
+        )
         assert final_count == 12
 
         # Verify all expected records exist
         all_ids = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 99]
         for expected_id in all_ids:
-            record = (
-                session.query(TblFundortBeschreibung).filter_by(id=expected_id).first()
+            record = session.scalar(
+                select(TblFundortBeschreibung).where(
+                    TblFundortBeschreibung.id == expected_id
+                )
             )
             assert record is not None
 
@@ -194,20 +216,24 @@ class TestPopulateFunctions:
         """Test that populate functions can be run multiple times safely."""
         # Run populate_beschreibung twice
         populate_beschreibung(session)
-        first_count = session.query(TblFundortBeschreibung).count()
+        first_count = session.scalar(
+            select(func.count()).select_from(TblFundortBeschreibung)
+        )
 
         populate_beschreibung(session)
-        second_count = session.query(TblFundortBeschreibung).count()
+        second_count = session.scalar(
+            select(func.count()).select_from(TblFundortBeschreibung)
+        )
 
         # Count should not increase
         assert first_count == second_count
 
         # Run populate_feedback_types twice
         populate_feedback_types(session)
-        first_count = session.query(TblFeedbackType).count()
+        first_count = session.scalar(select(func.count()).select_from(TblFeedbackType))
 
         populate_feedback_types(session)
-        second_count = session.query(TblFeedbackType).count()
+        second_count = session.scalar(select(func.count()).select_from(TblFeedbackType))
 
         # Count should not increase
         assert first_count == second_count

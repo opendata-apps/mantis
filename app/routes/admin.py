@@ -27,8 +27,9 @@ from flask import (
     send_from_directory,
     url_for,
 )
-from sqlalchemy import inspect, or_, cast, String, update, select
+from sqlalchemy import inspect, or_, cast, String, update, select, func
 from sqlalchemy.exc import SQLAlchemyError
+from flask_sqlalchemy.pagination import Pagination
 from app.tools.check_reviewer import reviewer_required
 import shutil
 from werkzeug.utils import secure_filename
@@ -39,6 +40,44 @@ from app.tools.mtb_calc import get_mtb, pointInRect
 from app.tools.gemeinde_finder import get_amt_full_scan
 from app.tools.coordinate_validation import validate_and_normalize_coordinate
 from typing import Optional, Any
+
+
+class CompoundSelectPagination(Pagination):
+    """Pagination for compound select statements (multiple ORM entities).
+
+    Flask-SQLAlchemy's db.paginate() uses scalars() internally, which only returns
+    the first entity in compound selects. This subclass properly handles Row objects
+    containing multiple entities by using execute() without scalars().
+
+    Per Flask-SQLAlchemy docs: "compound selects will not return the expected results"
+    with db.paginate(). This class follows the Pagination template method pattern.
+
+    Usage:
+        stmt = select(Entity1, Entity2).join(...)
+        pagination = CompoundSelectPagination(
+            select=stmt,
+            session=db.session,
+            page=1,
+            per_page=20,
+        )
+        for row in pagination.items:
+            entity1, entity2 = row  # Access entities from Row object
+    """
+
+    def _query_items(self) -> list:
+        """Execute the select statement without scalars() to preserve all entities."""
+        stmt = self._query_args["select"]
+        stmt = stmt.limit(self.per_page).offset(self._query_offset)
+        session = self._query_args["session"]
+        # Use execute() instead of scalars() to get full Row objects
+        return list(session.execute(stmt).unique().all())
+
+    def _query_count(self) -> int:
+        """Count total rows for pagination."""
+        stmt = self._query_args["select"]
+        sub = stmt.order_by(None).subquery()
+        session = self._query_args["session"]
+        return session.execute(select(func.count()).select_from(sub)).scalar()
 
 import os
 
@@ -139,8 +178,8 @@ def reviewer(usrid):
             )
         )
 
-    # Get filtered query using our reusable function
-    query = get_filtered_query(
+    # Get filtered select statement using our reusable function
+    stmt = get_filtered_query(
         filter_status=filter_status,
         filter_type=filter_type,
         search_query=search_query,
@@ -151,11 +190,21 @@ def reviewer(usrid):
 
     # Apply sort order
     if sort_order == "id_asc":
-        query = query.order_by(TblMeldungen.id.asc())
+        stmt = stmt.order_by(TblMeldungen.id.asc())
     elif sort_order == "id_desc":
-        query = query.order_by(TblMeldungen.id.desc())
+        stmt = stmt.order_by(TblMeldungen.id.desc())
 
-    paginated_sightings = query.paginate(page=page, per_page=per_page, error_out=False)
+    # Use CompoundSelectPagination for multi-entity selects
+    # Flask-SQLAlchemy's db.paginate() uses scalars() which only returns the first entity
+    # Per docs: "compound selects will not return the expected results" with db.paginate()
+    paginated_sightings = CompoundSelectPagination(
+        select=stmt,
+        session=db.session,
+        page=page,
+        per_page=per_page,
+        max_per_page=100,
+        error_out=False,
+    )
 
     # Process the joined data for the template
     reported_sightings = []
@@ -359,8 +408,8 @@ def toggle_approve_sighting(id):
         return jsonify({"error": "Report not found"}), 404
 
     if current_app.config.get("REVIEWERMAIL", False):
-        sighting = (
-            db.session.query(
+        stmt = (
+            select(
                 TblMeldungen,
                 TblFundorte,
                 TblFundortBeschreibung,
@@ -374,9 +423,9 @@ def toggle_approve_sighting(id):
             )
             .join(TblMeldungUser, TblMeldungen.id == TblMeldungUser.id_meldung)
             .join(TblUsers, TblMeldungUser.id_user == TblUsers.id)
-            .filter(TblMeldungen.id == id)
-            .first()
+            .where(TblMeldungen.id == id)
         )
+        sighting = db.session.execute(stmt).first()
 
         if sighting:
             dbdata = {}
@@ -409,10 +458,8 @@ def toggle_approve_sighting(id):
 def get_sighting(id):
     "Find the sighting by id and return it as a JSON object"
     # Find the report by id
-    sighting = (
-        db.session.query(
-            TblMeldungen, TblFundorte, TblFundortBeschreibung, TblMeldungUser, TblUsers
-        )
+    stmt = (
+        select(TblMeldungen, TblFundorte, TblFundortBeschreibung, TblMeldungUser, TblUsers)
         .join(TblFundorte, TblMeldungen.fo_zuordnung == TblFundorte.id)
         .join(
             TblFundortBeschreibung,
@@ -420,9 +467,9 @@ def get_sighting(id):
         )
         .join(TblMeldungUser, TblMeldungen.id == TblMeldungUser.id_meldung)
         .join(TblUsers, TblMeldungUser.id_user == TblUsers.id)
-        .filter(TblMeldungen.id == id)
-        .first()
+        .where(TblMeldungen.id == id)
     )
+    sighting = db.session.execute(stmt).first()
 
     if sighting:
         # Convert sighting to a dictionary and return it
@@ -433,14 +480,14 @@ def get_sighting(id):
 
         # Get feedback information for this user
         meldung, fundort, beschreibung, melduser, user = sighting
-        feedback = (
-            db.session.query(TblUserFeedback, TblFeedbackType)
+        feedback_stmt = (
+            select(TblUserFeedback, TblFeedbackType)
             .join(
                 TblFeedbackType, TblUserFeedback.feedback_type_id == TblFeedbackType.id
             )
-            .filter(TblUserFeedback.user_id == user.id)
-            .first()
+            .where(TblUserFeedback.user_id == user.id)
         )
+        feedback = db.session.execute(feedback_stmt).first()
 
         if feedback:
             user_feedback, feedback_type = feedback
@@ -617,20 +664,20 @@ def export_data(value):
         date_from = request.args.get("dateFrom", None)
         date_to = request.args.get("dateTo", None)
 
-        # Get filtered query based on export type
+        # Get filtered select statement based on export type
         if value == "all":
             filename = f"Alle_Meldungen_{current_time}.xlsx"
-            query = get_filtered_query(filter_status="all")
+            stmt = get_filtered_query(filter_status="all")
         elif value == "accepted":
             filename = f"Akzeptierte_Meldungen_{current_time}.xlsx"
-            query = get_filtered_query(filter_status="bearbeitet")
+            stmt = get_filtered_query(filter_status="bearbeitet")
         elif value == "non_accepted":
             filename = f"Nicht_akzeptierte_Meldungen_{current_time}.xlsx"
-            query = get_filtered_query(filter_status="offen")
+            stmt = get_filtered_query(filter_status="offen")
         elif value == "searched":
             filename = f"Suchergebnisse_{current_time}.xlsx"
             # For searched results, use all the filter parameters from the request
-            query = get_filtered_query(
+            stmt = get_filtered_query(
                 filter_status=filter_status,
                 filter_type=filter_type,
                 search_query=search_query,
@@ -641,7 +688,19 @@ def export_data(value):
         else:
             abort(404, description="Resource not found")
 
-        data = query.all()
+        data = db.session.execute(stmt).all()
+
+        # Pre-fetch all approvers in a single query to avoid N+1 problem
+        # This is critical for large exports (thousands of rows)
+        bearb_ids = [row[0].bearb_id for row in data if row[0].bearb_id]
+        approvers = {}
+        if bearb_ids:
+            approvers = {
+                u.user_id: u.user_name
+                for u in db.session.scalars(
+                    select(TblUsers).where(TblUsers.user_id.in_(bearb_ids))
+                ).all()
+            }
 
         # Process the data to match the reviewer view format
         processed_data = []
@@ -682,12 +741,9 @@ def export_data(value):
                 "Melder Kontakt": user.user_kontakt,
             }
 
-            # Add approver info if available
+            # Add approver info if available (using pre-fetched dict)
             if meldung.bearb_id:
-                approver = db.session.scalar(
-                    select(TblUsers).where(TblUsers.user_id == meldung.bearb_id)
-                )
-                entry["Bearbeiter"] = approver.user_name if approver else "Unknown"
+                entry["Bearbeiter"] = approvers.get(meldung.bearb_id, "Unknown")
 
             processed_data.append(entry)
 
@@ -828,13 +884,15 @@ def get_filtered_query(
     search_type: Optional[str] = None,
     date_from: Optional[str] = None,
     date_to: Optional[str] = None,
-) -> Any:
-    """Get filtered query based on parameters."""
+):
+    """Get filtered select statement based on parameters.
+
+    Returns a SQLAlchemy 2.0 style select statement that can be used with
+    db.paginate() or db.session.execute().
+    """
     # Always include all necessary joins for better performance
-    query = (
-        db.session.query(
-            TblMeldungen, TblFundorte, TblFundortBeschreibung, TblMeldungUser, TblUsers
-        )
+    stmt = (
+        select(TblMeldungen, TblFundorte, TblFundortBeschreibung, TblMeldungUser, TblUsers)
         .join(TblFundorte, TblMeldungen.fo_zuordnung == TblFundorte.id)
         .join(
             TblFundortBeschreibung,
@@ -846,15 +904,15 @@ def get_filtered_query(
 
     # Apply filter conditions based on 'filter_status' using new status column
     if filter_status == "bearbeitet":
-        query = query.filter(TblMeldungen.status == ReportStatus.APPR)
+        stmt = stmt.where(TblMeldungen.status == ReportStatus.APPR)
     elif filter_status == "offen":
-        query = query.filter(TblMeldungen.status == ReportStatus.OPEN)
+        stmt = stmt.where(TblMeldungen.status == ReportStatus.OPEN)
     elif filter_status == "geloescht":
-        query = query.filter(TblMeldungen.status == ReportStatus.DEL)
+        stmt = stmt.where(TblMeldungen.status == ReportStatus.DEL)
     elif filter_status == "informiert":
-        query = query.filter(TblMeldungen.status == ReportStatus.INFO)
+        stmt = stmt.where(TblMeldungen.status == ReportStatus.INFO)
     elif filter_status == "unklar":
-        query = query.filter(TblMeldungen.status == ReportStatus.UNKL)
+        stmt = stmt.where(TblMeldungen.status == ReportStatus.UNKL)
     elif filter_status == "all":
         # No filter - show all statuses
         pass
@@ -863,22 +921,22 @@ def get_filtered_query(
         pass
     else:
         # Default behavior: Exclude deleted items
-        query = query.filter(TblMeldungen.status != ReportStatus.DEL)
+        stmt = stmt.where(TblMeldungen.status != ReportStatus.DEL)
 
     # Apply type filter
     if filter_type:
         if filter_type == "maennlich":
-            query = query.filter(TblMeldungen.art_m >= 1)
+            stmt = stmt.where(TblMeldungen.art_m >= 1)
         elif filter_type == "weiblich":
-            query = query.filter(TblMeldungen.art_w >= 1)
+            stmt = stmt.where(TblMeldungen.art_w >= 1)
         elif filter_type == "oothek":
-            query = query.filter(TblMeldungen.art_o >= 1)
+            stmt = stmt.where(TblMeldungen.art_o >= 1)
         elif filter_type == "Nymphe":
-            query = query.filter(TblMeldungen.art_n >= 1)
+            stmt = stmt.where(TblMeldungen.art_n >= 1)
         elif filter_type == "andere":
-            query = query.filter(TblMeldungen.art_f >= 1)
+            stmt = stmt.where(TblMeldungen.art_f >= 1)
         elif filter_type == "nicht_bestimmt":
-            query = query.filter(
+            stmt = stmt.where(
                 TblMeldungen.art_m.is_(None),
                 TblMeldungen.art_w.is_(None),
                 TblMeldungen.art_o.is_(None),
@@ -892,26 +950,26 @@ def get_filtered_query(
             if search_type == "id":
                 try:
                     search_id = int(search_query)
-                    query = query.filter(TblMeldungen.id == search_id)
+                    stmt = stmt.where(TblMeldungen.id == search_id)
                 except ValueError:
                     search_type = "full_text"
 
             if search_type == "full_text":
                 if "@" in search_query:
-                    query = query.filter(
+                    stmt = stmt.where(
                         TblUsers.user_kontakt.ilike(f"%{search_query}%")
                     )
                 else:
                     # Use the new FTS search method
                     matching_ids = fts.FullTextSearch.search(search_query)
                     if matching_ids:
-                        query = query.filter(TblMeldungen.id.in_(matching_ids))
+                        stmt = stmt.where(TblMeldungen.id.in_(matching_ids))
                     else:
                         # If no FTS matches, return empty result
-                        query = query.filter(TblMeldungen.id == -1)
+                        stmt = stmt.where(TblMeldungen.id == -1)
         except Exception as e:
             current_app.logger.error(f"Search error: {e}")
-            query = query.filter(
+            stmt = stmt.where(
                 TblMeldungen.id == -1
             )  # Return empty result set on error
 
@@ -920,28 +978,28 @@ def get_filtered_query(
         try:
             date_from_obj = datetime.strptime(date_from, "%d.%m.%Y")
             date_to_obj = datetime.strptime(date_to, "%d.%m.%Y")
-            query = query.filter(
+            stmt = stmt.where(
                 TblMeldungen.dat_fund_von.between(date_from_obj, date_to_obj)
             )
         except ValueError as e:
             current_app.logger.error(f"Date parsing error: {e}")
-            query = query.filter(TblMeldungen.id == -1)
+            stmt = stmt.where(TblMeldungen.id == -1)
     elif date_from:
         try:
             date_from_obj = datetime.strptime(date_from, "%d.%m.%Y")
-            query = query.filter(TblMeldungen.dat_fund_von >= date_from_obj)
+            stmt = stmt.where(TblMeldungen.dat_fund_von >= date_from_obj)
         except ValueError as e:
             current_app.logger.error(f"Date parsing error: {e}")
-            query = query.filter(TblMeldungen.id == -1)
+            stmt = stmt.where(TblMeldungen.id == -1)
     elif date_to:
         try:
             date_to_obj = datetime.strptime(date_to, "%d.%m.%Y")
-            query = query.filter(TblMeldungen.dat_fund_von <= date_to_obj)
+            stmt = stmt.where(TblMeldungen.dat_fund_von <= date_to_obj)
         except ValueError as e:
             current_app.logger.error(f"Date parsing error: {e}")
-            query = query.filter(TblMeldungen.id == -1)
+            stmt = stmt.where(TblMeldungen.id == -1)
 
-    return query
+    return stmt
 
 
 @admin.route("/alldata")
@@ -995,7 +1053,7 @@ def get_table_data(table_name):
             sort_column = "meldungen_id"
 
         # Create a select statement
-        stmt = db.select(table)
+        stmt = select(table)
 
         # Apply search filter if search term is provided
         if search:
@@ -1026,7 +1084,7 @@ def get_table_data(table_name):
             stmt = stmt.order_by(table.c[sort_column].desc())
 
         # Get total count for pagination
-        total_items_stmt = db.select(db.func.count()).select_from(table)
+        total_items_stmt = select(func.count()).select_from(table)
         if search:
             if search_type == "id":
                 try:

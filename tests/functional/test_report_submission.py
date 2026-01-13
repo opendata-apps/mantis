@@ -14,6 +14,7 @@ import datetime
 from unittest.mock import patch
 from PIL import Image
 import pytest
+from sqlalchemy import select, func
 from sqlalchemy.exc import IntegrityError
 from app.database.models import TblFundorte, TblMeldungen, TblUsers, TblMeldungUser
 from app.database.fundortbeschreibung import TblFundortBeschreibung
@@ -172,9 +173,9 @@ class TestReportSubmission:
                 self.session.delete(relation)
 
         # Delete all test users with IDs starting with TEST
-        test_users = (
-            self.session.query(TblUsers).filter(TblUsers.user_id.like("TEST%")).all()
-        )
+        test_users = self.session.scalars(
+            select(TblUsers).where(TblUsers.user_id.like("TEST%"))
+        ).all()
         for user in test_users:
             self.session.delete(user)
 
@@ -217,7 +218,7 @@ class TestReportSubmission:
         user_id = user_test_data["user_id"]
 
         # First, we need to find a valid beschreibung ID from the database
-        valid_description = session.query(TblFundortBeschreibung).first()
+        valid_description = session.scalar(select(TblFundortBeschreibung))
         if not valid_description:
             # Create a new description if none exists
             valid_description = TblFundortBeschreibung(
@@ -263,27 +264,31 @@ class TestReportSubmission:
         TestReportSubmission.test_relation_ids.append(relation.id)
 
         # Verify database entries
-        location_db = session.query(TblFundorte).filter_by(id=location.id).first()
+        location_db = session.scalar(
+            select(TblFundorte).where(TblFundorte.id == location.id)
+        )
         assert location_db is not None
         assert location_db.ort == "Berlin"
         assert location_db.beschreibung == valid_description.id
 
-        sighting_db = session.query(TblMeldungen).filter_by(id=sighting.id).first()
+        sighting_db = session.scalar(
+            select(TblMeldungen).where(TblMeldungen.id == sighting.id)
+        )
         assert sighting_db is not None
         assert sighting_db.art_m == 1
         assert sighting_db.fo_zuordnung == location.id
 
-        user_db = session.query(TblUsers).filter_by(user_id=user_id).first()
+        user_db = session.scalar(
+            select(TblUsers).where(TblUsers.user_id == user_id)
+        )
         assert user_db is not None
         assert user_db.user_name == "Reporter T."
 
-        relation_db = (
-            session.query(TblMeldungUser)
-            .filter(
+        relation_db = session.scalar(
+            select(TblMeldungUser).where(
                 TblMeldungUser.id_meldung == sighting.id,
                 TblMeldungUser.id_user == user.id,
             )
-            .first()
         )
         assert relation_db is not None
 
@@ -373,7 +378,7 @@ class TestReportSubmission:
         genders = _set_gender_fields(gender_input)
 
         # Create a basic location for our sighting tests
-        valid_description = session.query(TblFundortBeschreibung).first()
+        valid_description = session.scalar(select(TblFundortBeschreibung))
         if not valid_description:
             valid_description = TblFundortBeschreibung(
                 beschreibung="Im Garten, auf einer Wiese"
@@ -433,10 +438,18 @@ class TestReportSubmission:
         form_data["location_description"] = "1"  # Add location description ID
 
         # Count the number of records before submission
-        pre_submission_count = session.query(TblMeldungen).count()
-        pre_location_count = session.query(TblFundorte).count()
-        pre_users_count = session.query(TblUsers).count()
-        pre_relation_count = session.query(TblMeldungUser).count()
+        pre_submission_count = session.scalar(
+            select(func.count()).select_from(TblMeldungen)
+        )
+        pre_location_count = session.scalar(
+            select(func.count()).select_from(TblFundorte)
+        )
+        pre_users_count = session.scalar(
+            select(func.count()).select_from(TblUsers)
+        )
+        pre_relation_count = session.scalar(
+            select(func.count()).select_from(TblMeldungUser)
+        )
 
         # Submit form with image - should succeed with a valid form
         response = client.post(
@@ -452,10 +465,18 @@ class TestReportSubmission:
             mock_process_image.assert_called_once()
 
             # Check if new records were created in all related tables
-            post_submission_count = session.query(TblMeldungen).count()
-            post_location_count = session.query(TblFundorte).count()
-            post_users_count = session.query(TblUsers).count()
-            post_relation_count = session.query(TblMeldungUser).count()
+            post_submission_count = session.scalar(
+                select(func.count()).select_from(TblMeldungen)
+            )
+            post_location_count = session.scalar(
+                select(func.count()).select_from(TblFundorte)
+            )
+            post_users_count = session.scalar(
+                select(func.count()).select_from(TblUsers)
+            )
+            post_relation_count = session.scalar(
+                select(func.count()).select_from(TblMeldungUser)
+            )
 
             assert post_submission_count > pre_submission_count, (
                 f"No new sighting record was created (pre={pre_submission_count}, post={post_submission_count})"
@@ -473,7 +494,7 @@ class TestReportSubmission:
             # Find the most recent records for detailed validation
             # Don't use order_by id.desc() as test fixtures may have high IDs like 99999
             # Instead, find the sighting created after our pre-count
-            all_sightings = session.query(TblMeldungen).all()
+            all_sightings = session.scalars(select(TblMeldungen)).all()
             latest_sighting = None
             for sighting in all_sightings:
                 # Find a sighting that wasn't in the pre-count set
@@ -512,10 +533,10 @@ class TestReportSubmission:
                 )
 
                 # Check related location record
-                location = (
-                    session.query(TblFundorte)
-                    .filter_by(id=latest_sighting.fo_zuordnung)
-                    .first()
+                location = session.scalar(
+                    select(TblFundorte).where(
+                        TblFundorte.id == latest_sighting.fo_zuordnung
+                    )
                 )
                 if location:
                     # Track for cleanup
@@ -560,19 +581,17 @@ class TestReportSubmission:
 
                 # Find and check user record
                 # Note: Users might be created with auto-generated IDs, so we need to find by other means
-                user_relation = (
-                    session.query(TblMeldungUser)
-                    .filter_by(id_meldung=latest_sighting.id)
-                    .first()
+                user_relation = session.scalar(
+                    select(TblMeldungUser).where(
+                        TblMeldungUser.id_meldung == latest_sighting.id
+                    )
                 )
                 if user_relation:
                     # Track for cleanup
                     TestReportSubmission.test_relation_ids.append(user_relation.id)
 
-                    user = (
-                        session.query(TblUsers)
-                        .filter_by(id=user_relation.id_user)
-                        .first()
+                    user = session.scalar(
+                        select(TblUsers).where(TblUsers.id == user_relation.id_user)
                     )
                     if user:
                         # Track for cleanup

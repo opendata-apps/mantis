@@ -1,7 +1,7 @@
 """Tests for the full-text search functionality using materialized views."""
 
 import pytest
-from sqlalchemy import text
+from sqlalchemy import select, text
 import app.database.full_text_search as fts
 
 
@@ -62,11 +62,11 @@ def test_full_text_search_parameterized(
     )
 
     # Query using the ORM and PostgreSQL operator
-    search_results = (
-        session.query(fts.FullTextSearch)
-        .filter(fts.FullTextSearch.doc.op("@@")(search_vector))
-        .all()
-    )
+    search_results = session.scalars(
+        select(fts.FullTextSearch).where(
+            fts.FullTextSearch.doc.op("@@")(search_vector)
+        )
+    ).all()
 
     # Extract the IDs from the results
     reported_sightings_ids = [result.meldungen_id for result in search_results]
@@ -95,11 +95,11 @@ def test_full_text_search_refreshing(session, request_context):
     # Verify that we can still search after refreshing
     search_vector = text("plainto_tsquery('german', :query)").bindparams(query="Berlin")
 
-    search_results = (
-        session.query(fts.FullTextSearch)
-        .filter(fts.FullTextSearch.doc.op("@@")(search_vector))
-        .all()
-    )
+    search_results = session.scalars(
+        select(fts.FullTextSearch).where(
+            fts.FullTextSearch.doc.op("@@")(search_vector)
+        )
+    ).all()
 
     # We should still find results after refreshing
     assert len(search_results) > 0, (

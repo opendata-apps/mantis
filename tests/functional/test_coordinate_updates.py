@@ -3,6 +3,7 @@
 import pytest
 import json
 from datetime import datetime, timedelta
+from sqlalchemy import select
 from app.database.models import (
     TblMeldungen,
     TblFundorte,
@@ -39,7 +40,7 @@ class TestCoordinateUpdates:
         session.add(self.regular_user)
 
         # Get an existing description from initial data
-        self.test_description = session.query(TblFundortBeschreibung).first()
+        self.test_description = session.scalar(select(TblFundortBeschreibung))
         assert self.test_description, "No beschreibung records found"
 
         # Create test location with known coordinates
@@ -485,7 +486,7 @@ class TestAmtMtbRecalculation:
         session.add(self.reviewer)
 
         # Get an existing description
-        self.test_description = session.query(TblFundortBeschreibung).first()
+        self.test_description = session.scalar(select(TblFundortBeschreibung))
         assert self.test_description, "No beschreibung records found"
 
         # Create test location with coordinates inside Brandenburg
@@ -686,10 +687,8 @@ class TestAmtMtbRecalculation:
         # First, get the all_data_view ID for our test sighting
         from app.database.models import TblAllData
 
-        all_data_row = (
-            session.query(TblAllData)
-            .filter(TblAllData.meldungen_id == self.test_sighting.id)
-            .first()
+        all_data_row = session.scalar(
+            select(TblAllData).where(TblAllData.meldungen_id == self.test_sighting.id)
         )
 
         if all_data_row:  # Only test if all_data_view exists
