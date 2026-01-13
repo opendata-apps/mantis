@@ -55,7 +55,10 @@ python -c "import secrets; print(secrets.token_hex(32))"
 nano .env  # or your preferred editor
 ```
 
-See `ENV_SETUP.md` for detailed configuration options.
+Key settings in `.env`:
+- `SECRET_KEY` - Required for session security
+- `SQLALCHEMY_DATABASE_URI` - Database connection (use `@localhost` for local, `@db` for containers)
+- `FLASK_ENV` - Set to `development` or `production`
 
 ### Step 3: 📦 Install dependencies
 
@@ -128,18 +131,39 @@ uv run pytest tests/functional/test_csrf_protection.py -v
 
 ## 🐳 Container Deployment
 
+### Understanding the Setup
+
+This project uses a **two-file overlay pattern**:
+- `podman-compose.prod.yml` - Base production config (Gunicorn + PostgreSQL)
+- `podman-compose.dev.yml` - Development overrides (hot-reload + Vite watcher)
+
+| Aspect | Production | Development |
+|--------|------------|-------------|
+| Server | Gunicorn (2 workers) | Flask dev server |
+| Frontend | Pre-built in image | Live Vite watcher |
+| Code changes | Requires rebuild | Hot-reloaded |
+| Services | db + web | db + web + vite |
+
+### Before Running Containers
+
+Update `.env` to use container networking:
+```bash
+# Change @localhost to @db (the container service name)
+SQLALCHEMY_DATABASE_URI=postgresql://mantis_user:mantis@db:5432/mantis_tracker
+```
+
 ### Production
 
 ```bash
 cd infrastructure
 
-# Build and start containers
+# Build and start
 podman-compose -f podman-compose.prod.yml up -d --build
 
 # View logs
 podman-compose -f podman-compose.prod.yml logs -f
 
-# Stop containers
+# Stop
 podman-compose -f podman-compose.prod.yml down
 ```
 
@@ -148,26 +172,22 @@ podman-compose -f podman-compose.prod.yml down
 ```bash
 cd infrastructure
 
-# Start with dev overlay (mounts source, enables debug mode)
+# Start with dev overlay
 podman-compose -f podman-compose.prod.yml -f podman-compose.dev.yml up --build
 
 # This gives you:
-# - Flask debug mode with auto-reload
-# - Vite build watcher (CSS/JS)
-# - Source code mounted for live editing
+# - Flask debug mode with auto-reload on Python changes
+# - Vite watcher rebuilding CSS/JS on file changes
+# - Source code mounted from host
 ```
 
-### Container Environment
+### What Happens on Startup
 
-For container deployment, update `.env`:
-```bash
-SQLALCHEMY_DATABASE_URI=postgresql://mantis_user:mantis@db:5432/mantis_tracker
-```
-
-The container setup includes:
-- **PostgreSQL 16** database with health checks
-- **Flask app** with auto-migrations on startup
-- **Volume mount** for uploaded images (`datastore/`)
+1. PostgreSQL starts and waits for health check
+2. Flask runs migrations automatically (`flask db upgrade`)
+3. Materialized views are created (`flask create_all_data_view`)
+4. Database is seeded (demo data in dev mode)
+5. Gunicorn (prod) or Flask dev server (dev) starts
 
 ## 🏭 Production Deployment (Manual)
 
@@ -218,9 +238,9 @@ mantis/
 └── tests/                  # Test suite
 ```
 
-## 📚 Additional Documentation
+## 📚 Additional Information
 
-- **Environment Setup:** See `ENV_SETUP.md` for detailed .env configuration
+- **Environment Variables:** See `.env.example` for all available settings
 - **Database Schema:** Managed via Flask-Migrate in `migrations/`
 - **API Endpoints:** See route blueprints in `app/routes/`
 
