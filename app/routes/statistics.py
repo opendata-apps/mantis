@@ -9,7 +9,7 @@ from app.database.models import TblUsers
 from app.database.models import TblAemterCoordinaten
 from app.tools.check_reviewer import login_required
 from app.tools.gen_messtisch_svg import create_measure_sheet
-from app.database.models import TblFundorte, TblMeldungen
+from app.database.models import TblFundorte, TblMeldungen, ReportStatus
 from datetime import datetime, timedelta
 from collections import defaultdict
 
@@ -198,7 +198,7 @@ def stats_bardiagram_datum(request, dbfields, page):
                 from meldungen
                 where {dbfield} BETWEEN CAST(:date_from AS date)
                                 AND CAST(:date_to AS date)
-                and (deleted IS NULL or deleted != 'f')) as filtered
+                and status != 'DEL') as filtered
            GROUP BY filtered.{dbfield}
            ORDER by Tag;
         """
@@ -249,7 +249,7 @@ def stats_geschlecht(request=None):
             TblMeldungen.dat_fund_von >= session["date_from"],
             TblMeldungen.dat_fund_von <= session["date_to"],
             TblFundorte.amt.like(f"{session['ags']}%"),
-            or_(TblMeldungen.deleted.is_(None), TblMeldungen.deleted == "f"),
+            TblMeldungen.status != ReportStatus.DEL.value,
         )
     )
 
@@ -346,7 +346,7 @@ def stats_laender(request, marker):
         .filter(
             TblMeldungen.dat_meld >= session["date_from"],
             TblMeldungen.dat_meld <= session["date_to"],
-            or_(TblMeldungen.deleted.is_(None), TblMeldungen.deleted.is_(False)),
+            TblMeldungen.status != ReportStatus.DEL.value,
         )
         .group_by(func.substring(TblFundorte.amt, 1, 2))
     )
@@ -463,7 +463,7 @@ def stats_bundesland(request, marker):
             TblMeldungen.dat_meld >= session["date_from"],
             TblMeldungen.dat_meld <= session["date_to"],
             func.substring(TblFundorte.amt, 1, 2) == ags,
-            or_(TblMeldungen.deleted.is_(None), TblMeldungen.deleted.is_(False)),
+            TblMeldungen.status != ReportStatus.DEL.value,
         )
         .group_by(func.substring(TblFundorte.amt, 1, maxchars))
     )
@@ -548,7 +548,7 @@ def stats_gesamt(request, marker):
         .filter(
             TblMeldungen.dat_meld >= session["date_from"],
             TblMeldungen.dat_meld <= session["date_to"],
-            or_(TblMeldungen.deleted.is_(None), TblMeldungen.deleted.is_(False)),
+            TblMeldungen.status != ReportStatus.DEL.value,
         )
         .group_by(TblFundorte.amt)
     )

@@ -14,7 +14,7 @@ from flask import (
 
 from sqlalchemy import text
 from app import db
-from app.database.models import TblMeldungen
+from app.database.models import TblMeldungen, ReportStatus
 from app.tools.check_reviewer import login_required
 
 
@@ -33,8 +33,7 @@ def index():
         .filter(
             TblMeldungen.dat_fund_von >= f"{current_app.config['MIN_MAP_YEAR']}-01-01"
         )
-        .filter(TblMeldungen.dat_bear.is_not(None))
-        .filter(TblMeldungen.deleted.is_(None))
+        .filter(TblMeldungen.status == ReportStatus.APPR.value)
         .count()
     )
 

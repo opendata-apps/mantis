@@ -14,8 +14,8 @@ from app import db
 from app.database.models import (
     TblFundorte,
     TblMeldungen,
+    ReportStatus,
 )
-from sqlalchemy import or_
 
 
 # Blueprints
@@ -46,8 +46,7 @@ def show_map():
     reports_query = (
         db.session.query(TblMeldungen.id, TblFundorte.latitude, TblFundorte.longitude)
         .join(TblFundorte, TblMeldungen.fo_zuordnung == TblFundorte.id)
-        .filter(TblMeldungen.dat_bear.is_not(None))
-        .filter(or_(TblMeldungen.deleted.is_(None), TblMeldungen.deleted == False))  # noqa: E712
+        .filter(TblMeldungen.status == ReportStatus.APPR.value)
     )
 
     if selected_year is not None:
@@ -64,8 +63,7 @@ def show_map():
                 TblMeldungen.dat_fund_von
                 >= f"{current_app.config['MIN_MAP_YEAR']}-01-01"
             )
-            .filter(TblMeldungen.dat_bear.is_not(None))
-            .filter(or_(TblMeldungen.deleted.is_(None), TblMeldungen.deleted == False))  # noqa: E712
+            .filter(TblMeldungen.status == ReportStatus.APPR.value)
             .count()
         )
 

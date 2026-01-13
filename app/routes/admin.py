@@ -11,6 +11,7 @@ from app.database.models import (
     TblMeldungUser,
     TblUsers,
     TblAllData,
+    ReportStatus,
 )
 from app.database.user_feedback import TblUserFeedback
 from app.database.feedback_type import TblFeedbackType
@@ -350,22 +351,23 @@ def report_Img(filename):
 @admin.route("/toggle_approve_sighting/<id>", methods=["POST"])
 @reviewer_required
 def toggle_approve_sighting(id):
-    "Find ID and mark as edited with a date in column dat_bear"
+    "Find ID and mark as approved with a date in column dat_bear"
 
     # Find the report by id
     sighting = db.session.get(TblMeldungen, id)
     if sighting:
-        # Set the dat_bear value to the current
-        # datetime if it is not already set
-        if not sighting.dat_bear:
+        # Toggle between APPR and OPEN status
+        if sighting.status != ReportStatus.APPR.value:
+            sighting.status = ReportStatus.APPR.value
             sighting.dat_bear = datetime.now()
         else:
-            # Clear the dat_bear value if it is already set
+            # Revert to OPEN status
+            sighting.status = ReportStatus.OPEN.value
             sighting.dat_bear = None
         sighting.bearb_id = session["user_id"]
         db.session.commit()
         current_app.logger.debug(
-            f"Sighting {id} approval toggled. dat_bear set to {sighting.dat_bear}"
+            f"Sighting {id} status toggled to {sighting.status}. dat_bear set to {sighting.dat_bear}"
         )
     else:
         current_app.logger.error(f"Sighting {id} not found for approval toggle.")
@@ -471,11 +473,12 @@ def get_sighting(id):
 @admin.route("/delete_sighting/<id>", methods=["POST"])
 @reviewer_required
 def delete_sighting(id):
-    "Delete sighting based on id"
+    "Soft-delete sighting based on id"
     # Find the report by id
     sighting = db.session.get(TblMeldungen, id)
     if sighting:
-        # Set the deleted value to True
+        # Set status to DEL and keep deleted=True for backward compatibility
+        sighting.status = ReportStatus.DEL.value
         sighting.deleted = True
         sighting.bearb_id = session["user_id"]
         db.session.commit()
@@ -491,13 +494,54 @@ def undelete_sighting(id):
     # Find the report by id
     sighting = db.session.get(TblMeldungen, id)
     if sighting:
-        # Set the deleted value to False
+        # Set status to OPEN and clear deleted flag
+        sighting.status = ReportStatus.OPEN.value
         sighting.deleted = False
         sighting.bearb_id = session["user_id"]
         db.session.commit()
         return jsonify({"message": "Report successfully undeleted"}), 200
     else:
         return jsonify({"error": "Report not found"}), 404
+
+
+@admin.route("/set_status/<id>", methods=["POST"])
+@reviewer_required
+def set_status(id):
+    "Set report status to a specific value"
+    new_status = request.form.get("status")
+
+    # Validate status
+    valid_statuses = ReportStatus.values()
+    if new_status not in valid_statuses:
+        return jsonify({"error": f"Invalid status. Must be one of: {valid_statuses}"}), 400
+
+    sighting = db.session.get(TblMeldungen, id)
+    if not sighting:
+        return jsonify({"error": "Report not found"}), 404
+
+    old_status = sighting.status
+    sighting.status = new_status
+    sighting.bearb_id = session["user_id"]
+
+    # Handle deleted flag for backward compatibility
+    sighting.deleted = (new_status == ReportStatus.DEL.value)
+
+    # Handle dat_bear for approval tracking
+    if new_status == ReportStatus.APPR.value and not sighting.dat_bear:
+        sighting.dat_bear = datetime.now()
+    elif new_status != ReportStatus.APPR.value:
+        sighting.dat_bear = None
+
+    db.session.commit()
+    current_app.logger.debug(
+        f"Sighting {id} status changed from {old_status} to {new_status}"
+    )
+    return jsonify({
+        "success": True,
+        "message": f"Status changed to {ReportStatus.get_display_name(new_status)}",
+        "status": new_status,
+        "status_display": ReportStatus.get_display_name(new_status),
+    }), 200
 
 
 @admin.route("/change_mantis_gender/<int:id>", methods=["POST"])
@@ -612,9 +656,7 @@ def export_data(value):
             meldung, fundort, beschreibung, melduser, user = row
             entry = {
                 "ID": meldung.id,
-                "Status": "Gelöscht"
-                if meldung.deleted
-                else ("Bearbeitet" if meldung.dat_bear else "Offen"),
+                "Status": ReportStatus.get_display_name(meldung.status),
                 "Fund-Datum": meldung.dat_fund_von.strftime("%d.%m.%Y")
                 if meldung.dat_fund_von
                 else "",
@@ -809,35 +851,26 @@ def get_filtered_query(
         .join(TblUsers, TblMeldungUser.id_user == TblUsers.id)
     )
 
-    # Apply filter conditions based on 'filter_status'
+    # Apply filter conditions based on 'filter_status' using new status column
     if filter_status == "bearbeitet":
-        query = query.filter(
-            TblMeldungen.dat_bear.isnot(None),
-            or_(TblMeldungen.deleted.is_(None), TblMeldungen.deleted == False),  # noqa: E712
-        )
+        query = query.filter(TblMeldungen.status == ReportStatus.APPR.value)
     elif filter_status == "offen":
-        query = query.filter(
-            TblMeldungen.dat_bear.is_(None),
-            or_(TblMeldungen.deleted.is_(None), TblMeldungen.deleted == False),  # noqa: E712
-        )
+        query = query.filter(TblMeldungen.status == ReportStatus.OPEN.value)
     elif filter_status == "geloescht":
-        query = query.filter(TblMeldungen.deleted == True)  # noqa: E712
+        query = query.filter(TblMeldungen.status == ReportStatus.DEL.value)
+    elif filter_status == "informiert":
+        query = query.filter(TblMeldungen.status == ReportStatus.INFO.value)
+    elif filter_status == "unklar":
+        query = query.filter(TblMeldungen.status == ReportStatus.UNKL.value)
     elif filter_status == "all":
-        query = query.filter(
-            or_(
-                TblMeldungen.deleted.is_(None),
-                TblMeldungen.deleted == False,  # noqa: E712
-                TblMeldungen.deleted == True,  # noqa: E712
-            )
-        )
+        # No filter - show all statuses
+        pass
     elif search_query:
-        # If there's a search query, don't apply any deletion filter
+        # If there's a search query, don't apply any status filter
         pass
     else:
         # Default behavior: Exclude deleted items
-        query = query.filter(
-            or_(TblMeldungen.deleted.is_(None), TblMeldungen.deleted == False)  # noqa: E712
-        )
+        query = query.filter(TblMeldungen.status != ReportStatus.DEL.value)
 
     # Apply type filter
     if filter_type:
