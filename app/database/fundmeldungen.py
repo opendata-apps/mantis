@@ -1,15 +1,19 @@
 from app import db
+from app.database.report_status import ReportStatus
 
 
 class TblMeldungen(db.Model):
     __tablename__ = "meldungen"
 
     id = db.Column(db.Integer, primary_key=True)
-    deleted = db.Column(db.Boolean, nullable=True)
+    deleted = db.Column(db.Boolean, nullable=True)  # Deprecated: use status instead
+    status = db.Column(
+        db.String(5), nullable=False, default=ReportStatus.OPEN.value, index=True
+    )
     dat_fund_von = db.Column(db.Date, nullable=False)
     dat_fund_bis = db.Column(db.Date, nullable=True)
     dat_meld = db.Column(db.Date, nullable=True)
-    dat_bear = db.Column(db.Date, nullable=True)
+    dat_bear = db.Column(db.Date, nullable=True)  # Keep for approval date tracking
     bearb_id = db.Column(db.String(40), nullable=True)
     tiere = db.Column(db.Integer, nullable=True)
     art_m = db.Column(db.Integer, nullable=True)
@@ -28,10 +32,10 @@ class TblMeldungen(db.Model):
         return f"<Report {self.id}>"
 
     def to_dict(self):
-        # Transitional compatibility removed; only correct key is exposed.
         data = {
             "id": self.id,
             "deleted": self.deleted,
+            "status": self.status,
             "dat_fund_von": self.dat_fund_von,
             "dat_fund_bis": self.dat_fund_bis,
             "dat_meld": self.dat_meld,
@@ -43,10 +47,35 @@ class TblMeldungen(db.Model):
             "art_n": self.art_n,
             "art_o": self.art_o,
             "art_f": self.art_f,
-            "fo_zuordnung": self.fo_zuordnung,  # correct key
+            "fo_zuordnung": self.fo_zuordnung,
             "fo_quelle": self.fo_quelle,
             "fo_beleg": self.fo_beleg,
             "anm_melder": self.anm_melder,
             "anm_bearbeiter": self.anm_bearbeiter,
         }
         return data
+
+    @property
+    def is_deleted(self) -> bool:
+        """Check if report is deleted (for backward compatibility)."""
+        return self.status == ReportStatus.DEL.value
+
+    @property
+    def is_approved(self) -> bool:
+        """Check if report is approved."""
+        return self.status == ReportStatus.APPR.value
+
+    @property
+    def is_open(self) -> bool:
+        """Check if report is open/pending."""
+        return self.status == ReportStatus.OPEN.value
+
+    @property
+    def is_unclear(self) -> bool:
+        """Check if report is marked as unclear."""
+        return self.status == ReportStatus.UNKL.value
+
+    @property
+    def needs_info(self) -> bool:
+        """Check if reporter was contacted for more info."""
+        return self.status == ReportStatus.INFO.value

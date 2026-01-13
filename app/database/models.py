@@ -9,6 +9,7 @@ from .user_feedback import TblUserFeedback
 from .feedback_type import TblFeedbackType
 from .full_text_search import FullTextSearch
 from .alldata import TblAllData
+from .report_status import ReportStatus
 
 __all__ = [
     "TblMeldungen",
@@ -21,5 +22,6 @@ __all__ = [
     "TblFeedbackType",
     "FullTextSearch",
     "TblAllData",
+    "ReportStatus",
     "Base",
 ]
