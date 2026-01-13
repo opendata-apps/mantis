@@ -233,9 +233,10 @@ class TestReportPrefill:
             assert "input[readonly]" in response_text, (
                 "Readonly styling should be defined in CSS"
             )
-            assert "background-color: #f9fafb" in response_text, (
-                "Readonly fields should have gray background"
-            )
+            # Check for background-color (may use CSS variable or hex value)
+            assert "background-color:" in response_text and (
+                "var(--color-gray-50)" in response_text or "#f9fafb" in response_text
+            ), "Readonly fields should have gray background styling"
 
         finally:
             # Clean up
