@@ -27,6 +27,7 @@ from flask import (
     url_for,
 )
 from sqlalchemy import inspect, or_, cast, String, update, select
+from sqlalchemy.exc import SQLAlchemyError
 from app.tools.check_reviewer import reviewer_required
 import shutil
 from werkzeug.utils import secure_filename
@@ -357,12 +358,12 @@ def toggle_approve_sighting(id):
     sighting = db.session.get(TblMeldungen, id)
     if sighting:
         # Toggle between APPR and OPEN status
-        if sighting.status != ReportStatus.APPR.value:
-            sighting.status = ReportStatus.APPR.value
+        if sighting.status != ReportStatus.APPR:
+            sighting.status = ReportStatus.APPR
             sighting.dat_bear = datetime.now()
         else:
             # Revert to OPEN status
-            sighting.status = ReportStatus.OPEN.value
+            sighting.status = ReportStatus.OPEN
             sighting.dat_bear = None
         sighting.bearb_id = session["user_id"]
         db.session.commit()
@@ -478,7 +479,7 @@ def delete_sighting(id):
     sighting = db.session.get(TblMeldungen, id)
     if sighting:
         # Set status to DEL and keep deleted=True for backward compatibility
-        sighting.status = ReportStatus.DEL.value
+        sighting.status = ReportStatus.DEL
         sighting.deleted = True
         sighting.bearb_id = session["user_id"]
         db.session.commit()
@@ -495,7 +496,7 @@ def undelete_sighting(id):
     sighting = db.session.get(TblMeldungen, id)
     if sighting:
         # Set status to OPEN and clear deleted flag
-        sighting.status = ReportStatus.OPEN.value
+        sighting.status = ReportStatus.OPEN
         sighting.deleted = False
         sighting.bearb_id = session["user_id"]
         db.session.commit()
@@ -507,12 +508,14 @@ def undelete_sighting(id):
 @admin.route("/set_status/<id>", methods=["POST"])
 @reviewer_required
 def set_status(id):
-    "Set report status to a specific value"
-    new_status = request.form.get("status")
+    """Set report status to a specific value."""
+    status_str = request.form.get("status")
 
-    # Validate status
-    valid_statuses = ReportStatus.values()
-    if new_status not in valid_statuses:
+    # Validate and convert string to enum
+    try:
+        new_status = ReportStatus(status_str)
+    except ValueError:
+        valid_statuses = ReportStatus.values()
         return jsonify({"error": f"Invalid status. Must be one of: {valid_statuses}"}), 400
 
     sighting = db.session.get(TblMeldungen, id)
@@ -524,23 +527,29 @@ def set_status(id):
     sighting.bearb_id = session["user_id"]
 
     # Handle deleted flag for backward compatibility
-    sighting.deleted = (new_status == ReportStatus.DEL.value)
+    sighting.deleted = (new_status == ReportStatus.DEL)
 
     # Handle dat_bear for approval tracking
-    if new_status == ReportStatus.APPR.value and not sighting.dat_bear:
+    if new_status == ReportStatus.APPR and not sighting.dat_bear:
         sighting.dat_bear = datetime.now()
-    elif new_status != ReportStatus.APPR.value:
+    elif new_status != ReportStatus.APPR:
         sighting.dat_bear = None
 
-    db.session.commit()
+    try:
+        db.session.commit()
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        current_app.logger.error(f"Failed to update status for sighting {id}: {e}")
+        return jsonify({"error": "Failed to update status"}), 500
+
     current_app.logger.debug(
         f"Sighting {id} status changed from {old_status} to {new_status}"
     )
     return jsonify({
         "success": True,
-        "message": f"Status changed to {ReportStatus.get_display_name(new_status)}",
-        "status": new_status,
-        "status_display": ReportStatus.get_display_name(new_status),
+        "message": f"Status changed to {ReportStatus.get_display_name(new_status.value)}",
+        "status": new_status.value,
+        "status_display": ReportStatus.get_display_name(new_status.value),
     }), 200
 
 
@@ -853,15 +862,15 @@ def get_filtered_query(
 
     # Apply filter conditions based on 'filter_status' using new status column
     if filter_status == "bearbeitet":
-        query = query.filter(TblMeldungen.status == ReportStatus.APPR.value)
+        query = query.filter(TblMeldungen.status == ReportStatus.APPR)
     elif filter_status == "offen":
-        query = query.filter(TblMeldungen.status == ReportStatus.OPEN.value)
+        query = query.filter(TblMeldungen.status == ReportStatus.OPEN)
     elif filter_status == "geloescht":
-        query = query.filter(TblMeldungen.status == ReportStatus.DEL.value)
+        query = query.filter(TblMeldungen.status == ReportStatus.DEL)
     elif filter_status == "informiert":
-        query = query.filter(TblMeldungen.status == ReportStatus.INFO.value)
+        query = query.filter(TblMeldungen.status == ReportStatus.INFO)
     elif filter_status == "unklar":
-        query = query.filter(TblMeldungen.status == ReportStatus.UNKL.value)
+        query = query.filter(TblMeldungen.status == ReportStatus.UNKL)
     elif filter_status == "all":
         # No filter - show all statuses
         pass
@@ -870,7 +879,7 @@ def get_filtered_query(
         pass
     else:
         # Default behavior: Exclude deleted items
-        query = query.filter(TblMeldungen.status != ReportStatus.DEL.value)
+        query = query.filter(TblMeldungen.status != ReportStatus.DEL)
 
     # Apply type filter
     if filter_type:

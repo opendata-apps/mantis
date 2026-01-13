@@ -1,3 +1,5 @@
+from sqlalchemy import Enum as SAEnum
+
 from app import db
 from app.database.report_status import ReportStatus
 
@@ -8,7 +10,10 @@ class TblMeldungen(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     deleted = db.Column(db.Boolean, nullable=True)  # Deprecated: use status instead
     status = db.Column(
-        db.String(5), nullable=False, default=ReportStatus.OPEN.value, index=True
+        SAEnum(ReportStatus, native_enum=False, length=5),
+        nullable=False,
+        default=ReportStatus.OPEN,
+        index=True,
     )
     dat_fund_von = db.Column(db.Date, nullable=False)
     dat_fund_bis = db.Column(db.Date, nullable=True)
@@ -58,24 +63,24 @@ class TblMeldungen(db.Model):
     @property
     def is_deleted(self) -> bool:
         """Check if report is deleted (for backward compatibility)."""
-        return self.status == ReportStatus.DEL.value
+        return self.status == ReportStatus.DEL
 
     @property
     def is_approved(self) -> bool:
         """Check if report is approved."""
-        return self.status == ReportStatus.APPR.value
+        return self.status == ReportStatus.APPR
 
     @property
     def is_open(self) -> bool:
         """Check if report is open/pending."""
-        return self.status == ReportStatus.OPEN.value
+        return self.status == ReportStatus.OPEN
 
     @property
     def is_unclear(self) -> bool:
         """Check if report is marked as unclear."""
-        return self.status == ReportStatus.UNKL.value
+        return self.status == ReportStatus.UNKL
 
     @property
     def needs_info(self) -> bool:
         """Check if reporter was contacted for more info."""
-        return self.status == ReportStatus.INFO.value
+        return self.status == ReportStatus.INFO

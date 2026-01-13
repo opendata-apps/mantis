@@ -88,8 +88,34 @@ def upgrade():
 
 
 def downgrade():
-    # Remove index
+    # Step 1: Restore deleted field state from status column before dropping it
+    # This ensures data is not lost when downgrading
+    connection = op.get_bind()
+
+    # Restore deleted=True for DEL status
+    connection.execute(
+        sa.text(
+            """
+            UPDATE meldungen
+            SET deleted = TRUE
+            WHERE status = 'DEL'
+            """
+        )
+    )
+
+    # Restore deleted=FALSE for non-deleted statuses
+    connection.execute(
+        sa.text(
+            """
+            UPDATE meldungen
+            SET deleted = FALSE
+            WHERE status IN ('OPEN', 'APPR', 'INFO', 'UNKL')
+            """
+        )
+    )
+
+    # Step 2: Remove index
     op.drop_index("ix_meldungen_status", table_name="meldungen")
 
-    # Remove the status column
+    # Step 3: Remove the status column
     op.drop_column("meldungen", "status")
