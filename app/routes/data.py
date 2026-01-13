@@ -46,7 +46,7 @@ def show_map():
     reports_query = (
         db.session.query(TblMeldungen.id, TblFundorte.latitude, TblFundorte.longitude)
         .join(TblFundorte, TblMeldungen.fo_zuordnung == TblFundorte.id)
-        .filter(TblMeldungen.status == ReportStatus.APPR.value)
+        .filter(TblMeldungen.status == ReportStatus.APPR)
     )
 
     if selected_year is not None:
@@ -63,7 +63,7 @@ def show_map():
                 TblMeldungen.dat_fund_von
                 >= f"{current_app.config['MIN_MAP_YEAR']}-01-01"
             )
-            .filter(TblMeldungen.status == ReportStatus.APPR.value)
+            .filter(TblMeldungen.status == ReportStatus.APPR)
             .count()
         )
 

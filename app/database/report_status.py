@@ -5,10 +5,10 @@ This module defines the status values for report review workflow.
 Status values are 4 characters max to fit in a 5-char database column.
 """
 
-from enum import Enum
+from enum import StrEnum
 
 
-class ReportStatus(str, Enum):
+class ReportStatus(StrEnum):
     """
     Status enum for report review workflow.
 

@@ -33,7 +33,7 @@ def index():
         .filter(
             TblMeldungen.dat_fund_von >= f"{current_app.config['MIN_MAP_YEAR']}-01-01"
         )
-        .filter(TblMeldungen.status == ReportStatus.APPR.value)
+        .filter(TblMeldungen.status == ReportStatus.APPR)
         .count()
     )
 

@@ -249,7 +249,7 @@ def stats_geschlecht(request=None):
             TblMeldungen.dat_fund_von >= session["date_from"],
             TblMeldungen.dat_fund_von <= session["date_to"],
             TblFundorte.amt.like(f"{session['ags']}%"),
-            TblMeldungen.status != ReportStatus.DEL.value,
+            TblMeldungen.status != ReportStatus.DEL,
         )
     )
 
@@ -346,7 +346,7 @@ def stats_laender(request, marker):
         .filter(
             TblMeldungen.dat_meld >= session["date_from"],
             TblMeldungen.dat_meld <= session["date_to"],
-            TblMeldungen.status != ReportStatus.DEL.value,
+            TblMeldungen.status != ReportStatus.DEL,
         )
         .group_by(func.substring(TblFundorte.amt, 1, 2))
     )
@@ -463,7 +463,7 @@ def stats_bundesland(request, marker):
             TblMeldungen.dat_meld >= session["date_from"],
             TblMeldungen.dat_meld <= session["date_to"],
             func.substring(TblFundorte.amt, 1, 2) == ags,
-            TblMeldungen.status != ReportStatus.DEL.value,
+            TblMeldungen.status != ReportStatus.DEL,
         )
         .group_by(func.substring(TblFundorte.amt, 1, maxchars))
     )
@@ -548,7 +548,7 @@ def stats_gesamt(request, marker):
         .filter(
             TblMeldungen.dat_meld >= session["date_from"],
             TblMeldungen.dat_meld <= session["date_to"],
-            TblMeldungen.status != ReportStatus.DEL.value,
+            TblMeldungen.status != ReportStatus.DEL,
         )
         .group_by(TblFundorte.amt)
     )
