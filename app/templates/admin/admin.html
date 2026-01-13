@@ -85,11 +85,11 @@
                             <select id="statusInput" name="statusInput"
                                 class="p-2 w-full text-sm rounded-md shadow-xs focus:ring-2 focus:ring-green-500 focus:border-transparent">
                                 <option value="all" {% if filters.status=="all" %}selected{% endif %}>Alle</option>
-                                <option value="bearbeitet" {% if filters.status=="bearbeitet" %}selected{% endif %}>
-                                    Bearbeitet</option>
                                 <option value="offen" {% if filters.status=="offen" %}selected{% endif %}>Offen</option>
-                                <option value="geloescht" {% if filters.status=="geloescht" %}selected{% endif %}>
-                                    Gelöscht</option>
+                                <option value="bearbeitet" {% if filters.status=="bearbeitet" %}selected{% endif %}>Angenommen</option>
+                                <option value="unklar" {% if filters.status=="unklar" %}selected{% endif %}>Unklar</option>
+                                <option value="informiert" {% if filters.status=="informiert" %}selected{% endif %}>Informiert</option>
+                                <option value="geloescht" {% if filters.status=="geloescht" %}selected{% endif %}>Gelöscht</option>
                             </select>
                         </div>
                         <div class="space-y-1 w-full md:w-1/2">
@@ -314,9 +314,11 @@
 
     <div class="grid grid-cols-1 gap-6 mb-4 sm:grid-cols-2 lg:grid-cols-3" id="reportContainer">
         {% for sighting in reported_sightings %}
-        <div class="overflow-hidden mb-4 bg-white rounded-lg shadow-md transition-shadow duration-200 hover:shadow-lg report-card"
-            data-report-id="{{sighting.id}}" data-approved="{{ 'true' if sighting.dat_bear else 'false' }}"
-            data-deleted="{{ 'true' if sighting.deleted else 'false' }}">
+        <div class="overflow-hidden mb-4 bg-white rounded-lg shadow-md transition-shadow duration-200 hover:shadow-lg report-card
+            {% if sighting.status == 'UNKL' %}ring-2 ring-orange-400{% elif sighting.status == 'INFO' %}ring-2 ring-yellow-400{% elif sighting.status == 'DEL' %}ring-2 ring-red-400{% endif %}"
+            data-report-id="{{sighting.id}}" data-status="{{ sighting.status }}"
+            data-approved="{{ 'true' if sighting.status == 'APPR' else 'false' }}"
+            data-deleted="{{ 'true' if sighting.status == 'DEL' else 'false' }}">
             <div class="relative">
                 <img loading="lazy" onclick="openImageModal('{{ url_for('admin.report_Img', filename=sighting.fundort.ablage) }}')"
                     class="object-cover w-full h-48 rounded-t-lg transition-transform duration-200 ease-in-out cursor-pointer md:h-64 hover:scale-105"
@@ -325,11 +327,32 @@
                 <div title="{{sighting.ort}}&#13;&#10;Postleitzahl: {{sighting.plz}}&#13;&#10;Kreis: {{sighting.kreis}}&#13;&#10;Land: {{sighting.land}}"
                     class="absolute bottom-0 px-3 py-1 mb-4 ml-4 font-semibold text-gray-800 rounded-full backdrop-blur-md bg-white/80">
                     {{ sighting.kreis }} | {{ sighting.ort }}</div>
-                {% if sighting.deleted %}
+
+                {# Status overlay on image for special states #}
+                {% if sighting.status == 'UNKL' %}
+                <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div class="flex items-center justify-center w-20 h-20 rounded-full bg-orange-500/70 backdrop-blur-xs">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                </div>
+                {% elif sighting.status == 'INFO' %}
+                <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div class="flex items-center justify-center w-20 h-20 rounded-full bg-yellow-500/70 backdrop-blur-xs">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
+                    </div>
+                </div>
+                {% endif %}
+
+                {# Status badge on image (deleted state) #}
+                {% if sighting.status == 'DEL' %}
                 <div
                     class="absolute right-0 bottom-0 px-3 py-1 mr-4 mb-4 font-semibold text-gray-800 rounded-full backdrop-blur-md bg-red-500/80">
                     Gelöscht
-                    <button title="Wiederherstellen" 
+                    <button title="Wiederherstellen"
                         onclick="undoDelete('{{sighting.id}}')"
                         class="px-2 py-1 ml-2 text-xs font-semibold text-red-500 bg-white rounded-full hover:bg-gray-200 focus:outline-hidden">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" id="arrow-u-up-left"
@@ -368,15 +391,15 @@
 
                 <div class="flex flex-wrap justify-between items-center mt-3">
                     <div class="flex items-center">
-                        <button 
-                            onclick="openModal('{{sighting.id}}')" 
+                        <button
+                            onclick="openModal('{{sighting.id}}')"
                             style="min-width: 2rem;"
                             class="p-1 rounded-sm transition-colors duration-200 focus:outline-hidden hover:bg-green-200">
                             <img loading="lazy" src="/static/images/svg/edit.svg" alt="Edit"
                                 class="w-4 h-4 md:w-5 md:h-5">
                         </button>
-                        {% if not sighting.deleted %}
-                        <button 
+                        {% if sighting.status != 'DEL' %}
+                        <button
                             onclick="deleteSighting('{{sighting.id}}')"
                             class="p-1 ml-2 rounded-sm transition-colors duration-200 md:ml-4 focus:outline-hidden hover:bg-red-200"
                             style="min-width: 2 rem;">
@@ -385,18 +408,27 @@
                         </button>
                         {% endif %}
                     </div>
-                    <div>
-                        {% set total = ((sighting.art_m or 0) + (sighting.art_w or 0) +
-                        (sighting.art_n or 0) + (sighting.art_o or 0)) | int %}
-                        {% if sighting.dat_bear %}
-                        <span
-                            class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-800 bg-green-100 rounded-md">
-                            Angenommen
-                        </span>
-                        {% else %}
-                        <button 
+                    <div class="flex items-center gap-2">
+                        {# Status selector dropdown #}
+                        <select
+                            onchange="setStatus('{{sighting.id}}', this.value)"
+                            class="px-2 py-1 text-xs font-medium rounded-md border border-gray-300 focus:outline-hidden focus:ring-2 focus:ring-green-500
+                                {% if sighting.status == 'APPR' %}bg-green-100 text-gray-800
+                                {% elif sighting.status == 'UNKL' %}bg-orange-100 text-orange-800
+                                {% elif sighting.status == 'INFO' %}bg-yellow-100 text-yellow-800
+                                {% elif sighting.status == 'DEL' %}bg-red-100 text-red-800
+                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            <option value="OPEN" {% if sighting.status == 'OPEN' %}selected{% endif %}>Offen</option>
+                            <option value="APPR" {% if sighting.status == 'APPR' %}selected{% endif %}>Angenommen</option>
+                            <option value="UNKL" {% if sighting.status == 'UNKL' %}selected{% endif %}>Unklar</option>
+                            <option value="INFO" {% if sighting.status == 'INFO' %}selected{% endif %}>Informiert</option>
+                            <option value="DEL" {% if sighting.status == 'DEL' %}selected{% endif %}>Gelöscht</option>
+                        </select>
+                        {# Quick approve button for non-approved items #}
+                        {% if sighting.status != 'APPR' and sighting.status != 'DEL' %}
+                        <button
                             onclick="toggleApprove('{{sighting.id}}')"
-                            class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                            class="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                             Annehmen
                         </button>
                         {% endif %}
@@ -1630,7 +1662,7 @@
     function undoDelete(id) {
         let confirmUndo = confirm('Sind Sie sicher, dass Sie die Löschung der Meldung rückgängig machen möchten?');
         if (confirmUndo) {
-            fetch('/undelete_sighting/' + id, { 
+            fetch('/undelete_sighting/' + id, {
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': getCSRFToken()
@@ -1642,6 +1674,44 @@
                 })
                 .catch(error => console.error('Error:', error));
         }
+    }
+
+    // Function to set status via dropdown
+    function setStatus(id, newStatus) {
+        // If setting to DEL, confirm first
+        if (newStatus === 'DEL') {
+            let confirmDelete = confirm('Sind Sie sicher, dass Sie die Meldung löschen möchten?');
+            if (!confirmDelete) {
+                // Reset the select to current value
+                location.reload();
+                return;
+            }
+        }
+
+        const formData = new FormData();
+        formData.append('status', newStatus);
+
+        fetch('/set_status/' + id, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Reload to show updated card styling
+                    location.reload();
+                } else {
+                    console.error('Failed to change status:', data.error);
+                    alert('Fehler: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Ein Fehler ist aufgetreten.');
+            });
     }
 
     function removeCardFromView(id) {
