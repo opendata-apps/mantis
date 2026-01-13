@@ -17,20 +17,26 @@ RUN bun run build
 # Stage 2: Python application
 FROM docker.io/python:3.13-slim
 
+ENV PYTHONUNBUFFERED=1 \
+    UV_PROJECT_ENVIRONMENT=/usr/local
+
 WORKDIR /app
 
-# Copy uv binary directly (no pip install needed)
+# Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 
+# Install dependencies (uv sync with system Python)
 COPY pyproject.toml uv.lock ./
-RUN uv pip install --system .
+RUN uv sync --frozen --no-dev --no-install-project
 
+# Copy application and install project
 COPY app/ ./app/
 COPY migrations/ ./migrations/
 COPY run.py entrypoint.sh ./
 COPY --from=frontend-builder /build/app/static/build/ ./app/static/build/
 
-RUN chmod +x entrypoint.sh
+RUN uv sync --frozen --no-dev && \
+    chmod +x entrypoint.sh
 
 ENV FLASK_APP=run.py
 EXPOSE 5000

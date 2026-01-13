@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   db:
-    image: postgres:16-alpine
+    image: docker.io/library/postgres:16-alpine
     restart: unless-stopped
     env_file:
       - ../.env
@@ -24,6 +24,9 @@ services:
         condition: service_healthy
     env_file:
       - ../.env
+    environment:
+      - FLASK_ENV=production
+      - FLASK_DEBUG=0
     volumes:
       - ../datastore:/app/datastore:z
     networks:
