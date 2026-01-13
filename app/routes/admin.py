@@ -24,6 +24,7 @@ from flask import (
     render_template,
     request,
     send_file,
+    send_from_directory,
     url_for,
 )
 from sqlalchemy import inspect, or_, cast, String, update, select
@@ -325,28 +326,11 @@ def update_coordinates(id):
 
 @admin.route("/admin/images/<path:filename>")
 @reviewer_required
-def report_Img(filename):
-    "This function is used to serve the image of the report"
-    # Validate that the filename doesn't contain dangerous patterns
-    if ".." in filename or filename.startswith("/") or "\\" in filename:
-        abort(403)
-
-    # Construct the safe path within the upload folder
-    upload_folder = current_app.config["UPLOAD_FOLDER"]
-    safe_path = os.path.join(upload_folder, filename)
-
-    # Ensure the resolved path is within the upload folder
-    safe_path = os.path.abspath(safe_path)
-    upload_folder = os.path.abspath(upload_folder)
-
-    if not safe_path.startswith(upload_folder):
-        abort(403)
-
-    # Check if file exists
-    if not os.path.exists(safe_path):
-        abort(404)
-
-    return send_file(safe_path, mimetype="image/webp")
+def report_img(filename):
+    """Serve report images securely from the upload folder."""
+    return send_from_directory(
+        current_app.config["UPLOAD_FOLDER"], filename, mimetype="image/webp"
+    )
 
 
 @admin.route("/toggle_approve_sighting/<id>", methods=["POST"])
