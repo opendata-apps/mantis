@@ -2,7 +2,7 @@ from datetime import datetime
 import shutil
 import os
 import click
-from flask import Flask, render_template, request
+from flask import Flask, jsonify, render_template, request
 from flask.cli import with_appcontext
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
@@ -299,12 +299,23 @@ def create_app(config_class=Config):
     return app
 
 
+def wants_json_response():
+    """Check if the client prefers a JSON response (AJAX/API calls)."""
+    best = request.accept_mimetypes.best_match(["application/json", "text/html"])
+    return (
+        best == "application/json"
+        or request.headers.get("X-Requested-With") == "XMLHttpRequest"
+    )
+
+
 def page_not_found(e):
     from flask import current_app
 
     current_app.logger.warning(
         f"Page not found: {request.url} - User Agent: {request.headers.get('User-Agent', 'Unknown')}"
     )
+    if wants_json_response():
+        return jsonify({"error": e.description or "Not found"}), 404
     return render_template("error/404.html"), 404
 
 
@@ -314,6 +325,8 @@ def forbidden(e):
     current_app.logger.warning(
         f"Forbidden access: {request.url} - User Agent: {request.headers.get('User-Agent', 'Unknown')}"
     )
+    if wants_json_response():
+        return jsonify({"error": e.description or "Forbidden"}), 403
     return render_template("error/403.html"), 403
 
 
@@ -324,6 +337,8 @@ def too_many_requests(e):
     current_app.logger.warning(
         f"Rate limit exceeded: {request.url} - User Agent: {request.headers.get('User-Agent', 'Unknown')}"
     )
+    if wants_json_response():
+        return jsonify({"error": e.description or "Too many requests"}), 429
     return render_template("error/429.html", error=e), 429
 
 
@@ -331,4 +346,6 @@ def internal_server_error(e):
     from flask import current_app
 
     current_app.logger.error(f"Internal server error: {request.url} - Error: {str(e)}")
+    if wants_json_response():
+        return jsonify({"error": "Internal server error"}), 500
     return render_template("error/500.html"), 500

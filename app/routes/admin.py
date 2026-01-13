@@ -461,15 +461,15 @@ def delete_sighting(id):
     "Soft-delete sighting based on id"
     # Find the report by id
     sighting = db.session.get(TblMeldungen, id)
-    if sighting:
-        # Set status to DEL and keep deleted=True for backward compatibility
-        sighting.status = ReportStatus.DEL
-        sighting.deleted = True
-        sighting.bearb_id = session["user_id"]
-        db.session.commit()
-        return jsonify({"message": "Report successfully deleted"}), 200
-    else:
+    if not sighting:
         return jsonify({"error": "Report not found"}), 404
+
+    # Set status to DEL and keep deleted=True for backward compatibility
+    sighting.status = ReportStatus.DEL
+    sighting.deleted = True
+    sighting.bearb_id = session["user_id"]
+    db.session.commit()
+    return jsonify({"success": True})
 
 
 @admin.route("/undelete_sighting/<id>", methods=["POST"])
@@ -478,15 +478,15 @@ def undelete_sighting(id):
     "Undelete sighting based on id"
     # Find the report by id
     sighting = db.session.get(TblMeldungen, id)
-    if sighting:
-        # Set status to OPEN and clear deleted flag
-        sighting.status = ReportStatus.OPEN
-        sighting.deleted = False
-        sighting.bearb_id = session["user_id"]
-        db.session.commit()
-        return jsonify({"message": "Report successfully undeleted"}), 200
-    else:
+    if not sighting:
         return jsonify({"error": "Report not found"}), 404
+
+    # Set status to OPEN and clear deleted flag
+    sighting.status = ReportStatus.OPEN
+    sighting.deleted = False
+    sighting.bearb_id = session["user_id"]
+    db.session.commit()
+    return jsonify({"success": True})
 
 
 @admin.route("/set_status/<id>", methods=["POST"])
@@ -545,7 +545,7 @@ def change_gender(id):
 
     sighting = db.session.get(TblMeldungen, id)
     if sighting is None:
-        return "Sighting not found", 404
+        abort(404, description="Sighting not found")
 
     # Reset all gender columns to 0
     sighting.art_m = 0
@@ -569,7 +569,7 @@ def change_gender(id):
     sighting.bearb_id = session["user_id"]
     db.session.commit()
 
-    return jsonify(success=True)
+    return jsonify({"success": True})
 
 
 @admin.route("/change_mantis_count/<int:id>", methods=["POST"])
@@ -580,7 +580,7 @@ def change_mantis_count(id):
     mantis_type = request.form.get("type")
     sighting = db.session.get(TblMeldungen, id)
     if sighting is None:
-        return "Sighting not found", 404
+        abort(404, description="Sighting not found")
 
     # Update the count for the specified mantis type
     if mantis_type == "Männchen":
@@ -599,7 +599,7 @@ def change_mantis_count(id):
     sighting.bearb_id = session["user_id"]
     db.session.commit()
 
-    return jsonify(success=True)
+    return jsonify({"success": True})
 
 
 @admin.route("/admin/export/xlsx/<string:value>")

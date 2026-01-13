@@ -6,6 +6,7 @@ from flask import (
     Blueprint,
     Response,
     current_app,
+    jsonify,
     render_template,
     request,
     send_from_directory,
@@ -64,9 +65,9 @@ def health():
     """Health check endpoint."""
     try:
         db.session.execute(text("SELECT 1"))
-        return {"status": "healthy"}, 200
+        return jsonify({"status": "healthy"})
     except Exception:
-        return {"status": "unhealthy"}, 503
+        return jsonify({"status": "unhealthy"}), 503
 
 
 def check_celebration_flag(post_count):

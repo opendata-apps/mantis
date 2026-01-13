@@ -239,7 +239,7 @@ class TestAdminRoutes:
         response = client.post(f"/delete_sighting/{self.test_sighting.id}")
         assert response.status_code == 200
         data = json.loads(response.data)
-        assert data["message"] == "Report successfully deleted"
+        assert data["success"] is True
 
         # Verify soft delete in database
         session.refresh(self.test_sighting)
@@ -259,7 +259,7 @@ class TestAdminRoutes:
         response = client.post(f"/undelete_sighting/{self.test_sighting.id}")
         assert response.status_code == 200
         data = json.loads(response.data)
-        assert data["message"] == "Report successfully undeleted"
+        assert data["success"] is True
 
         # Verify undelete in database
         session.refresh(self.test_sighting)
