@@ -9,7 +9,7 @@ RUN bun install --frozen-lockfile
 COPY app/static/js/ ./app/static/js/
 COPY app/static/css/ ./app/static/css/
 COPY app/templates/ ./app/templates/
-COPY tailwind.config.js vite.config.js postcss.config.js ./
+COPY vite.config.js ./
 
 RUN bun run build
 
