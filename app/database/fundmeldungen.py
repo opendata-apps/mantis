@@ -1,14 +1,45 @@
-from sqlalchemy import Enum as SAEnum
+from sqlalchemy import Enum as SAEnum, Index
 
 from app import db
 from app.database.report_status import ReportStatus
 
 
 class TblMeldungen(db.Model):
+    """Sighting reports (Meldungen) model.
+
+    Indexes:
+        - ix_meldungen_status: Single column index on status (already exists from migration)
+        - ix_meldungen_status_dat_fund_von: Composite index for filtered date range queries.
+          Query patterns: WHERE status = ? AND dat_fund_von BETWEEN ? AND ?
+        - ix_meldungen_dat_fund_von: Single column index for date-only queries.
+          Query patterns: WHERE dat_fund_von >= ? (statistics, map filtering)
+        - ix_meldungen_dat_meld: Index for meldedatum statistics queries.
+        - ix_meldungen_fo_zuordnung: FK index for JOIN with fundorte table.
+
+    Note: PostgreSQL does NOT auto-create indexes on foreign keys.
+    """
+
     __tablename__ = "meldungen"
+
+    # Define composite and additional indexes via __table_args__
+    # Per SQLAlchemy docs: https://docs.sqlalchemy.org/en/20/orm/declarative_tables.html
+    __table_args__ = (
+        # Composite index: status + dat_fund_von for filtered date queries
+        # Covers: WHERE status = 'APPR' AND dat_fund_von BETWEEN x AND y
+        # Column order matters: status first (equality), then dat_fund_von (range)
+        Index("ix_meldungen_status_dat_fund_von", "status", "dat_fund_von"),
+        # Single column index for date-only queries (statistics without status filter)
+        Index("ix_meldungen_dat_fund_von", "dat_fund_von"),
+        # Index on dat_meld for statistics queries (7 queries use this)
+        Index("ix_meldungen_dat_meld", "dat_meld"),
+        # FK index for JOIN operations: meldungen.fo_zuordnung -> fundorte.id
+        Index("ix_meldungen_fo_zuordnung", "fo_zuordnung"),
+    )
 
     id = db.Column(db.Integer, primary_key=True)
     deleted = db.Column(db.Boolean, nullable=True)  # Deprecated: use status instead
+    # Note: status already has index=True which creates ix_meldungen_status
+    # We keep it for backward compatibility with existing migration
     status = db.Column(
         SAEnum(ReportStatus, native_enum=False, length=5),
         nullable=False,
@@ -27,6 +58,7 @@ class TblMeldungen(db.Model):
     art_o = db.Column(db.Integer, nullable=True)
     art_f = db.Column(db.Integer, nullable=True)
 
+    # Note: fo_zuordnung FK does NOT get auto-indexed by PostgreSQL
     fo_zuordnung = db.Column(db.Integer, db.ForeignKey("fundorte.id"), nullable=True)
     fo_quelle = db.Column(db.String(1), nullable=True)
     fo_beleg = db.Column(db.String(1), nullable=True)

@@ -1,8 +1,34 @@
+from sqlalchemy import Index
+
 from app import db
 
 
 class TblFundorte(db.Model):
+    """Location data (Fundorte) for sighting reports.
+
+    Indexes:
+        - ix_fundorte_amt_pattern: B-tree index with varchar_pattern_ops for prefix LIKE queries.
+          Query patterns: WHERE amt LIKE '12%' (AGS code filtering)
+          Per PostgreSQL docs: https://www.postgresql.org/docs/current/indexes-opclass.html
+          varchar_pattern_ops enables index usage for LIKE 'prefix%' patterns in non-C locales.
+
+    Note: Standard B-tree indexes cannot optimize LIKE queries in non-C locales without
+    using the appropriate operator class (varchar_pattern_ops or text_pattern_ops).
+    """
+
     __tablename__ = "fundorte"
+
+    # Define index with PostgreSQL-specific operator class for pattern matching
+    # Per SQLAlchemy docs: https://docs.sqlalchemy.org/en/20/dialects/postgresql.html#operator-classes
+    __table_args__ = (
+        # Index for PREFIX LIKE queries: amt LIKE '12%', amt LIKE '120%', etc.
+        # varchar_pattern_ops enables efficient pattern matching for LIKE 'prefix%'
+        Index(
+            "ix_fundorte_amt_pattern",
+            "amt",
+            postgresql_ops={"amt": "varchar_pattern_ops"},
+        ),
+    )
 
     id = db.Column(db.Integer, primary_key=True)
     plz = db.Column(db.Integer, nullable=False)
@@ -10,6 +36,7 @@ class TblFundorte(db.Model):
     strasse = db.Column(db.String(100), nullable=False)
     kreis = db.Column(db.String, nullable=False)
     land = db.Column(db.String(50), nullable=False)
+    # amt (AGS code) - used in 8+ queries with LIKE 'prefix%' pattern
     amt = db.Column(db.String(50), nullable=True)
     mtb = db.Column(db.String(50), nullable=True)
     beschreibung = db.Column(

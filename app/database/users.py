@@ -3,12 +3,22 @@ from sqlalchemy.orm import relationship
 
 
 class TblUsers(db.Model):
+    """User model for storing reporter and reviewer information.
+
+    Indexes:
+        - ix_users_user_id: B-tree index on user_id for fast lookups.
+          Used in 7+ queries across admin, report, provider, and statistics routes.
+    """
+
     __tablename__ = "users"
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(40), nullable=False)
+    # Index on user_id for direct equality lookups (WHERE user_id = ?)
+    # Query patterns: select(TblUsers).where(TblUsers.user_id == usrid)
+    user_id = db.Column(db.String(40), nullable=False, index=True)
     user_name = db.Column(db.String(45), nullable=False)
     user_rolle = db.Column(db.String(1), nullable=False)
+    # Note: user_kontakt is NOT indexed - only used with %text% ILIKE which cannot use B-tree
     user_kontakt = db.Column(db.String(45), nullable=True)
 
     # Relationship to the feedback source
