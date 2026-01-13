@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from io import BytesIO
-import pandas as pd
+import tempfile
+import xlsxwriter
 from app import db
 import app.database.alldata as ad
 import app.database.full_text_search as fts
@@ -652,7 +653,13 @@ def change_mantis_count(id):
 @admin.route("/admin/export/xlsx/<string:value>")
 @reviewer_required
 def export_data(value):
-    "Export the data from the database as an Excel file"
+    """Export data from the database as an Excel file.
+
+    Memory-optimized for large exports using:
+    - yield_per() for streaming DB results in batches
+    - xlsxwriter constant_memory mode for row-by-row writing
+    - Temp file on disk instead of BytesIO for large exports
+    """
     try:
         current_time = datetime.now().strftime("%d.%m.%Y_%H%M")
 
@@ -676,7 +683,6 @@ def export_data(value):
             stmt = get_filtered_query(filter_status="offen")
         elif value == "searched":
             filename = f"Suchergebnisse_{current_time}.xlsx"
-            # For searched results, use all the filter parameters from the request
             stmt = get_filtered_query(
                 filter_status=filter_status,
                 filter_type=filter_type,
@@ -688,100 +694,189 @@ def export_data(value):
         else:
             abort(404, description="Resource not found")
 
-        data = db.session.execute(stmt).all()
+        # First pass: Get count and collect approver IDs for pre-fetching
+        # This is a lightweight query that doesn't load full ORM objects
+        count_result = db.session.execute(
+            select(func.count()).select_from(stmt.subquery())
+        ).scalar()
+        row_count = count_result or 0
+
+        # Threshold for using memory-optimized mode (constant_memory)
+        # Below this, use standard mode with table formatting
+        LARGE_EXPORT_THRESHOLD = 5000
 
         # Pre-fetch all approvers in a single query to avoid N+1 problem
-        # This is critical for large exports (thousands of rows)
-        bearb_ids = [row[0].bearb_id for row in data if row[0].bearb_id]
+        # Use a subquery aliased properly to avoid cartesian product warning
+        subq = stmt.subquery()
+        bearb_id_stmt = select(subq.c.bearb_id).where(subq.c.bearb_id.isnot(None))
+        bearb_ids = [bid for (bid,) in db.session.execute(bearb_id_stmt).all()]
         approvers = {}
         if bearb_ids:
             approvers = {
                 u.user_id: u.user_name
                 for u in db.session.scalars(
-                    select(TblUsers).where(TblUsers.user_id.in_(bearb_ids))
+                    select(TblUsers).where(TblUsers.user_id.in_(set(bearb_ids)))
                 ).all()
             }
 
-        # Process the data to match the reviewer view format
-        processed_data = []
-        for row in data:
+        # Column definitions with fixed widths (avoids needing full data scan)
+        columns = [
+            ("ID", 8),
+            ("Status", 12),
+            ("Fund-Datum", 12),
+            ("Melde-Datum", 12),
+            ("Bearbeitungs-Datum", 18),
+            ("Anzahl Tiere", 12),
+            ("Männchen", 10),
+            ("Weibchen", 10),
+            ("Nymphen", 10),
+            ("Ootheken", 10),
+            ("Andere", 10),
+            ("Fundort-Quelle", 14),
+            ("Anmerkung Melder", 30),
+            ("Anmerkung Bearbeiter", 30),
+            ("PLZ", 8),
+            ("Ort", 20),
+            ("Straße", 25),
+            ("Kreis", 20),
+            ("Land", 15),
+            ("Amt", 25),
+            ("MTB", 8),
+            ("Längengrad", 12),
+            ("Breitengrad", 12),
+            ("Beschreibung", 30),
+            ("Melder Name", 20),
+            ("Melder Kontakt", 25),
+            ("Bearbeiter", 20),
+        ]
+
+        # Use temp file for large exports, BytesIO for small ones
+        use_large_mode = row_count > LARGE_EXPORT_THRESHOLD
+        if use_large_mode:
+            # Large export: use temp file + constant_memory mode
+            temp_file = tempfile.NamedTemporaryFile(
+                suffix=".xlsx", delete=False, dir=current_app.config.get("TEMP_DIR")
+            )
+            output_path = temp_file.name
+            temp_file.close()
+            workbook = xlsxwriter.Workbook(
+                output_path, {"constant_memory": True, "tmpdir": "/tmp"}
+            )
+        else:
+            # Small export: use BytesIO (faster for small files)
+            output = BytesIO()
+            workbook = xlsxwriter.Workbook(output, {"in_memory": True})
+
+        worksheet = workbook.add_worksheet("Daten")
+
+        # Create formats
+        header_format = workbook.add_format(
+            {"bold": True, "bg_color": "#4472C4", "font_color": "white", "border": 1}
+        )
+        date_format = workbook.add_format({"num_format": "dd.mm.yyyy"})
+
+        # Write headers and set column widths
+        for col_idx, (col_name, col_width) in enumerate(columns):
+            worksheet.write(0, col_idx, col_name, header_format)
+            worksheet.set_column(col_idx, col_idx, col_width)
+
+        # Stream data using yield_per for memory efficiency
+        # This fetches rows in batches instead of loading all into memory
+        streaming_stmt = stmt.execution_options(yield_per=1000)
+        result = db.session.execute(streaming_stmt)
+
+        row_idx = 1
+        for row in result:
             meldung, fundort, beschreibung, melduser, user = row
-            entry = {
-                "ID": meldung.id,
-                "Status": ReportStatus.get_display_name(meldung.status),
-                "Fund-Datum": meldung.dat_fund_von.strftime("%d.%m.%Y")
+
+            # Write row data directly (no intermediate dict/list)
+            worksheet.write(row_idx, 0, meldung.id)
+            worksheet.write(row_idx, 1, ReportStatus.get_display_name(meldung.status))
+            worksheet.write(
+                row_idx,
+                2,
+                meldung.dat_fund_von.strftime("%d.%m.%Y")
                 if meldung.dat_fund_von
                 else "",
-                "Melde-Datum": meldung.dat_meld.strftime("%d.%m.%Y")
-                if meldung.dat_meld
-                else "",
-                "Bearbeitungs-Datum": meldung.dat_bear.strftime("%d.%m.%Y")
-                if meldung.dat_bear
-                else "",
-                "Anzahl Tiere": meldung.tiere,
-                "Männchen": meldung.art_m,
-                "Weibchen": meldung.art_w,
-                "Nymphen": meldung.art_n,
-                "Ootheken": meldung.art_o,
-                "Andere": meldung.art_f,
-                "Fundort-Quelle": meldung.fo_quelle,
-                "Anmerkung Melder": meldung.anm_melder,
-                "Anmerkung Bearbeiter": meldung.anm_bearbeiter,
-                "PLZ": fundort.plz,
-                "Ort": fundort.ort,
-                "Straße": fundort.strasse,
-                "Kreis": fundort.kreis,
-                "Land": fundort.land,
-                "Amt": fundort.amt,
-                "MTB": fundort.mtb,
-                "Längengrad": fundort.longitude,
-                "Breitengrad": fundort.latitude,
-                "Beschreibung": beschreibung.beschreibung,
-                "Melder Name": user.user_name,
-                "Melder Kontakt": user.user_kontakt,
-            }
+            )
+            worksheet.write(
+                row_idx,
+                3,
+                meldung.dat_meld.strftime("%d.%m.%Y") if meldung.dat_meld else "",
+            )
+            worksheet.write(
+                row_idx,
+                4,
+                meldung.dat_bear.strftime("%d.%m.%Y") if meldung.dat_bear else "",
+            )
+            worksheet.write(row_idx, 5, meldung.tiere)
+            worksheet.write(row_idx, 6, meldung.art_m)
+            worksheet.write(row_idx, 7, meldung.art_w)
+            worksheet.write(row_idx, 8, meldung.art_n)
+            worksheet.write(row_idx, 9, meldung.art_o)
+            worksheet.write(row_idx, 10, meldung.art_f)
+            worksheet.write(row_idx, 11, meldung.fo_quelle)
+            worksheet.write(row_idx, 12, meldung.anm_melder)
+            worksheet.write(row_idx, 13, meldung.anm_bearbeiter)
+            worksheet.write(row_idx, 14, fundort.plz)
+            worksheet.write(row_idx, 15, fundort.ort)
+            worksheet.write(row_idx, 16, fundort.strasse)
+            worksheet.write(row_idx, 17, fundort.kreis)
+            worksheet.write(row_idx, 18, fundort.land)
+            worksheet.write(row_idx, 19, fundort.amt)
+            worksheet.write(row_idx, 20, fundort.mtb)
+            worksheet.write(row_idx, 21, fundort.longitude)
+            worksheet.write(row_idx, 22, fundort.latitude)
+            worksheet.write(row_idx, 23, beschreibung.beschreibung)
+            worksheet.write(row_idx, 24, user.user_name)
+            worksheet.write(row_idx, 25, user.user_kontakt)
+            # Approver (pre-fetched to avoid N+1)
+            worksheet.write(
+                row_idx,
+                26,
+                approvers.get(meldung.bearb_id, "") if meldung.bearb_id else "",
+            )
 
-            # Add approver info if available (using pre-fetched dict)
-            if meldung.bearb_id:
-                entry["Bearbeiter"] = approvers.get(meldung.bearb_id, "Unknown")
+            row_idx += 1
 
-            processed_data.append(entry)
-
-        # Create DataFrame from processed data
-        df = pd.DataFrame(processed_data)
-
-        # Write the DataFrame to an Excel file
-        output = BytesIO()
-        with pd.ExcelWriter(output, engine="xlsxwriter") as writer:  # type: ignore
-            df.to_excel(writer, sheet_name="Daten", index=False)
-
-            # Get the xlsxwriter worksheet object
-            worksheet = writer.sheets["Daten"]
-
-            # Add a table to the worksheet
-            (max_row, max_col) = df.shape
-            column_settings = [{"header": column} for column in df.columns]
+        # Add table formatting only for small exports (constant_memory can't use tables)
+        if not use_large_mode and row_idx > 1:
+            column_settings = [{"header": col[0]} for col in columns]
             worksheet.add_table(
                 0,
                 0,
-                max_row,
-                max_col - 1,
+                row_idx - 1,
+                len(columns) - 1,
                 {"columns": column_settings, "style": "Table Style Medium 9"},
             )
 
-            # Auto-adjust columns' width
-            for i, col in enumerate(df.columns):
-                column_len = max(df[col].astype(str).map(len).max(), len(col))
-                worksheet.set_column(i, i, column_len + 2)
+        # Freeze header row
+        worksheet.freeze_panes(1, 0)
 
-        # Reset the file pointer to the beginning
-        output.seek(0)
+        workbook.close()
 
         # Send the file
         mime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        return send_file(
-            output, mimetype=mime, as_attachment=True, download_name=filename
-        )
+        if use_large_mode:
+            # Send temp file and clean up after
+            response = send_file(
+                output_path, mimetype=mime, as_attachment=True, download_name=filename
+            )
+
+            # Schedule cleanup of temp file after response is sent
+            @response.call_on_close
+            def cleanup():
+                try:
+                    Path(output_path).unlink(missing_ok=True)
+                except Exception:
+                    pass
+
+            return response
+        else:
+            output.seek(0)
+            return send_file(
+                output, mimetype=mime, as_attachment=True, download_name=filename
+            )
     except Exception:
         current_app.logger.exception("Error in export_data")
         return jsonify({"error": "An error occurred during export"}), 500
