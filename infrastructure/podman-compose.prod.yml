@@ -28,7 +28,7 @@ services:
       - FLASK_ENV=production
       - FLASK_DEBUG=0
     volumes:
-      - ../datastore:/app/datastore:z
+      - ../app/datastore:/mantis/app/datastore:z
     networks:
       - mantis_backend
     ports:

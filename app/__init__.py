@@ -85,12 +85,12 @@ def seed_command(demo):
 
 def _copy_demo_images():
     """Copy demo images for sample reports."""
-    from app.config import Config
+    from flask import current_app
 
     # Source: demodata folder (tracked in git, not publicly served)
     src = os.path.join(os.path.dirname(__file__), "demodata", "images")
-    # Target: user uploads folder for demo reports
-    trg = os.path.join(Config.UPLOAD_FOLDER, "2025", "2025-01-19")
+    # Target: user uploads folder for demo reports (use app config, not class directly)
+    trg = os.path.join(current_app.config["UPLOAD_FOLDER"], "2025", "2025-01-19")
     os.makedirs(trg, exist_ok=True)
     mappings = [
         ("mantis1.webp", "Zossen-20250119100000-9999.webp"),

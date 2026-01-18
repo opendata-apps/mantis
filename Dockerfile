@@ -20,7 +20,7 @@ FROM docker.io/python:3.13-slim
 ENV PYTHONUNBUFFERED=1 \
     UV_PROJECT_ENVIRONMENT=/usr/local
 
-WORKDIR /app
+WORKDIR /mantis
 
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv

@@ -12,6 +12,28 @@ _config_dir = os.path.dirname(os.path.abspath(__file__))  # app/
 _project_root = os.path.dirname(_config_dir)  # project root
 
 
+def _resolve_upload_folder():
+    """Resolve UPLOAD_FOLDER to an absolute path (Flask best practice).
+
+    Priority:
+    1. UPLOAD_FOLDER env var (must be absolute path)
+    2. Default: app/datastore (for local development)
+
+    Container: UPLOAD_FOLDER=/mantis/app/datastore (mirrors host structure)
+
+    Raises ValueError if env var contains a relative path.
+    """
+    env_path = os.getenv("UPLOAD_FOLDER")
+    if env_path:
+        if not os.path.isabs(env_path):
+            raise ValueError(
+                f"UPLOAD_FOLDER must be an absolute path, got: '{env_path}'. "
+                f"For containers, use UPLOAD_FOLDER=/data (the mount point)."
+            )
+        return env_path
+    return os.path.join(_config_dir, "datastore")
+
+
 class Config:
     # Database Configuration
     SQLALCHEMY_DATABASE_URI = os.getenv(
@@ -64,11 +86,8 @@ class Config:
     )
     REVIEWERMAIL = os.getenv("REVIEWERMAIL", "False").lower() in ("true", "1", "yes")
 
-    # Upload Configuration - use absolute path for reliability
-    # Env var can override with absolute path if needed (e.g., /data/uploads in container)
-    UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER") or os.path.join(
-        _project_root, "datastore"
-    )
+    # Upload Configuration - always absolute path (Flask best practice)
+    UPLOAD_FOLDER = _resolve_upload_folder()
     ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
 
     # Session Configuration

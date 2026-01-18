@@ -7,18 +7,17 @@ services:
   web:
     # Mount source code for hot-reload (Flask debug mode)
     volumes:
-      - ..:/app:z
-      - ../datastore:/app/datastore:z
+      - ..:/mantis:z
     environment:
       - FLASK_ENV=development
       - FLASK_DEBUG=1
 
   vite:
     image: docker.io/oven/bun:1
-    working_dir: /app
+    working_dir: /mantis
     command: ["sh", "-c", "bun install && bunx vite build --watch"]
     volumes:
-      - ..:/app:z
+      - ..:/mantis:z
     networks:
       - mantis_backend
     depends_on:
