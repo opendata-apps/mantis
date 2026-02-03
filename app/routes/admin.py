@@ -383,7 +383,7 @@ def report_img(filename):
     )
 
 
-@admin.route("/toggle_approve_sighting/<id>", methods=["POST"])
+@admin.route("/toggle_approve_sighting/<int:id>", methods=["POST"])
 @reviewer_required
 def toggle_approve_sighting(id):
     "Find ID and mark as approved with a date in column dat_bear"
@@ -454,7 +454,7 @@ def toggle_approve_sighting(id):
         return jsonify({"success": True})
 
 
-@admin.route("/get_sighting/<id>", methods=["GET", "POST"])
+@admin.route("/get_sighting/<int:id>", methods=["GET", "POST"])
 @reviewer_required
 def get_sighting(id):
     "Find the sighting by id and return it as a JSON object"
@@ -503,7 +503,7 @@ def get_sighting(id):
         return jsonify({"error": "Report not found"}), 404
 
 
-@admin.route("/delete_sighting/<id>", methods=["POST"])
+@admin.route("/delete_sighting/<int:id>", methods=["POST"])
 @reviewer_required
 def delete_sighting(id):
     "Soft-delete sighting based on id"
@@ -520,7 +520,7 @@ def delete_sighting(id):
     return jsonify({"success": True})
 
 
-@admin.route("/undelete_sighting/<id>", methods=["POST"])
+@admin.route("/undelete_sighting/<int:id>", methods=["POST"])
 @reviewer_required
 def undelete_sighting(id):
     "Undelete sighting based on id"
@@ -537,7 +537,7 @@ def undelete_sighting(id):
     return jsonify({"success": True})
 
 
-@admin.route("/set_status/<id>", methods=["POST"])
+@admin.route("/set_status/<int:id>", methods=["POST"])
 @reviewer_required
 def set_status(id):
     """Set report status to a specific value."""

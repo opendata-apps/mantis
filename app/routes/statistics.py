@@ -10,7 +10,7 @@ from app.database.models import TblAemterCoordinaten
 from app.tools.check_reviewer import login_required
 from app.tools.gen_messtisch_svg import create_measure_sheet
 from app.database.models import TblFundorte, TblMeldungen, ReportStatus
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from collections import defaultdict
 
 stats = Blueprint("statistics", __name__)
@@ -160,8 +160,8 @@ def stats_mtb(request):
         )
         .join(TblMeldungen)
         .where(
-            func.age(TblMeldungen.dat_fund_von, session["date_from"]) >= "0 days",
-            func.age(TblMeldungen.dat_fund_von, session["date_to"]) < "1 day",
+            TblMeldungen.dat_fund_von >= date.fromisoformat(session["date_from"]),
+            TblMeldungen.dat_fund_von <= date.fromisoformat(session["date_to"]),
         )
         .where(TblFundorte.amt.like(f"{session['ags']}%"))
         .group_by(TblFundorte.mtb)
@@ -245,8 +245,8 @@ def stats_geschlecht(request=None):
         )
         .join(TblFundorte, TblFundorte.id == TblMeldungen.fo_zuordnung)
         .where(
-            TblMeldungen.dat_fund_von >= session["date_from"],
-            TblMeldungen.dat_fund_von <= session["date_to"],
+            TblMeldungen.dat_fund_von >= date.fromisoformat(session["date_from"]),
+            TblMeldungen.dat_fund_von <= date.fromisoformat(session["date_to"]),
             TblFundorte.amt.like(f"{session['ags']}%"),
             TblMeldungen.status != ReportStatus.DEL,
         )
@@ -288,8 +288,8 @@ def stats_amt(request, marker):
         )
         .join(TblMeldungen)
         .where(
-            func.age(TblMeldungen.dat_meld, session["date_from"]) >= "0 days",
-            func.age(TblMeldungen.dat_meld, session["date_to"]) < "1 day",
+            TblMeldungen.dat_meld >= date.fromisoformat(session["date_from"]),
+            TblMeldungen.dat_meld <= date.fromisoformat(session["date_to"]),
         )
         .where(TblFundorte.amt.like(f"{session['ags']}%"))
         .group_by(TblFundorte.amt)
@@ -340,8 +340,8 @@ def stats_laender(request, marker):
         )
         .join(TblMeldungen)
         .where(
-            TblMeldungen.dat_meld >= session["date_from"],
-            TblMeldungen.dat_meld <= session["date_to"],
+            TblMeldungen.dat_meld >= date.fromisoformat(session["date_from"]),
+            TblMeldungen.dat_meld <= date.fromisoformat(session["date_to"]),
             TblMeldungen.status != ReportStatus.DEL,
         )
         .group_by(func.substring(TblFundorte.amt, 1, 2))
@@ -455,8 +455,8 @@ def stats_bundesland(request, marker):
         )
         .join(TblMeldungen)
         .where(
-            TblMeldungen.dat_meld >= session["date_from"],
-            TblMeldungen.dat_meld <= session["date_to"],
+            TblMeldungen.dat_meld >= date.fromisoformat(session["date_from"]),
+            TblMeldungen.dat_meld <= date.fromisoformat(session["date_to"]),
             func.substring(TblFundorte.amt, 1, 2) == ags,
             TblMeldungen.status != ReportStatus.DEL,
         )
@@ -539,8 +539,8 @@ def stats_gesamt(request, marker):
         )
         .join(TblMeldungen)
         .where(
-            TblMeldungen.dat_meld >= session["date_from"],
-            TblMeldungen.dat_meld <= session["date_to"],
+            TblMeldungen.dat_meld >= date.fromisoformat(session["date_from"]),
+            TblMeldungen.dat_meld <= date.fromisoformat(session["date_to"]),
             TblMeldungen.status != ReportStatus.DEL,
         )
         .group_by(TblFundorte.amt)

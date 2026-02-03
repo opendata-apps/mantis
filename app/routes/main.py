@@ -13,6 +13,7 @@ from flask import (
     session,
 )
 
+from datetime import date
 from sqlalchemy import select, func, text
 from app import db
 from app.database.models import TblMeldungen, ReportStatus
@@ -32,7 +33,7 @@ def index():
     count_stmt = (
         select(func.count())
         .select_from(TblMeldungen)
-        .where(TblMeldungen.dat_fund_von >= f"{current_app.config['MIN_MAP_YEAR']}-01-01")
+        .where(TblMeldungen.dat_fund_von >= date(current_app.config['MIN_MAP_YEAR'], 1, 1))
         .where(TblMeldungen.status == ReportStatus.APPR)
     )
     post_count = db.session.execute(count_stmt).scalar()

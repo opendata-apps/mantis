@@ -44,7 +44,7 @@ class Config:
     DATABASE_DB = os.getenv("POSTGRES_DB", "mantis_tracker")
 
     SQLALCHEMY_DATABASE_URI = (
-        f"postgresql://{DATABASE_USER}:{DATABASE_PASSWORD}"
+        f"postgresql+psycopg://{DATABASE_USER}:{DATABASE_PASSWORD}"
         f"@{DATABASE_HOST}:{DATABASE_PORT}/{DATABASE_DB}"
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False

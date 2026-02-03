@@ -8,6 +8,7 @@ from flask import (
     render_template,
     request,
 )
+from datetime import date
 from sqlalchemy import select, func
 
 from app.tools.coordinate_validation import validate_and_normalize_coordinate
@@ -31,7 +32,7 @@ def show_map():
     # Get distinct years from dat_fund_von beginning with MIN_MAP_YEAR
     years_stmt = (
         select(func.extract("year", TblMeldungen.dat_fund_von).label("year"))
-        .where(TblMeldungen.dat_fund_von >= f"{current_app.config['MIN_MAP_YEAR']}-01-01")
+        .where(TblMeldungen.dat_fund_von >= date(current_app.config['MIN_MAP_YEAR'], 1, 1))
         .distinct()
         .order_by("year")
     )
@@ -65,7 +66,7 @@ def show_map():
         count_stmt = (
             select(func.count())
             .select_from(TblMeldungen)
-            .where(TblMeldungen.dat_fund_von >= f"{current_app.config['MIN_MAP_YEAR']}-01-01")
+            .where(TblMeldungen.dat_fund_von >= date(current_app.config['MIN_MAP_YEAR'], 1, 1))
             .where(TblMeldungen.status == ReportStatus.APPR)
         )
         post_count = db.session.execute(count_stmt).scalar()

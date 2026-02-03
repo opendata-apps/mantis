@@ -217,7 +217,7 @@ def upgrade():
     """
     import sqlalchemy as sa
 
-    connstring = "postgresql://mantis_user:mantis@localhost/mantis_tester"
+    connstring = "postgresql+psycopg://mantis_user:mantis@localhost/mantis_tester"
     alembic_cfg = Config("migrations/alembic.ini")
     alembic_cfg.set_main_option("sqlalchemy.url", connstring)
     alembic_cfg.set_main_option("script_location", "migrations")
