@@ -27,6 +27,8 @@ services:
     environment:
       - FLASK_ENV=production
       - FLASK_DEBUG=0
+      - DATABASE_HOST=db
+      - UPLOAD_FOLDER=/mantis/app/datastore
     volumes:
       - ../app/datastore:/mantis/app/datastore:z
     networks:

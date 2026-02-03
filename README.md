@@ -26,197 +26,118 @@ Mantis Tracker allows users to report Mantis Religiosa sightings and view them o
 ![Tailwind CSS](https://img.shields.io/badge/-Tailwind%20CSS-000000?style=flat&logo=tailwind-css)
 ![JavaScript](https://img.shields.io/badge/-JavaScript-000000?style=flat&logo=javascript)
 
-# 💻 Development Setup
+## 🚀 Quick Start (Containers)
 
-### Prerequisites
-
-- Python 3.13+
-- [uv](https://github.com/astral-sh/uv) (Python package manager)
-- [Bun](https://bun.sh/) (for frontend dependencies)
-- PostgreSQL 16+
-
-### Step 1: 📁 Clone the repository
+Prerequisites: [Podman](https://podman.io/) (or Docker), [just](https://github.com/casey/just)
 
 ```bash
 git clone https://gitlab.com/opendata-apps/mantis.git
 cd mantis
-```
-
-### Step 2: ⚙️ Configure environment variables
-
-```bash
-# Copy the example .env file
 cp .env.example .env
-
-# Generate a secure SECRET_KEY
-python -c "import secrets; print(secrets.token_hex(32))"
-
-# Edit .env and add your SECRET_KEY
-nano .env  # or your preferred editor
-```
-
-Key settings in `.env`:
-- `SECRET_KEY` - Required for session security
-- `SQLALCHEMY_DATABASE_URI` - Database connection (use `@localhost` for local, `@db` for containers)
-- `FLASK_ENV` - Set to `development` or `production`
-
-### Step 3: 📦 Install dependencies
-
-```bash
-# Python dependencies (using uv)
-uv sync --extra dev
-
-# Frontend dependencies
-bun install
-
-# Build frontend assets (JS bundles + CSS)
-bun run build
-```
-
-### Step 4: 🗄️ Set up PostgreSQL database
-
-```bash
-# Connect as postgres superuser
-PGPASSWORD=postgres psql -U postgres -h localhost -d postgres
-```
-
-Then run the following SQL commands:
-
-```sql
-CREATE USER mantis_user WITH PASSWORD 'mantis';
-CREATE DATABASE mantis_tracker OWNER mantis_user;
-CREATE DATABASE mantis_tester OWNER mantis_user;
-\q
-```
-
-### Step 5: 🏗️ Initialize database
-
-```bash
-# Run migrations
-uv run flask db upgrade
-
-# Create materialized views
-uv run flask create_all_data_view
-
-# Populate initial data (beschreibung, feedback_types, VG5000 areas)
-uv run flask seed
-
-# Optional: Add demo data for development
-uv run flask seed --demo
-```
-
-### Step 6: 🚀 Run the application
-
-```bash
-# Development server (includes Vite build watcher for CSS/JS)
-uv run python run.py
+# Set SECRET_KEY in .env (generate with: python -c "import secrets; print(secrets.token_hex(32))")
+just up --build
 ```
 
 The app will be available at [http://localhost:5000](http://localhost:5000)
 
-**Reviewer access:** [http://localhost:5000/reviewer/9999](http://localhost:5000/reviewer/9999)
+On startup, the container automatically runs migrations, creates materialized views, and seeds the database. In dev mode (`FLASK_ENV=development`), demo data is included.
 
-## 🧪 Testing
+### Available Commands
 
-```bash
-# Run all tests
-uv run pytest
-
-# Run with coverage
-uv run pytest --cov=app --cov-report=html
-
-# Run specific test file
-uv run pytest tests/functional/test_csrf_protection.py -v
 ```
-
-## 🐳 Container Deployment
-
-### Understanding the Setup
-
-This project uses a **two-file overlay pattern**:
-- `podman-compose.prod.yml` - Base production config (Gunicorn + PostgreSQL)
-- `podman-compose.dev.yml` - Development overrides (hot-reload + Vite watcher)
-
-| Aspect | Production | Development |
-|--------|------------|-------------|
-| Server | Gunicorn (2 workers) | Flask dev server |
-| Frontend | Pre-built in image | Live Vite watcher |
-| Code changes | Requires rebuild | Hot-reloaded |
-| Services | db + web | db + web + vite |
-
-### Before Running Containers
-
-Update `.env` to use container networking:
-```bash
-# Change @localhost to @db (the container service name)
-SQLALCHEMY_DATABASE_URI=postgresql://mantis_user:mantis@db:5432/mantis_tracker
+just up *ARGS        Start dev environment (hot-reload + Vite)
+just down *ARGS      Stop dev environment
+just build *ARGS     Build dev containers
+just logs *ARGS      Show container logs
+just shell           Open bash shell in web container
+just db              Open psql shell in db container
+just migrate *ARGS   Run database migrations
+just seed *ARGS      Seed base data
+just prod *ARGS      Start production (Gunicorn, detached)
+just prod-down *ARGS Stop production
 ```
 
 ### Production
 
-```bash
-cd infrastructure
+Set these in `.env` before deploying:
 
-# Build and start
-podman-compose -f podman-compose.prod.yml up -d --build
-
-# View logs
-podman-compose -f podman-compose.prod.yml logs -f
-
-# Stop
-podman-compose -f podman-compose.prod.yml down
-```
-
-### Development (with hot-reload)
-
-```bash
-cd infrastructure
-
-# Start with dev overlay
-podman-compose -f podman-compose.prod.yml -f podman-compose.dev.yml up --build
-
-# This gives you:
-# - Flask debug mode with auto-reload on Python changes
-# - Vite watcher rebuilding CSS/JS on file changes
-# - Source code mounted from host
-```
-
-### What Happens on Startup
-
-1. PostgreSQL starts and waits for health check
-2. Flask runs migrations automatically (`flask db upgrade`)
-3. Materialized views are created (`flask create_all_data_view`)
-4. Database is seeded (demo data in dev mode)
-5. Gunicorn (prod) or Flask dev server (dev) starts
-
-## 🏭 Production Deployment (Manual)
-
-### 1. Configure production environment
-
-Edit `.env`:
 ```bash
 FLASK_ENV=production
 FLASK_DEBUG=0
-SECRET_KEY=your-production-secret-key
-SQLALCHEMY_DATABASE_URI=postgresql://mantis_user:secure_password@localhost/mantis_tracker
+SECRET_KEY=<generated-key>          # required, app refuses to start without it
+POSTGRES_PASSWORD=<secure-password>
 PREFERRED_URL_SCHEME=https
 SESSION_COOKIE_SECURE=True
 ```
 
-### 2. Build production assets
+Then: `just prod --build`
+
+<details>
+<summary><strong>Without just (manual setup & compose commands)</strong></summary>
 
 ```bash
+# First-time setup
+cp .env.example .env
+python -c "import secrets; print(secrets.token_hex(32))"
+# Paste the output as SECRET_KEY= in .env
+
+# Dev
+podman-compose -f infrastructure/podman-compose.prod.yml -f infrastructure/podman-compose.dev.yml up --build
+podman-compose -f infrastructure/podman-compose.prod.yml -f infrastructure/podman-compose.dev.yml down
+
+# Production
+podman-compose -f infrastructure/podman-compose.prod.yml up --build -d
+podman-compose -f infrastructure/podman-compose.prod.yml down
+```
+
+</details>
+
+<details>
+<summary><h2>💻 Local Development (without containers)</h2></summary>
+
+Prerequisites: Python 3.13+, [uv](https://github.com/astral-sh/uv), [Bun](https://bun.sh/), PostgreSQL 16+
+
+### Setup
+
+```bash
+cp .env.example .env
+# Set SECRET_KEY in .env
+
+uv sync --extra dev
+bun install
 bun run build
 ```
 
-### 3. Run with production server
+### Database
+
+```sql
+-- As postgres superuser:
+CREATE USER mantis_user WITH PASSWORD 'mantis';
+CREATE DATABASE mantis_tracker OWNER mantis_user;
+CREATE DATABASE mantis_tester OWNER mantis_user;
+```
 
 ```bash
-# Using Gunicorn (Linux/Mac)
-gunicorn run:app --workers 4 --bind 0.0.0.0:8000
+uv run flask db upgrade
+uv run flask create_all_data_view
+uv run flask seed          # base data
+uv run flask seed --demo   # optional: demo data
+```
 
-# Using Waitress (Windows)
-waitress-serve --listen=*:8000 run:app
+### Run
+
+```bash
+uv run python run.py
+```
+
+</details>
+
+## 🧪 Testing
+
+```bash
+uv run pytest
+uv run pytest --cov=app --cov-report=html
+uv run pytest tests/functional/test_csrf_protection.py -v
 ```
 
 ## 📁 Project Structure
@@ -227,14 +148,10 @@ mantis/
 │   ├── routes/             # Route blueprints
 │   ├── database/           # SQLAlchemy models
 │   ├── templates/          # Jinja2 templates
-│   ├── static/             # Static assets
-│   │   ├── js/             # JavaScript source files
-│   │   ├── css/            # CSS source files
-│   │   └── build/          # Built assets (generated)
+│   ├── static/             # Static assets (js/, css/, build/)
 │   └── tools/              # Utility modules
-├── datastore/              # Uploaded images (gitignored)
-├── infrastructure/         # Container configs
-├── migrations/             # Database migrations
+├── infrastructure/         # Container configs (compose files)
+├── migrations/             # Alembic database migrations
 └── tests/                  # Test suite
 ```
 
@@ -243,20 +160,3 @@ mantis/
 - **Environment Variables:** See `.env.example` for all available settings
 - **Database Schema:** Managed via Flask-Migrate in `migrations/`
 - **API Endpoints:** See route blueprints in `app/routes/`
-
-## 🔄 Database Management
-
-```bash
-# Create new migration
-uv run flask db migrate -m "description"
-
-# Apply migrations
-uv run flask db upgrade
-
-# Check current version
-uv run flask db current
-
-# Reset database (development only)
-dropdb mantis_tracker && createdb mantis_tracker -O mantis_user
-uv run flask db upgrade && uv run flask create_all_data_view && uv run flask seed
-```

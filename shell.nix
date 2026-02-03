@@ -3,7 +3,7 @@ mkShell {
   buildInputs = [
     bun
     pnpm
-    vite
+    # vite is installed via bun/npm, not nix (nixpkgs "vite" is a different scientific tool)
   ];
   shellHook = ''
       mkdir -p .nix-node

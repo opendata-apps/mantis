@@ -35,10 +35,17 @@ def _resolve_upload_folder():
 
 
 class Config:
-    # Database Configuration
-    SQLALCHEMY_DATABASE_URI = os.getenv(
-        "SQLALCHEMY_DATABASE_URI",
-        "postgresql://mantis_user:mantis@localhost/mantis_tracker",
+    # Database Configuration (constructed from components, like Superset/Paperless-ngx)
+    # Container deployments override DATABASE_HOST=db via docker-compose environment.
+    DATABASE_HOST = os.getenv("DATABASE_HOST", "localhost")
+    DATABASE_PORT = os.getenv("DATABASE_PORT", "5432")
+    DATABASE_USER = os.getenv("POSTGRES_USER", "mantis_user")
+    DATABASE_PASSWORD = os.getenv("POSTGRES_PASSWORD", "mantis")
+    DATABASE_DB = os.getenv("POSTGRES_DB", "mantis_tracker")
+
+    SQLALCHEMY_DATABASE_URI = (
+        f"postgresql://{DATABASE_USER}:{DATABASE_PASSWORD}"
+        f"@{DATABASE_HOST}:{DATABASE_PORT}/{DATABASE_DB}"
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
@@ -59,18 +66,14 @@ class Config:
     # Security Configuration
     SECRET_KEY = os.getenv("SECRET_KEY")
     if not SECRET_KEY:
-        # Generate a secure secret key in development
+        if os.getenv("FLASK_ENV") == "production":
+            raise ValueError(
+                "SECRET_KEY must be set in production. "
+                "Generate one with: python -c \"import secrets; print(secrets.token_hex(32))\""
+            )
         import secrets
 
         SECRET_KEY = secrets.token_hex(32)
-        # Warn in development that secret key is not set
-        import warnings
-
-        warnings.warn(
-            "SECRET_KEY not set in environment variables. "
-            "Using generated key. Set SECRET_KEY for production!",
-            UserWarning,
-        )
     WTF_CSRF_ENABLED = True
 
     # Email Configuration
