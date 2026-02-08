@@ -15,10 +15,13 @@ services:
   vite:
     image: docker.io/oven/bun:1
     working_dir: /mantis
-    command: ["sh", "-c", "bun install && bunx vite build --watch"]
+    command: ["sh", "-c", "bun install --network-concurrency 4 && bunx vite build --watch"]
     volumes:
       - ..:/mantis:z
     networks:
       - mantis_backend
     depends_on:
       - web
+  db:
+    ports:
+      - "5431:5432"

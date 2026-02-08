@@ -4,7 +4,9 @@ FROM docker.io/oven/bun:1 AS frontend-builder
 WORKDIR /build
 
 COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile
+# Limit network concurrency to avoid Podman gvproxy bottleneck on macOS.
+# Not needed with OrbStack/Docker Desktop, but harmless there (2s vs 135s on Podman).
+RUN bun install --frozen-lockfile --network-concurrency 4
 
 COPY app/static/js/ ./app/static/js/
 COPY app/static/css/ ./app/static/css/
