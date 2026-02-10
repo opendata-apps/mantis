@@ -35,6 +35,7 @@ const ReportForm = {
     map: null,
     marker: null,
     webpData: null,
+    MIN_ZOOM: 17,
 
     init() {
         const form = document.getElementById('reportForm');
@@ -211,7 +212,7 @@ const ReportForm = {
         return new Promise((resolve) => {
             const timeout = setTimeout(() => resolve({}), 5000);
             try {
-                EXIF.getData(file, function() {
+                EXIF.getData(file, function () {
                     clearTimeout(timeout);
                     const dt = EXIF.getTag(this, 'DateTimeOriginal') || EXIF.getTag(this, 'DateTime');
                     const lat = EXIF.getTag(this, 'GPSLatitude');
@@ -222,7 +223,7 @@ const ReportForm = {
                     let gps = null;
                     if (lat && lng && latRef && lngRef) {
                         const toDec = (dms, ref) => {
-                            let dd = dms[0] + dms[1]/60 + dms[2]/3600;
+                            let dd = dms[0] + dms[1] / 60 + dms[2] / 3600;
                             return (ref === 'S' || ref === 'W') ? -dd : dd;
                         };
                         gps = { lat: toDec(lat, latRef), lng: toDec(lng, lngRef) };
@@ -351,7 +352,11 @@ const ReportForm = {
 
         if (L.Control.Geocoder) {
             L.Control.geocoder({ defaultMarkGeocode: false, placeholder: 'Adresse suchen...' })
-                .on('markgeocode', (e) => this.map.setView(e.geocode.center, 14))
+                .on('markgeocode', (e) => {
+                    // Auto-place marker when user searches for an address
+                    this.map.setView(e.geocode.center, 15);
+                    this.setMarker(e.geocode.center.lat, e.geocode.center.lng);
+                })
                 .addTo(this.map);
         }
 
@@ -360,10 +365,20 @@ const ReportForm = {
                 watch: false, setView: false, drawCircle: false, drawMarker: false, showPopup: false,
                 strings: { title: 'Standort' }
             }).addTo(this.map);
-            this.map.on('locationfound', (e) => this.map.setView(e.latlng, 14));
+            this.map.on('locationfound', (e) => {
+                this.map.setView(e.latlng, 15);
+                this.setMarker(e.latlng.lat, e.latlng.lng);
+            });
         }
 
-        this.map.on('click', (e) => this.setMarker(e.latlng.lat, e.latlng.lng));
+        this.map.on('click', (e) => {
+            if (this.map.getZoom() < this.MIN_ZOOM) {
+                this.showError('coordinates', 'Bitte näher heranzoomen, um den Fundort genau zu markieren.');
+                document.getElementById('map')?.classList.add('invalid');
+                return;
+            }
+            this.setMarker(e.latlng.lat, e.latlng.lng);
+        });
 
         const manLat = document.getElementById('manual-latitude');
         const manLng = document.getElementById('manual-longitude');
@@ -402,6 +417,7 @@ const ReportForm = {
         if (manLng) manLng.value = str(lng);
 
         this.clearError('coordinates');
+        document.getElementById('map')?.classList.remove('invalid');
         if (geocode) this.reverseGeocode(lat, lng);
     },
 
@@ -423,7 +439,7 @@ const ReportForm = {
             if (fields.state) fields.state.value = a.state || '';
             if (fields.district) fields.district.value = a.county || a.city || '';
             if (fields.street) fields.street.value = a.house_number ? `${a.road || ''} ${a.house_number}`.trim() : (a.road || '');
-        } catch {} finally {
+        } catch { } finally {
             Object.values(fields).forEach(f => f && (f.disabled = false));
         }
     },

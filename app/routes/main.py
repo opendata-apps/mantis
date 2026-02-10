@@ -33,8 +33,8 @@ def index():
     count_stmt = (
         select(func.count())
         .select_from(TblMeldungen)
-        .where(TblMeldungen.dat_fund_von >= date(current_app.config['MIN_MAP_YEAR'], 1, 1))
-        .where(TblMeldungen.status == ReportStatus.APPR)
+        .where(TblMeldungen.dat_fund_von >= date(current_app.config["MIN_MAP_YEAR"], 1, 1))
+        .where(TblMeldungen.statuses.contains([ReportStatus.APPR.value]))
     )
     post_count = db.session.execute(count_stmt).scalar()
 

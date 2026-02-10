@@ -391,18 +391,22 @@ def toggle_approve_sighting(id):
     # Find the report by id
     sighting = db.session.get(TblMeldungen, id)
     if sighting:
-        # Toggle between APPR and OPEN status
-        if sighting.status != ReportStatus.APPR:
-            sighting.status = ReportStatus.APPR
+        # Toggle between APPR and OPEN as workflow state, preserving flags
+        if not sighting.is_approved:
+            # Get current flags (INFO, UNKL) and add APPR
+            flags = [s for s in (sighting.statuses or []) if s in ("INFO", "UNKL")]
+            sighting.statuses = [ReportStatus.APPR.value] + flags
             sighting.dat_bear = datetime.now()
         else:
-            # Revert to OPEN status
-            sighting.status = ReportStatus.OPEN
+            # Revert to OPEN status, preserving flags
+            flags = [s for s in (sighting.statuses or []) if s in ("INFO", "UNKL")]
+            sighting.statuses = [ReportStatus.OPEN.value] + flags
             sighting.dat_bear = None
+        sighting.deleted = sighting.is_deleted
         sighting.bearb_id = session["user_id"]
         db.session.commit()
         current_app.logger.debug(
-            f"Sighting {id} status toggled to {sighting.status}. dat_bear set to {sighting.dat_bear}"
+            f"Sighting {id} statuses toggled to {sighting.statuses}. dat_bear set to {sighting.dat_bear}"
         )
     else:
         current_app.logger.error(f"Sighting {id} not found for approval toggle.")
@@ -512,8 +516,8 @@ def delete_sighting(id):
     if not sighting:
         return jsonify({"error": "Report not found"}), 404
 
-    # Set status to DEL and keep deleted=True for backward compatibility
-    sighting.status = ReportStatus.DEL
+    # Set statuses to [DEL] only (DEL is exclusive)
+    sighting.statuses = [ReportStatus.DEL.value]
     sighting.deleted = True
     sighting.bearb_id = session["user_id"]
     db.session.commit()
@@ -529,8 +533,8 @@ def undelete_sighting(id):
     if not sighting:
         return jsonify({"error": "Report not found"}), 404
 
-    # Set status to OPEN and clear deleted flag
-    sighting.status = ReportStatus.OPEN
+    # Set statuses to [OPEN] and clear deleted flag
+    sighting.statuses = [ReportStatus.OPEN.value]
     sighting.deleted = False
     sighting.bearb_id = session["user_id"]
     db.session.commit()
@@ -540,48 +544,58 @@ def undelete_sighting(id):
 @admin.route("/set_status/<int:id>", methods=["POST"])
 @reviewer_required
 def set_status(id):
-    """Set report status to a specific value."""
-    status_str = request.form.get("status")
+    """Set report statuses. Accepts comma-separated values for multi-select."""
+    status_str = request.form.get("status", "")
 
-    # Validate and convert string to enum
-    try:
-        new_status = ReportStatus(status_str)
-    except ValueError:
-        valid_statuses = ReportStatus.values()
-        return jsonify({"error": f"Invalid status. Must be one of: {valid_statuses}"}), 400
+    # Parse comma-separated statuses or single status
+    new_statuses = [s.strip() for s in status_str.split(",") if s.strip()]
+
+    if not new_statuses:
+        return jsonify({"error": "At least one status is required"}), 400
+
+    # Validate all status values
+    valid_values = set(ReportStatus.values())
+    invalid = set(new_statuses) - valid_values
+    if invalid:
+        return jsonify({"error": f"Invalid status values: {list(invalid)}"}), 400
+
+    # Validate combination
+    is_valid, error = ReportStatus.validate_combination(new_statuses)
+    if not is_valid:
+        return jsonify({"error": error}), 400
 
     sighting = db.session.get(TblMeldungen, id)
     if not sighting:
         return jsonify({"error": "Report not found"}), 404
 
-    old_status = sighting.status
-    sighting.status = new_status
+    old_statuses = sighting.statuses
+    sighting.statuses = new_statuses
     sighting.bearb_id = session["user_id"]
 
     # Handle deleted flag for backward compatibility
-    sighting.deleted = (new_status == ReportStatus.DEL)
+    sighting.deleted = sighting.is_deleted
 
     # Handle dat_bear for approval tracking
-    if new_status == ReportStatus.APPR and not sighting.dat_bear:
+    if sighting.is_approved and not sighting.dat_bear:
         sighting.dat_bear = datetime.now()
-    elif new_status != ReportStatus.APPR:
+    elif not sighting.is_approved:
         sighting.dat_bear = None
 
     try:
         db.session.commit()
     except SQLAlchemyError as e:
         db.session.rollback()
-        current_app.logger.error(f"Failed to update status for sighting {id}: {e}")
+        current_app.logger.error(f"Failed to update statuses for sighting {id}: {e}")
         return jsonify({"error": "Failed to update status"}), 500
 
     current_app.logger.debug(
-        f"Sighting {id} status changed from {old_status} to {new_status}"
+        f"Sighting {id} statuses changed from {old_statuses} to {new_statuses}"
     )
     return jsonify({
         "success": True,
-        "message": f"Status changed to {ReportStatus.get_display_name(new_status.value)}",
-        "status": new_status.value,
-        "status_display": ReportStatus.get_display_name(new_status.value),
+        "message": f"Status changed to {ReportStatus.get_display_names(new_statuses)}",
+        "statuses": new_statuses,
+        "status_display": ReportStatus.get_display_names(new_statuses),
     }), 200
 
 
@@ -791,7 +805,7 @@ def export_data(value):
 
             # Write row data directly (no intermediate dict/list)
             worksheet.write(row_idx, 0, meldung.id)
-            worksheet.write(row_idx, 1, ReportStatus.get_display_name(meldung.status))
+            worksheet.write(row_idx, 1, ReportStatus.get_display_names(meldung.statuses or []))
             worksheet.write(
                 row_idx,
                 2,
@@ -997,17 +1011,18 @@ def get_filtered_query(
         .join(TblUsers, TblMeldungUser.id_user == TblUsers.id)
     )
 
-    # Apply filter conditions based on 'filter_status' using new status column
+    # Apply filter conditions based on 'filter_status' using statuses array
+    # Array containment: statuses.contains(['VALUE']) checks if VALUE is in array
     if filter_status == "bearbeitet":
-        stmt = stmt.where(TblMeldungen.status == ReportStatus.APPR)
+        stmt = stmt.where(TblMeldungen.statuses.contains([ReportStatus.APPR.value]))
     elif filter_status == "offen":
-        stmt = stmt.where(TblMeldungen.status == ReportStatus.OPEN)
+        stmt = stmt.where(TblMeldungen.statuses.contains([ReportStatus.OPEN.value]))
     elif filter_status == "geloescht":
-        stmt = stmt.where(TblMeldungen.status == ReportStatus.DEL)
+        stmt = stmt.where(TblMeldungen.statuses.contains([ReportStatus.DEL.value]))
     elif filter_status == "informiert":
-        stmt = stmt.where(TblMeldungen.status == ReportStatus.INFO)
+        stmt = stmt.where(TblMeldungen.statuses.contains([ReportStatus.INFO.value]))
     elif filter_status == "unklar":
-        stmt = stmt.where(TblMeldungen.status == ReportStatus.UNKL)
+        stmt = stmt.where(TblMeldungen.statuses.contains([ReportStatus.UNKL.value]))
     elif filter_status == "all":
         # No filter - show all statuses
         pass
@@ -1016,7 +1031,7 @@ def get_filtered_query(
         pass
     else:
         # Default behavior: Exclude deleted items
-        stmt = stmt.where(TblMeldungen.status != ReportStatus.DEL)
+        stmt = stmt.where(~TblMeldungen.statuses.contains([ReportStatus.DEL.value]))
 
     # Apply type filter
     if filter_type:

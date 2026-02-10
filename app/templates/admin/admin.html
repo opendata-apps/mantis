@@ -315,10 +315,10 @@
     <div class="grid grid-cols-1 gap-6 mb-4 sm:grid-cols-2 lg:grid-cols-3" id="reportContainer">
         {% for sighting in reported_sightings %}
         <div class="overflow-hidden mb-4 bg-white rounded-lg shadow-md transition-shadow duration-200 hover:shadow-lg report-card
-            {% if sighting.status == 'UNKL' %}ring-2 ring-orange-400{% elif sighting.status == 'INFO' %}ring-2 ring-yellow-400{% elif sighting.status == 'DEL' %}ring-2 ring-red-400{% endif %}"
-            data-report-id="{{sighting.id}}" data-status="{{ sighting.status }}"
-            data-approved="{{ 'true' if sighting.status == 'APPR' else 'false' }}"
-            data-deleted="{{ 'true' if sighting.status == 'DEL' else 'false' }}">
+            {% if 'UNKL' in sighting.statuses %}ring-2 ring-orange-400{% elif 'INFO' in sighting.statuses %}ring-2 ring-yellow-400{% elif 'DEL' in sighting.statuses %}ring-2 ring-red-400{% endif %}"
+            data-report-id="{{sighting.id}}" data-statuses="{{ sighting.statuses | join(',') }}"
+            data-approved="{{ 'true' if 'APPR' in sighting.statuses else 'false' }}"
+            data-deleted="{{ 'true' if 'DEL' in sighting.statuses else 'false' }}">
             <div class="relative">
                 <img loading="lazy" onclick="openImageModal('{{ url_for('admin.report_img', filename=sighting.fundort.ablage) }}')"
                     class="object-cover w-full h-48 rounded-t-lg transition-transform duration-200 ease-in-out cursor-pointer md:h-64 hover:scale-105"
@@ -328,8 +328,9 @@
                     class="absolute bottom-0 px-3 py-1 mb-4 ml-4 font-semibold text-gray-800 rounded-full backdrop-blur-md bg-white/80">
                     {{ sighting.kreis }} | {{ sighting.ort }}</div>
 
-                {# Status overlay on image for special states #}
-                {% if sighting.status == 'UNKL' %}
+                {# Status overlay on image for special states (flags) #}
+                {# Show both overlays if both flags are set #}
+                {% if 'UNKL' in sighting.statuses %}
                 <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
                     <div class="flex items-center justify-center w-20 h-20 rounded-full bg-orange-500/70 backdrop-blur-xs">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -337,7 +338,7 @@
                         </svg>
                     </div>
                 </div>
-                {% elif sighting.status == 'INFO' %}
+                {% elif 'INFO' in sighting.statuses %}
                 <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
                     <div class="flex items-center justify-center w-20 h-20 rounded-full bg-yellow-500/70 backdrop-blur-xs">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -348,7 +349,7 @@
                 {% endif %}
 
                 {# Status badge on image (deleted state) #}
-                {% if sighting.status == 'DEL' %}
+                {% if 'DEL' in sighting.statuses %}
                 <div
                     class="absolute right-0 bottom-0 px-3 py-1 mr-4 mb-4 font-semibold text-gray-800 rounded-full backdrop-blur-md bg-red-500/80">
                     Gelöscht
@@ -398,7 +399,7 @@
                             <img loading="lazy" src="/static/images/svg/edit.svg" alt="Edit"
                                 class="w-4 h-4 md:w-5 md:h-5">
                         </button>
-                        {% if sighting.status != 'DEL' %}
+                        {% if 'DEL' not in sighting.statuses %}
                         <button
                             onclick="deleteSighting('{{sighting.id}}')"
                             class="p-1 ml-2 rounded-sm transition-colors duration-200 md:ml-4 focus:outline-hidden hover:bg-red-200"
@@ -409,23 +410,37 @@
                         {% endif %}
                     </div>
                     <div class="flex items-center gap-2">
-                        {# Status selector dropdown #}
+                        {# Workflow state selector (OPEN/APPR/DEL) #}
+                        {% set workflow_state = 'DEL' if 'DEL' in sighting.statuses else ('APPR' if 'APPR' in sighting.statuses else 'OPEN') %}
                         <select
-                            onchange="setStatus('{{sighting.id}}', this.value)"
+                            onchange="setWorkflowState('{{sighting.id}}', this.value)"
                             class="px-2 py-1 text-xs font-medium rounded-md border border-gray-300 focus:outline-hidden focus:ring-2 focus:ring-green-500
-                                {% if sighting.status == 'APPR' %}bg-green-100 text-gray-800
-                                {% elif sighting.status == 'UNKL' %}bg-orange-100 text-orange-800
-                                {% elif sighting.status == 'INFO' %}bg-yellow-100 text-yellow-800
-                                {% elif sighting.status == 'DEL' %}bg-red-100 text-red-800
+                                {% if 'DEL' in sighting.statuses %}bg-red-100 text-red-800
+                                {% elif 'APPR' in sighting.statuses %}bg-green-100 text-gray-800
                                 {% else %}bg-gray-100 text-gray-800{% endif %}">
-                            <option value="OPEN" {% if sighting.status == 'OPEN' %}selected{% endif %}>Offen</option>
-                            <option value="APPR" {% if sighting.status == 'APPR' %}selected{% endif %}>Angenommen</option>
-                            <option value="UNKL" {% if sighting.status == 'UNKL' %}selected{% endif %}>Unklar</option>
-                            <option value="INFO" {% if sighting.status == 'INFO' %}selected{% endif %}>Informiert</option>
-                            <option value="DEL" {% if sighting.status == 'DEL' %}selected{% endif %}>Gelöscht</option>
+                            <option value="OPEN" {% if workflow_state == 'OPEN' %}selected{% endif %}>Offen</option>
+                            <option value="APPR" {% if workflow_state == 'APPR' %}selected{% endif %}>Angenommen</option>
+                            <option value="DEL" {% if workflow_state == 'DEL' %}selected{% endif %}>Gelöscht</option>
                         </select>
+                        {# Flag toggles (INFO/UNKL) - only show if not deleted #}
+                        {% if 'DEL' not in sighting.statuses %}
+                        <label class="inline-flex items-center cursor-pointer" title="Unklar">
+                            <input type="checkbox" class="sr-only peer" {% if 'UNKL' in sighting.statuses %}checked{% endif %}
+                                onchange="toggleFlag('{{sighting.id}}', 'UNKL', this.checked)">
+                            <span class="px-2 py-1 text-xs font-medium rounded-md border transition-colors
+                                peer-checked:bg-orange-100 peer-checked:text-orange-800 peer-checked:border-orange-300
+                                bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100">?</span>
+                        </label>
+                        <label class="inline-flex items-center cursor-pointer" title="Informiert">
+                            <input type="checkbox" class="sr-only peer" {% if 'INFO' in sighting.statuses %}checked{% endif %}
+                                onchange="toggleFlag('{{sighting.id}}', 'INFO', this.checked)">
+                            <span class="px-2 py-1 text-xs font-medium rounded-md border transition-colors
+                                peer-checked:bg-yellow-100 peer-checked:text-yellow-800 peer-checked:border-yellow-300
+                                bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100">i</span>
+                        </label>
+                        {% endif %}
                         {# Quick approve button for non-approved items #}
-                        {% if sighting.status != 'APPR' and sighting.status != 'DEL' %}
+                        {% if 'APPR' not in sighting.statuses and 'DEL' not in sighting.statuses %}
                         <button
                             onclick="toggleApprove('{{sighting.id}}')"
                             class="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
@@ -1676,20 +1691,60 @@
         }
     }
 
-    // Function to set status via dropdown
-    function setStatus(id, newStatus) {
+    // Function to set workflow state (OPEN/APPR/DEL) while preserving flags
+    function setWorkflowState(id, newWorkflowState) {
         // If setting to DEL, confirm first
-        if (newStatus === 'DEL') {
+        if (newWorkflowState === 'DEL') {
             let confirmDelete = confirm('Sind Sie sicher, dass Sie die Meldung löschen möchten?');
             if (!confirmDelete) {
-                // Reset the select to current value
                 location.reload();
                 return;
             }
         }
 
+        // Get current statuses from the card
+        const card = document.querySelector(`[data-report-id="${id}"]`);
+        const currentStatuses = (card.dataset.statuses || '').split(',').filter(s => s);
+
+        // Remove old workflow states, keep flags
+        const flags = currentStatuses.filter(s => s === 'INFO' || s === 'UNKL');
+
+        // DEL is exclusive - no flags allowed
+        let newStatuses;
+        if (newWorkflowState === 'DEL') {
+            newStatuses = ['DEL'];
+        } else {
+            newStatuses = [newWorkflowState, ...flags];
+        }
+
+        setStatuses(id, newStatuses);
+    }
+
+    // Function to toggle a flag (INFO/UNKL)
+    function toggleFlag(id, flag, isChecked) {
+        const card = document.querySelector(`[data-report-id="${id}"]`);
+        const currentStatuses = (card.dataset.statuses || '').split(',').filter(s => s);
+
+        let newStatuses;
+        if (isChecked) {
+            // Add flag if not present
+            if (!currentStatuses.includes(flag)) {
+                newStatuses = [...currentStatuses, flag];
+            } else {
+                newStatuses = currentStatuses;
+            }
+        } else {
+            // Remove flag
+            newStatuses = currentStatuses.filter(s => s !== flag);
+        }
+
+        setStatuses(id, newStatuses);
+    }
+
+    // Function to set statuses array via API
+    function setStatuses(id, statusesArray) {
         const formData = new FormData();
-        formData.append('status', newStatus);
+        formData.append('status', statusesArray.join(','));
 
         fetch('/set_status/' + id, {
             method: 'POST',
@@ -1712,6 +1767,11 @@
                 console.error('Error:', error);
                 alert('Ein Fehler ist aufgetreten.');
             });
+    }
+
+    // Legacy function for backward compatibility
+    function setStatus(id, newStatus) {
+        setStatuses(id, [newStatus]);
     }
 
     function removeCardFromView(id) {

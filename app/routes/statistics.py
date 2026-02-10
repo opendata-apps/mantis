@@ -190,6 +190,7 @@ def stats_bardiagram_datum(request, dbfields, page):
     results = {0: {}, 1: {}}
     for idx, dbfield in enumerate(dbfields):
         # Use parameterized query to prevent SQL injection
+        # Array containment check: NOT (statuses @> '{DEL}')
         stm = f"""
            SELECT {dbfield} as Tag,
            count({dbfield}) as Anzahl
@@ -197,7 +198,7 @@ def stats_bardiagram_datum(request, dbfields, page):
                 from meldungen
                 where {dbfield} BETWEEN CAST(:date_from AS date)
                                 AND CAST(:date_to AS date)
-                and status != 'DEL') as filtered
+                and NOT (statuses @> '{{DEL}}')) as filtered
            GROUP BY filtered.{dbfield}
            ORDER by Tag;
         """
@@ -248,7 +249,7 @@ def stats_geschlecht(request=None):
             TblMeldungen.dat_fund_von >= date.fromisoformat(session["date_from"]),
             TblMeldungen.dat_fund_von <= date.fromisoformat(session["date_to"]),
             TblFundorte.amt.like(f"{session['ags']}%"),
-            TblMeldungen.status != ReportStatus.DEL,
+            ~TblMeldungen.statuses.contains([ReportStatus.DEL.value]),
         )
     )
 
@@ -342,7 +343,7 @@ def stats_laender(request, marker):
         .where(
             TblMeldungen.dat_meld >= date.fromisoformat(session["date_from"]),
             TblMeldungen.dat_meld <= date.fromisoformat(session["date_to"]),
-            TblMeldungen.status != ReportStatus.DEL,
+            ~TblMeldungen.statuses.contains([ReportStatus.DEL.value]),
         )
         .group_by(func.substring(TblFundorte.amt, 1, 2))
     )
@@ -458,7 +459,7 @@ def stats_bundesland(request, marker):
             TblMeldungen.dat_meld >= date.fromisoformat(session["date_from"]),
             TblMeldungen.dat_meld <= date.fromisoformat(session["date_to"]),
             func.substring(TblFundorte.amt, 1, 2) == ags,
-            TblMeldungen.status != ReportStatus.DEL,
+            ~TblMeldungen.statuses.contains([ReportStatus.DEL.value]),
         )
         .group_by(func.substring(TblFundorte.amt, 1, maxchars))
     )
@@ -541,7 +542,7 @@ def stats_gesamt(request, marker):
         .where(
             TblMeldungen.dat_meld >= date.fromisoformat(session["date_from"]),
             TblMeldungen.dat_meld <= date.fromisoformat(session["date_to"]),
-            TblMeldungen.status != ReportStatus.DEL,
+            ~TblMeldungen.statuses.contains([ReportStatus.DEL.value]),
         )
         .group_by(TblFundorte.amt)
     )

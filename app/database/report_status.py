@@ -3,6 +3,10 @@ Report status enum for Mantis Tracker.
 
 This module defines the status values for report review workflow.
 Status values are 4 characters max to fit in a 5-char database column.
+
+Statuses are divided into two categories:
+- Workflow states (OPEN, APPR, DEL): Mutually exclusive primary states
+- Flags (INFO, UNKL): Can be combined with workflow states
 """
 
 from enum import StrEnum
@@ -12,10 +16,12 @@ class ReportStatus(StrEnum):
     """
     Status enum for report review workflow.
 
-    Values:
+    Workflow States (mutually exclusive):
         OPEN: Report is pending review (not yet processed)
         APPR: Report has been approved/accepted
-        DEL: Report has been soft-deleted
+        DEL: Report has been soft-deleted (exclusive - no other statuses allowed)
+
+    Flags (can combine with OPEN or APPR):
         INFO: Reporter has been contacted for more information
         UNKL: Report is unclear and needs investigation
     """
@@ -39,6 +45,11 @@ class ReportStatus(StrEnum):
         return display_names.get(status, status)
 
     @classmethod
+    def get_display_names(cls, statuses: list[str]) -> str:
+        """Return comma-separated German display names for multiple statuses."""
+        return ", ".join(cls.get_display_name(s) for s in statuses)
+
+    @classmethod
     def get_css_class(cls, status: str) -> str:
         """Return Tailwind CSS classes for status badge."""
         css_classes = {
@@ -51,6 +62,65 @@ class ReportStatus(StrEnum):
         return css_classes.get(status, "bg-gray-100 text-gray-800")
 
     @classmethod
+    def get_primary_css_class(cls, statuses: list[str]) -> str:
+        """Return CSS class based on primary status (workflow state takes precedence)."""
+        if not statuses:
+            return "bg-gray-100 text-gray-800"
+        # Priority: DEL > UNKL > INFO > APPR > OPEN
+        for priority_status in [cls.DEL, cls.UNKL, cls.INFO, cls.APPR, cls.OPEN]:
+            if priority_status.value in statuses:
+                return cls.get_css_class(priority_status.value)
+        return cls.get_css_class(statuses[0])
+
+    @classmethod
     def values(cls) -> list[str]:
         """Return list of all status values."""
-        return [s.value for s in cls]
+        return [s.value for s in cls if isinstance(s.value, str)]
+
+    @classmethod
+    def validate_combination(cls, statuses: list[str]) -> tuple[bool, str | None]:
+        """
+        Validate that a status combination is valid.
+
+        Rules:
+        - Must have at least one status
+        - DEL is exclusive (cannot combine with other statuses)
+        - OPEN and APPR are mutually exclusive (can't have both)
+        - INFO and UNKL can combine with OPEN or APPR
+
+        Returns:
+            Tuple of (is_valid, error_message)
+        """
+        if not statuses:
+            return False, "At least one status is required"
+
+        status_set = set(statuses)
+        valid_values = set(cls.values())
+
+        # Check all values are valid
+        invalid = status_set - valid_values
+        if invalid:
+            return False, f"Invalid status values: {invalid}"
+
+        # DEL is exclusive
+        if cls.DEL.value in status_set and len(status_set) > 1:
+            return False, "DEL status cannot be combined with other statuses"
+
+        # OPEN and APPR are mutually exclusive
+        if cls.OPEN.value in status_set and cls.APPR.value in status_set:
+            return False, "OPEN and APPR are mutually exclusive"
+
+        # Must have exactly one workflow state (OPEN, APPR, or DEL)
+        workflow_states = status_set & {cls.OPEN.value, cls.APPR.value, cls.DEL.value}
+        if len(workflow_states) != 1:
+            return False, "Must have exactly one workflow state (OPEN, APPR, or DEL)"
+
+        return True, None
+
+    @classmethod
+    def get_workflow_state(cls, statuses: list[str]) -> str | None:
+        """Extract the primary workflow state from a list of statuses."""
+        for state in [cls.DEL.value, cls.APPR.value, cls.OPEN.value]:
+            if state in statuses:
+                return state
+        return None

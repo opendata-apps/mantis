@@ -45,7 +45,7 @@ def show_map():
     reports_stmt = (
         select(TblMeldungen.id, TblFundorte.latitude, TblFundorte.longitude)
         .join(TblFundorte, TblMeldungen.fo_zuordnung == TblFundorte.id)
-        .where(TblMeldungen.status == ReportStatus.APPR)
+        .where(TblMeldungen.statuses.contains([ReportStatus.APPR.value]))
     )
 
     if selected_year is not None:
@@ -57,7 +57,7 @@ def show_map():
             select(func.count())
             .select_from(TblMeldungen)
             .join(TblFundorte, TblMeldungen.fo_zuordnung == TblFundorte.id)
-            .where(TblMeldungen.status == ReportStatus.APPR)
+            .where(TblMeldungen.statuses.contains([ReportStatus.APPR.value]))
             .where(func.extract("year", TblMeldungen.dat_fund_von) == selected_year)
         )
         post_count = db.session.execute(count_stmt).scalar()
@@ -66,8 +66,8 @@ def show_map():
         count_stmt = (
             select(func.count())
             .select_from(TblMeldungen)
-            .where(TblMeldungen.dat_fund_von >= date(current_app.config['MIN_MAP_YEAR'], 1, 1))
-            .where(TblMeldungen.status == ReportStatus.APPR)
+            .where(TblMeldungen.dat_fund_von >= date(current_app.config["MIN_MAP_YEAR"], 1, 1))
+            .where(TblMeldungen.statuses.contains([ReportStatus.APPR.value]))
         )
         post_count = db.session.execute(count_stmt).scalar()
 

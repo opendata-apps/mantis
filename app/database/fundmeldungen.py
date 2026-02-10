@@ -1,4 +1,5 @@
-from sqlalchemy import Enum as SAEnum, Index
+from sqlalchemy import Index
+from sqlalchemy.dialects.postgresql import ARRAY
 
 from app import db
 from app.database.report_status import ReportStatus
@@ -8,26 +9,24 @@ class TblMeldungen(db.Model):
     """Sighting reports (Meldungen) model.
 
     Indexes:
-        - ix_meldungen_status: Single column index on status (already exists from migration)
-        - ix_meldungen_status_dat_fund_von: Composite index for filtered date range queries.
-          Query patterns: WHERE status = ? AND dat_fund_von BETWEEN ? AND ?
+        - ix_meldungen_statuses_gin: GIN index on statuses array for containment queries
         - ix_meldungen_dat_fund_von: Single column index for date-only queries.
           Query patterns: WHERE dat_fund_von >= ? (statistics, map filtering)
         - ix_meldungen_dat_meld: Index for meldedatum statistics queries.
         - ix_meldungen_fo_zuordnung: FK index for JOIN with fundorte table.
 
     Note: PostgreSQL does NOT auto-create indexes on foreign keys.
+    Note: GIN indexes don't combine well in composite indexes with B-tree.
+          PostgreSQL query planner will use bitmap index scan to combine them.
     """
 
     __tablename__ = "meldungen"
 
-    # Define composite and additional indexes via __table_args__
+    # Define indexes via __table_args__
     # Per SQLAlchemy docs: https://docs.sqlalchemy.org/en/20/orm/declarative_tables.html
     __table_args__ = (
-        # Composite index: status + dat_fund_von for filtered date queries
-        # Covers: WHERE status = 'APPR' AND dat_fund_von BETWEEN x AND y
-        # Column order matters: status first (equality), then dat_fund_von (range)
-        Index("ix_meldungen_status_dat_fund_von", "status", "dat_fund_von"),
+        # GIN index for array containment queries: statuses @> '{APPR}'
+        Index("ix_meldungen_statuses_gin", "statuses", postgresql_using="gin"),
         # Single column index for date-only queries (statistics without status filter)
         Index("ix_meldungen_dat_fund_von", "dat_fund_von"),
         # Index on dat_meld for statistics queries (7 queries use this)
@@ -37,14 +36,15 @@ class TblMeldungen(db.Model):
     )
 
     id = db.Column(db.Integer, primary_key=True)
-    deleted = db.Column(db.Boolean, nullable=True)  # Deprecated: use status instead
-    # Note: status already has index=True which creates ix_meldungen_status
-    # We keep it for backward compatibility with existing migration
-    status = db.Column(
-        SAEnum(ReportStatus, native_enum=False, length=5),
+    deleted = db.Column(db.Boolean, nullable=True)  # Deprecated: use statuses instead
+
+    # Multi-select statuses array
+    # Valid combinations enforced by ReportStatus.validate_combination()
+    statuses = db.Column(
+        ARRAY(db.String(5)),
         nullable=False,
-        default=ReportStatus.OPEN,
-        index=True,
+        default=[ReportStatus.OPEN.value],
+        server_default="{OPEN}",
     )
     dat_fund_von = db.Column(db.Date, nullable=False)
     dat_fund_bis = db.Column(db.Date, nullable=True)
@@ -72,7 +72,7 @@ class TblMeldungen(db.Model):
         data = {
             "id": self.id,
             "deleted": self.deleted,
-            "status": self.status,
+            "statuses": self.statuses,
             "dat_fund_von": self.dat_fund_von,
             "dat_fund_bis": self.dat_fund_bis,
             "dat_meld": self.dat_meld,
@@ -92,27 +92,74 @@ class TblMeldungen(db.Model):
         }
         return data
 
+    def has_status(self, status: ReportStatus | str) -> bool:
+        """Check if report has a specific status."""
+        value = status.value if isinstance(status, ReportStatus) else status
+        return value in (self.statuses or [])
+
+    def add_status(self, status: ReportStatus | str) -> bool:
+        """Add a status if valid. Returns True if added, False if invalid."""
+        value = status.value if isinstance(status, ReportStatus) else status
+        new_statuses = list(self.statuses or [])
+        if value not in new_statuses:
+            new_statuses.append(value)
+        is_valid, _ = ReportStatus.validate_combination(new_statuses)
+        if is_valid:
+            self.statuses = new_statuses
+            self._sync_deleted_flag()
+            return True
+        return False
+
+    def remove_status(self, status: ReportStatus | str) -> bool:
+        """Remove a status if valid. Returns True if removed, False if invalid."""
+        value = status.value if isinstance(status, ReportStatus) else status
+        new_statuses = [s for s in (self.statuses or []) if s != value]
+        is_valid, _ = ReportStatus.validate_combination(new_statuses)
+        if is_valid:
+            self.statuses = new_statuses
+            self._sync_deleted_flag()
+            return True
+        return False
+
+    def set_statuses(self, statuses: list[str]) -> tuple[bool, str | None]:
+        """Set statuses with validation. Returns (success, error_message)."""
+        is_valid, error = ReportStatus.validate_combination(statuses)
+        if is_valid:
+            self.statuses = statuses
+            self._sync_deleted_flag()
+            return True, None
+        return False, error
+
+    def _sync_deleted_flag(self):
+        """Sync deprecated deleted field with statuses for backward compatibility."""
+        self.deleted = self.is_deleted
+
+    @property
+    def workflow_state(self) -> str | None:
+        """Get the primary workflow state (OPEN, APPR, or DEL)."""
+        return ReportStatus.get_workflow_state(self.statuses or [])
+
     @property
     def is_deleted(self) -> bool:
-        """Check if report is deleted (for backward compatibility)."""
-        return self.status == ReportStatus.DEL
+        """Check if report is deleted."""
+        return ReportStatus.DEL.value in (self.statuses or [])
 
     @property
     def is_approved(self) -> bool:
         """Check if report is approved."""
-        return self.status == ReportStatus.APPR
+        return ReportStatus.APPR.value in (self.statuses or [])
 
     @property
     def is_open(self) -> bool:
         """Check if report is open/pending."""
-        return self.status == ReportStatus.OPEN
+        return ReportStatus.OPEN.value in (self.statuses or [])
 
     @property
     def is_unclear(self) -> bool:
         """Check if report is marked as unclear."""
-        return self.status == ReportStatus.UNKL
+        return ReportStatus.UNKL.value in (self.statuses or [])
 
     @property
     def needs_info(self) -> bool:
         """Check if reporter was contacted for more info."""
-        return self.status == ReportStatus.INFO
+        return ReportStatus.INFO.value in (self.statuses or [])

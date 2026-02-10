@@ -134,6 +134,7 @@
   
   .invalid {
     border-color: var(--color-red-500) !important;
+    border-width: 2px !important;
   }
   
   .processing-indicator {
@@ -194,9 +195,9 @@
         <div class="hidden p-6 bg-white rounded-lg border border-gray-100 shadow-xs step" id="step2">
           <h3 class="mb-4 text-xl font-semibold text-green-700">Wann und Wo? (Ort & Datum)</h3>
           
-          <p class="mb-3 text-sm italic text-gray-600">
+          <p class="mb-3 text-sm text-gray-600">
             <i class="mr-1 w-4 h-4 text-green-600 fas fa-map-marker-alt"></i>
-            Prüfen oder setzen Sie das Sichtungsdatum und markieren Sie den genauen Fundort auf der Karte.
+            Tippen Sie auf die Karte, um den genauen Fundort zu markieren.
           </p>
           
           <div class="mb-4 form-group">
@@ -206,12 +207,6 @@
           <div class="flex flex-col mb-4 lg:flex-row lg:space-x-6">
             <!-- Map column -->
             <div class="mb-4 w-full lg:w-3/5 xl:w-2/3 lg:mb-0">
-              <div class="p-3 mb-2 bg-gray-50 rounded-md">
-                <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                  <span class="text-sm font-medium text-gray-700">Fundort auswählen</span>
-                  <span class="text-xs text-gray-600">Klicken Sie auf die Karte oder geben Sie Koordinaten ein</span>
-                </div>
-              </div>
               <div id="map" class="w-full h-64 border border-gray-300 rounded-md shadow-xs sm:h-80 md:h-96 lg:h-112 xl:h-128 2xl:h-144"></div>
               {# Inline error container for coordinates - supports HTMX OOB swaps #}
               <div id="error-coordinates" class="field-error-message"></div>
@@ -222,19 +217,18 @@
               <!-- Manual coordinates input -->
               <div class="p-4 bg-gray-50 rounded-md border border-gray-200">
                 <div class="mb-2">
-                  <span class="text-sm font-medium text-gray-700">Genaue Koordinaten</span>
-                  <div class="mt-0.5 text-xs text-gray-600">Klicken Sie auf die Karte oder geben Sie Werte ein</div>
+                  <span class="text-sm font-medium text-gray-700">Fundort-Koordinaten</span>
                 </div>
-                
+
                 <div class="grid grid-cols-2 gap-3">
                   <div class="form-group">
                     <label for="manual-latitude" class="block mb-1 text-xs font-medium text-gray-700">Breitengrad</label>
-                    <input type="text" id="manual-latitude" pattern="-?[0-9]+\.?[0-9]*" placeholder="z.B. 48.137154" 
+                    <input type="text" id="manual-latitude" pattern="-?[0-9]+\.?[0-9]*" placeholder="z.B. 52.3906" autocomplete="off"
                       class="block px-4 py-2 w-full text-base text-gray-700 bg-white rounded-lg border border-gray-300 shadow-xs transition duration-300 ease-in-out focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200">
                   </div>
                   <div class="form-group">
                     <label for="manual-longitude" class="block mb-1 text-xs font-medium text-gray-700">Längengrad</label>
-                    <input type="text" id="manual-longitude" pattern="-?[0-9]+\.?[0-9]*" placeholder="z.B. 11.576124"
+                    <input type="text" id="manual-longitude" pattern="-?[0-9]+\.?[0-9]*" placeholder="z.B. 13.0645" autocomplete="off"
                       class="block px-4 py-2 w-full text-base text-gray-700 bg-white rounded-lg border border-gray-300 shadow-xs transition duration-300 ease-in-out focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200">
                   </div>
                 </div>
@@ -252,16 +246,16 @@
               
               <!-- Address fields -->
               <div class="p-4 bg-white rounded-md border border-gray-200">
-                <h4 class="mb-3 text-sm font-medium text-gray-700">Adressinformationen</h4>
+                <h4 class="mb-3 text-sm font-medium text-gray-700">Fundort-Adresse</h4>
                 <div class="space-y-3">
                   <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    {{ render_form_field(form.fund_zip_code, attrs={'id': 'fund_zip_code', 'class': 'w-full px-3 py-2 text-sm md:text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-xs focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
-                    {{ render_form_field(form.fund_city, attrs={'id': 'fund_city', 'class': 'w-full px-3 py-2 text-sm md:text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-xs focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
+                    {{ render_form_field(form.fund_zip_code, attrs={'id': 'fund_zip_code', 'autocomplete': 'off', 'class': 'w-full px-3 py-2 text-sm md:text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-xs focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
+                    {{ render_form_field(form.fund_city, attrs={'id': 'fund_city', 'autocomplete': 'off', 'class': 'w-full px-3 py-2 text-sm md:text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-xs focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
                   </div>
-                  
-                  {{ render_form_field(form.fund_district, attrs={'id': 'fund_district', 'class': 'w-full px-3 py-2 text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-xs focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
-                  {{ render_form_field(form.fund_state, attrs={'id': 'fund_state', 'class': 'w-full px-3 py-2 text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-xs focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
-                  {{ render_form_field(form.fund_street, attrs={'id': 'fund_street', 'class': 'w-full px-3 py-2 text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-xs focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
+
+                  {{ render_form_field(form.fund_district, attrs={'id': 'fund_district', 'autocomplete': 'off', 'class': 'w-full px-3 py-2 text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-xs focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
+                  {{ render_form_field(form.fund_state, attrs={'id': 'fund_state', 'autocomplete': 'off', 'class': 'w-full px-3 py-2 text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-xs focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
+                  {{ render_form_field(form.fund_street, attrs={'id': 'fund_street', 'autocomplete': 'off', 'class': 'w-full px-3 py-2 text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-xs focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
                 </div>
               </div>
             </div>

@@ -40,4 +40,4 @@ pytest.ini
 htmlcov/
 
 # Local data (user uploads mounted via volume, not baked into image)
-datastore/
+**/datastore/
