@@ -35,7 +35,7 @@
 	<link rel="stylesheet" href="{{ vite_asset('css/theme.css') }}" /> {% block head %} {% endblock head%}
 </head>
 
-<body class="antialiased bg-gray-100">
+<body class="flex flex-col min-h-screen antialiased bg-gray-100">
 	{# Check if we're in admin area #}
 	{%- set is_admin = request.path.startswith('/reviewer') or
 	                   request.path.startswith('/statistik') or
@@ -160,7 +160,7 @@
 		</div>
 	</section>
 	<!--! White Content Start-->
-	<div class="flex z-10 flex-wrap my-10 mt-0 bg-gray-100" id="content-container">
+	<div class="flex flex-1 z-10 flex-wrap my-10 mt-0 bg-gray-100" id="content-container">
 		<div class="flex-auto"> {% block content %} {% endblock content %} </div>
 	</div>
 	<!--! White Content End-->
@@ -243,24 +243,6 @@
 		document.body.classList.add("loaded");
 	});
 
-	function adjustFooterPosition() {
-		const contentContainer = document.getElementById("content-container");
-		const footer = document.querySelector(".footer");
-		const windowHeight = window.innerHeight;
-		const contentRect = contentContainer.getBoundingClientRect();
-		const footerRect = footer.getBoundingClientRect();
-		const contentHeight = contentRect.height;
-		const footerHeight = footerRect.height;
-		const totalHeight = contentHeight + footerHeight;
-		if(totalHeight < windowHeight) {
-			const minHeight = windowHeight - footerHeight;
-			contentContainer.style.minHeight = minHeight + "px";
-		} else {
-			contentContainer.style.minHeight = "auto";
-		}
-	}
-	window.addEventListener("DOMContentLoaded", adjustFooterPosition);
-	window.addEventListener("resize", adjustFooterPosition);
 	console.log("%cGottesanbeterin Gesucht! 🦗", "background-color: #10B981; color: #FFF; font-size: 24px; padding: 10px 20px; border-radius: 5px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);");
 	console.log("%cHallo Entdecker! 🌍", "font-size: 18px; font-weight: bold; padding: 5px; border-bottom: 2px solid #E5E7EB;");
 	console.log("🕵️‍♂️ Du scheinst ein Auge für Details zu haben. Wenn du tiefer eintauchen oder beitragen möchtest, sieh dir unser GitLab-Repository an!");
