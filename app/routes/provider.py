@@ -31,8 +31,16 @@ def melder_index(usrid):
     if not user or (user.user_rolle != "1" and user.user_rolle != "9"):
         abort(404)
 
-    # Store the userid in session
-    session["user_id"] = usrid
+    # Preserve active reviewer session to avoid clobbering admin auth context
+    # when opening provider links from reviewer UI.
+    current_user_id = session.get("user_id")
+    current_user = None
+    if current_user_id:
+        current_user = db.session.scalar(
+            select(TblUsers).where(TblUsers.user_id == current_user_id)
+        )
+    if not current_user or current_user.user_rolle != "9":
+        session["user_id"] = usrid
 
     image_path = current_app.config["UPLOAD_FOLDER"]
 
@@ -93,7 +101,10 @@ def melder_index(usrid):
         sichtungen.append(sighting_dict)
 
     return render_template(
-        "provider/melder.html", reported_sightings=sichtungen, image_path=image_path
+        "provider/melder.html",
+        reported_sightings=sichtungen,
+        image_path=image_path,
+        report_user_id=usrid,
     )
 
 
