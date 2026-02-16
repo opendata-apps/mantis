@@ -3,15 +3,14 @@
 {% block meta_keywords %}Auswertungen, Statistik{% endblock %}
 {% from 'statistics/menu-stats.html' import StatsMenu with context %}
 {% block content %}
-<section class="container mx-auto mt-10">
-  <div
-    class="sticky z-30 col-span-2 row-span-2 duration-500 bg-gray-200 border-4 border-gray-200 rounded-md top-3 hover:shadow-xl">
-    <form action="" method="POST" class="space-y-3">
+<section class="container px-4 mx-auto mt-10">
+  <div class="p-4 bg-gray-100 rounded-lg border border-gray-200 sm:p-5">
+    <form action="" method="POST" class="space-y-4">
       {{ StatsMenu() }}
     </form>
-    <p class="m-4">Für den Zeitraum vom {{ session["date_from"] }} bis {{ session["date_to"] }}.</p>
+    <p class="mt-4 text-sm text-gray-700">Für den Zeitraum vom {{ session["date_from"] }} bis {{ session["date_to"] }}.</p>
     <h1 class="pt-2 pb-2 text-lg text-center">Meldungen nach Meldedatum</h1>
-    <div id='meld' class="wx-92"></div>
+    <div id='meld' class="overflow-x-auto w-full"></div>
 
     <script type="module">
       var daten = {{ trace1 | tojson }};
@@ -51,6 +50,6 @@
       };
       Plotly.newPlot("meld", data, layout, config);
     </script>
-
+  </div>
 </section>
 {% endblock content %}

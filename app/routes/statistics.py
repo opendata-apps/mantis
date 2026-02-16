@@ -2,8 +2,9 @@ from flask import Blueprint
 from flask import render_template, request, current_app
 from flask import session, abort
 from flask import jsonify
-from sqlalchemy import func, text, or_, select
+from sqlalchemy import func, text, select
 from sqlalchemy import cast, String
+from sqlalchemy import literal_column
 from app import db
 from app.database.models import TblUsers
 from app.database.models import TblAemterCoordinaten
@@ -323,9 +324,13 @@ def stats_amt(request, marker):
 def stats_laender(request, marker):
     "Statistics pro Bundesland (AGS))"
 
+    substring_start = literal_column("1")
+    state_code_len = literal_column("2")
+    amt_group_expr = func.substring(TblFundorte.amt, substring_start, state_code_len)
+
     stmt = (
         select(
-            func.substring(TblFundorte.amt, 1, 2).label("amt_group"),
+            amt_group_expr.label("amt_group"),
             func.sum(func.coalesce(TblMeldungen.art_m, 0)).label("maennlich"),
             func.sum(func.coalesce(TblMeldungen.art_w, 0)).label("weiblich"),
             func.sum(func.coalesce(TblMeldungen.art_o, 0)).label("oothek"),
@@ -345,7 +350,7 @@ def stats_laender(request, marker):
             TblMeldungen.dat_meld <= date.fromisoformat(session["date_to"]),
             ~TblMeldungen.statuses.contains([ReportStatus.DEL.value]),
         )
-        .group_by(func.substring(TblFundorte.amt, 1, 2))
+        .group_by(amt_group_expr)
     )
 
     results = db.session.execute(stmt).all()
@@ -372,7 +377,8 @@ def stats_laender(request, marker):
     result_dict = defaultdict(dict)
     for result in results:
         if result.amt_group:
-            result_dict[f"{result.amt_group} --  {laender[result.amt_group]}"] = {
+            state_name = laender.get(result.amt_group, "Unbekannt")
+            result_dict[f"{result.amt_group} --  {state_name}"] = {
                 "maennlich": result.maennlich,
                 "weiblich": result.weiblich,
                 "oothek": result.oothek,
@@ -438,9 +444,17 @@ def stats_bundesland(request, marker):
             "12054": "Potsdam",
         }
 
+    substring_start = literal_column("1")
+    state_code_len = literal_column("2")
+    district_len = literal_column(str(maxchars))
+    state_prefix_expr = func.substring(
+        TblFundorte.amt, substring_start, state_code_len
+    )
+    amt_group_expr = func.substring(TblFundorte.amt, substring_start, district_len)
+
     stmt = (
         select(
-            func.substring(TblFundorte.amt, 1, maxchars).label("amt_group"),
+            amt_group_expr.label("amt_group"),
             func.sum(func.coalesce(TblMeldungen.art_m, 0)).label("maennlich"),
             func.sum(func.coalesce(TblMeldungen.art_w, 0)).label("weiblich"),
             func.sum(func.coalesce(TblMeldungen.art_o, 0)).label("oothek"),
@@ -458,10 +472,10 @@ def stats_bundesland(request, marker):
         .where(
             TblMeldungen.dat_meld >= date.fromisoformat(session["date_from"]),
             TblMeldungen.dat_meld <= date.fromisoformat(session["date_to"]),
-            func.substring(TblFundorte.amt, 1, 2) == ags,
+            state_prefix_expr == ags,
             ~TblMeldungen.statuses.contains([ReportStatus.DEL.value]),
         )
-        .group_by(func.substring(TblFundorte.amt, 1, maxchars))
+        .group_by(amt_group_expr)
     )
 
     results = db.session.execute(stmt).all()
@@ -469,7 +483,8 @@ def stats_bundesland(request, marker):
     result_dict = defaultdict(dict)
     for result in results:
         if result.amt_group:
-            result_dict[f"{result.amt_group} -- {laender[result.amt_group]}"] = {
+            district_name = laender.get(result.amt_group, "Unbekannt")
+            result_dict[f"{result.amt_group} -- {district_name}"] = {
                 "maennlich": result.maennlich,
                 "weiblich": result.weiblich,
                 "oothek": result.oothek,
