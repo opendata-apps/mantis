@@ -158,6 +158,79 @@ class TestAdminRoutes:
         with client.session_transaction() as sess:
             assert sess["user_id"] == "9999"
 
+    def test_provider_view_preserves_reviewer_session(self, client):
+        """Opening provider page should not override active reviewer auth session."""
+        with client.session_transaction() as sess:
+            sess["user_id"] = "9999"
+
+        response = client.get("/report/1111")
+        assert response.status_code == 200
+
+        with client.session_transaction() as sess:
+            assert sess["user_id"] == "9999"
+
+    def test_sichtungen_alias_preserves_reviewer_session(self, client):
+        """Alias route should also preserve active reviewer auth session."""
+        with client.session_transaction() as sess:
+            sess["user_id"] = "9999"
+
+        response = client.get("/sichtungen/1111")
+        assert response.status_code == 200
+
+        with client.session_transaction() as sess:
+            assert sess["user_id"] == "9999"
+
+    def test_provider_view_sets_session_for_non_reviewer_context(self, client):
+        """Provider link should still initialize session in non-reviewer context."""
+        with client.session_transaction() as sess:
+            sess.clear()
+
+        response = client.get("/report/1111")
+        assert response.status_code == 200
+
+        with client.session_transaction() as sess:
+            assert sess.get("user_id") == "1111"
+
+    def test_provider_view_melden_button_uses_viewed_user_id(self, client):
+        """Provider page CTA should target viewed reporter ID, not active session user."""
+        with client.session_transaction() as sess:
+            sess["user_id"] = "9999"  # Active reviewer session
+
+        response = client.get("/report/1111")
+        assert response.status_code == 200
+        assert b'/melden/1111' in response.data
+
+    def test_provider_view_does_not_render_reviewer_nav_links(self, client):
+        """Provider page should not expose reviewer/statistics nav links for reporter context."""
+        with client.session_transaction() as sess:
+            sess.clear()
+
+        response = client.get("/report/1111")
+        assert response.status_code == 200
+        assert b'/reviewer/1111' not in response.data
+        assert b'/statistik/1111' not in response.data
+
+    def test_toggle_approve_still_works_after_opening_provider_page(
+        self, client, session
+    ):
+        """Reviewer should remain authorized for approve actions after provider page visit."""
+        with client.session_transaction() as sess:
+            sess["user_id"] = "9999"
+
+        provider_response = client.get("/report/1111")
+        assert provider_response.status_code == 200
+
+        response = client.post(
+            f"/toggle_approve_sighting/{self.test_sighting.id}",
+            data={"filter_status": "all"},
+            headers={"HX-Request": "true"},
+        )
+        assert response.status_code == 200
+        assert b'id="report-card-' in response.data
+
+        session.refresh(self.test_sighting)
+        assert self.test_sighting.bearb_id == "9999"
+
     @patch("app.database.full_text_search.refresh_materialized_view")
     def test_reviewer_page_materialized_view_refresh(self, mock_refresh, client):
         """Test that materialized view is refreshed when needed."""
@@ -205,10 +278,13 @@ class TestAdminRoutes:
         assert self.test_sighting.dat_bear is None
 
         # Toggle to approve
-        response = client.post(f"/toggle_approve_sighting/{self.test_sighting.id}")
+        response = client.post(
+            f"/toggle_approve_sighting/{self.test_sighting.id}",
+            data={"filter_status": "all"},
+            headers={"HX-Request": "true"},
+        )
         assert response.status_code == 200
-        data = json.loads(response.data)
-        assert data["success"] is True
+        assert b'id="report-card-' in response.data
 
         # Verify in database
         session.refresh(self.test_sighting)
@@ -222,8 +298,13 @@ class TestAdminRoutes:
             sess["user_id"] = "9999"
 
         # Approve sighting (emails are disabled in test config)
-        response = client.post(f"/toggle_approve_sighting/{self.test_sighting.id}")
+        response = client.post(
+            f"/toggle_approve_sighting/{self.test_sighting.id}",
+            data={"filter_status": "all"},
+            headers={"HX-Request": "true"},
+        )
         assert response.status_code == 200
+        assert b"id=\"report-card-" in response.data
 
         # Verify approval happened
         session.refresh(self.test_sighting)
@@ -237,10 +318,13 @@ class TestAdminRoutes:
             sess["user_id"] = "9999"
 
         # Delete sighting
-        response = client.post(f"/delete_sighting/{self.test_sighting.id}")
+        response = client.post(
+            f"/delete_sighting/{self.test_sighting.id}",
+            data={"filter_status": "all"},
+            headers={"HX-Request": "true"},
+        )
         assert response.status_code == 200
-        data = json.loads(response.data)
-        assert data["success"] is True
+        assert b"id=\"report-card-" in response.data
 
         # Verify soft delete in database
         session.refresh(self.test_sighting)
@@ -253,39 +337,22 @@ class TestAdminRoutes:
             sess["user_id"] = "9999"
 
         # First delete the sighting
+        self.test_sighting.statuses = ["DEL"]
         self.test_sighting.deleted = True
         session.commit()
 
         # Undelete sighting
-        response = client.post(f"/undelete_sighting/{self.test_sighting.id}")
+        response = client.post(
+            f"/undelete_sighting/{self.test_sighting.id}",
+            data={"filter_status": "all"},
+            headers={"HX-Request": "true"},
+        )
         assert response.status_code == 200
-        data = json.loads(response.data)
-        assert data["success"] is True
+        assert b"id=\"report-card-" in response.data
 
         # Verify undelete in database
         session.refresh(self.test_sighting)
         assert self.test_sighting.deleted is False
-
-    def test_change_mantis_gender(self, client, session):
-        """Test changing mantis gender fields."""
-        # Set up session
-        with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
-
-        # Change gender to female
-        response = client.post(
-            f"/change_mantis_gender/{self.test_sighting.id}", data={"new_gender": "W"}
-        )
-        assert response.status_code == 200
-        data = json.loads(response.data)
-        assert data["success"] is True
-
-        # Verify in database
-        session.refresh(self.test_sighting)
-        assert self.test_sighting.art_m == 0
-        assert self.test_sighting.art_w == 1
-        assert self.test_sighting.art_n == 0
-        assert self.test_sighting.art_o == 0
 
     def test_change_mantis_count(self, client, session):
         """Test changing mantis count fields."""
@@ -306,21 +373,117 @@ class TestAdminRoutes:
         session.refresh(self.test_sighting)
         assert self.test_sighting.art_m == 2
 
-    def test_get_sighting_details(self, client):
-        """Test getting sighting details."""
-        # Set up session
+    def test_reviewer_page_uses_native_modal_and_fragment_assets(self, client):
+        """Reviewer page should load native dialog + HTMX admin modules."""
         with client.session_transaction() as sess:
             sess["user_id"] = "9999"
 
-        response = client.get(f"/get_sighting/{self.test_sighting.id}")
+        response = client.get(
+            "/reviewer/9999?statusInput=offen&sort_order=id_desc",
+            follow_redirects=True,
+        )
         assert response.status_code == 200
-        data = json.loads(response.data)
+        assert b"admin-htmx" in response.data
+        assert b"admin-modal" in response.data
+        assert b'<dialog id="modal"' in response.data
+        assert b"fetch('/get_sighting/" not in response.data
 
-        # Check that all expected fields are present
-        assert "id" in data
-        assert "dat_fund_von" in data
-        assert "ort" in data
-        assert "user_name" in data
+    def test_modal_open_route_renders_general_tab(self, client):
+        """Initial modal endpoint should return modal open partial with general tab."""
+        with client.session_transaction() as sess:
+            sess["user_id"] = "9999"
+
+        response = client.get(f"/modal/{self.test_sighting.id}?filter_status=offen")
+        assert response.status_code == 200
+        assert b'id="tab-content"' in response.data
+        assert b"General Information" in response.data
+        assert b'id="modal-actions"' in response.data
+
+    def test_modal_location_tab_response_contains_oob_updates(self, client):
+        """Location tab endpoint should return tab content plus OOB tab/action updates."""
+        with client.session_transaction() as sess:
+            sess["user_id"] = "9999"
+
+        response = client.get(
+            f"/modal/location/{self.test_sighting.id}?filter_status=offen"
+        )
+        assert response.status_code == 200
+        assert b'id="map"' in response.data
+        assert b'hx-swap-oob="outerHTML"' in response.data
+        assert b'id="modal-actions"' in response.data
+
+    def test_toggle_flag_returns_card_partial(self, client, session):
+        """HTMX flag toggles should return updated card partial HTML."""
+        with client.session_transaction() as sess:
+            sess["user_id"] = "9999"
+
+        response = client.post(
+            f"/toggle_flag/{self.test_sighting.id}",
+            data={"flag": "UNKL", "filter_status": "offen"},
+            headers={"HX-Request": "true"},
+        )
+        assert response.status_code == 200
+        assert b'id="report-card-' in response.data
+
+        session.refresh(self.test_sighting)
+        assert "UNKL" in (self.test_sighting.statuses or [])
+
+    def test_toggle_flag_invalid_value(self, client):
+        """Invalid flag values should be rejected."""
+        with client.session_transaction() as sess:
+            sess["user_id"] = "9999"
+
+        response = client.post(
+            f"/toggle_flag/{self.test_sighting.id}",
+            data={"flag": "BAD"},
+            headers={"HX-Request": "true"},
+        )
+        assert response.status_code == 400
+
+    def test_update_address_updates_location_fields(self, client, session):
+        """Address update endpoint should persist reverse-geocoded location fields."""
+        with client.session_transaction() as sess:
+            sess["user_id"] = "9999"
+
+        response = client.post(
+            f"/update_address/{self.test_sighting.id}",
+            data={
+                "plz": "14467",
+                "ort": "Potsdam",
+                "strasse": "Breite Straße 1",
+                "kreis": "Potsdam",
+                "land": "Brandenburg",
+            },
+        )
+        assert response.status_code == 200
+        payload = json.loads(response.data)
+        assert payload["success"] is True
+
+        location = session.get(TblFundorte, self.test_location.id)
+        assert location.plz == 14467
+        assert location.ort == "Potsdam"
+        assert location.strasse == "Breite Straße 1"
+        assert location.kreis == "Potsdam"
+        assert location.land == "Brandenburg"
+
+    def test_toggle_approve_removes_card_when_filter_no_longer_matches(
+        self, client, session
+    ):
+        """Approving in 'offen' filter should delete the card target via HX-Reswap."""
+        with client.session_transaction() as sess:
+            sess["user_id"] = "9999"
+
+        response = client.post(
+            f"/toggle_approve_sighting/{self.test_sighting.id}",
+            data={"filter_status": "offen"},
+            headers={"HX-Request": "true"},
+        )
+        assert response.status_code == 200
+        assert response.headers.get("HX-Reswap") == "delete"
+        assert response.data == b""
+
+        session.refresh(self.test_sighting)
+        assert "APPR" in (self.test_sighting.statuses or [])
 
     def test_export_xlsx_all_data(self, client):
         """Test exporting all data as Excel file."""
@@ -498,7 +661,4 @@ class TestAdminRoutes:
 
         # Test with non-existent ID
         response = client.post("/delete_sighting/99999")
-        assert response.status_code == 404
-
-        response = client.get("/get_sighting/99999")
         assert response.status_code == 404

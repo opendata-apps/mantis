@@ -445,16 +445,16 @@ def validate_step():
 # ============================================================================
 
 
-def _is_htmx_request():
+def _is_partial_request():
     """Check if the current request is an HTMX request."""
     return request.headers.get("HX-Request") == "true"
 
 
-@report.route("/melden/htmx/validate-step", methods=["POST"])
+@report.route("/melden/validate-step", methods=["POST"])
 @limiter.limit("60 per minute")
-def htmx_validate_step():
+def validate_step_partial():
     """HTMX endpoint for step validation - returns HTML partial with errors or success indicator."""
-    if not _is_htmx_request():
+    if not _is_partial_request():
         abort(400)
 
     step = request.form.get("step", type=int, default=1)
@@ -526,10 +526,10 @@ def htmx_validate_step():
         return render_template("report/partials/validation_errors.html", errors=errors)
 
 
-@report.route("/melden/htmx/toggle-finder", methods=["POST"])
-def htmx_toggle_finder():
+@report.route("/melden/toggle-finder", methods=["POST"])
+def toggle_finder():
     """HTMX endpoint to toggle finder fields visibility."""
-    if not _is_htmx_request():
+    if not _is_partial_request():
         abort(400)
 
     is_identical = request.form.get("identical_finder_reporter") in (
@@ -550,10 +550,10 @@ def htmx_toggle_finder():
         )
 
 
-@report.route("/melden/htmx/feedback-detail", methods=["POST"])
-def htmx_feedback_detail():
+@report.route("/melden/feedback-detail", methods=["POST"])
+def feedback_detail():
     """HTMX endpoint to show/hide feedback detail field based on selection."""
-    if not _is_htmx_request():
+    if not _is_partial_request():
         abort(400)
 
     feedback_source = request.form.get("feedback_source", "")
@@ -580,11 +580,11 @@ def htmx_feedback_detail():
         return render_template("report/partials/feedback_detail.html", show=False)
 
 
-@report.route("/melden/htmx/review", methods=["POST"])
+@report.route("/melden/review", methods=["POST"])
 @limiter.limit("30 per minute")
-def htmx_review():
+def review_step():
     """HTMX endpoint to generate the review section content from form data."""
-    if not _is_htmx_request():
+    if not _is_partial_request():
         abort(400)
 
     # Collect all form data for the review
@@ -625,10 +625,10 @@ def htmx_review():
     return render_template("report/partials/review_content.html", review=review_data)
 
 
-@report.route("/melden/htmx/char-count", methods=["POST"])
-def htmx_char_count():
+@report.route("/melden/char-count", methods=["POST"])
+def char_count():
     """HTMX endpoint to update character count display."""
-    if not _is_htmx_request():
+    if not _is_partial_request():
         abort(400)
 
     description = request.form.get("description", "")

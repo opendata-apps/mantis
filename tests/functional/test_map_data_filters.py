@@ -37,7 +37,7 @@ class TestMapDataFilters:
             fo_zuordnung=self.location.id,
             dat_bear=datetime.now(),
             deleted=None,
-            status=ReportStatus.APPR.value,  # Approved status
+            statuses=[ReportStatus.APPR.value],
             art_m=1,
         )
         session.add(self.approved_sighting)
@@ -49,7 +49,7 @@ class TestMapDataFilters:
             fo_zuordnung=self.location.id,
             dat_bear=datetime.now(),
             deleted=False,
-            status=ReportStatus.APPR.value,  # Approved status
+            statuses=[ReportStatus.APPR.value],
             art_o=1,
         )
         session.add(self.approved_not_deleted)
@@ -61,7 +61,7 @@ class TestMapDataFilters:
             fo_zuordnung=self.location.id,
             dat_bear=None,
             deleted=None,
-            status=ReportStatus.OPEN.value,  # Open status (not approved)
+            statuses=[ReportStatus.OPEN.value],
             art_w=1,
         )
         session.add(self.unapproved_sighting)
@@ -73,7 +73,7 @@ class TestMapDataFilters:
             fo_zuordnung=self.location.id,
             dat_bear=datetime.now(),
             deleted=True,
-            status=ReportStatus.DEL.value,  # Deleted status
+            statuses=[ReportStatus.DEL.value],
             art_n=1,
         )
         session.add(self.deleted_sighting)
@@ -196,7 +196,7 @@ class TestMapDataFilters:
                 fo_zuordnung=self.location.id,
                 dat_bear=datetime.now() if status == ReportStatus.APPR.value else None,
                 deleted=(status == ReportStatus.DEL.value),
-                status=status,
+                statuses=[status],
                 anm_melder=desc,
             )
             session.add(sighting)

@@ -1,0 +1,12 @@
+{# Initial modal load — swapped into #modal-body.
+   Contains: tab bar + tab-content wrapper + OOB footer update.
+   Template variables: sighting, feedback, is_approved, editable,
+                        active_tab, edit_mode, filter_status #}
+{% include "admin/partials/_modal_tabs.html" %}
+<div id="tab-content" class="modal-scroll-region overflow-y-auto overscroll-contain touch-pan-y grow min-h-0 scrollbar-thin rounded-lg" role="tabpanel">
+    {% include "admin/partials/_modal_general.html" %}
+</div>
+{# OOB: update footer buttons to match current state #}
+<div id="modal-actions" hx-swap-oob="innerHTML">
+    {% include "admin/partials/_modal_actions.html" %}
+</div>

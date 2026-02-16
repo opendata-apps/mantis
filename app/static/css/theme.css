@@ -320,9 +320,22 @@
     @apply block px-4 py-2 text-base text-gray-700 bg-white rounded-lg shadow-xs focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200 transition-colors;
   }
 
-  .active-tab {
-    @apply bg-green-600 text-white shadow-md;
-    transform: translateY(-1px);
+  .btn-green {
+    @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white
+           bg-green-600 rounded-lg border border-green-700 transition-all duration-200
+           hover:bg-green-700 focus:outline-hidden focus-visible:ring-2
+           focus-visible:ring-green-500/30;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-gray-700
+           bg-white rounded-lg border border-gray-300 transition-all duration-200
+           hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900 focus:outline-hidden
+           focus-visible:border-green-500 focus-visible:ring-2 focus-visible:ring-green-500/30;
+  }
+
+  .modal-section-heading {
+    @apply mb-1 text-xs font-semibold tracking-wide text-gray-500 uppercase;
   }
 
   html {
@@ -368,16 +381,6 @@
 .link-underline:hover {
   background-size: 100% 3px !important;
   background-position: 0 100%;
-}
-
-.details-text {
-  border: 1px solid var(--color-gray-300) !important;
-  padding: 10px !important;
-  border-radius: 5px !important;
-}
-
-.search {
-  border-width: 0px !important;
 }
 
 /* Flowbite Datepicker Base Styles */
@@ -573,3 +576,121 @@
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-green-500) 20%, transparent);
 }
 
+/* Reviewer modal + image modal (native <dialog>) */
+.modal-admin,
+.modal-image {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  margin: auto;
+}
+
+.modal-admin {
+  width: min(96vw, 90rem);
+  max-width: 96vw;
+  max-height: calc(100vh - 2rem);
+  max-height: calc(100dvh - 2rem);
+  overflow: hidden;
+}
+
+.modal-admin::backdrop {
+  background: color-mix(in srgb, var(--color-gray-900) 55%, transparent);
+  backdrop-filter: blur(2px);
+}
+
+.modal-image {
+  width: min(90vw, 56rem);
+  max-width: 90vw;
+  max-height: calc(100vh - 2rem);
+  max-height: calc(100dvh - 2rem);
+}
+
+.modal-image::backdrop {
+  background: color-mix(in srgb, var(--color-gray-900) 55%, transparent);
+  backdrop-filter: blur(2px);
+}
+
+.modal-admin-panel {
+  height: min(90vh, calc(100vh - 2rem));
+  height: min(90dvh, calc(100dvh - 2rem));
+}
+
+.modal-scroll-region {
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 767px) {
+  .modal-admin {
+    width: 100vw;
+    max-width: 100vw;
+    max-height: 100vh;
+    max-height: 100dvh;
+    margin: 0;
+  }
+
+  .modal-admin-panel {
+    height: 100vh;
+    height: 100dvh;
+    border-radius: 0;
+  }
+}
+
+/* JS fallback for browsers where :has(dialog[open]) behavior is inconsistent. */
+html.dialog-open,
+body.dialog-open {
+  overflow: hidden;
+}
+
+/* Prevent background page scroll while any native dialog is open. */
+@supports selector(html:has(dialog[open])) {
+  html:has(dialog[open]),
+  body:has(dialog[open]) {
+    overflow: hidden;
+  }
+}
+
+/* Reviewer map popup styling */
+#map .leaflet-popup {
+  padding-top: 10px;
+}
+
+.leaflet-popup-content-wrapper {
+  background: color-mix(in srgb, var(--color-green-800) 80%, transparent);
+  border-radius: 12px;
+  color: white;
+  font-family: Arial, sans-serif;
+  opacity: 0;
+  animation: popupFadeIn ease 0.6s forwards;
+}
+
+.leaflet-popup-tip {
+  background: color-mix(in srgb, var(--color-green-800) 80%, transparent);
+}
+
+.leaflet-popup-content {
+  padding: 10px;
+}
+
+.popup-content h2 {
+  margin-bottom: 10px;
+  font-size: 1.1rem;
+  color: var(--color-gray-100);
+}
+
+.popup-list {
+  list-style-type: none;
+  padding: 0;
+}
+
+.popup-list li {
+  margin-bottom: 5px;
+}
+
+@keyframes popupFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

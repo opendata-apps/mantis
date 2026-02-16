@@ -4,7 +4,13 @@ import pytest
 import json
 from datetime import datetime
 from bs4 import BeautifulSoup
-from app.database.models import TblMeldungen, TblFundorte, TblUsers, TblMeldungUser, ReportStatus
+from app.database.models import (
+    TblMeldungen,
+    TblFundorte,
+    TblUsers,
+    TblMeldungUser,
+    ReportStatus,
+)
 
 
 class TestIDConsistency:
@@ -56,7 +62,7 @@ class TestIDConsistency:
             dat_bear=datetime.now(),
             bearb_id=self.reviewer.user_id,
             deleted=False,
-            status=ReportStatus.APPR.value,  # Approved status
+            statuses=[ReportStatus.APPR.value],
             art_m=1,
             anm_melder="Test sighting for ID consistency",
         )

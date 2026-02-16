@@ -597,12 +597,11 @@ class TestAmtMtbRecalculation:
             sess["user_id"] = self.reviewer.user_id
 
         # New coordinates for Potsdam
-        new_coords = {"latitude": 52.3906, "longitude": 13.0645}
+        new_coords = {"latitude": "52.3906", "longitude": "13.0645"}
 
         response = client.post(
             f"/update_coordinates/{self.test_sighting.id}",
-            json=new_coords,
-            content_type="application/json",
+            data=new_coords,
         )
 
         assert response.status_code == 200
@@ -613,8 +612,8 @@ class TestAmtMtbRecalculation:
 
         # Verify database was updated
         session.refresh(self.test_location)
-        assert self.test_location.latitude == str(new_coords["latitude"])
-        assert self.test_location.longitude == str(new_coords["longitude"])
+        assert self.test_location.latitude == new_coords["latitude"]
+        assert self.test_location.longitude == new_coords["longitude"]
         assert self.test_location.amt == data["amt"]
         assert self.test_location.mtb == data["mtb"]
 
@@ -635,8 +634,7 @@ class TestAmtMtbRecalculation:
         # Coordinates outside Brandenburg/Germany
         response = client.post(
             f"/update_coordinates/{self.test_sighting.id}",
-            json={"latitude": 40.7128, "longitude": -74.0060},  # New York
-            content_type="application/json",
+            data={"latitude": "40.7128", "longitude": "-74.0060"},  # New York
         )
 
         assert response.status_code == 200
@@ -654,16 +652,14 @@ class TestAmtMtbRecalculation:
         # Test missing coordinates
         response = client.post(
             f"/update_coordinates/{self.test_sighting.id}",
-            json={"latitude": 52.520008},  # Missing longitude
-            content_type="application/json",
+            data={"latitude": "52.520008"},  # Missing longitude
         )
         assert response.status_code == 400
 
         # Test invalid coordinate range
         response = client.post(
             f"/update_coordinates/{self.test_sighting.id}",
-            json={"latitude": 91.0, "longitude": 13.0},  # Invalid latitude
-            content_type="application/json",
+            data={"latitude": "91.0", "longitude": "13.0"},  # Invalid latitude
         )
         assert response.status_code == 400
 
@@ -674,8 +670,7 @@ class TestAmtMtbRecalculation:
 
         response = client.post(
             "/update_coordinates/99999",
-            json={"latitude": 52.520008, "longitude": 13.404954},
-            content_type="application/json",
+            data={"latitude": "52.520008", "longitude": "13.404954"},
         )
         assert response.status_code == 404
 

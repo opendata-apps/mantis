@@ -1,0 +1,25 @@
+{# Tab buttons — included in modal open + OOB-swapped on tab switch.
+   Template variables: sighting, active_tab, edit_mode, filter_status
+   Set oob_tabs=true before including to enable hx-swap-oob. #}
+{% if edit_mode %}
+{% set qs = 'edit=1&filter_status=' ~ filter_status %}
+{% else %}
+{% set qs = 'filter_status=' ~ filter_status %}
+{% endif %}
+<div id="modal-tabs" class="flex flex-wrap justify-center gap-2 mb-3"
+    {% if oob_tabs %}hx-swap-oob="outerHTML"{% endif %}>
+    <button
+        hx-get="{{ url_for('admin.modal_tab', tab='general', id=sighting.id) }}?{{ qs }}"
+        hx-target="#tab-content" hx-swap="innerHTML swap:150ms"
+        class="px-4 py-2 text-sm font-medium rounded-lg transition duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-green-500/30
+        {% if active_tab == 'general' %}bg-green-600 text-white shadow-md{% else %}text-green-800 bg-green-100 hover:bg-green-600 hover:text-white hover:shadow-md{% endif %}">
+        General Information
+    </button>
+    <button
+        hx-get="{{ url_for('admin.modal_tab', tab='location', id=sighting.id) }}?{{ qs }}"
+        hx-target="#tab-content" hx-swap="innerHTML swap:150ms"
+        class="px-4 py-2 text-sm font-medium rounded-lg transition duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-green-500/30
+        {% if active_tab == 'location' %}bg-green-600 text-white shadow-md{% else %}text-green-800 bg-green-100 hover:bg-green-600 hover:text-white hover:shadow-md{% endif %}">
+        Position auf der Karte
+    </button>
+</div>

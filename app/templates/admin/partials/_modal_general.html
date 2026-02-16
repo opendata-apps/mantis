@@ -1,0 +1,195 @@
+{# General Info tab for the edit modal — loaded via HTMX into #tab-content.
+   Template variables: sighting, feedback, editable, edit_mode #}
+{% set disabled = '' if editable else 'disabled' %}
+{% set edit_ring = 'border-green-500 focus:ring-green-500' if edit_mode else '' %}
+<div class="flex flex-col p-4 h-auto md:h-full">
+
+    {# ── Report header — structured identity block ── #}
+    <div class="pb-3 mb-3 border-b border-gray-200">
+        <div class="flex flex-col gap-3 sm:items-start sm:justify-between sm:flex-row">
+            {# Left: ID badge + date definition list #}
+            <div class="flex items-start gap-3">
+                <span class="inline-flex items-center px-2.5 py-1 text-sm font-bold text-green-800 bg-green-100 rounded-md shrink-0">#{{ sighting.id }}</span>
+                <dl class="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-xs">
+                    <dt class="text-gray-400">Gemeldet</dt>
+                    <dd class="text-gray-600">{{ sighting.dat_meld.strftime('%d.%m.%Y') }}</dd>
+                    {% if sighting.dat_fund_von %}
+                    <dt class="text-gray-400">Fund</dt>
+                    <dd class="font-medium text-gray-700">{{ sighting.dat_fund_von.strftime('%d.%m.%Y') }}</dd>
+                    {% endif %}
+                    {% if sighting.dat_bear %}
+                    <dt class="text-gray-400">Geprüft</dt>
+                    <dd class="text-gray-500">{{ sighting.dat_bear.strftime('%d.%m.%Y') }}</dd>
+                    {% endif %}
+                </dl>
+            </div>
+            {# Right: user identity with avatar initial — 2 lines to match date grid #}
+            <div class="flex items-center gap-2.5 sm:shrink-0">
+                <div class="text-right text-xs">
+                    <div class="flex items-center justify-end gap-1">
+                        <a href="{{ url_for('provider.melder_index', usrid=sighting.user_id_display) }}"
+                           target="_blank"
+                           class="inline-flex items-center gap-1 font-medium text-gray-700 hover:text-green-700 transition-colors"
+                           title="Meldungen dieses Nutzers anzeigen">
+                            {{- sighting.user_name -}}
+                            <svg class="w-3 h-3 text-green-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                            </svg>
+                        </a>
+                        {%- if sighting.user_kontakt %}
+                        <span class="font-normal text-gray-400">({{ sighting.user_kontakt }})</span>
+                        <button onclick="copyUserId({{ sighting.user_kontakt|tojson }}, event)"
+                            class="p-0.5 text-gray-400 rounded transition-colors hover:text-gray-600 hover:bg-gray-100"
+                            title="E-Mail kopieren">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                            </svg>
+                        </button>
+                        {% endif -%}
+                    </div>
+                    <div class="flex items-center justify-end gap-1 mt-0.5">
+                        <span class="font-mono text-[10px] text-gray-400" id="userId-{{ sighting.id }}" title="{{ sighting.user_id_display }}">{{ sighting.user_id_display }}</span>
+                        <button onclick="copyUserId({{ sighting.user_id_display|tojson }}, event)"
+                            class="p-0.5 text-gray-400 rounded transition-colors hover:text-gray-600 hover:bg-gray-100"
+                            title="User ID kopieren">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                {%- set parts = sighting.user_name.split() -%}
+                <div class="flex items-center justify-center w-8 h-8 text-xs font-semibold text-green-700 bg-green-50 rounded-full shrink-0">
+                    {{- parts[0][0] }}{{ parts[-1][0] if parts|length > 1 else '' -}}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# ── Feedback banner (conditional) ── #}
+    {% if feedback %}
+    {% set user_feedback, feedback_type = feedback %}
+    <div class="flex items-start gap-2 p-2 mb-3 text-xs rounded-md border bg-amber-50 border-amber-200">
+        <svg class="shrink-0 mt-0.5 w-3.5 h-3.5 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+        </svg>
+        <div>
+            <p class="font-medium text-amber-800">Feedback: {{ feedback_type.name }}</p>
+            {% if user_feedback.source_detail %}
+            <p class="mt-0.5 text-amber-700">{{ user_feedback.source_detail }}</p>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    {# ── Specimen counts — 6 across ── #}
+    <div class="mb-3">
+        <h4 class="modal-section-heading">Artbestimmung</h4>
+        {% set mantis_types = [
+            ('Männchen', sighting.art_m),
+            ('Weibchen', sighting.art_w),
+            ('Nymphe',   sighting.art_n),
+            ('Oothek',   sighting.art_o),
+            ('Andere',   sighting.art_f),
+            ('Anzahl',   sighting.tiere),
+        ] %}
+        <div class="grid grid-cols-3 gap-1.5 md:grid-cols-6">
+            {% for label, count in mantis_types %}
+            <div>
+                <label for="mantis-count-{{ label }}" class="block mb-0.5 text-xs text-gray-500">{{ label }}</label>
+                <input id="mantis-count-{{ label }}" type="number" min="0"
+                    name="new_count" value="{{ count }}"
+                    hx-post="{{ url_for('admin.change_mantis_count', id=sighting.id) }}"
+                    hx-trigger="change" hx-swap="none"
+                    hx-vals='{"type": "{{ label }}"}'
+                    class="w-full text-center input-field-admin {{ edit_ring }}"
+                    {% if editable %}title="Dieses Feld kann jetzt bearbeitet werden"{% endif %}
+                    {{ disabled }}>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {# ── Source metadata — 4 across ── #}
+    <div class="mb-3">
+        <h4 class="modal-section-heading">Quelldaten</h4>
+        <div class="grid grid-cols-2 gap-1.5 md:grid-cols-4">
+            <div>
+                <label class="block mb-0.5 text-xs text-gray-500">Fundortquelle</label>
+                <input type="text"
+                    class="w-full input-field-admin {{ edit_ring }}"
+                    name="new_data"
+                    hx-post="{{ url_for('admin.change_mantis_meta_data', id=sighting.id) }}"
+                    hx-trigger="change" hx-swap="none"
+                    hx-vals='{"type": "fo_quelle"}'
+                    {% if editable %}title="Dieses Feld kann jetzt bearbeitet werden"{% endif %}
+                    value="{{ sighting.fo_quelle or '' }}" {{ disabled }}>
+            </div>
+            <div>
+                <label class="block mb-0.5 text-xs text-gray-500">Amt</label>
+                <input type="text"
+                    class="w-full input-field-admin {{ edit_ring }}"
+                    name="new_data"
+                    hx-post="{{ url_for('admin.change_mantis_meta_data', id=sighting.id) }}"
+                    hx-trigger="change" hx-swap="none"
+                    hx-vals='{"type": "amt"}'
+                    {% if editable %}title="Dieses Feld kann jetzt bearbeitet werden"{% endif %}
+                    value="{{ sighting.amt or '' }}" {{ disabled }}>
+            </div>
+            <div>
+                <label class="block mb-0.5 text-xs text-gray-500">
+                    Messtischblatt
+                    <a href="https://susudata.de/messtisch/tk25.html?lat={{ sighting.latitude }}&lng={{ sighting.longitude }}&zoom=15&marker=Fundort"
+                       target="_blank" class="ml-0.5 text-green-600 hover:text-green-700" title="Karte öffnen">↗</a>
+                </label>
+                <input type="text"
+                    class="w-full input-field-admin {{ edit_ring }}"
+                    name="new_data"
+                    hx-post="{{ url_for('admin.change_mantis_meta_data', id=sighting.id) }}"
+                    hx-trigger="change" hx-swap="none"
+                    hx-vals='{"type": "mtb"}'
+                    {% if editable %}title="Dieses Feld kann jetzt bearbeitet werden"{% endif %}
+                    value="{{ sighting.mtb or '' }}" {{ disabled }}>
+            </div>
+            <div>
+                <label class="block mb-0.5 text-xs text-gray-500">Beleg</label>
+                <input type="text" class="w-full input-field-admin"
+                    value="{{ sighting.fo_beleg or '' }}" disabled>
+            </div>
+        </div>
+    </div>
+
+    {# ── Bottom section: comments (left 2/5) + image (right 3/5) — grows to fill ── #}
+    <div class="grid grid-cols-1 gap-3 md:grid-cols-5 grow min-h-0">
+        {# Left: stacked comments — 2/5 on desktop #}
+        <div class="flex flex-col gap-3 min-h-0 md:col-span-2">
+            <div class="flex flex-col min-h-0 basis-1/2">
+                <h4 class="modal-section-heading shrink-0">Kommentar (Melder)</h4>
+                <div class="overflow-auto grow p-2.5 text-sm whitespace-pre-wrap text-gray-700 bg-gray-50 rounded-md border border-gray-200" hx-disable>{{ sighting.anm_melder or '' }}</div>
+            </div>
+            <div class="flex flex-col grow min-h-0 basis-1/2">
+                <h4 class="modal-section-heading shrink-0">Kommentar (Reviewer)</h4>
+                <textarea
+                    class="grow p-2.5 text-sm rounded-md border border-gray-200 outline-hidden resize-none input-field-admin {{ edit_ring }}"
+                    name="new_data"
+                    hx-post="{{ url_for('admin.change_mantis_meta_data', id=sighting.id) }}"
+                    hx-trigger="change" hx-swap="none"
+                    hx-vals='{"type": "anm_bearbeiter"}'
+                    {% if editable %}title="Dieses Feld kann jetzt bearbeitet werden"{% endif %}
+                    {{ disabled }}>{{ sighting.anm_bearbeiter or '' }}</textarea>
+            </div>
+        </div>
+        {# Right: sighting photo — 3/5 on desktop, h-40 thumbnail on mobile #}
+        <div class="flex flex-col md:col-span-3 min-h-0">
+            <h4 class="modal-section-heading shrink-0">Foto</h4>
+            <div class="overflow-hidden rounded-md border border-gray-200 cursor-pointer h-40 md:grow md:h-auto md:min-h-0 hover:opacity-90 transition-opacity"
+                onclick="openImageModal('{{ url_for('admin.report_img', filename=sighting.fundort.ablage) }}')">
+                <img loading="lazy"
+                    class="object-cover w-full h-full"
+                    src="{{ url_for('admin.report_img', filename=sighting.fundort.ablage) }}"
+                    alt="Meldungsfoto">
+            </div>
+        </div>
+    </div>
+
+</div>

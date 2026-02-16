@@ -8,7 +8,7 @@ import 'leaflet-control-geocoder/dist/Control.Geocoder.css';
 import 'leaflet.locatecontrol';
 import 'leaflet.locatecontrol/dist/L.Control.Locate.min.css';
 import EXIF from 'exif-js';
-import htmx from 'htmx.org';
+import htmx from 'https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/+esm';
 
 // Configure HTMX to include CSRF token in all requests
 // This is the recommended approach from Flask-WTF documentation for AJAX requests
@@ -29,6 +29,7 @@ L.Icon.Default.mergeOptions({
 
 window.L = L;
 window.EXIF = EXIF;
+window.htmx = htmx;
 
 const ReportForm = {
     step: 0,
@@ -117,7 +118,7 @@ const ReportForm = {
         const form = document.getElementById('reportForm');
         const data = new FormData(form);
         // photo_preview_data NOT sent - injected client-side via htmx:afterSwap
-        htmx.ajax('POST', '/melden/htmx/review', {
+        htmx.ajax('POST', '/melden/review', {
             target: '#review-content-container',
             swap: 'innerHTML',
             values: Object.fromEntries(data)

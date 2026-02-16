@@ -1,0 +1,20 @@
+{# Tab switch response — primary content swapped into #tab-content,
+   plus OOB updates for tab bar (active state) and footer (actions).
+   Template variables: sighting, feedback, is_approved, editable,
+                        active_tab, edit_mode, filter_status #}
+
+{# Primary swap: tab content #}
+{% if active_tab == 'general' %}
+    {% include "admin/partials/_modal_general.html" %}
+{% elif active_tab == 'location' %}
+    {% include "admin/partials/_modal_location.html" %}
+{% endif %}
+
+{# OOB: update tab bar active state #}
+{% set oob_tabs = true %}
+{% include "admin/partials/_modal_tabs.html" %}
+
+{# OOB: update footer buttons #}
+<div id="modal-actions" hx-swap-oob="innerHTML">
+    {% include "admin/partials/_modal_actions.html" %}
+</div>

@@ -36,6 +36,8 @@ export default defineConfig({
         gallery: resolve(__dirname, 'app/static/js/gallery.js'),
         confetti: resolve(__dirname, 'app/static/js/confetti.js'),
         admin: resolve(__dirname, 'app/static/js/admin.js'),
+        'admin-htmx': resolve(__dirname, 'app/static/js/admin-htmx.js'),
+        'admin-modal': resolve(__dirname, 'app/static/js/admin-modal.js'),
         theme: resolve(__dirname, 'app/static/css/theme.css'),
       },
       output: {

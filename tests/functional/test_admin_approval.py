@@ -75,12 +75,17 @@ class TestAdminApproval:
         with patch.object(Config, "REVIEWERMAIL", False):
             # Test approving the sighting
             response = authenticated_admin_client.post(
-                f"/toggle_approve_sighting/{mock_sighting.id}"
+                f"/toggle_approve_sighting/{mock_sighting.id}",
+                data={"filter_status": "all"},
+                headers={"HX-Request": "true"},
             )
 
             # Check the response
             assert response.status_code == 200
-            assert response.json["success"] is True
+            assert (
+                response.headers.get("HX-Reswap") == "delete"
+                or b'id="report-card-' in response.data
+            )
 
             # Refresh the sighting from the database
             session.refresh(mock_sighting)
@@ -91,12 +96,17 @@ class TestAdminApproval:
 
             # Test unapproving the sighting
             response = authenticated_admin_client.post(
-                f"/toggle_approve_sighting/{mock_sighting.id}"
+                f"/toggle_approve_sighting/{mock_sighting.id}",
+                data={"filter_status": "all"},
+                headers={"HX-Request": "true"},
             )
 
             # Check the response
             assert response.status_code == 200
-            assert response.json["success"] is True
+            assert (
+                response.headers.get("HX-Reswap") == "delete"
+                or b'id="report-card-' in response.data
+            )
 
             # Refresh the sighting from the database
             session.refresh(mock_sighting)
@@ -106,32 +116,6 @@ class TestAdminApproval:
 
             # Verify send_email was not called
             mock_send_email.assert_not_called()
-
-    def test_change_gender(
-        self, authenticated_admin_client, mock_sighting_factory, session
-    ):
-        """Test that an admin can change the gender/type of a sighting."""
-        # Create a unique sighting for this test
-        mock_sighting = mock_sighting_factory(3)
-
-        # Verify initial state
-        assert mock_sighting.art_m == 1
-        assert mock_sighting.art_w == 0
-
-        # Test changing gender to female (W)
-        response = authenticated_admin_client.post(
-            f"/change_mantis_gender/{mock_sighting.id}", data={"new_gender": "W"}
-        )
-
-        # Check the response
-        assert response.status_code == 200
-        assert response.json["success"] is True
-
-        # Refresh the sighting from the database and check changes
-        session.refresh(mock_sighting)
-        assert mock_sighting.art_m == 0  # Should be reset to 0
-        assert mock_sighting.art_w == 1  # Should be set to 1
-        assert mock_sighting.bearb_id == "9999"  # Should match the admin_user_session
 
     def test_toggle_approve_nonexistent_sighting(self, authenticated_admin_client):
         """Test that attempting to approve a nonexistent sighting returns a 404."""

@@ -1,0 +1,46 @@
+{# Modal footer actions — rendered server-side, OOB-swapped on tab changes.
+   Template variables: sighting, is_approved, editable, edit_mode, active_tab, filter_status #}
+{% set filter_query = 'filter_status=' ~ filter_status %}
+<div class="flex flex-wrap gap-2 justify-end action-container">
+    {% if is_approved and not edit_mode %}
+    {# Approved + view mode → show "Bearbeiten" to enter edit mode #}
+    <button type="button"
+        hx-get="{{ url_for('admin.modal_tab', tab=active_tab, id=sighting.id) }}?edit=1&{{ filter_query }}"
+        hx-target="#tab-content" hx-swap="innerHTML swap:150ms"
+        class="btn-secondary w-full sm:w-auto"
+        title="Klicken Sie hier, um die Meldung zu bearbeiten">
+        <svg class="mr-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+        </svg>
+        Bearbeiten
+    </button>
+    {% elif is_approved and edit_mode %}
+    {# Approved + edit mode → show "Speichern" to exit edit mode #}
+    <button type="button"
+        hx-get="{{ url_for('admin.modal_tab', tab=active_tab, id=sighting.id) }}?{{ filter_query }}"
+        hx-target="#tab-content" hx-swap="innerHTML swap:150ms"
+        class="btn-green w-full px-5 py-2.5 rounded-lg sm:w-auto"
+        title="Klicken Sie hier, um die Änderungen zu speichern">
+        <svg class="mr-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+        </svg>
+        Speichern
+    </button>
+    {% elif not is_approved %}
+    {# Not approved → show "Annehmen" #}
+    <button type="button"
+        hx-post="{{ url_for('admin.toggle_approve_sighting', id=sighting.id) }}"
+        hx-target="#report-card-{{ sighting.id }}"
+        hx-swap="outerHTML swap:150ms"
+        hx-vals='{"filter_status": "{{ filter_status }}"}'
+        hx-on::after-request="closeModal()"
+        class="btn-green w-full sm:w-auto"
+        title="Klicken Sie hier, um die Meldung anzunehmen">
+        Annehmen
+    </button>
+    {% endif %}
+    <button type="button"
+        class="btn-secondary w-full px-5 py-2.5 rounded-lg sm:w-auto"
+        onclick="closeModal()">Schließen</button>
+</div>

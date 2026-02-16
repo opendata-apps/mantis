@@ -18,8 +18,8 @@ class TestIsComparisonFilters:
 
         for row in results:
             meldung = row[0]  # First element is TblMeldungen
-            assert meldung.status == ReportStatus.OPEN.value, (
-                f"Sighting {meldung.id} has status={meldung.status}, expected OPEN"
+            assert meldung.has_status(ReportStatus.OPEN), (
+                f"Sighting {meldung.id} has statuses={meldung.statuses}, expected OPEN"
             )
 
     def test_approved_filter_query(self, session):
@@ -29,8 +29,8 @@ class TestIsComparisonFilters:
 
         for row in results:
             meldung = row[0]
-            assert meldung.status == ReportStatus.APPR.value, (
-                f"Sighting {meldung.id} has status={meldung.status}, expected APPR"
+            assert meldung.has_status(ReportStatus.APPR), (
+                f"Sighting {meldung.id} has statuses={meldung.statuses}, expected APPR"
             )
 
     def test_deleted_filter_query(self, session):
@@ -40,8 +40,8 @@ class TestIsComparisonFilters:
 
         for row in results:
             meldung = row[0]
-            assert meldung.status == ReportStatus.DEL.value, (
-                f"Sighting {meldung.id} has status={meldung.status}, expected DEL"
+            assert meldung.has_status(ReportStatus.DEL), (
+                f"Sighting {meldung.id} has statuses={meldung.statuses}, expected DEL"
             )
 
     def test_all_filter_query(self, session):
@@ -90,7 +90,7 @@ class TestIsComparisonFilters:
             dat_fund_von=datetime.now().date(),
             dat_meld=datetime.now().date(),
             fo_zuordnung=existing.fo_zuordnung,
-            status=ReportStatus.OPEN.value,
+            statuses=[ReportStatus.OPEN.value],
             deleted=None,
             art_m=1,
         )
@@ -146,7 +146,9 @@ class TestIsComparisonFilters:
 
         for row in results:
             meldung = row[0]
-            assert meldung.status == ReportStatus.OPEN.value, "Non-OPEN status in open filter"
+            assert meldung.has_status(ReportStatus.OPEN), (
+                "Non-OPEN status in open filter"
+            )
             assert meldung.art_m >= 1, "Non-male sighting in male filter"
 
     def test_default_filter_behavior(self, session):
@@ -157,7 +159,7 @@ class TestIsComparisonFilters:
 
         for row in results:
             meldung = row[0]
-            assert meldung.status != ReportStatus.DEL.value, (
+            assert not meldung.has_status(ReportStatus.DEL), (
                 f"Deleted sighting {meldung.id} shown in default view"
             )
 
@@ -188,7 +190,7 @@ class TestIsComparisonFilters:
                 dat_fund_von=datetime.now().date(),
                 dat_meld=datetime.now().date(),
                 fo_zuordnung=existing.fo_zuordnung,
-                status=status_val,
+                statuses=[status_val],
                 deleted=(status_val == ReportStatus.DEL.value),
                 anm_melder=name,
             )
@@ -212,7 +214,13 @@ class TestIsComparisonFilters:
             "geloescht": ["status_deleted"],
             "informiert": ["status_info"],
             "unklar": ["status_unclear"],
-            "all": ["status_open", "status_approved", "status_deleted", "status_info", "status_unclear"],
+            "all": [
+                "status_open",
+                "status_approved",
+                "status_deleted",
+                "status_info",
+                "status_unclear",
+            ],
         }
 
         for filter_status, expected_names in filters_expected.items():

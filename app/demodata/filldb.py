@@ -98,31 +98,31 @@ def insert_data_reports(session):
     """)
     )
 
-    # Batch insert meldungen (id, deleted, status, dat_fund_von, dat_fund_bis, dat_meld, dat_bear, bearb_id, tiere, art_m, art_w, art_n, art_o, art_f, fo_zuordnung, fo_quelle, fo_beleg, anm_melder, anm_bearbeiter)
-    # Status: OPEN=open, APPR=approved, DEL=deleted, UNKL=unclear, INFO=contacted reporter
+    # Batch insert meldungen (id, deleted, statuses, dat_fund_von, dat_fund_bis, dat_meld, dat_bear, bearb_id, tiere, art_m, art_w, art_n, art_o, art_f, fo_zuordnung, fo_quelle, fo_beleg, anm_melder, anm_bearbeiter)
+    # Statuses: OPEN=open, APPR=approved, DEL=deleted, UNKL=unclear, INFO=contacted reporter (array column)
     session.execute(
         text("""
-        INSERT INTO meldungen (id, deleted, status, dat_fund_von, dat_fund_bis, dat_meld, dat_bear, bearb_id, tiere, art_m, art_w, art_n, art_o, art_f, fo_zuordnung, fo_quelle, fo_beleg, anm_melder, anm_bearbeiter) VALUES
-        (1,  NULL, 'APPR', '2024-10-03', NULL, '2025-02-01', '2025-02-03', '9999', 1, 1, 0, 0, 0, 0, 1,  'F', '', 'Lieber arm ab, als arm dran.', ''),
-        (2,  NULL, 'OPEN', '2024-08-24', NULL, '2025-02-01', NULL, NULL, 1, 0, 0, 1, 0, 0, 2,  'F', '', 'Lieber ein Ende mit Schrecken, als ein Schrecken ohne Ende.', ''),
-        (3,  NULL, 'OPEN', '2024-04-26', NULL, '2025-02-01', NULL, NULL, 1, 0, 1, 0, 0, 0, 3,  'F', '', 'Lieber ehrlich verlieren, als unehrlich gewinnen.', ''),
-        (4,  NULL, 'OPEN', '2024-01-02', NULL, '2025-02-01', NULL, NULL, 1, 0, 0, 1, 0, 0, 4,  'F', '', 'Lieber dumm gefragt, als dumm geblieben.', ''),
-        (5,  NULL, 'UNKL', '2024-10-18', NULL, '2025-02-02', NULL, NULL, 1, 0, 0, 0, 1, 0, 5,  'F', '', 'Unklar - bitte prüfen!', ''),
-        (6,  NULL, 'APPR', '2024-01-28', NULL, '2025-02-02', '2025-02-02', '9999', 1, 1, 0, 0, 0, 0, 6,  'F', '', 'Lieber den Spatz in der Hand, als die Taube auf dem Dach.', ''),
-        (7,  NULL, 'INFO', '2024-08-10', NULL, '2025-02-02', NULL, NULL, 1, 0, 0, 1, 0, 0, 7,  'F', '', 'Informiert - Melder wurde kontaktiert für mehr Details.', ''),
-        (8,  NULL, 'APPR', '2024-12-25', NULL, '2025-02-01', '2025-02-03', '9999', 1, 0, 0, 0, 1, 0, 8,  'F', '', 'Lieber ein guter Freund, als tausend Bekannte.', ''),
-        (9,  NULL, 'OPEN', '2024-09-30', NULL, '2025-02-01', NULL, NULL, 1, 0, 0, 1, 0, 0, 9,  'F', '', 'Lieber keinen Plan, als keinen Humor.', ''),
-        (10, NULL, 'OPEN', '2024-09-04', NULL, '2025-02-01', NULL, NULL, 1, 0, 0, 0, 1, 0, 10, 'F', '', 'Lieber einmal lachen, als tausendmal nicken.', ''),
-        (11, true, 'DEL',  '2024-09-24', NULL, '2025-02-01', NULL, NULL, 1, 0, 1, 0, 0, 0, 11, 'F', '', 'Gelöscht, nicht angenommen.', ''),
-        (12, NULL, 'OPEN', '2024-11-18', NULL, '2025-02-01', NULL, NULL, 1, 0, 0, 0, 1, 0, 12, 'F', '', 'Lieber eine Stunde in guter Gesellschaft, als eine Woche allein.', ''),
-        (13, NULL, 'UNKL', '2024-02-12', NULL, '2025-02-01', NULL, NULL, 1, 0, 0, 1, 0, 0, 13, 'F', '', 'Ungenaue Meldung Koordinten und Ortsangabe weichen voneinader ab.', ''),
-        (14, NULL, 'OPEN', '2024-02-19', NULL, '2025-02-01', NULL, NULL, 1, 1, 0, 0, 0, 0, 14, 'F', '', 'Lieber einen guten Ruf, als viel Geld.', ''),
-        (15, NULL, 'OPEN', '2024-09-03', NULL, '2025-02-01', NULL, NULL, 1, 0, 1, 0, 0, 0, 15, 'F', '', 'Lieber einen Berg erklimmen, als im Tal verharren.', ''),
-        (16, NULL, 'OPEN', '2024-10-15', NULL, '2025-02-01', NULL, NULL, 1, 0, 0, 0, 1, 0, 16, 'F', '', 'Lieber das Leben leben, als die Zeit zählen.', ''),
-        (17, NULL, 'OPEN', '2024-11-23', NULL, '2025-02-01', NULL, NULL, 1, 0, 0, 1, 0, 0, 17, 'F', '', 'Lieber nicht perfekt, als gar nicht.', ''),
-        (18, NULL, 'OPEN', '2024-12-31', NULL, '2025-02-01', NULL, NULL, 1, 0, 1, 0, 0, 0, 18, 'F', '', 'Lieber einmal um den Block laufen, als nie den Weg finden.', ''),
-        (19, NULL, 'OPEN', '2024-12-23', NULL, '2025-02-02', NULL, NULL, 1, 0, 0, 0, 1, 0, 19, 'F', '', 'Lieber einmal um den Block laufen, als nie den Weg finden.', ''),
-        (20, NULL, 'OPEN', '2024-01-20', NULL, '2025-02-01', NULL, NULL, 1, 0, 1, 0, 0, 0, 20, 'F', '', 'Lieber ein Ende mit Weinen, als ein Leben ohne Lachen.', '')
+        INSERT INTO meldungen (id, deleted, statuses, dat_fund_von, dat_fund_bis, dat_meld, dat_bear, bearb_id, tiere, art_m, art_w, art_n, art_o, art_f, fo_zuordnung, fo_quelle, fo_beleg, anm_melder, anm_bearbeiter) VALUES
+        (1,  NULL, '{APPR}', '2024-10-03', NULL, '2025-02-01', '2025-02-03', '9999', 1, 1, 0, 0, 0, 0, 1,  'F', '', 'Lieber arm ab, als arm dran.', ''),
+        (2,  NULL, '{OPEN}', '2024-08-24', NULL, '2025-02-01', NULL, NULL, 1, 0, 0, 1, 0, 0, 2,  'F', '', 'Lieber ein Ende mit Schrecken, als ein Schrecken ohne Ende.', ''),
+        (3,  NULL, '{OPEN}', '2024-04-26', NULL, '2025-02-01', NULL, NULL, 1, 0, 1, 0, 0, 0, 3,  'F', '', 'Lieber ehrlich verlieren, als unehrlich gewinnen.', ''),
+        (4,  NULL, '{OPEN}', '2024-01-02', NULL, '2025-02-01', NULL, NULL, 1, 0, 0, 1, 0, 0, 4,  'F', '', 'Lieber dumm gefragt, als dumm geblieben.', ''),
+        (5,  NULL, '{OPEN,UNKL}', '2024-10-18', NULL, '2025-02-02', NULL, NULL, 1, 0, 0, 0, 1, 0, 5,  'F', '', 'Unklar - bitte prüfen!', ''),
+        (6,  NULL, '{APPR}', '2024-01-28', NULL, '2025-02-02', '2025-02-02', '9999', 1, 1, 0, 0, 0, 0, 6,  'F', '', 'Lieber den Spatz in der Hand, als die Taube auf dem Dach.', ''),
+        (7,  NULL, '{OPEN,INFO}', '2024-08-10', NULL, '2025-02-02', NULL, NULL, 1, 0, 0, 1, 0, 0, 7,  'F', '', 'Informiert - Melder wurde kontaktiert für mehr Details.', ''),
+        (8,  NULL, '{APPR}', '2024-12-25', NULL, '2025-02-01', '2025-02-03', '9999', 1, 0, 0, 0, 1, 0, 8,  'F', '', 'Lieber ein guter Freund, als tausend Bekannte.', ''),
+        (9,  NULL, '{OPEN}', '2024-09-30', NULL, '2025-02-01', NULL, NULL, 1, 0, 0, 1, 0, 0, 9,  'F', '', 'Lieber keinen Plan, als keinen Humor.', ''),
+        (10, NULL, '{OPEN}', '2024-09-04', NULL, '2025-02-01', NULL, NULL, 1, 0, 0, 0, 1, 0, 10, 'F', '', 'Lieber einmal lachen, als tausendmal nicken.', ''),
+        (11, true, '{DEL}',  '2024-09-24', NULL, '2025-02-01', NULL, NULL, 1, 0, 1, 0, 0, 0, 11, 'F', '', 'Gelöscht, nicht angenommen.', ''),
+        (12, NULL, '{OPEN}', '2024-11-18', NULL, '2025-02-01', NULL, NULL, 1, 0, 0, 0, 1, 0, 12, 'F', '', 'Lieber eine Stunde in guter Gesellschaft, als eine Woche allein.', ''),
+        (13, NULL, '{OPEN,UNKL}', '2024-02-12', NULL, '2025-02-01', NULL, NULL, 1, 0, 0, 1, 0, 0, 13, 'F', '', 'Ungenaue Meldung Koordinten und Ortsangabe weichen voneinader ab.', ''),
+        (14, NULL, '{OPEN}', '2024-02-19', NULL, '2025-02-01', NULL, NULL, 1, 1, 0, 0, 0, 0, 14, 'F', '', 'Lieber einen guten Ruf, als viel Geld.', ''),
+        (15, NULL, '{OPEN}', '2024-09-03', NULL, '2025-02-01', NULL, NULL, 1, 0, 1, 0, 0, 0, 15, 'F', '', 'Lieber einen Berg erklimmen, als im Tal verharren.', ''),
+        (16, NULL, '{OPEN}', '2024-10-15', NULL, '2025-02-01', NULL, NULL, 1, 0, 0, 0, 1, 0, 16, 'F', '', 'Lieber das Leben leben, als die Zeit zählen.', ''),
+        (17, NULL, '{OPEN}', '2024-11-23', NULL, '2025-02-01', NULL, NULL, 1, 0, 0, 1, 0, 0, 17, 'F', '', 'Lieber nicht perfekt, als gar nicht.', ''),
+        (18, NULL, '{OPEN}', '2024-12-31', NULL, '2025-02-01', NULL, NULL, 1, 0, 1, 0, 0, 0, 18, 'F', '', 'Lieber einmal um den Block laufen, als nie den Weg finden.', ''),
+        (19, NULL, '{OPEN}', '2024-12-23', NULL, '2025-02-02', NULL, NULL, 1, 0, 0, 0, 1, 0, 19, 'F', '', 'Lieber einmal um den Block laufen, als nie den Weg finden.', ''),
+        (20, NULL, '{OPEN}', '2024-01-20', NULL, '2025-02-01', NULL, NULL, 1, 0, 1, 0, 0, 0, 20, 'F', '', 'Lieber ein Ende mit Weinen, als ein Leben ohne Lachen.', '')
         ON CONFLICT DO NOTHING
     """)
     )

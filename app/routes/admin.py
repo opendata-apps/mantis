@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from io import BytesIO
+import os
 import tempfile
 import xlsxwriter
 from app import db
@@ -21,6 +22,7 @@ from flask import (
     Blueprint,
     abort,
     jsonify,
+    make_response,
     redirect,
     render_template,
     request,
@@ -40,7 +42,7 @@ from app.tools.send_reviewer_email import send_email
 from app.tools.mtb_calc import get_mtb, pointInRect
 from app.tools.gemeinde_finder import get_amt_full_scan
 from app.tools.coordinate_validation import validate_and_normalize_coordinate
-from typing import Optional, Any
+from typing import Optional
 
 
 class CompoundSelectPagination(Pagination):
@@ -79,8 +81,6 @@ class CompoundSelectPagination(Pagination):
         sub = stmt.order_by(None).subquery()
         session = self._query_args["session"]
         return session.execute(select(func.count()).select_from(sub)).scalar()
-
-import os
 
 # Blueprints
 admin = Blueprint("admin", __name__)
@@ -129,6 +129,137 @@ def recalculate_amt_mtb(fundort):
         # If coordinates can't be parsed, clear AMT/MTB
         fundort.mtb = ""
         fundort.amt = ""
+
+
+def _resolve_filter_status(default: str = "offen") -> str:
+    """Resolve current filter status from request payload/args."""
+    return (
+        request.values.get("filter_status")
+        or request.args.get("statusInput")
+        or default
+    )
+
+
+def _fetch_sighting_row(report_id: int):
+    """Load one report row with all joined entities needed by modal/card partials."""
+    stmt = (
+        select(TblMeldungen, TblFundorte, TblFundortBeschreibung, TblMeldungUser, TblUsers)
+        .join(TblFundorte, TblMeldungen.fo_zuordnung == TblFundorte.id)
+        .join(
+            TblFundortBeschreibung,
+            TblFundorte.beschreibung == TblFundortBeschreibung.id,
+        )
+        .join(TblMeldungUser, TblMeldungen.id == TblMeldungUser.id_meldung)
+        .join(TblUsers, TblMeldungUser.id_user == TblUsers.id)
+        .where(TblMeldungen.id == report_id)
+    )
+    return db.session.execute(stmt).first()
+
+
+def _hydrate_sighting_for_render(
+    meldung: TblMeldungen,
+    fundort: TblFundorte,
+    beschreibung: TblFundortBeschreibung,
+    user: TblUsers,
+) -> TblMeldungen:
+    """Attach joined data as transient attributes expected by template partials."""
+    sighting = meldung
+    sighting.fundort = fundort
+    sighting.beschreibung = beschreibung
+
+    # Location fields used by card and modal partials.
+    sighting.ort = fundort.ort
+    sighting.plz = fundort.plz
+    sighting.kreis = fundort.kreis
+    sighting.land = fundort.land
+    sighting.strasse = fundort.strasse
+    sighting.latitude = fundort.latitude
+    sighting.longitude = fundort.longitude
+    sighting.amt = fundort.amt
+    sighting.mtb = fundort.mtb
+
+    # Reporter fields used by modal partials.
+    sighting.user_name = user.user_name
+    sighting.user_kontakt = user.user_kontakt
+    sighting.user_id_display = user.user_id
+
+    if sighting.bearb_id:
+        sighting.approver_username = (
+            db.session.scalar(
+                select(TblUsers.user_name).where(TblUsers.user_id == sighting.bearb_id)
+            )
+            or "Unknown"
+        )
+    else:
+        sighting.approver_username = None
+
+    return sighting
+
+
+def _load_sighting_for_render(report_id: int) -> tuple[TblMeldungen | None, TblUsers | None]:
+    """Load and hydrate a report for modal/card rendering."""
+    row = _fetch_sighting_row(report_id)
+    if not row:
+        return None, None
+    meldung, fundort, beschreibung, _, user = row
+    sighting = _hydrate_sighting_for_render(meldung, fundort, beschreibung, user)
+    return sighting, user
+
+
+def _get_feedback_for_user(user_db_id: int):
+    """Load optional feedback tuple for a user."""
+    feedback_stmt = (
+        select(TblUserFeedback, TblFeedbackType)
+        .join(TblFeedbackType, TblUserFeedback.feedback_type_id == TblFeedbackType.id)
+        .where(TblUserFeedback.user_id == user_db_id)
+    )
+    return db.session.execute(feedback_stmt).first()
+
+
+def _matches_filter_status(sighting: TblMeldungen, filter_status: str) -> bool:
+    """Check whether sighting should stay visible in current filtered list."""
+    normalized = (filter_status or "").lower()
+    if normalized == "all":
+        return True
+    if normalized == "bearbeitet":
+        return sighting.is_approved
+    if normalized == "offen":
+        return sighting.is_open
+    if normalized == "geloescht":
+        return sighting.is_deleted
+    if normalized == "informiert":
+        return sighting.needs_info
+    if normalized == "unklar":
+        return sighting.is_unclear
+    # Reviewer default behavior: show non-deleted reports.
+    return not sighting.is_deleted
+
+
+def _render_report_card_or_delete(sighting: TblMeldungen, filter_status: str):
+    """Render updated card for HTMX or delete target when it no longer matches filter."""
+    if not _matches_filter_status(sighting, filter_status):
+        return _hx_delete_response()
+
+    return render_template(
+        "admin/partials/_report_card.html",
+        sighting=sighting,
+        current_filter_status=filter_status,
+    )
+
+
+def _hx_delete_response():
+    """Return an empty HTMX response that deletes the target element."""
+    response = make_response("", 200)
+    response.headers["HX-Reswap"] = "delete"
+    return response
+
+
+def _render_updated_sighting_by_id(report_id: int, filter_status: str):
+    """Load updated sighting and return card partial or delete response."""
+    rendered_sighting, _ = _load_sighting_for_render(report_id)
+    if not rendered_sighting:
+        return _hx_delete_response()
+    return _render_report_card_or_delete(rendered_sighting, filter_status)
 
 
 @admin.route("/reviewer/<usrid>")
@@ -324,54 +455,94 @@ def change_mantis_meta_data(id):
 @admin.route("/update_coordinates/<int:id>", methods=["POST"])
 @reviewer_required
 def update_coordinates(id):
-    """Update both coordinates at once and recalculate AMT/MTB"""
+    """Update both coordinates at once and recalculate AMT/MTB."""
+    latitude = (request.form.get("latitude") or "").strip()
+    longitude = (request.form.get("longitude") or "").strip()
+    if not latitude or not longitude:
+        return jsonify({"error": "Missing coordinates"}), 400
+
+    # Validate and normalize both coordinates
+    lat_valid, normalized_lat, lat_error = validate_and_normalize_coordinate(
+        latitude, "latitude"
+    )
+    lon_valid, normalized_lon, lon_error = validate_and_normalize_coordinate(
+        longitude, "longitude"
+    )
+
+    if not lat_valid:
+        return jsonify({"error": lat_error}), 400
+    if not lon_valid:
+        return jsonify({"error": lon_error}), 400
+
+    # Get the sighting and its location
+    sighting = db.session.get(TblMeldungen, id)
+    if not sighting:
+        return jsonify({"error": "Report not found"}), 404
+
+    fundort = db.session.get(TblFundorte, sighting.fo_zuordnung)
+    if not fundort:
+        return jsonify({"error": "Location not found"}), 404
+
+    # Update coordinates and recalculate
+    fundort.latitude = normalized_lat
+    fundort.longitude = normalized_lon
+    recalculate_amt_mtb(fundort)
+
+    # Update bearer ID
+    sighting.bearb_id = session["user_id"]
+
     try:
-        data = request.get_json()
-        if not data or "latitude" not in data or "longitude" not in data:
-            return jsonify({"error": "Missing coordinates"}), 400
-
-        # Validate and normalize both coordinates
-        lat_valid, normalized_lat, lat_error = validate_and_normalize_coordinate(
-            data["latitude"], "latitude"
-        )
-        lon_valid, normalized_lon, lon_error = validate_and_normalize_coordinate(
-            data["longitude"], "longitude"
-        )
-
-        if not lat_valid:
-            return jsonify({"error": lat_error}), 400
-        if not lon_valid:
-            return jsonify({"error": lon_error}), 400
-
-        # Get the sighting and its location
-        sighting = db.session.get(TblMeldungen, id)
-        if not sighting:
-            return jsonify({"error": "Report not found"}), 404
-
-        fundort = db.session.get(TblFundorte, sighting.fo_zuordnung)
-        if not fundort:
-            return jsonify({"error": "Location not found"}), 404
-
-        # Update coordinates and recalculate
-        fundort.latitude = normalized_lat
-        fundort.longitude = normalized_lon
-        recalculate_amt_mtb(fundort)
-
-        # Update bearer ID
-        sighting.bearb_id = session["user_id"]
-
         db.session.commit()
-
-        return jsonify(
-            {"success": True, "amt": fundort.amt or "", "mtb": fundort.mtb or ""}
-        )
-
-    except ValueError:
-        return jsonify({"error": "Invalid coordinate format"}), 400
-    except Exception as e:
+    except SQLAlchemyError as e:
         db.session.rollback()
         current_app.logger.error(f"Error updating coordinates for report {id}: {e}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "Failed to update coordinates"}), 500
+
+    return jsonify(
+        {"success": True, "amt": fundort.amt or "", "mtb": fundort.mtb or ""}
+    )
+
+
+@admin.route("/update_address/<int:id>", methods=["POST"])
+@reviewer_required
+def update_address(id):
+    """Update reverse-geocoded address fields after coordinate changes."""
+    sighting = db.session.get(TblMeldungen, id)
+    if not sighting:
+        return jsonify({"error": "Report not found"}), 404
+
+    fundort = db.session.get(TblFundorte, sighting.fo_zuordnung)
+    if not fundort:
+        return jsonify({"error": "Location not found"}), 404
+
+    # Keep existing values when geocoder returns empty strings.
+    plz_raw = (request.form.get("plz") or "").strip()
+    ort = (request.form.get("ort") or "").strip()
+    strasse = (request.form.get("strasse") or "").strip()
+    kreis = (request.form.get("kreis") or "").strip()
+    land = (request.form.get("land") or "").strip()
+
+    if plz_raw.isdigit():
+        fundort.plz = int(plz_raw)
+    if ort:
+        fundort.ort = ort
+    if strasse:
+        fundort.strasse = strasse
+    if kreis:
+        fundort.kreis = kreis
+    if land:
+        fundort.land = land
+
+    sighting.bearb_id = session["user_id"]
+
+    try:
+        db.session.commit()
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        current_app.logger.error(f"Failed to update address for report {id}: {e}")
+        return jsonify({"error": "Failed to update address"}), 500
+
+    return jsonify({"success": True}), 200
 
 
 @admin.route("/admin/images/<path:filename>")
@@ -386,61 +557,45 @@ def report_img(filename):
 @admin.route("/toggle_approve_sighting/<int:id>", methods=["POST"])
 @reviewer_required
 def toggle_approve_sighting(id):
-    "Find ID and mark as approved with a date in column dat_bear"
+    """Toggle APPR/OPEN workflow state while preserving flags."""
 
-    # Find the report by id
     sighting = db.session.get(TblMeldungen, id)
-    if sighting:
-        # Toggle between APPR and OPEN as workflow state, preserving flags
-        if not sighting.is_approved:
-            # Get current flags (INFO, UNKL) and add APPR
-            flags = [s for s in (sighting.statuses or []) if s in ("INFO", "UNKL")]
-            sighting.statuses = [ReportStatus.APPR.value] + flags
-            sighting.dat_bear = datetime.now()
-        else:
-            # Revert to OPEN status, preserving flags
-            flags = [s for s in (sighting.statuses or []) if s in ("INFO", "UNKL")]
-            sighting.statuses = [ReportStatus.OPEN.value] + flags
-            sighting.dat_bear = None
-        sighting.deleted = sighting.is_deleted
-        sighting.bearb_id = session["user_id"]
-        db.session.commit()
-        current_app.logger.debug(
-            f"Sighting {id} statuses toggled to {sighting.statuses}. dat_bear set to {sighting.dat_bear}"
-        )
-    else:
+    if not sighting:
         current_app.logger.error(f"Sighting {id} not found for approval toggle.")
         return jsonify({"error": "Report not found"}), 404
 
-    if current_app.config.get("REVIEWERMAIL", False):
-        stmt = (
-            select(
-                TblMeldungen,
-                TblFundorte,
-                TblFundortBeschreibung,
-                TblMeldungUser,
-                TblUsers,
-            )
-            .join(TblFundorte, TblMeldungen.fo_zuordnung == TblFundorte.id)
-            .join(
-                TblFundortBeschreibung,
-                TblFundorte.beschreibung == TblFundortBeschreibung.id,
-            )
-            .join(TblMeldungUser, TblMeldungen.id == TblMeldungUser.id_meldung)
-            .join(TblUsers, TblMeldungUser.id_user == TblUsers.id)
-            .where(TblMeldungen.id == id)
-        )
-        sighting = db.session.execute(stmt).first()
+    # Toggle between APPR and OPEN as workflow state, preserving INFO/UNKL flags.
+    flags = [s for s in (sighting.statuses or []) if s in ("INFO", "UNKL")]
+    if sighting.is_approved:
+        sighting.statuses = [ReportStatus.OPEN.value] + flags
+        sighting.dat_bear = None
+    else:
+        sighting.statuses = [ReportStatus.APPR.value] + flags
+        sighting.dat_bear = datetime.now()
+    sighting.deleted = sighting.is_deleted
+    sighting.bearb_id = session["user_id"]
 
-        if sighting:
+    try:
+        db.session.commit()
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        current_app.logger.error(f"Failed to toggle approval for sighting {id}: {e}")
+        return jsonify({"error": "Failed to update approval status"}), 500
+
+    current_app.logger.debug(
+        f"Sighting {id} statuses toggled to {sighting.statuses}. dat_bear set to {sighting.dat_bear}"
+    )
+
+    # Send reviewer email only when report just became approved.
+    if current_app.config.get("REVIEWERMAIL", False) and sighting.is_approved:
+        row = _fetch_sighting_row(id)
+        if row:
             dbdata = {}
-            for part in sighting:
-                part_dict = {
-                    c.name: getattr(part, c.name) for c in part.__table__.columns
-                }
+            for part in row:
+                part_dict = {c.name: getattr(part, c.name) for c in part.__table__.columns}
                 dbdata.update(part_dict)
 
-            if dbdata["user_kontakt"]:
+            if dbdata.get("user_kontakt"):
                 try:
                     send_email(dbdata)
                 except Exception as e:
@@ -451,60 +606,111 @@ def toggle_approve_sighting(id):
                 current_app.logger.error(
                     f"Email not sent for sighting {id}. No email address found."
                 )
-            return jsonify({"success": True})
         else:
-            return jsonify({"error": "Sighting not found for email sending."}), 404
-    else:
-        return jsonify({"success": True})
-
-
-@admin.route("/get_sighting/<int:id>", methods=["GET", "POST"])
-@reviewer_required
-def get_sighting(id):
-    "Find the sighting by id and return it as a JSON object"
-    # Find the report by id
-    stmt = (
-        select(TblMeldungen, TblFundorte, TblFundortBeschreibung, TblMeldungUser, TblUsers)
-        .join(TblFundorte, TblMeldungen.fo_zuordnung == TblFundorte.id)
-        .join(
-            TblFundortBeschreibung,
-            TblFundorte.beschreibung == TblFundortBeschreibung.id,
-        )
-        .join(TblMeldungUser, TblMeldungen.id == TblMeldungUser.id_meldung)
-        .join(TblUsers, TblMeldungUser.id_user == TblUsers.id)
-        .where(TblMeldungen.id == id)
-    )
-    sighting = db.session.execute(stmt).first()
-
-    if sighting:
-        # Convert sighting to a dictionary and return it
-        sighting_dict = {}
-        for part in sighting:
-            part_dict = {c.name: getattr(part, c.name) for c in part.__table__.columns}
-            sighting_dict.update(part_dict)
-
-        # Get feedback information for this user
-        meldung, fundort, beschreibung, melduser, user = sighting
-        feedback_stmt = (
-            select(TblUserFeedback, TblFeedbackType)
-            .join(
-                TblFeedbackType, TblUserFeedback.feedback_type_id == TblFeedbackType.id
+            current_app.logger.error(
+                f"Sighting {id} not found while building email payload."
             )
-            .where(TblUserFeedback.user_id == user.id)
-        )
-        feedback = db.session.execute(feedback_stmt).first()
 
-        if feedback:
-            user_feedback, feedback_type = feedback
-            sighting_dict["feedback_type"] = feedback_type.name
-            sighting_dict["feedback_detail"] = user_feedback.source_detail
-        else:
-            sighting_dict["feedback_type"] = None
-            sighting_dict["feedback_detail"] = None
+    filter_status = _resolve_filter_status()
+    return _render_updated_sighting_by_id(id, filter_status)
 
-        return jsonify(sighting_dict)
-    else:
+
+@admin.route("/modal/<int:id>", methods=["GET"])
+@reviewer_required
+def modal_open(id):
+    """Open reviewer modal content (default: general tab)."""
+    sighting, user = _load_sighting_for_render(id)
+    if not sighting or not user:
+        abort(404, description="Report not found")
+
+    filter_status = _resolve_filter_status()
+    edit_mode = request.args.get("edit") == "1"
+    is_approved = sighting.is_approved
+    editable = not is_approved or edit_mode
+    feedback = _get_feedback_for_user(user.id)
+
+    return render_template(
+        "admin/partials/_modal_open.html",
+        sighting=sighting,
+        feedback=feedback,
+        is_approved=is_approved,
+        editable=editable,
+        active_tab="general",
+        edit_mode=edit_mode,
+        filter_status=filter_status,
+    )
+
+
+@admin.route("/modal/<string:tab>/<int:id>", methods=["GET"])
+@reviewer_required
+def modal_tab(tab: str, id: int):
+    """Switch modal tab content via HTMX with OOB tab/footer updates."""
+    if tab not in {"general", "location"}:
+        abort(404, description="Tab not found")
+
+    sighting, user = _load_sighting_for_render(id)
+    if not sighting or not user:
+        abort(404, description="Report not found")
+
+    filter_status = _resolve_filter_status()
+    edit_mode = request.args.get("edit") == "1"
+    is_approved = sighting.is_approved
+    editable = not is_approved or edit_mode
+    feedback = _get_feedback_for_user(user.id)
+
+    return render_template(
+        "admin/partials/_tab_response.html",
+        sighting=sighting,
+        feedback=feedback,
+        is_approved=is_approved,
+        editable=editable,
+        active_tab=tab,
+        edit_mode=edit_mode,
+        filter_status=filter_status,
+    )
+
+
+@admin.route("/toggle_flag/<int:id>", methods=["POST"])
+@reviewer_required
+def toggle_flag(id):
+    """Toggle INFO/UNKL flag while preserving workflow state."""
+    flag = (request.form.get("flag") or "").strip().upper()
+    if flag not in {ReportStatus.INFO.value, ReportStatus.UNKL.value}:
+        return jsonify({"error": "Invalid flag"}), 400
+
+    sighting = db.session.get(TblMeldungen, id)
+    if not sighting:
         return jsonify({"error": "Report not found"}), 404
+    if sighting.is_deleted:
+        return jsonify({"error": "Cannot toggle flags on deleted reports"}), 400
+
+    statuses = list(sighting.statuses or [ReportStatus.OPEN.value])
+    if flag in statuses:
+        statuses = [s for s in statuses if s != flag]
+    else:
+        statuses.append(flag)
+
+    workflow_states = {ReportStatus.OPEN.value, ReportStatus.APPR.value, ReportStatus.DEL.value}
+    if not any(s in workflow_states for s in statuses):
+        statuses.insert(0, ReportStatus.OPEN.value)
+
+    is_valid, error = ReportStatus.validate_combination(statuses)
+    if not is_valid:
+        return jsonify({"error": error}), 400
+
+    sighting.statuses = statuses
+    sighting.deleted = sighting.is_deleted
+    sighting.bearb_id = session["user_id"]
+
+    try:
+        db.session.commit()
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        current_app.logger.error(f"Failed to toggle flag for sighting {id}: {e}")
+        return jsonify({"error": "Failed to update flag"}), 500
+
+    filter_status = _resolve_filter_status()
+    return _render_updated_sighting_by_id(id, filter_status)
 
 
 @admin.route("/delete_sighting/<int:id>", methods=["POST"])
@@ -520,8 +726,15 @@ def delete_sighting(id):
     sighting.statuses = [ReportStatus.DEL.value]
     sighting.deleted = True
     sighting.bearb_id = session["user_id"]
-    db.session.commit()
-    return jsonify({"success": True})
+    try:
+        db.session.commit()
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        current_app.logger.error(f"Failed to delete sighting {id}: {e}")
+        return jsonify({"error": "Failed to delete report"}), 500
+
+    filter_status = _resolve_filter_status()
+    return _render_updated_sighting_by_id(id, filter_status)
 
 
 @admin.route("/undelete_sighting/<int:id>", methods=["POST"])
@@ -537,101 +750,15 @@ def undelete_sighting(id):
     sighting.statuses = [ReportStatus.OPEN.value]
     sighting.deleted = False
     sighting.bearb_id = session["user_id"]
-    db.session.commit()
-    return jsonify({"success": True})
-
-
-@admin.route("/set_status/<int:id>", methods=["POST"])
-@reviewer_required
-def set_status(id):
-    """Set report statuses. Accepts comma-separated values for multi-select."""
-    status_str = request.form.get("status", "")
-
-    # Parse comma-separated statuses or single status
-    new_statuses = [s.strip() for s in status_str.split(",") if s.strip()]
-
-    if not new_statuses:
-        return jsonify({"error": "At least one status is required"}), 400
-
-    # Validate all status values
-    valid_values = set(ReportStatus.values())
-    invalid = set(new_statuses) - valid_values
-    if invalid:
-        return jsonify({"error": f"Invalid status values: {list(invalid)}"}), 400
-
-    # Validate combination
-    is_valid, error = ReportStatus.validate_combination(new_statuses)
-    if not is_valid:
-        return jsonify({"error": error}), 400
-
-    sighting = db.session.get(TblMeldungen, id)
-    if not sighting:
-        return jsonify({"error": "Report not found"}), 404
-
-    old_statuses = sighting.statuses
-    sighting.statuses = new_statuses
-    sighting.bearb_id = session["user_id"]
-
-    # Handle deleted flag for backward compatibility
-    sighting.deleted = sighting.is_deleted
-
-    # Handle dat_bear for approval tracking
-    if sighting.is_approved and not sighting.dat_bear:
-        sighting.dat_bear = datetime.now()
-    elif not sighting.is_approved:
-        sighting.dat_bear = None
-
     try:
         db.session.commit()
     except SQLAlchemyError as e:
         db.session.rollback()
-        current_app.logger.error(f"Failed to update statuses for sighting {id}: {e}")
-        return jsonify({"error": "Failed to update status"}), 500
+        current_app.logger.error(f"Failed to undelete sighting {id}: {e}")
+        return jsonify({"error": "Failed to restore report"}), 500
 
-    current_app.logger.debug(
-        f"Sighting {id} statuses changed from {old_statuses} to {new_statuses}"
-    )
-    return jsonify({
-        "success": True,
-        "message": f"Status changed to {ReportStatus.get_display_names(new_statuses)}",
-        "statuses": new_statuses,
-        "status_display": ReportStatus.get_display_names(new_statuses),
-    }), 200
-
-
-@admin.route("/change_mantis_gender/<int:id>", methods=["POST"])
-@reviewer_required
-def change_gender(id):
-    "Change mantis gender or type"
-    new_gender = request.form.get("new_gender")
-
-    sighting = db.session.get(TblMeldungen, id)
-    if sighting is None:
-        abort(404, description="Sighting not found")
-
-    # Reset all gender columns to 0
-    sighting.art_m = 0
-    sighting.art_w = 0
-    sighting.art_n = 0
-    sighting.art_o = 0
-    sighting.art_f = 0
-
-    # Update the specified gender to 1
-    if new_gender == "M":
-        sighting.art_m = 1
-    elif new_gender == "W":
-        sighting.art_w = 1
-    elif new_gender == "N":
-        sighting.art_n = 1
-    elif new_gender == "O":
-        sighting.art_o = 1
-    elif new_gender == "F":
-        sighting.art_f = 1
-
-    sighting.bearb_id = session["user_id"]
-    db.session.commit()
-
-    return jsonify({"success": True})
+    filter_status = _resolve_filter_status()
+    return _render_updated_sighting_by_id(id, filter_status)
 
 
 @admin.route("/change_mantis_count/<int:id>", methods=["POST"])
@@ -787,7 +914,6 @@ def export_data(value):
         header_format = workbook.add_format(
             {"bold": True, "bg_color": "#4472C4", "font_color": "white", "border": 1}
         )
-        date_format = workbook.add_format({"num_format": "dd.mm.yyyy"})
 
         # Write headers and set column widths
         for col_idx, (col_name, col_width) in enumerate(columns):

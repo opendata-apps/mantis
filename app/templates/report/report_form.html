@@ -285,7 +285,7 @@
               <input type="checkbox" id="identical_finder_reporter" name="identical_finder_reporter"
                      class="form-checkbox w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded-sm shadow-xs transition duration-150 ease-in-out"
                      checked
-                     hx-post="{{ url_for('report.htmx_toggle_finder') }}"
+                     hx-post="{{ url_for('report.toggle_finder') }}"
                      hx-trigger="change"
                      hx-target="#finder_fields_container"
                      hx-swap="innerHTML">
