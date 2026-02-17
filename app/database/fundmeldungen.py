@@ -1,5 +1,5 @@
 from sqlalchemy import Index
-from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy.dialects.postgresql import ARRAY, TSVECTOR
 
 from app import db
 from app.database.report_status import ReportStatus
@@ -33,6 +33,8 @@ class TblMeldungen(db.Model):
         Index("ix_meldungen_dat_meld", "dat_meld"),
         # FK index for JOIN operations: meldungen.fo_zuordnung -> fundorte.id
         Index("ix_meldungen_fo_zuordnung", "fo_zuordnung"),
+        # GIN index for full-text search via tsvector column
+        Index("ix_meldungen_search_vector_gin", "search_vector", postgresql_using="gin"),
     )
 
     id = db.Column(db.Integer, primary_key=True)
@@ -64,6 +66,11 @@ class TblMeldungen(db.Model):
     fo_beleg = db.Column(db.String(1), nullable=True)
     anm_melder = db.Column(db.String(500), nullable=True)
     anm_bearbeiter = db.Column(db.String(500), nullable=True)
+
+    # Full-text search vector, maintained by PostgreSQL triggers across
+    # meldungen, fundorte, beschreibung, melduser, and users tables.
+    # Weighted: A=location, B=people, C=details, D=notes
+    search_vector = db.Column(TSVECTOR)
 
     def __repr__(self):
         return f"<Report {self.id}>"
