@@ -2,7 +2,6 @@
 
 import pytest
 from datetime import datetime, timedelta
-from unittest.mock import patch
 import json
 from sqlalchemy import select
 
@@ -230,14 +229,6 @@ class TestAdminRoutes:
 
         session.refresh(self.test_sighting)
         assert self.test_sighting.bearb_id == "9999"
-
-    @patch("app.database.full_text_search.refresh_materialized_view")
-    def test_reviewer_page_materialized_view_refresh(self, mock_refresh, client):
-        """Test that materialized view is refreshed when needed."""
-        # First access should trigger refresh - follow redirects
-        response = client.get("/reviewer/9999", follow_redirects=True)
-        assert response.status_code == 200
-        mock_refresh.assert_called_once()
 
     def test_change_mantis_metadata_authenticated(self, client, session):
         """Test changing mantis metadata with authentication."""

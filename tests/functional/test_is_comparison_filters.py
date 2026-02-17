@@ -81,7 +81,9 @@ class TestIsComparisonFilters:
         from app.database.models import TblMeldungUser
 
         # Get any existing sighting with full relationships
-        existing = session.scalar(select(TblMeldungen))
+        # ORDER BY id to ensure deterministic selection (heap order is unstable
+        # due to AFTER INSERT triggers updating search_vector on the same row)
+        existing = session.scalar(select(TblMeldungen).order_by(TblMeldungen.id))
         if not existing:
             pytest.skip("No existing sightings in test database")
 
@@ -168,7 +170,8 @@ class TestIsComparisonFilters:
         from app.database.models import TblMeldungUser
 
         # Get any existing sighting with full relationships to use as template
-        existing = session.scalar(select(TblMeldungen))
+        # ORDER BY id to ensure deterministic selection
+        existing = session.scalar(select(TblMeldungen).order_by(TblMeldungen.id))
         if not existing:
             pytest.skip("No existing sightings in test database")
         existing_rel = session.scalar(

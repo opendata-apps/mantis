@@ -38,17 +38,14 @@ flaskFavicon = FlaskFavicon()
 def create_all_data_view():
     """Create the materialized view."""
     import app.database.alldata as ad
-    import app.database.full_text_search as fts
 
     conn = Config.SQLALCHEMY_DATABASE_URI
-    # Renamed for clarity, used by populate_all
     db_engine = sa.create_engine(conn)
     Session = orm.sessionmaker(bind=db_engine)
     session = Session()
 
     ad.create_materialized_view(db_engine, session=session)
-    fts.create_materialized_view(db_engine, session=session)
-    click.echo("Materialized views created.")
+    click.echo("Materialized view created.")
 
 
 @click.command("seed")
@@ -57,7 +54,6 @@ def create_all_data_view():
 def seed_command(demo):
     """Seed database with base data. Use --demo to include sample reports."""
     import app.database.alldata as ad
-    import app.database.full_text_search as fts
     from app.database.populate import populate_all
     from app.database.vg5000_gem import data as jsondata
 
@@ -79,7 +75,6 @@ def seed_command(demo):
     from app import db as flask_db
 
     ad.refresh_materialized_view(flask_db)
-    fts.refresh_materialized_view(flask_db)
     click.echo("Done.")
 
 

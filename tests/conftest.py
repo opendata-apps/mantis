@@ -4,7 +4,6 @@ from alembic import command
 from alembic.config import Config
 from app.test_config import Config as TestConfig
 from sqlalchemy import text
-import app.database.full_text_search as fts
 import app.database.alldata as ad
 import sqlalchemy as sa
 import sqlalchemy.orm as orm
@@ -147,7 +146,6 @@ def insert_initial_data_command():
     session.commit()
     populate_all(db, session=session, vg5000_json_data=jsondata)
     insert_data_reports(session)
-    fts.create_materialized_view(db, session=session)
     ad.create_materialized_view(db, session=session)
 
 
@@ -157,12 +155,8 @@ def drop_all_with_views():
     This function ensures proper cleanup by dropping tables and views
     with CASCADE to handle dependencies correctly.
     """
-    # Drop all materialized views with CASCADE
+    # Drop tables with CASCADE to handle dependencies correctly
     db.session.execute(text("DROP TABLE IF EXISTS public.meldungen CASCADE"))
-
-    db.session.execute(
-        text("DROP MATERIALIZED VIEW IF EXISTS public.full_text_search CASCADE")
-    )
     # Drop all remaining tables
     db.session.commit()
     db.drop_all()

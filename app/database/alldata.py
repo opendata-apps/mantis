@@ -229,11 +229,4 @@ def refresh_materialized_view(db):
 
 
 if __name__ == "__main__":
-    # try:
-    #    drop = Drop(name='full_text_search', schema='public')
-    #    # You can call dropGen directly with the `drop` object
-    #    session.execute(dropGen(drop, None))
-    #    session.commit()
-    # except:
-    #    print('No view to drop.')
     create_materialized_view()

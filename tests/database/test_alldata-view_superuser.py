@@ -1,11 +1,11 @@
-"""Tests for the full-text search functionality using materialized views."""
+"""Tests for the alldata materialized view search."""
 
 
 def test_view_alldata_search(client):
-    """Test the direct search method in the FullTextSearch class.
+    """Test the alldata view search endpoint.
 
-    This test verifies that the search() class method properly finds
-    matching records by using PostgreSQL's full-text search capabilities.
+    This test verifies that the alldata view search API endpoint
+    returns data successfully for authenticated users.
     """
     with client.session_transaction() as sess:
         sess["user_id"] = "9999"  # Simulierter eingeloggter Benutzer
