@@ -15,8 +15,6 @@ from app.database.models import (
     TblAllData,
     ReportStatus,
 )
-from app.database.user_feedback import TblUserFeedback
-from app.database.feedback_type import FeedbackSource
 from flask import session
 from flask import (
     Blueprint,
@@ -206,11 +204,6 @@ def _load_sighting_for_render(report_id: int) -> tuple[TblMeldungen | None, TblU
     return sighting, user
 
 
-def _get_feedback_for_user(user_db_id: int) -> TblUserFeedback | None:
-    """Load optional feedback for a user."""
-    return db.session.scalar(
-        select(TblUserFeedback).where(TblUserFeedback.user_id == user_db_id)
-    )
 
 
 def _matches_filter_status(sighting: TblMeldungen, filter_status: str) -> bool:
@@ -624,12 +617,10 @@ def modal_open(id):
     edit_mode = request.args.get("edit") == "1"
     is_approved = sighting.is_approved
     editable = not is_approved or edit_mode
-    feedback = _get_feedback_for_user(user.id)
-
     return render_template(
         "admin/partials/_modal_open.html",
         sighting=sighting,
-        feedback=feedback,
+        feedback=user.feedback_source,
         is_approved=is_approved,
         editable=editable,
         active_tab="general",
@@ -653,12 +644,10 @@ def modal_tab(tab: str, id: int):
     edit_mode = request.args.get("edit") == "1"
     is_approved = sighting.is_approved
     editable = not is_approved or edit_mode
-    feedback = _get_feedback_for_user(user.id)
-
     return render_template(
         "admin/partials/_tab_response.html",
         sighting=sighting,
-        feedback=feedback,
+        feedback=user.feedback_source,
         is_approved=is_approved,
         editable=editable,
         active_tab=tab,

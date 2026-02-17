@@ -140,14 +140,7 @@ def melden(usrid=None):
             form.email.data = user_to_prefill.user_kontakt or ""
 
             # Check if user already provided feedback
-            user_has_feedback = (
-                db.session.scalar(
-                    select(TblUserFeedback).where(
-                        TblUserFeedback.user_id == user_to_prefill.id
-                    )
-                )
-                is not None
-            )
+            user_has_feedback = user_to_prefill.feedback_source is not None
             user_prefilled_data = True
 
     if request.method == "POST":
@@ -195,19 +188,12 @@ def melden(usrid=None):
                         db.session.flush()
 
                 # 3. Handle user feedback (how did you hear about us?)
-                if form.feedback_source.data:
-                    existing_feedback = db.session.scalar(
-                        select(TblUserFeedback).where(
-                            TblUserFeedback.user_id == reporter.id
-                        )
-                    )
-
-                    if not existing_feedback:
-                        user_feedback = TblUserFeedback()
-                        user_feedback.user_id = reporter.id
-                        user_feedback.feedback_source = form.feedback_source.data
-                        user_feedback.source_detail = form.feedback_detail.data
-                        db.session.add(user_feedback)
+                if form.feedback_source.data and not reporter.feedback_source:
+                    user_feedback = TblUserFeedback()
+                    user_feedback.user_id = reporter.id
+                    user_feedback.feedback_source = form.feedback_source.data
+                    user_feedback.source_detail = form.feedback_detail.data
+                    db.session.add(user_feedback)
 
                 # 4. Process uploaded photo
                 db_image_path = None
