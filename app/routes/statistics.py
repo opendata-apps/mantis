@@ -13,6 +13,7 @@ from app.tools.gen_messtisch_svg import create_measure_sheet
 from app.database.models import TblFundorte, TblMeldungen, ReportStatus
 from datetime import date, datetime, timedelta
 from collections import defaultdict
+from app.database.feedback_type import FeedbackSource
 
 stats = Blueprint("statistics", __name__)
 
@@ -604,10 +605,10 @@ def stats_feedback(request, page, marker):
     "Summary of the feedback questions provided"
 
     stm = """
-    SELECT ft.name, count(*)
-    from user_feedback uf join feedback_types ft
-    on uf.feedback_type_id = ft.id
-    GROUP BY ft.name;
+    SELECT feedback_source, count(*)
+    FROM user_feedback
+    WHERE feedback_source IS NOT NULL
+    GROUP BY feedback_source;
     """
     sql = text(stm)
     with db.engine.connect() as conn:
@@ -617,7 +618,7 @@ def stats_feedback(request, page, marker):
 
     if result:
         for record in result:
-            feedback.append(record)
+            feedback.append((FeedbackSource.get_display_name(record[0]), record[1]))
 
     stm = """
     SELECT source_detail

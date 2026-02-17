@@ -2,15 +2,14 @@
 
 import pytest
 from unittest.mock import patch, MagicMock
-from sqlalchemy import select, func, delete
+from sqlalchemy import select, func
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.database.populate import (
     populate_beschreibung,
-    populate_feedback_types,
     populate_all,
 )
-from app.database.models import TblFundortBeschreibung, TblFeedbackType
+from app.database.models import TblFundortBeschreibung
 
 
 class TestPopulateFunctions:
@@ -77,57 +76,10 @@ class TestPopulateFunctions:
             with pytest.raises(SQLAlchemyError):
                 populate_beschreibung(session)
 
-    def test_populate_feedback_types_empty_table(self, session):
-        """Test populating feedback types table when empty."""
-        # Clear existing data for this test
-        session.execute(delete(TblFeedbackType))
-        session.commit()
-
-        # Ensure table is empty
-        assert session.scalar(select(func.count()).select_from(TblFeedbackType)) == 0
-
-        # Populate the table
-        populate_feedback_types(session)
-
-        # Verify all records were inserted
-        records = session.scalars(select(TblFeedbackType)).all()
-        assert len(records) == 8
-
-        # Verify specific records
-        type_dict = {r.id: r.name for r in records}
-        assert type_dict[1] == "Auf einer Veranstaltung"
-        assert type_dict[2] == "Flyer/ Folder des Projektes"
-        assert type_dict[5] == "Internetrecherche"
-
-    def test_populate_feedback_types_existing_records(self, session):
-        """Test populating feedback types with existing records."""
-        # Clear feedback types first (they may not have FK constraints)
-        session.execute(delete(TblFeedbackType))
-        session.commit()
-
-        # Add an existing record with custom name
-        existing = TblFeedbackType(id=1, name="Custom Type")
-        session.add(existing)
-        session.commit()
-
-        # Populate should not fail
-        populate_feedback_types(session)
-
-        # Should have all expected records (existing + new ones)
-        records = session.scalars(select(TblFeedbackType)).all()
-        assert len(records) == 8  # 1 custom + 7 others (2-8)
-
-        # Original should be preserved with custom name
-        record = session.scalar(
-            select(TblFeedbackType).where(TblFeedbackType.id == 1)
-        )
-        assert record.name == "Custom Type"
-
     @patch("app.database.vg5000_fill_aemter.import_aemter_data")
-    @patch("app.database.populate.populate_feedback_types")
     @patch("app.database.populate.populate_beschreibung")
     def test_populate_all_success(
-        self, mock_beschreibung, mock_feedback, mock_aemter, session
+        self, mock_beschreibung, mock_aemter, session
     ):
         """Test successful execution of populate_all."""
         # Setup
@@ -139,7 +91,6 @@ class TestPopulateFunctions:
 
         # Verify all functions were called in correct order
         mock_beschreibung.assert_called_once_with(session)
-        mock_feedback.assert_called_once_with(session)
         mock_aemter.assert_called_once_with(mock_engine, mock_json_data)
 
     @patch("app.database.vg5000_fill_aemter.import_aemter_data")
@@ -164,10 +115,9 @@ class TestPopulateFunctions:
         "app.database.vg5000_fill_aemter.import_aemter_data",
         side_effect=Exception("Import failed"),
     )
-    @patch("app.database.populate.populate_feedback_types")
     @patch("app.database.populate.populate_beschreibung")
     def test_populate_all_import_error(
-        self, mock_beschreibung, mock_feedback, mock_aemter, session
+        self, mock_beschreibung, mock_aemter, session
     ):
         """Test populate_all when aemter import fails - but it should NOT raise."""
         # Setup
@@ -179,7 +129,6 @@ class TestPopulateFunctions:
 
         # Earlier functions should have been called
         mock_beschreibung.assert_called_once()
-        mock_feedback.assert_called_once()
 
         # Import should have been attempted
         mock_aemter.assert_called_once()
@@ -228,16 +177,6 @@ class TestPopulateFunctions:
         # Count should not increase
         assert first_count == second_count
 
-        # Run populate_feedback_types twice
-        populate_feedback_types(session)
-        first_count = session.scalar(select(func.count()).select_from(TblFeedbackType))
-
-        populate_feedback_types(session)
-        second_count = session.scalar(select(func.count()).select_from(TblFeedbackType))
-
-        # Count should not increase
-        assert first_count == second_count
-
     def test_populate_functions_error_handling(self):
         """Test error handling in populate functions."""
         # Test database error handling
@@ -263,9 +202,8 @@ class TestPopulateFunctions:
         mock_current_app.logger = mock_logger
 
         with patch("app.database.populate.populate_beschreibung"):
-            with patch("app.database.populate.populate_feedback_types"):
-                with patch("app.database.vg5000_fill_aemter.import_aemter_data"):
-                    populate_all(mock_engine, mock_session, mock_json_data)
+            with patch("app.database.vg5000_fill_aemter.import_aemter_data"):
+                populate_all(mock_engine, mock_session, mock_json_data)
 
         # Should have logged progress
         # Check specific log messages

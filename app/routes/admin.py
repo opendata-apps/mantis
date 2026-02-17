@@ -16,7 +16,7 @@ from app.database.models import (
     ReportStatus,
 )
 from app.database.user_feedback import TblUserFeedback
-from app.database.feedback_type import TblFeedbackType
+from app.database.feedback_type import FeedbackSource
 from flask import session
 from flask import (
     Blueprint,
@@ -206,14 +206,11 @@ def _load_sighting_for_render(report_id: int) -> tuple[TblMeldungen | None, TblU
     return sighting, user
 
 
-def _get_feedback_for_user(user_db_id: int):
-    """Load optional feedback tuple for a user."""
-    feedback_stmt = (
-        select(TblUserFeedback, TblFeedbackType)
-        .join(TblFeedbackType, TblUserFeedback.feedback_type_id == TblFeedbackType.id)
-        .where(TblUserFeedback.user_id == user_db_id)
+def _get_feedback_for_user(user_db_id: int) -> TblUserFeedback | None:
+    """Load optional feedback for a user."""
+    return db.session.scalar(
+        select(TblUserFeedback).where(TblUserFeedback.user_id == user_db_id)
     )
-    return db.session.execute(feedback_stmt).first()
 
 
 def _matches_filter_status(sighting: TblMeldungen, filter_status: str) -> bool:

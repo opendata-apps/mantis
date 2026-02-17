@@ -26,6 +26,7 @@ from app.database.models import (
     TblUsers,
     TblUserFeedback,
 )
+from app.database.feedback_type import FeedbackSource
 from app.forms import MantisSightingForm
 from app.tools.gen_user_id import get_new_id
 from app.tools.mtb_calc import get_mtb, pointInRect
@@ -195,22 +196,18 @@ def melden(usrid=None):
 
                 # 3. Handle user feedback (how did you hear about us?)
                 if form.feedback_source.data:
-                    try:
-                        feedback_type_id = int(form.feedback_source.data)
-                        existing_feedback = db.session.scalar(
-                            select(TblUserFeedback).where(
-                                TblUserFeedback.user_id == reporter.id
-                            )
+                    existing_feedback = db.session.scalar(
+                        select(TblUserFeedback).where(
+                            TblUserFeedback.user_id == reporter.id
                         )
+                    )
 
-                        if not existing_feedback:
-                            user_feedback = TblUserFeedback()
-                            user_feedback.user_id = reporter.id
-                            user_feedback.feedback_type_id = feedback_type_id
-                            user_feedback.source_detail = form.feedback_detail.data
-                            db.session.add(user_feedback)
-                    except (ValueError, TypeError):
-                        pass  # Invalid feedback data, skip silently
+                    if not existing_feedback:
+                        user_feedback = TblUserFeedback()
+                        user_feedback.user_id = reporter.id
+                        user_feedback.feedback_source = form.feedback_source.data
+                        user_feedback.source_detail = form.feedback_detail.data
+                        db.session.add(user_feedback)
 
                 # 4. Process uploaded photo
                 db_image_path = None
@@ -558,26 +555,15 @@ def feedback_detail():
 
     feedback_source = request.form.get("feedback_source", "")
 
-    # Placeholders for different feedback sources
-    placeholders = {
-        "1": "z.B. Name der Veranstaltung, Ort",
-        "2": "z.B. wo haben Sie den Flyer erhalten?",
-        "3": "z.B. Name der Zeitung/Zeitschrift",
-        "4": "z.B. Name des Senders/der Sendung",
-        "5": "z.B. Suchmaschine, Website-Name",
-        "6": "z.B. Facebook, Instagram, Twitter",
-        "7": "z.B. Freund, Kollege, Familie",
-        "8": "Bitte beschreiben Sie, wie Sie von uns erfahren haben",
-    }
-
-    if feedback_source and feedback_source in placeholders:
-        return render_template(
-            "report/partials/feedback_detail.html",
-            show=True,
-            placeholder=placeholders[feedback_source],
-        )
-    else:
-        return render_template("report/partials/feedback_detail.html", show=False)
+    if feedback_source:
+        placeholder = FeedbackSource.get_placeholder(feedback_source)
+        if placeholder:
+            return render_template(
+                "report/partials/feedback_detail.html",
+                show=True,
+                placeholder=placeholder,
+            )
+    return render_template("report/partials/feedback_detail.html", show=False)
 
 
 @report.route("/melden/review", methods=["POST"])
@@ -664,12 +650,9 @@ def _get_location_description_display(location_value):
 
 def _get_feedback_source_display(feedback_value):
     """Convert feedback source value to display text."""
-    from app.forms import FEEDBACK_SOURCE_CHOICES
-
-    for value, label in FEEDBACK_SOURCE_CHOICES:
-        if value == feedback_value:
-            return label
-    return "Nicht angegeben"
+    if not feedback_value:
+        return "Nicht angegeben"
+    return FeedbackSource.get_display_name(feedback_value)
 
 
 def _format_date(date_str):

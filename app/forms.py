@@ -47,18 +47,10 @@ LOCATION_DESCRIPTION_CHOICES = [
     ("99", "Andere Orte"),
 ]
 
-# Feedback source choices - matches database feedback_types table
-FEEDBACK_SOURCE_CHOICES = [
-    ("", "-- Bitte wählen --"),
-    ("1", "Auf einer Veranstaltung"),
-    ("2", "Flyer/Folder des Projektes"),
-    ("3", "Presse"),
-    ("4", "Fernsehbeitrag"),
-    ("5", "Internetrecherche"),
-    ("6", "Social Media"),
-    ("7", "Freunde, Bekannte, Kollegen"),
-    ("8", "Andere"),
-]
+# Feedback source choices - derived from FeedbackSource enum (single source of truth)
+from app.database.feedback_type import FeedbackSource
+
+FEEDBACK_SOURCE_CHOICES = FeedbackSource.choices()
 
 
 # Custom validators
