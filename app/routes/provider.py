@@ -41,6 +41,7 @@ def melder_index(usrid):
         )
     if not current_user or current_user.user_rolle != "9":
         session["user_id"] = usrid
+        session.permanent = True
 
     image_path = current_app.config["UPLOAD_FOLDER"]
 

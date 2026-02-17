@@ -228,6 +228,17 @@ def create_app(config_class=Config):
     app.cli.add_command(create_all_data_view)
     app.cli.add_command(seed_command)
 
+    @app.shell_context_processor
+    def make_shell_context():
+        from app.database.models import TblMeldungen, TblUsers, TblFundorte
+
+        return {
+            "db": db,
+            "TblMeldungen": TblMeldungen,
+            "TblUsers": TblUsers,
+            "TblFundorte": TblFundorte,
+        }
+
     # If using Flask-App behind Nginx
     # https://flask.palletsprojects.com/en/2.3.x/deploying/proxy_fix/
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
@@ -255,9 +266,6 @@ def create_app(config_class=Config):
     from app.routes.provider import provider
     from app.routes.statistics import stats
     from app.routes.report import report
-
-    # CSRF exemption for stats: templates lack CSRF tokens (TODO: fix and remove)
-    csrf.exempt(stats)
 
     app.register_blueprint(main)
     app.register_blueprint(admin)

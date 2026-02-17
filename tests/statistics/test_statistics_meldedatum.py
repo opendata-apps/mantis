@@ -17,15 +17,9 @@ from app.routes.statistics import stats_bardiagram_datum
 )
 @pytest.mark.usefixtures("session_with_user", "request_context")
 def test_stats_bardiagram(
-    mock_request, session, dbfields, page, expected_x, expected_y
+    session, dbfields, page, expected_x, expected_y
 ):
     """Parameterized test for stats_bardiagram_datum with different configurations."""
-
-    mock_request.form = {
-        "dateFrom": "2024-01-07",
-        "dateTo": "2024-03-06",
-        "user_id": "9999",
-    }
 
     flask_session["date_from"] = "2024-01-07"
     flask_session["date_to"] = "2024-03-06"
@@ -34,7 +28,6 @@ def test_stats_bardiagram(
         mock_render_template.return_value = None
 
         stats_bardiagram_datum(
-            request=mock_request,
             dbfields=dbfields,
             page=page,
         )

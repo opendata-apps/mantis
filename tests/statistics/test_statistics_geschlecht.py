@@ -5,7 +5,7 @@ from app.routes.statistics import stats_geschlecht
 
 
 @pytest.mark.usefixtures("session_with_user", "request_context")
-def test_stats_geschlecht(form_with_dates, session):
+def test_stats_geschlecht(session):
     """Test zur Prüfung der Statistik nach Geschlecht/Entwicklungsstadien."""
 
     flask_session["date_from"] = "2024-01-01"
@@ -15,7 +15,7 @@ def test_stats_geschlecht(form_with_dates, session):
     with patch("app.routes.statistics.render_template") as mock_render_template:
         mock_render_template.return_value = None
 
-        stats_geschlecht(request=form_with_dates)
+        stats_geschlecht()
 
         mock_render_template.assert_called_once()
 

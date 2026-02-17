@@ -6,7 +6,7 @@ from app.routes.statistics import stats_bundesland, stats_laender
 
 
 @pytest.mark.usefixtures("session_with_user", "request_context")
-def test_stats_laender_grouping_query_executes(form_with_dates, session):
+def test_stats_laender_grouping_query_executes(session):
     """Regression test: grouped state query must execute without PostgreSQL grouping errors."""
 
     flask_session["date_from"] = "2024-01-01"
@@ -16,7 +16,7 @@ def test_stats_laender_grouping_query_executes(form_with_dates, session):
     with patch("app.routes.statistics.render_template") as mock_render_template:
         mock_render_template.return_value = None
 
-        stats_laender(request=form_with_dates, marker="meldungen_laender")
+        stats_laender(marker="meldungen_laender")
 
         mock_render_template.assert_called_once()
         assert mock_render_template.call_args[0][0] == "statistics/stats-laender.html"
@@ -32,7 +32,7 @@ def test_stats_laender_grouping_query_executes(form_with_dates, session):
 )
 @pytest.mark.usefixtures("session_with_user", "request_context")
 def test_stats_bundesland_grouping_query_executes(
-    form_with_dates, session, marker, expected_template
+    session, marker, expected_template
 ):
     """Regression test: district grouping query must execute without PostgreSQL grouping errors."""
 
@@ -43,7 +43,7 @@ def test_stats_bundesland_grouping_query_executes(
     with patch("app.routes.statistics.render_template") as mock_render_template:
         mock_render_template.return_value = None
 
-        stats_bundesland(request=form_with_dates, marker=marker)
+        stats_bundesland(marker=marker)
 
         mock_render_template.assert_called_once()
         assert mock_render_template.call_args[0][0] == expected_template

@@ -1,9 +1,7 @@
 """Functional tests for CSRF protection behavior.
 
 Covers:
-- Protected routes reject POST without CSRF token.
-- Protected routes accept POST with a valid CSRF token.
-- Exempt routes accept POST without CSRF token.
+- Protected routes reject POST without CSRF token (admin and statistics).
 """
 
 
@@ -30,8 +28,8 @@ def test_admin_post_without_csrf_is_rejected(app, authenticated_client):
 ## missing tokens, and explicitly exempt routes allow POST without tokens.
 
 
-def test_statistics_post_is_exempt_from_csrf(app, authenticated_client):
-    """Statistics blueprint is explicitly CSRF-exempt; POST should work without token."""
+def test_statistics_post_without_csrf_is_rejected(app, authenticated_client):
+    """Statistics POST endpoints should reject requests without a CSRF token."""
     old = app.config.get("WTF_CSRF_ENABLED", False)
     try:
         app.config["WTF_CSRF_ENABLED"] = True
@@ -39,7 +37,8 @@ def test_statistics_post_is_exempt_from_csrf(app, authenticated_client):
         # Ensure authenticated reviewer session
         authenticated_client.get("/reviewer/9999", follow_redirects=True)
 
+        # Missing CSRF token → 403
         resp = authenticated_client.post("/statistik/9999", data={"stats": "start"})
-        assert resp.status_code == 200
+        assert resp.status_code == 403
     finally:
         app.config["WTF_CSRF_ENABLED"] = old

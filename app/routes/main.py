@@ -6,6 +6,7 @@ from flask import (
     Blueprint,
     Response,
     current_app,
+    g,
     jsonify,
     render_template,
     request,
@@ -149,7 +150,7 @@ def galerie():
 
     return render_template(
         "galerie.html",
-        user_id=session["user_id"],
+        user_id=g.current_user.user_id,
         bilder=bilder,
         current_index=current_index,
     )

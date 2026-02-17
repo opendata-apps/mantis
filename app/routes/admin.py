@@ -14,7 +14,7 @@ from app.database.models import (
     TblAllData,
     ReportStatus,
 )
-from flask import session
+from flask import session, g
 from flask import (
     Blueprint,
     abort,
@@ -68,16 +68,16 @@ class CompoundSelectPagination(Pagination):
         """Execute the select statement without scalars() to preserve all entities."""
         stmt = self._query_args["select"]
         stmt = stmt.limit(self.per_page).offset(self._query_offset)
-        session = self._query_args["session"]
+        db_session = self._query_args["session"]
         # Use execute() instead of scalars() to get full Row objects
-        return list(session.execute(stmt).unique().all())
+        return list(db_session.execute(stmt).unique().all())
 
     def _query_count(self) -> int:
         """Count total rows for pagination."""
         stmt = self._query_args["select"]
         sub = stmt.order_by(None).subquery()
-        session = self._query_args["session"]
-        return session.execute(select(func.count()).select_from(sub)).scalar()
+        db_session = self._query_args["session"]
+        return db_session.execute(select(func.count()).select_from(sub)).scalar()
 
 # Blueprints
 admin = Blueprint("admin", __name__)
@@ -98,6 +98,22 @@ NON_EDITABLE_FIELDS = {
         "user_id",
     ],
 }
+
+
+def _maybe_refresh_alldata_view(*, force: bool = False) -> None:
+    """Refresh the alldata materialized view if stale (>1 min) or forced."""
+    if not force:
+        last_updated = session.get("last_updated_all_data_view")
+        # Handle timezone info that Flask session serialization may add
+        if last_updated and hasattr(last_updated, "tzinfo") and last_updated.tzinfo:
+            last_updated = last_updated.replace(tzinfo=None)
+        now = datetime.now()
+        if last_updated is not None and (now - last_updated <= timedelta(minutes=1)):
+            return
+    else:
+        now = datetime.now()
+    ad.refresh_materialized_view(db)
+    session["last_updated_all_data_view"] = now
 
 
 def recalculate_amt_mtb(fundort):
@@ -267,6 +283,7 @@ def reviewer(usrid):
     per_page = request.args.get("per_page", 21, type=int)
     # Store the userid in session
     session["user_id"] = usrid
+    session.permanent = True
 
     filter_status = request.args.get("statusInput", "offen")
     filter_type = request.args.get("typeInput", None)
@@ -385,7 +402,7 @@ def change_mantis_meta_data(id):
         if not sighting_obj:
             return jsonify({"error": "Fundort not found"}), 404
 
-    sighting_meldung.bearb_id = session["user_id"]
+    sighting_meldung.bearb_id = g.current_user.user_id
     update_fields = {
         "fo_quelle": "fo_quelle",
         "anm_bearbeiter": "anm_bearbeiter",
@@ -420,7 +437,7 @@ def change_mantis_meta_data(id):
         try:
             db.session.commit()
             current_app.logger.info(
-                f"Report {id} metadata updated: {fieldname} to {new_data} by user {session['user_id']}"
+                f"Report {id} metadata updated: {fieldname} to {new_data} by user {sighting_meldung.bearb_id}"
             )
 
             return jsonify({"success": True})
@@ -469,7 +486,7 @@ def update_coordinates(id):
     recalculate_amt_mtb(fundort)
 
     # Update bearer ID
-    sighting.bearb_id = session["user_id"]
+    sighting.bearb_id = g.current_user.user_id
 
     try:
         db.session.commit()
@@ -513,7 +530,7 @@ def update_address(id):
     if land:
         fundort.land = land
 
-    sighting.bearb_id = session["user_id"]
+    sighting.bearb_id = g.current_user.user_id
 
     try:
         db.session.commit()
@@ -553,7 +570,7 @@ def toggle_approve_sighting(id):
         sighting.statuses = [ReportStatus.APPR.value] + flags
         sighting.dat_bear = datetime.now()
     sighting.deleted = sighting.is_deleted
-    sighting.bearb_id = session["user_id"]
+    sighting.bearb_id = g.current_user.user_id
 
     try:
         db.session.commit()
@@ -676,7 +693,7 @@ def toggle_flag(id):
 
     sighting.statuses = statuses
     sighting.deleted = sighting.is_deleted
-    sighting.bearb_id = session["user_id"]
+    sighting.bearb_id = g.current_user.user_id
 
     try:
         db.session.commit()
@@ -701,7 +718,7 @@ def delete_sighting(id):
     # Set statuses to [DEL] only (DEL is exclusive)
     sighting.statuses = [ReportStatus.DEL.value]
     sighting.deleted = True
-    sighting.bearb_id = session["user_id"]
+    sighting.bearb_id = g.current_user.user_id
     try:
         db.session.commit()
     except SQLAlchemyError as e:
@@ -725,7 +742,7 @@ def undelete_sighting(id):
     # Set statuses to [OPEN] and clear deleted flag
     sighting.statuses = [ReportStatus.OPEN.value]
     sighting.deleted = False
-    sighting.bearb_id = session["user_id"]
+    sighting.bearb_id = g.current_user.user_id
     try:
         db.session.commit()
     except SQLAlchemyError as e:
@@ -761,7 +778,7 @@ def change_mantis_count(id):
     elif mantis_type == "Anzahl":
         sighting.tiere = new_count
 
-    sighting.bearb_id = session["user_id"]
+    sighting.bearb_id = g.current_user.user_id
     db.session.commit()
 
     return jsonify({"success": True})
@@ -1210,19 +1227,8 @@ def get_filtered_query(
 @admin.route("/alldata")
 @reviewer_required
 def database_view():
-    last_updated = session.get("last_updated_all_data_view")
-    now = datetime.now()
-    # Handle case where session datetime might have timezone info from serialization
-    if last_updated and hasattr(last_updated, "tzinfo") and last_updated.tzinfo:
-        last_updated = last_updated.replace(tzinfo=None)
-    if last_updated is None or now - last_updated > timedelta(minutes=1):
-        # if last_updated is None or now - last_updated > timedelta(minutes=1):
-        ad.refresh_materialized_view(db)
-        session["last_updated_all_data_view"] = now
-    # Get user_id from session, default to None if not found
-    user_id = session.get("user_id")
-
-    return render_template("admin/database.html", user_id=user_id)
+    _maybe_refresh_alldata_view()
+    return render_template("admin/database.html", user_id=g.current_user.user_id)
 
 
 @admin.route("/admin/get_table_data/<table_name>")
@@ -1238,15 +1244,7 @@ def get_table_data(table_name):
         sort_column = request.args.get("sort_column", "meldungen_id")
         sort_direction = request.args.get("sort_direction", "asc")
 
-        # Check if it's time to refresh the materialized view
-        last_updated = session.get("last_updated_all_data_view")
-        now = datetime.now()
-        # Handle case where session datetime might have timezone info from serialization
-        if last_updated and hasattr(last_updated, "tzinfo") and last_updated.tzinfo:
-            last_updated = last_updated.replace(tzinfo=None)
-        if last_updated is None or (now - last_updated > timedelta(minutes=1)):
-            ad.refresh_materialized_view(db)
-            session["last_updated_all_data_view"] = now
+        _maybe_refresh_alldata_view()
 
         # Get the table object - we only work with TblAllData now
         table = TblAllData.__table__
@@ -1274,8 +1272,11 @@ def get_table_data(table_name):
                     )  # This ensures no results
             else:  # full_text search
                 ts_query = func.websearch_to_tsquery("german", search)
-                stmt = stmt.where(
-                    table.c.search_vector.op("@@")(ts_query)
+                meldungen_tbl = TblMeldungen.__table__
+                stmt = stmt.join(
+                    meldungen_tbl, table.c.meldungen_id == meldungen_tbl.c.id
+                ).where(
+                    meldungen_tbl.c.search_vector.op("@@")(ts_query)
                 )
 
         # Apply sorting
@@ -1299,8 +1300,11 @@ def get_table_data(table_name):
                     )
             else:
                 ts_query = func.websearch_to_tsquery("german", search)
-                total_items_stmt = total_items_stmt.where(
-                    table.c.search_vector.op("@@")(ts_query)
+                meldungen_tbl = TblMeldungen.__table__
+                total_items_stmt = select(func.count()).select_from(
+                    table.join(meldungen_tbl, table.c.meldungen_id == meldungen_tbl.c.id)
+                ).where(
+                    meldungen_tbl.c.search_vector.op("@@")(ts_query)
                 )
         total_items = db.session.execute(total_items_stmt).scalar()
 
@@ -1479,9 +1483,8 @@ def update_cell():
 
         db.session.commit()
 
-        # Refresh materialized view after update
-        ad.refresh_materialized_view(db)
-        session["last_updated_all_data_view"] = datetime.now()
+        # Force-refresh materialized view after update
+        _maybe_refresh_alldata_view(force=True)
 
         return jsonify({"success": True})
 

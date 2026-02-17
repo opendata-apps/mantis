@@ -1,14 +1,13 @@
 from flask import Blueprint
 from flask import render_template, request, current_app
-from flask import session, abort
+from flask import session
 from flask import jsonify
 from sqlalchemy import func, text, select
 from sqlalchemy import cast, String
 from sqlalchemy import literal_column
 from app import db
-from app.database.models import TblUsers
 from app.database.models import TblAemterCoordinaten
-from app.tools.check_reviewer import login_required
+from app.tools.check_reviewer import reviewer_required
 from app.tools.gen_messtisch_svg import create_measure_sheet
 from app.database.models import TblFundorte, TblMeldungen, ReportStatus
 from datetime import date, datetime, timedelta
@@ -69,7 +68,7 @@ def autocomplete_ags():
         dbsession.close()
 
 
-def get_date_interval(request=None):
+def get_date_interval():
     "Calculate and format start and end date"
 
     now = datetime.now().isoformat()
@@ -83,53 +82,46 @@ def get_date_interval(request=None):
 
 @stats.route("/statistik", methods=["POST", "GET"])
 @stats.route("/statistik/<usrid>", methods=["POST", "GET"])
-@login_required
+@reviewer_required
 def stats_start(usrid=None):
     "Startseite für alle Statistiken"
 
-    session["date_from"], session["date_to"] = get_date_interval(request)
+    session["date_from"], session["date_to"] = get_date_interval()
     session["ags"] = request.form.get("ags", session.get("ags", "")).strip()
-    user_id = session["user_id"]
-    user = db.session.scalar(select(TblUsers).where(TblUsers.user_id == user_id))
-    # If the user doesn't exist or the role isn't 9, return 404
-    if not user or user.user_rolle != "9":
-        abort(403)
 
     value = request.form.get("stats", "start")
     session["marker"] = value
 
     match value:
         case "geschlecht":
-            return stats_geschlecht(request)
+            return stats_geschlecht()
         case "meldungen_meldedatum":
             return stats_bardiagram_datum(
-                request, dbfields=["dat_meld"], page="stats-meldedatum.html"
+                dbfields=["dat_meld"], page="stats-meldedatum.html"
             )
         case "meldungen_funddatum":
             return stats_bardiagram_datum(
-                request, dbfields=["dat_fund_von"], page="stats-funddatum.html"
+                dbfields=["dat_fund_von"], page="stats-funddatum.html"
             )
         case "meldungen_meld_fund":
             return stats_bardiagram_datum(
-                request,
                 dbfields=["dat_fund_von", "dat_meld"],
                 page="stats-meld-fund.html",
             )
         case "meldungen_mtb":
-            return stats_mtb(request)
+            return stats_mtb()
         case "meldungen_amt":
-            return stats_amt(request, marker="meldungen_amt")
+            return stats_amt(marker="meldungen_amt")
         case "meldungen_laender":
-            return stats_laender(request, marker="meldungen_laender")
+            return stats_laender(marker="meldungen_laender")
         case "meldungen_brb":
-            return stats_bundesland(request, marker="meldungen_brb")
+            return stats_bundesland(marker="meldungen_brb")
         case "meldungen_berlin":
-            return stats_bundesland(request, marker="meldungen_berlin")
+            return stats_bundesland(marker="meldungen_berlin")
         case "meldungen_gesamt":
-            return stats_gesamt(request, marker="meldungen_gesamt")
+            return stats_gesamt(marker="meldungen_gesamt")
         case "feedback":
             return stats_feedback(
-                request,
                 marker="feedback",
                 page="stats-feedback.html",
             )
@@ -139,7 +131,7 @@ def stats_start(usrid=None):
             return render_template("statistics/statistiken.html", menu=list_of_stats)
 
 
-def stats_mtb(request):
+def stats_mtb():
     "Results as MTB (Messtischblatt-Raster)"
     art = request.form.get("typeInput", "all")
     typeInput = ["mtb", "maennlich", "weiblich", "oothek", "nymphe", "andere", "all"]
@@ -186,7 +178,7 @@ def stats_mtb(request):
     )
 
 
-def stats_bardiagram_datum(request, dbfields, page):
+def stats_bardiagram_datum(dbfields, page):
     "Calculate statistics by date"
 
     results = {0: {}, 1: {}}
@@ -205,10 +197,9 @@ def stats_bardiagram_datum(request, dbfields, page):
            ORDER by Tag;
         """
         sql = text(stm)
-        with db.engine.connect() as conn:
-            result = conn.execute(
-                sql, {"date_from": session["date_from"], "date_to": session["date_to"]}
-            )
+        result = db.session.execute(
+            sql, {"date_from": session["date_from"], "date_to": session["date_to"]}
+        )
 
         trace = {"x": [], "y": []}
 
@@ -226,10 +217,10 @@ def stats_bardiagram_datum(request, dbfields, page):
     )
 
 
-def stats_geschlecht(request=None):
+def stats_geschlecht():
     """Count sum of all kategories"""
 
-    start_date, end_date = get_date_interval(request)
+    start_date, end_date = get_date_interval()
 
     stmt = (
         select(
@@ -266,7 +257,7 @@ def stats_geschlecht(request=None):
     )
 
 
-def stats_amt(request, marker):
+def stats_amt(marker):
     "Statistics pro Gemeinden (AGS))"
 
     typeInput = ["amt", "maennlich", "weiblich", "oothek", "nymphe", "andere", "all"]
@@ -322,7 +313,7 @@ def stats_amt(request, marker):
     )
 
 
-def stats_laender(request, marker):
+def stats_laender(marker):
     "Statistics pro Bundesland (AGS))"
 
     substring_start = literal_column("1")
@@ -394,7 +385,7 @@ def stats_laender(request, marker):
     )
 
 
-def stats_bundesland(request, marker):
+def stats_bundesland(marker):
     """
     Statistik für:
     - Brandenburg
@@ -503,7 +494,7 @@ def stats_bundesland(request, marker):
     )
 
 
-def stats_gesamt(request, marker):
+def stats_gesamt(marker):
     "Get sum for  Bundesland, Landkreis/Stadtbezirk and Amt"
 
     result_dict = {
@@ -601,7 +592,7 @@ def stats_gesamt(request, marker):
     )
 
 
-def stats_feedback(request, page, marker):
+def stats_feedback(page, marker):
     "Summary of the feedback questions provided"
 
     stm = """
@@ -611,8 +602,7 @@ def stats_feedback(request, page, marker):
     GROUP BY feedback_source;
     """
     sql = text(stm)
-    with db.engine.connect() as conn:
-        result = conn.execute(sql)
+    result = db.session.execute(sql)
 
     feedback = []
 
@@ -627,8 +617,7 @@ def stats_feedback(request, page, marker):
     ORDER BY id desc Limit 20;
     """
     sql = text(stm)
-    with db.engine.connect() as conn:
-        result = conn.execute(sql)
+    result = db.session.execute(sql)
 
     details = []
     if result:

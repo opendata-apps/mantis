@@ -4,19 +4,8 @@ from flask import session as flask_session
 from app.routes.statistics import stats_bardiagram_datum
 
 
-@pytest.fixture
-def custom_date_request(form_data_request):
-    """Fixture für einen Request mit spezifischem Datumszeitraum für Fundatum-Tests."""
-    form_data_request.form = {
-        "dateFrom": "2024-01-07",
-        "dateTo": "2024-03-06",
-        "user_id": "9999",
-    }
-    return form_data_request
-
-
 @pytest.mark.usefixtures("session_with_user", "request_context")
-def test_stats_funddatum(custom_date_request, session):
+def test_stats_funddatum(session):
     """Test dass die stats_bardiagram_datum Funktion korrekte Daten liefert
     für den Fundort-Datumsbereich."""
 
@@ -27,7 +16,6 @@ def test_stats_funddatum(custom_date_request, session):
         mock_render_template.return_value = None
 
         stats_bardiagram_datum(
-            request=custom_date_request,
             dbfields=["dat_fund_von"],
             page="stats-funddatum.html",
         )
