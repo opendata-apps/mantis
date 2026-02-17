@@ -34,7 +34,14 @@ class TblMeldungen(db.Model):
         # FK index for JOIN operations: meldungen.fo_zuordnung -> fundorte.id
         Index("ix_meldungen_fo_zuordnung", "fo_zuordnung"),
         # GIN index for full-text search via tsvector column
-        Index("ix_meldungen_search_vector_gin", "search_vector", postgresql_using="gin"),
+        # fastupdate=off: each write updates GIN immediately (slightly slower writes)
+        # but reads never scan a pending list (consistently fast reads, no latency spikes)
+        Index(
+            "ix_meldungen_search_vector_gin",
+            "search_vector",
+            postgresql_using="gin",
+            postgresql_with={"fastupdate": "off"},
+        ),
     )
 
     id = db.Column(db.Integer, primary_key=True)

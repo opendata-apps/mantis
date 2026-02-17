@@ -76,18 +76,67 @@ END;
 $$ LANGUAGE plpgsql;
 """
 
-# --- Trigger function for meldungen INSERT/UPDATE ---
+# --- BEFORE trigger function for meldungen INSERT/UPDATE ---
+# Uses BEFORE to set NEW.search_vector directly, avoiding the double-write
+# that an AFTER trigger + UPDATE would cause.
 TRIGGER_MELDUNGEN = """
 CREATE OR REPLACE FUNCTION trg_meldungen_search_vector()
 RETURNS trigger AS $$
+DECLARE
+    f_ort text := '';
+    f_kreis text := '';
+    f_land text := '';
+    f_plz text := '';
+    f_strasse text := '';
+    f_amt text := '';
+    f_mtb text := '';
+    f_beschreibung text := '';
+    u_name text := '';
+    u_kontakt text := '';
+    u_uid text := '';
 BEGIN
-    PERFORM recompute_search_vector(NEW.id);
+    -- Fetch fundort + beschreibung data if linked
+    IF NEW.fo_zuordnung IS NOT NULL THEN
+        SELECT
+            coalesce(f.ort, ''), coalesce(f.kreis, ''), coalesce(f.land, ''),
+            coalesce(cast(f.plz as text), ''),
+            coalesce(f.strasse, ''), coalesce(f.amt, ''), coalesce(f.mtb, ''),
+            coalesce(b.beschreibung, '')
+        INTO f_ort, f_kreis, f_land, f_plz, f_strasse, f_amt, f_mtb, f_beschreibung
+        FROM fundorte f
+        LEFT JOIN beschreibung b ON f.beschreibung = b.id
+        WHERE f.id = NEW.fo_zuordnung;
+    END IF;
+
+    -- Fetch user data (won't exist during INSERT — melduser trigger handles that later)
+    SELECT coalesce(u.user_name, ''), coalesce(u.user_kontakt, ''), coalesce(u.user_id, '')
+    INTO u_name, u_kontakt, u_uid
+    FROM melduser mu
+    JOIN users u ON mu.id_user = u.id
+    WHERE mu.id_meldung = NEW.id
+    LIMIT 1;
+
+    -- Build weighted search vector and assign directly to NEW row
+    NEW.search_vector :=
+        setweight(to_tsvector('german',
+            f_ort || ' ' || f_kreis || ' ' || f_land || ' ' || f_plz
+        ), 'A') ||
+        setweight(to_tsvector('german',
+            u_name || ' ' || u_kontakt || ' ' || u_uid || ' ' || coalesce(NEW.bearb_id, '')
+        ), 'B') ||
+        setweight(to_tsvector('german',
+            f_strasse || ' ' || f_amt || ' ' || f_mtb || ' ' || f_beschreibung
+        ), 'C') ||
+        setweight(to_tsvector('german',
+            coalesce(NEW.anm_melder, '') || ' ' || coalesce(NEW.anm_bearbeiter, '')
+        ), 'D');
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER meldungen_search_vector_update
-    AFTER INSERT OR UPDATE OF bearb_id, anm_melder, anm_bearbeiter, fo_zuordnung
+    BEFORE INSERT OR UPDATE OF bearb_id, anm_melder, anm_bearbeiter, fo_zuordnung
     ON meldungen
     FOR EACH ROW
     EXECUTE FUNCTION trg_meldungen_search_vector();
@@ -217,15 +266,9 @@ def upgrade():
     # 1. Add search_vector column
     op.add_column("meldungen", sa.Column("search_vector", TSVECTOR, nullable=True))
 
-    # 2. Create GIN index
-    op.create_index(
-        "ix_meldungen_search_vector_gin",
-        "meldungen",
-        ["search_vector"],
-        postgresql_using="gin",
-    )
-
-    # 3. Create recomputation function and triggers
+    # 2. Create recomputation function and triggers
+    # (triggers created before backfill — the meldungen trigger is BEFORE so it
+    # won't cause double-writes; other table triggers only fire on their own DML)
     op.execute(RECOMPUTE_FUNCTION)
     op.execute(TRIGGER_MELDUNGEN)
     op.execute(TRIGGER_FUNDORTE)
@@ -233,8 +276,17 @@ def upgrade():
     op.execute(TRIGGER_MELDUSER)
     op.execute(TRIGGER_USERS)
 
-    # 4. Backfill existing rows
+    # 3. Backfill existing rows (BEFORE creating GIN index — bulk index build
+    # on a populated column is much faster than incremental updates per row)
     op.execute(BACKFILL)
+
+    # 4. Create GIN index after backfill, with fastupdate=off for consistent
+    # read latency (no pending list scans)
+    op.execute("""
+        CREATE INDEX ix_meldungen_search_vector_gin
+        ON meldungen USING gin (search_vector)
+        WITH (fastupdate = off)
+    """)
 
     # 5. Drop the old materialized view
     op.execute("DROP MATERIALIZED VIEW IF EXISTS public.full_text_search CASCADE")
