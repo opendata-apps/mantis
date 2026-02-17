@@ -1273,14 +1273,10 @@ def get_table_data(table_name):
                         table.c.meldungen_id == -1
                     )  # This ensures no results
             else:  # full_text search
-                search_filters = []
-                for column in table.columns:
-                    if isinstance(column.type, db.String):
-                        search_filters.append(column.ilike(f"%{search}%"))
-                    elif isinstance(column.type, (db.Integer, db.Float)):
-                        search_filters.append(cast(column, String).ilike(f"%{search}%"))
-                if search_filters:
-                    stmt = stmt.where(or_(*search_filters))
+                ts_query = func.websearch_to_tsquery("german", search)
+                stmt = stmt.where(
+                    table.c.search_vector.op("@@")(ts_query)
+                )
 
         # Apply sorting
         if sort_direction == "asc":
@@ -1302,8 +1298,10 @@ def get_table_data(table_name):
                         table.c.meldungen_id == -1
                     )
             else:
-                if search_filters:
-                    total_items_stmt = total_items_stmt.where(or_(*search_filters))
+                ts_query = func.websearch_to_tsquery("german", search)
+                total_items_stmt = total_items_stmt.where(
+                    table.c.search_vector.op("@@")(ts_query)
+                )
         total_items = db.session.execute(total_items_stmt).scalar()
 
         # Apply pagination

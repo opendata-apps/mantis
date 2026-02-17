@@ -6,6 +6,7 @@ from sqlalchemy.ext import compiler
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 from typing import Optional
+from sqlalchemy.dialects.postgresql import TSVECTOR
 from app import db
 
 meta = sa.MetaData()
@@ -52,6 +53,7 @@ class TblAllData(Base):
     user_id = db.Column(db.Integer)
     user_name = db.Column(db.String(45))
     user_kontakt = db.Column(db.String(45))
+    search_vector = db.Column(TSVECTOR)
 
 
 class Drop(sa.schema.DDLElement):
@@ -131,6 +133,7 @@ def create_materialized_view(
         sa.column("fo_beleg"),
         sa.column("anm_melder"),
         sa.column("anm_bearbeiter"),
+        sa.column("search_vector"),
     )
     fundorte = sa.table(
         "fundorte",
@@ -184,6 +187,7 @@ def create_materialized_view(
         meldungen.c.fo_beleg,
         meldungen.c.anm_melder,
         meldungen.c.anm_bearbeiter,
+        meldungen.c.search_vector,
         fundorte.c.id.label("fundorte_id"),
         fundorte.c.plz,
         fundorte.c.ort,
