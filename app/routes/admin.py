@@ -5,7 +5,6 @@ import tempfile
 import xlsxwriter
 from app import db
 import app.database.alldata as ad
-import app.database.full_text_search as fts
 from app.database.models import (
     TblFundortBeschreibung,
     TblFundorte,
@@ -262,21 +261,12 @@ def reviewer(usrid):
     if not user or user.user_rolle != "9":
         abort(403)
 
-    now = datetime.now()
     # Get the user_name of the logged in user_id
     user_name = user.user_name
     page = request.args.get("page", 1, type=int)
     per_page = request.args.get("per_page", 21, type=int)
-    last_updated = session.get("last_updated")
     # Store the userid in session
     session["user_id"] = usrid
-
-    # Handle case where session datetime might have timezone info from serialization
-    if last_updated and hasattr(last_updated, "tzinfo") and last_updated.tzinfo:
-        last_updated = last_updated.replace(tzinfo=None)
-    if last_updated is None or now - last_updated > timedelta(minutes=1):
-        fts.refresh_materialized_view(db)
-        session["last_updated"] = now
 
     filter_status = request.args.get("statusInput", "offen")
     filter_type = request.args.get("typeInput", None)
@@ -1177,23 +1167,16 @@ def get_filtered_query(
                     search_type = "full_text"
 
             if search_type == "full_text":
-                if "@" in search_query:
-                    stmt = stmt.where(
-                        TblUsers.user_kontakt.ilike(f"%{search_query}%")
-                    )
-                else:
-                    # Use the new FTS search method
-                    matching_ids = fts.FullTextSearch.search(search_query)
-                    if matching_ids:
-                        stmt = stmt.where(TblMeldungen.id.in_(matching_ids))
-                    else:
-                        # If no FTS matches, return empty result
-                        stmt = stmt.where(TblMeldungen.id == -1)
+                ts_query = func.websearch_to_tsquery("german", search_query)
+                stmt = stmt.where(
+                    TblMeldungen.search_vector.op("@@")(ts_query)
+                )
+                stmt = stmt.order_by(
+                    func.ts_rank_cd(TblMeldungen.search_vector, ts_query).desc()
+                )
         except Exception as e:
             current_app.logger.error(f"Search error: {e}")
-            stmt = stmt.where(
-                TblMeldungen.id == -1
-            )  # Return empty result set on error
+            stmt = stmt.where(TblMeldungen.id == -1)
 
     # Apply date filters
     if date_from and date_to:

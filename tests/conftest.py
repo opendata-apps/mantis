@@ -173,12 +173,12 @@ def drop_all_with_views():
 def _db(app):
     """Set up the database for the test session.
 
-    Creates all database tables, populates with initial test data,
-    and handles cleanup after all tests are complete.
+    Drops everything, re-runs Alembic migrations (which create tables,
+    triggers, and functions), then populates with test data.
     """
-    # Setup: Run before test session begins
+    # Setup: Drop everything and re-run migrations so triggers exist
     drop_all_with_views()
-    db.create_all()
+    upgrade()
     # Fill tables with test data
     insert_initial_data_command()
 
