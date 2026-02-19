@@ -303,7 +303,7 @@
         </button>
         <h2 class="mb-4 text-2xl font-bold text-center text-green-700">Danke für Ihren Beitrag! 💚</h2>
         <div class="mb-6 mantis">
-            <img id="dancingMantis" src="https://www.svgrepo.com/show/481511/praying-mantis-2.svg" alt="Gottesanbeterin" class="mx-auto w-32 h-32">
+            <img id="dancingMantis" src="{{ url_for('static', filename='images/svg/praying-mantis.svg') }}" alt="Gottesanbeterin" class="mx-auto w-32 h-32">
             <span class="magnifier" role="img" aria-label="Lupe">🔍</span>
         </div>
         <p class="mb-6 text-lg text-center text-gray-700">{{ celebration_threshold }} Meldungen erreicht! Ihre Unterstützung ist wertvoll für unsere Forschung.</p>
