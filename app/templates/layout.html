@@ -5,12 +5,13 @@
 	<meta charset="UTF-8" />
 	{% include "flask-favicon.html" %}
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<meta http-equiv="X-UA-Compatible" content="ie=edge" />
 	<title> {% block page_title %}Mantis Religiosa Beobachtungen | Mitmachprojekt | Gottesanbeterin Gesucht{% endblock
-    page_title %} </title>
+		page_title %} </title>
 	<meta name="robots" content="{% block meta_robots %}index,follow{% endblock %}">
-	<meta name="description" content="{% block meta_description %} Gottesanbeterin in Deutschland gesichtet? Melden Sie Ihre Beobachtung, unterstützen Sie Forschung zu Mantis religiosa. {% endblock %}" />
-	<meta name="keywords" content="{% block meta_keywords %}Mantis religiosa, Gottesanbeterin, Mitmachprojekt, Beobachtungen, Meldung, Citizen Science, Naturkundemuseum, Potsdam, Deutschland, Gottesanbeterin gefunden, Gottesanbeterin gesichtet, Mantis entdeckt, Brandenburg, Berlin {% endblock %}" />
+	<meta name="description"
+		content="{% block meta_description %} Gottesanbeterin in Deutschland gesichtet? Melden Sie Ihre Beobachtung, unterstützen Sie Forschung zu Mantis religiosa. {% endblock %}" />
+	<meta name="keywords"
+		content="{% block meta_keywords %}Mantis religiosa, Gottesanbeterin, Mitmachprojekt, Beobachtungen, Meldung, Citizen Science, Naturkundemuseum, Potsdam, Deutschland, Gottesanbeterin gefunden, Gottesanbeterin gesichtet, Mantis entdeckt, Brandenburg, Berlin {% endblock %}" />
 	<link rel="canonical" href="{% block canonical %}{{ request.url | replace('http:', 'https:') }}{% endblock %}" />
 	<!-- Open Graph data -->
 	{% block og_meta %}
@@ -18,7 +19,8 @@
 	<meta property="og:type" content="website" />
 	<meta property="og:url" content="{{ request.url | replace('http:', 'https:') }}" />
 	<meta property="og:image" content="{{ url_for('static', filename='images/berger03.avif', _external=True) }}" />
-	<meta property="og:description" content="Beobachtungen der Gottesanbeterin (Mantis religiosa) in Deutschland. Melden Sie Ihre Beobachtungen und unterstützen Sie die Forschung zur Verbreitung dieser Art." />
+	<meta property="og:description"
+		content="Beobachtungen der Gottesanbeterin (Mantis religiosa) in Deutschland. Melden Sie Ihre Beobachtungen und unterstützen Sie die Forschung zur Verbreitung dieser Art." />
 	<meta property="og:site_name" content="Gottesanbeterin Gesucht" />
 	<meta property="og:locale" content="de_DE" />
 	{% endblock %}
@@ -26,11 +28,11 @@
 	{% block twitter_meta %}
 	<meta name="twitter:card" content="summary_large_image" />
 	<meta name="twitter:title" content="Gottesanbeterin Gesucht | Mitmachprojekt | Mantis Religiosa Beobachtungen" />
-	<meta name="twitter:description" content="Beobachtungen der Gottesanbeterin (Mantis religiosa) in Deutschland. Melden Sie Ihre Beobachtungen und unterstützen Sie die Forschung zur Verbreitung dieser Art." />
+	<meta name="twitter:description"
+		content="Beobachtungen der Gottesanbeterin (Mantis religiosa) in Deutschland. Melden Sie Ihre Beobachtungen und unterstützen Sie die Forschung zur Verbreitung dieser Art." />
 	<meta name="twitter:image" content="{{ url_for('static', filename='images/berger03.avif', _external=True) }}" />
 	<meta name="twitter:url" content="{{ request.url | replace('http:', 'https:') }}" />
 	{% endblock %}
-	<meta property="fb:admins" content="Facebook numberic ID" />
 	<link rel="preload" as="image" href="{{ url_for('static', filename='images/berger03.avif') }}" />
 	<link rel="stylesheet" href="{{ vite_asset('css/theme.css') }}" /> {% block head %} {% endblock head%}
 </head>
@@ -38,9 +40,9 @@
 <body class="flex flex-col min-h-screen antialiased bg-gray-100">
 	{# Check if we're in admin area #}
 	{%- set is_admin = request.path.startswith('/reviewer') or
-	                   request.path.startswith('/statistik') or
-	                   request.path.startswith('/galerie') or
-	                   request.path.startswith('/alldata') -%}
+	request.path.startswith('/statistik') or
+	request.path.startswith('/galerie') or
+	request.path.startswith('/alldata') -%}
 
 	<header class="site-header">
 		<nav class="nav-container">
@@ -60,12 +62,15 @@
 				{# Admin dropdown - desktop only #}
 				<li class="desktop-only">
 					<details class="relative dropdown">
-						<summary class="flex items-center justify-center w-10 h-10 text-white bg-green-600 rounded-lg cursor-pointer list-none hover:bg-green-700 transition-colors">
+						<summary
+							class="flex items-center justify-center w-10 h-10 text-white bg-green-600 rounded-lg cursor-pointer list-none hover:bg-green-700 transition-colors">
 							<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+									d="M12 4v16m8-8H4"></path>
 							</svg>
 						</summary>
-						<ul class="absolute right-0 z-50 mt-2 py-2 w-48 bg-white rounded-lg shadow-lg divide-y divide-gray-100">
+						<ul
+							class="absolute right-0 z-50 mt-2 py-2 w-48 bg-white rounded-lg shadow-lg divide-y divide-gray-100">
 							<li><a href="{{ url_for('admin.reviewer') }}">Reviewer</a></li>
 							<li><a href="/statistik">Statistics</a></li>
 							<li><a href="/galerie">Galerie</a></li>
@@ -139,46 +144,63 @@
 			header.classList.toggle('scrolled', window.scrollY > 10);
 		}, { passive: true });
 	</script>
-	<section class="relative flex items-center justify-center h-[240px] max-h-[240px] bg-fixed bg-center bg-no-repeat bg-cover" style="background-image: url('{{ url_for('static', filename='images/berger03.avif') }}');">
+	{%- set show_cta = request.path == '/' or request.path.startswith("/start") or
+		request.path.startswith("/sichtungen") or request.path.startswith("/report") -%}
+	<section
+		class="relative flex items-center justify-center h-60 md:bg-fixed bg-center bg-no-repeat bg-cover"
+		style="background-image: url('{{ url_for('static', filename='images/berger03.avif') }}');">
 		<div id="overlay" class="absolute inset-0 z-10 bg-black/50"></div>
 		<div class="relative z-20 mt-14 text-center">
-			<h1 class="mb-6 text-4xl font-bold text-gray-100 md:text-5xl lg:text-6xl"> {% block title %}{% endblock title %} </h1> {% if request.path == '/' or request.path.startswith("/start") or request.path.startswith("/sichtungen") or
-        request.path.startswith("/report") %} <a href={% block button_ref %} "/melden" {% endblock %} class="inline-block overflow-hidden relative px-12 py-4 font-medium text-white bg-green-600 rounded-lg transition-all duration-300 ease-out group hover:bg-linear-to-r hover:from-green-600 hover:to-green-500 hover:ring-2 hover:ring-offset-2 hover:ring-green-500">
+			<h1 class="mb-6 text-4xl font-bold text-gray-100 md:text-5xl lg:text-6xl">
+				{% block title %}{% endblock title %}
+			</h1>
+			{% if show_cta %}
+			<a href={% block button_ref %} "/melden" {% endblock %}
+				class="inline-block overflow-hidden relative px-12 py-4 font-medium text-white bg-green-600 rounded-lg transition-colors duration-300 ease-out group hover:bg-linear-to-r hover:from-green-600 hover:to-green-500 hover:ring-2 hover:ring-offset-2 hover:ring-green-500">
 				<span class="absolute bottom-0 left-0 -ml-2 h-full">
-					<svg viewBox="0 0 487 487" class="w-auto h-full opacity-100 object-stretch" xmlns="http://www.w3.org/2000/svg">
-						<path d="M0 .3c67 2.1 134.1 4.3 186.3 37 52.2 32.7 89.6 95.8 112.8 150.6 23.2 54.8 32.3 101.4 61.2 149.9 28.9 48.4 77.7 98.8 126.4 149.2H0V.3z" fill="white" fill-rule="nonzero" fill-opacity=".1"></path>
+					<svg viewBox="0 0 487 487" class="w-auto h-full opacity-100 object-stretch"
+						xmlns="http://www.w3.org/2000/svg">
+						<path
+							d="M0 .3c67 2.1 134.1 4.3 186.3 37 52.2 32.7 89.6 95.8 112.8 150.6 23.2 54.8 32.3 101.4 61.2 149.9 28.9 48.4 77.7 98.8 126.4 149.2H0V.3z"
+							fill="white" fill-rule="nonzero" fill-opacity=".1"></path>
 					</svg>
 				</span>
 				<span class="absolute top-0 right-0 w-12">
 					<svg viewBox="0 0 487 487" class="object-cover w-full h-full" xmlns="http://www.w3.org/2000/svg">
-						<path d="M487 486.7c-66.1-3.6-132.3-7.3-186.3-37s-95.9-85.3-126.2-137.2c-30.4-51.8-49.3-99.9-76.5-151.4C70.9 109.6 35.6 54.8.3 0H487v486.7z" fill="white" fill-rule="nonzero" fill-opacity=".1"></path>
+						<path
+							d="M487 486.7c-66.1-3.6-132.3-7.3-186.3-37s-95.9-85.3-126.2-137.2c-30.4-51.8-49.3-99.9-76.5-151.4C70.9 109.6 35.6 54.8.3 0H487v486.7z"
+							fill="white" fill-rule="nonzero" fill-opacity=".1"></path>
 					</svg>
 				</span>
-				<span class="absolute right-0 -mt-12 w-8 h-32 bg-white opacity-10 transition-all duration-1000 transform rotate-12 translate-x-12 group-hover:-translate-x-40 ease"></span>
+				<span
+					class="absolute right-0 -mt-12 w-8 h-32 bg-white opacity-10 transition-transform duration-1000 rotate-12 translate-x-12 group-hover:-translate-x-40 ease"></span>
 				<span class="relative z-20 text-lg">Melden</span>
-			</a> {% endif %}
+			</a>
+			{% endif %}
 		</div>
 	</section>
-	<!--! White Content Start-->
-	<div class="flex flex-1 z-10 flex-wrap my-10 mt-0 bg-gray-100" id="content-container">
+	<div class="flex flex-1 z-10 mb-10 bg-gray-100" id="content-container">
 		<div class="flex-auto"> {% block content %} {% endblock content %} </div>
 	</div>
-	<!--! White Content End-->
-	<!--! Start Footer -->
-	<!--https://tailwindcomponents.com/component/footer-5-->
-	<!--! Start Footer -->
-	<footer id="links" class="bg-gray-200 border-t border-gray-300 footer">
+	<!--! Footer -->
+	<footer id="links" class="bg-gray-200 border-t border-gray-300">
 		<div class="px-4 py-8 mx-auto space-y-6 max-w-5xl sm:px-6 lg:px-8 sm:space-y-8">
 			<div class="flex justify-center mb-5">
-				<a href="/" class="text-2xl tracking-wider transition-colors font- sm:text-3xl text-green-700 hover:text-green-800">MITMACHPROJEKT</a>
+				<a href="/"
+					class="text-2xl tracking-wider transition-colors sm:text-3xl text-green-700 hover:text-green-800">MITMACHPROJEKT</a>
 			</div>
-			<p class="mx-auto mb-6 max-w-xl text-sm leading-relaxed text-center text-gray-600 sm:text-base"> Die Gottesanbeterin ( <i>Mantis religiosa </i> L., 1758) ist eine faszinierende Insektenart mit einer einzigartigen Jagdstrategie. </p>
+			<p class="mx-auto mb-6 max-w-xl text-sm leading-relaxed text-center text-gray-600 sm:text-base"> Die
+				Gottesanbeterin ( <i>Mantis religiosa </i> L., 1758) ist eine faszinierende Insektenart mit einer
+				einzigartigen Jagdstrategie. </p>
 			<ul class="flex flex-wrap gap-6 justify-center sm:gap-8">
 				<li>
-					<a class="text-gray-700 transition hover:text-gray-800/75" href="https://mantis-religiosa.readthedocs.io/de/latest/index.html" target="_blank" rel="noreferrer noopener"> Dokumentation </a>
+					<a class="mantis-footer-link"
+						href="https://mantis-religiosa.readthedocs.io/de/latest/index.html" target="_blank"
+						rel="noreferrer noopener"> Dokumentation </a>
 				</li>
 				<li>
-					<a class="mantis-footer-link" href="https://gitlab.com/opendata-apps/mantis" target="_blank" rel="noreferrer noopener"> Quellcode (GitLab) </a>
+					<a class="mantis-footer-link" href="https://gitlab.com/opendata-apps/mantis" target="_blank"
+						rel="noreferrer noopener"> Quellcode (GitLab) </a>
 				</li>
 				<li>
 					<a class="mantis-footer-link" href="/faq"> FAQ </a>
@@ -195,58 +217,57 @@
 			</ul>
 			<ul class="flex flex-wrap gap-6 justify-center mt-6 sm:gap-8">
 				<li>
-					<a href="https://gitlab.com/opendata-apps/mantis" rel="noreferrer noopener" target="_blank" class="text-gray-700 transition-transform transform hover:text-gray-700/75 hover:scale-110">
+					<a href="https://gitlab.com/opendata-apps/mantis" rel="noreferrer noopener" target="_blank"
+						class="inline-block transition-transform hover:scale-110">
 						<span class="sr-only">GitLab</span>
-						<img loading="lazy" src="/static/images/svg/gitlab.svg" alt="GitLab (Code)" title="GitLab" class="w-8 h-8 transition-transform transform hover:scale-110" />
+						<img loading="lazy" src="/static/images/svg/gitlab.svg" alt="GitLab (Code)" title="GitLab"
+							class="w-8 h-8" />
 					</a>
 				</li>
 				<li>
-					<a href="https://github.com/opendata-apps/mantis" rel="noreferrer noopener" target="_blank" class="text-gray-700 transition-transform transform hover:text-gray-700/75 hover:scale-110">
+					<a href="https://github.com/opendata-apps/mantis" rel="noreferrer noopener" target="_blank"
+						class="inline-block transition-transform hover:scale-110">
 						<span class="sr-only">GitHub</span>
-						<img loading="lazy" src="/static/images/svg/github.svg" alt="GitHub (Code)" title="GitHub" class="w-8 h-8 transition-transform transform hover:scale-110" />
+						<img loading="lazy" src="/static/images/svg/github.svg" alt="GitHub (Code)" title="GitHub"
+							class="w-8 h-8" />
 					</a>
 				</li>
 				<li>
-					<a href="https://www.naturkundemuseum-potsdam.de/gottesanbeterin-gesucht" rel="noreferrer noopener" target="_blank" class="text-gray-700 transition-transform transform hover:text-gray-700/75 hover:scale-110">
+					<a href="https://www.naturkundemuseum-potsdam.de/gottesanbeterin-gesucht" rel="noreferrer noopener"
+						target="_blank"
+						class="inline-block transition-transform hover:scale-110">
 						<span class="sr-only">Naturkundemuseum Potsdam</span>
-						<img loading="lazy" src="/static/images/svg/praying-mantis.svg" alt="Museum" title="Naturkundemuseum Potsdam" class="w-8 h-8 transition-transform transform hover:scale-110" />
+						<img loading="lazy" src="/static/images/svg/praying-mantis.svg" alt="Museum"
+							title="Naturkundemuseum Potsdam"
+							class="w-8 h-8" />
 					</a>
 				</li>
 				<li>
-					<a href="https://mantis-religiosa.readthedocs.io" rel="noreferrer noopener" target="_blank" class="text-gray-700 transition-transform transform hover:text-gray-700/75 hover:scale-110">
+					<a href="https://mantis-religiosa.readthedocs.io" rel="noreferrer noopener" target="_blank"
+						class="inline-block transition-transform hover:scale-110">
 						<span class="sr-only">Dokumentation</span>
-						<img loading="lazy" src="/static/images/svg/readme.svg" alt="Dokumentation" title="Dokumentation" class="w-8 h-8 transition-transform transform hover:scale-110" />
+						<img loading="lazy" src="/static/images/svg/readme.svg" alt="Dokumentation"
+							title="Dokumentation" class="w-8 h-8" />
 					</a>
 				</li>
 			</ul>
-			<div class="flex flex-col justify-center pt-8 mt-8 space-y-4 text-center text-gray-600 border-t border-gray-300 sm:space-y-0 sm:mt-10 sm:flex-row sm:space-x-10 sm:text-left">
-			<span>Python/Flask-App: <a href="https://gitlab.com/opendata-apps/mantis/-/commits/v0.13.7" class="font-medium text-green-700 hover:underline">v0.13.7</a>
-			</span>
-			<span>Lizenz: <a href="/lizenz" class="font-medium text-green-700 hover:underline">MIT</a>
+			<div
+				class="flex flex-col justify-center pt-8 mt-8 space-y-4 text-center text-gray-600 border-t border-gray-300 sm:space-y-0 sm:mt-10 sm:flex-row sm:space-x-10 sm:text-left">
+				<span>Python/Flask-App: <a href="https://gitlab.com/opendata-apps/mantis/-/commits/v0.13.7"
+						class="font-medium text-green-700 hover:underline">v0.13.7</a>
 				</span>
-				<span><script>document.write(new Date().getFullYear())</script></span>
+				<span>Lizenz: <a href="/lizenz" class="font-medium text-green-700 hover:underline">MIT</a>
+				</span>
+				<span id="copyright-year"></span>
+				<script>document.getElementById("copyright-year").textContent = new Date().getFullYear();</script>
 			</div>
 		</div>
 	</footer>
-	<style>
-	body {
-		opacity: 0 !important;
-		transition: opacity 0.5s ease-in !important;
-	}
-
-	body.loaded {
-		opacity: 1 !important;
-	}
-	</style>
 	<script>
-	window.addEventListener("DOMContentLoaded", (event) => {
-		document.body.classList.add("loaded");
-	});
-
-	console.log("%cGottesanbeterin Gesucht! 🦗", "background-color: #10B981; color: #FFF; font-size: 24px; padding: 10px 20px; border-radius: 5px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);");
-	console.log("%cHallo Entdecker! 🌍", "font-size: 18px; font-weight: bold; padding: 5px; border-bottom: 2px solid #E5E7EB;");
-	console.log("🕵️‍♂️ Du scheinst ein Auge für Details zu haben. Wenn du tiefer eintauchen oder beitragen möchtest, sieh dir unser GitLab-Repository an!");
-	console.log("%c🔗 https://gitlab.com/opendata-apps/mantis", "color: #3B82F6; font-size: 16px; font-weight: bold;");
+		console.log("%cGottesanbeterin Gesucht! 🦗", "background-color: #10B981; color: #FFF; font-size: 24px; padding: 10px 20px; border-radius: 5px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);");
+		console.log("%cHallo Entdecker! 🌍", "font-size: 18px; font-weight: bold; padding: 5px; border-bottom: 2px solid #E5E7EB;");
+		console.log("🕵️‍♂️ Du scheinst ein Auge für Details zu haben. Wenn du tiefer eintauchen oder beitragen möchtest, sieh dir unser GitLab-Repository an!");
+		console.log("%c🔗 https://gitlab.com/opendata-apps/mantis", "color: #3B82F6; font-size: 16px; font-weight: bold;");
 	</script>
 	<!--! End Footer -->
 </body>
