@@ -7,25 +7,24 @@
     {# ── Report header — structured identity block ── #}
     <div class="pb-3 mb-3 border-b border-gray-200">
         <div class="flex flex-col gap-3 sm:items-start sm:justify-between sm:flex-row">
-            {# Left: ID badge + date definition list #}
-            <div class="flex items-start gap-3">
+            {# Left: ID badge + inline date metadata #}
+            <div class="grid grid-cols-[auto_1fr] items-start gap-x-3 gap-y-1">
                 <span class="inline-flex items-center px-2.5 py-1 text-sm font-bold text-green-800 bg-green-100 rounded-md shrink-0">#{{ sighting.id }}</span>
-                <dl class="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-xs">
-                    <dt class="text-gray-400">Gemeldet</dt>
-                    <dd class="text-gray-600">{{ sighting.dat_meld.strftime('%d.%m.%Y') }}</dd>
+                <span class="flex flex-wrap items-center gap-x-1 self-center text-xs text-gray-500">
+                    <span title="{{ sighting.dat_meld.strftime('%d.%m.%Y') }}"><span class="text-gray-400">Gemeldet</span> {{ sighting.dat_meld.strftime('%d.%m.%Y') }}</span>
                     {% if sighting.dat_fund_von %}
-                    <dt class="text-gray-400">Fund</dt>
-                    <dd class="font-medium text-gray-700">{{ sighting.dat_fund_von.strftime('%d.%m.%Y') }}</dd>
+                    <span class="text-gray-300">·</span>
+                    <span title="{{ sighting.dat_fund_von.strftime('%d.%m.%Y') }}"><span class="text-gray-400">Fund</span> <span class="font-medium text-gray-700">{{ sighting.dat_fund_von.strftime('%d.%m.%Y') }}</span></span>
                     {% endif %}
                     {% if sighting.dat_bear %}
-                    <dt class="text-gray-400">Geprüft</dt>
-                    <dd class="text-gray-500">{{ sighting.dat_bear.strftime('%d.%m.%Y') }}</dd>
+                    <span class="text-gray-300">·</span>
+                    <span title="{{ sighting.dat_bear.strftime('%d.%m.%Y') }}"><span class="text-gray-400">Geprüft</span> {{ sighting.dat_bear.strftime('%d.%m.%Y') }}</span>
                     {% endif %}
-                    {% if feedback %}
-                    <dt class="text-gray-400">Feedback</dt>
-                    <dd class="font-medium text-gray-700">{{ feedback.feedback_source_display }}{% if feedback.source_detail %} <span class="font-normal text-gray-500">— {{ feedback.source_detail }}</span>{% endif %}</dd>
-                    {% endif %}
-                </dl>
+                </span>
+                {% if feedback %}
+                <div></div>{# empty cell under badge #}
+                <span class="text-xs text-gray-500"><span class="text-gray-400">Feedback</span> <span class="font-medium text-gray-700">{{ feedback.feedback_source_display }}{% if feedback.source_detail %} <span class="font-normal text-gray-500">— {{ feedback.source_detail }}</span>{% endif %}</span></span>
+                {% endif %}
             </div>
             {# Right: user identity with avatar initial — 2 lines to match date grid #}
             <div class="flex items-center gap-2.5 sm:shrink-0">
