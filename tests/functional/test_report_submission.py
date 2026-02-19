@@ -326,89 +326,8 @@ class TestReportSubmission:
         # Roll back the failed transaction
         session.rollback()
 
-    @pytest.mark.parametrize(
-        "gender_input,expected_m,expected_w,expected_n,expected_o",
-        [
-            ("Männchen", 1, 0, 0, 0),
-            ("Weibchen", 0, 1, 0, 0),
-            ("Nymphe", 0, 0, 1, 0),
-            ("Oothek", 0, 0, 0, 1),
-        ],
-    )
-    def test_gender_field_mapping(
-        self,
-        session,
-        location_test_data,
-        gender_input,
-        expected_m,
-        expected_w,
-        expected_n,
-        expected_o,
-    ):
-        """Test that gender mappings work correctly for different inputs.
-
-        This parameterized test verifies that gender field values are
-        correctly mapped in the database based on form input.
-
-        Parameters:
-            gender_input: The gender selection from the form
-            expected_m: Expected male field value
-            expected_w: Expected female field value
-            expected_n: Expected nymph field value
-            expected_o: Expected oothek field value
-        """
-
-        # Test function similar to _set_gender_fields in data.py
-        def _set_gender_fields(selected_gender):
-            genders = {"art_m": 0, "art_w": 0, "art_n": 0, "art_o": 0}
-            gender_mapping = {
-                "Männchen": "art_m",
-                "Weibchen": "art_w",
-                "Nymphe": "art_n",
-                "Oothek": "art_o",
-            }
-            gender_field = gender_mapping.get(selected_gender)
-
-            if gender_field:
-                genders[gender_field] = 1
-
-            return genders
-
-        # Get gender field values
-        genders = _set_gender_fields(gender_input)
-
-        # Create a basic location for our sighting tests
-        valid_description = session.scalar(select(TblFundortBeschreibung))
-        if not valid_description:
-            valid_description = TblFundortBeschreibung(
-                beschreibung="Im Garten, auf einer Wiese"
-            )
-            session.add(valid_description)
-            session.flush()
-
-        location = TblFundorte(**location_test_data, beschreibung=valid_description.id)
-        session.add(location)
-        session.flush()
-        TestReportSubmission.test_location_ids.append(location.id)
-
-        # Create sighting with gender values
-        heute = datetime.datetime.now().date()
-        sighting = TblMeldungen(
-            dat_fund_von=heute - datetime.timedelta(days=7),
-            dat_meld=heute,
-            fo_zuordnung=location.id,
-            **genders,
-            anm_melder=f"Testing gender mapping for {gender_input} - TEST RECORD",
-        )
-        session.add(sighting)
-        session.flush()
-        TestReportSubmission.test_sighting_ids.append(sighting.id)
-
-        # Verify gender fields match expected values
-        assert sighting.art_m == expected_m
-        assert sighting.art_w == expected_w
-        assert sighting.art_n == expected_n
-        assert sighting.art_o == expected_o
+    # Gender field mapping is tested in tests/unit/test_report_helpers.py::TestSetGenderFields
+    # using the actual _set_gender_fields function from app/routes/report.py.
 
     ############################
     # Form Submission Tests #
@@ -515,8 +434,8 @@ class TestReportSubmission:
 
                 # Validate gender fields based on form selection
                 gender_mapping = {
-                    "Männchen": ("art_m", 1),
-                    "Weibchen": ("art_w", 1),
+                    "Männlich": ("art_m", 1),
+                    "Weiblich": ("art_w", 1),
                     "Nymphe": ("art_n", 1),
                     "Oothek": ("art_o", 1),
                 }

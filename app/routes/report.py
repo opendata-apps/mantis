@@ -358,71 +358,6 @@ def get_visible_error_fields(step):
     return visible_fields.get(step, [])
 
 
-@report.route("/validate_step", methods=["POST"])
-@limiter.limit("30 per minute")
-def validate_step():
-    """Validate form step via AJAX."""
-    data = request.json
-    if data is None:
-        return jsonify({"valid": False, "errors": {"general": "Invalid request"}})
-    step = data.get("step", 1)
-    step_fields = get_step_fields(step)
-
-    if not step_fields:
-        return jsonify({"valid": True, "errors": {}})
-
-    # Prepare form data for validation
-    form_data = MultiDict(data)
-    if "identical_finder_reporter" in data:
-        form_data["identical_finder_reporter"] = data["identical_finder_reporter"] in (
-            "true",
-            True,
-        )
-
-    form = MantisSightingForm(formdata=form_data, csrf_enabled=False)
-
-    is_valid = True
-    errors = {}
-
-    # Validate step-specific fields
-    for field_name in step_fields:
-        field = getattr(form, field_name, None)
-        if field and not field.validate(form):
-            is_valid = False
-            errors[field_name] = field.errors
-
-    # Step 3: Cross-field validation for finder names
-    if is_valid and step == 3:
-        if not form.validate_finder_names_dependency():
-            is_valid = False
-            if "finder_first_name" in form.errors:
-                errors["finder_first_name"] = form.errors["finder_first_name"]
-            if "finder_last_name" in form.errors:
-                errors["finder_last_name"] = form.errors["finder_last_name"]
-
-    # Step 2: Coordinate validation
-    if is_valid and step == 2:
-        lat = data.get("latitude", "")
-        lng = data.get("longitude", "")
-
-        if not lat or not lng:
-            is_valid = False
-            errors["coordinates"] = ["Bitte wählen Sie einen Standort auf der Karte"]
-        else:
-            try:
-                lat_float, lng_float = float(lat), float(lng)
-                if not (-90 <= lat_float <= 90) or not (-180 <= lng_float <= 180):
-                    is_valid = False
-                    errors["coordinates"] = [
-                        "Ungültige Koordinaten. Bitte wählen Sie einen gültigen Standort."
-                    ]
-            except ValueError:
-                is_valid = False
-                errors["coordinates"] = ["Ungültiges Koordinatenformat"]
-
-    return jsonify({"valid": is_valid, "errors": errors})
-
-
 # ============================================================================
 # HTMX Routes for Form Interactions
 # ============================================================================
@@ -470,26 +405,6 @@ def validate_step_partial():
                 errors["finder_first_name"] = form.finder_first_name.errors
             if form.finder_last_name.errors:
                 errors["finder_last_name"] = form.finder_last_name.errors
-
-    # Step 2: Coordinate validation
-    if is_valid and step == 2:
-        lat = request.form.get("latitude", "")
-        lng = request.form.get("longitude", "")
-
-        if not lat or not lng:
-            is_valid = False
-            errors["coordinates"] = ["Bitte wählen Sie einen Standort auf der Karte"]
-        else:
-            try:
-                lat_float, lng_float = float(lat), float(lng)
-                if not (-90 <= lat_float <= 90) or not (-180 <= lng_float <= 180):
-                    is_valid = False
-                    errors["coordinates"] = [
-                        "Ungültige Koordinaten. Bitte wählen Sie einen gültigen Standort."
-                    ]
-            except ValueError:
-                is_valid = False
-                errors["coordinates"] = ["Ungültiges Koordinatenformat"]
 
     if is_valid:
         # Return a trigger to advance to next step + clear any previous errors via OOB
