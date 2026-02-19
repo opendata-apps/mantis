@@ -206,6 +206,21 @@ def _hydrate_sighting_for_render(
     else:
         sighting.approver_username = None
 
+    # Total reports by this person — match by email (covers multiple accounts) or user ID.
+    if user.user_kontakt:
+        sighting.user_report_count = db.session.scalar(
+            select(func.count())
+            .select_from(TblMeldungUser)
+            .join(TblUsers, TblMeldungUser.id_user == TblUsers.id)
+            .where(TblUsers.user_kontakt == user.user_kontakt)
+        )
+    else:
+        sighting.user_report_count = db.session.scalar(
+            select(func.count())
+            .select_from(TblMeldungUser)
+            .where(TblMeldungUser.id_user == user.id)
+        )
+
     return sighting
 
 

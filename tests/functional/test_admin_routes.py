@@ -207,7 +207,7 @@ class TestAdminRoutes:
         response = client.get("/report/1111")
         assert response.status_code == 200
         assert b'/reviewer/1111' not in response.data
-        assert b'/statistik/1111' not in response.data
+        assert b'/statistik' not in response.data
 
     def test_toggle_approve_still_works_after_opening_provider_page(
         self, client, session
@@ -256,7 +256,7 @@ class TestAdminRoutes:
             f"/change_mantis_meta_data/{self.test_sighting.id}",
             data={"beschreibung": "2"},
         )
-        assert response.status_code == 403
+        assert response.status_code == 401
 
     def test_toggle_approve_sighting(self, client, session):
         """Test approving/unapproving sightings."""
@@ -389,6 +389,17 @@ class TestAdminRoutes:
         assert b'id="tab-content"' in response.data
         assert b"General Information" in response.data
         assert b'id="modal-actions"' in response.data
+
+    def test_modal_general_tab_shows_user_report_count(self, client):
+        """General tab should display the reporter's total report count."""
+        with client.session_transaction() as sess:
+            sess["user_id"] = "9999"
+
+        response = client.get(f"/modal/{self.test_sighting.id}?filter_status=offen")
+        assert response.status_code == 200
+        html = response.data.decode()
+        assert "Meldungen" in html
+        assert "Anzahl Meldungen dieses Nutzers" in html
 
     def test_modal_location_tab_response_contains_oob_updates(self, client):
         """Location tab endpoint should return tab content plus OOB tab/action updates."""
