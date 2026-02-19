@@ -38,7 +38,7 @@ def test_statistics_post_without_csrf_is_rejected(app, authenticated_client):
         authenticated_client.get("/reviewer/9999", follow_redirects=True)
 
         # Missing CSRF token → 403
-        resp = authenticated_client.post("/statistik/9999", data={"stats": "start"})
+        resp = authenticated_client.post("/statistik", data={"stats": "start"})
         assert resp.status_code == 403
     finally:
         app.config["WTF_CSRF_ENABLED"] = old

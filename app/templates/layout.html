@@ -67,7 +67,7 @@
 						</summary>
 						<ul class="absolute right-0 z-50 mt-2 py-2 w-48 bg-white rounded-lg shadow-lg divide-y divide-gray-100">
 							<li><a href="/reviewer/{{ session.get('user_id', '') }}">Reviewer</a></li>
-							<li><a href="/statistik/{{ session.get('user_id', '') }}">Statistics</a></li>
+							<li><a href="/statistik">Statistics</a></li>
 							<li><a href="/galerie">Galerie</a></li>
 							<li><a href="/alldata">Superuser</a></li>
 						</ul>
@@ -75,7 +75,7 @@
 				</li>
 				{# Admin links - inline on mobile only #}
 				<li class="mobile-only"><a href="/reviewer/{{ session.get('user_id', '') }}">Reviewer</a></li>
-				<li class="mobile-only"><a href="/statistik/{{ session.get('user_id', '') }}">Statistics</a></li>
+				<li class="mobile-only"><a href="/statistik">Statistics</a></li>
 				<li class="mobile-only"><a href="/galerie">Galerie</a></li>
 				<li class="mobile-only"><a href="/alldata">Superuser</a></li>
 				{% endif %}
