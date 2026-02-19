@@ -502,6 +502,22 @@ function setDateType(type) {
 }
 
 // ---------------------------------------------------------------------------
+// Flag overlay (modal image) — synced with footer checkbox toggles
+// ---------------------------------------------------------------------------
+
+function toggleModalOverlay() {
+    var container = document.getElementById('modal-flag-overlay');
+    if (!container) return;
+    var unkl = document.getElementById('modal-overlay-unkl');
+    var info = document.getElementById('modal-overlay-info');
+    var unklChecked = document.querySelector('[data-flag="UNKL"]')?.checked;
+    var infoChecked = document.querySelector('[data-flag="INFO"]')?.checked;
+    if (unkl) unkl.classList.toggle('hidden', !unklChecked);
+    if (info) info.classList.toggle('hidden', !infoChecked);
+    container.classList.toggle('hidden', !unklChecked && !infoChecked);
+}
+
+// ---------------------------------------------------------------------------
 // Clipboard
 // ---------------------------------------------------------------------------
 
@@ -623,3 +639,4 @@ window.confirmMarkerPlacement = confirmMarkerPlacement;
 window.cancelMarkerPlacement = cancelMarkerPlacement;
 window.resetMarker = resetMarker;
 window.copyUserId = copyUserId;
+window.toggleModalOverlay = toggleModalOverlay;

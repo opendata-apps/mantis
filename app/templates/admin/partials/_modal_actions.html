@@ -1,7 +1,47 @@
 {# Modal footer actions — rendered server-side, OOB-swapped on tab changes.
    Template variables: sighting, is_approved, editable, edit_mode, active_tab, filter_status #}
 {% set filter_query = 'filter_status=' ~ filter_status %}
-<div class="flex flex-wrap gap-2 justify-end action-container">
+{% set has_unkl = 'UNKL' in sighting.statuses %}
+{% set has_info = 'INFO' in sighting.statuses %}
+<div class="flex flex-wrap items-center gap-2 action-container">
+    {# Left: flag toggles — only for open reports (flags are active review concerns) #}
+    {% if not sighting.is_deleted and not is_approved %}
+    <div class="flex items-center gap-2 mr-auto">
+        <label class="inline-flex cursor-pointer" title="Unklar">
+            <input type="checkbox" class="sr-only peer" data-flag="UNKL" {% if has_unkl %}checked{% endif %}
+                hx-post="{{ url_for('admin.toggle_flag', id=sighting.id) }}"
+                hx-target="#report-card-{{ sighting.id }}"
+                hx-swap="outerHTML swap:150ms"
+                hx-vals='{"flag": "UNKL", "filter_status": "{{ filter_status }}"}'
+                onclick="toggleModalOverlay()">
+            <span class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border transition-colors duration-200
+                text-gray-700 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400
+                peer-checked:bg-orange-50 peer-checked:text-orange-700 peer-checked:border-orange-300 peer-checked:hover:bg-orange-100 peer-checked:hover:border-orange-400">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Unklar
+            </span>
+        </label>
+        <label class="inline-flex cursor-pointer" title="Informiert">
+            <input type="checkbox" class="sr-only peer" data-flag="INFO" {% if has_info %}checked{% endif %}
+                hx-post="{{ url_for('admin.toggle_flag', id=sighting.id) }}"
+                hx-target="#report-card-{{ sighting.id }}"
+                hx-swap="outerHTML swap:150ms"
+                hx-vals='{"flag": "INFO", "filter_status": "{{ filter_status }}"}'
+                onclick="toggleModalOverlay()">
+            <span class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border transition-colors duration-200
+                text-gray-700 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400
+                peer-checked:bg-yellow-50 peer-checked:text-yellow-700 peer-checked:border-yellow-300 peer-checked:hover:bg-yellow-100 peer-checked:hover:border-yellow-400">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+                Informiert
+            </span>
+        </label>
+    </div>
+    {% endif %}
+    {# Right: primary actions #}
     {% if is_approved and not edit_mode %}
     {# Approved + view mode → show "Bearbeiten" to enter edit mode #}
     <button type="button"

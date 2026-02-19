@@ -581,20 +581,22 @@ def report_img(filename):
 @admin.route("/toggle_approve_sighting/<int:id>", methods=["POST"])
 @reviewer_required
 def toggle_approve_sighting(id):
-    """Toggle APPR/OPEN workflow state while preserving flags."""
+    """Toggle APPR/OPEN workflow state. Clears flags on approval."""
 
     sighting = db.session.get(TblMeldungen, id)
     if not sighting:
         current_app.logger.error(f"Sighting {id} not found for approval toggle.")
         return jsonify({"error": "Report not found"}), 404
 
-    # Toggle between APPR and OPEN as workflow state, preserving INFO/UNKL flags.
-    flags = [s for s in (sighting.statuses or []) if s in ("INFO", "UNKL")]
+    # Toggle between APPR and OPEN.
+    # Approving clears flags (review concerns are resolved).
+    # Un-approving preserves flags (re-opening keeps existing context).
     if sighting.is_approved:
+        flags = [s for s in (sighting.statuses or []) if s in ("INFO", "UNKL")]
         sighting.statuses = [ReportStatus.OPEN.value] + flags
         sighting.dat_bear = None
     else:
-        sighting.statuses = [ReportStatus.APPR.value] + flags
+        sighting.statuses = [ReportStatus.APPR.value]
         sighting.dat_bear = datetime.now()
     sighting.deleted = sighting.is_deleted
     sighting.bearb_id = g.current_user.user_id
@@ -703,6 +705,8 @@ def toggle_flag(id):
         return jsonify({"error": "Report not found"}), 404
     if sighting.is_deleted:
         return jsonify({"error": "Cannot toggle flags on deleted reports"}), 400
+    if sighting.is_approved:
+        return jsonify({"error": "Cannot toggle flags on approved reports"}), 400
 
     statuses = list(sighting.statuses or [ReportStatus.OPEN.value])
     if flag in statuses:

@@ -21,7 +21,7 @@ class ReportStatus(StrEnum):
         APPR: Report has been approved/accepted
         DEL: Report has been soft-deleted (exclusive - no other statuses allowed)
 
-    Flags (can combine with OPEN or APPR):
+    Flags (can combine with OPEN only):
         INFO: Reporter has been contacted for more information
         UNKL: Report is unclear and needs investigation
     """
@@ -85,8 +85,9 @@ class ReportStatus(StrEnum):
         Rules:
         - Must have at least one status
         - DEL is exclusive (cannot combine with other statuses)
+        - APPR is exclusive (approved = review complete, no active flags)
         - OPEN and APPR are mutually exclusive (can't have both)
-        - INFO and UNKL can combine with OPEN or APPR
+        - INFO and UNKL can only combine with OPEN
 
         Returns:
             Tuple of (is_valid, error_message)
@@ -105,6 +106,10 @@ class ReportStatus(StrEnum):
         # DEL is exclusive
         if cls.DEL.value in status_set and len(status_set) > 1:
             return False, "DEL status cannot be combined with other statuses"
+
+        # APPR is exclusive (approval resolves all active concerns)
+        if cls.APPR.value in status_set and len(status_set) > 1:
+            return False, "APPR status cannot be combined with flags"
 
         # OPEN and APPR are mutually exclusive
         if cls.OPEN.value in status_set and cls.APPR.value in status_set:
