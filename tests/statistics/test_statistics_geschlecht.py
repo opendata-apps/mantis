@@ -15,7 +15,7 @@ def test_stats_geschlecht(session):
     with patch("app.routes.statistics.render_template") as mock_render_template:
         mock_render_template.return_value = None
 
-        stats_geschlecht()
+        stats_geschlecht(marker="geschlecht")
 
         mock_render_template.assert_called_once()
 

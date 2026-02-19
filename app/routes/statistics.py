@@ -75,15 +75,14 @@ def get_date_interval():
     last_year = datetime.now() - timedelta(weeks=52)
     last_year = last_year.isoformat()
     start_date = request.form.get("dateFrom", session.get("date_from", last_year))
-    end_date = request.form.get("dateTo: str", session.get("date_to", now))
+    end_date = request.form.get("dateTo", session.get("date_to", now))
 
     return (start_date[:10], end_date[:10])
 
 
 @stats.route("/statistik", methods=["POST", "GET"])
-@stats.route("/statistik/<usrid>", methods=["POST", "GET"])
 @reviewer_required
-def stats_start(usrid=None):
+def stats_start():
     "Startseite für alle Statistiken"
 
     session["date_from"], session["date_to"] = get_date_interval()
@@ -94,22 +93,23 @@ def stats_start(usrid=None):
 
     match value:
         case "geschlecht":
-            return stats_geschlecht()
+            return stats_geschlecht(marker=value)
         case "meldungen_meldedatum":
             return stats_bardiagram_datum(
-                dbfields=["dat_meld"], page="stats-meldedatum.html"
+                dbfields=["dat_meld"], page="stats-meldedatum.html", marker=value
             )
         case "meldungen_funddatum":
             return stats_bardiagram_datum(
-                dbfields=["dat_fund_von"], page="stats-funddatum.html"
+                dbfields=["dat_fund_von"], page="stats-funddatum.html", marker=value
             )
         case "meldungen_meld_fund":
             return stats_bardiagram_datum(
                 dbfields=["dat_fund_von", "dat_meld"],
                 page="stats-meld-fund.html",
+                marker=value,
             )
         case "meldungen_mtb":
-            return stats_mtb()
+            return stats_mtb(marker=value)
         case "meldungen_amt":
             return stats_amt(marker="meldungen_amt")
         case "meldungen_laender":
@@ -126,12 +126,16 @@ def stats_start(usrid=None):
                 page="stats-feedback.html",
             )
         case "start":
-            return render_template("statistics/statistiken.html", menu=list_of_stats)
+            return render_template(
+                "statistics/statistiken.html", menu=list_of_stats, marker=value
+            )
         case _:
-            return render_template("statistics/statistiken.html", menu=list_of_stats)
+            return render_template(
+                "statistics/statistiken.html", menu=list_of_stats, marker=value
+            )
 
 
-def stats_mtb():
+def stats_mtb(marker):
     "Results as MTB (Messtischblatt-Raster)"
     art = request.form.get("typeInput", "all")
     typeInput = ["mtb", "maennlich", "weiblich", "oothek", "nymphe", "andere", "all"]
@@ -156,6 +160,7 @@ def stats_mtb():
         .where(
             TblMeldungen.dat_fund_von >= date.fromisoformat(session["date_from"]),
             TblMeldungen.dat_fund_von <= date.fromisoformat(session["date_to"]),
+            TblMeldungen.statuses.contains([ReportStatus.APPR.value]),
         )
         .where(TblFundorte.amt.like(f"{session['ags']}%"))
         .group_by(TblFundorte.mtb)
@@ -174,17 +179,20 @@ def stats_mtb():
 
     xml = create_measure_sheet(dataset=dbanswers)
     return render_template(
-        "statistics/stats-messtischblatt.html", menu=list_of_stats, svg=xml
+        "statistics/stats-messtischblatt.html",
+        menu=list_of_stats,
+        svg=xml,
+        marker=marker,
     )
 
 
-def stats_bardiagram_datum(dbfields, page):
+def stats_bardiagram_datum(dbfields, page, marker=None):
     "Calculate statistics by date"
 
     results = {0: {}, 1: {}}
     for idx, dbfield in enumerate(dbfields):
         # Use parameterized query to prevent SQL injection
-        # Array containment check: NOT (statuses @> '{DEL}')
+        # Array containment check: statuses @> '{APPR}' (APPR excludes DEL by design)
         stm = f"""
            SELECT {dbfield} as Tag,
            count({dbfield}) as Anzahl
@@ -192,7 +200,7 @@ def stats_bardiagram_datum(dbfields, page):
                 from meldungen
                 where {dbfield} BETWEEN CAST(:date_from AS date)
                                 AND CAST(:date_to AS date)
-                and NOT (statuses @> '{{DEL}}')) as filtered
+                and statuses @> '{{APPR}}') as filtered
            GROUP BY filtered.{dbfield}
            ORDER by Tag;
         """
@@ -214,13 +222,12 @@ def stats_bardiagram_datum(dbfields, page):
         menu=list_of_stats,
         trace1=results[0],
         trace2=results[1],
+        marker=marker,
     )
 
 
-def stats_geschlecht():
+def stats_geschlecht(marker):
     """Count sum of all kategories"""
-
-    start_date, end_date = get_date_interval()
 
     stmt = (
         select(
@@ -242,7 +249,7 @@ def stats_geschlecht():
             TblMeldungen.dat_fund_von >= date.fromisoformat(session["date_from"]),
             TblMeldungen.dat_fund_von <= date.fromisoformat(session["date_to"]),
             TblFundorte.amt.like(f"{session['ags']}%"),
-            ~TblMeldungen.statuses.contains([ReportStatus.DEL.value]),
+            TblMeldungen.statuses.contains([ReportStatus.APPR.value]),
         )
     )
 
@@ -253,7 +260,10 @@ def stats_geschlecht():
         res = dict((name, val) for name, val in row.items())
 
     return render_template(
-        "statistics/stats-geschlecht.html", menu=list_of_stats, values=res
+        "statistics/stats-geschlecht.html",
+        menu=list_of_stats,
+        values=res,
+        marker=marker,
     )
 
 
@@ -284,6 +294,7 @@ def stats_amt(marker):
         .where(
             TblMeldungen.dat_meld >= date.fromisoformat(session["date_from"]),
             TblMeldungen.dat_meld <= date.fromisoformat(session["date_to"]),
+            TblMeldungen.statuses.contains([ReportStatus.APPR.value]),
         )
         .where(TblFundorte.amt.like(f"{session['ags']}%"))
         .group_by(TblFundorte.amt)
@@ -310,6 +321,7 @@ def stats_amt(marker):
         result=dbanswers,
         gemeinde=gemeinde,
         fehler=fehler,
+        marker=marker,
     )
 
 
@@ -340,7 +352,7 @@ def stats_laender(marker):
         .where(
             TblMeldungen.dat_meld >= date.fromisoformat(session["date_from"]),
             TblMeldungen.dat_meld <= date.fromisoformat(session["date_to"]),
-            ~TblMeldungen.statuses.contains([ReportStatus.DEL.value]),
+            TblMeldungen.statuses.contains([ReportStatus.APPR.value]),
         )
         .group_by(amt_group_expr)
     )
@@ -382,6 +394,7 @@ def stats_laender(marker):
         "statistics/stats-laender.html",
         menu=list_of_stats,
         result=result_dict,
+        marker=marker,
     )
 
 
@@ -465,7 +478,7 @@ def stats_bundesland(marker):
             TblMeldungen.dat_meld >= date.fromisoformat(session["date_from"]),
             TblMeldungen.dat_meld <= date.fromisoformat(session["date_to"]),
             state_prefix_expr == ags,
-            ~TblMeldungen.statuses.contains([ReportStatus.DEL.value]),
+            TblMeldungen.statuses.contains([ReportStatus.APPR.value]),
         )
         .group_by(amt_group_expr)
     )
@@ -491,6 +504,7 @@ def stats_bundesland(marker):
         result=result_dict,
         ags=ags,
         land=land,
+        marker=marker,
     )
 
 
@@ -549,7 +563,7 @@ def stats_gesamt(marker):
         .where(
             TblMeldungen.dat_meld >= date.fromisoformat(session["date_from"]),
             TblMeldungen.dat_meld <= date.fromisoformat(session["date_to"]),
-            ~TblMeldungen.statuses.contains([ReportStatus.DEL.value]),
+            TblMeldungen.statuses.contains([ReportStatus.APPR.value]),
         )
         .group_by(TblFundorte.amt)
     )
@@ -589,6 +603,7 @@ def stats_gesamt(marker):
         "statistics/stats-table-all.html",
         menu=list_of_stats,
         result=result_dict,
+        marker=marker,
     )
 
 
@@ -625,5 +640,9 @@ def stats_feedback(page, marker):
             details.append(record[0])
 
     return render_template(
-        "statistics/" + page, menu=list_of_stats, feedback=feedback, details=details
+        "statistics/" + page,
+        menu=list_of_stats,
+        feedback=feedback,
+        details=details,
+        marker=marker,
     )

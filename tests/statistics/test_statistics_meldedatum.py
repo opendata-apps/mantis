@@ -7,11 +7,12 @@ from app.routes.statistics import stats_bardiagram_datum
 @pytest.mark.parametrize(
     "dbfields,page,expected_x,expected_y",
     [
+        # Only APPR (approved) reports are included in statistics (#160)
         (
             ["dat_fund_von"],
             "stats-meld-fund.html",
-            ["2024-01-20", "2024-01-28", "2024-02-12", "2024-02-19"],
-            [1, 1, 1, 1],
+            ["2024-01-28"],
+            [1],
         ),
     ],
 )

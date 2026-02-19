@@ -23,9 +23,10 @@ def test_stats_funddatum(session):
         mock_render_template.assert_called_once()
         actual_values = mock_render_template.call_args[1]["trace1"]
 
+        # Only APPR (approved) reports are included in statistics (#160)
         expected_values = {
-            "x": ["2024-01-20", "2024-01-28", "2024-02-12", "2024-02-19"],
-            "y": [1, 1, 1, 1],
+            "x": ["2024-01-28"],
+            "y": [1],
         }
 
         assert actual_values == expected_values, (
