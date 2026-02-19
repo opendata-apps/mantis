@@ -79,7 +79,7 @@
                     </svg>
                 </summary>
                 <div class="absolute left-0 z-10 p-4 space-y-3 w-64 bg-white rounded-lg divide-y divide-gray-100 shadow-lg sm:w-80 mt-1">
-                <form action="{{ url_for('admin.reviewer', usrid=session['user_id']) }}" method="GET" class="space-y-3">
+                <form action="{{ url_for('admin.reviewer') }}" method="GET" class="space-y-3">
                     <div class="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
                         <div class="space-y-1 w-full md:w-1/2">
                             <label for="statusInput"
@@ -115,34 +115,48 @@
                             </select>
                         </div>
                     </div>
-                    <div date-rangepicker datepicker-buttons datepicker-autoselect-today datepicker-format="dd.mm.yyyy"
-                        class="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
-                        <div class="relative w-full md:w-1/2">
-                            <label for="dateFrom" class="block text-sm font-semibold text-gray-700">Funddatum
-                                von</label>
-                            <input name="dateFrom" id="dateFrom" type="text"
-                                value="{{ request.args.get('dateFrom', '') }}"
-                                class="p-2 w-full text-sm rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                                placeholder="von">
-                            <div class="flex absolute inset-y-0 right-0 items-center pr-3 mt-4 pointer-events-none">
-                                <svg class="w-5 h-5 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                    fill="currentColor" viewBox="0 0 20 20">
-                                    <path
-                                        d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
-                                </svg>
+                    <!-- Date section: toggle + range inputs grouped together -->
+                    <div class="p-2.5 space-y-2 rounded-lg border border-gray-200 bg-gray-50/60">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="text-sm font-semibold text-gray-700">Datum</span>
+                            <div class="inline-flex rounded-md border border-gray-300 overflow-hidden">
+                                <button type="button" data-date-type="fund"
+                                    class="date-type-btn px-2.5 py-1 text-xs font-medium transition-colors duration-150 {{ 'bg-green-600 text-white' if current_date_type != 'meld' else 'bg-white text-gray-600 hover:bg-gray-100' }}"
+                                    onclick="setDateType('fund')">Funddatum</button>
+                                <button type="button" data-date-type="meld"
+                                    class="date-type-btn px-2.5 py-1 text-xs font-medium transition-colors duration-150 border-l border-gray-300 {{ 'bg-green-600 text-white border-l-green-600' if current_date_type == 'meld' else 'bg-white text-gray-600 hover:bg-gray-100' }}"
+                                    onclick="setDateType('meld')">Meldedatum</button>
                             </div>
                         </div>
-                        <div class="relative w-full md:w-1/2">
-                            <label for="dateTo" class="block text-sm font-semibold text-gray-700">Funddatum bis</label>
-                            <input name="dateTo" id="dateTo" type="text" value="{{ request.args.get('dateTo', '') }}"
-                                class="p-2 w-full text-sm rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                                placeholder="bis">
-                            <div class="flex absolute inset-y-0 right-0 items-center pr-3 mt-4 pointer-events-none">
-                                <svg class="w-5 h-5 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                    fill="currentColor" viewBox="0 0 20 20">
-                                    <path
-                                        d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
-                                </svg>
+                        <input type="hidden" name="dateType" id="dateType" value="{{ current_date_type or 'fund' }}">
+                        <div date-rangepicker datepicker-buttons datepicker-autoselect-today datepicker-format="dd.mm.yyyy"
+                            class="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
+                            <div class="relative w-full md:w-1/2">
+                                <label for="dateFrom" class="sr-only">Datum von</label>
+                                <input name="dateFrom" id="dateFrom" type="text"
+                                    value="{{ request.args.get('dateFrom', '') }}"
+                                    class="p-2 w-full text-sm bg-white rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                    placeholder="von">
+                                <div class="flex absolute inset-y-0 right-0 items-center pr-3 pointer-events-none">
+                                    <svg class="w-4 h-4 text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                        fill="currentColor" viewBox="0 0 20 20">
+                                        <path
+                                            d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="relative w-full md:w-1/2">
+                                <label for="dateTo" class="sr-only">Datum bis</label>
+                                <input name="dateTo" id="dateTo" type="text" value="{{ request.args.get('dateTo', '') }}"
+                                    class="p-2 w-full text-sm bg-white rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                    placeholder="bis">
+                                <div class="flex absolute inset-y-0 right-0 items-center pr-3 pointer-events-none">
+                                    <svg class="w-4 h-4 text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                        fill="currentColor" viewBox="0 0 20 20">
+                                        <path
+                                            d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
+                                    </svg>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -170,7 +184,7 @@
             </details>
         </div>
         <div class="flex relative items-center w-full lg:flex-1 lg:min-w-[24rem]">
-            <form action="{{ url_for('admin.reviewer', usrid=session['user_id']) }}" method="GET"
+            <form action="{{ url_for('admin.reviewer') }}" method="GET"
                 class="flex items-center w-full bg-white rounded-lg border border-gray-300 transition-all duration-200 focus-within:border-green-500 focus-within:ring-2 focus-within:ring-green-500/30">
                 <!-- Left select (grouped with input, subtle style) -->
                 <div class="relative shrink-0">
@@ -219,6 +233,7 @@
                 <input type="hidden" name="sort_order" value="{{ request.args.get('sort_order', '') }}">
                 <input type="hidden" id="hiddenDateFrom" name="dateFrom" value="{{ request.args.get('dateFrom', '') }}">
                 <input type="hidden" id="hiddenDateTo" name="dateTo" value="{{ request.args.get('dateTo', '') }}">
+                <input type="hidden" id="hiddenDateType" name="dateType" value="{{ request.args.get('dateType', 'fund') }}">
                 <button type="submit" class="hidden">Suchen</button>
             </form>
         </div>
@@ -327,7 +342,8 @@
         current_sort_order,
         search_query,
         request.args.get('dateFrom', ''),
-        request.args.get('dateTo', '')
+        request.args.get('dateTo', ''),
+        request.args.get('dateType', 'fund')
     ) }}
 </div>
 

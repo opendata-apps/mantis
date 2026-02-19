@@ -472,11 +472,33 @@ function clearSearch() {
 function exportData(exportType) {
     var urlParams = new URLSearchParams(window.location.search);
     var params = new URLSearchParams();
-    ['statusInput', 'typeInput', 'q', 'search_type', 'dateFrom', 'dateTo'].forEach(function (param) {
+    ['statusInput', 'typeInput', 'q', 'search_type', 'dateFrom', 'dateTo', 'dateType'].forEach(function (param) {
         var value = urlParams.get(param);
         if (value !== null) params.append(param, value);
     });
     window.location.assign('/admin/export/xlsx/' + exportType + '?' + params.toString());
+}
+
+function setDateType(type) {
+    // Update hidden inputs
+    var dateTypeInput = document.getElementById('dateType');
+    var hiddenDateType = document.getElementById('hiddenDateType');
+    if (dateTypeInput) dateTypeInput.value = type;
+    if (hiddenDateType) hiddenDateType.value = type;
+
+    // Toggle active button styling
+    document.querySelectorAll('.date-type-btn').forEach(function (btn) {
+        var isActive = btn.dataset.dateType === type;
+        btn.classList.toggle('bg-green-600', isActive);
+        btn.classList.toggle('text-white', isActive);
+        btn.classList.toggle('bg-white', !isActive);
+        btn.classList.toggle('text-gray-600', !isActive);
+        btn.classList.toggle('hover:bg-gray-100', !isActive);
+        // Hide inner border when meld button is active
+        if (btn.dataset.dateType === 'meld') {
+            btn.classList.toggle('border-l-green-600', isActive);
+        }
+    });
 }
 
 // ---------------------------------------------------------------------------
@@ -579,6 +601,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (dateFromInput) dateFromInput.value = '';
             if (dateToInput) dateToInput.value = '';
             if (typeInput) typeInput.value = 'all';
+            setDateType('fund');
             if (statusInput) statusInput.closest('form').submit();
         });
     }
@@ -593,6 +616,7 @@ window.setSortOrder = setSortOrder;
 window.clearSearch = clearSearch;
 window.exportData = exportData;
 window.changeInputPattern = changeInputPattern;
+window.setDateType = setDateType;
 window.validateAndUpdateCoordinate = validateAndUpdateCoordinate;
 window.toggleMarkerPlacement = toggleMarkerPlacement;
 window.confirmMarkerPlacement = confirmMarkerPlacement;

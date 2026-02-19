@@ -282,23 +282,33 @@ def _render_updated_sighting_by_id(report_id: int, filter_status: str):
     return _render_report_card_or_delete(rendered_sighting, filter_status)
 
 
+@admin.route("/reviewer")
 @admin.route("/reviewer/<usrid>")
-def reviewer(usrid):
+def reviewer(usrid=None):
     "This function is used to display the reviewer page"
-    # Fetch the user based on the 'usrid' parameter
-    user = db.session.scalar(select(TblUsers).where(TblUsers.user_id == usrid))
+    if usrid:
+        # URL-based login: validate user and establish session
+        user = db.session.scalar(select(TblUsers).where(TblUsers.user_id == usrid))
+        if not user or user.user_rolle != "9":
+            abort(403)
+        session["user_id"] = usrid
+        session.permanent = True
+    else:
+        # Session-based auth (consistent with @reviewer_required)
+        usrid = session.get("user_id")
+        if not usrid:
+            abort(401)
+        user = db.session.scalar(select(TblUsers).where(TblUsers.user_id == usrid))
+        if not user:
+            session.clear()
+            abort(401)
+        if user.user_rolle != "9":
+            abort(403)
 
-    # If the user doesn't exist or the role isn't 9, return 404
-    if not user or user.user_rolle != "9":
-        abort(403)
-
-    # Get the user_name of the logged in user_id
+    g.current_user = user
     user_name = user.user_name
     page = request.args.get("page", 1, type=int)
     per_page = request.args.get("per_page", 21, type=int)
-    # Store the userid in session
-    session["user_id"] = usrid
-    session.permanent = True
 
     filter_status = request.args.get("statusInput", "offen")
     filter_type = request.args.get("typeInput", None)
@@ -307,6 +317,7 @@ def reviewer(usrid):
     search_type = request.args.get("search_type", "full_text")
     date_from = request.args.get("dateFrom", None)
     date_to = request.args.get("dateTo", None)
+    date_type = request.args.get("dateType", "fund")
 
     image_path = current_app.config["UPLOAD_FOLDER"]
     inspector = inspect(db.engine)
@@ -316,9 +327,8 @@ def reviewer(usrid):
         return redirect(
             url_for(
                 "admin.reviewer",
-                usrid=usrid,
                 statusInput="offen",
-                sort_order="id_desc",  # Changed to desc
+                sort_order="id_desc",
             )
         )
 
@@ -330,6 +340,7 @@ def reviewer(usrid):
         search_type=search_type,
         date_from=date_from,
         date_to=date_to,
+        date_type=date_type,
     )
 
     # Apply sort order
@@ -392,6 +403,7 @@ def reviewer(usrid):
         current_sort_order=sort_order,
         search_query=search_query,
         search_type=search_type,
+        current_date_type=date_type,
     )
 
 
@@ -819,6 +831,7 @@ def export_data(value):
         search_type = request.args.get("search_type", "full_text")
         date_from = request.args.get("dateFrom", None)
         date_to = request.args.get("dateTo", None)
+        date_type = request.args.get("dateType", "fund")
 
         # Get filtered select statement based on export type
         if value == "all":
@@ -839,6 +852,7 @@ def export_data(value):
                 search_type=search_type,
                 date_from=date_from,
                 date_to=date_to,
+                date_type=date_type,
             )
         else:
             abort(404, description="Resource not found")
@@ -1127,6 +1141,7 @@ def get_filtered_query(
     search_type: Optional[str] = None,
     date_from: Optional[str] = None,
     date_to: Optional[str] = None,
+    date_type: Optional[str] = None,
 ):
     """Get filtered select statement based on parameters.
 
@@ -1211,27 +1226,30 @@ def get_filtered_query(
             stmt = stmt.where(TblMeldungen.id == -1)
 
     # Apply date filters
+    # Choose which date column to filter on based on date_type
+    date_column = (
+        TblMeldungen.dat_meld if date_type == "meld" else TblMeldungen.dat_fund_von
+    )
+
     if date_from and date_to:
         try:
             date_from_obj = datetime.strptime(date_from, "%d.%m.%Y")
             date_to_obj = datetime.strptime(date_to, "%d.%m.%Y")
-            stmt = stmt.where(
-                TblMeldungen.dat_fund_von.between(date_from_obj, date_to_obj)
-            )
+            stmt = stmt.where(date_column.between(date_from_obj, date_to_obj))
         except ValueError as e:
             current_app.logger.error(f"Date parsing error: {e}")
             stmt = stmt.where(TblMeldungen.id == -1)
     elif date_from:
         try:
             date_from_obj = datetime.strptime(date_from, "%d.%m.%Y")
-            stmt = stmt.where(TblMeldungen.dat_fund_von >= date_from_obj)
+            stmt = stmt.where(date_column >= date_from_obj)
         except ValueError as e:
             current_app.logger.error(f"Date parsing error: {e}")
             stmt = stmt.where(TblMeldungen.id == -1)
     elif date_to:
         try:
             date_to_obj = datetime.strptime(date_to, "%d.%m.%Y")
-            stmt = stmt.where(TblMeldungen.dat_fund_von <= date_to_obj)
+            stmt = stmt.where(date_column <= date_to_obj)
         except ValueError as e:
             current_app.logger.error(f"Date parsing error: {e}")
             stmt = stmt.where(TblMeldungen.id == -1)
