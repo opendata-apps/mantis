@@ -168,7 +168,7 @@ class TestCoordinateUpdates:
             f"/change_mantis_meta_data/{self.test_sighting.id}",
             data={"type": "latitude", "new_data": "52.550000"},
         )
-        assert response.status_code == 403
+        assert response.status_code == 401
 
     def test_update_coordinates_regular_user(self, client, session):
         """Test that regular (non-reviewer) users cannot update coordinates."""

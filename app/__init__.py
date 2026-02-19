@@ -273,6 +273,7 @@ def create_app(config_class=Config):
     app.register_blueprint(stats)
     app.register_blueprint(provider)
     app.register_blueprint(report)
+    app.register_error_handler(401, session_expired)
     app.register_error_handler(404, page_not_found)
     app.register_error_handler(403, forbidden)
     app.register_error_handler(429, too_many_requests)
@@ -320,6 +321,17 @@ def page_not_found(e):
     if wants_json_response():
         return jsonify({"error": e.description or "Not found"}), 404
     return render_template("error/404.html"), 404
+
+
+def session_expired(e):
+    from flask import current_app
+
+    current_app.logger.info(
+        f"Session expired: {request.url} - User Agent: {request.headers.get('User-Agent', 'Unknown')}"
+    )
+    if wants_json_response():
+        return jsonify({"error": "Session expired"}), 401
+    return render_template("error/session_expired.html"), 401
 
 
 def forbidden(e):

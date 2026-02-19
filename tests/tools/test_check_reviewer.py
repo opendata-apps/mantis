@@ -38,19 +38,19 @@ class TestLoginRequired:
             assert response.status_code == 200
             assert response.data == b"Success"
 
-    def test_unauthenticated_user_gets_403(self):
-        """Test that unauthenticated users get 403 error."""
+    def test_unauthenticated_user_gets_401(self):
+        """Test that unauthenticated users get 401 (session expired)."""
         test_app = Flask(__name__)
         test_app.config["SECRET_KEY"] = "test-secret-key"
 
-        @test_app.route("/test-protected-403")
+        @test_app.route("/test-protected-401")
         @login_required
         def protected_route():
             return "Success"
 
         with test_app.test_client() as client:
-            response = client.get("/test-protected-403")
-            assert response.status_code == 403
+            response = client.get("/test-protected-401")
+            assert response.status_code == 401
 
     def test_preserves_function_attributes(self):
         """Test that the decorator preserves the original function's attributes."""
@@ -167,11 +167,11 @@ class TestLoginRequired:
                 sess.clear()
 
             response = client.get("/test-logout")
-            assert response.status_code == 403
+            assert response.status_code == 401
 
     @patch("app.tools.check_reviewer.db")
-    def test_deleted_user_gets_403(self, mock_db):
-        """Test that a session referencing a deleted user gets 403."""
+    def test_deleted_user_gets_401(self, mock_db):
+        """Test that a session referencing a deleted user gets 401."""
         mock_db.session.scalar.return_value = None
 
         test_app = Flask(__name__)
@@ -187,7 +187,7 @@ class TestLoginRequired:
                 sess["user_id"] = "deleted-user-id"
 
             response = client.get("/test-deleted-user")
-            assert response.status_code == 403
+            assert response.status_code == 401
 
     @patch("app.tools.check_reviewer.db")
     def test_deleted_user_session_is_cleared(self, mock_db):
@@ -279,8 +279,8 @@ class TestReviewerRequired:
             response = client.get("/test-non-reviewer")
             assert response.status_code == 403
 
-    def test_unauthenticated_gets_403(self):
-        """Test that unauthenticated users get 403 (delegated to login_required)."""
+    def test_unauthenticated_gets_401(self):
+        """Test that unauthenticated users get 401 (delegated to login_required)."""
         test_app = Flask(__name__)
         test_app.config["SECRET_KEY"] = "test-secret-key"
 
@@ -291,10 +291,10 @@ class TestReviewerRequired:
 
         with test_app.test_client() as client:
             response = client.get("/test-reviewer-noauth")
-            assert response.status_code == 403
+            assert response.status_code == 401
 
     @patch("app.tools.check_reviewer.db")
-    def test_deleted_user_gets_403(self, mock_db):
+    def test_deleted_user_gets_401(self, mock_db):
         """Test that a deleted user is rejected (delegated to login_required)."""
         mock_db.session.scalar.return_value = None
 
@@ -311,7 +311,7 @@ class TestReviewerRequired:
                 sess["user_id"] = "deleted-user"
 
             response = client.get("/test-reviewer-deleted")
-            assert response.status_code == 403
+            assert response.status_code == 401
 
     @patch("app.tools.check_reviewer.db")
     def test_sets_g_current_user(self, mock_db):
