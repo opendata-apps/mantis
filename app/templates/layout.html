@@ -18,7 +18,7 @@
 	<meta property="og:title" content="Gottesanbeterin Gesucht | Mitmachprojekt | Mantis Religiosa Beobachtungen" />
 	<meta property="og:type" content="website" />
 	<meta property="og:url" content="{{ request.url | replace('http:', 'https:') }}" />
-	<meta property="og:image" content="{{ url_for('static', filename='images/berger03.avif', _external=True) }}" />
+	<meta property="og:image" content="{{ url_for('static', filename='images/berger03.webp', _external=True) }}" />
 	<meta property="og:description"
 		content="Beobachtungen der Gottesanbeterin (Mantis religiosa) in Deutschland. Melden Sie Ihre Beobachtungen und unterstützen Sie die Forschung zur Verbreitung dieser Art." />
 	<meta property="og:site_name" content="Gottesanbeterin Gesucht" />
@@ -30,7 +30,7 @@
 	<meta name="twitter:title" content="Gottesanbeterin Gesucht | Mitmachprojekt | Mantis Religiosa Beobachtungen" />
 	<meta name="twitter:description"
 		content="Beobachtungen der Gottesanbeterin (Mantis religiosa) in Deutschland. Melden Sie Ihre Beobachtungen und unterstützen Sie die Forschung zur Verbreitung dieser Art." />
-	<meta name="twitter:image" content="{{ url_for('static', filename='images/berger03.avif', _external=True) }}" />
+	<meta name="twitter:image" content="{{ url_for('static', filename='images/berger03.webp', _external=True) }}" />
 	<meta name="twitter:url" content="{{ request.url | replace('http:', 'https:') }}" />
 	{% endblock %}
 	<link rel="preload" as="image" href="{{ url_for('static', filename='images/berger03.avif') }}" />
@@ -38,6 +38,7 @@
 </head>
 
 <body class="flex flex-col min-h-screen antialiased bg-gray-100">
+	<a href="#content-container" class="sr-only focus:not-sr-only focus:fixed focus:z-[9999] focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-white focus:text-green-700 focus:rounded-lg focus:shadow-lg focus:font-medium">Zum Inhalt springen</a>
 	{# Check if we're in admin area #}
 	{%- set is_admin = request.path.startswith('/reviewer') or
 	request.path.startswith('/statistik') or
@@ -48,7 +49,7 @@
 		<nav class="nav-container">
 			{# Logo #}
 			<a href="/" class="nav-logo">
-				<img src="{{ url_for('static', filename='images/logo.png') }}" alt="Mantis Logo" />
+				<img src="{{ url_for('static', filename='images/logo.png') }}" alt="Gottesanbeterin Gesucht – Startseite" width="42" height="40" />
 				<span>Mitmachprojekt</span>
 			</a>
 
@@ -179,15 +180,42 @@
 			{% endif %}
 		</div>
 	</section>
-	<div class="flex flex-1 z-10 mb-10 bg-gray-100" id="content-container">
+	<main class="flex flex-1 z-10 mb-10 bg-gray-100" id="content-container" role="main">
 		<div class="flex-auto"> {% block content %} {% endblock content %} </div>
-	</div>
+	</main>
+	{# Native lightbox dialog — used by gallery.js on pages with lightbox images #}
+	<dialog id="lightbox" class="modal-lightbox backdrop:bg-black/85 backdrop:backdrop-blur-[4px]" aria-label="Bildvorschau">
+		<div class="relative flex flex-col items-center">
+			<img class="lightbox-img w-auto h-auto max-w-[90vw] max-h-[calc(90dvh-4rem)] object-contain rounded-md transition-opacity duration-200" src="" alt="" />
+			{# New-tab: hidden by default, JS shows it only in compact/reviewer mode #}
+			<button class="lightbox-newtab hidden absolute top-1 right-14 z-10 size-11 rounded-full bg-white/90 hover:bg-white text-gray-700 cursor-pointer border-none items-center justify-center transition-colors duration-150"
+				aria-label="In neuem Tab öffnen">
+				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 18 18">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+						d="M15 11v4.833A1.166 1.166 0 0 1 13.833 17H2.167A1.167 1.167 0 0 1 1 15.833V4.167A1.166 1.166 0 0 1 2.167 3h4.618m4.447-2H17v5.768M9.111 8.889l7.778-7.778" />
+				</svg>
+			</button>
+			{# Close: always visible #}
+			<button class="lightbox-close absolute top-1 right-1 z-10 flex size-11 rounded-full bg-white/90 hover:bg-white text-gray-700 cursor-pointer border-none items-center justify-center text-2xl leading-none transition-colors duration-150"
+				aria-label="Schließen">&times;</button>
+			{# Prev/next: JS toggles hidden based on album size #}
+			<button class="lightbox-prev absolute top-1/2 -translate-y-1/2 left-1 sm:left-3 z-10 flex size-10 sm:size-12 rounded-full bg-white/80 hover:bg-white text-gray-700 cursor-pointer border-none items-center justify-center text-2xl sm:text-3xl leading-none transition-colors duration-150"
+				aria-label="Vorheriges Bild" hidden>&#8249;</button>
+			<button class="lightbox-next absolute top-1/2 -translate-y-1/2 right-1 sm:right-3 z-10 flex size-10 sm:size-12 rounded-full bg-white/80 hover:bg-white text-gray-700 cursor-pointer border-none items-center justify-center text-2xl sm:text-3xl leading-none transition-colors duration-150"
+				aria-label="Nächstes Bild" hidden>&#8250;</button>
+			<div class="flex flex-col items-center gap-0.5 pt-3 text-center text-white">
+				<span class="lightbox-caption text-[0.9375rem]"></span>
+				<span class="lightbox-counter text-[0.8125rem] opacity-70"></span>
+			</div>
+		</div>
+	</dialog>
+
 	<!--! Footer -->
 	<footer id="links" class="bg-gray-200 border-t border-gray-300">
 		<div class="px-4 py-8 mx-auto space-y-6 max-w-5xl sm:px-6 lg:px-8 sm:space-y-8">
 			<div class="flex justify-center mb-5">
 				<a href="/"
-					class="text-2xl tracking-wider transition-colors sm:text-3xl text-green-700 hover:text-green-800">MITMACHPROJEKT</a>
+					class="text-2xl tracking-widest transition-colors sm:text-3xl text-green-700 hover:text-green-800">MITMACHPROJEKT</a>
 			</div>
 			<p class="mx-auto mb-6 max-w-xl text-sm leading-relaxed text-center text-gray-600 sm:text-base"> Die
 				Gottesanbeterin ( <i>Mantis religiosa </i> L., 1758) ist eine faszinierende Insektenart mit einer
@@ -270,6 +298,7 @@
 		console.log("%c🔗 https://gitlab.com/opendata-apps/mantis", "color: #3B82F6; font-size: 16px; font-weight: bold;");
 	</script>
 	<!--! End Footer -->
+	<script type="module" src="{{ vite_asset('js/gallery.js') }}"></script>
 </body>
 
 </html>

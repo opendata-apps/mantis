@@ -1,4 +1,6 @@
 @import 'tailwindcss';
+@import '@fontsource-variable/inter/wght.css';
+@import '@fontsource-variable/inter/wght-italic.css';
 
 @source "../../templates/**/*.html";
 @source "../js/**/*.js";
@@ -61,7 +63,7 @@
   font-weight: 700;
   font-size: 1.25rem;
   padding: 0.5rem;
-  /* Underline animation - same as original .link-underline */
+  /* Underline animation */
   background-image: linear-gradient(transparent, transparent), linear-gradient(white, white);
   background-size: 0 3px;
   background-position: 0 100%;
@@ -196,6 +198,9 @@
   Production uses Flowbite's emerald-based green colors (darker/more muted than TW v4 emerald).
 */
 @theme {
+  /* Typography - Inter Variable as default sans-serif */
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, sans-serif;
+
   /* Green palette - Flowbite colors (matches production) */
   --color-green-50: #F3FAF7;
   --color-green-100: #DEF7EC;
@@ -260,14 +265,13 @@
   ::file-selector-button {
     border-color: var(--color-gray-200, currentcolor);
   }
-}
 
-@utility fade-out {
-  animation: fadeOut 0.5s forwards;
-}
-
-@utility slide-in {
-  animation: slideIn 0.5s forwards;
+  html {
+    scroll-behavior: smooth !important;
+    font-size: 100% !important;
+    overscroll-behavior: none;
+    scrollbar-gutter: stable;
+  }
 }
 
 @layer utilities {
@@ -290,11 +294,13 @@
      Usage: <p class="prose-content">...</p> or <div class="prose-content">...</div> */
   .prose-content {
     @apply text-lg leading-relaxed text-gray-700;
+    max-width: 75ch;
   }
 
   /* Prose Content with bottom margin (most common variant) */
   .prose-content-spaced {
     @apply mb-4 text-lg leading-relaxed text-gray-700;
+    max-width: 75ch;
   }
 
   /* Section Heading - Green headings for content sections
@@ -337,50 +343,6 @@
   .modal-section-heading {
     @apply mb-1 text-xs font-semibold tracking-wide text-gray-500 uppercase;
   }
-
-  html {
-    scroll-behavior: smooth !important;
-    font-size: 100% !important;
-    overscroll-behavior: none;
-  }
-}
-
-@layer components {
-  @keyframes fadeOut {
-    from {
-      opacity: 1;
-      transform: scale(1);
-    }
-    to {
-      opacity: 0;
-      transform: scale(0.7);
-    }
-  }
-  @keyframes slideIn {
-    from {
-      transform: translateX(100%);
-    }
-    to {
-      transform: translateX(0);
-    }
-  }
-}
-
-.link-underline {
-  border-bottom-width: 0 !important;
-  background-image: linear-gradient(transparent, transparent),
-    linear-gradient(white, white) !important;
-  background-size: 0 3px !important;
-  background-position: 0 100% !important;
-  background-repeat: no-repeat !important;
-  transition: background-size 0.5s ease-in-out !important;
-}
-
-
-
-.link-underline:hover {
-  background-size: 100% 3px !important;
-  background-position: 0 100%;
 }
 
 /* Flowbite Datepicker Base Styles */
@@ -576,16 +538,12 @@
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-green-500) 20%, transparent);
 }
 
-/* Reviewer modal + image modal (native <dialog>) */
-.modal-admin,
-.modal-image {
+/* Reviewer modal (native <dialog>) */
+.modal-admin {
   border: 0;
   padding: 0;
   background: transparent;
   margin: auto;
-}
-
-.modal-admin {
   width: min(96vw, 90rem);
   max-width: 96vw;
   max-height: calc(100vh - 2rem);
@@ -593,30 +551,9 @@
   overflow: hidden;
 }
 
-.modal-admin::backdrop {
-  background: color-mix(in srgb, var(--color-gray-900) 55%, transparent);
-  backdrop-filter: blur(2px);
-}
-
-.modal-image {
-  width: min(90vw, 56rem);
-  max-width: 90vw;
-  max-height: calc(100vh - 2rem);
-  max-height: calc(100dvh - 2rem);
-}
-
-.modal-image::backdrop {
-  background: color-mix(in srgb, var(--color-gray-900) 55%, transparent);
-  backdrop-filter: blur(2px);
-}
-
 .modal-admin-panel {
   height: min(90vh, calc(100vh - 2rem));
   height: min(90dvh, calc(100dvh - 2rem));
-}
-
-.modal-scroll-region {
-  -webkit-overflow-scrolling: touch;
 }
 
 @media (max-width: 767px) {
@@ -635,62 +572,36 @@
   }
 }
 
-/* JS fallback for browsers where :has(dialog[open]) behavior is inconsistent. */
-html.dialog-open,
-body.dialog-open {
+/* Prevent background scroll while any modal dialog is open.
+   Pure CSS — :has() + :modal, no JS needed. */
+body:has(dialog:modal) {
   overflow: hidden;
 }
 
-/* Prevent background page scroll while any native dialog is open. */
-@supports selector(html:has(dialog[open])) {
-  html:has(dialog[open]),
-  body:has(dialog[open]) {
-    overflow: hidden;
-  }
-}
+/* ==========================================================================
+   Native Lightbox Dialog
+   Only what TW4 can't express: dialog reset + compact sizing
+   ========================================================================== */
 
-/* Reviewer map popup styling */
-#map .leaflet-popup {
-  padding-top: 10px;
-}
-
-.leaflet-popup-content-wrapper {
-  background: color-mix(in srgb, var(--color-green-800) 80%, transparent);
-  border-radius: 12px;
-  color: white;
-  font-family: Arial, sans-serif;
-  opacity: 0;
-  animation: popupFadeIn ease 0.6s forwards;
-}
-
-.leaflet-popup-tip {
-  background: color-mix(in srgb, var(--color-green-800) 80%, transparent);
-}
-
-.leaflet-popup-content {
-  padding: 10px;
-}
-
-.popup-content h2 {
-  margin-bottom: 10px;
-  font-size: 1.1rem;
-  color: var(--color-gray-100);
-}
-
-.popup-list {
-  list-style-type: none;
+.modal-lightbox {
+  border: 0;
   padding: 0;
+  background: transparent;
+  margin: auto;
+  max-width: calc(100vw - 2rem);
+  max-height: calc(100dvh - 2rem);
 }
 
-.popup-list li {
-  margin-bottom: 5px;
+/* Compact mode — auto-applied when opened from inside another dialog or report card */
+.lightbox-compact .lightbox-img {
+  max-width: min(85vw, 48rem);
+  max-height: 70dvh;
 }
 
-@keyframes popupFadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
+@media (max-width: 640px) {
+  .lightbox-compact .lightbox-img {
+    max-width: 92vw;
+    max-height: 65dvh;
   }
 }
+
