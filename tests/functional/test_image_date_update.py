@@ -5,6 +5,7 @@ from datetime import datetime, date
 from pathlib import Path
 import pytest
 from unittest.mock import patch, MagicMock
+from sqlalchemy import select, func
 from app.database.fundmeldungen import TblMeldungen
 from app.database.fundorte import TblFundorte
 from app.routes.admin import update_report_image_date
@@ -14,7 +15,6 @@ from app.routes.admin import update_report_image_date
 def mock_fundorte_with_image(session):
     """Create a fundorte record with an image path"""
     fundorte = TblFundorte(
-        id=99999,
         plz="12345",
         ort="TestCity",
         strasse="Test Street",
@@ -36,7 +36,6 @@ def mock_fundorte_with_image(session):
 def mock_meldung_with_image(session, mock_fundorte_with_image):
     """Create a meldung record linked to fundorte with image"""
     meldung = TblMeldungen(
-        id=99999,
         dat_fund_von=date(2024, 7, 15),
         dat_meld=datetime.now(),
         fo_zuordnung=mock_fundorte_with_image.id,
@@ -105,7 +104,6 @@ def test_update_report_image_date_no_image(app, session):
     """Test handling when there's no image to move"""
     # Create fundorte without image
     fundorte = TblFundorte(
-        id=99998,
         plz="12345",
         ort="TestCity",
         strasse="Test Street",
@@ -122,7 +120,6 @@ def test_update_report_image_date_no_image(app, session):
     session.commit()  # Commit fundorte first
 
     meldung = TblMeldungen(
-        id=99998,
         dat_fund_von=date(2024, 7, 15),
         dat_meld=datetime.now(),
         fo_zuordnung=fundorte.id,
@@ -151,7 +148,6 @@ def test_update_report_image_date_file_not_found(app, session):
     """Test handling when image file doesn't exist"""
     # Create test data with different IDs
     fundorte = TblFundorte(
-        id=99997,
         plz="12345",
         ort="TestCity",
         strasse="Test Street",
@@ -168,7 +164,6 @@ def test_update_report_image_date_file_not_found(app, session):
     session.commit()
 
     meldung = TblMeldungen(
-        id=99997,
         dat_fund_von=date(2024, 7, 15),
         dat_meld=datetime.now(),
         fo_zuordnung=fundorte.id,
@@ -201,7 +196,6 @@ def test_update_report_image_date_same_date(app, session):
     """Test when source and destination are the same"""
     # Create test data with different IDs
     fundorte = TblFundorte(
-        id=99996,
         plz="12345",
         ort="TestCity",
         strasse="Test Street",
@@ -218,7 +212,6 @@ def test_update_report_image_date_same_date(app, session):
     session.commit()
 
     meldung = TblMeldungen(
-        id=99996,
         dat_fund_von=date(2024, 7, 15),
         dat_meld=datetime.now(),
         fo_zuordnung=fundorte.id,
@@ -265,7 +258,8 @@ def test_update_report_record_not_found(app, session):
     with patch("app.routes.admin.current_app") as mock_app:
         mock_app.config = {"UPLOAD_FOLDER": "/tmp"}
 
-        result, status_code = update_report_image_date(99995, date(2024, 8, 20))
+        missing_id = (session.scalar(select(func.max(TblMeldungen.id))) or 0) + 1
+        result, status_code = update_report_image_date(missing_id, date(2024, 8, 20))
 
         assert status_code == 404
         assert result["error"] == "Report not found"

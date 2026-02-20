@@ -3,7 +3,7 @@
 import pytest
 from datetime import datetime, timedelta
 import json
-from sqlalchemy import select
+from sqlalchemy import select, func
 
 from app.database.models import (
     TblMeldungen,
@@ -655,12 +655,13 @@ class TestAdminRoutes:
         )
         assert response.status_code == 200
 
-    def test_error_handling_for_invalid_sighting_id(self, client):
+    def test_error_handling_for_invalid_sighting_id(self, client, session):
         """Test error handling when sighting ID doesn't exist."""
         # Set up session
         with client.session_transaction() as sess:
             sess["user_id"] = "9999"
 
         # Test with non-existent ID
-        response = client.post("/delete_sighting/99999")
+        missing_id = (session.scalar(select(func.max(TblMeldungen.id))) or 0) + 1
+        response = client.post(f"/delete_sighting/{missing_id}")
         assert response.status_code == 404

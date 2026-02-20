@@ -3,7 +3,7 @@
 import pytest
 import json
 from datetime import datetime, timedelta
-from sqlalchemy import select
+from sqlalchemy import select, func
 from app.database.models import (
     TblMeldungen,
     TblFundorte,
@@ -267,14 +267,15 @@ class TestCoordinateUpdates:
         )
         assert response.status_code == 400
 
-    def test_update_coordinates_nonexistent_sighting(self, client):
+    def test_update_coordinates_nonexistent_sighting(self, client, session):
         """Test updating coordinates for non-existent sighting."""
         # Set up session
         with client.session_transaction() as sess:
             sess["user_id"] = self.reviewer.user_id
 
+        missing_id = (session.scalar(select(func.max(TblMeldungen.id))) or 0) + 1
         response = client.post(
-            "/change_mantis_meta_data/99999",
+            f"/change_mantis_meta_data/{missing_id}",
             data={"type": "latitude", "new_data": "52.530000"},
         )
         assert response.status_code == 404
@@ -657,13 +658,14 @@ class TestAmtMtbRecalculation:
         )
         assert response.status_code == 400
 
-    def test_update_coordinates_nonexistent_sighting(self, client):
+    def test_update_coordinates_nonexistent_sighting(self, client, session):
         """Test update_coordinates with non-existent sighting."""
         with client.session_transaction() as sess:
             sess["user_id"] = self.reviewer.user_id
 
+        missing_id = (session.scalar(select(func.max(TblMeldungen.id))) or 0) + 1
         response = client.post(
-            "/update_coordinates/99999",
+            f"/update_coordinates/{missing_id}",
             data={"latitude": "52.520008", "longitude": "13.404954"},
         )
         assert response.status_code == 404

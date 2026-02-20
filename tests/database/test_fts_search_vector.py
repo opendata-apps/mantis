@@ -1,6 +1,5 @@
 """Tests for native PostgreSQL full-text search via search_vector column."""
 
-import pytest
 from sqlalchemy import select, func
 from app.database.models import TblMeldungen
 
