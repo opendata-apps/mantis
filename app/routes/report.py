@@ -375,7 +375,13 @@ def validate_step_partial():
     if not _is_partial_request():
         abort(400)
 
-    step = request.form.get("step", type=int, default=1)
+    # Parse step strictly: malformed values must not silently fall back to step 1.
+    step_raw = request.form.get("step", "1")
+    try:
+        step = int(str(step_raw).strip())
+    except (TypeError, ValueError):
+        step = None
+
     if step not in {1, 2, 3, 4}:
         return (
             render_template(

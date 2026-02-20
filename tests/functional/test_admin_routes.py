@@ -416,6 +416,23 @@ class TestAdminRoutes:
         session.refresh(self.test_sighting)
         assert self.test_sighting.art_m == original
 
+    def test_change_mantis_count_out_of_range_value(self, client, session):
+        """Counts beyond DB integer range should return 400."""
+        with client.session_transaction() as sess:
+            sess["user_id"] = "9999"
+
+        original = self.test_sighting.art_m
+        response = client.post(
+            f"/change_mantis_count/{self.test_sighting.id}",
+            data={"type": "Männchen", "new_count": "2147483648"},
+        )
+        assert response.status_code == 400
+        data = json.loads(response.data)
+        assert "error" in data
+
+        session.refresh(self.test_sighting)
+        assert self.test_sighting.art_m == original
+
     def test_reviewer_page_uses_native_modal_and_fragment_assets(self, client):
         """Reviewer page should load native dialog + HTMX admin modules."""
         with client.session_transaction() as sess:

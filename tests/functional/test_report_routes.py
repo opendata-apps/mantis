@@ -204,6 +204,24 @@ class TestValidateStepPartial:
         )
         assert response.status_code == 400
 
+    def test_non_integer_step_value_is_rejected(self, client):
+        """Malformed step values should be rejected instead of defaulting to step 1."""
+        response = client.post(
+            "/melden/validate-step",
+            headers=_htmx_headers(),
+            data={"step": "abc"},
+        )
+        assert response.status_code == 400
+
+    def test_blank_step_value_is_rejected(self, client):
+        """Blank step values should be rejected instead of defaulting to step 1."""
+        response = client.post(
+            "/melden/validate-step",
+            headers=_htmx_headers(),
+            data={"step": "   "},
+        )
+        assert response.status_code == 400
+
 
 # ============================================================================
 # C. /melden/toggle-finder

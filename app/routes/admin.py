@@ -41,6 +41,9 @@ from app.tools.gemeinde_finder import get_amt_full_scan
 from app.tools.coordinate_validation import validate_and_normalize_coordinate
 from typing import Optional
 
+INT32_MIN = -(2**31)
+INT32_MAX = 2**31 - 1
+
 
 class CompoundSelectPagination(Pagination):
     """Pagination for compound select statements (multiple ORM entities).
@@ -820,6 +823,9 @@ def change_mantis_count(id):
         new_count = int(str(new_count_raw).strip())
     except (ValueError, TypeError):
         return jsonify({"error": "Invalid count value"}), 400
+
+    if not (INT32_MIN <= new_count <= INT32_MAX):
+        return jsonify({"error": "Count value out of range"}), 400
 
     if new_count < 0:
         return jsonify({"error": "Count must be non-negative"}), 400
