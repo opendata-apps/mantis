@@ -1,5 +1,5 @@
 // HTMX for admin report card interactions
-import htmx from 'https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/+esm';
+import htmx from 'htmx.org';
 window.htmx = htmx;
 
 // CSRF via meta tag (admin uses <meta name="csrf-token">)

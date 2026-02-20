@@ -8,7 +8,7 @@ import 'leaflet-control-geocoder/dist/Control.Geocoder.css';
 import 'leaflet.locatecontrol';
 import 'leaflet.locatecontrol/dist/L.Control.Locate.min.css';
 import EXIF from 'exif-js';
-import htmx from 'https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/+esm';
+import htmx from 'htmx.org';
 
 // Configure HTMX to include CSRF token in all requests
 // This is the recommended approach from Flask-WTF documentation for AJAX requests
