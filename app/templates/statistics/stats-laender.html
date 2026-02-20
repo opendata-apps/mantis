@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 {% block title %}Statistiken{% endblock title %}
 {% block meta_keywords %}Auswertungen, Meßtischblatt{% endblock %}
-{% from 'statistics/menu-stats.html' import StatsMenu with context %}
+{% from 'statistics/_macros_stats_menu.html' import StatsMenu with context %}
 {% block content %}
 <section class="container px-4 mx-auto mt-10">
   <div class="p-4 bg-gray-100 rounded-lg border border-gray-200 sm:p-5">
@@ -29,27 +29,27 @@
 	    <tbody>
 	      <tr>
 		<td>Männlich</td>
-		<td style="text-align:right;">{{result[k]['maennlich']}}</td>
+		<td class="text-right">{{result[k]['maennlich']}}</td>
 	      </tr>
 	      <tr>
 		<td>Weiblich</td>
-		<td style="text-align:right;">{{result[k]['weiblich']}}</td>
+		<td class="text-right">{{result[k]['weiblich']}}</td>
 	      </tr>
 	      <tr>
 		<td>Nymphe</td>
-		<td style="text-align:right;">{{result[k]['nymphe']}}</td>
+		<td class="text-right">{{result[k]['nymphe']}}</td>
 	      </tr>
 	      <tr>
 		<td>Oothek</td>
-		<td style="text-align:right;">{{result[k]['oothek']}}</td>
+		<td class="text-right">{{result[k]['oothek']}}</td>
 	      </tr>
 	      <tr>
 		<td>Andere</td>
-		<td style="text-align:right;">{{result[k]['andere']}}</td>
+		<td class="text-right">{{result[k]['andere']}}</td>
 	      </tr>
 	      <tr class="border-t-2 border-b-4 border-green-500">
 		<td>Gesamt</td>
-		<td style="text-align:right;">{{result[k]['gesamt']}}</td>
+		<td class="text-right">{{result[k]['gesamt']}}</td>
 	      </tr>
 	    </tbody>
 	  </table>

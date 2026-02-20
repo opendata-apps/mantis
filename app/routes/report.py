@@ -412,7 +412,7 @@ def validate_step_partial():
 
         visible_fields = get_visible_error_fields(step)
         clear_html = render_template(
-            "report/partials/clear_errors.html", fields=visible_fields, step=step
+            "report/partials/_clear_errors.html", fields=visible_fields, step=step
         )
         response = make_response(clear_html)
         response.headers["HX-Trigger"] = (
@@ -421,7 +421,7 @@ def validate_step_partial():
         return response
     else:
         # Return inline error messages via OOB swaps
-        return render_template("report/partials/validation_errors.html", errors=errors)
+        return render_template("report/partials/_validation_errors.html", errors=errors)
 
 
 @report.route("/melden/toggle-finder", methods=["POST"])
@@ -439,12 +439,12 @@ def toggle_finder():
 
     if is_identical:
         # Return hidden/empty finder fields
-        return render_template("report/partials/finder_fields.html", show=False)
+        return render_template("report/partials/_finder_fields.html", show=False)
     else:
         # Return visible finder fields
         form = MantisSightingForm()
         return render_template(
-            "report/partials/finder_fields.html", show=True, form=form
+            "report/partials/_finder_fields.html", show=True, form=form
         )
 
 
@@ -460,11 +460,11 @@ def feedback_detail():
         placeholder = FeedbackSource.get_placeholder(feedback_source)
         if placeholder:
             return render_template(
-                "report/partials/feedback_detail.html",
+                "report/partials/_feedback_detail.html",
                 show=True,
                 placeholder=placeholder,
             )
-    return render_template("report/partials/feedback_detail.html", show=False)
+    return render_template("report/partials/_feedback_detail.html", show=False)
 
 
 @report.route("/melden/review", methods=["POST"])
@@ -509,7 +509,7 @@ def review_step():
         "feedback_detail": request.form.get("feedback_detail", ""),
     }
 
-    return render_template("report/partials/review_content.html", review=review_data)
+    return render_template("report/partials/_review_content.html", review=review_data)
 
 
 @report.route("/melden/char-count", methods=["POST"])
@@ -524,7 +524,7 @@ def char_count():
     is_over = remaining < 0
 
     return render_template(
-        "report/partials/char_count.html", remaining=remaining, is_over=is_over
+        "report/partials/_char_count.html", remaining=remaining, is_over=is_over
     )
 
 

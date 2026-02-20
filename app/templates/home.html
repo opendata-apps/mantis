@@ -42,9 +42,9 @@
 {% endblock %}
 
 {% block title %}Gottesanbeterin gesucht!{% endblock title %}
-{% from "macro.html" import popover %}
+{% from "_macros_ui.html" import popover %}
 {% block content %}
-<p style="text-align:center">Zeit der Eiablage: Melden Sie bitte auch Ootheken, sie sind der Start für die nächste Generation im kommenden Jahr.</p>
+<p class="text-center">Zeit der Eiablage: Melden Sie bitte auch Ootheken, sie sind der Start für die nächste Generation im kommenden Jahr.</p>
 <!--Projektbeschreibung section -->
 <section id="Projektbeschreibung" class="overflow-hidden relative px-4 py-20 sm:px-6 lg:px-8">
     <div class="mx-auto max-w-7xl">
@@ -295,7 +295,7 @@
 
 <!-- Modal -->
 {% if celebration_enabled %}
-<div id="thanksModal" class="flex fixed inset-0 justify-center items-center opacity-0 transition-opacity duration-300 pointer-events-none" style="z-index: 11000;">
+<div id="thanksModal" class="flex fixed inset-0 z-[11000] justify-center items-center opacity-0 transition-opacity duration-300 pointer-events-none">
     <div class="absolute inset-0 bg-black/50 backdrop-blur-xs"></div>
     <div class="relative p-8 mx-4 w-full max-w-md bg-white rounded-lg shadow-xl transition-transform duration-300 transform scale-95">
         <button id="closeModal" class="absolute top-4 right-4 text-gray-500 transition-colors duration-200 hover:text-gray-700">

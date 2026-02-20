@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 {% block title %}Statistiken{% endblock title %}
 {% block meta_keywords %}Auswertungen, Feedback{% endblock %}
-{% from 'statistics/menu-stats.html' import StatsMenu with context %}
+{% from 'statistics/_macros_stats_menu.html' import StatsMenu with context %}
 {% block content %}
 <section class="container px-4 mx-auto mt-10">
   <div class="p-4 bg-gray-100 rounded-lg border border-gray-200 sm:p-5">
@@ -15,15 +15,15 @@
       <table class="w-full min-w-[18rem] table-fixed">
 	<thead>
 	  <tr>
-	    <th style="width:200px">Art</th>
-	    <th style="width:50px; text-align:right;">Anzahl</th>
+	    <th class="w-[200px]">Art</th>
+	    <th class="w-[50px] text-right">Anzahl</th>
 	  </tr>
 	</thead>
 	<tbody>
           {% for f in feedback %}
 	  <tr>
 	    <td>{{f[0]}}</td>
-	    <td style="text-align:right;">{{f[1]}}</td>
+	    <td class="text-right">{{f[1]}}</td>
 	  </tr>
 	  {% endfor %}
 	</tbody>

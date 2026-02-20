@@ -1,8 +1,8 @@
 {% extends "layout.html" %}
 {% block title %}Statistiken{% endblock title %}
 {% block meta_keywords %} Auswertungen, Statistik {% endblock %}
-{% from 'statistics/menu-filter.html' import MenuFilter with context %}
-{% from 'statistics/filter-datum-typ.html' import StatsAuswahl with context %}
+{% from 'statistics/_macros_filter_menu.html' import MenuFilter with context %}
+{% from 'statistics/_macros_filter_selection.html' import StatsAuswahl with context %}
 {% block content %}
 <section class="container px-4 mx-auto mt-10">
 	<form action="" method="POST" class="space-y-4">

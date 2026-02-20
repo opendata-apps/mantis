@@ -21,7 +21,7 @@
 <meta name="twitter:image" content="{{ url_for('static', filename='images/weibchen-mit-oothek.webp', _external=True) }}" />
 <meta name="twitter:url" content="{{ url_for('report.melden', _external=True) }}" />
 {% endblock %}
-{% from 'report/form_components.html' import render_photo_upload, render_form_field, render_step_navigation, render_feedback_section %}
+{% from 'report/_macros_form.html' import render_photo_upload, render_form_field, render_step_navigation, render_feedback_section %}
 
 {% block title %}Sichtung melden - Gottesanbeterin{% endblock %}
 
@@ -149,7 +149,7 @@
 {% endblock %}
 
 {% block content %}
-<p style="text-align:center">Zeit der Eiablage: Melden Sie bitte auch Ootheken, sie sind der Start für die nächste Generation im kommenden Jahr.</p>
+<p class="text-center">Zeit der Eiablage: Melden Sie bitte auch Ootheken, sie sind der Start für die nächste Generation im kommenden Jahr.</p>
 
 <div class="form-container">
   <div class="form-wrapper">
@@ -162,7 +162,7 @@
       {{ form.csrf_token }}
 
       {# Hidden target for htmx validation - actual errors use OOB swaps #}
-      <div id="validation-errors-container" style="display:none"></div>
+      <div id="validation-errors-container" class="hidden"></div>
       
       <h2 class="sr-only">Meldeformular</h2>
       <div class="step-container">
@@ -295,7 +295,7 @@
 
             {# HTMX-managed finder fields container #}
             <div id="finder_fields_container">
-              {% include 'report/partials/finder_fields.html' with context %}
+              {% include 'report/partials/_finder_fields.html' with context %}
             </div>
 
             <!-- Feedback section - only for new users -->

@@ -2,7 +2,7 @@
 {% block meta_robots %}noindex,nofollow{% endblock %}
 {% block title %} Admin Panel {% endblock title%}
 {% block text %} {{user_name}} {% endblock text %}
-{% from "macro.html" import render_pagination %}
+{% from "_macros_ui.html" import render_pagination %}
 {% block head %}
 {{ vite_tags('js/map.js') }}
 {% endblock %}
