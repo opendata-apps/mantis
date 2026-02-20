@@ -376,6 +376,14 @@ def validate_step_partial():
         abort(400)
 
     step = request.form.get("step", type=int, default=1)
+    if step not in {1, 2, 3, 4}:
+        return (
+            render_template(
+                "report/partials/_validation_errors.html",
+                errors={"step": ["Ungültiger Formularschritt."]},
+            ),
+            400,
+        )
     step_fields = get_step_fields(step)
 
     # Build form data from request

@@ -546,8 +546,14 @@ def update_address(id):
     kreis = (request.form.get("kreis") or "").strip()
     land = (request.form.get("land") or "").strip()
 
-    if plz_raw.isdigit():
-        fundort.plz = int(plz_raw)
+    if plz_raw:
+        if not plz_raw.isdigit():
+            return jsonify({"error": "Invalid ZIP code"}), 400
+        plz_value = int(plz_raw)
+        # German postal codes are max 5 digits; reject oversized numeric input.
+        if plz_value > 99999:
+            return jsonify({"error": "Invalid ZIP code"}), 400
+        fundort.plz = plz_value
     if ort:
         fundort.ort = ort
     if strasse:
@@ -789,28 +795,44 @@ def undelete_sighting(id):
 @reviewer_required
 def change_mantis_count(id):
     "Change mantis count for a specific type"
-    new_count = request.form.get("new_count")
-    mantis_type = request.form.get("type")
+    new_count_raw = request.form.get("new_count")
+    mantis_type = (request.form.get("type") or "").strip()
     sighting = db.session.get(TblMeldungen, id)
     if sighting is None:
         abort(404, description="Sighting not found")
 
-    # Update the count for the specified mantis type
-    if mantis_type == "Männchen":
-        sighting.art_m = new_count
-    elif mantis_type == "Weibchen":
-        sighting.art_w = new_count
-    elif mantis_type == "Nymphe":
-        sighting.art_n = new_count
-    elif mantis_type == "Oothek":
-        sighting.art_o = new_count
-    elif mantis_type == "Andere":
-        sighting.art_f = new_count
-    elif mantis_type == "Anzahl":
-        sighting.tiere = new_count
+    count_fields = {
+        "Männchen": "art_m",
+        "Weibchen": "art_w",
+        "Nymphe": "art_n",
+        "Oothek": "art_o",
+        "Andere": "art_f",
+        "Anzahl": "tiere",
+    }
+    field = count_fields.get(mantis_type)
+    if field is None:
+        return jsonify({"error": "Invalid mantis type"}), 400
+
+    if new_count_raw is None or str(new_count_raw).strip() == "":
+        return jsonify({"error": "Missing count value"}), 400
+
+    try:
+        new_count = int(str(new_count_raw).strip())
+    except (ValueError, TypeError):
+        return jsonify({"error": "Invalid count value"}), 400
+
+    if new_count < 0:
+        return jsonify({"error": "Count must be non-negative"}), 400
+
+    setattr(sighting, field, new_count)
 
     sighting.bearb_id = g.current_user.user_id
-    db.session.commit()
+    try:
+        db.session.commit()
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        current_app.logger.error(f"Failed to update mantis count for sighting {id}: {e}")
+        return jsonify({"error": "Failed to update mantis count"}), 500
 
     return jsonify({"success": True})
 

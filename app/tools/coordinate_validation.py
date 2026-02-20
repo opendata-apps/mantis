@@ -1,5 +1,14 @@
 """Centralized coordinate validation and normalization utilities."""
 
+import math
+import re
+
+
+# Allow optional sign, decimal formats, and optional scientific notation.
+COORDINATE_PATTERN = re.compile(
+    r"^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$"
+)
+
 
 def validate_and_normalize_coordinate(value, coord_type):
     """
@@ -35,11 +44,17 @@ def validate_and_normalize_coordinate(value, coord_type):
         # Handle potential comma as decimal separator (legacy data)
         coord_str = coord_str.replace(",", ".")
 
-        # Remove plus sign if present
-        coord_str = coord_str.lstrip("+")
+        # Reject malformed numeric formats (e.g. "++13", "+-13", "13..4")
+        if not COORDINATE_PATTERN.fullmatch(coord_str):
+            return False, None, f"Invalid {coord_type} format"
 
         # Convert to float for validation
         coord_value = float(coord_str)
+        if not math.isfinite(coord_value):
+            # Treat NaN/Inf as out-of-range numeric values.
+            if coord_type == "latitude":
+                return False, None, "Latitude must be between -90 and 90"
+            return False, None, "Longitude must be between -180 and 180"
 
         # Validate range based on type
         if coord_type == "latitude":

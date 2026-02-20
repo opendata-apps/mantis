@@ -241,3 +241,47 @@ class TestMapDataFilters:
                 assert sighting_id not in report_ids, (
                     f"Sighting {sighting_id} should NOT appear in map data"
                 )
+
+    def test_map_excludes_reports_before_min_map_year(self, client, session):
+        """Approved reports older than MIN_MAP_YEAR must not appear on the map."""
+        min_map_year = client.application.config["MIN_MAP_YEAR"]
+        old_approved = TblMeldungen(
+            dat_fund_von=datetime(min_map_year - 1, 6, 15).date(),
+            dat_meld=datetime.now().date(),
+            fo_zuordnung=self.location.id,
+            dat_bear=datetime.now(),
+            deleted=False,
+            statuses=[ReportStatus.APPR.value],
+            art_m=1,
+            anm_melder="old approved report",
+        )
+        session.add(old_approved)
+        session.commit()
+
+        response = client.get("/auswertungen")
+        assert response.status_code == 200
+
+        soup = BeautifulSoup(response.data, "html.parser")
+        script_tags = soup.find_all("script")
+        reports_json = None
+
+        for script in script_tags:
+            if script.string and "const reports = " in script.string:
+                start = script.string.find("const reports = ") + len("const reports = ")
+                bracket_count = 0
+                end = start
+                for i, char in enumerate(script.string[start:], start):
+                    if char == "[":
+                        bracket_count += 1
+                    elif char == "]":
+                        bracket_count -= 1
+                        if bracket_count == 0:
+                            end = i + 1
+                            break
+                json_str = script.string[start:end]
+                reports_json = json.loads(json_str)
+                break
+
+        assert reports_json is not None, "Could not find reports JSON in response"
+        report_ids = [report["report_id"] for report in reports_json]
+        assert old_approved.id not in report_ids

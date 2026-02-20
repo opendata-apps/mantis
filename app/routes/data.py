@@ -28,11 +28,12 @@ data = Blueprint("data", __name__)
 @data.route("/auswertungen")
 def show_map():
     selected_year = request.args.get("year", None, type=int)
+    min_map_date = date(current_app.config["MIN_MAP_YEAR"], 1, 1)
 
     # Get distinct years from dat_fund_von beginning with MIN_MAP_YEAR
     years_stmt = (
         select(func.extract("year", TblMeldungen.dat_fund_von).label("year"))
-        .where(TblMeldungen.dat_fund_von >= date(current_app.config['MIN_MAP_YEAR'], 1, 1))
+        .where(TblMeldungen.dat_fund_von >= min_map_date)
         .distinct()
         .order_by("year")
     )
@@ -45,6 +46,7 @@ def show_map():
     reports_stmt = (
         select(TblMeldungen.id, TblFundorte.latitude, TblFundorte.longitude)
         .join(TblFundorte, TblMeldungen.fo_zuordnung == TblFundorte.id)
+        .where(TblMeldungen.dat_fund_von >= min_map_date)
         .where(TblMeldungen.statuses.contains([ReportStatus.APPR.value]))
     )
 
@@ -66,7 +68,7 @@ def show_map():
         count_stmt = (
             select(func.count())
             .select_from(TblMeldungen)
-            .where(TblMeldungen.dat_fund_von >= date(current_app.config["MIN_MAP_YEAR"], 1, 1))
+            .where(TblMeldungen.dat_fund_von >= min_map_date)
             .where(TblMeldungen.statuses.contains([ReportStatus.APPR.value]))
         )
         post_count = db.session.execute(count_stmt).scalar()

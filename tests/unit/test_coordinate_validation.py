@@ -40,6 +40,8 @@ class TestCoordinateValidation:
             ("91", "Latitude must be between -90 and 90"),
             ("-91", "Latitude must be between -90 and 90"),
             ("invalid", "Invalid latitude format"),
+            ("++13", "Invalid latitude format"),
+            ("+-13", "Invalid latitude format"),
             ("", "Latitude is required"),
             (None, "Latitude is required"),
             ("52.52.52", "Invalid latitude format"),
@@ -82,6 +84,8 @@ class TestCoordinateValidation:
             ("181", "Longitude must be between -180 and 180"),
             ("-181", "Longitude must be between -180 and 180"),
             ("not_a_number", "Invalid longitude format"),
+            ("++13", "Invalid longitude format"),
+            ("+-13", "Invalid longitude format"),
             ("", "Longitude is required"),
             (None, "Longitude is required"),
         ]

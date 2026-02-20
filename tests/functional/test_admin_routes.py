@@ -364,6 +364,58 @@ class TestAdminRoutes:
         session.refresh(self.test_sighting)
         assert self.test_sighting.art_m == 2
 
+    def test_change_mantis_count_invalid_type(self, client, session):
+        """Unknown count types should return 400 and not mutate report data."""
+        with client.session_transaction() as sess:
+            sess["user_id"] = "9999"
+
+        before = (self.test_sighting.art_m, self.test_sighting.bearb_id)
+        response = client.post(
+            f"/change_mantis_count/{self.test_sighting.id}",
+            data={"type": "InvalidType", "new_count": "2"},
+        )
+        assert response.status_code == 400
+        data = json.loads(response.data)
+        assert "error" in data
+
+        session.refresh(self.test_sighting)
+        after = (self.test_sighting.art_m, self.test_sighting.bearb_id)
+        assert after == before
+
+    def test_change_mantis_count_invalid_value(self, client, session):
+        """Non-numeric count values should be rejected with 400."""
+        with client.session_transaction() as sess:
+            sess["user_id"] = "9999"
+
+        original = self.test_sighting.art_m
+        response = client.post(
+            f"/change_mantis_count/{self.test_sighting.id}",
+            data={"type": "Männchen", "new_count": "abc"},
+        )
+        assert response.status_code == 400
+        data = json.loads(response.data)
+        assert "error" in data
+
+        session.refresh(self.test_sighting)
+        assert self.test_sighting.art_m == original
+
+    def test_change_mantis_count_negative_value(self, client, session):
+        """Negative count values are invalid and should be rejected."""
+        with client.session_transaction() as sess:
+            sess["user_id"] = "9999"
+
+        original = self.test_sighting.art_m
+        response = client.post(
+            f"/change_mantis_count/{self.test_sighting.id}",
+            data={"type": "Männchen", "new_count": "-1"},
+        )
+        assert response.status_code == 400
+        data = json.loads(response.data)
+        assert "error" in data
+
+        session.refresh(self.test_sighting)
+        assert self.test_sighting.art_m == original
+
     def test_reviewer_page_uses_native_modal_and_fragment_assets(self, client):
         """Reviewer page should load native dialog + HTMX admin modules."""
         with client.session_transaction() as sess:
@@ -467,6 +519,29 @@ class TestAdminRoutes:
         assert location.strasse == "Breite Straße 1"
         assert location.kreis == "Potsdam"
         assert location.land == "Brandenburg"
+
+    def test_update_address_rejects_oversized_zip(self, client, session):
+        """Oversized ZIP values should return 400 and keep existing ZIP."""
+        with client.session_transaction() as sess:
+            sess["user_id"] = "9999"
+
+        original_plz = self.test_location.plz
+        response = client.post(
+            f"/update_address/{self.test_sighting.id}",
+            data={
+                "plz": "9999999999999999999999999",
+                "ort": "Potsdam",
+                "strasse": "Breite Straße 1",
+                "kreis": "Potsdam",
+                "land": "Brandenburg",
+            },
+        )
+        assert response.status_code == 400
+        payload = json.loads(response.data)
+        assert "error" in payload
+
+        location = session.get(TblFundorte, self.test_location.id)
+        assert location.plz == original_plz
 
     def test_toggle_approve_removes_card_when_filter_no_longer_matches(
         self, client, session

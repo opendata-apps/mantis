@@ -23,7 +23,6 @@ from app.database.models import (
     TblUsers,
     TblUserFeedback,
 )
-from app.database.feedback_type import FeedbackSource
 
 
 # ---------------------------------------------------------------------------
@@ -195,6 +194,15 @@ class TestValidateStepPartial:
         )
         assert response.status_code == 200
         assert "stepValid" in response.headers.get("HX-Trigger", "")
+
+    def test_invalid_step_value_is_rejected(self, client):
+        """Out-of-range step values should be rejected."""
+        response = client.post(
+            "/melden/validate-step",
+            headers=_htmx_headers(),
+            data={"step": "999"},
+        )
+        assert response.status_code == 400
 
 
 # ============================================================================
