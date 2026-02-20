@@ -61,3 +61,9 @@ def test_region_page_trailing_slash_redirect(client):
     """URL without trailing slash redirects to URL with slash."""
     response = client.get("/gottesanbeterin-in-deutschland")
     assert response.status_code in (301, 308)
+
+
+def test_mantis_page_links_to_regional_pages(client):
+    """Mantis religiosa page contains links to regional pages."""
+    response = client.get("/mantis-religiosa")
+    assert b"gottesanbeterin-in-brandenburg" in response.data
