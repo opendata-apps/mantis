@@ -265,6 +265,7 @@ def create_app(config_class=Config):
     from app.routes.main import main
     from app.routes.provider import provider
     from app.routes.statistics import stats
+    from app.routes.regionen import regionen
     from app.routes.report import report
 
     app.register_blueprint(main)
@@ -272,6 +273,7 @@ def create_app(config_class=Config):
     app.register_blueprint(data)
     app.register_blueprint(stats)
     app.register_blueprint(provider)
+    app.register_blueprint(regionen)
     app.register_blueprint(report)
     app.register_error_handler(401, session_expired)
     app.register_error_handler(404, page_not_found)
