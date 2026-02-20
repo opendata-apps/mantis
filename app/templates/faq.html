@@ -10,7 +10,7 @@ Häufig gestellte Fragen, Gottesanbeterin, Mantis religiosa FAQ, Projekt Fragen
 <meta property="og:title" content="Häufig gestellte Fragen – Gottesanbeterin (Mantis religiosa)" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="{{ url_for('main.faq', _external=True) }}" />
-<meta property="og:image" content="{{ url_for('static', filename='images/berger03.avif', _external=True) }}" />
+<meta property="og:image" content="{{ url_for('static', filename='images/berger03.webp', _external=True) }}" />
 <meta property="og:description" content="Antworten auf die häufigsten Fragen zum Melden und Beobachten der Europäischen Gottesanbeterin." />
 <meta property="og:locale" content="de_DE" />
 {% endblock %}
@@ -19,7 +19,7 @@ Häufig gestellte Fragen, Gottesanbeterin, Mantis religiosa FAQ, Projekt Fragen
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="FAQ – Gottesanbeterin (Mantis religiosa)" />
 <meta name="twitter:description" content="Antworten rund um Meldung, Datenschutz und Beobachtungstipps." />
-<meta name="twitter:image" content="{{ url_for('static', filename='images/berger03.avif', _external=True) }}" />
+<meta name="twitter:image" content="{{ url_for('static', filename='images/berger03.webp', _external=True) }}" />
 {% endblock %}
 
 {% block content %}
@@ -51,11 +51,11 @@ Häufig gestellte Fragen, Gottesanbeterin, Mantis religiosa FAQ, Projekt Fragen
         <div class="space-y-8" id="faq-container">
             {% for faq in faq_entries %}
             <div class="transition-all duration-300 bg-white rounded-lg shadow-md faq-item hover:shadow-lg" data-title="{{ faq.title|lower }}">
-                <button class="w-full text-left focus:outline-hidden" data-id="faq{{ loop.index }}">
+                <button class="w-full text-left focus:outline-hidden" data-id="faq{{ loop.index }}" aria-expanded="false">
                     <div class="flex items-center justify-between p-6">
-                        <h2 class="text-xl font-semibold text-gray-800">
+                        <span class="text-xl font-semibold text-gray-800">
                             {{ faq.title }}
-                        </h2>
+                        </span>
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6 text-gray-500 transition-transform duration-200 ease-in transform">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                         </svg>
@@ -63,7 +63,7 @@ Häufig gestellte Fragen, Gottesanbeterin, Mantis religiosa FAQ, Projekt Fragen
                 </button>
                 <div class="overflow-hidden transition-all duration-300 max-h-0" id="faq{{ loop.index }}">
                     <div class="p-6 bg-gray-50">
-                        <p class="text-lg text-gray-600">
+                        <p class="text-lg leading-relaxed text-gray-600 max-w-prose">
                             {{ faq.content|safe }}
                         </p>
                     </div>
@@ -84,7 +84,7 @@ Häufig gestellte Fragen, Gottesanbeterin, Mantis religiosa FAQ, Projekt Fragen
     "name": "{{ faq.title }}",
     "acceptedAnswer": {
       "@type": "Answer",
-      "text": "{{ faq.content }}"
+      "text": "{{ faq.content|striptags }}"
     }}{% if not loop.last %},{% endif %}{% endfor %}
   ]
 }

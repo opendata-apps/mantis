@@ -8,7 +8,7 @@
 <meta property="og:title" content="Gottesanbeterin gesucht! – Mitmachprojekt Brandenburg & Berlin" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="{{ url_for('main.index', _external=True) }}" />
-<meta property="og:image" content="{{ url_for('static', filename='images/berger03.avif', _external=True) }}" />
+<meta property="og:image" content="{{ url_for('static', filename='images/berger03.webp', _external=True) }}" />
 <meta property="og:description" content="Melden Sie Sichtungen der Europäischen Gottesanbeterin (Mantis religiosa) in Brandenburg & Berlin – helfen Sie Forschung und Kartierung." />
 <meta property="og:site_name" content="Gottesanbeterin Gesucht" />
 <meta property="og:locale" content="de_DE" />
@@ -18,7 +18,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="Gottesanbeterin gesucht! – Mitmachprojekt Brandenburg & Berlin" />
 <meta name="twitter:description" content="Sichtungen melden, Fotos teilen und die Verbreitung der Gottesanbeterin erforschen helfen." />
-<meta name="twitter:image" content="{{ url_for('static', filename='images/berger03.avif', _external=True) }}" />
+<meta name="twitter:image" content="{{ url_for('static', filename='images/berger03.webp', _external=True) }}" />
 <meta name="twitter:url" content="{{ url_for('main.index', _external=True) }}" />
 {% endblock %}
 
@@ -29,8 +29,14 @@
   "@context": "https://schema.org",
   "@type": "Organization",
   "name": "Gottesanbeterin Gesucht",
+  "description": "Citizen-Science-Projekt zur Kartierung der Europäischen Gottesanbeterin (Mantis religiosa) in Brandenburg und Berlin, initiiert vom Naturkundemuseum Potsdam und den Mantidenfreunden Berlin-Brandenburg.",
   "url": "{{ url_for('main.index', _external=True) }}",
-  "logo": "{{ url_for('static', filename='images/favicon/apple-touch-icon.png', _external=True) }}"
+  "logo": "{{ url_for('static', filename='images/favicon/apple-touch-icon.png', _external=True) }}",
+  "sameAs": [
+    "https://gitlab.com/opendata-apps/mantis",
+    "https://github.com/opendata-apps/mantis",
+    "https://www.naturkundemuseum-potsdam.de/gottesanbeterin-gesucht"
+  ]
 }
 </script>
 {% endblock %}
@@ -70,27 +76,20 @@
                     </div>
                     <div class="relative lg:row-start-1 lg:col-start-1">
                         <h2
-                            class="pb-6 text-3xl font-bold tracking-tight text-transparent bg-clip-text bg-linear-to-r from-green-600 to-green-400 sm:text-4xl">
+                            class="pb-6 text-3xl font-bold tracking-tight text-transparent bg-clip-text bg-linear-to-r from-green-500 to-green-700 sm:text-4xl">
                             Gottesanbeterin gesucht! -Projekt
                         </h2>
                         <p class="prose-content mb-6">
-                            Das
-                            <span class="font-semibold text-green-600">Naturkundemuseum Potsdam</span>
-                            und die
-                            <span class="font-semibold text-green-600">Mantidenfreunde Berlin-Brandenburg</span>
-                            initiieren das Projekt "Gottesanbeterin gesucht!" mit dem Ziel,
-                            die
-                            <span class="font-semibold text-green-600">Europäische Gottesanbeterin</span>
+                            Das Naturkundemuseum Potsdam und die Mantidenfreunde Berlin-Brandenburg
+                            initiieren das Projekt „Gottesanbeterin gesucht!" mit dem Ziel,
+                            die <a href="/mantis-religiosa" class="font-semibold text-green-600 underline decoration-green-300 hover:decoration-green-600 transition-colors">Europäische Gottesanbeterin</a>
                             (<i>Mantis religiosa</i> L. 1758) in der Region Brandenburg zu
-                            kartieren. Seit 2016 sammeln wir
-                            <span class="font-semibold text-green-600">Fundmeldungen</span>
-                            dieser speziellen Fangschreckenart und bitten Sie, uns bei der
-                            Erforschung ihrer
-                            <span class="font-semibold text-green-600">Ausbreitung</span> zu
-                            unterstützen.
+                            kartieren. Seit 2016 sammeln wir Fundmeldungen dieser speziellen
+                            Fangschreckenart und bitten Sie, uns bei der Erforschung ihrer
+                            Ausbreitung zu unterstützen.
                         </p>
                         <a href="https://www.naturkundemuseum-potsdam.de/gottesanbeterin-gesucht" target="_blank"
-                            class="btn-primary group relative overflow-hidden">
+                            rel="noopener noreferrer" class="btn-primary group relative overflow-hidden">
                             <span class="relative z-10">Mehr erfahren</span>
                             <svg class="-mr-1 ml-2 w-5 h-5 transition-transform duration-300 group-hover:translate-x-1"
                                 xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
@@ -112,7 +111,7 @@
                 <div class="items-center lg:grid lg:grid-cols-2 lg:gap-12">
                     <div class="relative mb-8 lg:mb-0">
                         <div class="relative overflow-hidden rounded-2xl shadow-2xl aspect-[3/2] group">
-                            <img src="{{ url_for('static', filename='images/berger03.avif') }}"
+                            <img src="{{ url_for('static', filename='images/berger03.webp') }}"
                                 alt="Gottesanbeterin nahaufnahme"
                                 class="object-cover object-center w-full h-full transition-transform duration-700 group-hover:scale-105"
                                 loading="lazy" />
@@ -133,23 +132,19 @@
                     </div>
                     <div class="relative">
                         <h2
-                            class="pb-6 text-3xl font-bold tracking-tight text-transparent bg-clip-text bg-linear-to-r from-green-600 to-green-400 sm:text-4xl">
+                            class="pb-6 text-3xl font-bold tracking-tight text-transparent bg-clip-text bg-linear-to-r from-green-500 to-green-700 sm:text-4xl">
                             <i>Mantis religiosa</i> L. 1758
                         </h2>
                         <p class="prose-content mb-6">
-                            Die
-                            <span class="font-semibold text-green-600">Europäische Gottesanbeterin</span>
-                            ist die einzige Art unter etwa 2.400 Fangschrecken-Arten, die in
-                            Deutschland, insbesondere in
-                            <span class="font-semibold text-green-600">Brandenburg</span>,
-                            vorkommt. Mit ihren zum Gebet gefalteten Vorderbeinen
-                            unterscheidet sie sich deutlich von anderen Insekten. Ihre
+                            Die Europäische Gottesanbeterin ist die einzige Art unter etwa 2.400
+                            Fangschrecken-Arten, die in Deutschland, insbesondere in Brandenburg,
+                            vorkommt. Mit ihren zum Gebet gefalteten Vorderbeinen unterscheidet
+                            sie sich deutlich von anderen Insekten. Ihre
                             <span class="font-semibold text-green-600">geschickte und gut getarnte Lebensweise</span>
                             macht die Suche nach ihr jedoch anspruchsvoll, daher sind wir auf
-                            Ihre
-                            <span class="font-semibold text-green-600">Meldungen</span>
-                            angewiesen.
+                            Ihre Meldungen angewiesen.
                         </p>
+                        <div class="flex flex-wrap gap-3">
                         <a href="/mantis-religiosa"
                             class="btn-primary group relative overflow-hidden">
                             <span class="relative z-10">Mehr über Mantis religiosa</span>
@@ -164,6 +159,16 @@
                                 class="absolute inset-0 w-full h-full rounded-lg transition-all duration-300 scale-0 group-hover:scale-100 group-hover:bg-white/10">
                             </div>
                         </a>
+                        <a href="/bestimmung"
+                            class="inline-flex items-center px-5 py-3 text-sm font-medium text-green-700 border border-green-600 rounded-lg transition-colors duration-300 hover:bg-green-50">
+                            <span>Bestimmungsschlüssel</span>
+                            <svg class="-mr-1 ml-2 w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                <path fill-rule="evenodd"
+                                    d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                        </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -195,21 +200,18 @@
                     </div>
                     <div class="relative lg:row-start-1 lg:col-start-1">
                         <h2
-                            class="pb-6 text-3xl font-bold tracking-tight text-transparent bg-clip-text bg-linear-to-r from-green-600 to-green-400 sm:text-4xl">
+                            class="pb-6 text-3xl font-bold tracking-tight text-transparent bg-clip-text bg-linear-to-r from-green-500 to-green-700 sm:text-4xl">
                             Was passiert mit meiner Meldung?
                         </h2>
                         <p class="prose-content mb-6">
-                            Jede
-                            <span class="font-semibold text-green-600">Meldung</span> einer in
-                            Brandenburg gefundenen Gottesanbeterin wird überprüft und in einer
-                            <span class="font-semibold text-green-600">Datenbank</span>
-                            erfasst. Ihr Bild dient ausschließlich zur Bestätigung des Fundes
-                            und wird in keiner Form weiterverwendet oder veröffentlicht. Mit
-                            Hilfe Ihrer wertvollen Informationen können wir
-                            <span class="font-semibold text-green-600">Verbreitungskarten</span>
-                            erstellen, welche die aktuelle
-                            <span class="font-semibold text-green-600">Ausbreitung</span> der
-                            Gottesanbeterin in Brandenburg zeigen.
+                            Jede Meldung einer in Brandenburg gefundenen Gottesanbeterin wird
+                            überprüft und in einer Datenbank erfasst. Ihr Bild dient
+                            ausschließlich zur Bestätigung des Fundes und wird in keiner Form
+                            weiterverwendet oder veröffentlicht. Mit Hilfe Ihrer wertvollen
+                            Informationen können wir
+                            <a href="{{ url_for('data.show_map', year=now.year) }}" class="font-semibold text-green-600 underline decoration-green-300 hover:decoration-green-600 transition-colors">Verbreitungskarten</a>
+                            erstellen, welche die aktuelle Ausbreitung der Gottesanbeterin in
+                            Brandenburg zeigen.
                         </p>
                         <a href="/faq"
                             class="btn-primary group relative overflow-hidden">

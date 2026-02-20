@@ -8,7 +8,7 @@
 <meta property="og:title" content="Sichtung melden – Gottesanbeterin (Mantis religiosa)" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="{{ url_for('report.melden', _external=True) }}" />
-<meta property="og:image" content="{{ url_for('static', filename='images/weibchen-mit-oothek.avif', _external=True) }}" />
+<meta property="og:image" content="{{ url_for('static', filename='images/weibchen-mit-oothek.webp', _external=True) }}" />
 <meta property="og:description" content="Foto hochladen, Fundort markieren und Ihre Beobachtung der Gottesanbeterin melden – einfach und schnell." />
 <meta property="og:site_name" content="Gottesanbeterin Gesucht" />
 <meta property="og:locale" content="de_DE" />
@@ -18,7 +18,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="Sichtung melden – Gottesanbeterin (Mantis religiosa)" />
 <meta name="twitter:description" content="Helfen Sie der Forschung: Gottesanbeterin-Sichtung mit Foto und Fundort melden." />
-<meta name="twitter:image" content="{{ url_for('static', filename='images/weibchen-mit-oothek.avif', _external=True) }}" />
+<meta name="twitter:image" content="{{ url_for('static', filename='images/weibchen-mit-oothek.webp', _external=True) }}" />
 <meta name="twitter:url" content="{{ url_for('report.melden', _external=True) }}" />
 {% endblock %}
 {% from 'report/form_components.html' import render_photo_upload, render_form_field, render_step_navigation, render_feedback_section %}
@@ -164,6 +164,7 @@
       {# Hidden target for htmx validation - actual errors use OOB swaps #}
       <div id="validation-errors-container" style="display:none"></div>
       
+      <h2 class="sr-only">Meldeformular</h2>
       <div class="step-container">
         <!-- Step 1: Photo & Details -->
         <div class="p-6 bg-white rounded-lg border border-gray-100 shadow-xs step active" id="step1">

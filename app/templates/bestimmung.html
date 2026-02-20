@@ -3,8 +3,28 @@
 Gottesanbeterin Bestimmung, Mantis religiosa Identifikation, Merkmale, Unterscheidung, Brandenburg, Berlin
 {% endblock %}
 
-{% block page_title %}Gottesanbeterin Bestimmung | Merkmale & Bestimmungschlüssel {% endblock %}
+{% block meta_description %}Bestimmungsschlüssel für die Europäische Gottesanbeterin (Mantis religiosa): Oothek, Nymphe oder erwachsenes Tier? Geschlecht bestimmen in 4 einfachen Schritten.{% endblock %}
+{% block page_title %}Gottesanbeterin Bestimmung | Merkmale & Bestimmungsschlüssel {% endblock %}
 {% block title %}Bestimmungsschlüssel{% endblock title %}
+{% block canonical %}{{ url_for('main.bestimmung', _external=True) }}{% endblock %}
+
+{% block og_meta %}
+<meta property="og:title" content="Gottesanbeterin Bestimmungsschlüssel – Merkmale & Identifikation" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="{{ url_for('main.bestimmung', _external=True) }}" />
+<meta property="og:image" content="{{ url_for('static', filename='images/bestimmung/paerchengross.jpg', _external=True) }}" />
+<meta property="og:description" content="Oothek, Nymphe oder erwachsenes Tier? Geschlecht bestimmen in 4 einfachen Schritten mit dem Bestimmungsschlüssel." />
+<meta property="og:site_name" content="Gottesanbeterin Gesucht" />
+<meta property="og:locale" content="de_DE" />
+{% endblock %}
+
+{% block twitter_meta %}
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Gottesanbeterin Bestimmungsschlüssel – Merkmale & Identifikation" />
+<meta name="twitter:description" content="Oothek, Nymphe oder erwachsenes Tier? Bestimmen Sie Ihre Gottesanbeterin in 4 Schritten." />
+<meta name="twitter:image" content="{{ url_for('static', filename='images/bestimmung/paerchengross.jpg', _external=True) }}" />
+{% endblock %}
+
 {% block head %}
 <script type="application/ld+json">
 {
@@ -467,7 +487,5 @@ Gottesanbeterin Bestimmung, Mantis religiosa Identifikation, Merkmale, Untersche
     </div>
   </div>
 </section>
-
-{{ vite_tags('js/gallery.js') }}
 
 {% endblock content %}
