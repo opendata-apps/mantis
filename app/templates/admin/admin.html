@@ -347,9 +347,7 @@
     ) }}
 </div>
 
-{% include "partials/_image_modal.html" %}
-
-<dialog id="modal" class="modal-admin" aria-label="Meldung bearbeiten">
+<dialog id="modal" class="modal-admin backdrop:bg-gray-900/55 backdrop:backdrop-blur-sm" aria-label="Meldung bearbeiten">
     <div class="modal-admin-panel flex overflow-hidden flex-col w-full bg-white rounded-lg shadow-xl border border-gray-200">
         <div class="overflow-hidden grow p-4 min-h-0 md:p-6">
             <div id="modal-body" class="flex overflow-hidden flex-col h-full min-h-0">

@@ -1,7 +1,5 @@
 // Admin modal module — HTMX-first rewrite
-// JS only for: Leaflet map, marker placement, geocoding, clipboard, export, image modal
-
-import { bindImageModal, syncDialogScrollLock } from './image-modal.js';
+// JS only for: Leaflet map, marker placement, geocoding, clipboard, export
 
 // ---------------------------------------------------------------------------
 // State (map only — no more currentSightingId or isEditModeActive)
@@ -52,13 +50,11 @@ function openModal() {
             + '</div>';
     }
     if (!modal.open) modal.showModal();
-    syncDialogScrollLock();
 }
 
 function closeModal() {
     var modal = document.getElementById('modal');
     if (modal && modal.open) modal.close();
-    syncDialogScrollLock();
 }
 
 function showToast(message) {
@@ -590,8 +586,6 @@ window.addEventListener('load', function () {
 
 document.addEventListener('DOMContentLoaded', function () {
     var editDialog = document.getElementById('modal');
-    syncDialogScrollLock();
-    bindImageModal();
 
     // Backdrop click-to-close (click on <dialog> itself = backdrop area)
     if (editDialog) {
@@ -602,7 +596,6 @@ document.addEventListener('DOMContentLoaded', function () {
         editDialog.addEventListener('close', function () {
             geocodeRequestSeq += 1;
             if (map) { map.remove(); map = null; marker = null; tempMarker = null; }
-            syncDialogScrollLock();
         });
     }
 

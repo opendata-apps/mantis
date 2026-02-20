@@ -4,8 +4,6 @@
 {% block button_ref %} "/melden/{{ report_user_id }}" {% endblock %}
 {% block content %}
 
-<script type="module" src="{{ vite_asset('js/image-modal.js') }}"></script>
-
 <div class="container px-4 mx-auto my-10 md:px-12">
   <div class="my-4 text-center">
     <h1 class="my-1 text-4xl font-bold text-gray-900">
@@ -19,10 +17,12 @@
     <div
       class="mb-8 overflow-hidden transition-shadow duration-300 ease-in-out bg-white rounded-lg shadow-lg hover:shadow-2xl report-card">
       <div class="relative">
-        <img loading="lazy" onclick="openImageModal('{{ url_for('provider.report_img', filename=sighting.ablage)}}')"
-          class="object-cover w-full h-48 transition-transform duration-200 ease-in-out rounded-t-lg cursor-pointer md:h-64 hover:scale-105"
-          src="{{ url_for('provider.report_img', filename=sighting.ablage)}}"
-          alt="{{sighting.imagepath}}">
+        <a href="{{ url_for('provider.report_img', filename=sighting.ablage)}}" data-lightbox="sightings">
+          <img loading="lazy"
+            class="object-cover w-full h-48 transition-transform duration-200 ease-in-out rounded-t-lg cursor-pointer md:h-64 hover:scale-105"
+            src="{{ url_for('provider.report_img', filename=sighting.ablage)}}"
+            alt="{{sighting.imagepath}}">
+        </a>
         <div
           title="{{sighting.ort}}&#13;&#10;Postleitzahl: {{sighting.plz}}&#13;&#10;Kreis: {{sighting.kreis}}&#13;&#10;Land: {{sighting.land}}"
           class="absolute bottom-0 px-3 py-1 mb-4 ml-4 font-semibold text-gray-800 rounded-full bg-white/80 backdrop-blur-md">
@@ -66,7 +66,6 @@
   </div>
   {% endif %}
 
-{% include "partials/_image_modal.html" %}
 <div class="p-5 mt-5 text-center bg-white shadow-md rounded-lg">
   <p class="text-lg font-medium text-gray-700">
     Vielen Dank für Ihre Unterstützung.

@@ -170,8 +170,9 @@
         {# Right: sighting photo — 3/5 on desktop, h-40 thumbnail on mobile #}
         <div class="flex flex-col md:col-span-3 min-h-0">
             <h4 class="modal-section-heading shrink-0">Foto</h4>
-            <div class="relative overflow-hidden rounded-md border border-gray-200 cursor-pointer h-40 md:grow md:h-auto md:min-h-0 hover:opacity-90 transition-opacity"
-                onclick="openImageModal('{{ url_for('admin.report_img', filename=sighting.fundort.ablage) }}')">
+            <a href="{{ url_for('admin.report_img', filename=sighting.fundort.ablage) }}"
+                data-lightbox="sighting-detail"
+                class="relative block overflow-hidden rounded-md border border-gray-200 cursor-pointer h-40 md:grow md:h-auto md:min-h-0 hover:opacity-90 transition-opacity">
                 <img loading="lazy"
                     class="object-cover w-full h-full"
                     src="{{ url_for('admin.report_img', filename=sighting.fundort.ablage) }}"
@@ -195,7 +196,7 @@
                         </svg>
                     </div>
                 </div>
-            </div>
+            </a>
         </div>
     </div>
 

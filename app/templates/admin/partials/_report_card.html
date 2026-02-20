@@ -17,11 +17,13 @@
 
     {# ── Image section ── #}
     <div class="relative">
-        <img loading="lazy" onclick="openImageModal('{{ url_for('admin.report_img', filename=sighting.fundort.ablage) }}')"
-            class="object-cover w-full h-48 rounded-t-lg transition-transform duration-200 ease-in-out cursor-pointer md:h-64 hover:scale-105
-                {% if has_del %}opacity-60{% endif %}"
-            src="{{ url_for('admin.report_img', filename=sighting.fundort.ablage) }}"
-            alt="Image not found">
+        <a href="{{ url_for('admin.report_img', filename=sighting.fundort.ablage) }}" data-lightbox="sightings">
+            <img loading="lazy"
+                class="object-cover w-full h-48 rounded-t-lg transition-transform duration-200 ease-in-out cursor-pointer md:h-64 hover:scale-105
+                    {% if has_del %}opacity-60{% endif %}"
+                src="{{ url_for('admin.report_img', filename=sighting.fundort.ablage) }}"
+                alt="Image not found">
+        </a>
 
         {# Location badge #}
         <div title="{{sighting.ort}}&#13;&#10;Postleitzahl: {{sighting.plz}}&#13;&#10;Kreis: {{sighting.kreis}}&#13;&#10;Land: {{sighting.land}}"
