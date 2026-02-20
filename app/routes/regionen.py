@@ -1,7 +1,7 @@
 import os
 
 import yaml
-from flask import Blueprint, abort, render_template, url_for
+from flask import Blueprint, abort, render_template
 
 regionen = Blueprint("regionen", __name__)
 
