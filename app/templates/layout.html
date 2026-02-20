@@ -45,11 +45,11 @@
 	request.path.startswith('/galerie') or
 	request.path.startswith('/alldata') -%}
 
-	<header class="site-header">
-		<nav class="nav-container">
+	<header class="site-header fixed top-0 inset-x-0 z-100 bg-transparent transition-[background-color,backdrop-filter] duration-200">
+		<nav class="flex items-center justify-between max-w-[1200px] mx-auto py-3 px-4">
 			{# Logo #}
-			<a href="/" class="nav-logo">
-				<img src="{{ url_for('static', filename='images/logo.png') }}" alt="Gottesanbeterin Gesucht – Startseite" width="42" height="40" />
+			<a href="/" class="flex items-center gap-2 text-2xl font-extrabold text-gray-100 no-underline">
+				<img src="{{ url_for('static', filename='images/logo.png') }}" alt="Gottesanbeterin Gesucht – Startseite" width="42" height="40" class="h-10" />
 				<span>Mitmachprojekt</span>
 			</a>
 
@@ -186,27 +186,39 @@
 	{# Native lightbox dialog — used by gallery.js on pages with lightbox images #}
 	<dialog id="lightbox" class="modal-lightbox backdrop:bg-black/85 backdrop:backdrop-blur-[4px]" aria-label="Bildvorschau">
 		<div class="relative flex flex-col items-center">
-			<img class="lightbox-img w-auto h-auto max-w-[90vw] max-h-[calc(90dvh-4rem)] object-contain rounded-md transition-opacity duration-200" src="" alt="" />
+			<img class="lightbox-img w-auto h-auto max-w-[90vw] max-h-[calc(90dvh-5rem)] object-contain rounded-md transition-opacity duration-200" src="" alt="" />
+			{# Caption — below image #}
+			<div class="lightbox-info px-2 pt-2.5 pb-1 text-white text-center max-w-[90vw]">
+				<div class="lightbox-caption"></div>
+				<span class="lightbox-counter block mt-0.5 text-xs opacity-70"></span>
+			</div>
 			{# New-tab: hidden by default, JS shows it only in compact/reviewer mode #}
-			<button class="lightbox-newtab hidden absolute top-1 right-14 z-10 size-11 rounded-full bg-white/90 hover:bg-white text-gray-700 cursor-pointer border-none items-center justify-center transition-colors duration-150"
-				aria-label="In neuem Tab öffnen">
-				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 18 18">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-						d="M15 11v4.833A1.166 1.166 0 0 1 13.833 17H2.167A1.167 1.167 0 0 1 1 15.833V4.167A1.166 1.166 0 0 1 2.167 3h4.618m4.447-2H17v5.768M9.111 8.889l7.778-7.778" />
+			<button class="lightbox-btn lightbox-newtab absolute z-10 top-3 right-15 flex size-11 items-center justify-center rounded-full bg-black/35 text-white transition-[opacity,background-color] duration-300"
+				aria-label="In neuem Tab öffnen" hidden>
+				<svg class="w-5 h-5" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<path d="M15 11v4.833A1.166 1.166 0 0 1 13.833 17H2.167A1.167 1.167 0 0 1 1 15.833V4.167A1.166 1.166 0 0 1 2.167 3h4.618m4.447-2H17v5.768M9.111 8.889l7.778-7.778" />
 				</svg>
 			</button>
 			{# Close: always visible #}
-			<button class="lightbox-close absolute top-1 right-1 z-10 flex size-11 rounded-full bg-white/90 hover:bg-white text-gray-700 cursor-pointer border-none items-center justify-center text-2xl leading-none transition-colors duration-150"
-				aria-label="Schließen">&times;</button>
+			<button class="lightbox-btn lightbox-close absolute z-10 top-3 right-3 flex size-11 items-center justify-center rounded-full bg-black/35 text-white transition-[opacity,background-color] duration-300"
+				aria-label="Schließen">
+				<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+					<path d="M18 6L6 18M6 6l12 12"/>
+				</svg>
+			</button>
 			{# Prev/next: JS toggles hidden based on album size #}
-			<button class="lightbox-prev absolute top-1/2 -translate-y-1/2 left-1 sm:left-3 z-10 flex size-10 sm:size-12 rounded-full bg-white/80 hover:bg-white text-gray-700 cursor-pointer border-none items-center justify-center text-2xl sm:text-3xl leading-none transition-colors duration-150"
-				aria-label="Vorheriges Bild" hidden>&#8249;</button>
-			<button class="lightbox-next absolute top-1/2 -translate-y-1/2 right-1 sm:right-3 z-10 flex size-10 sm:size-12 rounded-full bg-white/80 hover:bg-white text-gray-700 cursor-pointer border-none items-center justify-center text-2xl sm:text-3xl leading-none transition-colors duration-150"
-				aria-label="Nächstes Bild" hidden>&#8250;</button>
-			<div class="flex flex-col items-center gap-0.5 pt-3 text-center text-white">
-				<span class="lightbox-caption text-[0.9375rem]"></span>
-				<span class="lightbox-counter text-[0.8125rem] opacity-70"></span>
-			</div>
+			<button class="lightbox-btn lightbox-prev absolute z-10 top-1/2 -translate-y-1/2 left-3 sm:left-4 flex size-11 sm:size-12 items-center justify-center rounded-full bg-black/35 text-white transition-[opacity,background-color] duration-300"
+				aria-label="Vorheriges Bild" hidden>
+				<svg class="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+					<path d="M15 18l-6-6 6-6"/>
+				</svg>
+			</button>
+			<button class="lightbox-btn lightbox-next absolute z-10 top-1/2 -translate-y-1/2 right-3 sm:right-4 flex size-11 sm:size-12 items-center justify-center rounded-full bg-black/35 text-white transition-[opacity,background-color] duration-300"
+				aria-label="Nächstes Bild" hidden>
+				<svg class="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+					<path d="M9 18l6-6-6-6"/>
+				</svg>
+			</button>
 		</div>
 	</dialog>
 
@@ -243,10 +255,10 @@
 					<a class="mantis-footer-link" href="/datenschutz"> Datenschutz </a>
 				</li>
 			</ul>
-			<ul class="flex flex-wrap gap-6 justify-center mt-6 sm:gap-8">
+			<ul class="footer-social flex flex-wrap gap-6 justify-center mt-6 sm:gap-8">
 				<li>
 					<a href="https://gitlab.com/opendata-apps/mantis" rel="noreferrer noopener" target="_blank"
-						class="inline-block transition-transform hover:scale-110">
+						class="inline-block">
 						<span class="sr-only">GitLab</span>
 						<img loading="lazy" src="/static/images/svg/gitlab.svg" alt="GitLab (Code)" title="GitLab"
 							class="w-8 h-8" />
@@ -254,7 +266,7 @@
 				</li>
 				<li>
 					<a href="https://github.com/opendata-apps/mantis" rel="noreferrer noopener" target="_blank"
-						class="inline-block transition-transform hover:scale-110">
+						class="inline-block">
 						<span class="sr-only">GitHub</span>
 						<img loading="lazy" src="/static/images/svg/github.svg" alt="GitHub (Code)" title="GitHub"
 							class="w-8 h-8" />
@@ -263,7 +275,7 @@
 				<li>
 					<a href="https://www.naturkundemuseum-potsdam.de/gottesanbeterin-gesucht" rel="noreferrer noopener"
 						target="_blank"
-						class="inline-block transition-transform hover:scale-110">
+						class="inline-block">
 						<span class="sr-only">Naturkundemuseum Potsdam</span>
 						<img loading="lazy" src="/static/images/svg/praying-mantis.svg" alt="Museum"
 							title="Naturkundemuseum Potsdam"
@@ -272,7 +284,7 @@
 				</li>
 				<li>
 					<a href="https://mantis-religiosa.readthedocs.io" rel="noreferrer noopener" target="_blank"
-						class="inline-block transition-transform hover:scale-110">
+						class="inline-block">
 						<span class="sr-only">Dokumentation</span>
 						<img loading="lazy" src="/static/images/svg/readme.svg" alt="Dokumentation"
 							title="Dokumentation" class="w-8 h-8" />

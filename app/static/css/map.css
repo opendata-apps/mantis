@@ -21,7 +21,7 @@
   border-radius: 12px;
   color: white;
   opacity: 0;
-  animation: popupFadeIn ease 0.6s forwards;
+  animation: popupFadeIn 250ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .leaflet-popup-tip {
@@ -70,5 +70,12 @@
   #map {
     margin-left: 10px;
     margin-right: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .leaflet-popup-content-wrapper {
+    animation: none;
+    opacity: 1;
   }
 }

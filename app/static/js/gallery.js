@@ -14,6 +14,8 @@ class Lightbox {
     this.newtabBtn = this.dialog.querySelector('.lightbox-newtab');
     this.album = [];
     this.currentIndex = 0;
+    this.idleTimer = null;
+    this.idleDelay = 4000;
 
     this.bindTriggers();
     this.bindControls();
@@ -60,6 +62,11 @@ class Lightbox {
         diff > 0 ? this.prev() : this.next();
       }
     }, { passive: true });
+
+    // Idle detection — auto-hide controls after inactivity (PhotoSwipe-style)
+    this.dialog.addEventListener('mousemove', () => this.resetIdle());
+    this.dialog.addEventListener('keydown', () => this.resetIdle());
+    this.dialog.addEventListener('touchstart', () => this.resetIdle(), { passive: true });
   }
 
   open(trigger) {
@@ -82,29 +89,91 @@ class Lightbox {
 
     // New-tab button: only in compact/reviewer mode
     if (this.newtabBtn) {
-      this.newtabBtn.classList.toggle('hidden', !compact);
-      this.newtabBtn.classList.toggle('flex', compact);
+      this.newtabBtn.hidden = !compact;
     }
 
     this.show();
     this.dialog.showModal();
+    this.resetIdle();
   }
 
   show() {
     const link = this.album[this.currentIndex];
-    // Show loading state while image loads
-    this.img.style.opacity = '0.3';
+    // Show loading state while image loads (uses TW4 opacity-30 + transition-opacity on the element)
+    this.img.classList.add('opacity-30');
     this.img.src = link.href;
-    this.img.onload = () => { this.img.style.opacity = '1'; };
+    this.img.onload = () => { this.img.classList.remove('opacity-30'); };
 
     const title = link.getAttribute('data-title') || link.getAttribute('title') || '';
     this.img.alt = title;
-    this.caption.textContent = title;
+    this.caption.textContent = '';
+    this.buildCaption(link, title);
 
     const hasAlbum = this.album.length > 1;
     this.counter.textContent = hasAlbum ? `Bild ${this.currentIndex + 1} von ${this.album.length}` : '';
     this.prevBtn.hidden = !hasAlbum;
     this.nextBtn.hidden = !hasAlbum;
+  }
+
+  buildCaption(link, title) {
+    // Title line (plain text, always safe)
+    if (title) this.caption.appendChild(document.createTextNode(title));
+
+    const author = link.getAttribute('data-author');
+    const date = link.getAttribute('data-date');
+    const licenseHtml = link.getAttribute('data-license');
+    if (!author && !date && !licenseHtml) return;
+
+    // Metadata row — horizontal flex with dot separators
+    const meta = document.createElement('div');
+    meta.className = 'lightbox-meta';
+    const items = [];
+
+    if (author) items.push(this.createMetaItem(author.trim()));
+    if (date) items.push(this.createMetaItem(date));
+
+    // License — parse HTML safely via inert DOMParser, extract href + img src
+    if (licenseHtml) {
+      const doc = new DOMParser().parseFromString(licenseHtml, 'text/html');
+      const srcAnchor = doc.querySelector('a[href]');
+      if (srcAnchor) {
+        const safeLink = document.createElement('a');
+        safeLink.href = srcAnchor.href;
+        safeLink.rel = 'license';
+        safeLink.target = '_blank';
+        safeLink.className = 'lightbox-license';
+        const srcImg = srcAnchor.querySelector('img');
+        if (srcImg?.src) {
+          const badge = document.createElement('img');
+          badge.src = srcImg.src;
+          badge.alt = srcImg.alt || 'Lizenz';
+          safeLink.appendChild(badge);
+        } else {
+          safeLink.textContent = srcAnchor.textContent || 'Lizenz';
+        }
+        items.push(safeLink);
+      }
+    }
+
+    items.forEach((item, i) => {
+      if (i > 0) meta.appendChild(this.createSeparator());
+      meta.appendChild(item);
+    });
+
+    this.caption.appendChild(meta);
+  }
+
+  createMetaItem(text) {
+    const span = document.createElement('span');
+    span.textContent = text;
+    return span;
+  }
+
+  createSeparator() {
+    const sep = document.createElement('span');
+    sep.className = 'lightbox-sep';
+    sep.textContent = '·';
+    return sep;
   }
 
   next() {
@@ -120,8 +189,20 @@ class Lightbox {
   }
 
   close() {
+    clearTimeout(this.idleTimer);
+    this.dialog.classList.remove('lightbox-idle');
     this.dialog.close();
     this.img.src = '';
+  }
+
+  onIdle() {
+    this.dialog.classList.add('lightbox-idle');
+  }
+
+  resetIdle() {
+    this.dialog.classList.remove('lightbox-idle');
+    clearTimeout(this.idleTimer);
+    this.idleTimer = setTimeout(this.onIdle.bind(this), this.idleDelay);
   }
 }
 

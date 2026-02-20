@@ -9,42 +9,12 @@
    Header Navigation - Simple & Clean
    ========================================================================== */
 
-.site-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
-  background: transparent;
-}
-
+/* .site-header base layout is TW utilities on the <header> element.
+   Only JS-toggled state changes live here. */
 .site-header.scrolled,
 .site-header.menu-open {
   background: color-mix(in srgb, var(--color-green-800) 95%, transparent);
   backdrop-filter: blur(8px);
-}
-
-.nav-container {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0.75rem 1rem;
-}
-
-.nav-logo {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: var(--color-gray-100);
-  text-decoration: none;
-}
-
-.nav-logo img {
-  height: 2.5rem;
 }
 
 /* Nav links - horizontal on desktop */
@@ -68,7 +38,7 @@
   background-size: 0 3px;
   background-position: 0 100%;
   background-repeat: no-repeat;
-  transition: background-size 0.5s ease-in-out, color 0.15s ease;
+  transition: background-size 0.3s cubic-bezier(0.22, 1, 0.36, 1), color 0.15s ease;
 }
 
 .nav-links li a:hover {
@@ -274,6 +244,23 @@
   }
 }
 
+@layer components {
+  /* Footer social icons — guard hover scale for pointer devices only.
+     In @layer components so TW utilities can still override if needed. */
+  .footer-social a {
+    display: inline-block;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .footer-social a {
+      transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .footer-social a:hover {
+      transform: scale(1.1);
+    }
+  }
+}
+
 @layer utilities {
   /* ==========================================================================
      Reusable Component Classes
@@ -288,6 +275,11 @@
            text-white bg-green-600 rounded-lg shadow-md transition-colors duration-300
            hover:bg-green-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2
            focus:ring-green-500;
+  }
+
+  .btn-primary:active {
+    transform: scale(0.97);
+    opacity: 0.9;
   }
 
   /* Prose Content - Body text for content pages (41 occurrences in 5 files)
@@ -580,7 +572,6 @@ body:has(dialog:modal) {
 
 /* ==========================================================================
    Native Lightbox Dialog
-   Only what TW4 can't express: dialog reset + compact sizing
    ========================================================================== */
 
 .modal-lightbox {
@@ -590,9 +581,79 @@ body:has(dialog:modal) {
   margin: auto;
   max-width: calc(100vw - 2rem);
   max-height: calc(100dvh - 2rem);
+  opacity: 0;
+  transform: scale(0.92);
+  transition: opacity 220ms cubic-bezier(0.22, 1, 0.36, 1),
+              transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+              overlay 220ms allow-discrete,
+              display 220ms allow-discrete;
 }
 
-/* Compact mode — auto-applied when opened from inside another dialog or report card */
+.modal-lightbox[open] {
+  opacity: 1;
+  transform: scale(1);
+}
+
+@starting-style {
+  .modal-lightbox[open] {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+}
+
+.modal-lightbox::backdrop {
+  transition: opacity 220ms cubic-bezier(0.22, 1, 0.36, 1),
+              overlay 220ms allow-discrete,
+              display 220ms allow-discrete;
+}
+
+/* .lightbox-frame, .lightbox-img base, and .lightbox-info base are
+   TW utilities on the elements in layout.html.  Only selectors that
+   TW can't express (child, pseudo-class, parent-variant) live here. */
+
+.lightbox-info:empty {
+  display: none;
+}
+
+.lightbox-info a {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.lightbox-caption {
+  font-size: 0.875rem;
+  line-height: 1.4;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+/* Metadata row — horizontal with separators */
+.lightbox-meta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.25rem;
+  font-size: 0.8125rem;
+  opacity: 0.85;
+}
+
+.lightbox-sep {
+  opacity: 0.4;
+}
+
+.lightbox-license {
+  display: inline-flex;
+  align-items: center;
+}
+
+.lightbox-license img {
+  display: inline;
+  height: 1.1em;
+  border: 0;
+  vertical-align: middle;
+}
+
+/* Compact mode — opened from inside another dialog or report card */
 .lightbox-compact .lightbox-img {
   max-width: min(85vw, 48rem);
   max-height: 70dvh;
@@ -605,3 +666,91 @@ body:has(dialog:modal) {
   }
 }
 
+/* ==========================================================================
+   Lightbox Controls — only what TW v4 can't express inline
+   Visual styling (position, size, color, border-radius, transition) lives
+   in TW utilities on the button elements in layout.html.
+   ========================================================================== */
+
+/* Icon drop-shadow for contrast on varied image backgrounds */
+.lightbox-btn svg {
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+}
+
+/* Pointer-device hover — no TW variant for combined hover + pointer query */
+@media (hover: hover) and (pointer: fine) {
+  .lightbox-btn:hover {
+    background-color: rgba(0, 0, 0, 0.6);
+  }
+}
+
+/* Auto-hide controls after idle — parent-child selector, can't do inline */
+.lightbox-idle .lightbox-btn {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.lightbox-idle {
+  cursor: none;
+}
+
+/* Hide nav arrows on touch — no TW variant for pointer: coarse */
+@media (hover: none) and (pointer: coarse) {
+  .lightbox-prev,
+  .lightbox-next {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   Gallery Staggered Reveal
+   ========================================================================== */
+
+/* .gallery-item opacity-0 is a TW utility on the element in galerie.html.
+   JS adds .gallery-reveal to trigger the animation. */
+.gallery-reveal {
+  animation: galleryFadeUp 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes galleryFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion — disable transform-based animations for vestibular safety
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Keep simple color/opacity feedback functional */
+  .btn-primary,
+  .btn-secondary,
+  .btn-green,
+  .mantis-footer-link,
+  .input-field-admin {
+    transition: color 0.01ms, background-color 0.01ms !important;
+  }
+
+  .btn-primary:active {
+    transform: none;
+  }
+
+  .modal-lightbox,
+  .modal-lightbox[open] {
+    transform: none;
+  }
+}

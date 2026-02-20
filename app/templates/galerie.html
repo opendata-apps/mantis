@@ -15,13 +15,16 @@
     </h2>
     {{ popover('hinweise-popover', 'Hinweise zur Bedienung', '<ul><li>Das Bild anklicken, Bilderserie startet …</li><li>Mit Pfeil nach rechts, vorblättern …</li><li>Mit Pfeil nach links, zurückblättern …</li><li>Mit ESC-Taste, die Bilderschau beenden …</li></ul>') }}
   </div>
-  <div class="grid grid-cols-1 gap-4 px-2 md:grid-cols-3 lg:grid-cols-4 xl:px-8 auto-rows-[1fr]">
-    
+  <div class="gallery-grid grid grid-cols-1 gap-4 px-2 md:grid-cols-3 lg:grid-cols-4 xl:px-8 auto-rows-[1fr]">
+
     {% for slide in bilder %}
-    <div class="aspect-video">
+    <div class="gallery-item opacity-0 aspect-video">
       <a href="{{ url_for('static', filename='images/galerie/' + slide.bildname)}}"
          rel="lightbox[Mantis]"
-         title="{{ slide.beschreibung }} <br />Autor: {{ slide.fotograph }} <br />Funddatum: {{ slide.funddatum }} <br />Lizenz: {{ slide.lizenz | safe }}"
+         title="{{ slide.beschreibung }}"
+         data-author="{{ slide.fotograph }}"
+         data-date="{{ slide.funddatum }}"
+         data-license="{{ slide.lizenz }}"
          class="transition-opacity duration-300 hover:opacity-75">
         <img src="{{ url_for('static', filename='images/galerie/' + slide.bildname)}}"
              alt="Gallery Image"
@@ -29,8 +32,31 @@
       </a>
     </div>
     {% endfor %}
-    
+
   </div>
 </section>
+
+<script>
+  // Staggered gallery reveal — items fade in as they enter the viewport
+  {
+    const items = document.querySelectorAll('.gallery-item');
+    if (items.length && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      const io = new IntersectionObserver((entries) => {
+        // Collect newly visible items and stagger them
+        const visible = entries.filter(e => e.isIntersecting);
+        visible.forEach((entry, i) => {
+          entry.target.style.animationDelay = `${i * 40}ms`;
+          entry.target.classList.add('gallery-reveal');
+          io.unobserve(entry.target);
+        });
+      }, { threshold: 0.05, rootMargin: '0px 0px -40px 0px' });
+
+      items.forEach(el => io.observe(el));
+    } else {
+      // Reduced motion or no items — show immediately
+      items.forEach(el => { el.style.opacity = '1'; });
+    }
+  }
+</script>
 
 {% endblock content %}
