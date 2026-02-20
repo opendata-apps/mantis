@@ -14,8 +14,7 @@ from unittest.mock import patch
 import pytest
 from PIL import Image
 from sqlalchemy import select, func
-from werkzeug.datastructures import MultiDict
-from werkzeug.exceptions import BadRequest, Forbidden
+from werkzeug.exceptions import BadRequest
 
 from app.database.models import (
     TblFundorte,

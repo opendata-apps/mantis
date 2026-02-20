@@ -155,10 +155,10 @@ class TestMapDataFilters:
                 reports_json = json.loads(json_str)
                 break
 
-        if reports_json:
-            report_ids = [report["report_id"] for report in reports_json]
-            assert self.deleted_sighting.id not in report_ids
-            assert self.unapproved_sighting.id not in report_ids
+        assert reports_json is not None, "Failed to parse reports JSON from map page"
+        report_ids = [report["report_id"] for report in reports_json]
+        assert self.deleted_sighting.id not in report_ids
+        assert self.unapproved_sighting.id not in report_ids
 
     def test_get_marker_data_respects_approval(self, client):
         """Test that individual marker data endpoint respects approval status."""
@@ -229,9 +229,8 @@ class TestMapDataFilters:
                 reports_json = json.loads(json_str)
                 break
 
-        report_ids = (
-            [report["report_id"] for report in reports_json] if reports_json else []
-        )
+        assert reports_json is not None, "Failed to parse reports JSON from map page"
+        report_ids = [report["report_id"] for report in reports_json]
 
         for sighting_id, should_appear in created_sightings:
             if should_appear:

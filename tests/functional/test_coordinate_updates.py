@@ -182,14 +182,8 @@ class TestCoordinateUpdates:
             data={"type": "latitude", "new_data": "52.550000"},
         )
 
-        # Should be forbidden (assuming login_required checks user role)
-        # If not, this test might need adjustment based on actual auth implementation
-        assert response.status_code in [403, 200]  # Adjust based on actual behavior
-
-        # If it was allowed, verify that at least the bearb_id was set
-        if response.status_code == 200:
-            session.refresh(self.test_sighting)
-            assert self.test_sighting.bearb_id == self.regular_user.user_id
+        # @reviewer_required aborts with 403 for non-reviewer users
+        assert response.status_code == 403
 
     def test_update_invalid_latitude(self, client, session):
         """Test updating with invalid latitude values."""

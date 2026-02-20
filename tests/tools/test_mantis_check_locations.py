@@ -47,8 +47,8 @@ def test_check_location_no_match(mock_get, mock_response):
     # Check that the function made requests to the API
     assert mock_get.call_count > 1
 
-    # Check that we got a "check" result or eventually gave up
-    assert any("<-- Prüfen!" in result for result in results) or results
+    # Non-matching location should be flagged for review
+    assert any("<-- Prüfen!" in result for result in results)
 
 
 @patch("requests.get")

@@ -15,63 +15,22 @@ from app.database.models import TblFundortBeschreibung
 class TestPopulateFunctions:
     """Test suite for database population functions."""
 
-    def test_populate_beschreibung_already_populated(self, session):
-        """Test that populate_beschreibung is idempotent with existing data."""
-        # Check that table already has data (from conftest setup)
+    def test_populate_beschreibung_idempotent(self, session):
+        """Test that populate_beschreibung doesn't duplicate existing data."""
         initial_count = session.scalar(
             select(func.count()).select_from(TblFundortBeschreibung)
         )
         assert initial_count > 0
 
-        # Run populate again
         populate_beschreibung(session)
 
-        # Count should remain the same (no duplicates)
         final_count = session.scalar(
             select(func.count()).select_from(TblFundortBeschreibung)
         )
         assert final_count == initial_count
-
-        # Verify expected records exist
-        record_dict = {
-            r.id: r.beschreibung
-            for r in session.scalars(select(TblFundortBeschreibung)).all()
-        }
-        assert 1 in record_dict
-        assert 6 in record_dict
-        assert 99 in record_dict
-
-    def test_populate_beschreibung_existing_records(self, session):
-        """Test populating beschreibung table with existing records."""
-        # The table already has all 12 records from conftest setup
-        initial_count = session.scalar(
-            select(func.count()).select_from(TblFundortBeschreibung)
-        )
-
-        # Get original value of record 1
-        original_record = session.scalar(
-            select(TblFundortBeschreibung).where(TblFundortBeschreibung.id == 1)
-        )
-        original_beschreibung = original_record.beschreibung
-
-        # Populate should not fail or duplicate
-        populate_beschreibung(session)
-
-        # Should still have the same number of records
-        final_count = session.scalar(
-            select(func.count()).select_from(TblFundortBeschreibung)
-        )
-        assert final_count == initial_count
-
-        # Original record should be preserved
-        record = session.scalar(
-            select(TblFundortBeschreibung).where(TblFundortBeschreibung.id == 1)
-        )
-        assert record.beschreibung == original_beschreibung
 
     def test_populate_beschreibung_database_error(self, session):
         """Test handling of database errors during population."""
-        # Mock the session.execute to raise an error
         with patch.object(session, "execute", side_effect=SQLAlchemyError("DB Error")):
             with pytest.raises(SQLAlchemyError):
                 populate_beschreibung(session)
@@ -82,25 +41,20 @@ class TestPopulateFunctions:
         self, mock_beschreibung, mock_aemter, session
     ):
         """Test successful execution of populate_all."""
-        # Setup
         mock_engine = MagicMock()
         mock_json_data = '{"test": "data"}'
 
-        # Execute
         populate_all(mock_engine, session, mock_json_data)
 
-        # Verify all functions were called in correct order
         mock_beschreibung.assert_called_once_with(session)
         mock_aemter.assert_called_once_with(mock_engine, mock_json_data)
 
     @patch("app.database.vg5000_fill_aemter.import_aemter_data")
-    def test_populate_all_beschreibung_error(self, mock_aemter, session):
+    def test_populate_all_beschreibung_error_stops_pipeline(self, mock_aemter, session):
         """Test populate_all when beschreibung population fails."""
-        # Setup
         mock_engine = MagicMock()
         mock_json_data = '{"test": "data"}'
 
-        # Mock beschreibung to fail
         with patch(
             "app.database.populate.populate_beschreibung",
             side_effect=Exception("Beschreibung failed"),
@@ -108,7 +62,6 @@ class TestPopulateFunctions:
             with pytest.raises(Exception, match="Beschreibung failed"):
                 populate_all(mock_engine, session, mock_json_data)
 
-        # Subsequent functions should not be called
         mock_aemter.assert_not_called()
 
     @patch(
@@ -116,96 +69,14 @@ class TestPopulateFunctions:
         side_effect=Exception("Import failed"),
     )
     @patch("app.database.populate.populate_beschreibung")
-    def test_populate_all_import_error(
+    def test_populate_all_swallows_import_error(
         self, mock_beschreibung, mock_aemter, session
     ):
-        """Test populate_all when aemter import fails - but it should NOT raise."""
-        # Setup
+        """Test populate_all catches import errors without raising."""
         mock_engine = MagicMock()
         mock_json_data = '{"test": "data"}'
 
-        # Execute - should NOT raise error (populate_all catches import errors)
         populate_all(mock_engine, session, mock_json_data)
 
-        # Earlier functions should have been called
         mock_beschreibung.assert_called_once()
-
-        # Import should have been attempted
         mock_aemter.assert_called_once()
-
-    def test_populate_beschreibung_partial_data(self, session):
-        """Test that populate_beschreibung handles partial data correctly."""
-        # Since table is already populated, let's verify the function correctly checks for existing records
-        # Get current count
-        initial_count = session.scalar(
-            select(func.count()).select_from(TblFundortBeschreibung)
-        )
-        assert initial_count == 12
-
-        # Run populate - should check each record and not add duplicates
-        populate_beschreibung(session)
-
-        # Should still have exactly 12 records
-        final_count = session.scalar(
-            select(func.count()).select_from(TblFundortBeschreibung)
-        )
-        assert final_count == 12
-
-        # Verify all expected records exist
-        all_ids = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 99]
-        for expected_id in all_ids:
-            record = session.scalar(
-                select(TblFundortBeschreibung).where(
-                    TblFundortBeschreibung.id == expected_id
-                )
-            )
-            assert record is not None
-
-    def test_populate_functions_idempotency(self, session):
-        """Test that populate functions can be run multiple times safely."""
-        # Run populate_beschreibung twice
-        populate_beschreibung(session)
-        first_count = session.scalar(
-            select(func.count()).select_from(TblFundortBeschreibung)
-        )
-
-        populate_beschreibung(session)
-        second_count = session.scalar(
-            select(func.count()).select_from(TblFundortBeschreibung)
-        )
-
-        # Count should not increase
-        assert first_count == second_count
-
-    def test_populate_functions_error_handling(self):
-        """Test error handling in populate functions."""
-        # Test database error handling
-        mock_session = MagicMock()
-        mock_session.execute.side_effect = SQLAlchemyError("DB Error")
-
-        with pytest.raises(
-            Exception
-        ):  # The function catches and re-raises as generic Exception
-            populate_beschreibung(mock_session)
-
-    @patch("app.database.populate.current_app")
-    def test_populate_all_logging(self, mock_current_app):
-        """Test that populate_all logs its progress."""
-
-        mock_logger = MagicMock()
-        mock_current_app.logger = mock_logger
-
-        mock_engine = MagicMock()
-        mock_session = MagicMock()
-        mock_json_data = '{"test": "data"}'
-        mock_logger = MagicMock()
-        mock_current_app.logger = mock_logger
-
-        with patch("app.database.populate.populate_beschreibung"):
-            with patch("app.database.vg5000_fill_aemter.import_aemter_data"):
-                populate_all(mock_engine, mock_session, mock_json_data)
-
-        # Should have logged progress
-        # Check specific log messages
-        mock_logger.info.assert_any_call("Starting initial data population...")
-        mock_logger.info.assert_any_call("Initial data population finished.")

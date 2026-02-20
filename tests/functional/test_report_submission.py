@@ -474,11 +474,10 @@ class TestReportSubmission:
                     assert location.kreis == form_data["fund_district"], (
                         f"District doesn't match: expected {form_data['fund_district']}, got {location.kreis}"
                     )
-                    assert (
-                        str(location.plz) == form_data["fund_zip_code"]
-                        if form_data["fund_zip_code"]
-                        else True
-                    ), "ZIP code doesn't match"
+                    if form_data["fund_zip_code"]:
+                        assert str(location.plz) == form_data["fund_zip_code"], (
+                            f"ZIP code doesn't match: expected {form_data['fund_zip_code']}, got {location.plz}"
+                        )
                     assert location.longitude == form_data["longitude"], (
                         f"Longitude doesn't match: expected {form_data['longitude']}, got {location.longitude}"
                     )
