@@ -1,0 +1,87 @@
+slug: deutschland
+name: Deutschland
+title: Gottesanbeterin in Deutschland
+og_title: "Gottesanbeterin in Deutschland – Verbreitung, Schutzstatus und Meldung"
+meta_description: "Die Europäische Gottesanbeterin (Mantis religiosa) breitet sich in Deutschland aus. Erfahren Sie alles über Verbreitung, Schutzstatus und wie Sie Sichtungen melden können."
+
+parent: null
+children:
+  - brandenburg
+  - berlin
+siblings: []
+
+intro: >
+  Die Europäische Gottesanbeterin (Mantis religiosa) ist die einzige in Deutschland
+  vorkommende Fangschreckenart. Lange galt sie als selten und war auf wenige
+  wärmebegünstigte Regionen im Südwesten beschränkt. Seit den 1990er Jahren
+  breitet sie sich jedoch stetig nach Norden aus und besiedelt inzwischen weite
+  Teile des Bundesgebiets. 2017 wurde sie zum Insekt des Jahres gekürt.
+
+sections:
+  - heading: Verbreitung in Deutschland
+    content: >
+      <p>
+      Historisch war <i>Mantis religiosa</i> in Deutschland nur in Rheinland-Pfalz,
+      Baden-Württemberg und dem Saarland heimisch. Dort existierten stabile
+      Populationen in den Weinbaugebieten entlang des Oberrheingrabens und an
+      den warmen Hängen des Kaiserstuhls. Ab den 1990er Jahren begann die Art,
+      ihr Areal deutlich zu erweitern. Heute liegen Nachweise aus Hessen,
+      Nordrhein-Westfalen, Thüringen, Sachsen, Sachsen-Anhalt, Brandenburg
+      und Berlin vor. Selbst aus Niedersachsen und Schleswig-Holstein gibt
+      es mittlerweile Einzelfunde.
+      </p>
+
+  - heading: Zwei Populationskorridore
+    content: >
+      <p>
+      Die Ausbreitung in Deutschland folgt zwei getrennten Korridoren, die
+      sich genetisch und geographisch unterscheiden lassen (Kriegs et al., LWL).
+      Der westliche Korridor geht auf Populationen in Frankreich zurück, die
+      über das Elsass nach Baden-Württemberg und von dort rheinaufwärts nach
+      Hessen und Nordrhein-Westfalen vordrangen. Der östliche Korridor hat
+      seinen Ursprung in Populationen aus Tschechien und der Slowakei, die
+      über Sachsen nach Brandenburg gelangten. Beide Korridore umfassen
+      sowohl aktive Ausbreitung durch flugfähige Männchen als auch passive
+      Verschleppung, etwa durch Pflanzentransporte oder Fahrzeuge.
+      </p>
+
+  - heading: Schutzstatus
+    content: >
+      <p>
+      Die Gottesanbeterin ist in Deutschland nach der Bundesartenschutzverordnung
+      (BArtSchV) als „besonders geschützt" eingestuft. Das bedeutet: Fangen,
+      Verletzen oder Töten ist verboten, ebenso das Entnehmen aus der Natur.
+      Beobachten und Fotografieren ist selbstverständlich erlaubt und sogar
+      erwünscht. In der aktuellen Roten Liste wird die Art als „Ungefährdet"
+      geführt. Das Rote-Liste-Zentrum begründet die Herabstufung mit einer
+      „deutlichen Zunahme" der Bestände in den letzten Jahrzehnten. Trotz
+      dieses positiven Trends bleibt der gesetzliche Schutz bestehen, da die
+      Art auf bestimmte Lebensräume angewiesen ist, die durch Bebauung und
+      intensive Landwirtschaft unter Druck stehen.
+      </p>
+
+  - heading: Lebensräume
+    content: >
+      <p>
+      Als wärmeliebende Art besiedelt die Gottesanbeterin in Deutschland vor
+      allem trockenwarme Offenlandschaften: Trockenrasen, Magerwiesen,
+      Brachflächen und Ruderalstandorte. Auch strukturreiche Gärten, Weinberge
+      und sonnige Wegränder bieten geeignete Habitate. Entscheidend sind eine
+      lückige Vegetationsstruktur mit ausreichend Sonneneinstrahlung und ein
+      gutes Angebot an Beuteinsekten. In geschlossenen Wäldern kommt die Art
+      nicht vor. Die klimabedingte Erwärmung begünstigt die Ausbreitung nach
+      Norden, da die Ootheken (Eigelege) milde Winter zum Überleben brauchen.
+      </p>
+
+  - heading: Gottesanbeterin melden
+    content: >
+      <p>
+      Jede Sichtung hilft, die Ausbreitung der Gottesanbeterin in Deutschland
+      besser zu verstehen. Ob im Garten, auf einer Brachfläche oder am
+      Wegesrand: Melden Sie Ihre Beobachtung über unser Meldeformular. Ein
+      Foto erleichtert die Bestimmung erheblich. So tragen Sie direkt zur
+      Erforschung dieser geschützten Art bei.
+      </p>
+
+cta_text: Gottesanbeterin gesichtet?
+cta_url: /melden

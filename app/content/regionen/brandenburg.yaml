@@ -1,0 +1,81 @@
+slug: brandenburg
+name: Brandenburg
+title: Gottesanbeterin in Brandenburg
+og_title: "Gottesanbeterin in Brandenburg – Verbreitung, Lebensräume und Meldung"
+meta_description: "Die Gottesanbeterin wurde 2007 erstmals in Brandenburg nachgewiesen. Erfahren Sie mehr über ihre Verbreitung, Lebensräume und das Citizen-Science-Projekt zur Kartierung."
+
+parent: deutschland
+children: []
+siblings:
+  - berlin
+
+intro: >
+  Brandenburg ist das Kerngebiet der östlichen Gottesanbeterin-Population in
+  Deutschland. Seit dem Erstnachweis 2007 hat sich die Art in der Südhälfte
+  des Bundeslandes fest etabliert. Das Citizen-Science-Projekt „Gottesanbeterin
+  gesucht!" des Naturkundemuseums Potsdam und der Mantidenfreunde
+  Berlin-Brandenburg sammelt seit November 2016 Fundmeldungen aus der Region.
+
+sections:
+  - heading: Verbreitung in Brandenburg
+    content: >
+      <p>
+      Die Gottesanbeterin ist heute in der südlichen Hälfte Brandenburgs
+      weit verbreitet. Schwerpunkte liegen in den Landkreisen Dahme-Spreewald,
+      Oberspreewald-Lausitz, Spree-Neiße und Elbe-Elster. Aus den nördlichen
+      Landkreisen liegen erst seit wenigen Jahren vereinzelte Meldungen vor.
+      Die Art dehnt ihr Verbreitungsgebiet stetig nordwärts aus, wobei warme
+      Sommer und milde Winter die Ausbreitung begünstigen.
+      </p>
+
+  - heading: Geschichte der Ausbreitung
+    content: >
+      <p>
+      Der erste gesicherte Nachweis von <i>Mantis religiosa</i> in Brandenburg
+      stammt aus dem Jahr 2007 (Landeck et al. 2013). Die Tiere gelangten
+      vermutlich über Sachsen aus Populationen in Tschechien und der Slowakei
+      in die Region. In den Folgejahren häuften sich Funde vor allem in der
+      Niederlausitz, wo Bergbaufolgelandschaften mit ihren offenen, sandigen
+      Böden und der starken Sonneneinstrahlung ideale Bedingungen bieten.
+      Seit 2016 dokumentiert das Projekt „Gottesanbeterin gesucht!" die weitere
+      Ausbreitung systematisch mit Hilfe von Bürgerwissenschaftlern.
+      Der Stiftung Naturschutzfonds Brandenburg unterstützt das Vorhaben.
+      </p>
+
+  - heading: Lebensräume in Brandenburg
+    content: >
+      <p>
+      In Brandenburg besiedelt die Gottesanbeterin vor allem trockenwarme
+      Habitate: Trockenrasen, sandige Brachflächen, ehemalige Truppenübungsplätze
+      und Bergbaufolgelandschaften. Gerade die offenen Landschaften der Lausitz
+      bieten mit ihren mageren Böden und der geringen Vegetationsdichte gute
+      Bedingungen. Aber auch strukturreiche Gärten, Kleingärten und sonnige
+      Weg- und Straßenränder werden besiedelt. Die Art meidet dichte Wälder
+      und stark beschattete Standorte.
+      </p>
+
+  - heading: So erkennen Sie die Gottesanbeterin
+    content: >
+      <p>
+      Die Europäische Gottesanbeterin wird 5 bis 7 cm groß und ist grün bis
+      bräunlich gefärbt. Auffälligstes Merkmal sind die zu Fangbeinen
+      umgebildeten Vorderbeine, die in Ruhestellung an zum Gebet gefaltete
+      Hände erinnern. Der dreieckige Kopf mit den großen Facettenaugen ist
+      auffallend beweglich. Verwechslungsgefahr besteht mit Heuschrecken,
+      doch die Fangbeine und der bewegliche Kopf unterscheiden die
+      Gottesanbeterin eindeutig. Im Zweifelsfall hilft unser
+      <a href="/bestimmung" class="text-green-700 hover:underline">Bestimmungsschlüssel</a>
+      weiter.
+      </p>
+
+  - heading: Sichtung melden
+    content: >
+      <p>
+      Haben Sie eine Gottesanbeterin in Brandenburg entdeckt? Jede Meldung
+      ist wertvoll für die Erforschung der Ausbreitung. Fotografieren Sie das
+      Tier wenn möglich und nutzen Sie unser Meldeformular. Auch Ootheken
+      (Eigelege) sind wichtige Funde, besonders im Herbst und Winter.
+      </p>
+
+cta_text: Fund in Brandenburg melden
+cta_url: /melden
