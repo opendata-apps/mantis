@@ -168,13 +168,12 @@ class TestMapDataFilters:
         data = json.loads(response.data)
         assert data["id"] == self.approved_sighting.id
 
-        # Try to get data for unapproved sighting - should not work or return limited data
+        # Unapproved and deleted sightings must never be publicly exposed.
         response = client.get(f"/get_marker_data/{self.unapproved_sighting.id}")
-        # Check if it returns 404 or limited data
-        if response.status_code == 200:
-            data = json.loads(response.data)
-            # If it returns data, it might be limited or the sighting might not be on the map anyway
-            assert "id" in data
+        assert response.status_code == 404
+
+        response = client.get(f"/get_marker_data/{self.deleted_sighting.id}")
+        assert response.status_code == 404
 
     def test_edge_case_combinations(self, client, session):
         """Test various edge case combinations of status values."""
@@ -285,3 +284,6 @@ class TestMapDataFilters:
         assert reports_json is not None, "Could not find reports JSON in response"
         report_ids = [report["report_id"] for report in reports_json]
         assert old_approved.id not in report_ids
+
+        marker_response = client.get(f"/get_marker_data/{old_approved.id}")
+        assert marker_response.status_code == 404

@@ -25,6 +25,14 @@ from app.database.models import (
 data = Blueprint("data", __name__)
 
 
+def _public_map_filters(min_map_date: date):
+    """Return shared visibility rules for public map endpoints."""
+    return (
+        TblMeldungen.dat_fund_von >= min_map_date,
+        TblMeldungen.statuses.contains([ReportStatus.APPR.value]),
+    )
+
+
 @data.route("/auswertungen")
 def show_map():
     selected_year = request.args.get("year", None, type=int)
@@ -46,8 +54,7 @@ def show_map():
     reports_stmt = (
         select(TblMeldungen.id, TblFundorte.latitude, TblFundorte.longitude)
         .join(TblFundorte, TblMeldungen.fo_zuordnung == TblFundorte.id)
-        .where(TblMeldungen.dat_fund_von >= min_map_date)
-        .where(TblMeldungen.statuses.contains([ReportStatus.APPR.value]))
+        .where(*_public_map_filters(min_map_date))
     )
 
     if selected_year is not None:
@@ -59,7 +66,7 @@ def show_map():
             select(func.count())
             .select_from(TblMeldungen)
             .join(TblFundorte, TblMeldungen.fo_zuordnung == TblFundorte.id)
-            .where(TblMeldungen.statuses.contains([ReportStatus.APPR.value]))
+            .where(*_public_map_filters(min_map_date))
             .where(func.extract("year", TblMeldungen.dat_fund_von) == selected_year)
         )
         post_count = db.session.execute(count_stmt).scalar()
@@ -68,8 +75,7 @@ def show_map():
         count_stmt = (
             select(func.count())
             .select_from(TblMeldungen)
-            .where(TblMeldungen.dat_fund_von >= min_map_date)
-            .where(TblMeldungen.statuses.contains([ReportStatus.APPR.value]))
+            .where(*_public_map_filters(min_map_date))
         )
         post_count = db.session.execute(count_stmt).scalar()
 
@@ -111,6 +117,7 @@ def show_map():
 @data.route("/get_marker_data/<int:report_id>")
 def get_marker_data(report_id):
     "Get the data for a single marker on the map."
+    min_map_date = date(current_app.config["MIN_MAP_YEAR"], 1, 1)
     stmt = (
         select(
             TblMeldungen.id,
@@ -121,6 +128,7 @@ def get_marker_data(report_id):
         )
         .join(TblFundorte, TblMeldungen.fo_zuordnung == TblFundorte.id)
         .where(TblMeldungen.id == report_id)
+        .where(*_public_map_filters(min_map_date))
     )
     report = db.session.execute(stmt).first()
 

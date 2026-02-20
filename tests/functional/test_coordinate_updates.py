@@ -10,6 +10,7 @@ from app.database.models import (
     TblUsers,
     TblMeldungUser,
     TblFundortBeschreibung,
+    ReportStatus,
 )
 
 
@@ -314,6 +315,11 @@ class TestCoordinateUpdates:
 
     def test_coordinate_update_affects_map_display(self, client, session):
         """Test that coordinate updates are reflected in the database."""
+        # Marker endpoint only exposes approved sightings.
+        self.test_sighting.statuses = [ReportStatus.APPR.value]
+        self.test_sighting.dat_bear = datetime.now()
+        session.commit()
+
         # Set up session
         with client.session_transaction() as sess:
             sess["user_id"] = self.reviewer.user_id

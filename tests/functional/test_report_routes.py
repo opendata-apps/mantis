@@ -592,6 +592,48 @@ class TestMeldenPostValidation:
 
 
 # ============================================================================
+# K3. /melden POST — JS fetch contract (JSON errors, no false-success redirects)
+# ============================================================================
+
+class TestMeldenPostJsContract:
+    """Ensure JS submissions receive structured JSON failures."""
+
+    AJAX_HEADERS = {"X-Requested-With": "XMLHttpRequest", "Accept": "application/json"}
+
+    def test_invalid_ajax_submission_returns_json_400(self, client, valid_form_data):
+        response = client.post(
+            "/melden",
+            headers=self.AJAX_HEADERS,
+            data=valid_form_data,  # no photo => invalid
+            content_type="multipart/form-data",
+        )
+        assert response.status_code == 400
+        payload = response.get_json()
+        assert payload["success"] is False
+        assert "error" in payload
+        assert "errors" in payload
+        assert "photo" in payload["errors"]
+
+    @patch("app.routes.report._process_uploaded_image")
+    def test_ajax_submission_internal_error_returns_json_500(
+        self, mock_process_image, client, valid_form_data
+    ):
+        mock_process_image.side_effect = RuntimeError("boom")
+
+        response = client.post(
+            "/melden",
+            headers=self.AJAX_HEADERS,
+            data={**valid_form_data, "photo": _create_test_image()},
+            content_type="multipart/form-data",
+        )
+        assert response.status_code == 500
+        payload = response.get_json()
+        assert payload["success"] is False
+        assert "error" in payload
+        assert "redirect_url" not in payload
+
+
+# ============================================================================
 # K2. /melden POST — additional coverage for submission branches
 # ============================================================================
 

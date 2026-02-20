@@ -1,7 +1,6 @@
 # from app.database.models import Mantis
 import json
 import os
-import random
 from flask import (
     Blueprint,
     Response,
@@ -9,7 +8,6 @@ from flask import (
     g,
     jsonify,
     render_template,
-    request,
     send_from_directory,
 )
 
@@ -46,15 +44,10 @@ def index():
     with open(json_path, "r", encoding="utf-8") as file:
         bilder = json.load(file)
 
-    current_index = int(
-        request.args.get("current_index", random.randint(0, len(bilder) - 1))
-    )
-
     return render_template(
         "home.html",
         post_count=post_count,
         bilder=bilder,
-        current_index=current_index,
         celebration_enabled=celebration_enabled,
         celebration_threshold=current_app.config["CELEBRATION_THRESHOLD"],
     )
@@ -138,15 +131,10 @@ def galerie():
     with open(json_path, "r", encoding="utf-8") as file:
         bilder = json.load(file)
 
-    current_index = int(
-        request.args.get("current_index", random.randint(0, len(bilder) - 1))
-    )
-
     return render_template(
         "galerie.html",
         user_id=g.current_user.user_id,
         bilder=bilder,
-        current_index=current_index,
     )
 
 
@@ -154,5 +142,4 @@ def galerie():
 def favicon():
     "Return the favicon.ico file."
     return send_from_directory("static", "images/favicon/favicon.ico")
-
 

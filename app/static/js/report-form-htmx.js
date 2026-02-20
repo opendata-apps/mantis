@@ -141,13 +141,23 @@ const ReportForm = {
             const res = await fetch(form.action, {
                 method: 'POST',
                 body: data,
-                headers: { 'X-CSRFToken': document.querySelector('input[name="csrf_token"]')?.value }
+                headers: {
+                    'X-CSRFToken': document.querySelector('input[name="csrf_token"]')?.value,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
             });
 
-            if (res.ok) {
-                const json = await res.json().catch(() => ({}));
-                window.location.href = json.redirect_url || '/success';
-            } else throw new Error('Server error');
+            const contentType = res.headers.get('content-type') || '';
+            const json = contentType.includes('application/json')
+                ? await res.json().catch(() => null)
+                : null;
+
+            if (!res.ok || !json?.success || !json?.redirect_url) {
+                throw new Error(json?.error || 'Server error');
+            }
+
+            window.location.href = json.redirect_url;
         } catch (err) {
             this.showLoading(false);
             this.showError('general', err.message);

@@ -1436,9 +1436,7 @@ def get_table_data(table_name):
         )
     except Exception as e:
         current_app.logger.exception(f"Error in get_table_data: {str(e)}")
-        return jsonify(
-            {"error": f"An error occurred while fetching table data: {str(e)}"}
-        ), 500
+        return jsonify({"error": "An error occurred while fetching table data"}), 500
 
 
 @admin.route("/admin/update_cell", methods=["POST"])
@@ -1556,7 +1554,7 @@ def update_cell():
     except Exception as e:
         db.session.rollback()
         current_app.logger.exception(f"Error in update_cell: {str(e)}")
-        errmsg = jsonify({"error": f"Error while updating the cell: {str(e)}"})
+        errmsg = jsonify({"error": "Error while updating the cell"})
         return errmsg, 500
 
 
