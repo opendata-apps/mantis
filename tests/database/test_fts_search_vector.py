@@ -4,6 +4,8 @@ import pytest
 from sqlalchemy import select, func
 from app.database.models import TblMeldungen
 
+SEEDED_SAMPLE_IDS = {1, 3, 9, 11, 16}
+
 
 class TestSearchVector:
     """Test the search_vector column on meldungen."""
@@ -21,6 +23,7 @@ class TestSearchVector:
         ts_query = func.websearch_to_tsquery("german", "Cottbus")
         results = session.scalars(
             select(TblMeldungen.id)
+            .where(TblMeldungen.id.in_(SEEDED_SAMPLE_IDS))
             .where(TblMeldungen.search_vector.op("@@")(ts_query))
         ).all()
         assert set(results) == {3, 9}
@@ -30,6 +33,7 @@ class TestSearchVector:
         ts_query = func.websearch_to_tsquery("german", "cottbus")
         results = session.scalars(
             select(TblMeldungen.id)
+            .where(TblMeldungen.id.in_(SEEDED_SAMPLE_IDS))
             .where(TblMeldungen.search_vector.op("@@")(ts_query))
         ).all()
         assert set(results) == {3, 9}
@@ -39,6 +43,7 @@ class TestSearchVector:
         ts_query = func.websearch_to_tsquery("german", "Berlin")
         results = session.scalars(
             select(TblMeldungen.id)
+            .where(TblMeldungen.id.in_(SEEDED_SAMPLE_IDS))
             .where(TblMeldungen.search_vector.op("@@")(ts_query))
         ).all()
         assert set(results) == {11, 16}
@@ -48,6 +53,7 @@ class TestSearchVector:
         ts_query = func.websearch_to_tsquery("german", "Zossen")
         results = session.scalars(
             select(TblMeldungen.id)
+            .where(TblMeldungen.id.in_(SEEDED_SAMPLE_IDS))
             .where(TblMeldungen.search_vector.op("@@")(ts_query))
         ).all()
         assert set(results) == {1}

@@ -119,15 +119,19 @@ def session(_db):
     """
     connection = _db.engine.connect()
     transaction = connection.begin()
-    options = dict(bind=connection, binds={})
+    options = dict(
+        bind=connection,
+        binds={},
+        join_transaction_mode="create_savepoint",
+    )
     session = _db._make_scoped_session(options=options)
     _db.session = session
 
     yield session  # Provide the session for the test
 
+    session.remove()
     transaction.rollback()
     connection.close()
-    session.remove()
 
 
 def upgrade():
