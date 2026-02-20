@@ -27,7 +27,7 @@ from flask import (
     send_from_directory,
     url_for,
 )
-from sqlalchemy import inspect, or_, cast, String, update, select, func
+from sqlalchemy import inspect, update, select, func
 from sqlalchemy.exc import SQLAlchemyError
 from flask_sqlalchemy.pagination import Pagination
 from app.tools.check_reviewer import reviewer_required

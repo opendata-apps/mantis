@@ -111,48 +111,6 @@ class TblMeldungen(db.Model):
         value = status.value if isinstance(status, ReportStatus) else status
         return value in (self.statuses or [])
 
-    def add_status(self, status: ReportStatus | str) -> bool:
-        """Add a status if valid. Returns True if added, False if invalid."""
-        value = status.value if isinstance(status, ReportStatus) else status
-        new_statuses = list(self.statuses or [])
-        if value not in new_statuses:
-            new_statuses.append(value)
-        is_valid, _ = ReportStatus.validate_combination(new_statuses)
-        if is_valid:
-            self.statuses = new_statuses
-            self._sync_deleted_flag()
-            return True
-        return False
-
-    def remove_status(self, status: ReportStatus | str) -> bool:
-        """Remove a status if valid. Returns True if removed, False if invalid."""
-        value = status.value if isinstance(status, ReportStatus) else status
-        new_statuses = [s for s in (self.statuses or []) if s != value]
-        is_valid, _ = ReportStatus.validate_combination(new_statuses)
-        if is_valid:
-            self.statuses = new_statuses
-            self._sync_deleted_flag()
-            return True
-        return False
-
-    def set_statuses(self, statuses: list[str]) -> tuple[bool, str | None]:
-        """Set statuses with validation. Returns (success, error_message)."""
-        is_valid, error = ReportStatus.validate_combination(statuses)
-        if is_valid:
-            self.statuses = statuses
-            self._sync_deleted_flag()
-            return True, None
-        return False, error
-
-    def _sync_deleted_flag(self):
-        """Sync deprecated deleted field with statuses for backward compatibility."""
-        self.deleted = self.is_deleted
-
-    @property
-    def workflow_state(self) -> str | None:
-        """Get the primary workflow state (OPEN, APPR, or DEL)."""
-        return ReportStatus.get_workflow_state(self.statuses or [])
-
     @property
     def is_deleted(self) -> bool:
         """Check if report is deleted."""

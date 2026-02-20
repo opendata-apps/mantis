@@ -274,7 +274,7 @@ class MantisSightingForm(FlaskForm):
 
     submit = SubmitField("Bericht einreichen")
 
-    def validate_finder_names_dependency(self, extra_validators=None):
+    def validate_finder_names_dependency(self):
         if not self.identical_finder_reporter.data:
             first_name_filled = bool(self.finder_first_name.data)
             last_name_filled = bool(self.finder_last_name.data)

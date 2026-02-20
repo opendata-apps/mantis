@@ -143,24 +143,6 @@ class GemeindeFinder:
             current_app.logger.error(f"Error finding AMT for point {point}: {e}")
             return None
 
-    def find_amt_with_details(self, point):
-        """
-        Find administrative area with additional details.
-
-        Args:
-            point: Tuple of (longitude, latitude) coordinates
-
-        Returns:
-            Dictionary with 'amt', 'ags', and 'name' if found, None otherwise
-        """
-        amt_string = self.find_amt(point)
-        if amt_string:
-            # Parse the format "AGS -- Name"
-            parts = amt_string.split(" -- ", 1)
-            if len(parts) == 2:
-                return {"amt": amt_string, "ags": parts[0], "name": parts[1]}
-        return None
-
     def reload_cache(self):
         """Force reload of the cache from database."""
         with self._cache_lock:
@@ -209,20 +191,6 @@ def reload_gemeinde_cache():
     """
     _gemeinde_finder.reload_cache()
 
-
-def get_gemeinde_cache_status():
-    """
-    Get the current status of the gemeinde cache.
-
-    Returns:
-        Dictionary with cache status information
-    """
-    return {
-        "is_loaded": _gemeinde_finder.is_loaded,
-        "polygon_count": _gemeinde_finder.polygon_count,
-        "cache_type": "in-memory",
-        "implementation": "optimized_strtree",
-    }
 
 
 # For backward compatibility, keep the original function name

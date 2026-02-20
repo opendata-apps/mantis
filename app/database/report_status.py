@@ -62,17 +62,6 @@ class ReportStatus(StrEnum):
         return css_classes.get(status, "bg-gray-100 text-gray-800")
 
     @classmethod
-    def get_primary_css_class(cls, statuses: list[str]) -> str:
-        """Return CSS class based on primary status (workflow state takes precedence)."""
-        if not statuses:
-            return "bg-gray-100 text-gray-800"
-        # Priority: DEL > UNKL > INFO > APPR > OPEN
-        for priority_status in [cls.DEL, cls.UNKL, cls.INFO, cls.APPR, cls.OPEN]:
-            if priority_status.value in statuses:
-                return cls.get_css_class(priority_status.value)
-        return cls.get_css_class(statuses[0])
-
-    @classmethod
     def values(cls) -> list[str]:
         """Return list of all status values."""
         return [s.value for s in cls if isinstance(s.value, str)]

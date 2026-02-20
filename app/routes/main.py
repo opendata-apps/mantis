@@ -11,7 +11,6 @@ from flask import (
     render_template,
     request,
     send_from_directory,
-    session,
 )
 
 from datetime import date
@@ -75,11 +74,6 @@ def check_celebration_flag(post_count):
     if post_count <= current_app.config["CELEBRATION_THRESHOLD"]:
         return False
     return True
-
-
-def styles():
-    "Return the theme.css file."
-    return send_from_directory("static/build", "theme.css")
 
 
 @main.route("/faq")
@@ -162,6 +156,3 @@ def favicon():
     return send_from_directory("static", "images/favicon/favicon.ico")
 
 
-def not_found(e):
-    "404 error page."
-    return render_template("404.html")
