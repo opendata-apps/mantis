@@ -82,6 +82,21 @@ class TestReviewerAuth:
         response = client.get("/reviewer")
         assert response.status_code == 401
 
+    def test_htmx_401_returns_hx_redirect(self, client):
+        """HTMX request hitting 401 should get HX-Redirect for recovery."""
+        response = client.get("/reviewer", headers={"HX-Request": "true"})
+        assert response.status_code == 401
+        assert "HX-Redirect" in response.headers
+
+    def test_htmx_403_returns_hx_redirect(self, client):
+        """HTMX request hitting 403 should get HX-Redirect for recovery."""
+        response = client.get(
+            "/reviewer/nonexistent-user-id",
+            headers={"HX-Request": "true"},
+        )
+        assert response.status_code == 403
+        assert "HX-Redirect" in response.headers
+
     def test_reviewer_redirects_to_default_filters(self, client):
         """GET /reviewer without filter params should redirect with defaults."""
         _login_session(client)

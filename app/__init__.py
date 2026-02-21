@@ -53,9 +53,22 @@ def create_all_data_view():
 @with_appcontext
 def seed_command(demo):
     """Seed database with base data. Use --demo to include sample reports."""
+    import json
     import app.database.alldata as ad
     from app.database.populate import populate_all
-    from app.database.vg5000_gem import data as jsondata
+
+    # Load AGS data from fallback JSON file
+    fallback_path = os.path.join(os.path.dirname(__file__), "data", "ags_gemeinden.json")
+    if os.path.exists(fallback_path):
+        with open(fallback_path, "r", encoding="utf-8") as f:
+            jsondata = f.read()
+    else:
+        click.echo(
+            "Warning: No AGS fallback data found at app/data/ags_gemeinden.json\n"
+            "Run 'flask seed-ags' first to fetch administrative area data.",
+            err=True,
+        )
+        jsondata = None
 
     db_engine = sa.create_engine(Config.SQLALCHEMY_DATABASE_URI)
     session = orm.sessionmaker(bind=db_engine)()
@@ -76,6 +89,99 @@ def seed_command(demo):
 
     ad.refresh_materialized_view(flask_db)
     click.echo("Done.")
+
+
+@click.command("seed-ags")
+@with_appcontext
+def seed_ags_command():
+    """Fetch administrative area data from official WFS services and seed the database.
+
+    Fetches Gemeinden + Kreise from BKG and Berlin Bezirke from Geoportal Berlin,
+    merges them, and upserts into the aemter table. Saves a local JSON fallback
+    for offline use by 'flask seed'.
+    """
+    from app.tools.fetch_ags import (
+        fetch_gemeinden,
+        fetch_kreise,
+        fetch_berlin_bezirke,
+        merge_gemeinden_with_berlin,
+        build_kreise_lookup,
+        save_fallback,
+        save_kreise_lookup,
+    )
+    import json
+
+    data_dir = os.path.join(os.path.dirname(__file__), "data")
+    fallback_path = os.path.join(data_dir, "ags_gemeinden.json")
+    kreise_path = os.path.join(data_dir, "ags_kreise.json")
+
+    try:
+        # Fetch from WFS
+        click.echo("Fetching Gemeinden from BKG WFS...")
+        gemeinden = fetch_gemeinden()
+
+        click.echo("Fetching Kreise from BKG WFS...")
+        kreise_data = fetch_kreise()
+
+        click.echo("Fetching Berlin Bezirke from ALKIS WFS...")
+        berlin = fetch_berlin_bezirke()
+
+        # Merge: replace Berlin whole-city with 12 Bezirke
+        click.echo("Merging datasets...")
+        merged = merge_gemeinden_with_berlin(gemeinden, berlin)
+        click.echo(f"Merged dataset: {len(merged['features'])} features")
+
+        # Build Kreise lookup
+        kreise_lookup = build_kreise_lookup(kreise_data)
+        click.echo(f"Built Kreise lookup: {len(kreise_lookup)} entries")
+
+        # Save fallback files
+        save_fallback(merged, fallback_path)
+        save_kreise_lookup(kreise_lookup, kreise_path)
+        click.echo(f"Saved fallback to {fallback_path}")
+        click.echo(f"Saved Kreise lookup to {kreise_path}")
+
+        # Sync database: replace all rows with fresh dataset
+        click.echo("Syncing aemter table...")
+        from app.database.aemter_koordinaten import TblAemterCoordinaten
+
+        db_engine = sa.create_engine(Config.SQLALCHEMY_DATABASE_URI)
+        session = orm.sessionmaker(bind=db_engine)()
+
+        # Build set of AGS codes in the fresh dataset
+        fresh_ags = set()
+        for feat in merged["features"]:
+            ags = int(feat["properties"]["AGS"])
+            fresh_ags.add(ags)
+
+            existing = session.get(TblAemterCoordinaten, ags)
+            if existing:
+                # Update geometry and name in case they changed
+                existing.gen = feat["properties"]["GEN"]
+                existing.properties = feat["geometry"]
+            else:
+                session.add(TblAemterCoordinaten(
+                    ags=ags,
+                    gen=feat["properties"]["GEN"],
+                    properties=feat["geometry"],
+                ))
+
+        # Remove stale records not in fresh dataset (e.g. Berlin whole-city)
+        all_rows = session.query(TblAemterCoordinaten).all()
+        removed = 0
+        for row in all_rows:
+            if row.ags not in fresh_ags:
+                session.delete(row)
+                removed += 1
+
+        session.commit()
+        if removed:
+            click.echo(f"Removed {removed} stale record(s)")
+        click.echo(f"Synced {len(fresh_ags)} records. Administrative area data is up to date.")
+
+    except Exception as e:
+        click.echo(f"Error fetching AGS data: {e}", err=True)
+        raise click.Abort()
 
 
 def _copy_demo_images():
@@ -227,6 +333,7 @@ def create_app(config_class=Config):
     # Register CLI commands
     app.cli.add_command(create_all_data_view)
     app.cli.add_command(seed_command)
+    app.cli.add_command(seed_ags_command)
 
     @app.shell_context_processor
     def make_shell_context():
@@ -257,6 +364,21 @@ def create_app(config_class=Config):
             response.headers["Strict-Transport-Security"] = (
                 "max-age=31536000; includeSubDomains"
             )
+        return response
+
+    # HTMX error recovery middleware
+    # When an HTMX request hits an auth/CSRF error, the default HTMX 2.0
+    # behavior (swap:false for 4xx) causes silent failure — the user gets
+    # no feedback. Adding HX-Redirect tells HTMX to do a full-page
+    # navigation to a recovery URL instead.
+    # Pattern: https://www.wimdeblauwe.com/blog/2022/10/04/htmx-authentication-error-handling/
+    @app.after_request
+    def htmx_error_redirect(response):
+        if (
+            request.headers.get("HX-Request") == "true"
+            and response.status_code in (401, 403)
+        ):
+            response.headers["HX-Redirect"] = "/"
         return response
 
     # Import the routes

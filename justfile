@@ -38,6 +38,10 @@ compose_dev := compose + " -f infrastructure/podman-compose.dev.yml"
 @seed *ARGS:
     {{ compose_dev }} exec web flask seed {{ ARGS }}
 
+# Fetch fresh AGS data from official WFS services
+@seed-ags:
+    {{ compose_dev }} exec web flask seed-ags
+
 # Start production (detached)
 @prod *ARGS="-d":
     {{ compose }} up {{ ARGS }}

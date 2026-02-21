@@ -36,9 +36,11 @@ Flask-CLI
    * - ``uv run flask create_all_data_view``
      - Materialized View ``all_data_view`` erzeugen
    * - ``uv run flask seed``
-     - Basisdaten einspielen
+     - Basisdaten einspielen (nutzt lokale JSON-Fallback-Datei)
    * - ``uv run flask seed --demo``
      - Basisdaten plus Demo-Meldungen/Bilder einspielen
+   * - ``uv run flask seed-ags``
+     - Verwaltungsgebiete (AGS) von BKG/Berlin-WFS aktualisieren
 
 Qualitätssicherung
 ------------------
@@ -91,6 +93,8 @@ Container-Workflow (just)
      - Migrationen im Web-Container ausführen
    * - ``just seed``
      - Seed-Befehl im Web-Container ausführen
+   * - ``just seed-ags``
+     - AGS-Daten von WFS-Diensten aktualisieren
    * - ``just prod --build``
      - Produktionsstack starten
    * - ``just prod-down``

@@ -42,3 +42,21 @@ def test_statistics_post_without_csrf_is_rejected(app, authenticated_client):
         assert resp.status_code == 403
     finally:
         app.config["WTF_CSRF_ENABLED"] = old
+
+
+def test_htmx_csrf_failure_returns_hx_redirect(app, authenticated_client):
+    """HTMX requests that fail CSRF should get HX-Redirect, not a full HTML page."""
+    old = app.config.get("WTF_CSRF_ENABLED", False)
+    try:
+        app.config["WTF_CSRF_ENABLED"] = True
+
+        authenticated_client.get("/reviewer/9999", follow_redirects=True)
+
+        resp = authenticated_client.post(
+            "/toggle_approve_sighting/1",
+            headers={"HX-Request": "true"},
+        )
+        assert resp.status_code == 403
+        assert "HX-Redirect" in resp.headers
+    finally:
+        app.config["WTF_CSRF_ENABLED"] = old
