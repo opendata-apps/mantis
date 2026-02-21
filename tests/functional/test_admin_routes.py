@@ -22,23 +22,25 @@ class TestAdminRoutes:
         """Set up test data for admin tests."""
         self.session = session
 
-        # Create test user with reviewer role
-        self.reviewer_user = TblUsers(
-            user_id="9999",
-            user_name="Test Reviewer",
-            user_kontakt="reviewer@test.com",
-            user_rolle="9",
+        # Look up the seed-data reviewer (user_id='9999', inserted by filldb.py)
+        # instead of creating a duplicate that would violate the UNIQUE constraint.
+        self.reviewer_user = session.scalar(
+            select(TblUsers).where(TblUsers.user_id == "9999")
         )
-        session.add(self.reviewer_user)
 
-        # Create regular user (non-reviewer)
-        self.regular_user = TblUsers(
-            user_id="1111",
-            user_name="Regular User",
-            user_kontakt="user@test.com",
-            user_rolle="1",
+        # Look up or create regular user (non-reviewer).
+        # Uses get-or-create to handle savepoint leaks from Flask request cycle.
+        self.regular_user = session.scalar(
+            select(TblUsers).where(TblUsers.user_id == "1111")
         )
-        session.add(self.regular_user)
+        if not self.regular_user:
+            self.regular_user = TblUsers(
+                user_id="1111",
+                user_name="Regular User",
+                user_kontakt="user@test.com",
+                user_rolle="1",
+            )
+            session.add(self.regular_user)
 
         # Use an existing description from the pre-populated data
         self.test_description = session.scalar(

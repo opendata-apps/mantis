@@ -1,4 +1,5 @@
 from sqlalchemy import Index
+from sqlalchemy.orm import relationship
 
 from app import db
 
@@ -45,6 +46,21 @@ class TblFundorte(db.Model):
     longitude = db.Column(db.VARCHAR(25), nullable=False)
     latitude = db.Column(db.VARCHAR(25), nullable=False)
     ablage = db.Column(db.VARCHAR(255), nullable=False)
+
+    # --- Relationships ---
+    meldungen = relationship(
+        "TblMeldungen",
+        back_populates="fundort",
+        lazy="select",
+    )
+
+    # Named `location_type` to avoid collision with the `beschreibung` FK column
+    location_type = relationship(
+        "TblFundortBeschreibung",
+        foreign_keys=[beschreibung],
+        back_populates="fundorte",
+        lazy="select",
+    )
 
     def __repr__(self):
         return f"<Report {self.id}>"

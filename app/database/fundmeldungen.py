@@ -1,5 +1,6 @@
 from sqlalchemy import Index
 from sqlalchemy.dialects.postgresql import ARRAY, TSVECTOR
+from sqlalchemy.orm import relationship
 
 from app import db
 from app.database.report_status import ReportStatus
@@ -59,7 +60,9 @@ class TblMeldungen(db.Model):
     dat_fund_bis = db.Column(db.Date, nullable=True)
     dat_meld = db.Column(db.Date, nullable=True)
     dat_bear = db.Column(db.Date, nullable=True)  # Keep for approval date tracking
-    bearb_id = db.Column(db.String(40), nullable=True)
+    bearb_id = db.Column(
+        db.String(40), db.ForeignKey("users.user_id"), nullable=True
+    )
     tiere = db.Column(db.Integer, nullable=True)
     art_m = db.Column(db.Integer, nullable=True)
     art_w = db.Column(db.Integer, nullable=True)
@@ -78,6 +81,32 @@ class TblMeldungen(db.Model):
     # meldungen, fundorte, beschreibung, melduser, and users tables.
     # Weighted: A=location, B=people, C=details, D=notes
     search_vector = db.Column(TSVECTOR)
+
+    # --- Relationships ---
+    # Many-to-one: each report links to one location
+    fundort = relationship(
+        "TblFundorte",
+        foreign_keys=[fo_zuordnung],
+        back_populates="meldungen",
+        lazy="select",
+    )
+
+    # One-to-one: each report has one melduser link row
+    reporter_link = relationship(
+        "TblMeldungUser",
+        back_populates="meldung",
+        uselist=False,
+        lazy="select",
+    )
+
+    # Many-to-one: approver (reviewer who last touched this report)
+    # Safe now that users.user_id has a UNIQUE constraint.
+    approver = relationship(
+        "TblUsers",
+        foreign_keys=[bearb_id],
+        uselist=False,
+        lazy="select",
+    )
 
     def __repr__(self):
         return f"<Report {self.id}>"

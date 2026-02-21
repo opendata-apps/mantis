@@ -1,4 +1,5 @@
 from sqlalchemy import Index
+from sqlalchemy.orm import relationship
 
 from app import db
 
@@ -26,9 +27,10 @@ class TblMeldungUser(db.Model):
     )
 
     id = db.Column(db.Integer, primary_key=True)
-    # FK to meldungen - used in every JOIN operation
+    # FK to meldungen - used in every JOIN operation.
+    # UNIQUE enforces the 1:1 invariant: one melduser row per meldung.
     id_meldung = db.Column(
-        db.Integer, db.ForeignKey("meldungen.id"), unique=False, nullable=False
+        db.Integer, db.ForeignKey("meldungen.id"), unique=True, nullable=False
     )
     # FK to users - used in every JOIN operation
     id_user = db.Column(
@@ -37,6 +39,28 @@ class TblMeldungUser(db.Model):
     # FK to finder (optional) - not frequently queried, no index needed
     id_finder = db.Column(
         db.Integer, db.ForeignKey("users.id"), unique=False, nullable=True
+    )
+
+    # --- Relationships ---
+    meldung = relationship(
+        "TblMeldungen",
+        foreign_keys=[id_meldung],
+        back_populates="reporter_link",
+        lazy="select",
+    )
+
+    reporter = relationship(
+        "TblUsers",
+        foreign_keys=[id_user],
+        back_populates="reported_links",
+        lazy="select",
+    )
+
+    finder = relationship(
+        "TblUsers",
+        foreign_keys=[id_finder],
+        back_populates="found_links",
+        lazy="select",
     )
 
     def __repr__(self):

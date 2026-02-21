@@ -4,6 +4,7 @@ import pytest
 import json
 from datetime import datetime
 from bs4 import BeautifulSoup
+from sqlalchemy import select
 from app.database.models import (
     TblMeldungen,
     TblFundorte,
@@ -19,23 +20,31 @@ class TestIDConsistency:
     @pytest.fixture(autouse=True)
     def setup_test_data(self, session):
         """Create test data with known IDs."""
-        # Create test user
-        self.test_user = TblUsers(
-            user_id="test_user_123",
-            user_name="Test User",
-            user_kontakt="test@example.com",
-            user_rolle="1",
+        # Look up or create test user
+        self.test_user = session.scalar(
+            select(TblUsers).where(TblUsers.user_id == "test_user_123")
         )
-        session.add(self.test_user)
+        if not self.test_user:
+            self.test_user = TblUsers(
+                user_id="test_user_123",
+                user_name="Test User",
+                user_kontakt="test@example.com",
+                user_rolle="1",
+            )
+            session.add(self.test_user)
 
-        # Create reviewer
-        self.reviewer = TblUsers(
-            user_id="reviewer_456",
-            user_name="Test Reviewer",
-            user_kontakt="reviewer@example.com",
-            user_rolle="9",
+        # Look up or create reviewer
+        self.reviewer = session.scalar(
+            select(TblUsers).where(TblUsers.user_id == "reviewer_456")
         )
-        session.add(self.reviewer)
+        if not self.reviewer:
+            self.reviewer = TblUsers(
+                user_id="reviewer_456",
+                user_name="Test Reviewer",
+                user_kontakt="reviewer@example.com",
+                user_rolle="9",
+            )
+            session.add(self.reviewer)
 
         # Create test location
         self.location = TblFundorte(

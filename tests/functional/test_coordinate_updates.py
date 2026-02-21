@@ -22,23 +22,31 @@ class TestCoordinateUpdates:
         """Set up test data for coordinate update tests."""
         self.session = session
 
-        # Create test reviewer
-        self.reviewer = TblUsers(
-            user_id="coord_reviewer_123",
-            user_name="Coordinate Test Reviewer",
-            user_kontakt="coord_reviewer@test.com",
-            user_rolle="9",
+        # Look up or create test reviewer
+        self.reviewer = session.scalar(
+            select(TblUsers).where(TblUsers.user_id == "coord_reviewer_123")
         )
-        session.add(self.reviewer)
+        if not self.reviewer:
+            self.reviewer = TblUsers(
+                user_id="coord_reviewer_123",
+                user_name="Coordinate Test Reviewer",
+                user_kontakt="coord_reviewer@test.com",
+                user_rolle="9",
+            )
+            session.add(self.reviewer)
 
-        # Create regular user
-        self.regular_user = TblUsers(
-            user_id="coord_user_456",
-            user_name="Regular Coordinate User",
-            user_kontakt="coord_user@test.com",
-            user_rolle="1",
+        # Look up or create regular user
+        self.regular_user = session.scalar(
+            select(TblUsers).where(TblUsers.user_id == "coord_user_456")
         )
-        session.add(self.regular_user)
+        if not self.regular_user:
+            self.regular_user = TblUsers(
+                user_id="coord_user_456",
+                user_name="Regular Coordinate User",
+                user_kontakt="coord_user@test.com",
+                user_rolle="1",
+            )
+            session.add(self.regular_user)
 
         # Get an existing description from initial data
         self.test_description = session.scalar(select(TblFundortBeschreibung))
@@ -477,14 +485,18 @@ class TestAmtMtbRecalculation:
         """Set up test data for AMT/MTB tests."""
         self.session = session
 
-        # Create test reviewer
-        self.reviewer = TblUsers(
-            user_id="amt_reviewer_123",
-            user_name="AMT Test Reviewer",
-            user_kontakt="amt_reviewer@test.com",
-            user_rolle="9",
+        # Look up or create test reviewer
+        self.reviewer = session.scalar(
+            select(TblUsers).where(TblUsers.user_id == "amt_reviewer_123")
         )
-        session.add(self.reviewer)
+        if not self.reviewer:
+            self.reviewer = TblUsers(
+                user_id="amt_reviewer_123",
+                user_name="AMT Test Reviewer",
+                user_kontakt="amt_reviewer@test.com",
+                user_rolle="9",
+            )
+            session.add(self.reviewer)
 
         # Get an existing description
         self.test_description = session.scalar(select(TblFundortBeschreibung))

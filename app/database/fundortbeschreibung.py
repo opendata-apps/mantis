@@ -1,3 +1,5 @@
+from sqlalchemy.orm import relationship
+
 from app import db
 
 
@@ -6,6 +8,12 @@ class TblFundortBeschreibung(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     beschreibung = db.Column(db.String(45), nullable=False)
+
+    fundorte = relationship(
+        "TblFundorte",
+        back_populates="location_type",
+        lazy="select",
+    )
 
     def __repr__(self):
         return f"<Report {self.id}>"
