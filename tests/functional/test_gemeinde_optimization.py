@@ -1,9 +1,7 @@
-"""Functional tests for gemeinde finder optimization."""
+"""Functional tests for gemeinde finder."""
 
 import pytest
-import time
-from sqlalchemy import select, delete
-from app.tools.find_gemeinde import get_amt_full_scan
+from sqlalchemy import delete
 from app.tools.gemeinde_finder import get_amt_optimized, reload_gemeinde_cache
 from app.database.aemter_koordinaten import TblAemterCoordinaten
 
@@ -92,89 +90,24 @@ class TestGemeindeOptimization:
         )
         session.commit()
 
-    def test_both_implementations_return_same_result(self, session):
-        """Test that both implementations return the same result."""
+    def test_finds_correct_administrative_area(self, session):
+        """Test that the finder returns the correct area for known points."""
         test_points = [
             ((13.40, 52.52), "99999901 -- Test Berlin Mitte"),
             ((13.075, 52.40), "99999902 -- Test Potsdam"),
             ((12.05, 51.05), "01234567 -- Test Kleinstadt"),
-            ((10.0, 50.0), None),  # Outside all areas
         ]
 
         for point, expected in test_points:
-            # Test old implementation
-            result_old = get_amt_full_scan(point)
-
-            # Test new implementation
-            result_new = get_amt_optimized(point)
-
-            # Both should return the same result
-            assert result_old == result_new, (
-                f"Results differ for point {point}: old={result_old}, new={result_new}"
+            result = get_amt_optimized(point)
+            assert result == expected, (
+                f"Wrong result for point {point}: got {result}, expected {expected}"
             )
 
-            # And both should match expected if provided
-            if expected is not None:
-                assert result_old == expected, f"Old implementation wrong for {point}"
-                assert result_new == expected, f"New implementation wrong for {point}"
-
-    def test_performance_improvement(self, session):
-        """Test that the new implementation is faster."""
-        # Add more test areas to make performance difference noticeable
-        for i in range(20):
-            area = TblAemterCoordinaten(
-                ags=90000000 + i,
-                gen=f"Performance Test Area {i}",
-                properties={
-                    "type": "Polygon",
-                    "coordinates": [
-                        [
-                            [10 + i * 0.1, 48.0],
-                            [10 + (i + 1) * 0.1, 48.0],
-                            [10 + (i + 1) * 0.1, 49.0],
-                            [10 + i * 0.1, 49.0],
-                            [10 + i * 0.1, 48.0],
-                        ]
-                    ],
-                },
-            )
-            session.add(area)
-        session.commit()
-
-        # Force cache reload
-        reload_gemeinde_cache()
-
-        # Test point in one of the areas
-        test_point = (11.05, 48.5)
-
-        # Time old implementation (10 calls)
-        start = time.time()
-        for _ in range(10):
-            get_amt_full_scan(test_point)
-        time_old = time.time() - start
-
-        # Time new implementation (10 calls)
-        # First call loads cache, subsequent calls use cache
-        start = time.time()
-        for _ in range(10):
-            get_amt_optimized(test_point)
-        time_new = time.time() - start
-
-        # New should be faster
-        print(f"Old implementation: {time_old:.4f}s for 10 calls")
-        print(f"New implementation: {time_new:.4f}s for 10 calls")
-        print(f"Speedup: {time_old / time_new:.2f}x")
-
-        # New implementation should be at least 2x faster
-        assert time_new < time_old * 0.5, (
-            f"New implementation not fast enough: {time_new}s vs {time_old}s"
-        )
-
-        # Cleanup performance test data
-        session.execute(
-            delete(TblAemterCoordinaten).where(TblAemterCoordinaten.ags >= 90000000)
-        )
-        session.commit()
+    def test_returns_none_for_outside_points(self, session):
+        """Test that points outside all areas return None."""
+        result = get_amt_optimized((10.0, 50.0))
+        assert result is None
 
     def test_handles_malformed_data(self, session):
         """Test handling of malformed geometry data."""

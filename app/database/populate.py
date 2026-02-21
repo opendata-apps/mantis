@@ -61,21 +61,23 @@ def populate_all(db_engine, session: Session, vg5000_json_data):
 
     populate_beschreibung(session)
 
-    # Import vg5000 data population function here
-    # We need to ensure the vg5000 module and its function are accessible
-    try:
-        from .vg5000_fill_aemter import import_aemter_data
-
-        current_app.logger.info("Populating VG5000 Aemter data...")
-        import_aemter_data(db_engine, vg5000_json_data)
-        current_app.logger.info("VG5000 Aemter data population complete.")
-    except ImportError:
-        current_app.logger.error(
-            "Could not import vg5000_fill_aemter. Skipping VG5000 data population."
+    if vg5000_json_data is None:
+        current_app.logger.warning(
+            "No VG5000 data provided. Skipping aemter population. "
+            "Run 'flask seed-ags' to fetch administrative area data."
         )
-    except Exception as e:
-        current_app.logger.error(f"Error during VG5000 data population: {e}")
-        # Decide if you want to rollback or continue
-        # session.rollback()
+    else:
+        try:
+            from .vg5000_fill_aemter import import_aemter_data
+
+            current_app.logger.info("Populating VG5000 Aemter data...")
+            import_aemter_data(session, vg5000_json_data)
+            current_app.logger.info("VG5000 Aemter data population complete.")
+        except ImportError:
+            current_app.logger.error(
+                "Could not import vg5000_fill_aemter. Skipping VG5000 data population."
+            )
+        except Exception as e:
+            current_app.logger.error(f"Error during VG5000 data population: {e}")
 
     current_app.logger.info("Initial data population finished.")

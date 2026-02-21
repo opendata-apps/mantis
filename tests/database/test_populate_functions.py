@@ -47,7 +47,7 @@ class TestPopulateFunctions:
         populate_all(mock_engine, session, mock_json_data)
 
         mock_beschreibung.assert_called_once_with(session)
-        mock_aemter.assert_called_once_with(mock_engine, mock_json_data)
+        mock_aemter.assert_called_once_with(session, mock_json_data)
 
     @patch("app.database.vg5000_fill_aemter.import_aemter_data")
     def test_populate_all_beschreibung_error_stops_pipeline(self, mock_aemter, session):
@@ -80,3 +80,16 @@ class TestPopulateFunctions:
 
         mock_beschreibung.assert_called_once()
         mock_aemter.assert_called_once()
+
+    @patch("app.database.vg5000_fill_aemter.import_aemter_data")
+    @patch("app.database.populate.populate_beschreibung")
+    def test_populate_all_skips_aemter_when_no_data(
+        self, mock_beschreibung, mock_aemter, session
+    ):
+        """Test populate_all skips aemter when vg5000_json_data is None."""
+        mock_engine = MagicMock()
+
+        populate_all(mock_engine, session, None)
+
+        mock_beschreibung.assert_called_once_with(session)
+        mock_aemter.assert_not_called()

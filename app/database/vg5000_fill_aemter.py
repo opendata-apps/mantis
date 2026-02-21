@@ -3,35 +3,22 @@ aus vg5000_gem füllen
 """
 
 import json
-from sqlalchemy import text
-import sqlalchemy.orm as orm
+
+from app.database.aemter_koordinaten import TblAemterCoordinaten
 
 
-def import_aemter_data(db, jsondata):
+def import_aemter_data(session, jsondata):
     data = json.loads(jsondata)
 
-    # Create a session
-    Session = orm.sessionmaker(bind=db)
-    session = Session()
-
     for row in data["features"]:
-        ags = row["properties"]["AGS"]
+        ags = int(row["properties"]["AGS"])
         gen = row["properties"]["GEN"]
 
-        # Check if record with this AGS already exists
-        check_stm = f"SELECT ags FROM aemter WHERE ags = {ags}"
-        existing = session.execute(text(check_stm)).fetchone()
+        existing = session.get(TblAemterCoordinaten, ags)
+        if existing:
+            continue
 
-        if not existing:
-            geo = str(row["geometry"]).replace("'", '"')
-            stm = f"""
-            INSERT into aemter (ags, gen, properties)
-            VALUES ({ags},
-                    '{gen}',
-                    '{geo}')"""
-            session.execute(text(stm))
-        else:
-            return
+        area = TblAemterCoordinaten(ags=ags, gen=gen, properties=row["geometry"])
+        session.add(area)
 
     session.commit()
-    session.close()
