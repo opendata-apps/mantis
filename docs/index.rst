@@ -1,36 +1,32 @@
-Mantis's Projekt
-================
+Mantis Projekt
+==============
 
 .. image:: gottesanbeterin.webp
-    :alt: Mantis Tracker
-    :width: 200px
+   :alt: Mantis Tracker
+   :width: 200px
 
-.. sidebar:: 
+Das Projekt ``Gottesanbeterin gesucht!`` erfasst Meldungen zu Sichtungen
+von *Mantis religiosa* und stellt sie auf Karte, in Auswertungen und im
+Reviewer-Workflow bereit.
 
-   * :ref:`genindex`
-   * :ref:`search`
-   * `Quellcode -- GitLab <https://gitlab.com/opendata-apps/mantis>`_
-   
-Im Jahr 2017 initierten das Naturkundemuseum Potsdam und die Mantifreunde
-Berlin-Brandenburg das Mitmachprojekt »Gottesanbeterin gesucht!«.
+Inhalte:
 
-Machen Sie mit und werden Sie zum Insektenforscher.
+- Fachinhalt zur Art
+- Bedienung der Oberfläche
+- technische Doku für Entwicklung und Betrieb
 
-Sie finden hier die Dokumentation zum Projekt. Die wichtigsten Todos
-werden in einem Backlog verwaltet.
-
-🌟 Funktionen
--------------
-    - 📚 Erfahren Sie mehr über die Gottesanbeterin
-    - 🎨 Schöne Benutzeroberfläche
-    - 📝 Melden Sie Gottesanbeterin-Sichtungen mit einem benutzerfreundlichen Formular
-    - 🗺️ Sehen Sie alle Gottesanbeterin-Sichtungen auf einer interaktiven Karte
-    - 📊 Betrachten Sie aufschlussreiche Statistiken und FAQs
 .. toctree::
-   :maxdepth: 1
-   :caption: Inhalte:
+   :maxdepth: 2
+   :caption: Inhalte
 
    insekt/steckbrief
-   develop/index
    userinterface/index
+   develop/index
 
+Projektlinks
+------------
+
+- `Projektwebseite <https://gottesanbeterin-gesucht.de/>`_
+- `Quellcode (GitLab) <https://gitlab.com/opendata-apps/mantis>`_
+- :ref:`genindex`
+- :ref:`search`

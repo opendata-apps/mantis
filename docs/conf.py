@@ -7,10 +7,10 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = "Mantis"
-copyright = "2024, zit-team"
+copyright = "2026, zit-team"
 author = "zit-team"
-release = "1"
-html_title = " "
+release = "0.13.5"
+html_title = "Mantis Dokumentation"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -18,7 +18,7 @@ html_title = " "
 extensions = []
 
 templates_path = ["_templates"]
-exclude_patterns = []
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 language = "de"
 

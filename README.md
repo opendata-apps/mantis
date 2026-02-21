@@ -1,162 +1,164 @@
-# 🦗 [Gottesanbeterin Gesucht Mitmachprojekt](https://gottesanbeterin-gesucht.de/) 🦗
+# 🦗 Gottesanbeterin Gesucht (Mantis Tracker)
 
-![Header Banner](https://i.ibb.co/QrjJ7NM/berger03.webp)
+![Project header](app/static/images/berger03.webp)
 
-An interactive web application to track Mantis Religiosa sightings in Brandenburg, presented by the Naturkundemuseum Potsdam.
+Mantis Tracker is a Flask web application for collecting, reviewing, and
+publishing sightings of the European mantis (*Mantis religiosa*).
 
-Mantis Tracker allows users to report Mantis Religiosa sightings and view them on an interactive map, along with insightful statistics and helpful FAQs.
+Project website: [gottesanbeterin-gesucht.de](https://gottesanbeterin-gesucht.de/)
 
-## 🌟 Features
+## Features
 
-- 📚 Learn about the Mantis Religiosa
-- 🎨 Beautiful UI
-- 📝 Report mantis sightings with an easy-to-use form
-- 🗺️ View all mantis sightings on an interactive map
-- 📊 View insightful statistics and FAQs
-- 🖼️ Photo gallery of Mantis Religiosa
+- Public multi-step report form (`/melden`)
+- Reviewer workflow for quality control (`/reviewer`)
+- Public map and statistics for accepted reports (`/auswertungen`, `/statistik`)
+- Image upload pipeline with WebP storage
+- PostgreSQL full-text search and export tools for reviewers
 
-## 🛠️ Technologies
+## Quick Start (Container)
 
-![HTML](https://img.shields.io/badge/-HTML-000000?style=flat&logo=HTML5)
-![CSS](https://img.shields.io/badge/-CSS-000000?style=flat&logo=CSS3&logoColor=1572B6)
-![Jinja2](https://img.shields.io/badge/-Jinja2-000000?style=flat&logo=jinja)
-![Python](https://img.shields.io/badge/-Python-000000?style=flat&logo=python)
-![Flask](https://img.shields.io/badge/-Flask-000000?style=flat&logo=flask)
-![PostgreSQL](https://img.shields.io/badge/-PostgreSQL-000000?style=flat&logo=postgresql)
-![Tailwind CSS](https://img.shields.io/badge/-Tailwind%20CSS-000000?style=flat&logo=tailwind-css)
-![JavaScript](https://img.shields.io/badge/-JavaScript-000000?style=flat&logo=javascript)
+Prerequisites:
 
-## 🚀 Quick Start (Containers)
-
-Prerequisites: [Podman](https://podman.io/) (or Docker), [just](https://github.com/casey/just)
+- Podman or Docker with Compose
+- `just`
 
 ```bash
-git clone https://gitlab.com/opendata-apps/mantis.git
-cd mantis
 cp .env.example .env
-# Set SECRET_KEY in .env (generate with: python -c "import secrets; print(secrets.token_hex(32))")
+# Set a secure SECRET_KEY, e.g.:
+# python -c "import secrets; print(secrets.token_hex(32))"
+
 just up --build
 ```
 
-The app will be available at [http://localhost:5000](http://localhost:5000)
+App URL: `http://localhost:5000`
 
-On startup, the container automatically runs migrations, creates materialized views, and seeds the database. In dev mode (`FLASK_ENV=development`), demo data is included.
-
-### Available Commands
-
-```
-just up *ARGS        Start dev environment (hot-reload + Vite)
-just down *ARGS      Stop dev environment
-just build *ARGS     Build dev containers
-just logs *ARGS      Show container logs
-just shell           Open bash shell in web container
-just db              Open psql shell in db container
-just migrate *ARGS   Run database migrations
-just seed *ARGS      Seed base data
-just prod *ARGS      Start production (Gunicorn, detached)
-just prod-down *ARGS Stop production
-```
-
-### Production
-
-Set these in `.env` before deploying:
+Useful commands:
 
 ```bash
-FLASK_ENV=production
-FLASK_DEBUG=0
-SECRET_KEY=<generated-key>          # required, app refuses to start without it
-POSTGRES_PASSWORD=<secure-password>
-PREFERRED_URL_SCHEME=https
-SESSION_COOKIE_SECURE=True
+just down
+just logs
+just shell
+just db
+just migrate
+just seed
+just prod --build
+just prod-down
 ```
 
-Then: `just prod --build`
+## Local Development (No Container)
 
-<details>
-<summary><strong>Without just (manual setup & compose commands)</strong></summary>
+Prerequisites:
 
-```bash
-# First-time setup
-cp .env.example .env
-python -c "import secrets; print(secrets.token_hex(32))"
-# Paste the output as SECRET_KEY= in .env
-
-# Dev
-podman-compose -f infrastructure/podman-compose.prod.yml -f infrastructure/podman-compose.dev.yml up --build
-podman-compose -f infrastructure/podman-compose.prod.yml -f infrastructure/podman-compose.dev.yml down
-
-# Production
-podman-compose -f infrastructure/podman-compose.prod.yml up --build -d
-podman-compose -f infrastructure/podman-compose.prod.yml down
-```
-
-</details>
-
-<details>
-<summary><h2>💻 Local Development (without containers)</h2></summary>
-
-Prerequisites: Python 3.13+, [uv](https://github.com/astral-sh/uv), [Bun](https://bun.sh/), PostgreSQL 16+
-
-### Setup
+- Python 3.13+
+- `uv`
+- `bun`
+- PostgreSQL 16+
 
 ```bash
 cp .env.example .env
-# Set SECRET_KEY in .env
-
 uv sync --extra dev
 bun install
-bun run build
 ```
 
-### Database
+Create databases:
 
 ```sql
--- As postgres superuser:
 CREATE USER mantis_user WITH PASSWORD 'mantis';
 CREATE DATABASE mantis_tracker OWNER mantis_user;
 CREATE DATABASE mantis_tester OWNER mantis_user;
 ```
 
+Run migrations and seed base data:
+
 ```bash
 uv run flask db upgrade
 uv run flask create_all_data_view
-uv run flask seed          # base data
-uv run flask seed --demo   # optional: demo data
+uv run flask seed
+# optional demo data:
+uv run flask seed --demo
 ```
 
-### Run
+Start app:
 
 ```bash
 uv run python run.py
 ```
 
-</details>
+`run.py` starts Flask and the frontend watcher (`bun run watch`).
 
-## 🧪 Testing
+Reviewer quick login (local dev): `http://localhost:5000/reviewer/9999`
+
+## Architecture (Short)
+
+```text
+Browser
+  |
+  v
+Flask App (Blueprints)
+  |         \
+  v          v
+PostgreSQL   app/datastore (WebP)
+  ^
+  |
+Vite Build (app/static/build + manifest)
+```
+
+Core areas:
+
+- `app/routes/`: HTTP endpoints (`main`, `report`, `data`, `statistics`, `provider`, `admin`, `regionen`)
+- `app/database/`: SQLAlchemy models, materialized view, seed/populate logic
+- `app/tools/`: domain utilities (coordinates, MTB, mail, Vite helpers)
+- `migrations/`: Alembic migrations
+
+## Quality and Tests
 
 ```bash
+uv run ruff check .
+uv run pyright
 uv run pytest
-uv run pytest --cov=app --cov-report=html
-uv run pytest tests/functional/test_csrf_protection.py -v
+uv run pytest -m unit
+uv run pytest --cov=app --cov-report=term-missing
 ```
 
-## 📁 Project Structure
+Tests use a separate PostgreSQL database: `mantis_tester`.
 
+## Documentation
+
+Build docs:
+
+```bash
+uv sync --extra docs
+make -C docs html
 ```
+
+Strict docs check:
+
+```bash
+uv run sphinx-build -W --keep-going -b html docs /tmp/mantis-docs-build
+```
+
+Main docs entry points:
+
+- `docs/index.rst`
+- `docs/userinterface/index.rst`
+- `docs/develop/index.rst`
+
+## Project Structure
+
+```text
 mantis/
-├── app/                    # Flask application
-│   ├── routes/             # Route blueprints
-│   ├── database/           # SQLAlchemy models
-│   ├── templates/          # Jinja2 templates
-│   ├── static/             # Static assets (js/, css/, build/)
-│   └── tools/              # Utility modules
-├── infrastructure/         # Container configs (compose files)
-├── migrations/             # Alembic database migrations
-└── tests/                  # Test suite
+├── app/
+│   ├── routes/
+│   ├── database/
+│   ├── templates/
+│   ├── static/
+│   └── tools/
+├── docs/
+├── infrastructure/
+├── migrations/
+└── tests/
 ```
 
-## 📚 Additional Information
+## License
 
-- **Environment Variables:** See `.env.example` for all available settings
-- **Database Schema:** Managed via Flask-Migrate in `migrations/`
-- **API Endpoints:** See route blueprints in `app/routes/`
+MIT, see `LICENCE.md`.

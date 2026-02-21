@@ -9,7 +9,7 @@ version: 2
 build:
   os: ubuntu-22.04
   tools:
-    python: "3.11"
+    python: "3.13"
     # You can also specify other tool versions:
     # nodejs: "19"
     # rust: "1.64"
@@ -17,13 +17,17 @@ build:
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
-   configuration: docs/conf.py
+  configuration: docs/conf.py
+  fail_on_warning: true
 
 # If using Sphinx, optionally build your docs in additional formats such as PDF
 # formats:
 #    - pdf
 
-# Optionally declare the Python requirements required to build your docs
+# Install docs dependencies from pyproject.toml (`.[docs]`)
 python:
-   install:
-   - requirements: docs/requirements.txt
+  install:
+    - method: pip
+      path: .
+      extra_requirements:
+        - docs

@@ -1,72 +1,128 @@
-==========
- Reviewer
-==========
+Reviewer-Oberfläche
+===================
 
-Bearbeitung
-===========
+Geltungsbereich
+---------------
 
-Ein Reviewer hat die Aufgabe, die auf den Fotos abgebildeten
-Individuen einem Geschlecht bzw. einem Entwicklungsstadium zuzuordnen.
-Darüberhinaus hat er die Möglichkeit, einige Metadaten einzusehen.
+Dieses Kapitel beschreibt den Reviewer-Workflow für Prüfung, Korrektur und
+Freigabe von Meldungen.
 
-.. image:: images/reviewer.webp
+Relevante Routen:
 
-Ist die Bewertung abgeschlossen, wird der Datensatz als
-»Bearbeitet/Angenommen« eingestuft und wird als
-Datenpunkt auf der Karte der Meldungen (siehe Auswertungen)
-sichtbar.
+- ``/reviewer``: Einstieg mit vorhandener Reviewer-Session
+- ``/reviewer/<usrid>``: URL-basierter Einstieg für Reviewer
+- ``/modal/<id>`` und ``/modal/<tab>/<id>``: Detaildialog je Meldung
+- ``/admin/export/xlsx/<value>``: XLSX-Export
 
-Suchfunktion
-============
+Zugriff und Sitzung
+-------------------
 
-Die Suchfunktion bietet verschiedene Methoden zur Identifizierung und
-Auswahl spezifischer Datensätze, die für die Diskussion und
-Vergleichbarkeit unter den Reviewern von Bedeutung sind.
+- Zugriff ist auf Nutzer mit Rolle ``9`` beschränkt
+- ``/reviewer/<usrid>`` setzt bei gültigem Reviewer die Session
+- ``/reviewer`` ohne Session liefert ``401``
+- Standardparameter beim Einstieg: ``statusInput=offen``,
+  ``sort_order=id_desc``
 
-Suche über die ID
+Arbeitsoberfläche
 -----------------
 
-.. image:: images/suche-id.webp
+Die Seite besteht aus Filter-/Suchleiste, Meldungskarten und Paginierung.
+Jede Karte enthält Bild, Ortsmetadaten, Datumsangaben und Schnellaktionen.
 
-Die ID-Suche ermöglicht die direkte Auswahl eines Datensatzes durch
-Eingabe der eindeutigen Identifikationsnummer.
+Filter, Suche und Sortierung
+----------------------------
 
-Erweiterte Volltextsuche
-------------------------
+Statusfilter ``statusInput``:
 
-.. image:: images/suche-textfelder.webp
+- ``offen``
+- ``bearbeitet`` (Status "angenommen")
+- ``unklar``
+- ``informiert``
+- ``geloescht``
+- ``all``
 
-Die Volltextsuche wurde optimiert, um eine flexiblere Abfrage zu
-ermöglichen. Neben der Suche nach vollständigen Wörtern unterstützt
-sie nun auch die Suche nach Teilzeichenketten. Dies ist besonders
-nützlich, wenn der genaue Suchbegriff nicht bekannt ist.
+Typfilter ``typeInput``:
 
-E-Mail-spezifische Suche
-------------------------
+- ``maennlich``, ``weiblich``, ``oothek``, ``Nymphe``, ``andere``,
+  ``nicht_bestimmt``, ``all``
 
-Bei Eingabe eines Suchbegriffs, der das "@"-Zeichen enthält, wird die
-Suche automatisch auf die E-Mail-Adressen im Datensatz
-angewendet.
+Datumsfilter:
 
-Verwendete Datenbankfelder
---------------------------
+- ``dateType=fund`` für Funddatum
+- ``dateType=meld`` für Meldedatum
+- ``dateFrom`` und ``dateTo`` im Format ``dd.mm.yyyy``
 
-Die Suchfunktion greift auf folgende Datenbankfelder (alphabetisch sortiert) zu:
+Suche:
 
-- Amt
-- Bearbeiter-Anmerkung
-- Bearbeiter-ID
-- Beschreibung
-- Finder-ID
-- ID der Meldung
-- Kreis
-- Land
-- MTB (Messtischblatt) 
-- Melder-Anmerkung
-- Ort
-- Postleitzahl
-- Straße
-- User E-Mail
-- User Name
-- User-ID
-  
+- ``search_type=id``: exakte Suche über Meldungs-ID
+- ``search_type=full_text``: PostgreSQL-FTS über ``search_vector``
+  mit ``websearch_to_tsquery('german', ...)``
+- unterstützte Syntax in der UI: Phrasen in Anführungszeichen,
+  ``OR``, Ausschluss mit ``-`` und Gruppierung mit Klammern
+
+Sortierung und Pagination:
+
+- ``sort_order=id_asc`` oder ``sort_order=id_desc``
+- Default ``per_page=21``, Maximum ``100``
+
+Statusmodell und Aktionen
+-------------------------
+
+Workflow-Status:
+
+- ``OPEN``: offen
+- ``APPR``: angenommen
+- ``DEL``: gelöscht
+
+Zusatz-Flags:
+
+- ``UNKL``: unklar
+- ``INFO``: informiert
+
+Kartenaktionen:
+
+- :guilabel:`Annehmen`: schaltet zwischen ``OPEN`` und ``APPR``
+- :guilabel:`Unklar` / :guilabel:`Informiert`: toggelt Flags (nur bei offenen Meldungen)
+- :guilabel:`Löschen` / :guilabel:`Wiederherstellen`: setzt ``DEL`` bzw. ``OPEN``
+- :guilabel:`Bearbeiten`: öffnet Modal mit Detailansicht
+
+Bei Annahme wird ``dat_bear`` gesetzt; beim Zurücksetzen auf offen wird
+``dat_bear`` geleert. Optionaler E-Mail-Versand an Melder erfolgt nur bei
+Konfiguration ``REVIEWERMAIL=true`` und vorhandener E-Mail-Adresse.
+
+Modal-Workflow
+--------------
+
+Tab :guilabel:`General Information`:
+
+- Zähler für Männchen/Weibchen/Nymphe/Oothek/Andere/Anzahl
+- Quelldaten (``fo_quelle``, ``amt``, ``mtb``)
+- Melderkommentar und Reviewerkommentar
+- Nutzerkontext mit User-ID, E-Mail und Anzahl bisheriger Meldungen
+
+Tab :guilabel:`Position auf der Karte`:
+
+- Bearbeitung von Koordinaten
+- Marker-Neupositionierung auf Leaflet-Karte
+- Reverse-Geocoding und Adressupdate
+- automatische Neuberechnung von ``amt`` und ``mtb`` nach Koordinatenänderung
+
+Bearbeitungsmodus:
+
+- Offene Meldungen sind direkt editierbar
+- Angenommene Meldungen starten read-only und wechseln über
+  :guilabel:`Bearbeiten` in den Edit-Modus
+
+Export
+------
+
+Folgende Exporttypen stehen als XLSX bereit:
+
+- ``all``: alle Meldungen
+- ``accepted``: angenommene Meldungen
+- ``non_accepted``: offene Meldungen
+- ``searched``: aktuelles Such-/Filterergebnis
+
+``searched`` übernimmt aktive Filterparameter
+(``statusInput``, ``typeInput``, ``q``, ``search_type``,
+``dateFrom``, ``dateTo``, ``dateType``).

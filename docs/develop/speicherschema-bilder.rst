@@ -1,48 +1,61 @@
 Bildablage
 ==========
-.. index:: Ablage; Bilder
-.. index:: Bilder; Ablage
+
+Die Bildablage ist datumssortiert aufgebaut. Standardpfad lokal ist
+``app/datastore/``.
+
+Der Basispfad kann über ``UPLOAD_FOLDER`` gesetzt werden und muss ein
+absoluter Pfad sein (siehe ``app/config.py``).
 
 Speicherschema
 --------------
-- Bilder werden nach dem Funddatum in Ordnern gespeichert.
-- Der Dateiname enthält die Stadt, das Meldedatum und die Zeit sowie die Benutzer-ID. Die Datei wird  immer im .webp-Format gespeichert.
 
-::
+.. code-block:: text
 
-    datastore
-      └──2023
-          │
-          ├───2023-05-10
-          │     Berlin-20230903191152-c3e9af52a535850764f59cff83302792adc0d645.webp
-          │
-          ├───2023-05-11
-          │     Hamburg-20230904121314-836b9c0a3c4d2fa8c4b9f933a6c6aef4b9e0d7f6.webp
-          │
-          └───2023-05-12
-                Muenchen-20230905131516-7a0d6f0b4e8f9fa9d7b8g9a7b6a5c4d3e2f1g0h9.webp
+   app/datastore/
+   └── YYYY/
+       └── YYYY-MM-DD/
+           └── Ort-YYYYMMDDHHMMSS-<user-id>.webp
 
-Erklärung:
+Regeln
+------
 
-- | Die oberste Ebene des Speicherschemas repräsentiert das Jahr des  Fundes
-  | (in diesem Fall 2023).
-- Innerhalb des Jahrsordners werden die Bilder nach dem genauen
-  Funddatum (Jahr-Monat-Tag) in Unterordnern gespeichert.
-- Der Dateiname beginnt mit dem Namen der Stadt, gefolgt von dem Datum
-  und der Uhrzeit der Meldung im Format JJJJMMDD:HHMMSS (Jahr, Monat, Tag, Stunde, Minute, Sekunde).
-- Nach dem Datum und der Uhrzeit folgt die Benutzer-ID. Diese ID ist
-  ein eindeutiger Hash-Wert, der den Melder identifiziert.
-- Alle Bilder werden im .webp-Format gespeichert, um Speicherplatz zu
-  sparen und schnelle Ladezeiten zu gewährleisten.
+- Jahresordner basiert auf ``dat_fund_von``.
+- Tagesordner nutzt das Format ``YYYY-MM-DD``.
+- Dateiname enthält Ort, Zeitstempel und Benutzer-ID.
+- Bilder werden als ``.webp`` gespeichert.
 
-Beispiel:
+Schreibpfad
+-----------
 
-- | Im Unterordner *2023-05-10* befindet sich ein Bild, das in Berlin aufgenommen wurde.
-  | Die Meldung wurde am 3. September 2023 um 19:11:52 Uhr gemacht.
-  | Die Benutzer-ID des Melders ist "c3e9af52a535850764f59cff83302792adc0d645".
-- | Im Unterordner *2023-05-11* befindet sich ein Bild, das in Hamburg aufgenommen wurde.
-  | Die Meldung wurde am 4. September 2023 um 12:13:14 Uhr gemacht.
-  | Die Benutzer-ID des Melders ist "836b9c0a3c4d2fa8c4b9f933a6c6aef4b9e0d7f6".
-- | Im Unterordner *2023-05-12* befindet sich ein Bild, das in  München aufgenommen wurde.
-  | Die Meldung wurde am 5. September 2023 um 13:15:16 Uhr gemacht.
-  | Die Benutzer-ID des Melders ist "7a0d6f0b4e8f9fa9d7b8g9a7b6a5c4d3e2f1g0h9".
+Beim Speichern einer Meldung wird der Pfad in ``report._process_uploaded_image``
+gebildet und relativ in ``fundorte.ablage`` persistiert.
+
+Pfadkomponenten:
+
+1. Jahr aus ``sighting_date``
+2. Datum aus ``sighting_date``
+3. Dateiname ``<city>-<timestamp>-<user-id>.webp``
+
+Konsistenz bei Datumsänderungen
+-------------------------------
+
+Wenn ``dat_fund_von`` im Adminbereich geändert wird, wird der Bildpfad
+nachgeführt:
+
+- Bilddatei wird in den Zielordner für das neue Datum verschoben
+- Dateiname-Zeitstempel wird angepasst
+- ``fundorte.ablage`` wird aktualisiert
+- leere Quellordner werden bereinigt
+- bei Fehlern wird die DB-Änderung zurückgerollt
+
+Die Logik liegt in ``app/routes/admin.py`` (``update_report_image_date`` und Aufruf
+aus ``update_cell``).
+
+Beispiel
+--------
+
+.. code-block:: text
+
+   app/datastore/2025/2025-01-19/
+   Berlin-20250119123000-a88de66aa7976cb7990af54c16c0fd2c067515f9.webp

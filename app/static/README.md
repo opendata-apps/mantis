@@ -1,33 +1,42 @@
-## CSS Build
+# Static Assets
 
-- Tailwind Input: `css/theme.css`
-- Generiertes CSS: `build/theme.css`
+## Verzeichnisstruktur
 
-`build/theme.css` ist ein Build-Artefakt und wird nicht manuell
-bearbeitet.
-
-Siehe infrastrukture/podman-compose.yml und
-infrastrukure/README-Container-dev.org
+```text
+app/static/
+├── css/
+│   └── theme.css          # Tailwind v4 + @theme Tokens
+├── js/
+│   ├── vendor.js
+│   ├── map.js
+│   ├── report-form-htmx.js
+│   ├── admin-htmx.js
+│   ├── admin-modal.js
+│   └── ...
+├── build/                 # Vite-Buildausgabe (nicht manuell bearbeiten)
+├── images/
+├── robots.txt
+└── sitemap.xml
 ```
-+---------------------+        +------------------------+
-|                     |        |                        |
-|   Tailwind Service  |        |       Flask Web        |
-|   (bun run watch)   |        |   (Python/Flask)       |
-|                     |        |                        |
-+---------+-----------+        +-----------+------------+
-          |                                |
-          | writes theme.css               | reads theme.css
-          | to                             | from
-          v                                v
-   +------+------------------------+--------------------+
-   |   mantis/app/static/build/theme.css (final CSS)    |
-   +----------------------------------------------------+
-          ^
-          |
-          | volume mount (optional for Dev)
-          |
-   +------+---------------------------+
-   |  Dev-Container Host / Repo       |
-   |  (source CSS in css/, templates) |
-   +----------------------------------+
+
+## Build-Kommandos
+
+Aus Projektwurzel:
+
+```bash
+bun install
+bun run build
+bun run watch
 ```
+
+## Laufzeitintegration
+
+- Flask lädt Assets über Helper aus `app/tools/vite.py`.
+- Produktionspfade werden über `build/.vite/manifest.json` aufgelöst.
+- Templates verwenden `vite_asset(...)` bzw. `vite_tags(...)`.
+
+## Wichtige Hinweise
+
+- Dateien unter `app/static/build` sind Build-Artefakte.
+- Token/Farbänderungen erfolgen in `app/static/css/theme.css`.
+- Nach Änderungen an JS-Entry-Points oder CSS-Tokens Build erneut ausführen.

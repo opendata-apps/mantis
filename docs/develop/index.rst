@@ -1,14 +1,20 @@
-Entwicklung/technische Doku
-===========================
+Entwicklung
+===========
+
+Technische Dokumentation für Entwicklung und Betrieb.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
+   :caption: Technische Inhalte
 
-   color_palette
+   architecture
+   http-surface
    installation
-   server-nginx
+   commands
+   configuration
+   frontend
+   testing
    database_schema
    speicherschema-bilder
-   testing
-
-
+   server-nginx
+   color_palette

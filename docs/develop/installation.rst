@@ -1,144 +1,84 @@
-🦗 Mantis Tracker 🦗
-=====================
+Installation und lokales Setup
+==============================
 
+Diese Seite beschreibt die minimalen Setup-Schritte.
+Die vollständigen Kommandos stehen unter ``develop/commands``.
 
-🛠️ Technologien
------------------
-.. image:: https://img.shields.io/badge/-HTML-000000?style=flat&logo=HTML5
-.. image:: https://img.shields.io/badge/-CSS-000000?style=flat&logo=CSS3&logoColor=1572B6
-.. image:: https://img.shields.io/badge/-Jinja2-000000?style=flat&logo=jinja
-.. image:: https://img.shields.io/badge/-Python-000000?style=flat&logo=python
-.. image:: https://img.shields.io/badge/-Flask-000000?style=flat&logo=flask
-.. image:: https://img.shields.io/badge/-PostgreSQL-000000?style=flat&logo=postgresql
-.. image:: https://img.shields.io/badge/-Tailwind%20CSS-000000?style=flat&logo=tailwind-css
-.. image:: https://img.shields.io/badge/-JavaScript-000000?style=flat&logo=javascript
+Lokales Setup (ohne Container)
+------------------------------
 
-💻 Setup/Installation
----------------------
-Schritt 1: 📁 Klonen Sie das Repository
+Voraussetzungen
+^^^^^^^^^^^^^^^
 
-::
+- Python 3.13+
+- ``uv``
+- ``bun``
+- PostgreSQL 16+
 
-   git clone https://gitlab.com/opendata-apps/mantis.git
-   cd mantis
+Projekt initialisieren
+^^^^^^^^^^^^^^^^^^^^^^
 
-.. index:: venv
-.. index:: virtualenviroment
+.. code-block:: bash
 
-Schritt 2: 🌐 Erstellen Sie eine virtuelle Umgebung und aktivieren Sie sie
+   cp .env.example .env
+   uv sync --extra dev
+   bun install
 
-::
-    
-   python -m venv .venv (or another name with . like .mantis)
-   source .venv/bin/activate    # For Windows: .venv\Scripts\activate  
+Lokale Datenbanken anlegen
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Schritt 3: 📦 Installieren Sie die Abhängigkeiten
+.. code-block:: sql
 
-::
-
-   pip install -r requirements.txt
-
-.. index:: Datenbank
-
-Schritt 4: 🗄️ Erstellen Sie eine PostgreSQL-Datenbank
-
-::
-
-   psql -U postgres
-
-::
-
-   CREATE DATABASE mantis_tracker;
    CREATE USER mantis_user WITH PASSWORD 'mantis';
-   GRANT ALL PRIVILEGES ON DATABASE mantis_tracker TO mantis_user;
-   # MacOS only:
-   GRANT usage, create ON SCHEMA public TO mantis_user;
-   \q
+   CREATE DATABASE mantis_tracker OWNER mantis_user;
+   CREATE DATABASE mantis_tester OWNER mantis_user;
 
+Schema und Basisdaten laden
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Schritt 5: 📝 Initialisieren der Almebic-Versionsverwaltung
+.. code-block:: bash
 
-Es wird der Ordner »``Migration``« angelegt.
+   uv run flask db upgrade
+   uv run flask create_all_data_view
+   uv run flask seed
+   # optional:
+   uv run flask seed --demo
 
-::
+Anwendung starten
+^^^^^^^^^^^^^^^^^
 
-   flask db init
+.. code-block:: bash
 
-Schritt 6: 🔄 Nur, wenn sich die Datenbankstruktur geändert hat.
+   uv run python run.py
 
-::
+Server-URL: ``http://localhost:5000``.
 
-   flask db migrate -m "your comment"
-   
-.. index:: Migration Datenbank
-	   
-Schritt 7: 🏗️ Erstellen Sie die Datenbanktabellen
+Container-Setup (Alternative)
+-----------------------------
 
-::
+Voraussetzungen:
 
-   flask db upgrade
+- Podman oder Docker mit Compose
+- ``just``
 
-Schritt 8: ☕ materialized view erstellen
+Start/Stopp:
 
-::
+.. code-block:: bash
 
-   flask create-mview
-   flask insert-initial-data
+   just up --build
+   just down
 
-Schritt 9: 📈 Importieren Sie die Daten
+Dokumentation lokal bauen
+-------------------------
 
-::
+.. code-block:: bash
 
-   cd test/demodata
-   cat README.txt
+   uv sync --extra docs
+   make -C docs html
 
-.. index:: CSS-Watcher; Tailwind
-.. index:: Tailwind; CSS-Watcher	   
-	   
-Schritt 9: 🎨 Starten Sie den CSS-Watcher
-Der Einsatz von Tailwind für das CSS erfordet den Einsatz von Node.js.
-Die Abhängigkeiten sind in der Datei ``package.json`` festgehalten.
+Weiterführende Seiten
+---------------------
 
-::
-
-    # Einmalig   
-    npm install
-    # oder hinter einem Proxy
-    npm --proxy <your-proxy> install
-
-::
-
-    npx tailwindcss -i app/static/css/theme.css -o app/static/build/theme.css --watch
-
-Schritt 10: 🚀 Starten Sie den Entwicklungsserver
-
-::
-
-    python run.py
-
-Schritt 11: 🏢 Starten Sie den Produktions-Server
-
-::
-
-    # For Linux
-    gunicorn run:app  -c gunicorn_config.py
-
-    # For Windows
-    waitress-serve run:app
-
-Schritt 12: 🌐 Öffnen Sie http://localhost:5000 in Ihrem Browser.
-
-
-::
-    # Meldung id error fix
-    SELECT setval('[TableName]_id_seq', (SELECT MAX(id) FROM [TableName]))
-
-Liste der verwendeten Pakete
-----------------------------
-
-.. index:: Installationspakete
-	   
-Die Liste wurde erzeug mit: ``pip freeze``
-
-.. literalinclude:: files/requirements.txt
-   :language: bash
+- ``develop/commands``: komplette Befehlsreferenz
+- ``develop/configuration``: Umgebungsvariablen und Profile
+- ``develop/architecture``: Systemaufbau und Laufzeitflüsse

@@ -1,67 +1,65 @@
-=============================
- Infos zur »Gottesanbeterin«
+Artinformation und Bestimmung
 =============================
 
 .. image:: berger10.webp
    :width: 300px
+   :alt: Europäische Gottesanbeterin
 
+Geltungsbereich
+---------------
 
-.. INDEX:: Gattesanbeterein; lateinischer Name
-.. INDEX:: lateinischer Name; Gattesanbeterein
+Dieses Kapitel dokumentiert die öffentliche Informationsstrecke zur Art
+*Mantis religiosa* sowie den Bezug zum Meldeprozess.
 
+Relevante Seiten:
 
-Karl von Linné taufte das Insekt 1758 auf den Namen *Mantis
-religiosa*. Die *Mantis religiosa* gehört zu den Fangschrecken
-(Nontodea), von denen weltweit bisher etwa 2400 Arten beschrieben
-sind.
+- ``/mantis-religiosa``: Artseite mit Steckbrief, Verbreitung, Lebenszyklus
+  und weiterführenden Links
+- ``/bestimmung``: bebilderter Bestimmungsschlüssel
+- ``/auswertungen``: Kartenansicht bestätigter Meldungen
 
+Inhalte der Artseite (``/mantis-religiosa``)
+--------------------------------------------
 
-.. INDEX:: Ausbreitung; Gottesanbeterin
-.. INDEX:: Gottesanbeterin; Ausbreitung
+Die Seite enthält folgende fachliche Blöcke:
 
-Ausbreitung
-===========
+- Steckbrief mit Kerndaten (wissenschaftlicher Name, Ordnung, Familie,
+  Größenangaben)
+- Habitatbeschreibung (offene, warme Lebensräume)
+- Verbreitungsabschnitte für Deutschland, Brandenburg und Berlin
+- Lebenszyklus mit Oothek, Nymphenstadium und adultem Stadium
+- Beobachtungstipps und Saisonhinweise
+- Verweis auf den Bestimmungsschlüssel und das Meldeformular
 
-In Südeuropa ist die Europäische Gottesanbeterin häufig anzutreffen,
-wohingegen sie in Deutschland immer selten war. Historische Nachweise
-in Deutschland gibt es aus Frankfurt am Main, Bad Dürkheim und um
-Passau. Bekannt ist das Vorkommen am Kaiserstuhl. Kleine lokale
-Vorkommen überlebten in Rheinland-Pfalz, Baden-Württemberg und dem
-Saarland, von wo aus sich die Lauerjägerin seit Mitte der 1990er Jahre
-nordwärts ausbreitet.
+Bestimmung im Meldekontext
+--------------------------
 
-Seit der Jahrtausendwende wandert die Fangschrecke auch aus dem
-Südosten Europas in die neuen Bundesländer ein. Hier kam sie früher
-nicht vor. So wurde die Art erstmalig 2003 bei Leipzig in Sachsen 
-sowie im Jahr 2006 in einem Tagebau der Oberlausitz und am
-Geiseltalsee in Sachsen-Anhalt gefunden.
+Der Bestimmungsschlüssel auf ``/bestimmung`` ist auf die Formularauswahl in
+``/melden`` abgestimmt.
 
-In Brandenburg wurde die Südländerin zum ersten Mal 2007
-gesichtet. Bis 2016 kamen Nachweise aus den Brandenburger Landkreisen
-Spreee-Neiße, Oberspreewald-Lausitz, Elbe-Elster, Dahme-Spreewald und
-Havelland hinzu. Auch in Berlin gibt es zwei Vorkommen.
+Zuordnung im Meldeformular:
 
-Momentaufnahme
---------------
-Stand vom 08.09.2023
+- Oothek -> ``Oothek``
+- Jungtier -> ``Nymphe``
+- adultes Weibchen -> ``Weiblich``
+- adultes Männchen -> ``Männlich``
+- keine sichere Zuordnung -> ``Unbekannt``
 
-.. image:: mantis-sichtungen-stand-2023-09-08.webp
+Bezug zur Datenerfassung
+------------------------
 
-Erfassung
-=========
+- Sichtungen werden über :doc:`../userinterface/melder` erfasst
+- Bestätigte Meldungen werden in :doc:`../userinterface/melder` auf der
+  öffentlichen Karte dargestellt
+- Der Reviewer-Workflow zur Qualitätssicherung ist in
+  :doc:`../userinterface/reviewer` beschrieben
 
-Sie können sich zukünftig an der Erfassung der Sichtungen beteiligen:
+Weiterführende Links
+--------------------
 
-https://gottesanbeterin-gesucht.de
-
-Bis zum regulären Einsatz nutzen Sie bitte den klassischen Weg der E-Mail.
-
-https://www.naturkundemuseum-potsdam.de/gottesanbeterin-gesucht
-
-Linkliste
-=========
-
-- `Info des Brandenburgischen IT-Dienstleisters (ZIT-BB)
-  <https://zit-bb.brandenburg.de/zit-bb/de/ueber-uns/aktuelles/detail/~11-08-2023-auszubildende-entwickeln-meldeportal-fuer-gottesanbeterin>`_
-- `Website »Permakultur in Beelitz«
-  <https://permakulturgartenbeelitz.com/2023/08/27/gottesanbeterin-gefunden/#more-1245>`_
+- `Projektseite des Naturkundemuseums Potsdam
+  <https://www.naturkundemuseum-potsdam.de/gottesanbeterin-gesucht>`_
+- `Mantidenfreunde Berlin-Brandenburg
+  <https://www.bkmakro.de/Makro/Mantiden/MR.htm>`_
+- `Wikipedia: Europäische Gottesanbeterin
+  <https://de.wikipedia.org/wiki/Europ%C3%A4ische_Gottesanbeterin>`_

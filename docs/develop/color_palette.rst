@@ -1,32 +1,130 @@
-🎨 Mantis Tracker Farbpalette
-===============================
+Farb- und Typografie-Token
+==========================
 
-🌿 Primärfarbe: Grüntöne (Mantis Religiosa und Natur)
--------------------------------------------------------
+Quelle
+------
 
-- 💚 ``green-500``: `#10B981` (ausgewählte HTML-Karten)
-- 🌳 ``green-700``: `#047857` (Hover-Effekte, einige HTML-Karten)
-- 🌲 ``green-800``: `#065F46` (einige HTML-Karten)
-- 🌱 ``green-900``: `#064E3B` (Buttons, Karten)
+Die UI-Tokens werden in ``app/static/css/theme.css`` im ``@theme``-Block definiert.
 
-☀️ Sekundärfarbe: Gelbtöne (Wärme und Energie)
-------------------------------------------------
+Schrift
+-------
 
-- 🟡 ``yellow-500``: `#FCD34D` (Handlungsaufforderungs-Buttons, Hervorhebungen)
-- 🟨 ``yellow-600``: `#FBBF24` (Akzentfarben, Symbole)
-- 🔆 ``yellow-700``: `#F59E0B` (Warnmeldungen, Abzeichen)
+- Sans-Serif-Stack: ``Inter Variable`` als Primärfont
+- Token: ``--font-sans``
 
-📘 Akzentfarbe: Blautöne (Interaktivität und Kartenelemente)
----------------------------------------------------------------
+Farbpaletten
+------------
 
-- 🔵 ``blue-500``: `#3B82F6` (interaktive Kartenelemente, Links)
-- 🟦 ``blue-600``: `#2563EB` (Kartenmarkierungen, Buttons)
-- 📘 ``blue-700``: `#1D4ED8` (fokussierte Kartenelemente, Rahmen)
+Grün (Primärpalette, Flowbite-kompatibel)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-🌫️ Neutrale Farben: Grautöne (Text- und Hintergrundelemente)
-----------------------------------------------------------------
+.. list-table::
+   :header-rows: 1
 
-- 🌚 ``gray-600``: `#6B7280` (Text)
-- 🌑 ``gray-700``: `#374151` (Text)
-- 🖤 ``gray-800``: `#1F2937` (Text)
-- 🌫️ ``gray-100``: `#F3F4F6` (Hintergrundelemente)
+   * - Token
+     - Hex
+   * - ``--color-green-50``
+     - ``#F3FAF7``
+   * - ``--color-green-100``
+     - ``#DEF7EC``
+   * - ``--color-green-200``
+     - ``#BCF0DA``
+   * - ``--color-green-300``
+     - ``#84E1BC``
+   * - ``--color-green-400``
+     - ``#31C48D``
+   * - ``--color-green-500``
+     - ``#0E9F6E``
+   * - ``--color-green-600``
+     - ``#057A55``
+   * - ``--color-green-700``
+     - ``#046C4E``
+   * - ``--color-green-800``
+     - ``#03543F``
+   * - ``--color-green-900``
+     - ``#014737``
+
+Grau
+^^^^
+
+.. list-table::
+   :header-rows: 1
+
+   * - Token
+     - Hex
+   * - ``--color-gray-50``
+     - ``#f9fafb``
+   * - ``--color-gray-100``
+     - ``#f3f4f6``
+   * - ``--color-gray-200``
+     - ``#e5e7eb``
+   * - ``--color-gray-300``
+     - ``#d1d5db``
+   * - ``--color-gray-400``
+     - ``#9ca3af``
+   * - ``--color-gray-500``
+     - ``#6b7280``
+   * - ``--color-gray-600``
+     - ``#4b5563``
+   * - ``--color-gray-700``
+     - ``#374151``
+   * - ``--color-gray-800``
+     - ``#1f2937``
+   * - ``--color-gray-900``
+     - ``#111827``
+
+Weitere Tokens
+^^^^^^^^^^^^^^
+
+.. list-table::
+   :header-rows: 1
+
+   * - Palette
+     - Token
+     - Hex
+   * - Rot
+     - ``--color-red-500``
+     - ``#ef4444``
+   * - Rot
+     - ``--color-red-600``
+     - ``#dc2626``
+   * - Rot
+     - ``--color-red-700``
+     - ``#b91c1c``
+   * - Rot
+     - ``--color-red-900``
+     - ``#7f1d1d``
+   * - Blau
+     - ``--color-blue-500``
+     - ``#3b82f6``
+   * - Blau
+     - ``--color-blue-600``
+     - ``#2563eb``
+   * - Gelb
+     - ``--color-yellow-500``
+     - ``#eab308``
+   * - Gelb
+     - ``--color-yellow-600``
+     - ``#ca8a04``
+   * - Amber
+     - ``--color-amber-50``
+     - ``#fffbeb``
+   * - Amber
+     - ``--color-amber-200``
+     - ``#fde68a``
+   * - Amber
+     - ``--color-amber-500``
+     - ``#f59e0b``
+   * - Amber
+     - ``--color-amber-800``
+     - ``#92400e``
+
+Hinweis zu Änderungen
+---------------------
+
+Tokenänderungen in ``theme.css`` wirken global auf Templates und Komponenten.
+Nach Tokenänderungen:
+
+.. code-block:: bash
+
+   bun run build
