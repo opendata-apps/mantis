@@ -28,10 +28,12 @@ def _login_session(client, user_id="9999"):
 class TestReviewerAuth:
     """Verify unified auth: URL-based login + session-based fallback."""
 
-    def test_reviewer_without_session_returns_401(self, client):
-        """GET /reviewer with no session should return 401 (session expired)."""
+    def test_reviewer_without_session_returns_403(self, client):
+        """GET /reviewer with no session should return 403 (access denied)."""
         response = client.get("/reviewer")
-        assert response.status_code == 401
+        assert response.status_code == 403
+        html = response.get_data(as_text=True)
+        assert "not allowed to access" in html
 
     def test_reviewer_with_valid_session(self, client):
         """GET /reviewer with a valid reviewer session should load the dashboard."""
@@ -76,16 +78,16 @@ class TestReviewerAuth:
         response = client.get("/reviewer")
         assert response.status_code == 403
 
-    def test_reviewer_stale_session_returns_401(self, client):
-        """Session with a user_id that no longer exists should return 401."""
+    def test_reviewer_stale_session_returns_403(self, client):
+        """Session with a user_id that no longer exists should return 403."""
         _login_session(client, "deleted-user-that-does-not-exist")
         response = client.get("/reviewer")
-        assert response.status_code == 401
+        assert response.status_code == 403
 
-    def test_htmx_401_returns_hx_redirect(self, client):
-        """HTMX request hitting 401 should get HX-Redirect for recovery."""
+    def test_htmx_reviewer_auth_error_returns_hx_redirect(self, client):
+        """HTMX request hitting reviewer auth denial should get HX-Redirect."""
         response = client.get("/reviewer", headers={"HX-Request": "true"})
-        assert response.status_code == 401
+        assert response.status_code == 403
         assert "HX-Redirect" in response.headers
 
     def test_htmx_403_returns_hx_redirect(self, client):

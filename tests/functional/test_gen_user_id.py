@@ -11,7 +11,7 @@ def test_generated_user_id_has_correct_length():
 def test_generated_user_id_format():
     """Test that generated user IDs contain only valid hexadecimal characters."""
     userid = get_new_id()
-    # SHA-1 produces 40 character hex strings
+    # IDs are generated as 40-character hex tokens.
     assert re.match(r"^[a-f0-9]{40}$", userid), f"Invalid user ID format: {userid}"
 
 

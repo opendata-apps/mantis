@@ -232,11 +232,11 @@ def reviewer(usrid=None):
         # Session-based auth (consistent with @reviewer_required)
         usrid = session.get("user_id")
         if not usrid:
-            abort(401)
+            abort(403)
         user = db.session.scalar(select(TblUsers).where(TblUsers.user_id == usrid))
         if not user:
             session.clear()
-            abort(401)
+            abort(403)
         if user.user_rolle != "9":
             abort(403)
 

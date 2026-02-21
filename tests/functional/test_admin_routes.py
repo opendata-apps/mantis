@@ -258,7 +258,7 @@ class TestAdminRoutes:
             f"/change_mantis_meta_data/{self.test_sighting.id}",
             data={"beschreibung": "2"},
         )
-        assert response.status_code == 401
+        assert response.status_code == 403
 
     def test_toggle_approve_sighting(self, client, session):
         """Test approving/unapproving sightings."""

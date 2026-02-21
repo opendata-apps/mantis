@@ -19,7 +19,7 @@ Zugriff und Sitzung
 
 - Zugriff ist auf Nutzer mit Rolle ``9`` beschränkt
 - ``/reviewer/<usrid>`` setzt bei gültigem Reviewer die Session
-- ``/reviewer`` ohne Session liefert ``401``
+- ``/reviewer`` ohne gültige Session liefert ``403``
 - Standardparameter beim Einstieg: ``statusInput=offen``,
   ``sort_order=id_desc``
 

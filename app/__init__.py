@@ -53,7 +53,6 @@ def create_all_data_view():
 @with_appcontext
 def seed_command(demo):
     """Seed database with base data. Use --demo to include sample reports."""
-    import json
     import app.database.alldata as ad
     from app.database.populate import populate_all
 
@@ -109,7 +108,6 @@ def seed_ags_command():
         save_fallback,
         save_kreise_lookup,
     )
-    import json
 
     data_dir = os.path.join(os.path.dirname(__file__), "data")
     fallback_path = os.path.join(data_dir, "ags_gemeinden.json")
@@ -406,17 +404,14 @@ def create_app(config_class=Config):
         return response
 
     # HTMX error recovery middleware
-    # When an HTMX request hits an auth/CSRF error, the default HTMX 2.0
+    # When an HTMX request hits an auth/CSRF denial, the default HTMX 2.0
     # behavior (swap:false for 4xx) causes silent failure — the user gets
     # no feedback. Adding HX-Redirect tells HTMX to do a full-page
     # navigation to a recovery URL instead.
     # Pattern: https://www.wimdeblauwe.com/blog/2022/10/04/htmx-authentication-error-handling/
     @app.after_request
     def htmx_error_redirect(response):
-        if (
-            request.headers.get("HX-Request") == "true"
-            and response.status_code in (401, 403)
-        ):
+        if request.headers.get("HX-Request") == "true" and response.status_code == 403:
             response.headers["HX-Redirect"] = "/"
         return response
 
@@ -436,7 +431,6 @@ def create_app(config_class=Config):
     app.register_blueprint(provider)
     app.register_blueprint(regionen)
     app.register_blueprint(report)
-    app.register_error_handler(401, session_expired)
     app.register_error_handler(404, page_not_found)
     app.register_error_handler(403, forbidden)
     app.register_error_handler(429, too_many_requests)
@@ -481,17 +475,6 @@ def page_not_found(e):
     if wants_json_response():
         return jsonify({"error": e.description or "Not found"}), 404
     return render_template("error/404.html"), 404
-
-
-def session_expired(e):
-    from flask import current_app
-
-    current_app.logger.info(
-        f"Session expired: {request.url} - User Agent: {request.headers.get('User-Agent', 'Unknown')}"
-    )
-    if wants_json_response():
-        return jsonify({"error": "Session expired"}), 401
-    return render_template("error/session_expired.html"), 401
 
 
 def forbidden(e):

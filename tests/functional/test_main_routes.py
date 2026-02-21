@@ -16,3 +16,9 @@ class TestMainRouteQueryHandling:
         response = client.get("/galerie?current_index=abc")
         assert response.status_code == 200
         assert b"gallery-grid" in response.data
+
+    def test_galerie_without_session_returns_403(self, client):
+        response = client.get("/galerie")
+        assert response.status_code == 403
+        html = response.get_data(as_text=True)
+        assert "not allowed to access" in html

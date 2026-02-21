@@ -11,18 +11,18 @@ def login_required(f):
     Verifies the session contains a user_id that maps to an existing user.
     Stores the looked-up user on ``g.current_user`` for downstream access.
     Clears the session on stale user_id to avoid repeated DB misses.
-    Aborts with 401 (rendered as session-expired page by the app error handler).
+    Aborts with 403 (rendered as access denied by the app error handler).
     """
 
     @wraps(f)
     def decorated_function(*args, **kwargs):
         user_id = session.get("user_id")
         if not user_id:
-            abort(401)
+            abort(403)
         user = db.session.scalar(select(TblUsers).where(TblUsers.user_id == user_id))
         if not user:
             session.clear()
-            abort(401)
+            abort(403)
         g.current_user = user
         return f(*args, **kwargs)
 
@@ -30,16 +30,27 @@ def login_required(f):
 
 
 def reviewer_required(f):
-    """Require an authenticated user with reviewer role ('9').
+    """Require a valid reviewer session with role '9'.
 
-    Delegates session validation and DB lookup to ``login_required``,
-    then checks the role. ``g.current_user`` is set by ``login_required``.
+    Reviewer endpoints intentionally return 403 for missing/stale sessions to
+    avoid revealing authentication state.
     """
 
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if g.current_user.user_rolle != "9":
+        user_id = session.get("user_id")
+        if not user_id:
             abort(403)
+
+        user = db.session.scalar(select(TblUsers).where(TblUsers.user_id == user_id))
+        if not user:
+            session.clear()
+            abort(403)
+
+        if user.user_rolle != "9":
+            abort(403)
+
+        g.current_user = user
         return f(*args, **kwargs)
 
-    return login_required(decorated_function)
+    return decorated_function
