@@ -4,7 +4,6 @@ from pathlib import Path
 
 from flask import (
     Blueprint,
-    flash,
     jsonify,
     render_template,
     request,
@@ -126,7 +125,6 @@ def melden(usrid=None):
     form = MantisSightingForm()
     user_prefilled_data = False
     user_has_feedback = False
-    is_js_submission = request.headers.get("X-Requested-With") == "XMLHttpRequest"
 
     # Handle GET request with user prefilling
     if request.method == "GET" and usrid:
@@ -276,21 +274,16 @@ def melden(usrid=None):
             except Exception as e:
                 db.session.rollback()
                 current_app.logger.error(f"Failed to save report: {str(e)}")
-                if is_js_submission:
-                    return (
-                        jsonify(
-                            {
-                                "success": False,
-                                "error": "Ein Fehler ist beim Speichern Ihrer Meldung aufgetreten.",
-                            }
-                        ),
-                        500,
-                    )
-                flash(
-                    "Ein Fehler ist beim Speichern Ihrer Meldung aufgetreten. Bitte versuchen Sie es erneut.",
-                    "error",
+                return (
+                    jsonify(
+                        {
+                            "success": False,
+                            "error": "Ein Fehler ist beim Speichern Ihrer Meldung aufgetreten.",
+                        }
+                    ),
+                    500,
                 )
-        elif is_js_submission:
+        else:
             return (
                 jsonify(
                     {

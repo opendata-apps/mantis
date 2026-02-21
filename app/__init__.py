@@ -308,10 +308,7 @@ def create_app(config_class=Config):
 def wants_json_response():
     """Check if the client prefers a JSON response (AJAX/API calls)."""
     best = request.accept_mimetypes.best_match(["application/json", "text/html"])
-    return (
-        best == "application/json"
-        or request.headers.get("X-Requested-With") == "XMLHttpRequest"
-    )
+    return best == "application/json"
 
 
 def page_not_found(e):

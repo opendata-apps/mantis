@@ -550,9 +550,10 @@ class TestMeldenPostValidation:
             data=valid_form_data,  # no photo
             content_type="multipart/form-data",
         )
-        assert response.status_code == 200
-        html = response.data.decode()
-        assert "Ein Foto ist erforderlich" in html
+        assert response.status_code == 400
+        payload = response.get_json()
+        assert payload["success"] is False
+        assert "photo" in payload["errors"]
 
     def test_future_date(self, client, valid_form_data):
         data = valid_form_data.copy()
@@ -564,9 +565,10 @@ class TestMeldenPostValidation:
             data={**data, "photo": _create_test_image()},
             content_type="multipart/form-data",
         )
-        assert response.status_code == 200
-        html = response.data.decode()
-        assert "Zukunft" in html
+        assert response.status_code == 400
+        payload = response.get_json()
+        assert payload["success"] is False
+        assert "sighting_date" in payload["errors"]
 
     def test_invalid_email(self, client, valid_form_data):
         data = valid_form_data.copy()
@@ -576,9 +578,10 @@ class TestMeldenPostValidation:
             data={**data, "photo": _create_test_image()},
             content_type="multipart/form-data",
         )
-        assert response.status_code == 200
-        html = response.data.decode()
-        assert "E-Mail" in html
+        assert response.status_code == 400
+        payload = response.get_json()
+        assert payload["success"] is False
+        assert "email" in payload["errors"]
 
     def test_honeypot_filled(self, client, valid_form_data):
         data = valid_form_data.copy()
@@ -598,7 +601,7 @@ class TestMeldenPostValidation:
 class TestMeldenPostJsContract:
     """Ensure JS submissions receive structured JSON failures."""
 
-    AJAX_HEADERS = {"X-Requested-With": "XMLHttpRequest", "Accept": "application/json"}
+    AJAX_HEADERS = {"Accept": "application/json"}
 
     def test_invalid_ajax_submission_returns_json_400(self, client, valid_form_data):
         response = client.post(

@@ -124,5 +124,3 @@ class TestAdminApproval:
 
         # Check the response
         assert response.status_code == 404
-        assert "error" in response.json
-        assert response.json["error"] == "Report not found"

@@ -143,7 +143,6 @@ const ReportForm = {
                 body: data,
                 headers: {
                     'X-CSRFToken': document.querySelector('input[name="csrf_token"]')?.value,
-                    'X-Requested-With': 'XMLHttpRequest',
                     'Accept': 'application/json'
                 }
             });
