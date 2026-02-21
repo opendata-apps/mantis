@@ -33,20 +33,36 @@ window.htmx = htmx;
 
 const ReportForm = {
     step: 0,
+    submitting: false,
+    dirty: false,
+    stepTitles: ['Foto & Details', 'Ort & Datum', 'Kontaktdaten', 'Überprüfen'],
     map: null,
     marker: null,
     webpData: null,
+    geocodeController: null,
     MIN_ZOOM: 17,
 
     init() {
         const form = document.getElementById('reportForm');
         if (!form) return;
 
+        this.reviewUrl = form.dataset.reviewUrl;
+        this.agsUrl = form.dataset.agsUrl;
+
         this.setupNav();
         this.setupPhoto();
         this.initMap();
         this.setupHtmx(form);
         this.showStep(0);
+
+        // Dirty-form guard: warn before closing tab with unsaved data
+        window.addEventListener('beforeunload', (e) => {
+            if (this.dirty && !this.submitting) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+        form.addEventListener('input', () => { this.dirty = true; });
     },
 
     setupNav() {
@@ -68,6 +84,40 @@ const ReportForm = {
             s.classList.toggle('active', idx === i);
         });
         this.step = i;
+
+        // Update visual stepper and document title
+        document.title = `${this.stepTitles[i]} – Sichtung melden`;
+        document.querySelectorAll('#form-stepper li').forEach((li, idx) => {
+            const circle = li.querySelector('.step-circle');
+            const label = li.querySelector('.step-label');
+            const line = li.querySelector('.step-line');
+            if (!circle) return;
+            const done = idx < i, cur = idx === i;
+            circle.className = `step-circle flex items-center justify-center w-10 h-10 text-sm font-bold rounded-full shrink-0 ${done || cur ? 'text-white bg-green-600' : 'text-gray-500 bg-gray-200'}`;
+            if (done) {
+                circle.textContent = '';
+                const icon = document.createElement('i');
+                icon.className = 'fas fa-check text-xs';
+                icon.setAttribute('aria-hidden', 'true');
+                circle.appendChild(icon);
+                const srText = document.createElement('span');
+                srText.className = 'sr-only';
+                srText.textContent = 'abgeschlossen';
+                circle.appendChild(srText);
+            } else {
+                circle.textContent = String(idx + 1);
+            }
+            if (cur) circle.setAttribute('aria-current', 'step'); else circle.removeAttribute('aria-current');
+            if (label) label.className = `step-label ml-2 text-sm font-medium sr-only sm:not-sr-only sm:inline ${done || cur ? 'text-green-700' : 'text-gray-500'}`;
+            if (line) line.className = `step-line flex-1 h-0.5 mx-3 ${done ? 'bg-green-500' : 'bg-gray-300'}`;
+            // Completed steps are clickable for navigation
+            li.style.cursor = done ? 'pointer' : 'default';
+            li.onclick = done ? () => this.showStep(idx) : null;
+        });
+
+        // Move focus to the new step's heading
+        const heading = steps[i].querySelector('h3');
+        if (heading) { heading.setAttribute('tabindex', '-1'); heading.focus(); }
 
         if (i === 1 && this.map) {
             setTimeout(() => {
@@ -111,14 +161,43 @@ const ReportForm = {
                     img.src = this.webpData.dataUrl;
                 }
             }
+            // After validation swap, wire aria attributes on invalid fields and focus the first one
+            if (e.detail.target.id === 'validation-errors-container') {
+                this.syncAriaErrors();
+            }
         });
+    },
+
+    syncAriaErrors() {
+        // Map error container IDs to their user-facing input IDs
+        const errorToInput = { coordinates: 'manual-latitude' };
+        let firstInvalid = null;
+
+        document.querySelectorAll('.field-error-message').forEach(el => {
+            const field = el.id.replace('error-', '');
+            const inputId = errorToInput[field] || field;
+            const input = document.getElementById(inputId);
+            if (!input) return;
+
+            const hasError = el.textContent.trim().length > 0;
+            if (hasError) {
+                input.setAttribute('aria-invalid', 'true');
+                input.setAttribute('aria-describedby', el.id);
+                if (!firstInvalid) firstInvalid = input;
+            } else {
+                input.removeAttribute('aria-invalid');
+                input.removeAttribute('aria-describedby');
+            }
+        });
+
+        if (firstInvalid) firstInvalid.focus();
     },
 
     loadReview() {
         const form = document.getElementById('reportForm');
         const data = new FormData(form);
         // photo_preview_data NOT sent - injected client-side via htmx:afterSwap
-        htmx.ajax('POST', '/melden/review', {
+        htmx.ajax('POST', this.reviewUrl, {
             target: '#review-content-container',
             swap: 'innerHTML',
             values: Object.fromEntries(data)
@@ -126,7 +205,11 @@ const ReportForm = {
     },
 
     async submit(form) {
+        if (this.submitting) return;
+        this.submitting = true;
+
         if (!this.webpData?.blob) {
+            this.submitting = false;
             this.showError('photo', 'Kein Foto vorhanden.');
             return this.showStep(0);
         }
@@ -156,8 +239,10 @@ const ReportForm = {
                 throw new Error(json?.error || 'Server error');
             }
 
+            this.dirty = false;
             window.location.href = json.redirect_url;
         } catch (err) {
+            this.submitting = false;
             this.showLoading(false);
             this.showError('general', err.message);
         }
@@ -200,6 +285,7 @@ const ReportForm = {
             const webp = await this.toWebp(file);
 
             this.webpData = { dataUrl: webp.dataUrl, blob: webp.blob, fileName: file.name };
+            this.dirty = true;
 
             document.getElementById('photo-upload-area')?.classList.add('hidden');
             const preview = document.getElementById('photoPreview');
@@ -397,6 +483,11 @@ const ReportForm = {
             if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
                 this.setMarker(lat, lng);
                 this.map.setView([lat, lng], this.map.getZoom());
+            } else {
+                document.getElementById('latitude').value = '';
+                document.getElementById('longitude').value = '';
+                if (this.marker) { this.marker.remove(); this.marker = null; }
+                this.showError('coordinates', 'Bitte gültige Koordinaten eingeben (Breitengrad: -90 bis 90, Längengrad: -180 bis 180).');
             }
         }));
 
@@ -432,6 +523,11 @@ const ReportForm = {
     },
 
     async reverseGeocode(lat, lng) {
+        // Cancel any in-flight geocode request to prevent stale responses overwriting fresh data
+        if (this.geocodeController) this.geocodeController.abort();
+        this.geocodeController = new AbortController();
+        const { signal } = this.geocodeController;
+
         const fields = {
             zip: document.getElementById('fund_zip_code'),
             city: document.getElementById('fund_city'),
@@ -441,14 +537,15 @@ const ReportForm = {
         };
         Object.values(fields).forEach(f => f && (f.disabled = true));
 
-        // Fetch Nominatim + local AGS lookup in parallel
-        const nominatimP = fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=de`)
-            .then(r => r.json()).then(d => d.address || {}).catch(() => ({}));
-        const agsP = fetch(`/melden/ags-lookup?lat=${lat}&lon=${lng}`)
-            .then(r => r.ok ? r.json() : {}).catch(() => ({}));
-
         try {
-            const [a, ags] = await Promise.all([nominatimP, agsP]);
+            // Fetch Nominatim + local AGS lookup in parallel
+            const [nominatimRes, agsRes] = await Promise.all([
+                fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=de`, { signal }),
+                fetch(`${this.agsUrl}?lat=${lat}&lon=${lng}`, { signal })
+            ]);
+
+            const a = (await nominatimRes.json()).address || {};
+            const ags = agsRes.ok ? await agsRes.json() : {};
 
             if (fields.zip) fields.zip.value = a.postcode || '';
             if (fields.city) fields.city.value = a.city || a.town || a.village || '';
@@ -456,7 +553,9 @@ const ReportForm = {
             // AGS spatial data is authoritative for land/kreis; Nominatim as fallback
             if (fields.state) fields.state.value = ags.land || a.state || a.city || '';
             if (fields.district) fields.district.value = ags.kreis || a.county || a.borough || '';
-        } catch { } finally {
+        } catch (err) {
+            if (err.name === 'AbortError') return; // superseded by a newer request
+        } finally {
             Object.values(fields).forEach(f => f && (f.disabled = false));
         }
     },
@@ -478,16 +577,41 @@ const ReportForm = {
 
     showError(field, msg) {
         const el = document.getElementById(`error-${field}`);
-        if (el) el.textContent = msg;
+        if (!el) return;
+        el.textContent = msg;
+        if (field === 'general') el.classList.remove('hidden');
+        const errorToInput = { coordinates: 'manual-latitude' };
+        const input = document.getElementById(errorToInput[field] || field);
+        if (input) {
+            input.setAttribute('aria-invalid', 'true');
+            input.setAttribute('aria-describedby', el.id);
+            input.focus();
+        } else {
+            el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
     },
 
     clearError(field) {
         const el = document.getElementById(`error-${field}`);
-        if (el) el.textContent = '';
+        if (!el) return;
+        el.textContent = '';
+        if (field === 'general') el.classList.add('hidden');
+        const errorToInput = { coordinates: 'manual-latitude' };
+        const input = document.getElementById(errorToInput[field] || field);
+        if (input) {
+            input.removeAttribute('aria-invalid');
+            input.removeAttribute('aria-describedby');
+        }
     },
 
     clearErrors() {
         document.querySelectorAll('.field-error-message').forEach(el => el.textContent = '');
+        document.querySelectorAll('[aria-invalid]').forEach(el => {
+            el.removeAttribute('aria-invalid');
+            el.removeAttribute('aria-describedby');
+        });
+        const gen = document.getElementById('error-general');
+        if (gen) { gen.textContent = ''; gen.classList.add('hidden'); }
     }
 };
 

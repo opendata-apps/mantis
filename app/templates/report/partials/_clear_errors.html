@@ -1,7 +1,7 @@
 {# HTMX partial: Clear inline errors using OOB swaps #}
 {% for field in fields %}
-<div id="error-{{ field }}" class="field-error-message" hx-swap-oob="innerHTML"></div>
+<div id="error-{{ field }}" class="field-error-message" role="alert" aria-live="assertive" hx-swap-oob="innerHTML"></div>
 {% endfor %}
 {% if step == 2 %}
-<div id="error-coordinates" class="field-error-message" hx-swap-oob="innerHTML"></div>
+<div id="error-coordinates" class="field-error-message" role="alert" aria-live="assertive" hx-swap-oob="innerHTML"></div>
 {% endif %}

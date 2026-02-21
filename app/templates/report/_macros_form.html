@@ -25,7 +25,7 @@
     </div>
   </div>
   {# Inline error container for photo field - supports HTMX OOB swaps #}
-  <div id="error-photo" class="field-error-message">
+  <div id="error-photo" class="field-error-message" role="alert" aria-live="assertive">
     {% if field.errors %}{{ field.errors[0] }}{% endif %}
   </div>
 
@@ -75,7 +75,7 @@
     {# Render the field, passing the specific class and unpacking remaining attrs #}
     {{ field(class=field_cls, **attrs) }}
     {# Inline error container for HTMX OOB swaps #}
-    <div id="error-{{ field.id or field.name }}" class="field-error-message">
+    <div id="error-{{ field.id or field.name }}" class="field-error-message" role="alert" aria-live="assertive">
       {% if field.errors %}{{ field.errors[0] }}{% endif %}
     </div>
   </div>
@@ -99,12 +99,13 @@
 
   {% if show_next %}
     <button type="button"
-            class="nav-button flex items-center justify-center w-24 px-4 py-2 font-medium text-white transition-colors duration-200 ease-in-out bg-green-600 rounded-md shadow-xs hover:bg-green-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-            hx-post="/melden/validate-step"
+            class="nav-button flex items-center justify-center w-24 px-4 py-2 font-medium text-white transition-colors duration-200 ease-in-out bg-green-600 rounded-md shadow-xs hover:bg-green-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-wait"
+            hx-post="{{ url_for('report.validate_step_partial') }}"
             hx-include="#reportForm"
             hx-vals='{"step": {{ current_step }}}'
             hx-target="#validation-errors-container"
             hx-swap="innerHTML"
+            hx-disabled-elt="this"
             data-step="{{ current_step }}">
       <span class="hidden sm:inline">Weiter</span> <i class="w-4 h-4 ml-1 fas fa-chevron-right"></i>
     </button>
@@ -137,7 +138,7 @@
       {{ feedback_source_field.label(class='block text-sm font-medium text-gray-700 mb-1') }}
       <select id="feedback_source" name="feedback_source"
               class="block w-full px-4 py-2 text-base text-gray-700 bg-white rounded-lg shadow-xs border border-gray-300 focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200 transition ease-in-out duration-300"
-              hx-post="/melden/feedback-detail"
+              hx-post="{{ url_for('report.feedback_detail') }}"
               hx-trigger="change"
               hx-target="#feedback_detail_container"
               hx-swap="outerHTML">

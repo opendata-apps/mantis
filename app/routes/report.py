@@ -1,5 +1,5 @@
 import io
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from flask import (
@@ -306,6 +306,7 @@ def melden(usrid=None):
         "report/report_form.html",
         form=form,
         now=datetime.now,
+        timedelta=timedelta,
         user_prefilled=user_prefilled_data,
         user_has_feedback=user_has_feedback,
     )

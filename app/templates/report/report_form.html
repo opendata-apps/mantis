@@ -158,7 +158,15 @@
       <div id="loadingMessage" class="mt-4 font-medium text-green-700">Wird verarbeitet...</div>
     </div>
 
-    <form id="reportForm" method="POST" action="{{ url_for('report.melden', usrid=request.view_args.get('usrid')) if request.view_args.get('usrid') else url_for('report.melden') }}" enctype="multipart/form-data" class="space-y-8">
+    <noscript>
+      <div class="p-4 mb-6 text-red-800 bg-red-50 border border-red-300 rounded-lg" role="alert">
+        <strong>JavaScript ist deaktiviert.</strong> Dieses Formular benötigt JavaScript für die Kartenansicht, Bildverarbeitung und schrittweise Validierung. Bitte aktivieren Sie JavaScript in Ihren Browser-Einstellungen.
+      </div>
+    </noscript>
+
+    <form id="reportForm" method="POST" action="{{ url_for('report.melden', usrid=request.view_args.get('usrid')) if request.view_args.get('usrid') else url_for('report.melden') }}" enctype="multipart/form-data" class="space-y-8"
+          data-review-url="{{ url_for('report.review_step') }}"
+          data-ags-url="{{ url_for('report.ags_lookup') }}">
       {{ form.csrf_token }}
 
       {# Hidden target for htmx validation - actual errors use OOB swaps #}
@@ -166,6 +174,31 @@
       
       <h2 class="sr-only">Meldeformular</h2>
       <div class="step-container">
+        <!-- Progress stepper -->
+        <nav aria-label="Formularfortschritt" class="mb-6" id="form-stepper">
+          <ol class="flex items-center">
+            <li class="flex items-center flex-1" data-step-index="0">
+              <span class="step-circle flex items-center justify-center w-10 h-10 text-sm font-bold text-white bg-green-600 rounded-full shrink-0" aria-current="step">1</span>
+              <span class="step-label ml-2 text-sm font-medium text-green-700 sr-only sm:not-sr-only sm:inline">Foto</span>
+              <span class="step-line flex-1 h-0.5 mx-3 bg-gray-300"></span>
+            </li>
+            <li class="flex items-center flex-1" data-step-index="1">
+              <span class="step-circle flex items-center justify-center w-10 h-10 text-sm font-bold text-gray-500 bg-gray-200 rounded-full shrink-0">2</span>
+              <span class="step-label ml-2 text-sm font-medium text-gray-500 sr-only sm:not-sr-only sm:inline">Ort</span>
+              <span class="step-line flex-1 h-0.5 mx-3 bg-gray-300"></span>
+            </li>
+            <li class="flex items-center flex-1" data-step-index="2">
+              <span class="step-circle flex items-center justify-center w-10 h-10 text-sm font-bold text-gray-500 bg-gray-200 rounded-full shrink-0">3</span>
+              <span class="step-label ml-2 text-sm font-medium text-gray-500 sr-only sm:not-sr-only sm:inline">Kontakt</span>
+              <span class="step-line flex-1 h-0.5 mx-3 bg-gray-300"></span>
+            </li>
+            <li class="flex items-center" data-step-index="3">
+              <span class="step-circle flex items-center justify-center w-10 h-10 text-sm font-bold text-gray-500 bg-gray-200 rounded-full shrink-0">4</span>
+              <span class="step-label ml-2 text-sm font-medium text-gray-500 sr-only sm:not-sr-only sm:inline">Prüfen</span>
+            </li>
+          </ol>
+        </nav>
+
         <!-- Step 1: Photo & Details -->
         <div class="p-6 bg-white rounded-lg border border-gray-100 shadow-xs step active" id="step1">
           <h3 class="mb-4 text-xl font-semibold text-green-700">Foto & Details</h3>
@@ -203,7 +236,7 @@
           </p>
           
           <div class="mb-4 form-group">
-            {{ render_form_field(form.sighting_date, attrs={'id': 'sighting_date', 'max': now().strftime('%Y-%m-%d')}) }}
+            {{ render_form_field(form.sighting_date, attrs={'id': 'sighting_date', 'max': now().strftime('%Y-%m-%d'), 'min': (now() - timedelta(days=5*365)).strftime('%Y-%m-%d')}) }}
           </div>
           
           <div class="flex flex-col mb-4 lg:flex-row lg:space-x-6">
@@ -211,7 +244,7 @@
             <div class="mb-4 w-full lg:w-3/5 xl:w-2/3 lg:mb-0">
               <div id="map" class="w-full h-64 border border-gray-300 rounded-md shadow-xs sm:h-80 md:h-96 lg:h-112 xl:h-128 2xl:h-144"></div>
               {# Inline error container for coordinates - supports HTMX OOB swaps #}
-              <div id="error-coordinates" class="field-error-message"></div>
+              <div id="error-coordinates" class="field-error-message" role="alert" aria-live="assertive"></div>
             </div>
             
             <!-- Form fields column -->
@@ -225,12 +258,12 @@
                 <div class="grid grid-cols-2 gap-3">
                   <div class="form-group">
                     <label for="manual-latitude" class="block mb-1 text-xs font-medium text-gray-700">Breitengrad</label>
-                    <input type="text" id="manual-latitude" pattern="-?[0-9]+\.?[0-9]*" placeholder="z.B. 52.3906" autocomplete="off"
+                    <input type="text" id="manual-latitude" inputmode="decimal" pattern="-?[0-9]+\.?[0-9]*" placeholder="z.B. 52.3906" autocomplete="off"
                       class="block px-4 py-2 w-full text-base text-gray-700 bg-white rounded-lg border border-gray-300 shadow-xs transition duration-300 ease-in-out focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200">
                   </div>
                   <div class="form-group">
                     <label for="manual-longitude" class="block mb-1 text-xs font-medium text-gray-700">Längengrad</label>
-                    <input type="text" id="manual-longitude" pattern="-?[0-9]+\.?[0-9]*" placeholder="z.B. 13.0645" autocomplete="off"
+                    <input type="text" id="manual-longitude" inputmode="decimal" pattern="-?[0-9]+\.?[0-9]*" placeholder="z.B. 13.0645" autocomplete="off"
                       class="block px-4 py-2 w-full text-base text-gray-700 bg-white rounded-lg border border-gray-300 shadow-xs transition duration-300 ease-in-out focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200">
                   </div>
                 </div>
@@ -330,6 +363,9 @@
               <span class="ml-3 text-gray-600">Lade Zusammenfassung...</span>
             </div>
           </div>
+
+          {# General error container for submit failures (JS-only, not a field error) #}
+          <div id="error-general" class="hidden p-4 mt-4 text-red-800 bg-red-50 border border-red-300 rounded-lg" role="alert" aria-live="assertive"></div>
 
           {{ render_step_navigation(current_step=4, total_steps=4, show_prev=True, show_submit=True) }}
         </div>
