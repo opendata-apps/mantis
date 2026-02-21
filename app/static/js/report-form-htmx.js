@@ -5,7 +5,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-control-geocoder';
 import 'leaflet-control-geocoder/dist/Control.Geocoder.css';
-import 'leaflet.locatecontrol';
+import { locate } from 'leaflet.locatecontrol';
 import 'leaflet.locatecontrol/dist/L.Control.Locate.min.css';
 import EXIF from 'exif-js';
 import htmx from 'htmx.org';
@@ -85,45 +85,22 @@ const ReportForm = {
         });
         this.step = i;
 
-        // Update visual stepper and document title
         document.title = `${this.stepTitles[i]} – Sichtung melden`;
-        document.querySelectorAll('#form-stepper li').forEach((li, idx) => {
-            const circle = li.querySelector('.step-circle');
-            const label = li.querySelector('.step-label');
-            const line = li.querySelector('.step-line');
-            if (!circle) return;
-            const done = idx < i, cur = idx === i;
-            circle.className = `step-circle flex items-center justify-center w-10 h-10 text-sm font-bold rounded-full shrink-0 ${done || cur ? 'text-white bg-green-600' : 'text-gray-500 bg-gray-200'}`;
-            if (done) {
-                circle.textContent = '';
-                const icon = document.createElement('i');
-                icon.className = 'fas fa-check text-xs';
-                icon.setAttribute('aria-hidden', 'true');
-                circle.appendChild(icon);
-                const srText = document.createElement('span');
-                srText.className = 'sr-only';
-                srText.textContent = 'abgeschlossen';
-                circle.appendChild(srText);
-            } else {
-                circle.textContent = String(idx + 1);
-            }
-            if (cur) circle.setAttribute('aria-current', 'step'); else circle.removeAttribute('aria-current');
-            if (label) label.className = `step-label ml-2 text-sm font-medium sr-only sm:not-sr-only sm:inline ${done || cur ? 'text-green-700' : 'text-gray-500'}`;
-            if (line) line.className = `step-line flex-1 h-0.5 mx-3 ${done ? 'bg-green-500' : 'bg-gray-300'}`;
-            // Completed steps are clickable for navigation
-            li.style.cursor = done ? 'pointer' : 'default';
-            li.onclick = done ? () => this.showStep(idx) : null;
-        });
 
-        // Move focus to the new step's heading
-        const heading = steps[i].querySelector('h3');
-        if (heading) { heading.setAttribute('tabindex', '-1'); heading.focus(); }
+        // Move focus to the new step's heading (skip on initial load to avoid jarring scroll)
+        if (this._initialized) {
+            const heading = steps[i].querySelector('h3');
+            if (heading) { heading.setAttribute('tabindex', '-1'); heading.focus(); }
+        }
+        this._initialized = true;
 
         if (i === 1 && this.map) {
-            setTimeout(() => {
+            // Allow layout to settle before resizing map + auto-locating
+            const activateMap = () => {
                 this.map.invalidateSize();
-                if (!document.getElementById('latitude')?.value) this.locateCtrl?.start();
-            }, 100);
+                this.autoLocateIfNeeded();
+            };
+            setTimeout(activateMap, 100);
         }
         if (i === 3) this.loadReview();
     },
@@ -443,8 +420,16 @@ const ReportForm = {
         this.map = L.map(container, { zoomControl: true, attributionControl: false })
             .setView([51.1657, 10.4515], 6);
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, minZoom: 3 })
-            .addTo(this.map);
+        const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, minZoom: 3 });
+        const esriImagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            maxZoom: 18, minZoom: 3, attribution: 'Tiles &copy; Esri',
+        });
+        const esriLabels = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+            maxZoom: 18, minZoom: 3, attribution: 'Tiles &copy; Esri',
+        });
+
+        this.map.addLayer(osmLayer);
+        L.control.layers({ 'Karte': osmLayer, 'Satellit': L.layerGroup([esriImagery, esriLabels]) }).addTo(this.map);
 
         if (L.Control.Geocoder) {
             L.Control.geocoder({ defaultMarkGeocode: false, placeholder: 'Adresse suchen...' })
@@ -456,16 +441,14 @@ const ReportForm = {
                 .addTo(this.map);
         }
 
-        if (L.control.locate) {
-            this.locateCtrl = L.control.locate({
-                watch: false, setView: false, drawCircle: false, drawMarker: false, showPopup: false,
-                strings: { title: 'Standort' }
-            }).addTo(this.map);
-            this.map.on('locationfound', (e) => {
-                this.map.setView(e.latlng, 15);
-                this.setMarker(e.latlng.lat, e.latlng.lng);
-            });
-        }
+        this.locateCtrl = locate({
+            watch: true, setView: false, keepCurrentZoomLevel: true,
+            drawCircle: false, drawMarker: false, showPopup: false,
+            enableHighAccuracy: true, timeout: 15000, maximumAge: 30000,
+            strings: { title: 'Standort' }
+        }).addTo(this.map);
+        this.map.on('locationfound', (e) => this.handleLocationFound(e));
+        this.map.on('locationerror', () => this.stopLocationUpdates());
 
         this.map.on('click', (e) => {
             if (this.map.getZoom() < this.MIN_ZOOM) {
@@ -497,6 +480,47 @@ const ReportForm = {
             this.setMarker(lat, lng, false);
             this.map.setView([lat, lng], 14);
         }
+    },
+
+    autoLocateIfNeeded() {
+        const lat = parseFloat(document.getElementById('latitude')?.value);
+        const lng = parseFloat(document.getElementById('longitude')?.value);
+        if (isNaN(lat) || isNaN(lng)) {
+            if (navigator.geolocation && this.locateCtrl && this.map) {
+                this._locUpdates = 0;
+                this._bestAccuracy = Infinity;
+                this._locTimeout = null;
+                this.locateCtrl.start();
+            }
+        }
+    },
+
+    handleLocationFound(e) {
+        this._locUpdates = (this._locUpdates || 0) + 1;
+        const accuracy = e.accuracy || Infinity;
+
+        if (accuracy < this._bestAccuracy || this._locUpdates === 1) {
+            this._bestAccuracy = accuracy;
+            this.map.setView(e.latlng, 15);
+
+            let msg = '📍 GPS-Position gefunden';
+            if (accuracy > 1000) msg += ' (ungefähr)';
+            else if (accuracy > 100) msg += ` (ca. ${Math.round(accuracy)}m genau)`;
+            else msg += ' (präzise)';
+            msg += '. Bitte auf die Karte klicken, um den Fundort zu markieren.';
+            this.showError('coordinates', msg);
+        }
+
+        if (accuracy < 50 || this._locUpdates >= 5) {
+            this.stopLocationUpdates();
+        } else if (!this._locTimeout) {
+            this._locTimeout = setTimeout(() => this.stopLocationUpdates(), 10000);
+        }
+    },
+
+    stopLocationUpdates() {
+        this.locateCtrl?.stop();
+        if (this._locTimeout) { clearTimeout(this._locTimeout); this._locTimeout = null; }
     },
 
     setMarker(lat, lng, geocode = true) {
