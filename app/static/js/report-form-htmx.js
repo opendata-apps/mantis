@@ -419,8 +419,11 @@ const ReportForm = {
 
         this.map = L.map(container, { zoomControl: true, attributionControl: false })
             .setView([51.1657, 10.4515], 6);
+        L.control.attribution({ prefix: false }).addTo(this.map);
 
-        const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, minZoom: 3 });
+        const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 18, minZoom: 3, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        });
         const esriImagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
             maxZoom: 18, minZoom: 3, attribution: 'Tiles &copy; Esri',
         });
