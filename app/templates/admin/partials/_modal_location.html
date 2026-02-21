@@ -1,18 +1,19 @@
 {# Location tab for the edit modal — loaded via HTMX into #tab-content.
    Template variables: sighting, editable, edit_mode #}
 {% set disabled = '' if editable else 'disabled' %}
+{% set fundort = sighting.fundort %}
 <div class="h-auto bg-white rounded-lg md:h-full">
     <div class="flex relative flex-col h-auto md:h-full md:flex-row">
         <!-- Map Container -->
         <div class="relative w-full md:w-[calc(100%_-_20rem)]">
             <div id="map" class="w-full h-[50vh] md:h-full rounded-lg shadow-inner"
-                data-lat="{{ sighting.latitude }}"
-                data-lng="{{ sighting.longitude }}"
-                data-strasse="{{ sighting.strasse or '' }}"
-                data-plz="{{ sighting.plz or '' }}"
-                data-ort="{{ sighting.ort or '' }}"
-                data-kreis="{{ sighting.kreis or '' }}"
-                data-land="{{ sighting.land or '' }}"
+                data-lat="{{ fundort.latitude }}"
+                data-lng="{{ fundort.longitude }}"
+                data-strasse="{{ fundort.strasse or '' }}"
+                data-plz="{{ fundort.plz or '' }}"
+                data-ort="{{ fundort.ort or '' }}"
+                data-kreis="{{ fundort.kreis or '' }}"
+                data-land="{{ fundort.land or '' }}"
                 data-editable="{{ 'true' if editable else 'false' }}"></div>
         </div>
 
@@ -22,10 +23,10 @@
                 <h3 class="mb-2 text-lg font-semibold text-gray-900">Standort Details</h3>
                 <div id="currentAddressDisplay" class="p-3 mb-3 bg-gray-50 rounded-md border border-gray-200">
                     <p class="mb-1 text-sm font-medium text-gray-700">Aktuelle Adresse</p>
-                    <p class="text-sm text-gray-600" id="addressStreet">{{ sighting.strasse or 'Keine Straße' }}</p>
-                    <p class="text-sm text-gray-600" id="addressCity">{{ sighting.plz or '' }} {{ sighting.ort or 'Kein Ort' }}</p>
-                    <p class="text-sm text-gray-600" id="addressDistrict">{{ sighting.kreis or 'Kein Kreis' }}</p>
-                    <p class="text-sm text-gray-600" id="addressState">{{ sighting.land or 'Kein Land' }}</p>
+                    <p class="text-sm text-gray-600" id="addressStreet">{{ fundort.strasse or 'Keine Straße' }}</p>
+                    <p class="text-sm text-gray-600" id="addressCity">{{ fundort.plz or '' }} {{ fundort.ort or 'Kein Ort' }}</p>
+                    <p class="text-sm text-gray-600" id="addressDistrict">{{ fundort.kreis or 'Kein Kreis' }}</p>
+                    <p class="text-sm text-gray-600" id="addressState">{{ fundort.land or 'Kein Land' }}</p>
                 </div>
             </div>
 
@@ -37,7 +38,7 @@
                         name="latitude"
                         onchange="validateAndUpdateCoordinate(this, 'latitude')"
                         {% if editable %}title="Dieses Feld kann jetzt bearbeitet werden"{% endif %}
-                        value="{{ sighting.latitude or '' }}" {{ disabled }}>
+                        value="{{ fundort.latitude or '' }}" {{ disabled }}>
                 </div>
                 <div>
                     <label class="block mb-2 text-sm font-medium text-gray-700">Longitude</label>
@@ -46,7 +47,7 @@
                         name="longitude"
                         onchange="validateAndUpdateCoordinate(this, 'longitude')"
                         {% if editable %}title="Dieses Feld kann jetzt bearbeitet werden"{% endif %}
-                        value="{{ sighting.longitude or '' }}" {{ disabled }}>
+                        value="{{ fundort.longitude or '' }}" {{ disabled }}>
                 </div>
             </div>
 
@@ -113,7 +114,7 @@
                     </div>
                 </div>
 
-                <button onclick="resetMarker({{ sighting.latitude }}, {{ sighting.longitude }})"
+                <button onclick="resetMarker({{ fundort.latitude }}, {{ fundort.longitude }})"
                     class="btn-secondary w-full py-3"
                     {{ disabled }}>
                     <svg class="mr-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

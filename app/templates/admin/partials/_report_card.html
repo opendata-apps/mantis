@@ -4,6 +4,7 @@
 {% set has_info = 'INFO' in sighting.statuses %}
 {% set has_del  = 'DEL'  in sighting.statuses %}
 {% set has_appr = 'APPR' in sighting.statuses %}
+{% set fundort = sighting.fundort %}
 <div id="report-card-{{ sighting.id }}"
     class="flex flex-col overflow-hidden mb-4 rounded-lg shadow-md transition-all duration-200 hover:shadow-lg report-card
         {% if has_del %}bg-gray-50 ring-2 ring-red-300
@@ -17,18 +18,18 @@
 
     {# ── Image section ── #}
     <div class="relative">
-        <a href="{{ url_for('admin.report_img', filename=sighting.fundort.ablage) }}" data-lightbox="sightings">
+        <a href="{{ url_for('admin.report_img', filename=fundort.ablage) }}" data-lightbox="sightings">
             <img loading="lazy"
                 class="object-cover w-full h-48 rounded-t-lg transition-transform duration-200 ease-in-out cursor-pointer md:h-64 hover:scale-105
                     {% if has_del %}opacity-60{% endif %}"
-                src="{{ url_for('admin.report_img', filename=sighting.fundort.ablage) }}"
+                src="{{ url_for('admin.report_img', filename=fundort.ablage) }}"
                 alt="Image not found">
         </a>
 
         {# Location badge #}
-        <div title="{{sighting.ort}}&#13;&#10;Postleitzahl: {{sighting.plz}}&#13;&#10;Kreis: {{sighting.kreis}}&#13;&#10;Land: {{sighting.land}}"
+        <div title="{{fundort.ort}}&#13;&#10;Postleitzahl: {{fundort.plz}}&#13;&#10;Kreis: {{fundort.kreis}}&#13;&#10;Land: {{fundort.land}}"
             class="absolute bottom-0 px-3 py-1 mb-4 ml-4 font-semibold text-gray-800 rounded-full backdrop-blur-md bg-white/80">
-            {{ sighting.kreis }} | {{ sighting.ort }}</div>
+            {{ fundort.kreis }} | {{ fundort.ort }}</div>
 
         {% include "admin/partials/_flag_overlay.html" %}
 
@@ -53,7 +54,7 @@
             {% if sighting.dat_bear %}
             <div class="text-xs font-semibold text-gray-600 md:text-sm">
                 <p class="mb-1"><strong>Geprüft am:</strong> {{ sighting.dat_bear.strftime('%d.%m.%Y') }}</p>
-                <p><strong>Bearbeitet von:</strong> {{ sighting.approver_username | default('Unknown') }}</p>
+                <p><strong>Bearbeitet von:</strong> {{ sighting.approver.user_name if sighting.approver else 'Unknown' }}</p>
             </div>
             {% endif %}
         </div>

@@ -1,7 +1,6 @@
 from flask import Blueprint
 from flask import render_template, request, current_app
 from flask import session
-from flask import jsonify
 from sqlalchemy import func, text, select
 from sqlalchemy import cast, String
 from sqlalchemy import literal_column
@@ -37,7 +36,7 @@ list_of_stats = {
 def autocomplete_ags():
     q = request.args.get("ags_input", "").strip()
     if len(q) < 2:
-        return jsonify([])
+        return ""
     dbsession = db.session
     try:
         stmt = (
@@ -244,7 +243,7 @@ def stats_geschlecht(marker):
                 + func.coalesce(TblMeldungen.art_f, 0)
             ).label("Gesamt"),
         )
-        .join(TblFundorte, TblFundorte.id == TblMeldungen.fo_zuordnung)
+        .join(TblMeldungen.fundort)
         .where(
             TblMeldungen.dat_fund_von >= date.fromisoformat(session["date_from"]),
             TblMeldungen.dat_fund_von <= date.fromisoformat(session["date_to"]),

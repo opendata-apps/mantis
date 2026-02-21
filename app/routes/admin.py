@@ -29,7 +29,7 @@ from flask import (
 )
 from sqlalchemy import inspect, update, select, func
 from sqlalchemy.exc import SQLAlchemyError
-from flask_sqlalchemy.pagination import Pagination
+from sqlalchemy.orm import contains_eager, joinedload
 from app.tools.check_reviewer import reviewer_required
 import shutil
 from werkzeug.utils import secure_filename
@@ -44,43 +44,6 @@ from typing import Optional
 INT32_MIN = -(2**31)
 INT32_MAX = 2**31 - 1
 
-
-class CompoundSelectPagination(Pagination):
-    """Pagination for compound select statements (multiple ORM entities).
-
-    Flask-SQLAlchemy's db.paginate() uses scalars() internally, which only returns
-    the first entity in compound selects. This subclass properly handles Row objects
-    containing multiple entities by using execute() without scalars().
-
-    Per Flask-SQLAlchemy docs: "compound selects will not return the expected results"
-    with db.paginate(). This class follows the Pagination template method pattern.
-
-    Usage:
-        stmt = select(Entity1, Entity2).join(...)
-        pagination = CompoundSelectPagination(
-            select=stmt,
-            session=db.session,
-            page=1,
-            per_page=20,
-        )
-        for row in pagination.items:
-            entity1, entity2 = row  # Access entities from Row object
-    """
-
-    def _query_items(self) -> list:
-        """Execute the select statement without scalars() to preserve all entities."""
-        stmt = self._query_args["select"]
-        stmt = stmt.limit(self.per_page).offset(self._query_offset)
-        db_session = self._query_args["session"]
-        # Use execute() instead of scalars() to get full Row objects
-        return list(db_session.execute(stmt).unique().all())
-
-    def _query_count(self) -> int:
-        """Count total rows for pagination."""
-        stmt = self._query_args["select"]
-        sub = stmt.order_by(None).subquery()
-        db_session = self._query_args["session"]
-        return db_session.execute(select(func.count()).select_from(sub)).scalar()
 
 # Blueprints
 admin = Blueprint("admin", __name__)
@@ -156,85 +119,48 @@ def _resolve_filter_status(default: str = "offen") -> str:
     )
 
 
-def _fetch_sighting_row(report_id: int):
-    """Load one report row with all joined entities needed by modal/card partials."""
+def _load_sighting(report_id: int) -> TblMeldungen | None:
+    """Load one report with all relationships populated via eager loading."""
     stmt = (
-        select(TblMeldungen, TblFundorte, TblFundortBeschreibung, TblMeldungUser, TblUsers)
-        .join(TblFundorte, TblMeldungen.fo_zuordnung == TblFundorte.id)
-        .join(
-            TblFundortBeschreibung,
-            TblFundorte.beschreibung == TblFundortBeschreibung.id,
+        select(TblMeldungen)
+        .join(TblMeldungen.fundort)
+        .join(TblFundorte.location_type)
+        .join(TblMeldungen.reporter_link)
+        .join(TblMeldungUser.reporter)
+        .options(
+            contains_eager(TblMeldungen.fundort)
+            .contains_eager(TblFundorte.location_type),
+            contains_eager(TblMeldungen.reporter_link)
+            .contains_eager(TblMeldungUser.reporter),
+            joinedload(TblMeldungen.approver),
         )
-        .join(TblMeldungUser, TblMeldungen.id == TblMeldungUser.id_meldung)
-        .join(TblUsers, TblMeldungUser.id_user == TblUsers.id)
         .where(TblMeldungen.id == report_id)
     )
-    return db.session.execute(stmt).first()
+    return db.session.scalars(stmt).unique().first()
 
 
-def _hydrate_sighting_for_render(
-    meldung: TblMeldungen,
-    fundort: TblFundorte,
-    beschreibung: TblFundortBeschreibung,
-    user: TblUsers,
-) -> TblMeldungen:
-    """Attach joined data as transient attributes expected by template partials."""
-    sighting = meldung
-    sighting.fundort = fundort
-    sighting.beschreibung = beschreibung
-
-    # Location fields used by card and modal partials.
-    sighting.ort = fundort.ort
-    sighting.plz = fundort.plz
-    sighting.kreis = fundort.kreis
-    sighting.land = fundort.land
-    sighting.strasse = fundort.strasse
-    sighting.latitude = fundort.latitude
-    sighting.longitude = fundort.longitude
-    sighting.amt = fundort.amt
-    sighting.mtb = fundort.mtb
-
-    # Reporter fields used by modal partials.
-    sighting.user_name = user.user_name
-    sighting.user_kontakt = user.user_kontakt
-    sighting.user_id_display = user.user_id
-
-    if sighting.bearb_id:
-        sighting.approver_username = (
-            db.session.scalar(
-                select(TblUsers.user_name).where(TblUsers.user_id == sighting.bearb_id)
-            )
-            or "Unknown"
-        )
-    else:
-        sighting.approver_username = None
-
-    # Total reports by this person — match by email (covers multiple accounts) or user ID.
+def _get_user_report_count(user: TblUsers) -> int:
+    """Count total reports by this person (match by email or user ID)."""
     if user.user_kontakt:
-        sighting.user_report_count = db.session.scalar(
+        return db.session.scalar(
             select(func.count())
             .select_from(TblMeldungUser)
-            .join(TblUsers, TblMeldungUser.id_user == TblUsers.id)
+            .join(TblMeldungUser.reporter)
             .where(TblUsers.user_kontakt == user.user_kontakt)
         )
-    else:
-        sighting.user_report_count = db.session.scalar(
-            select(func.count())
-            .select_from(TblMeldungUser)
-            .where(TblMeldungUser.id_user == user.id)
-        )
-
-    return sighting
+    return db.session.scalar(
+        select(func.count())
+        .select_from(TblMeldungUser)
+        .where(TblMeldungUser.id_user == user.id)
+    )
 
 
 def _load_sighting_for_render(report_id: int) -> tuple[TblMeldungen | None, TblUsers | None]:
-    """Load and hydrate a report for modal/card rendering."""
-    row = _fetch_sighting_row(report_id)
-    if not row:
+    """Load a report for modal/card rendering."""
+    meldung = _load_sighting(report_id)
+    if not meldung:
         return None, None
-    meldung, fundort, beschreibung, _, user = row
-    sighting = _hydrate_sighting_for_render(meldung, fundort, beschreibung, user)
-    return sighting, user
+    return meldung, meldung.reporter_link.reporter
 
 
 
@@ -352,52 +278,19 @@ def reviewer(usrid=None):
     elif sort_order == "id_desc":
         stmt = stmt.order_by(TblMeldungen.id.desc())
 
-    # Use CompoundSelectPagination for multi-entity selects
-    # Flask-SQLAlchemy's db.paginate() uses scalars() which only returns the first entity
-    # Per docs: "compound selects will not return the expected results" with db.paginate()
-    paginated_sightings = CompoundSelectPagination(
-        select=stmt,
-        session=db.session,
+    paginated_sightings = db.paginate(
+        stmt,
         page=page,
         per_page=per_page,
         max_per_page=100,
         error_out=False,
     )
 
-    # Process the joined data for the template
-    reported_sightings = []
-
-    # Fetch all approvers in a single query to avoid N+1 problem
-    bearb_ids = [
-        row[0].bearb_id for row in paginated_sightings.items if row[0].bearb_id
-    ]
-    approvers = {}
-    if bearb_ids:
-        approvers = {
-            u.user_id: u.user_name
-            for u in db.session.scalars(
-                select(TblUsers).where(TblUsers.user_id.in_(bearb_ids))
-            ).all()
-        }
-
-    for row in paginated_sightings.items:
-        meldung, fundort, beschreibung, _, user = row
-        sighting = meldung
-        sighting.fundort = fundort
-        sighting.beschreibung = beschreibung
-        sighting.ort = fundort.ort
-        sighting.plz = fundort.plz
-        sighting.kreis = fundort.kreis
-        sighting.land = fundort.land
-        if sighting.bearb_id:
-            sighting.approver_username = approvers.get(sighting.bearb_id, "Unknown")
-        reported_sightings.append(sighting)
-
     return render_template(
         "admin/admin.html",
         user_id=usrid,
         paginated_sightings=paginated_sightings,
-        reported_sightings=reported_sightings,
+        reported_sightings=paginated_sightings.items,
         tables=tables,
         image_path=image_path,
         user_name=user_name,
@@ -427,8 +320,7 @@ def change_mantis_meta_data(id):
     if fieldname in ["fo_quelle", "anm_bearbeiter"]:
         sighting_obj = sighting_meldung
     else:
-        fo_id = sighting_meldung.fo_zuordnung
-        sighting_obj = db.session.get(TblFundorte, fo_id)
+        sighting_obj = sighting_meldung.fundort
         if not sighting_obj:
             return jsonify({"error": "Fundort not found"}), 404
 
@@ -506,7 +398,7 @@ def update_coordinates(id):
     if not sighting:
         return jsonify({"error": "Report not found"}), 404
 
-    fundort = db.session.get(TblFundorte, sighting.fo_zuordnung)
+    fundort = sighting.fundort
     if not fundort:
         return jsonify({"error": "Location not found"}), 404
 
@@ -538,7 +430,7 @@ def update_address(id):
     if not sighting:
         return jsonify({"error": "Report not found"}), 404
 
-    fundort = db.session.get(TblFundorte, sighting.fo_zuordnung)
+    fundort = sighting.fundort
     if not fundort:
         return jsonify({"error": "Location not found"}), 404
 
@@ -595,7 +487,7 @@ def toggle_approve_sighting(id):
     sighting = db.session.get(TblMeldungen, id)
     if not sighting:
         current_app.logger.error(f"Sighting {id} not found for approval toggle.")
-        return jsonify({"error": "Report not found"}), 404
+        return "", 404
 
     # Toggle between APPR and OPEN.
     # Approving clears flags (review concerns are resolved).
@@ -615,7 +507,7 @@ def toggle_approve_sighting(id):
     except SQLAlchemyError as e:
         db.session.rollback()
         current_app.logger.error(f"Failed to toggle approval for sighting {id}: {e}")
-        return jsonify({"error": "Failed to update approval status"}), 500
+        return "", 500
 
     current_app.logger.debug(
         f"Sighting {id} statuses toggled to {sighting.statuses}. dat_bear set to {sighting.dat_bear}"
@@ -623,12 +515,14 @@ def toggle_approve_sighting(id):
 
     # Send reviewer email only when report just became approved.
     if current_app.config.get("REVIEWERMAIL", False) and sighting.is_approved:
-        row = _fetch_sighting_row(id)
-        if row:
+        meldung = _load_sighting(id)
+        if meldung:
+            fundort = meldung.fundort
+            user = meldung.reporter_link.reporter
             dbdata = {}
-            for part in row:
-                part_dict = {c.name: getattr(part, c.name) for c in part.__table__.columns}
-                dbdata.update(part_dict)
+            for model in (meldung, fundort, fundort.location_type, meldung.reporter_link, user):
+                for c in model.__table__.columns:
+                    dbdata[c.name] = getattr(model, c.name)
 
             if dbdata.get("user_kontakt"):
                 try:
@@ -666,6 +560,7 @@ def modal_open(id):
         "admin/partials/_modal_open.html",
         sighting=sighting,
         feedback=user.feedback_source,
+        user_report_count=_get_user_report_count(user),
         is_approved=is_approved,
         editable=editable,
         active_tab="general",
@@ -693,6 +588,7 @@ def modal_tab(tab: str, id: int):
         "admin/partials/_tab_response.html",
         sighting=sighting,
         feedback=user.feedback_source,
+        user_report_count=_get_user_report_count(user),
         is_approved=is_approved,
         editable=editable,
         active_tab=tab,
@@ -707,15 +603,15 @@ def toggle_flag(id):
     """Toggle INFO/UNKL flag while preserving workflow state."""
     flag = (request.form.get("flag") or "").strip().upper()
     if flag not in {ReportStatus.INFO.value, ReportStatus.UNKL.value}:
-        return jsonify({"error": "Invalid flag"}), 400
+        return "", 400
 
     sighting = db.session.get(TblMeldungen, id)
     if not sighting:
-        return jsonify({"error": "Report not found"}), 404
+        return "", 404
     if sighting.is_deleted:
-        return jsonify({"error": "Cannot toggle flags on deleted reports"}), 400
+        return "", 400
     if sighting.is_approved:
-        return jsonify({"error": "Cannot toggle flags on approved reports"}), 400
+        return "", 400
 
     statuses = list(sighting.statuses or [ReportStatus.OPEN.value])
     if flag in statuses:
@@ -729,7 +625,7 @@ def toggle_flag(id):
 
     is_valid, error = ReportStatus.validate_combination(statuses)
     if not is_valid:
-        return jsonify({"error": error}), 400
+        return "", 400
 
     sighting.statuses = statuses
     sighting.deleted = sighting.is_deleted
@@ -740,7 +636,7 @@ def toggle_flag(id):
     except SQLAlchemyError as e:
         db.session.rollback()
         current_app.logger.error(f"Failed to toggle flag for sighting {id}: {e}")
-        return jsonify({"error": "Failed to update flag"}), 500
+        return "", 500
 
     filter_status = _resolve_filter_status()
     return _render_updated_sighting_by_id(id, filter_status)
@@ -753,7 +649,7 @@ def delete_sighting(id):
     # Find the report by id
     sighting = db.session.get(TblMeldungen, id)
     if not sighting:
-        return jsonify({"error": "Report not found"}), 404
+        return "", 404
 
     # Set statuses to [DEL] only (DEL is exclusive)
     sighting.statuses = [ReportStatus.DEL.value]
@@ -764,7 +660,7 @@ def delete_sighting(id):
     except SQLAlchemyError as e:
         db.session.rollback()
         current_app.logger.error(f"Failed to delete sighting {id}: {e}")
-        return jsonify({"error": "Failed to delete report"}), 500
+        return "", 500
 
     filter_status = _resolve_filter_status()
     return _render_updated_sighting_by_id(id, filter_status)
@@ -777,7 +673,7 @@ def undelete_sighting(id):
     # Find the report by id
     sighting = db.session.get(TblMeldungen, id)
     if not sighting:
-        return jsonify({"error": "Report not found"}), 404
+        return "", 404
 
     # Set statuses to [OPEN] and clear deleted flag
     sighting.statuses = [ReportStatus.OPEN.value]
@@ -788,7 +684,7 @@ def undelete_sighting(id):
     except SQLAlchemyError as e:
         db.session.rollback()
         current_app.logger.error(f"Failed to undelete sighting {id}: {e}")
-        return jsonify({"error": "Failed to restore report"}), 500
+        return "", 500
 
     filter_status = _resolve_filter_status()
     return _render_updated_sighting_by_id(id, filter_status)
@@ -889,30 +785,16 @@ def export_data(value):
         else:
             abort(404, description="Resource not found")
 
-        # First pass: Get count and collect approver IDs for pre-fetching
-        # This is a lightweight query that doesn't load full ORM objects
-        count_result = db.session.execute(
-            select(func.count()).select_from(stmt.subquery())
-        ).scalar()
-        row_count = count_result or 0
+        # First pass: Get count for choosing export mode.
+        # Build a lightweight count query reusing the same JOINs/WHERE but no ORM options.
+        count_stmt = stmt.options().with_only_columns(func.count()).order_by(None)
+        row_count = db.session.scalar(count_stmt) or 0
 
         # Threshold for using memory-optimized mode (constant_memory)
         # Below this, use standard mode with table formatting
         LARGE_EXPORT_THRESHOLD = 5000
 
-        # Pre-fetch all approvers in a single query to avoid N+1 problem
-        # Use a subquery aliased properly to avoid cartesian product warning
-        subq = stmt.subquery()
-        bearb_id_stmt = select(subq.c.bearb_id).where(subq.c.bearb_id.isnot(None))
-        bearb_ids = [bid for (bid,) in db.session.execute(bearb_id_stmt).all()]
-        approvers = {}
-        if bearb_ids:
-            approvers = {
-                u.user_id: u.user_name
-                for u in db.session.scalars(
-                    select(TblUsers).where(TblUsers.user_id.in_(set(bearb_ids)))
-                ).all()
-            }
+        # Approver is eagerly loaded via outerjoin in get_filtered_query().
 
         # Column definitions with fixed widths (avoids needing full data scan)
         columns = [
@@ -974,14 +856,18 @@ def export_data(value):
             worksheet.write(0, col_idx, col_name, header_format)
             worksheet.set_column(col_idx, col_idx, col_width)
 
-        # Stream data using yield_per for memory efficiency
-        # This fetches rows in batches instead of loading all into memory
+        # Stream data using yield_per for memory efficiency.
+        # contains_eager() on scalar (uselist=False) relationships is compatible
+        # with yield_per — no collection loading, so no dedup needed.
+        # Note: .unique() is NOT compatible with yield_per in SQLAlchemy ORM mode.
         streaming_stmt = stmt.execution_options(yield_per=1000)
-        result = db.session.execute(streaming_stmt)
+        result = db.session.scalars(streaming_stmt)
 
         row_idx = 1
-        for row in result:
-            meldung, fundort, beschreibung, melduser, user = row
+        for meldung in result:
+            fundort = meldung.fundort
+            beschreibung = fundort.location_type
+            user = meldung.reporter_link.reporter
 
             # Write row data directly (no intermediate dict/list)
             worksheet.write(row_idx, 0, meldung.id)
@@ -1024,11 +910,11 @@ def export_data(value):
             worksheet.write(row_idx, 23, beschreibung.beschreibung)
             worksheet.write(row_idx, 24, user.user_name)
             worksheet.write(row_idx, 25, user.user_kontakt)
-            # Approver (pre-fetched to avoid N+1)
+            # Approver (eagerly loaded via outerjoin)
             worksheet.write(
                 row_idx,
                 26,
-                approvers.get(meldung.bearb_id, "") if meldung.bearb_id else "",
+                meldung.approver.user_name if meldung.approver else "",
             )
 
             row_idx += 1
@@ -1073,7 +959,7 @@ def export_data(value):
             )
     except Exception:
         current_app.logger.exception("Error in export_data")
-        return jsonify({"error": "An error occurred during export"}), 500
+        abort(500)
 
 
 def update_report_image_date(report_id, new_date):
@@ -1085,14 +971,11 @@ def update_report_image_date(report_id, new_date):
         new_date_obj = new_date
 
     # Fetch the report
-    report = db.session.scalar(select(TblMeldungen).where(TblMeldungen.id == report_id))
+    report = db.session.get(TblMeldungen, report_id)
     if not report:
         return {"error": "Report not found"}, 404
 
-    # Fetch the corresponding fundorte record
-    fundorte_record = db.session.scalar(
-        select(TblFundorte).where(TblFundorte.id == report.fo_zuordnung)
-    )
+    fundorte_record = report.fundort
     if not fundorte_record or not fundorte_record.ablage:
         # No image to move
         return {"status": "no_image"}, 200
@@ -1177,19 +1060,30 @@ def get_filtered_query(
 ):
     """Get filtered select statement based on parameters.
 
-    Returns a SQLAlchemy 2.0 style select statement that can be used with
-    db.paginate() or db.session.execute().
+    Returns a single-entity select(TblMeldungen) with relationship-based JOINs
+    and contains_eager() options. Compatible with db.paginate() and
+    db.session.scalars().
     """
-    # Always include all necessary joins for better performance
+    # INNER JOINs to melduser/users intentionally exclude meldungen without a
+    # reporter link (application invariant: every report has exactly one melduser).
+    # contains_eager() populates relationships from these existing JOINs.
+    # db.paginate() calls .unique() internally, so duplicate rows from the
+    # melduser JOIN (if any) are deduplicated before pagination.
     stmt = (
-        select(TblMeldungen, TblFundorte, TblFundortBeschreibung, TblMeldungUser, TblUsers)
-        .join(TblFundorte, TblMeldungen.fo_zuordnung == TblFundorte.id)
-        .join(
-            TblFundortBeschreibung,
-            TblFundorte.beschreibung == TblFundortBeschreibung.id,
+        select(TblMeldungen)
+        .join(TblMeldungen.fundort)
+        .join(TblFundorte.location_type)
+        .join(TblMeldungen.reporter_link)
+        .join(TblMeldungUser.reporter)
+        .options(
+            contains_eager(TblMeldungen.fundort)
+            .contains_eager(TblFundorte.location_type),
+            contains_eager(TblMeldungen.reporter_link)
+            .contains_eager(TblMeldungUser.reporter),
+            # joinedload auto-aliases the users table to avoid conflict
+            # with the reporter JOIN that already references users.
+            joinedload(TblMeldungen.approver),
         )
-        .join(TblMeldungUser, TblMeldungen.id == TblMeldungUser.id_meldung)
-        .join(TblUsers, TblMeldungUser.id_user == TblUsers.id)
     )
 
     # Apply filter conditions based on 'filter_status' using statuses array

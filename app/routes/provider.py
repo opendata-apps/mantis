@@ -8,11 +8,11 @@ from flask import (
 )
 from app import db
 from sqlalchemy import select
+from sqlalchemy.orm import contains_eager
 from app.database.models import (
     TblFundorte,
     TblMeldungen,
     TblUsers,
-    TblFundortBeschreibung,
     TblMeldungUser,
 )
 
@@ -48,41 +48,18 @@ def melder_index(usrid):
     # Get the user's email if provided
     user_email = user.user_kontakt if user.user_kontakt else None
 
-    # Base query with all the necessary joins
+    # Relationship-based query with eager loading
     base_stmt = (
-        select(
-            TblMeldungen.id,
-            TblMeldungen.dat_fund_von,
-            TblMeldungen.dat_fund_bis,
-            TblMeldungen.dat_meld,
-            TblMeldungen.dat_bear,
-            TblMeldungen.tiere,
-            TblMeldungen.fo_quelle,
-            TblMeldungen.art_m,
-            TblMeldungen.art_w,
-            TblMeldungen.art_n,
-            TblMeldungen.art_o,
-            TblMeldungen.art_f,
-            TblMeldungen.anm_melder,
-            TblFundortBeschreibung.beschreibung,
-            TblUsers.user_id,
-            TblUsers.user_name,
-            TblUsers.user_kontakt,
-            TblFundorte.plz,
-            TblFundorte.ort,
-            TblFundorte.strasse,
-            TblFundorte.land,
-            TblFundorte.kreis,
-            TblFundorte.longitude,
-            TblFundorte.latitude,
-            TblFundorte.ablage,
-        )
-        .join(TblMeldungUser, TblMeldungen.id == TblMeldungUser.id_meldung)
-        .join(TblUsers, TblMeldungUser.id_user == TblUsers.id)
-        .join(TblFundorte, TblMeldungen.fo_zuordnung == TblFundorte.id)
-        .join(
-            TblFundortBeschreibung,
-            TblFundorte.beschreibung == TblFundortBeschreibung.id,
+        select(TblMeldungen)
+        .join(TblMeldungen.reporter_link)
+        .join(TblMeldungUser.reporter)
+        .join(TblMeldungen.fundort)
+        .join(TblFundorte.location_type)
+        .options(
+            contains_eager(TblMeldungen.fundort)
+            .contains_eager(TblFundorte.location_type),
+            contains_eager(TblMeldungen.reporter_link)
+            .contains_eager(TblMeldungUser.reporter),
         )
     )
 
@@ -92,14 +69,8 @@ def melder_index(usrid):
     else:
         stmt = base_stmt.where(TblUsers.user_id == usrid)
 
-    sichtungen_query = db.session.execute(stmt).all()
-
-    # Process query results
-    sichtungen = []
-    for sighting in sichtungen_query:
-        sighting_dict = sighting._asdict()
-        sighting_dict["dat_bear"] = sighting_dict["dat_bear"] or "noch nicht geprüft"
-        sichtungen.append(sighting_dict)
+    # .unique() deduplicates if melduser has multiple rows per meldung
+    sichtungen = db.session.scalars(stmt).unique().all()
 
     return render_template(
         "provider/melder.html",

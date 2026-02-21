@@ -53,7 +53,7 @@ def show_map():
 
     reports_stmt = (
         select(TblMeldungen.id, TblFundorte.latitude, TblFundorte.longitude)
-        .join(TblFundorte, TblMeldungen.fo_zuordnung == TblFundorte.id)
+        .join(TblMeldungen.fundort)
         .where(*_public_map_filters(min_map_date))
     )
 
@@ -65,7 +65,7 @@ def show_map():
         count_stmt = (
             select(func.count())
             .select_from(TblMeldungen)
-            .join(TblFundorte, TblMeldungen.fo_zuordnung == TblFundorte.id)
+            .join(TblMeldungen.fundort)
             .where(*_public_map_filters(min_map_date))
             .where(func.extract("year", TblMeldungen.dat_fund_von) == selected_year)
         )
@@ -126,7 +126,7 @@ def get_marker_data(report_id):
             TblFundorte.ort,
             TblFundorte.kreis,
         )
-        .join(TblFundorte, TblMeldungen.fo_zuordnung == TblFundorte.id)
+        .join(TblMeldungen.fundort)
         .where(TblMeldungen.id == report_id)
         .where(*_public_map_filters(min_map_date))
     )
