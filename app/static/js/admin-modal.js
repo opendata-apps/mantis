@@ -328,19 +328,6 @@ function validateAndUpdateCoordinate(input, type) {
 // Reverse geocoding
 // ---------------------------------------------------------------------------
 
-var ISO_TO_STATE = {
-    'DE-BW': 'Baden-W\u00fcrttemberg', 'DE-BY': 'Bayern', 'DE-BE': 'Berlin',
-    'DE-BB': 'Brandenburg', 'DE-HB': 'Bremen', 'DE-HH': 'Hamburg',
-    'DE-HE': 'Hessen', 'DE-MV': 'Mecklenburg-Vorpommern', 'DE-NI': 'Niedersachsen',
-    'DE-NW': 'Nordrhein-Westfalen', 'DE-RP': 'Rheinland-Pfalz', 'DE-SL': 'Saarland',
-    'DE-SN': 'Sachsen', 'DE-ST': 'Sachsen-Anhalt', 'DE-SH': 'Schleswig-Holstein',
-    'DE-TH': 'Th\u00fcringen',
-};
-
-function getStateNameFromISOCode(isoCode) {
-    return ISO_TO_STATE[isoCode] || '';
-}
-
 function fetchAddressFromNominatim(latitude, longitude) {
     var url = new URL('https://nominatim.openstreetmap.org/reverse');
     url.searchParams.append('format', 'jsonv2');
@@ -348,8 +335,6 @@ function fetchAddressFromNominatim(latitude, longitude) {
     url.searchParams.append('lon', longitude.toString());
     url.searchParams.append('zoom', '18');
     url.searchParams.append('addressdetails', '1');
-    url.searchParams.append('extratags', '1');
-    url.searchParams.append('namedetails', '1');
     url.searchParams.append('accept-language', 'de');
     return fetch(url.toString()).then(function (r) {
         if (!r.ok) throw new Error('HTTP error! status: ' + r.status);
@@ -364,40 +349,54 @@ function nominatimDelay() {
     });
 }
 
+function fetchAgsData(latitude, longitude) {
+    var mapEl = document.getElementById('map');
+    var agsUrl = mapEl && mapEl.dataset.agsUrl;
+    if (!agsUrl) return Promise.resolve({});
+    return fetch(agsUrl + '?lat=' + latitude + '&lon=' + longitude)
+        .then(function (r) { return r.ok ? r.json() : {}; })
+        .catch(function () { return {}; });
+}
+
 function getAddressFromCoordinates(latitude, longitude) {
     var requestSeq = ++geocodeRequestSeq;
     updateAddressDisplay({ street: 'Wird geladen...', zipCode: '', city: '', district: '', state: '' });
 
-    nominatimDelay().then(function () {
-        return fetchAddressFromNominatim(latitude, longitude);
-    }).then(function (data) {
+    // Fetch Nominatim (after rate-limit delay) + AGS spatial data in parallel
+    Promise.all([
+        nominatimDelay().then(function () {
+            return fetchAddressFromNominatim(latitude, longitude);
+        }),
+        fetchAgsData(latitude, longitude),
+    ]).then(function (results) {
+        var data = results[0];
+        var ags = results[1];
         if (requestSeq !== geocodeRequestSeq) return;
 
         if (data.error) {
             console.error('Nominatim API error:', data.error);
-            updateAddressDisplay({ street: 'Adresse konnte nicht geladen werden', zipCode: '', city: '', district: '', state: '' });
+            updateAddressDisplay({ street: '', zipCode: '', city: '', district: '', state: '' });
             return;
         }
 
         var address = data.address || {};
-        var district = address.county || address.city || '';
-        var state = address.state || '';
-        if (!state && data.extratags && data.extratags['ISO3166-2']) {
-            state = getStateNameFromISOCode(data.extratags['ISO3166-2']);
-        }
 
         var zipCode = address.postcode || '';
         var city = address.city || address.town || address.village || address.hamlet || '';
         var streetName = address.road || address.pedestrian || address.cycleway || address.path || address.footway || '';
         var houseNumber = address.house_number || '';
-        var street = (streetName + ' ' + houseNumber).trim();
+        var street = houseNumber ? (streetName + ' ' + houseNumber).trim() : streetName;
+
+        // AGS spatial data is authoritative for land/kreis; Nominatim as fallback
+        var state = ags.land || address.state || address.city || '';
+        var district = ags.kreis || address.county || address.borough || '';
 
         updateAddressDisplay({
-            street: street || 'Keine Stra\u00dfe gefunden',
+            street: street,
             zipCode: zipCode,
-            city: city || 'Kein Ort gefunden',
-            district: district || 'Keine Region gefunden',
-            state: state || 'Kein Land gefunden',
+            city: city,
+            district: district,
+            state: state,
         });
 
         // Fill hidden address form and submit via HTMX
@@ -421,7 +420,7 @@ function getAddressFromCoordinates(latitude, longitude) {
     }).catch(function (error) {
         if (requestSeq !== geocodeRequestSeq) return;
         console.error('Error fetching address data:', error);
-        updateAddressDisplay({ street: 'Fehler beim Laden der Adresse', zipCode: '', city: '', district: '', state: '' });
+        updateAddressDisplay({ street: '', zipCode: '', city: '', district: '', state: '' });
     });
 }
 
@@ -431,10 +430,10 @@ function setTextById(id, value) {
 }
 
 function updateAddressDisplay(d) {
-    setTextById('addressStreet', d.street || 'Keine Stra\u00dfe');
-    setTextById('addressCity', (d.zipCode || '') + ' ' + (d.city || 'Kein Ort'));
-    setTextById('addressDistrict', d.district || 'Kein Kreis');
-    setTextById('addressState', d.state || 'Kein Land');
+    setTextById('addressStreet', d.street || '');
+    setTextById('addressCity', ((d.zipCode || '') + ' ' + (d.city || '')).trim());
+    setTextById('addressDistrict', d.district || '');
+    setTextById('addressState', d.state || '');
 }
 
 // ---------------------------------------------------------------------------
