@@ -1,17 +1,24 @@
 from flask import Blueprint
 from flask import render_template, request, current_app
 from flask import session
-from sqlalchemy import func, text, select
+from markupsafe import escape
+from sqlalchemy import func, select
 from sqlalchemy import cast, String
 from sqlalchemy import literal_column
 from app import db
 from app.database.models import TblAemterCoordinaten
 from app.tools.check_reviewer import reviewer_required
 from app.tools.gen_messtisch_svg import create_measure_sheet
-from app.database.models import TblFundorte, TblMeldungen, ReportStatus
+from app.database.models import TblFundorte, TblMeldungen, TblUserFeedback, ReportStatus
 from datetime import date, datetime, timedelta
 from collections import defaultdict
 from app.database.feedback_type import FeedbackSource
+from app.database.ags import (
+    BUNDESLAENDER,
+    BERLIN_BEZIRKE,
+    BRANDENBURG_LANDKREISE,
+    build_gesamt_template,
+)
 
 stats = Blueprint("statistics", __name__)
 
@@ -37,34 +44,30 @@ def autocomplete_ags():
     q = request.args.get("ags_input", "").strip()
     if len(q) < 2:
         return ""
-    dbsession = db.session
-    try:
-        stmt = (
-            select(TblAemterCoordinaten.ags, TblAemterCoordinaten.gen)
-            .where(
-                (cast(TblAemterCoordinaten.ags, String).startswith(q))
-                | (TblAemterCoordinaten.gen.ilike(f"{q}%"))
-            )
-            .order_by(TblAemterCoordinaten.gen)
-            .limit(10)
-        )
 
-        rows = dbsession.execute(stmt).all()
-        return "".join(
-            f"""
-            <li
-                class="suggestion"
-                data-ags="{ags}"
-                data-gen="{gen}"
-            >
-                <strong>{ags}</strong>: {gen}
-            </li>
-            """
-            for ags, gen in rows
+    stmt = (
+        select(TblAemterCoordinaten.ags, TblAemterCoordinaten.gen)
+        .where(
+            (cast(TblAemterCoordinaten.ags, String).startswith(q))
+            | (TblAemterCoordinaten.gen.ilike(f"{q}%"))
         )
+        .order_by(TblAemterCoordinaten.gen)
+        .limit(10)
+    )
 
-    finally:
-        dbsession.close()
+    rows = db.session.execute(stmt).all()
+    return "".join(
+        f"""
+        <li
+            class="suggestion"
+            data-ags="{escape(ags)}"
+            data-gen="{escape(gen)}"
+        >
+            <strong>{escape(ags)}</strong>: {escape(gen)}
+        </li>
+        """
+        for ags, gen in rows
+    )
 
 
 def get_date_interval():
@@ -186,34 +189,29 @@ def stats_mtb(marker):
 
 
 def stats_bardiagram_datum(dbfields, page, marker=None):
-    "Calculate statistics by date"
+    """Calculate statistics by date using ORM queries."""
+
+    date_from = date.fromisoformat(session["date_from"])
+    date_to = date.fromisoformat(session["date_to"])
 
     results = {0: {}, 1: {}}
-    for idx, dbfield in enumerate(dbfields):
-        # Use parameterized query to prevent SQL injection
-        # Array containment check: statuses @> '{APPR}' (APPR excludes DEL by design)
-        stm = f"""
-           SELECT {dbfield} as Tag,
-           count({dbfield}) as Anzahl
-           FROM (select {dbfield}
-                from meldungen
-                where {dbfield} BETWEEN CAST(:date_from AS date)
-                                AND CAST(:date_to AS date)
-                and statuses @> '{{APPR}}') as filtered
-           GROUP BY filtered.{dbfield}
-           ORDER by Tag;
-        """
-        sql = text(stm)
-        result = db.session.execute(
-            sql, {"date_from": session["date_from"], "date_to": session["date_to"]}
+    for idx, field_name in enumerate(dbfields):
+        col = getattr(TblMeldungen, field_name)
+        stmt = (
+            select(col.label("tag"), func.count(col).label("anzahl"))
+            .where(
+                col.between(date_from, date_to),
+                TblMeldungen.statuses.contains([ReportStatus.APPR.value]),
+            )
+            .group_by(col)
+            .order_by(col)
         )
+        rows = db.session.execute(stmt).all()
 
         trace = {"x": [], "y": []}
-
-        if result:
-            for record in result:
-                trace["x"].append(str(record[0]))
-                trace["y"].append(record[1])
+        for row in rows:
+            trace["x"].append(str(row.tag))
+            trace["y"].append(row.anzahl)
         results[idx] = trace
 
     return render_template(
@@ -358,29 +356,10 @@ def stats_laender(marker):
 
     results = db.session.execute(stmt).all()
 
-    laender = {
-        "01": "Schleswig-Holstein",
-        "02": "Freie und Hansestadt Hamburg",
-        "03": "Niedersachsen",
-        "04": "Freie Hansestadt Bremen",
-        "05": "Nordrhein-Westfalen",
-        "06": "Hessen",
-        "07": "Rheinland-Pfalz",
-        "08": "Baden-Württemberg",
-        "09": "Freistaat Bayern",
-        "10": "Saarland⁠",
-        "11": "Berlin⁠",
-        "12": "Brandenburg",
-        "13": "Mecklenburg-Vorpommern",
-        "14": "Freistaat Sachsen",
-        "15": "Sachsen-Anhalt",
-        "16": "Freistaat Thüringen",
-    }
-
     result_dict = defaultdict(dict)
     for result in results:
         if result.amt_group:
-            state_name = laender.get(result.amt_group, "Unbekannt")
+            state_name = BUNDESLAENDER.get(result.amt_group, "Unbekannt")
             result_dict[f"{result.amt_group} --  {state_name}"] = {
                 "maennlich": result.maennlich,
                 "weiblich": result.weiblich,
@@ -408,45 +387,12 @@ def stats_bundesland(marker):
         ags = "11"
         maxchars = 8
         land = "Berlin"
-        laender = {
-            "11000000": "Berlin (allgemein)",
-            "11000001": "Mitte",
-            "11000002": "Friedrichshain-Kreuzberg",
-            "11000003": "Pankow",
-            "11000004": "Charlottenburg-Wilmersdorf",
-            "11000005": "Spandau",
-            "11000006": "Steglitz-Zehlendorf",
-            "11000007": "Tempelhof-Schöneberg",
-            "11000008": "Neukölln",
-            "11000009": "Treptow-Köpenick",
-            "11000010": "Marzahn-Hellersdorf",
-            "11000011": "Lichtenberg",
-            "11000012": "Reinickendorf",
-        }
+        laender = BERLIN_BEZIRKE
     elif marker == "meldungen_brb":
         ags = "12"
         maxchars = 5
         land = "Brandenburg"
-        laender = {
-            "12060": "Landkreis Barnim",
-            "12061": "Landkreis Dahme-Spreewald",
-            "12062": "Landkreis Elbe-Elster",
-            "12063": "Landkreis Havelland",
-            "12064": "Landkreis Märkisch-Oderland",
-            "12065": "Landkreis Oberhavel",
-            "12066": "Landkreis Oberspreewald-Lausitz",
-            "12067": "Landkreis Oder-Spree",
-            "12068": "Landkreis Ostprignitz-Ruppin",
-            "12069": "Landkreis Potsdam-Mittelmark",
-            "12070": "Landkreis Prignitz",
-            "12071": "Landkreis Spree-Neiße",
-            "12072": "Landkreis Teltow-Fläming",
-            "12073": "Landkreis Uckermark",
-            "12051": "Brandenburg an der Havel",
-            "12052": "Cottbus",
-            "12053": "Frankfurt (Oder)",
-            "12054": "Potsdam",
-        }
+        laender = BRANDENBURG_LANDKREISE
 
     substring_start = literal_column("1")
     state_code_len = literal_column("2")
@@ -510,42 +456,7 @@ def stats_bundesland(marker):
 def stats_gesamt(marker):
     "Get sum for  Bundesland, Landkreis/Stadtbezirk and Amt"
 
-    result_dict = {
-        "12": ["Brandenburg", "", "", 0, []],
-        "12060": ["", "Landkreis Barnim", "", 0, []],
-        "12061": ["", "Landkreis Dahme-Spreewald", "", 0, []],
-        "12062": ["", "Landkreis Elbe-Elster", "", 0, []],
-        "12063": ["", "Landkreis Havelland", "", 0, []],
-        "12064": ["", "Landkreis Märkisch-Oderland", "", 0, []],
-        "12065": ["", "Landkreis Oberhavel", "", 0, []],
-        "12066": ["", "Landkreis Oberspreewald-Lausitz", "", 0, []],
-        "12067": ["", "Landkreis Oder-Spree", "", 0, []],
-        "12068": ["", "Landkreis Ostprignitz-Ruppin", "", 0, []],
-        "12069": ["", "Landkreis Potsdam-Mittelmark", "", 0, []],
-        "12070": ["", "Landkreis Prignitz", "", 0, []],
-        "12071": ["", "Landkreis Spree-Neiße", "", 0, []],
-        "12072": ["", "Landkreis Teltow-Fläming", "", 0, []],
-        "12073": ["", "Landkreis Uckermark", "", 0, []],
-        "12051": ["", "Brandenburg an der Havel", "", 0, []],
-        "12052": ["", "Cottbus", "", 0, []],
-        "12053": ["", "Frankfurt (Oder)", "", 0, []],
-        "12054": ["", "Potsdam", "", 0, []],
-        "11": ["Berlin⁠", "", "", 0, []],
-        "13": ["Mecklenburg-Vorpommern", "", "", 0, []],
-        "14": ["Freistaat Sachsen", "", "", 0, []],
-        "15": ["Sachsen-Anhalt", "", "", 0, []],
-        "16": ["Freistaat Thüringen", "", "", 0, []],
-        "01": ["Schleswig-Holstein", "", "", 0, []],
-        "02": ["Freie und Hansestadt Hamburg", "", "", 0, []],
-        "03": ["Niedersachsen", "", "", 0, []],
-        "04": ["Freie Hansestadt Bremen", "", "", 0, []],
-        "05": ["Nordrhein-Westfalen", "", "", 0, []],
-        "06": ["Hessen", "", "", 0, []],
-        "07": ["Rheinland-Pfalz", "", "", 0, []],
-        "08": ["Baden-Württemberg", "", "", 0, []],
-        "09": ["Freistaat Bayern", "", "", 0, []],
-        "10": ["Saarland⁠", "", "", 0, []],
-    }
+    result_dict = build_gesamt_template()
 
     stmt = (
         select(
@@ -607,36 +518,30 @@ def stats_gesamt(marker):
 
 
 def stats_feedback(page, marker):
-    "Summary of the feedback questions provided"
+    """Summary of the feedback questions provided."""
 
-    stm = """
-    SELECT feedback_source, count(*)
-    FROM user_feedback
-    WHERE feedback_source IS NOT NULL
-    GROUP BY feedback_source;
-    """
-    sql = text(stm)
-    result = db.session.execute(sql)
+    stmt = (
+        select(
+            TblUserFeedback.feedback_source,
+            func.count(TblUserFeedback.id).label("cnt"),
+        )
+        .where(TblUserFeedback.feedback_source.is_not(None))
+        .group_by(TblUserFeedback.feedback_source)
+    )
+    rows = db.session.execute(stmt).all()
+    feedback = [
+        (FeedbackSource.get_display_name(row.feedback_source), row.cnt)
+        for row in rows
+    ]
 
-    feedback = []
-
-    if result:
-        for record in result:
-            feedback.append((FeedbackSource.get_display_name(record[0]), record[1]))
-
-    stm = """
-    SELECT source_detail
-    FROM user_feedback
-    where source_detail <> ''
-    ORDER BY id desc Limit 20;
-    """
-    sql = text(stm)
-    result = db.session.execute(sql)
-
-    details = []
-    if result:
-        for record in result:
-            details.append(record[0])
+    stmt = (
+        select(TblUserFeedback.source_detail)
+        .where(TblUserFeedback.source_detail != "")
+        .order_by(TblUserFeedback.id.desc())
+        .limit(20)
+    )
+    rows = db.session.execute(stmt).all()
+    details = [row.source_detail for row in rows]
 
     return render_template(
         "statistics/" + page,
