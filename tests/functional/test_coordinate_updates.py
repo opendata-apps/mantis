@@ -542,14 +542,20 @@ class TestAmtMtbRecalculation:
         """Test that AMT and MTB are recalculated when coordinates change."""
 
         # Mock the AMT/MTB calculation functions since test DB may not have full data
-        def mock_get_amt_full_scan(coords):
-            return "11000004 -- Test District"
+        def mock_get_amt_enriched(coords):
+            return {
+                "ags": "11000004",
+                "gen": "Test District",
+                "land": "Berlin",
+                "kreis": "Berlin",
+                "amt_string": "11000004 -- Test District",
+            }
 
         def mock_get_mtb(lat, lon):
             return "3445"
 
         monkeypatch.setattr(
-            "app.routes.admin.get_amt_full_scan", mock_get_amt_full_scan
+            "app.routes.admin.get_amt_enriched", mock_get_amt_enriched
         )
         monkeypatch.setattr("app.routes.admin.get_mtb", mock_get_mtb)
 
@@ -595,14 +601,20 @@ class TestAmtMtbRecalculation:
         """Test the /update_coordinates endpoint that updates both at once."""
 
         # Mock the AMT/MTB calculation functions
-        def mock_get_amt_full_scan(coords):
-            return "14467 -- Potsdam"
+        def mock_get_amt_enriched(coords):
+            return {
+                "ags": "14467",
+                "gen": "Potsdam",
+                "land": "Brandenburg",
+                "kreis": "Potsdam",
+                "amt_string": "14467 -- Potsdam",
+            }
 
         def mock_get_mtb(lat, lon):
             return "3544"
 
         monkeypatch.setattr(
-            "app.routes.admin.get_amt_full_scan", mock_get_amt_full_scan
+            "app.routes.admin.get_amt_enriched", mock_get_amt_enriched
         )
         monkeypatch.setattr("app.routes.admin.get_mtb", mock_get_mtb)
 

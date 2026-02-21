@@ -184,8 +184,9 @@
             </div>
               
             <div class="form-group">
-              {{ render_form_field(form.description, attrs={'id': 'description', 'rows': '4'}) }}
+              {{ render_form_field(form.description, attrs={'id': 'description', 'rows': '4', 'maxlength': '500', 'oninput': 'updateCharCount(this)'}) }}
               <p class="mt-1 text-xs text-gray-600">Verbleibende Zeichen: <span id="char-count" class="font-mono">500</span></p>
+              <script>function updateCharCount(el){var s=document.getElementById('char-count'),r=500-el.value.length;s.textContent=r;s.classList.toggle('text-red-600',r<0)}</script>
             </div>
           </div>
           

@@ -37,7 +37,7 @@ from pathlib import Path
 from flask import current_app
 from app.tools.send_reviewer_email import send_email
 from app.tools.mtb_calc import get_mtb, pointInRect
-from app.tools.gemeinde_finder import get_amt_full_scan
+from app.tools.gemeinde_finder import get_amt_enriched
 from app.tools.coordinate_validation import validate_and_normalize_coordinate
 from typing import Optional
 
@@ -83,7 +83,7 @@ def _maybe_refresh_alldata_view(*, force: bool = False) -> None:
 
 
 def recalculate_amt_mtb(fundort):
-    """Recalculate AMT and MTB values for a fundort based on its coordinates."""
+    """Recalculate AMT, MTB, and fill land/kreis from spatial data."""
     if not fundort or not fundort.latitude or not fundort.longitude:
         return
 
@@ -95,17 +95,23 @@ def recalculate_amt_mtb(fundort):
         if -90 <= lat <= 90 and -180 <= lon <= 180:
             if pointInRect((lat, lon)):
                 fundort.mtb = get_mtb(lat, lon)
-                fundort.amt = get_amt_full_scan((lon, lat))
+                spatial = get_amt_enriched((lon, lat))
+                if spatial:
+                    fundort.amt = spatial["amt_string"]
+                    # AGS spatial data is authoritative for land/kreis
+                    if spatial["land"]:
+                        fundort.land = spatial["land"]
+                    if spatial["kreis"]:
+                        fundort.kreis = spatial["kreis"]
+                else:
+                    fundort.amt = ""
             else:
-                # Coordinates outside Brandenburg region
                 fundort.mtb = ""
                 fundort.amt = ""
         else:
-            # Invalid coordinate range
             fundort.mtb = ""
             fundort.amt = ""
     except (ValueError, TypeError, AttributeError):
-        # If coordinates can't be parsed, clear AMT/MTB
         fundort.mtb = ""
         fundort.amt = ""
 

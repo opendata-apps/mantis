@@ -7,12 +7,15 @@ indexing to avoid database queries on every lookup.
 """
 
 import json
+import os
 from threading import RLock
 from shapely.geometry import shape, Point, Polygon, MultiPolygon
 from shapely.strtree import STRtree
-from sqlalchemy import text
+from sqlalchemy import select
 from flask import current_app
 from app import db
+from app.database.aemter_koordinaten import TblAemterCoordinaten
+from app.database.ags import BUNDESLAENDER
 
 
 class GemeindeFinder:
@@ -22,8 +25,25 @@ class GemeindeFinder:
         """Initialize the finder with empty cache."""
         self._polygons = []
         self._spatial_index = None
+        self._kreise_lookup = {}
         self._cache_lock = RLock()
         self._is_loaded = False
+
+    def _load_kreise(self):
+        """Load Kreise lookup from JSON file."""
+        kreise_path = os.path.join(
+            os.path.dirname(__file__), "..", "data", "ags_kreise.json"
+        )
+        try:
+            from app.tools.fetch_ags import load_kreise_lookup
+            self._kreise_lookup = load_kreise_lookup(kreise_path)
+            if self._kreise_lookup:
+                current_app.logger.info(
+                    f"Loaded {len(self._kreise_lookup)} Kreise for enrichment"
+                )
+        except Exception as e:
+            current_app.logger.warning(f"Could not load Kreise lookup: {e}")
+            self._kreise_lookup = {}
 
     def _load_data(self):
         """Load all administrative area polygons from database."""
@@ -37,49 +57,61 @@ class GemeindeFinder:
                 )
                 polygons = []
 
-                with db.engine.connect() as conn:
-                    # Use more efficient query that only selects needed columns
-                    result = conn.execute(
-                        text("SELECT ags, gen, properties FROM aemter ORDER BY ags")
-                    )
+                # Load Kreise lookup for enrichment
+                self._load_kreise()
 
-                    for row in result:
-                        ags = None
-                        try:
-                            ags, gen, properties = row
+                stmt = (
+                    select(TblAemterCoordinaten)
+                    .order_by(TblAemterCoordinaten.ags)
+                )
+                rows = db.session.scalars(stmt).all()
 
-                            # Parse geometry more safely
-                            if isinstance(properties, str):
-                                # Handle the string replacement issue properly
-                                geometry_data = json.loads(properties)
-                            else:
-                                geometry_data = properties
+                for row in rows:
+                    ags = None
+                    try:
+                        ags = row.ags
+                        gen = row.gen
+                        properties = row.properties
 
-                            # Create shapely geometry
-                            geom = shape(geometry_data)
+                        # Parse geometry more safely
+                        if isinstance(properties, str):
+                            geometry_data = json.loads(properties)
+                        else:
+                            geometry_data = properties
 
-                            # Format AGS with leading zero if needed
-                            ags_str = f"0{ags}" if ags < 10000000 else str(ags)
-                            amt_string = f"{ags_str} -- {gen}"
+                        # Create shapely geometry
+                        geom = shape(geometry_data)
 
-                            # Store polygon with its metadata
-                            if isinstance(geom, (Polygon, MultiPolygon)):
-                                polygons.append((geom, amt_string, gen))
-                            else:
-                                current_app.logger.warning(
-                                    f"Skipping non-polygon geometry for {amt_string}"
-                                )
+                        # Format AGS with leading zero if needed
+                        ags_str = f"0{ags}" if ags < 10000000 else str(ags)
+                        amt_string = f"{ags_str} -- {gen}"
 
-                        except (
-                            json.JSONDecodeError,
-                            KeyError,
-                            ValueError,
-                            Exception,
-                        ) as e:
-                            current_app.logger.error(
-                                f"Error parsing geometry for row (AGS: {ags}): {e}"
+                        # Derive land and kreis from AGS code
+                        land_code = ags_str[:2]
+                        land_name = BUNDESLAENDER.get(land_code, "")
+                        kreis_code = ags_str[:5]
+                        kreis_name = self._kreise_lookup.get(kreis_code, "")
+
+                        # Store polygon with its metadata
+                        if isinstance(geom, (Polygon, MultiPolygon)):
+                            polygons.append(
+                                (geom, amt_string, gen, ags_str, land_name, kreis_name)
                             )
-                            continue
+                        else:
+                            current_app.logger.warning(
+                                f"Skipping non-polygon geometry for {amt_string}"
+                            )
+
+                    except (
+                        json.JSONDecodeError,
+                        KeyError,
+                        ValueError,
+                        Exception,
+                    ) as e:
+                        current_app.logger.error(
+                            f"Error parsing geometry for row (AGS: {ags}): {e}"
+                        )
+                        continue
 
                 # Create spatial index for efficient lookups
                 if polygons:
@@ -103,6 +135,30 @@ class GemeindeFinder:
                 self._spatial_index = None
                 self._is_loaded = True  # Mark as loaded to prevent retry loops
 
+    def _query_point(self, point):
+        """Internal: find the polygon tuple for a point, or None."""
+        if not self._is_loaded:
+            self._load_data()
+
+        if not self._spatial_index or not self._polygons:
+            return None
+
+        try:
+            point_geom = Point(point)
+            potential_indices = self._spatial_index.query(
+                point_geom, predicate="intersects"
+            )
+            for idx in potential_indices:
+                if idx < len(self._polygons):
+                    entry = self._polygons[idx]
+                    polygon = entry[0]
+                    if polygon.contains(point_geom):
+                        return entry
+            return None
+        except Exception as e:
+            current_app.logger.error(f"Error finding AMT for point {point}: {e}")
+            return None
+
     def find_amt(self, point):
         """
         Find which administrative area contains the given point.
@@ -113,35 +169,38 @@ class GemeindeFinder:
         Returns:
             String in format "AGS -- Name" if found, None otherwise
         """
-        # Ensure data is loaded
-        if not self._is_loaded:
-            self._load_data()
-
-        if not self._spatial_index or not self._polygons:
+        entry = self._query_point(point)
+        if entry is None:
             return None
+        return entry[1]  # amt_string
 
-        try:
-            # Create point geometry
-            point_geom = Point(point)
+    def find_amt_enriched(self, point):
+        """
+        Find administrative area with full hierarchical data.
 
-            # Use spatial index to find potential matches
-            # This is much faster than checking every polygon
-            potential_indices = self._spatial_index.query(
-                point_geom, predicate="intersects"
-            )
+        Args:
+            point: Tuple of (longitude, latitude) coordinates
 
-            # Check actual containment for potential matches
-            for idx in potential_indices:
-                if idx < len(self._polygons):
-                    polygon, amt_string, gen = self._polygons[idx]
-                    if polygon.contains(point_geom):
-                        return amt_string
-
+        Returns:
+            Dict with keys {ags, gen, land, kreis, amt_string} if found, None otherwise
+        """
+        entry = self._query_point(point)
+        if entry is None:
             return None
+        _, amt_string, gen, ags_str, land_name, kreis_name = entry
 
-        except Exception as e:
-            current_app.logger.error(f"Error finding AMT for point {point}: {e}")
-            return None
+        # City-states (Berlin, Hamburg, Bremen): Kreis level equals Land level,
+        # which is redundant. Use the Gemeinde name (= Bezirk for Berlin) instead.
+        if kreis_name and kreis_name == land_name:
+            kreis_name = gen
+
+        return {
+            "ags": ags_str,
+            "gen": gen,
+            "land": land_name,
+            "kreis": kreis_name,
+            "amt_string": amt_string,
+        }
 
     def reload_cache(self):
         """Force reload of the cache from database."""
@@ -149,6 +208,7 @@ class GemeindeFinder:
             self._is_loaded = False
             self._polygons = []
             self._spatial_index = None
+            self._kreise_lookup = {}
         self._load_data()
 
     @property
@@ -170,9 +230,7 @@ _gemeinde_finder = GemeindeFinder()
 
 def get_amt_optimized(point):
     """
-    Optimized version of get_amt_full_scan using spatial indexing and caching.
-
-    This is a drop-in replacement for the original function but much more efficient.
+    Get AMT string for a point using spatial indexing and caching.
 
     Args:
         point: Tuple of (longitude, latitude) coordinates
@@ -183,6 +241,16 @@ def get_amt_optimized(point):
     return _gemeinde_finder.find_amt(point)
 
 
+def get_amt_enriched(point):
+    """
+    Get full administrative hierarchy for a point.
+
+    Returns a dict with ags, gen, land, kreis, amt_string — or None.
+    Use this when you need the Bundesland or Kreis name in addition to the AMT string.
+    """
+    return _gemeinde_finder.find_amt_enriched(point)
+
+
 def reload_gemeinde_cache():
     """
     Force reload of the administrative area cache.
@@ -190,18 +258,3 @@ def reload_gemeinde_cache():
     Call this if the aemter table has been updated.
     """
     _gemeinde_finder.reload_cache()
-
-
-
-# For backward compatibility, keep the original function name
-# but use the optimized implementation
-def get_amt_full_scan(point):
-    """
-    Legacy function name for compatibility.
-    Now uses optimized implementation with caching.
-    """
-    try:
-        return get_amt_optimized(point)
-    except Exception as e:
-        current_app.logger.error(f"Error in get_amt_full_scan for point {point}: {e}")
-        return None  # Return None instead of crashing in production

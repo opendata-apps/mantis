@@ -441,14 +441,21 @@ const ReportForm = {
         };
         Object.values(fields).forEach(f => f && (f.disabled = true));
 
+        // Fetch Nominatim + local AGS lookup in parallel
+        const nominatimP = fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=de`)
+            .then(r => r.json()).then(d => d.address || {}).catch(() => ({}));
+        const agsP = fetch(`/melden/ags-lookup?lat=${lat}&lon=${lng}`)
+            .then(r => r.ok ? r.json() : {}).catch(() => ({}));
+
         try {
-            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=de`);
-            const { address: a = {} } = await res.json();
+            const [a, ags] = await Promise.all([nominatimP, agsP]);
+
             if (fields.zip) fields.zip.value = a.postcode || '';
             if (fields.city) fields.city.value = a.city || a.town || a.village || '';
-            if (fields.state) fields.state.value = a.state || '';
-            if (fields.district) fields.district.value = a.county || a.city || '';
             if (fields.street) fields.street.value = a.house_number ? `${a.road || ''} ${a.house_number}`.trim() : (a.road || '');
+            // AGS spatial data is authoritative for land/kreis; Nominatim as fallback
+            if (fields.state) fields.state.value = ags.land || a.state || a.city || '';
+            if (fields.district) fields.district.value = ags.kreis || a.county || a.borough || '';
         } catch { } finally {
             Object.values(fields).forEach(f => f && (f.disabled = false));
         }

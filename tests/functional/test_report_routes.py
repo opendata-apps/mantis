@@ -81,7 +81,6 @@ HTMX_ENDPOINTS = [
     "/melden/toggle-finder",
     "/melden/feedback-detail",
     "/melden/review",
-    "/melden/char-count",
 ]
 
 
@@ -165,6 +164,27 @@ class TestValidateStepPartial:
         )
         assert response.status_code == 200
         assert "stepValid" not in response.headers.get("HX-Trigger", "")
+
+    def test_step2_coordinate_errors_target_coordinates_element(self, client):
+        """Coordinate errors must target id='error-coordinates', not error-latitude/longitude."""
+        response = client.post(
+            "/melden/validate-step",
+            headers=_htmx_headers(),
+            data={
+                "step": "2",
+                "sighting_date": (
+                    datetime.date.today() - datetime.timedelta(days=1)
+                ).strftime("%Y-%m-%d"),
+                "fund_city": "Berlin",
+                "fund_state": "Berlin",
+                "latitude": "999",
+                "longitude": "999",
+            },
+        )
+        html = response.data.decode()
+        assert 'id="error-coordinates"' in html
+        assert 'id="error-latitude"' not in html
+        assert 'id="error-longitude"' not in html
 
     def test_step3_finder_cross_validation(self, client):
         """First name without last name → error."""
@@ -342,54 +362,7 @@ class TestReviewStep:
 
 
 # ============================================================================
-# G. /melden/char-count
-# ============================================================================
-
-class TestCharCount:
-
-    def test_short_text(self, client):
-        response = client.post(
-            "/melden/char-count",
-            headers=_htmx_headers(),
-            data={"description": "x" * 100},
-        )
-        assert response.status_code == 200
-        html = response.data.decode()
-        assert "400" in html
-
-    def test_exact_limit(self, client):
-        response = client.post(
-            "/melden/char-count",
-            headers=_htmx_headers(),
-            data={"description": "x" * 500},
-        )
-        assert response.status_code == 200
-        html = response.data.decode()
-        assert "0" in html
-
-    def test_over_limit(self, client):
-        response = client.post(
-            "/melden/char-count",
-            headers=_htmx_headers(),
-            data={"description": "x" * 510},
-        )
-        assert response.status_code == 200
-        html = response.data.decode()
-        assert "-10" in html
-
-    def test_empty(self, client):
-        response = client.post(
-            "/melden/char-count",
-            headers=_htmx_headers(),
-            data={"description": ""},
-        )
-        assert response.status_code == 200
-        html = response.data.decode()
-        assert "500" in html
-
-
-# ============================================================================
-# H. /melden GET
+# G. /melden GET
 # ============================================================================
 
 class TestMeldenGet:

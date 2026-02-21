@@ -29,7 +29,7 @@ from app.database.feedback_type import FeedbackSource
 from app.forms import MantisSightingForm
 from app.tools.gen_user_id import get_new_id
 from app.tools.mtb_calc import get_mtb, pointInRect
-from app.tools.gemeinde_finder import get_amt_full_scan
+from app.tools.gemeinde_finder import get_amt_enriched
 
 # Blueprints
 report = Blueprint("report", __name__)
@@ -207,10 +207,15 @@ def melden(usrid=None):
                 # 5. Create location record
                 lat, lon = form.latitude.data, form.longitude.data
                 mtb_value = amt_value = ""
+                spatial_land = spatial_kreis = ""
 
                 if lat is not None and lon is not None and pointInRect((lat, lon)):
                     mtb_value = get_mtb(lat, lon)
-                    amt_value = get_amt_full_scan((lon, lat))
+                    spatial = get_amt_enriched((lon, lat))
+                    if spatial:
+                        amt_value = spatial["amt_string"]
+                        spatial_land = spatial["land"]
+                        spatial_kreis = spatial["kreis"]
 
                 location_description = 0
                 if form.location_description.data:
@@ -223,8 +228,10 @@ def melden(usrid=None):
                 fundort.plz = form.fund_zip_code.data or "0"
                 fundort.ort = form.fund_city.data
                 fundort.strasse = form.fund_street.data
-                fundort.kreis = form.fund_district.data
-                fundort.land = form.fund_state.data
+                # AGS spatial data is authoritative for land/kreis;
+                # fall back to Nominatim (form) only if spatial lookup missed
+                fundort.kreis = spatial_kreis or form.fund_district.data
+                fundort.land = spatial_land or form.fund_state.data
                 fundort.longitude = lon
                 fundort.latitude = lat
                 fundort.mtb = mtb_value
@@ -383,6 +390,36 @@ def _is_partial_request():
     return request.headers.get("HX-Request") == "true"
 
 
+@report.route("/melden/ags-lookup")
+@limiter.limit("30 per minute")
+def ags_lookup():
+    """Return AGS spatial data for given coordinates.
+
+    Called by the report form JS to fill land/kreis fields from authoritative
+    BKG data instead of relying solely on Nominatim.
+    """
+    try:
+        lat = float(request.args["lat"])
+        lon = float(request.args["lon"])
+    except (KeyError, ValueError, TypeError):
+        return jsonify({}), 400
+
+    if not (-90 <= lat <= 90 and -180 <= lon <= 180):
+        return jsonify({}), 400
+
+    if not pointInRect((lat, lon)):
+        return jsonify({})
+
+    spatial = get_amt_enriched((lon, lat))
+    if not spatial:
+        return jsonify({})
+
+    return jsonify({
+        "land": spatial["land"],
+        "kreis": spatial["kreis"],
+    })
+
+
 @report.route("/melden/validate-step", methods=["POST"])
 @limiter.limit("60 per minute")
 def validate_step_partial():
@@ -434,6 +471,12 @@ def validate_step_partial():
                 errors["finder_first_name"] = form.finder_first_name.errors
             if form.finder_last_name.errors:
                 errors["finder_last_name"] = form.finder_last_name.errors
+
+    # Map latitude/longitude errors to 'coordinates' — the DOM has id="error-coordinates",
+    # not id="error-latitude" / id="error-longitude" (those elements don't exist).
+    if "latitude" in errors or "longitude" in errors:
+        coord_msgs = errors.pop("latitude", []) + errors.pop("longitude", [])
+        errors["coordinates"] = coord_msgs[:1]  # Show first relevant message
 
     if is_valid:
         # Return a trigger to advance to next step + clear any previous errors via OOB
@@ -539,22 +582,6 @@ def review_step():
     }
 
     return render_template("report/partials/_review_content.html", review=review_data)
-
-
-@report.route("/melden/char-count", methods=["POST"])
-def char_count():
-    """HTMX endpoint to update character count display."""
-    if not _is_partial_request():
-        abort(400)
-
-    description = request.form.get("description", "")
-    max_length = 500
-    remaining = max_length - len(description)
-    is_over = remaining < 0
-
-    return render_template(
-        "report/partials/_char_count.html", remaining=remaining, is_over=is_over
-    )
 
 
 # Helper functions for review display
