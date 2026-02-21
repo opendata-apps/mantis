@@ -184,6 +184,44 @@ def seed_ags_command():
         raise click.Abort()
 
 
+@click.command("validate-coordinates")
+@click.option("--csv", "csv_path", default=None, help="Write mismatches to a CSV file")
+@click.option("--verbose", is_flag=True, help="Show all checked fundorte, not just mismatches")
+@with_appcontext
+def validate_coordinates_command(csv_path, verbose):
+    """Check that stored address fields match the coordinates on the map.
+
+    Compares each Fundort's 'land' and 'ort' against what the GemeindeFinder
+    resolves from its coordinates.  Reports mismatches without modifying any data.
+    """
+    from sqlalchemy import select, func
+    from app.database.fundorte import TblFundorte
+    from app.tools.gemeinde_finder import get_amt_enriched
+    from app.tools.validate_coordinates import (
+        validate_fundorte,
+        format_report,
+        format_csv,
+    )
+
+    count = db.session.scalar(select(func.count(TblFundorte.id)))
+    click.echo(f"Loading {count} Fundorte...")
+
+    fundorte = db.session.scalars(select(TblFundorte)).all()
+
+    click.echo("Validating coordinates against address fields...")
+    mismatches, checked, skipped = validate_fundorte(fundorte, get_amt_enriched)
+
+    click.echo(format_report(mismatches, checked, skipped))
+
+    if csv_path and mismatches:
+        with open(csv_path, "w", encoding="utf-8") as f:
+            f.write(format_csv(mismatches))
+        click.echo(f"\nCSV written to {csv_path}")
+
+    if mismatches:
+        raise SystemExit(1)
+
+
 def _copy_demo_images():
     """Copy demo images for sample reports."""
     from flask import current_app
@@ -334,6 +372,7 @@ def create_app(config_class=Config):
     app.cli.add_command(create_all_data_view)
     app.cli.add_command(seed_command)
     app.cli.add_command(seed_ags_command)
+    app.cli.add_command(validate_coordinates_command)
 
     @app.shell_context_processor
     def make_shell_context():
