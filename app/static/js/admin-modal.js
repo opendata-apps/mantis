@@ -424,16 +424,19 @@ function getAddressFromCoordinates(latitude, longitude) {
     });
 }
 
-function setTextById(id, value) {
+function setAddressRow(id, value) {
     var el = document.getElementById(id);
-    if (el) el.textContent = value;
+    if (!el) return;
+    var span = el.querySelector('[data-text]');
+    if (span) span.textContent = value;
+    el.classList.toggle('hidden', !value);
 }
 
 function updateAddressDisplay(d) {
-    setTextById('addressStreet', d.street || '');
-    setTextById('addressCity', ((d.zipCode || '') + ' ' + (d.city || '')).trim());
-    setTextById('addressDistrict', d.district || '');
-    setTextById('addressState', d.state || '');
+    setAddressRow('addressStreet', d.street || '');
+    setAddressRow('addressCity', ((d.zipCode || '') + ' ' + (d.city || '')).trim());
+    var region = [d.district, d.state].filter(Boolean).join(' \u00b7 ');
+    setAddressRow('addressRegion', region);
 }
 
 // ---------------------------------------------------------------------------

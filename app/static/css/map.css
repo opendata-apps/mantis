@@ -66,8 +66,17 @@
   }
 }
 
+/* When the map tab is active, make #tab-content the positioning context.
+   overflow: clip prevents visual overflow without creating a scroll container
+   (unlike overflow: hidden, it doesn't affect flex layout). */
+#tab-content:has(#map) {
+  position: relative;
+  overflow: clip;
+}
+
 @media (max-width: 640px) {
-  #map {
+  /* Only add margin on the public map page, not the admin modal's absolute map */
+  #map:not(.absolute) {
     margin-left: 10px;
     margin-right: 10px;
   }
