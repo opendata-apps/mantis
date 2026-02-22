@@ -1,62 +1,63 @@
 {% extends "layout.html" %}
-{% block title %}Statistiken{% endblock title %}
+{% block title %}
+  Statistiken
+{% endblock title %}
 {% block meta_keywords %}Auswertungen, Meßtischblatt{% endblock %}
 {% from 'statistics/_macros_stats_menu.html' import StatsMenu with context %}
 {% block content %}
-<section class="container px-4 mx-auto mt-10">
-  <div class="p-4 bg-gray-100 rounded-lg border border-gray-200 sm:p-5">
-    <form action="" method="POST" class="space-y-4">
-      {{ StatsMenu() }}
-    </form>
-    <p class="mt-4 text-sm text-gray-700">Für den Zeitraum vom {{ session['date_from'] }} bis {{ session['date_to'] }}.</p>
-    <p class="text-sm text-gray-700">Gebietskennzahl: {{ ags }} - Land: {{ land }}</p>
-    <h2 class="mt-4 mb-3 text-lg font-semibold text-gray-900">Meldungen</h2>
-
-    <div class="flex flex-wrap justify-center">
-      {% for k in result.keys() %}
-      <div class="p-4">
-	<div class="mb-4 text-center">
-	  <h1 class="text-xl font-bold">{{ k }}</h1>
-	</div>
-	<div class="overflow-x-auto">
-	  <table class="w-full min-w-[14rem] table-fixed">
-            <thead>
-              <tr>
-		<th class="text-left">Art</th>
-		<th class="text-right">Anzahl</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-		<td>Männlich</td>
-		<td class="text-right">{{result[k]['maennlich']}}</td>
-              </tr>
-              <tr>
-		<td>Weiblich</td>
-		<td class="text-right">{{result[k]['weiblich']}}</td>
-              </tr>
-              <tr>
-		<td>Nymphe</td>
-		<td class="text-right">{{result[k]['nymphe']}}</td>
-              </tr>
-              <tr>
-		<td>Oothek</td>
-		<td class="text-right">{{result[k]['oothek']}}</td>
-              </tr>
-              <tr>
-		<td>Andere</td>
-		<td class="text-right">{{result[k]['andere']}}</td>
-              </tr>
-              <tr class="border-t-2 border-b-4 border-green-500">
-		<td>Gesamt</td>
-		<td class="text-right">{{result[k]['gesamt']}}</td>
-              </tr>
-            </tbody>
-	  </table>
-	</div>
+  <section class="container px-4 mx-auto mt-10">
+    <div class="p-4 bg-gray-100 rounded-lg border border-gray-200 sm:p-5">
+      <form action="" method="POST" class="space-y-4">
+        {{ StatsMenu() }}
+      </form>
+      <p class="mt-4 text-sm text-gray-700">Für den Zeitraum vom {{ session['date_from'] }} bis {{ session['date_to'] }}.</p>
+      <p class="text-sm text-gray-700">Gebietskennzahl: {{ ags }} - Land: {{ land }}</p>
+      <h2 class="mt-4 mb-3 text-lg font-semibold text-gray-900">Meldungen</h2>
+      <div class="flex flex-wrap justify-center">
+        {% for k in result.keys() %}
+          <div class="p-4">
+            <div class="mb-4 text-center">
+              <h1 class="text-xl font-bold">{{ k }}</h1>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full min-w-[14rem] table-fixed">
+                <thead>
+                  <tr>
+                    <th class="text-left">Art</th>
+                    <th class="text-right">Anzahl</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Männlich</td>
+                    <td class="text-right">{{ result[k]['maennlich'] }}</td>
+                  </tr>
+                  <tr>
+                    <td>Weiblich</td>
+                    <td class="text-right">{{ result[k]['weiblich'] }}</td>
+                  </tr>
+                  <tr>
+                    <td>Nymphe</td>
+                    <td class="text-right">{{ result[k]['nymphe'] }}</td>
+                  </tr>
+                  <tr>
+                    <td>Oothek</td>
+                    <td class="text-right">{{ result[k]['oothek'] }}</td>
+                  </tr>
+                  <tr>
+                    <td>Andere</td>
+                    <td class="text-right">{{ result[k]['andere'] }}</td>
+                  </tr>
+                  <tr class="border-t-2 border-b-4 border-green-500">
+                    <td>Gesamt</td>
+                    <td class="text-right">{{ result[k]['gesamt'] }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        {% endfor %}
       </div>
-      {% endfor %}
     </div>
-  </div>
-</section>
+  </section>
 {% endblock content %}

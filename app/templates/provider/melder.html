@@ -1,81 +1,79 @@
 {% extends "layout.html" %}
 {% block meta_robots %}noindex,nofollow{% endblock %}
-{% block title %} Meine Sichtungen {% endblock title %}
-{% block button_ref %} "/melden/{{ report_user_id }}" {% endblock %}
+{% block title %}
+  Meine Sichtungen
+{% endblock title %}
+{% block button_ref %}"/melden/{{ report_user_id }}"{% endblock %}
 {% block content %}
-
-<div class="container px-4 mx-auto my-10 md:px-12">
-  <div class="my-4 text-center">
-    <h1 class="my-1 text-4xl font-bold text-gray-900">
-      Ihre bisherigen Meldungen
-    </h1>
-    <hr class="w-1/4 mx-auto my-4 border-t-2 border-green-600" />
-  </div>
-  {% if reported_sightings %}
-  <div class="grid grid-cols-1 gap-6 mb-4 sm:grid-cols-2 lg:grid-cols-3" id="reportContainer">
-    {% for sighting in reported_sightings %}
-    {% set fundort = sighting.fundort %}
-    <div
-      class="mb-8 overflow-hidden transition-shadow duration-300 ease-in-out bg-white rounded-lg shadow-lg hover:shadow-2xl report-card">
-      <div class="relative">
-        <a href="{{ url_for('provider.report_img', filename=fundort.ablage)}}" data-lightbox="sightings">
-          <img loading="lazy"
-            class="object-cover w-full h-48 transition-transform duration-200 ease-in-out rounded-t-lg cursor-pointer md:h-64 hover:scale-105"
-            src="{{ url_for('provider.report_img', filename=fundort.ablage)}}"
-            alt="Sichtungsfoto">
-        </a>
-        <div
-          title="{{fundort.ort}}&#13;&#10;Postleitzahl: {{fundort.plz}}&#13;&#10;Kreis: {{fundort.kreis}}&#13;&#10;Land: {{fundort.land}}"
-          class="absolute bottom-0 px-3 py-1 mb-4 ml-4 font-semibold text-gray-800 rounded-full bg-white/80 backdrop-blur-md">
-          {{fundort.kreis}} | {{fundort.ort}}</div>
-        <span
-          class="absolute inline-block px-2 py-1 font-semibold leading-none tracking-wide text-white uppercase bg-green-600 rounded-full top-2 left-2">
-          {{sighting.id}}</span>
-      </div>
-      <div class="p-4 bg-white rounded-lg shadow-lg">
-        <h4 class="mt-2 text-sm font-semibold leading-tight text-gray-900">
-          <strong>Melde-ID:</strong> {{ sighting.id }}
-        </h4>
-        <div class="mt-2">
-          <p class="text-sm">
-            <strong>Melde-Datum:</strong> {{sighting.dat_meld}}
-          </p>
-          <p class="text-sm">
-            <strong>Fund-Datum:</strong> {{sighting.dat_fund_von}}
-          </p>
-          <p class="text-sm">
-            <strong>Kreis:</strong> {{fundort.kreis}}
-          </p>
-          <p class="text-sm">
-            <strong>Längengrad:</strong> {{fundort.longitude}}
-          </p>
-          <p class="text-sm">
-            <strong>Breitengrad:</strong> {{fundort.latitude}}
-          </p>
-          <p class="text-sm">
-            <strong>Datum der Überprüfung:</strong> {{sighting.dat_bear or 'noch nicht geprüft'}}
-          </p>
-        </div>
-      </div>
+  <div class="container px-4 mx-auto my-10 md:px-12">
+    <div class="my-4 text-center">
+      <h1 class="my-1 text-4xl font-bold text-gray-900">Ihre bisherigen Meldungen</h1>
+      <hr class="w-1/4 mx-auto my-4 border-t-2 border-green-600" />
     </div>
-    {% endfor %}
+    {% if reported_sightings %}
+      <div class="grid grid-cols-1 gap-6 mb-4 sm:grid-cols-2 lg:grid-cols-3"
+           id="reportContainer">
+        {% for sighting in reported_sightings %}
+          {% set fundort = sighting.fundort %}
+          <div class="mb-8 overflow-hidden transition-shadow duration-300 ease-in-out bg-white rounded-lg shadow-lg hover:shadow-2xl report-card">
+            <div class="relative">
+              <a href="{{ url_for('provider.report_img', filename=fundort.ablage) }}"
+                 data-lightbox="sightings">
+                <img loading="lazy"
+                     class="object-cover w-full h-48 transition-transform duration-200 ease-in-out rounded-t-lg cursor-pointer md:h-64 hover:scale-105"
+                     src="{{ url_for('provider.report_img', filename=fundort.ablage) }}"
+                     alt="Sichtungsfoto">
+              </a>
+              <div title="{{ fundort.ort }}&#13;&#10;Postleitzahl: {{ fundort.plz }}&#13;&#10;Kreis: {{ fundort.kreis }}&#13;&#10;Land: {{ fundort.land }}"
+                   class="absolute bottom-0 px-3 py-1 mb-4 ml-4 font-semibold text-gray-800 rounded-full bg-white/80 backdrop-blur-md">
+                {{ fundort.kreis }} | {{ fundort.ort }}
+              </div>
+              <span class="absolute inline-block px-2 py-1 font-semibold leading-none tracking-wide text-white uppercase bg-green-600 rounded-full top-2 left-2">
+              {{ sighting.id }}</span>
+            </div>
+            <div class="p-4 bg-white rounded-lg shadow-lg">
+              <h4 class="mt-2 text-sm font-semibold leading-tight text-gray-900">
+                <strong>Melde-ID:</strong> {{ sighting.id }}
+              </h4>
+              <div class="mt-2">
+                <p class="text-sm">
+                  <strong>Melde-Datum:</strong> {{ sighting.dat_meld }}
+                </p>
+                <p class="text-sm">
+                  <strong>Fund-Datum:</strong> {{ sighting.dat_fund_von }}
+                </p>
+                <p class="text-sm">
+                  <strong>Kreis:</strong> {{ fundort.kreis }}
+                </p>
+                <p class="text-sm">
+                  <strong>Längengrad:</strong> {{ fundort.longitude }}
+                </p>
+                <p class="text-sm">
+                  <strong>Breitengrad:</strong> {{ fundort.latitude }}
+                </p>
+                <p class="text-sm">
+                  <strong>Datum der Überprüfung:</strong> {{ sighting.dat_bear or 'noch nicht geprüft' }}
+                </p>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="text-center">
+        <h2 class="text-xl font-semibold text-gray-900">Keine Meldungen gefunden</h2>
+        <p class="mt-2 text-gray-600">
+          Es wurden keine Meldungen von Ihnen gefunden. Beginnen Sie mit Ihrer ersten Meldung, indem Sie den Button oben nutzen.
+        </p>
+      </div>
+    {% endif %}
+    <div class="p-5 mt-5 text-center bg-white shadow-md rounded-lg">
+      <p class="text-lg font-medium text-gray-700">Vielen Dank für Ihre Unterstützung.</p>
+      <p class="text-lg font-bold text-green-600">-== Ihr Mantis-Team ==-</p>
+      <p class="mt-2 text-sm font-medium text-gray-600">
+        HINWEIS: Behandeln Sie diesen Link wie ein Passwort und geben Sie ihn
+        nicht weiter!
+      </p>
+    </div>
   </div>
-  {% else %}
-  <div class="text-center">
-    <h2 class="text-xl font-semibold text-gray-900">Keine Meldungen gefunden</h2>
-    <p class="mt-2 text-gray-600">Es wurden keine Meldungen von Ihnen gefunden. Beginnen Sie mit Ihrer ersten Meldung, indem Sie den Button oben nutzen.</p>
-  </div>
-  {% endif %}
-
-<div class="p-5 mt-5 text-center bg-white shadow-md rounded-lg">
-  <p class="text-lg font-medium text-gray-700">
-    Vielen Dank für Ihre Unterstützung.
-  </p>
-  <p class="text-lg font-bold text-green-600">-== Ihr Mantis-Team ==-</p>
-  <p class="mt-2 text-sm font-medium text-gray-600">
-    HINWEIS: Behandeln Sie diesen Link wie ein Passwort und geben Sie ihn
-    nicht weiter!
-  </p>
-</div>
-</div>
 {% endblock content %}

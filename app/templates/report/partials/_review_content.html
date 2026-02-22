@@ -1,6 +1,5 @@
 {# HTMX partial: Complete review section content #}
 <div id="review-content" class="space-y-6">
-
   {# Photo & Details Review #}
   <div class="overflow-hidden bg-white border border-gray-200 rounded-lg shadow-xs review-section">
     <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-gray-50">
@@ -8,7 +7,9 @@
         <i class="fas fa-image w-5 h-5 mr-2 text-green-600"></i>
         Foto & Details
       </h4>
-      <button type="button" class="edit-btn flex items-center p-1 text-sm font-medium text-green-700 rounded-sm hover:text-green-800 hover:bg-green-50" data-step="1">
+      <button type="button"
+              class="edit-btn flex items-center p-1 text-sm font-medium text-green-700 rounded-sm hover:text-green-800 hover:bg-green-50"
+              data-step="1">
         <i class="w-4 h-4 mr-1 fas fa-pencil-alt"></i>
         Bearbeiten
       </button>
@@ -18,7 +19,10 @@
         <div class="mb-4 md:w-1/3 md:mb-0">
           <div class="flex overflow-hidden justify-center items-center h-40 bg-gray-50 rounded-md border border-gray-200 md:h-48">
             {# Photo src injected client-side via htmx:afterSwap to avoid base64 round-trip #}
-            <img id="review-photo" class="object-contain max-w-full max-h-full" src="" alt="Uploaded photo">
+            <img id="review-photo"
+                 class="object-contain max-w-full max-h-full"
+                 src=""
+                 alt="Uploaded photo">
           </div>
         </div>
         <div class="md:w-2/3">
@@ -33,14 +37,15 @@
             </div>
             <div>
               <span class="font-medium text-gray-700">Zusätzliche Details:</span>
-              <div class="p-2 mt-1 overflow-y-auto text-gray-900 wrap-break-word rounded-md bg-gray-50 max-h-32">{{ review.description }}</div>
+              <div class="p-2 mt-1 overflow-y-auto text-gray-900 wrap-break-word rounded-md bg-gray-50 max-h-32">
+                {{ review.description }}
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-
   {# Location & Date Review #}
   <div class="overflow-hidden bg-white border border-gray-200 rounded-lg shadow-xs review-section">
     <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-gray-50">
@@ -48,7 +53,9 @@
         <i class="fas fa-map-marker-alt w-5 h-5 mr-2 text-green-600"></i>
         Wann und Wo?
       </h4>
-      <button type="button" class="edit-btn flex items-center p-1 text-sm font-medium text-green-700 rounded-sm hover:text-green-800 hover:bg-green-50" data-step="2">
+      <button type="button"
+              class="edit-btn flex items-center p-1 text-sm font-medium text-green-700 rounded-sm hover:text-green-800 hover:bg-green-50"
+              data-step="2">
         <i class="w-4 h-4 mr-1 fas fa-pencil-alt"></i>
         Bearbeiten
       </button>
@@ -62,7 +69,6 @@
           </div>
           <div class="text-gray-900 ml-7">{{ review.sighting_date }}</div>
         </div>
-
         <div class="p-3 rounded-md bg-gray-50">
           <div class="flex items-center mb-2">
             <i class="fas fa-location-dot w-5 h-5 text-green-500 mr-2"></i>
@@ -71,7 +77,6 @@
           <div class="text-gray-900 ml-7">{{ review.coordinates }}</div>
           <p class="text-xs italic text-gray-600 ml-7">Bitte prüfen: Ist dies der genaue Fundort?</p>
         </div>
-
         <div class="md:col-span-2">
           <div class="p-3 rounded-md bg-gray-50">
             <div class="flex items-center mb-2">
@@ -105,7 +110,6 @@
       </div>
     </div>
   </div>
-
   {# Contact Information Review #}
   <div class="overflow-hidden bg-white border border-gray-200 rounded-lg shadow-xs review-section">
     <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-gray-50">
@@ -113,7 +117,9 @@
         <i class="fas fa-user w-5 h-5 mr-2 text-green-600"></i>
         Ihre Kontaktdaten
       </h4>
-      <button type="button" class="edit-btn flex items-center p-1 text-sm font-medium text-green-700 rounded-sm hover:text-green-800 hover:bg-green-50" data-step="3">
+      <button type="button"
+              class="edit-btn flex items-center p-1 text-sm font-medium text-green-700 rounded-sm hover:text-green-800 hover:bg-green-50"
+              data-step="3">
         <i class="w-4 h-4 mr-1 fas fa-pencil-alt"></i>
         Bearbeiten
       </button>
@@ -127,7 +133,6 @@
           </div>
           <div class="text-gray-900 ml-7">{{ review.reporter_name }}</div>
         </div>
-
         <div class="p-3 rounded-md bg-gray-50">
           <div class="flex items-center mb-2">
             <i class="fas fa-envelope w-5 h-5 text-green-500 mr-2"></i>
@@ -135,19 +140,17 @@
           </div>
           <div class="text-gray-900 ml-7">{{ review.email }}</div>
         </div>
-
         {% if not review.identical_finder and review.finder_name != '-' %}
-        <div class="md:col-span-2">
-          <div class="p-3 rounded-md bg-gray-50">
-            <div class="flex items-center mb-2">
-              <i class="fas fa-user w-5 h-5 text-green-500 mr-2"></i>
-              <span class="font-medium text-gray-700">Finder</span>
+          <div class="md:col-span-2">
+            <div class="p-3 rounded-md bg-gray-50">
+              <div class="flex items-center mb-2">
+                <i class="fas fa-user w-5 h-5 text-green-500 mr-2"></i>
+                <span class="font-medium text-gray-700">Finder</span>
+              </div>
+              <div class="text-gray-900 ml-7">{{ review.finder_name }}</div>
             </div>
-            <div class="text-gray-900 ml-7">{{ review.finder_name }}</div>
           </div>
-        </div>
         {% endif %}
-
         <div class="md:col-span-2">
           <div class="p-3 rounded-md bg-gray-50">
             <div class="flex items-center mb-2">
@@ -156,14 +159,13 @@
             </div>
             <div class="text-gray-900 ml-7">{{ review.feedback_source }}</div>
             {% if review.feedback_detail %}
-            <div class="mt-1 ml-7 text-sm text-gray-600">Details: {{ review.feedback_detail }}</div>
+              <div class="mt-1 ml-7 text-sm text-gray-600">Details: {{ review.feedback_detail }}</div>
             {% endif %}
           </div>
         </div>
       </div>
     </div>
   </div>
-
   {# Final warning #}
   <div class="p-4 bg-amber-50 rounded-lg border border-amber-200 shadow-xs">
     <div class="flex">

@@ -1,369 +1,354 @@
 {% extends "layout.html" %}
 {% block meta_robots %}noindex,nofollow{% endblock %}
-{% block title %} Admin Panel {% endblock title%}
-{% block text %} {{user_name}} {% endblock text %}
+{% block title %}
+  Admin Panel
+{% endblock title %}
+{% block text %}
+  {{ user_name }}
+{% endblock text %}
 {% from "_macros_ui.html" import render_pagination %}
-{% block head %}
-{{ vite_tags('js/map.js') }}
-{% endblock %}
+{% block head %}{{ vite_tags("js/map.js") }}{% endblock %}
 {% block content %}
-<script type="module" src="{{ vite_asset('js/vendor.js') }}"></script>
-<script type="module" src="{{ vite_asset('js/admin.js') }}"></script>
-{{ vite_tags('js/admin-htmx.js') }}
-<script type="module" src="{{ vite_asset('js/admin-modal.js') }}"></script>
-
-<!-- CSRF Token for JavaScript -->
-<meta name="csrf-token" content="{{ csrf_token() }}">
-
-<div class="container px-4 mx-auto my-10 md:px-12">
-
+  <script type="module" src="{{ vite_asset('js/vendor.js') }}"></script>
+  <script type="module" src="{{ vite_asset('js/admin.js') }}"></script>
+  {{ vite_tags("js/admin-htmx.js") }}
+  <script type="module" src="{{ vite_asset('js/admin-modal.js') }}"></script>
+  <!-- CSRF Token for JavaScript -->
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <div class="container px-4 mx-auto my-10 md:px-12">
     {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-    {% for category, message in messages %}
-    {% if category == 'error' %}
-    <div class="flex justify-between items-center p-4 mb-4 text-red-800 bg-red-100 rounded-md border-l-4 border-red-500"
-        role="alert">
-        <div>
-            <strong class="font-bold">Error!</strong>
-            <span class="block sm:inline">{{ message }}</span>
-        </div>
-        <button onclick="this.closest('[role=alert]').remove()"
-            class="text-red-800 hover:text-red-900">
-            <svg class="w-6 h-6 fill-current" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                <title>Close</title>
-                <path
-                    d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z">
-                </path>
-            </svg>
-        </button>
-    </div>
-    {% endif %}
-    {% if category == 'info' %}
-    <div class="flex justify-between items-center p-4 mb-4 text-blue-800 bg-blue-100 rounded-md border-l-4 border-blue-500"
-        role="alert">
-        <div>
-            <strong class="font-bold">Info: </strong>
-            <span class="block sm:inline">{{ message | safe}}</span>
-        </div>
-        <button onclick="this.closest('[role=alert]').remove()"
-            class="text-blue-800 hover:text-blue-900">
-            <svg class="w-6 h-6 fill-current" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                <title>Close</title>
-                <path
-                    d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z">
-                </path>
-            </svg>
-        </button>
-    </div>
-    {% endif %}
-    {% endfor %}
-    {% endif %}
-    {% endwith %}
-
-    <div class="flex flex-col gap-3 mb-5 lg:flex-row lg:items-center">
-        <div class="w-full lg:w-auto">
-            <!-- Filter dropdown -->
-            <details class="relative dropdown group">
-                <summary class="group flex justify-center items-center px-4 py-2.5 w-full text-sm font-medium text-gray-700 bg-white rounded-lg border border-gray-300 transition-all duration-200 lg:w-auto focus:outline-hidden hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900 focus-visible:border-green-500 focus-visible:ring-2 focus-visible:ring-green-500/30 group-open:border-green-500 group-open:ring-2 group-open:ring-green-500/30 cursor-pointer list-none">
-                    <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="mr-2 w-4 h-4 text-gray-500 transition-colors duration-200 group-hover:text-gray-700"
-                        viewbox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd"
-                            d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"
-                            clip-rule="evenodd" />
-                    </svg>
-                    Filter
-                    <svg class="-mr-1 ml-1.5 w-5 h-5 text-gray-500 transition-colors duration-200 group-hover:text-gray-700" fill="currentColor" viewbox="0 0 20 20"
-                        xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                        <path clip-rule="evenodd" fill-rule="evenodd"
-                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
-                    </svg>
-                </summary>
-                <div class="absolute left-0 z-10 p-4 space-y-3 w-64 bg-white rounded-lg divide-y divide-gray-100 shadow-lg sm:w-80 mt-1">
-                <form action="{{ url_for('admin.reviewer') }}" method="GET" class="space-y-3">
-                    <div class="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
-                        <div class="space-y-1 w-full md:w-1/2">
-                            <label for="statusInput"
-                                class="block text-sm font-semibold text-left text-gray-700">Status</label>
-                            <select id="statusInput" name="statusInput"
-                                class="p-2 w-full text-sm rounded-md shadow-xs focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                                <option value="all" {% if filters.status=="all" %}selected{% endif %}>Alle</option>
-                                <option value="offen" {% if filters.status=="offen" %}selected{% endif %}>Offen</option>
-                                <option value="bearbeitet" {% if filters.status=="bearbeitet" %}selected{% endif %}>Angenommen</option>
-                                <option value="unklar" {% if filters.status=="unklar" %}selected{% endif %}>Unklar</option>
-                                <option value="informiert" {% if filters.status=="informiert" %}selected{% endif %}>Informiert</option>
-                                <option value="geloescht" {% if filters.status=="geloescht" %}selected{% endif %}>Gelöscht</option>
-                            </select>
-                        </div>
-                        <div class="space-y-1 w-full md:w-1/2">
-                            <label for="typeInput"
-                                class="block text-sm font-semibold text-left text-gray-700">Typ</label>
-                            <select id="typeInput" name="typeInput"
-                                class="p-2 w-full text-sm rounded-md shadow-xs focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                                <option value="all" {% if filters.type=="all" %}selected{% endif %}>Alle</option>
-                                <option value="maennlich" {% if filters.type=="maennlich" %}selected{% endif %}>Männlich
-                                </option>
-                                <option value="weiblich" {% if filters.type=="weiblich" %}selected{% endif %}>Weiblich
-                                </option>
-                                <option value="oothek" {% if filters.type=="oothek" %}selected{% endif %}>Oothek
-                                </option>
-                                <option value="Nymphe" {% if filters.type=="Nymphe" %}selected{% endif %}>Nymphe
-                                </option>
-                                <option value="andere" {% if filters.type=="andere" %}selected{% endif %}>Andere
-                                </option>
-                                <option value="nicht_bestimmt" {% if filters.type=="nicht_bestimmt" %}selected{% endif
-                                    %}>Nicht bestimmt</option>
-                            </select>
-                        </div>
-                    </div>
-                    <!-- Date section: toggle + range inputs grouped together -->
-                    <div class="p-2.5 space-y-2 rounded-lg border border-gray-200 bg-gray-50/60">
-                        <div class="flex items-center justify-between gap-2">
-                            <span class="text-sm font-semibold text-gray-700">Datum</span>
-                            <div class="inline-flex rounded-md border border-gray-300 overflow-hidden">
-                                <button type="button" data-date-type="fund"
-                                    class="date-type-btn px-2.5 py-1 text-xs font-medium transition-colors duration-150 {{ 'bg-green-600 text-white' if current_date_type != 'meld' else 'bg-white text-gray-600 hover:bg-gray-100' }}"
-                                    onclick="setDateType('fund')">Funddatum</button>
-                                <button type="button" data-date-type="meld"
-                                    class="date-type-btn px-2.5 py-1 text-xs font-medium transition-colors duration-150 border-l border-gray-300 {{ 'bg-green-600 text-white border-l-green-600' if current_date_type == 'meld' else 'bg-white text-gray-600 hover:bg-gray-100' }}"
-                                    onclick="setDateType('meld')">Meldedatum</button>
-                            </div>
-                        </div>
-                        <input type="hidden" name="dateType" id="dateType" value="{{ current_date_type or 'fund' }}">
-                        <div date-rangepicker datepicker-buttons datepicker-autoselect-today datepicker-format="dd.mm.yyyy"
-                            class="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
-                            <div class="relative w-full md:w-1/2">
-                                <label for="dateFrom" class="sr-only">Datum von</label>
-                                <input name="dateFrom" id="dateFrom" type="text"
-                                    value="{{ request.args.get('dateFrom', '') }}"
-                                    class="p-2 w-full text-sm bg-white rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                                    placeholder="von">
-                                <div class="flex absolute inset-y-0 right-0 items-center pr-3 pointer-events-none">
-                                    <svg class="w-4 h-4 text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                        fill="currentColor" viewBox="0 0 20 20">
-                                        <path
-                                            d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
-                                    </svg>
-                                </div>
-                            </div>
-                            <div class="relative w-full md:w-1/2">
-                                <label for="dateTo" class="sr-only">Datum bis</label>
-                                <input name="dateTo" id="dateTo" type="text" value="{{ request.args.get('dateTo', '') }}"
-                                    class="p-2 w-full text-sm bg-white rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                                    placeholder="bis">
-                                <div class="flex absolute inset-y-0 right-0 items-center pr-3 pointer-events-none">
-                                    <svg class="w-4 h-4 text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                        fill="currentColor" viewBox="0 0 20 20">
-                                        <path
-                                            d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="flex justify-between mt-4 space-x-4">
-                        <button id="clearFilters" type="button"
-                            class="inline-flex justify-center items-center px-2 py-1 w-24 text-sm font-medium text-red-600 bg-white rounded-lg border border-red-300 transition-all duration-200 hover:bg-red-50 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-red-500/30">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor" class="mr-1 w-4 h-4">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                                    d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
-                            Löschen
-                        </button>
-                        <button type="submit"
-                            class="btn-green px-4 py-2 w-1/2">
-                            Filtern
-                        </button>
-                    </div>
-                    <input type="hidden" name="q" value="{{ request.args.get('q', '') }}">
-                    <input type="hidden" name="sort_order" value="{{ request.args.get('sort_order', '') }}">
-                    <input type="hidden" name="search_type" value="{{ request.args.get('search_type', '') }}">
-                </form>
-                </div>
-            </details>
-        </div>
-        <div class="flex relative items-center w-full lg:flex-1 lg:min-w-[24rem]">
-            <form action="{{ url_for('admin.reviewer') }}" method="GET"
-                class="flex items-center w-full bg-white rounded-lg border border-gray-300 transition-all duration-200 focus-within:border-green-500 focus-within:ring-2 focus-within:ring-green-500/30">
-                <!-- Left select (grouped with input, subtle style) -->
-                <div class="relative shrink-0">
-                    <select id="searchType" name="search_type" onchange="changeInputPattern()"
-                        class="appearance-none bg-none py-2.5 pr-9 pl-3.5 min-w-[90px] text-sm text-gray-700 bg-transparent border-0 rounded-l-lg shadow-none cursor-pointer focus:outline-hidden focus:ring-0 focus:border-transparent">
-                        <option value="full_text" {% if search_type=='full_text' %}selected{% endif %}>Text</option>
-                        <option value="id" {% if search_type=='id' %}selected{% endif %}>ID</option>
-                    </select>
-                    <svg class="absolute right-3 top-1/2 w-4 h-4 text-gray-500 pointer-events-none transform -translate-y-1/2"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                </div>
-                <div class="w-px h-6 bg-gray-300"></div>
-                <!-- Search text input -->
-                <div class="relative grow">
-                    <input type="text" id="searchInput" name="q" placeholder="Suche nach Meldungen..."
-                        value="{{ request.args.get('q', '') }}" maxlength="50"
-                        class="py-2.5 pr-22 pl-3.5 w-full text-sm bg-transparent border-0 rounded-r-lg shadow-none placeholder:text-gray-500 focus:outline-hidden focus:ring-0 focus:border-transparent">
-                    <div class="flex absolute inset-y-0 right-2 items-center gap-1">
-                        <button type="button" onclick="clearSearch()" title="Löschen"
-                            class="inline-flex justify-center items-center p-1 text-gray-500 rounded-md transition-colors hover:text-gray-700 hover:bg-gray-100 focus:outline-hidden">
-                            <svg focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16"
-                                height="16">
-                                <path
-                                    d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z">
-                                </path>
-                            </svg>
-                        </button>
-                        <span class="w-px h-5 bg-gray-300"></span>
-                        <button type="submit" class="inline-flex justify-center items-center p-1 rounded-md transition-colors group hover:bg-gray-100 focus:outline-hidden" title="Suchsyntax:
-&#8226; Exakte Phrase: &quot;berlin mitte&quot;
-&#8226; ODER-Suche: berlin OR hamburg
-&#8226; Ausschluss: -nymphe
-&#8226; Gruppierung: (berlin OR hamburg) -nymphe">
-                            <svg class="w-5 h-5 text-gray-500 transition-colors duration-200 group-hover:text-green-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
-                                fill="currentColor" aria-hidden="true">
-                                <path fill-rule="evenodd"
-                                    d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-                                    clip-rule="evenodd" />
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-                <input type="hidden" name="statusInput" value="{{ request.args.get('statusInput', '') }}">
-                <input type="hidden" name="sort_order" value="{{ request.args.get('sort_order', '') }}">
-                <input type="hidden" id="hiddenDateFrom" name="dateFrom" value="{{ request.args.get('dateFrom', '') }}">
-                <input type="hidden" id="hiddenDateTo" name="dateTo" value="{{ request.args.get('dateTo', '') }}">
-                <input type="hidden" id="hiddenDateType" name="dateType" value="{{ request.args.get('dateType', 'fund') }}">
-                <button type="submit" class="hidden">Suchen</button>
-            </form>
-        </div>
-
-
-
-        <div class="flex gap-2 items-center w-full lg:w-auto lg:shrink-0">
-            <!-- Sortieren Dropdown -->
-            <details class="relative grow dropdown lg:grow-0 group">
-                <summary class="group flex justify-center items-center px-4 py-2.5 w-full text-sm font-medium text-gray-700 bg-white rounded-lg border border-gray-300 transition-all duration-200 focus:outline-hidden hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900 focus-visible:border-green-500 focus-visible:ring-2 focus-visible:ring-green-500/30 group-open:border-green-500 group-open:ring-2 group-open:ring-green-500/30 cursor-pointer list-none lg:min-w-[9.5rem]">
-                    <span id="sortText">Sortieren...</span>
-                    <svg class="-mr-1 ml-1.5 w-5 h-5 text-gray-500 transition-colors duration-200 group-hover:text-gray-700" fill="currentColor" viewbox="0 0 20 20"
-                        xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                        <path clip-rule="evenodd" fill-rule="evenodd"
-                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
-                    </svg>
-                </summary>
-                <div class="absolute right-0 z-10 w-48 bg-white rounded-lg divide-y divide-gray-100 shadow-lg mt-1">
-                <ul class="py-2 text-sm text-gray-700" aria-labelledby="dropdownSortButton">
-                    <li>
-                        <button onclick="setSortOrder('id_asc')" 
-                            class="flex items-center w-full px-4 py-2.5 text-left text-gray-700 transition-all duration-200 hover:bg-gray-50 hover:text-gray-900 {% if current_sort_order == 'id_asc' %}bg-gray-50{% endif %}">
-                            <div class="w-2 h-2 mr-2 {% if current_sort_order == 'id_asc' %}bg-green-500{% else %}bg-transparent{% endif %} rounded-full"></div>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                                class="mr-2 bi bi-sort-numeric-up" viewBox="0 0 16 16">
-                                <path d="M12.438 1.668V7H11.39V2.684h-.051l-1.211.859v-.969l1.262-.906h1.046z" />
-                                <path fill-rule="evenodd"
-                                    d="M11.36 14.098c-1.137 0-1.708-.657-1.762-1.278h1.004c.058.223.343.45.773.45.824 0 1.164-.829 1.133-1.856h-.059c-.148.39-.57.742-1.261.742-.91 0-1.72-.613-1.72-1.758 0-1.148.848-1.835 1.973-1.835 1.09 0 2.063.636 2.063 2.687 0 1.867-.723 2.848-2.145 2.848zm.062-2.735c.504 0 .933-.336.933-.972 0-.633-.398-1.008-.94-1.008-.52 0-.927.375-.927 1 0 .64.418.98.934.98z" />
-                                <path
-                                    d="M4.5 13.5a.5.5 0 0 1-1 0V3.707L2.354 4.854a.5.5 0 1 1-.708-.708l2-1.999.007-.007a.498.498 0 0 1 .7.006l2 2a.5.5 0 1 1-.707.708L4.5 3.707V13.5z" />
-                            </svg>
-                            <span class="grow">Aufsteigend</span>
-                        </button>
-                    </li>
-                    <li>
-                        <button onclick="setSortOrder('id_desc')"
-                            class="flex items-center w-full px-4 py-2.5 text-left text-gray-700 transition-all duration-200 hover:bg-gray-50 hover:text-gray-900 {% if current_sort_order == 'id_desc' %}bg-gray-50{% endif %}">
-                            <div class="w-2 h-2 mr-2 {% if current_sort_order == 'id_desc' %}bg-green-500{% else %}bg-transparent{% endif %} rounded-full"></div>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                                class="mr-2 bi bi-sort-numeric-down" viewBox="0 0 16 16">
-                                <path d="M12.438 1.668V7H11.39V2.684h-.051l-1.211.859v-.969l1.262-.906h1.046z" />
-                                <path fill-rule="evenodd"
-                                    d="M11.36 14.098c-1.137 0-1.708-.657-1.762-1.278h1.004c.058.223.343.45.773.45.824 0 1.164-.829 1.133-1.856h-.059c-.148.39-.57.742-1.261.742-.91 0-1.72-.613-1.72-1.758 0-1.148.848-1.835 1.973-1.835 1.09 0 2.063.636 2.063 2.687 0 1.867-.723 2.848-2.145 2.848zm.062-2.735c.504 0 .933-.336.933-.972 0-.633-.398-1.008-.94-1.008-.52 0-.927.375-.927 1 0 .64.418.98.934.98z" />
-                                <path
-                                    d="M4.5 2.5a.5.5 0 0 0-1 0v9.793l-1.146-1.147a.5.5 0 0 0-.708.708l2 1.999.007.007a.497.497 0 0 0 .7-.006l2-2a.5.5 0 0 0-.707-.708L4.5 12.293V2.5z" />
-                            </svg>
-                            <span class="grow">Absteigend</span>
-                        </button>
-                    </li>
-                </ul>
-                </div>
-            </details>
-
-            <!-- Export Dropdown -->
-            <details class="relative grow dropdown lg:grow-0 group">
-                <summary class="group flex justify-center items-center px-4 py-2.5 w-full text-sm font-medium text-white bg-green-600 rounded-lg border border-green-700 transition-all duration-200 hover:bg-green-700 focus:outline-hidden focus-visible:border-green-700 focus-visible:ring-2 focus-visible:ring-green-500/30 group-open:border-green-700 group-open:ring-2 group-open:ring-green-500/30 cursor-pointer list-none lg:min-w-[8.5rem]">
-                    <svg class="mr-2 w-4 h-4 transition-transform duration-200 group-hover:scale-110" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                        stroke-width="2" stroke="currentColor" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-                    </svg>
-                    Export
-                </summary>
-                <div class="absolute right-0 z-10 w-56 bg-white rounded-lg divide-y divide-gray-100 shadow-lg mt-1">
-                    <ul class="py-2 text-sm text-gray-700" aria-labelledby="dropdownExportButton">
-                        <li>
-                            <button onclick="exportData('all')"
-                                class="flex items-center px-4 py-2.5 w-full text-left text-gray-700 transition-all duration-200 hover:bg-gray-200 hover:text-gray-900">
-                                <span class="grow">Export alle Meldungen</span>
-                            </button>
-                        </li>
-                        <li>
-                            <button onclick="exportData('accepted')"
-                                class="flex items-center px-4 py-2.5 w-full text-left text-gray-700 transition-all duration-200 hover:bg-gray-200 hover:text-gray-900">
-                                <span class="grow">Export angenommene Meldungen</span>
-                            </button>
-                        </li>
-                        <li>
-                            <button onclick="exportData('non_accepted')"
-                                class="flex items-center px-4 py-2.5 w-full text-left text-gray-700 transition-all duration-200 hover:bg-gray-200 hover:text-gray-900">
-                                <span class="grow">Export nicht angenommene Meldungen</span>
-                            </button>
-                        </li>
-                        <li>
-                            <button onclick="exportData('searched')"
-                                class="flex items-center px-4 py-2.5 w-full text-left text-gray-700 transition-all duration-200 hover:bg-gray-200 hover:text-gray-900">
-                                <span class="grow">Export gesuchte Meldungen</span>
-                            </button>
-                        </li>
-                    </ul>
-                </div>
-            </details>
-        </div>
-    </div>
-
-    <div class="grid grid-cols-1 gap-6 mb-4 sm:grid-cols-2 lg:grid-cols-3" id="reportContainer">
-        {% for sighting in reported_sightings %}
-            {% include "admin/partials/_report_card.html" %}
+      {% if messages %}
+        {% for category, message in messages %}
+          {% if category == 'error' %}
+            <div class="flex justify-between items-center p-4 mb-4 text-red-800 bg-red-100 rounded-md border-l-4 border-red-500"
+                 role="alert">
+              <div>
+                <strong class="font-bold">Error!</strong>
+                <span class="block sm:inline">{{ message }}</span>
+              </div>
+              <button onclick="this.closest('[role=alert]').remove()"
+                      class="text-red-800 hover:text-red-900">
+                {{ heroicon_mini("x-mark", class="w-6 h-6", size=20) }}
+              </button>
+            </div>
+          {% endif %}
+          {% if category == 'info' %}
+            <div class="flex justify-between items-center p-4 mb-4 text-blue-800 bg-blue-100 rounded-md border-l-4 border-blue-500"
+                 role="alert">
+              <div>
+                <strong class="font-bold">Info:</strong>
+                <span class="block sm:inline">{{ message | safe }}</span>
+              </div>
+              <button onclick="this.closest('[role=alert]').remove()"
+                      class="text-blue-800 hover:text-blue-900">
+                {{ heroicon_mini("x-mark", class="w-6 h-6", size=20) }}
+              </button>
+            </div>
+          {% endif %}
         {% endfor %}
+      {% endif %}
+    {% endwith %}
+    <div class="flex flex-col gap-3 mb-5 lg:flex-row lg:items-center">
+      <div class="w-full lg:w-auto">
+        <!-- Filter dropdown -->
+        <details class="relative dropdown group">
+          <summary class="group flex justify-center items-center px-4 py-2.5 w-full text-sm font-medium text-gray-700 bg-white rounded-lg border border-gray-300 transition-all duration-200 lg:w-auto focus:outline-hidden hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900 focus-visible:border-green-500 focus-visible:ring-2 focus-visible:ring-green-500/30 group-open:border-green-500 group-open:ring-2 group-open:ring-green-500/30 cursor-pointer list-none">
+            {{ heroicon_mini("funnel", class="mr-2 w-4 h-4 text-gray-500 transition-colors duration-200 group-hover:text-gray-700") }}
+            Filter
+            {{ heroicon_mini("chevron-down", class="-mr-1 ml-1.5 w-5 h-5 text-gray-500 transition-colors duration-200 group-hover:text-gray-700") }}
+          </summary>
+          <div class="absolute left-0 z-10 p-4 space-y-3 w-64 bg-white rounded-lg divide-y divide-gray-100 shadow-lg sm:w-80 mt-1">
+            <form action="{{ url_for('admin.reviewer') }}"
+                  method="GET"
+                  class="space-y-3">
+              <div class="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
+                <div class="space-y-1 w-full md:w-1/2">
+                  <label for="statusInput"
+                         class="block text-sm font-semibold text-left text-gray-700">Status</label>
+                  <select id="statusInput"
+                          name="statusInput"
+                          class="p-2 w-full text-sm rounded-md shadow-xs focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                    <option value="all" {% if filters.status=="all" %}selected{% endif %}>Alle</option>
+                    <option value="offen" {% if filters.status=="offen" %}selected{% endif %}>Offen</option>
+                    <option value="bearbeitet"
+                            {% if filters.status=="bearbeitet" %}selected{% endif %}>Angenommen</option>
+                    <option value="unklar" {% if filters.status=="unklar" %}selected{% endif %}>Unklar</option>
+                    <option value="informiert"
+                            {% if filters.status=="informiert" %}selected{% endif %}>Informiert</option>
+                    <option value="geloescht"
+                            {% if filters.status=="geloescht" %}selected{% endif %}>Gelöscht</option>
+                  </select>
+                </div>
+                <div class="space-y-1 w-full md:w-1/2">
+                  <label for="typeInput"
+                         class="block text-sm font-semibold text-left text-gray-700">Typ</label>
+                  <select id="typeInput"
+                          name="typeInput"
+                          class="p-2 w-full text-sm rounded-md shadow-xs focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                    <option value="all" {% if filters.type=="all" %}selected{% endif %}>Alle</option>
+                    <option value="maennlich"
+                            {% if filters.type=="maennlich" %}selected{% endif %}>Männlich</option>
+                    <option value="weiblich" {% if filters.type=="weiblich" %}selected{% endif %}>Weiblich</option>
+                    <option value="oothek" {% if filters.type=="oothek" %}selected{% endif %}>Oothek</option>
+                    <option value="Nymphe" {% if filters.type=="Nymphe" %}selected{% endif %}>Nymphe</option>
+                    <option value="andere" {% if filters.type=="andere" %}selected{% endif %}>Andere</option>
+                    <option value="nicht_bestimmt" {% if filters.type=="nicht_bestimmt" %}selected{% endif
+                      %}>Nicht bestimmt</option>
+                  </select>
+                </div>
+              </div>
+              <!-- Date section: toggle + range inputs grouped together -->
+              <div class="p-2.5 space-y-2 rounded-lg border border-gray-200 bg-gray-50/60">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-sm font-semibold text-gray-700">Datum</span>
+                  <div class="inline-flex rounded-md border border-gray-300 overflow-hidden">
+                    <button type="button"
+                            data-date-type="fund"
+                            class="date-type-btn px-2.5 py-1 text-xs font-medium transition-colors duration-150 {{ 'bg-green-600 text-white' if current_date_type != 'meld' else 'bg-white text-gray-600 hover:bg-gray-100' }}"
+                            onclick="setDateType('fund')">Funddatum</button>
+                    <button type="button"
+                            data-date-type="meld"
+                            class="date-type-btn px-2.5 py-1 text-xs font-medium transition-colors duration-150 border-l border-gray-300 {{ 'bg-green-600 text-white border-l-green-600' if current_date_type == 'meld' else 'bg-white text-gray-600 hover:bg-gray-100' }}"
+                            onclick="setDateType('meld')">Meldedatum</button>
+                  </div>
+                </div>
+                <input type="hidden"
+                       name="dateType"
+                       id="dateType"
+                       value="{{ current_date_type or 'fund' }}">
+                <div date-rangepicker
+                     datepicker-buttons
+                     datepicker-autoselect-today
+                     datepicker-format="dd.mm.yyyy"
+                     class="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
+                  <div class="relative w-full md:w-1/2">
+                    <label for="dateFrom" class="sr-only">Datum von</label>
+                    <input name="dateFrom"
+                           id="dateFrom"
+                           type="text"
+                           value="{{ request.args.get('dateFrom', '') }}"
+                           class="p-2 w-full text-sm bg-white rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                           placeholder="von">
+                    <div class="flex absolute inset-y-0 right-0 items-center pr-3 pointer-events-none">
+                      {{ heroicon_mini("calendar", class="w-4 h-4 text-gray-400") }}
+                    </div>
+                  </div>
+                  <div class="relative w-full md:w-1/2">
+                    <label for="dateTo" class="sr-only">Datum bis</label>
+                    <input name="dateTo"
+                           id="dateTo"
+                           type="text"
+                           value="{{ request.args.get('dateTo', '') }}"
+                           class="p-2 w-full text-sm bg-white rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                           placeholder="bis">
+                    <div class="flex absolute inset-y-0 right-0 items-center pr-3 pointer-events-none">
+                      {{ heroicon_mini("calendar", class="w-4 h-4 text-gray-400") }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="flex justify-between mt-4 space-x-4">
+                <button id="clearFilters"
+                        type="button"
+                        class="inline-flex justify-center items-center px-2 py-1 w-24 text-sm font-medium text-red-600 bg-white rounded-lg border border-red-300 transition-all duration-200 hover:bg-red-50 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-red-500/30">
+                  {{ heroicon_outline("x-mark", class="mr-1 w-4 h-4", stroke_width=2) }}
+                  Löschen
+                </button>
+                <button type="submit" class="btn-green px-4 py-2 w-1/2">Filtern</button>
+              </div>
+              <input type="hidden" name="q" value="{{ request.args.get('q', '') }}">
+              <input type="hidden"
+                     name="sort_order"
+                     value="{{ request.args.get('sort_order', '') }}">
+              <input type="hidden"
+                     name="search_type"
+                     value="{{ request.args.get('search_type', '') }}">
+            </form>
+          </div>
+        </details>
+      </div>
+      <div class="flex relative items-center w-full lg:flex-1 lg:min-w-[24rem]">
+        <form action="{{ url_for('admin.reviewer') }}"
+              method="GET"
+              class="flex items-center w-full bg-white rounded-lg border border-gray-300 transition-all duration-200 focus-within:border-green-500 focus-within:ring-2 focus-within:ring-green-500/30">
+          <!-- Left select (grouped with input, subtle style) -->
+          <div class="relative shrink-0">
+            <select id="searchType"
+                    name="search_type"
+                    onchange="changeInputPattern()"
+                    class="appearance-none bg-none py-2.5 pr-9 pl-3.5 min-w-[90px] text-sm text-gray-700 bg-transparent border-0 rounded-l-lg shadow-none cursor-pointer focus:outline-hidden focus:ring-0 focus:border-transparent">
+              <option value="full_text"
+                      {% if search_type=='full_text' %}selected{% endif %}>Text</option>
+              <option value="id" {% if search_type=='id' %}selected{% endif %}>ID</option>
+            </select>
+            {{ heroicon_outline("chevron-down", class="absolute right-3 top-1/2 w-4 h-4 text-gray-500 pointer-events-none transform -translate-y-1/2", stroke_width=2) }}
+          </div>
+          <div class="w-px h-6 bg-gray-300"></div>
+          <!-- Search text input -->
+          <div class="relative grow">
+            <input type="text"
+                   id="searchInput"
+                   name="q"
+                   placeholder="Suche nach Meldungen..."
+                   value="{{ request.args.get('q', '') }}"
+                   maxlength="50"
+                   class="py-2.5 pr-22 pl-3.5 w-full text-sm bg-transparent border-0 rounded-r-lg shadow-none placeholder:text-gray-500 focus:outline-hidden focus:ring-0 focus:border-transparent">
+            <div class="flex absolute inset-y-0 right-2 items-center gap-1">
+              <button type="button"
+                      onclick="clearSearch()"
+                      title="Löschen"
+                      class="inline-flex justify-center items-center p-1 text-gray-500 rounded-md transition-colors hover:text-gray-700 hover:bg-gray-100 focus:outline-hidden">
+                {{ heroicon_mini("x-mark", size=16) }}
+              </button>
+              <span class="w-px h-5 bg-gray-300"></span>
+              <button type="submit"
+                      class="inline-flex justify-center items-center p-1 rounded-md transition-colors group hover:bg-gray-100 focus:outline-hidden"
+                      title="Suchsyntax: &#8226; Exakte Phrase: &quot;berlin mitte&quot; &#8226; ODER-Suche: berlin OR hamburg &#8226; Ausschluss: -nymphe &#8226; Gruppierung: (berlin OR hamburg) -nymphe">
+                {{ heroicon_mini("magnifying-glass", class="w-5 h-5 text-gray-500 transition-colors duration-200 group-hover:text-green-600") }}
+              </button>
+            </div>
+          </div>
+          <input type="hidden"
+                 name="statusInput"
+                 value="{{ request.args.get('statusInput', '') }}">
+          <input type="hidden"
+                 name="sort_order"
+                 value="{{ request.args.get('sort_order', '') }}">
+          <input type="hidden"
+                 id="hiddenDateFrom"
+                 name="dateFrom"
+                 value="{{ request.args.get('dateFrom', '') }}">
+          <input type="hidden"
+                 id="hiddenDateTo"
+                 name="dateTo"
+                 value="{{ request.args.get('dateTo', '') }}">
+          <input type="hidden"
+                 id="hiddenDateType"
+                 name="dateType"
+                 value="{{ request.args.get('dateType', 'fund') }}">
+          <button type="submit" class="hidden">Suchen</button>
+        </form>
+      </div>
+      <div class="flex gap-2 items-center w-full lg:w-auto lg:shrink-0">
+        <!-- Sortieren Dropdown -->
+        <details class="relative grow dropdown lg:grow-0 group">
+          <summary class="group flex justify-center items-center px-4 py-2.5 w-full text-sm font-medium text-gray-700 bg-white rounded-lg border border-gray-300 transition-all duration-200 focus:outline-hidden hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900 focus-visible:border-green-500 focus-visible:ring-2 focus-visible:ring-green-500/30 group-open:border-green-500 group-open:ring-2 group-open:ring-green-500/30 cursor-pointer list-none lg:min-w-[9.5rem]">
+            <span id="sortText">Sortieren...</span>
+            {{ heroicon_mini("chevron-down", class="-mr-1 ml-1.5 w-5 h-5 text-gray-500 transition-colors duration-200 group-hover:text-gray-700") }}
+          </summary>
+          <div class="absolute right-0 z-10 w-48 bg-white rounded-lg divide-y divide-gray-100 shadow-lg mt-1">
+            <ul class="py-2 text-sm text-gray-700"
+                aria-labelledby="dropdownSortButton">
+              <li>
+                <button onclick="setSortOrder('id_asc')"
+                        class="flex items-center w-full px-4 py-2.5 text-left text-gray-700 transition-all duration-200 hover:bg-gray-50 hover:text-gray-900 {% if current_sort_order == 'id_asc' %}bg-gray-50{% endif %}">
+                  <div class="w-2 h-2 mr-2 {% if current_sort_order == 'id_asc' %}bg-green-500{% else %}bg-transparent{% endif %} rounded-full">
+                  </div>
+                  <svg xmlns="http://www.w3.org/2000/svg"
+                       width="16"
+                       height="16"
+                       fill="currentColor"
+                       class="mr-2 bi bi-sort-numeric-up"
+                       viewBox="0 0 16 16">
+                    <path d="M12.438 1.668V7H11.39V2.684h-.051l-1.211.859v-.969l1.262-.906h1.046z" />
+                    <path fill-rule="evenodd" d="M11.36 14.098c-1.137 0-1.708-.657-1.762-1.278h1.004c.058.223.343.45.773.45.824 0 1.164-.829 1.133-1.856h-.059c-.148.39-.57.742-1.261.742-.91 0-1.72-.613-1.72-1.758 0-1.148.848-1.835 1.973-1.835 1.09 0 2.063.636 2.063 2.687 0 1.867-.723 2.848-2.145 2.848zm.062-2.735c.504 0 .933-.336.933-.972 0-.633-.398-1.008-.94-1.008-.52 0-.927.375-.927 1 0 .64.418.98.934.98z" />
+                    <path d="M4.5 13.5a.5.5 0 0 1-1 0V3.707L2.354 4.854a.5.5 0 1 1-.708-.708l2-1.999.007-.007a.498.498 0 0 1 .7.006l2 2a.5.5 0 1 1-.707.708L4.5 3.707V13.5z" />
+                  </svg>
+                  <span class="grow">Aufsteigend</span>
+                </button>
+              </li>
+              <li>
+                <button onclick="setSortOrder('id_desc')"
+                        class="flex items-center w-full px-4 py-2.5 text-left text-gray-700 transition-all duration-200 hover:bg-gray-50 hover:text-gray-900 {% if current_sort_order == 'id_desc' %}bg-gray-50{% endif %}">
+                  <div class="w-2 h-2 mr-2 {% if current_sort_order == 'id_desc' %}bg-green-500{% else %}bg-transparent{% endif %} rounded-full">
+                  </div>
+                  <svg xmlns="http://www.w3.org/2000/svg"
+                       width="16"
+                       height="16"
+                       fill="currentColor"
+                       class="mr-2 bi bi-sort-numeric-down"
+                       viewBox="0 0 16 16">
+                    <path d="M12.438 1.668V7H11.39V2.684h-.051l-1.211.859v-.969l1.262-.906h1.046z" />
+                    <path fill-rule="evenodd" d="M11.36 14.098c-1.137 0-1.708-.657-1.762-1.278h1.004c.058.223.343.45.773.45.824 0 1.164-.829 1.133-1.856h-.059c-.148.39-.57.742-1.261.742-.91 0-1.72-.613-1.72-1.758 0-1.148.848-1.835 1.973-1.835 1.09 0 2.063.636 2.063 2.687 0 1.867-.723 2.848-2.145 2.848zm.062-2.735c.504 0 .933-.336.933-.972 0-.633-.398-1.008-.94-1.008-.52 0-.927.375-.927 1 0 .64.418.98.934.98z" />
+                    <path d="M4.5 2.5a.5.5 0 0 0-1 0v9.793l-1.146-1.147a.5.5 0 0 0-.708.708l2 1.999.007.007a.497.497 0 0 0 .7-.006l2-2a.5.5 0 0 0-.707-.708L4.5 12.293V2.5z" />
+                  </svg>
+                  <span class="grow">Absteigend</span>
+                </button>
+              </li>
+            </ul>
+          </div>
+        </details>
+        <!-- Export Dropdown -->
+        <details class="relative grow dropdown lg:grow-0 group">
+          <summary class="group flex justify-center items-center px-4 py-2.5 w-full text-sm font-medium text-white bg-green-600 rounded-lg border border-green-700 transition-all duration-200 hover:bg-green-700 focus:outline-hidden focus-visible:border-green-700 focus-visible:ring-2 focus-visible:ring-green-500/30 group-open:border-green-700 group-open:ring-2 group-open:ring-green-500/30 cursor-pointer list-none lg:min-w-[8.5rem]">
+            {{ heroicon_outline("arrow-up-tray", class="mr-2 w-4 h-4 transition-transform duration-200 group-hover:scale-110", stroke_width=2) }}
+            Export
+          </summary>
+          <div class="absolute right-0 z-10 w-56 bg-white rounded-lg divide-y divide-gray-100 shadow-lg mt-1">
+            <ul class="py-2 text-sm text-gray-700"
+                aria-labelledby="dropdownExportButton">
+              <li>
+                <button onclick="exportData('all')"
+                        class="flex items-center px-4 py-2.5 w-full text-left text-gray-700 transition-all duration-200 hover:bg-gray-200 hover:text-gray-900">
+                  <span class="grow">Export alle Meldungen</span>
+                </button>
+              </li>
+              <li>
+                <button onclick="exportData('accepted')"
+                        class="flex items-center px-4 py-2.5 w-full text-left text-gray-700 transition-all duration-200 hover:bg-gray-200 hover:text-gray-900">
+                  <span class="grow">Export angenommene Meldungen</span>
+                </button>
+              </li>
+              <li>
+                <button onclick="exportData('non_accepted')"
+                        class="flex items-center px-4 py-2.5 w-full text-left text-gray-700 transition-all duration-200 hover:bg-gray-200 hover:text-gray-900">
+                  <span class="grow">Export nicht angenommene Meldungen</span>
+                </button>
+              </li>
+              <li>
+                <button onclick="exportData('searched')"
+                        class="flex items-center px-4 py-2.5 w-full text-left text-gray-700 transition-all duration-200 hover:bg-gray-200 hover:text-gray-900">
+                  <span class="grow">Export gesuchte Meldungen</span>
+                </button>
+              </li>
+            </ul>
+          </div>
+        </details>
+      </div>
     </div>
-
-    {{ render_pagination(
-        paginated_sightings,
+    <div class="grid grid-cols-1 gap-6 mb-4 sm:grid-cols-2 lg:grid-cols-3"
+         id="reportContainer">
+      {% for sighting in reported_sightings %}
+        {% include "admin/partials/_report_card.html" %}
+      {% endfor %}
+    </div>
+    {{ render_pagination(paginated_sightings,
         'admin.reviewer',
         current_filter_status,
         current_sort_order,
         search_query,
-        request.args.get('dateFrom', ''),
-        request.args.get('dateTo', ''),
-        request.args.get('dateType', 'fund')
+        request.args.get('dateFrom', '') ,
+    request.args.get('dateTo', ''),
+    request.args.get('dateType', 'fund')
     ) }}
-</div>
-
-<dialog id="modal" class="modal-admin backdrop:bg-gray-900/55 backdrop:backdrop-blur-sm" aria-label="Meldung bearbeiten">
+  </div>
+  <dialog id="modal"
+          class="modal-admin backdrop:bg-gray-900/55 backdrop:backdrop-blur-sm"
+          aria-label="Meldung bearbeiten">
     <div class="modal-admin-panel flex overflow-hidden flex-col w-full bg-white rounded-lg shadow-xl border border-gray-200">
-        <div class="overflow-hidden grow p-4 min-h-0 md:p-6">
-            <div id="modal-body" class="flex overflow-hidden flex-col h-full min-h-0">
-                <div class="flex justify-center items-center h-full text-sm text-gray-500">
-                    Meldung wird geladen...
-                </div>
-            </div>
+      <div class="overflow-hidden grow p-4 min-h-0 md:p-6">
+        <div id="modal-body" class="flex overflow-hidden flex-col h-full min-h-0">
+          <div class="flex justify-center items-center h-full text-sm text-gray-500">Meldung wird geladen...</div>
         </div>
-        <div class="px-6 py-4 bg-gray-50 rounded-b-lg border-t border-gray-200">
-            <div id="modal-actions" class="flex flex-wrap gap-2 justify-end action-container">
-                <button type="button"
-                    class="btn-secondary w-full px-5 py-2.5 rounded-lg sm:w-auto"
-                    onclick="closeModal()">Schließen</button>
-            </div>
+      </div>
+      <div class="px-6 py-4 bg-gray-50 rounded-b-lg border-t border-gray-200">
+        <div id="modal-actions"
+             class="flex flex-wrap gap-2 justify-end action-container">
+          <button type="button"
+                  class="btn-secondary w-full px-5 py-2.5 rounded-lg sm:w-auto"
+                  onclick="closeModal()">Schließen</button>
         </div>
+      </div>
     </div>
-</dialog>
-
+  </dialog>
 {% endblock content %}

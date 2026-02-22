@@ -1,23 +1,27 @@
 {% extends "layout.html" %}
-{% block title %}Statistiken{% endblock title %}
-{% block meta_keywords %} Auswertungen, Statistik {% endblock %}
+{% block title %}
+  Statistiken
+{% endblock title %}
+{% block meta_keywords %}Auswertungen, Statistik{% endblock %}
 {% from 'statistics/_macros_filter_menu.html' import MenuFilter with context %}
 {% from 'statistics/_macros_filter_selection.html' import StatsAuswahl with context %}
 {% block content %}
-<section class="container px-4 mx-auto mt-10">
-	<form action="" method="POST" class="space-y-4">
-		{{ MenuFilter() }}
-		<div class="p-4 bg-gray-100 rounded-lg border border-gray-200 sm:p-5">
-			<p class="mb-4 text-sm text-gray-700">Zeitraum für alle Statistiken festlegen.</p>
-			<div>
-				{{ StatsAuswahl() }}
-			</div>
-			<input type="hidden" id="stats" name="stats" value="start" class="rounded-lg">
-		</div>
-	</form>
-	<div class="p-4 mt-6 bg-white rounded-lg border border-gray-200 sm:p-5">
-		<h2 class="mb-4 text-lg font-semibold text-gray-900">Erläuterung zur Gebietswahl</h2>
-		<pre class="text-sm leading-relaxed text-gray-700 whitespace-pre-wrap">
+  <section class="container px-4 mx-auto mt-10">
+    <form action="" method="POST" class="space-y-4">
+      {{ MenuFilter() }}
+      <div class="p-4 bg-gray-100 rounded-lg border border-gray-200 sm:p-5">
+        <p class="mb-4 text-sm text-gray-700">Zeitraum für alle Statistiken festlegen.</p>
+        <div>{{ StatsAuswahl() }}</div>
+        <input type="hidden"
+               id="stats"
+               name="stats"
+               value="start"
+               class="rounded-lg">
+      </div>
+    </form>
+    <div class="p-4 mt-6 bg-white rounded-lg border border-gray-200 sm:p-5">
+      <h2 class="mb-4 text-lg font-semibold text-gray-900">Erläuterung zur Gebietswahl</h2>
+      <pre class="text-sm leading-relaxed text-gray-700 whitespace-pre-wrap">
 	1.–2. Stelle   = Kennzahl des Bundeslandes
 	3. Stelle      = Kennzahl des Regierungsbezirks; wenn nicht vorhanden: 0
 	4.–5. Stelle   = Kennzahl des Landkreises oder der kreisfreien Stadt
@@ -33,15 +37,15 @@
 	64  Landkreis Märkisch-Oderland
 	340 Gemeinde Neuhardenberg
       	</pre>
-		<p class="mt-4 text-sm text-gray-700">
-			Siehe auch:
-			<a class="font-medium text-green-700 hover:text-green-800"
-				href="https://de.wikipedia.org/wiki/Amtlicher_Gemeindeschl%C3%BCssel"
-				target="_blank" rel="noopener noreferrer">Amtlicher Gemeindeschlüssel</a>
-		</p>
-	</div>
-
-	<script>
+      <p class="mt-4 text-sm text-gray-700">
+        Siehe auch:
+        <a class="font-medium text-green-700 hover:text-green-800"
+           href="https://de.wikipedia.org/wiki/Amtlicher_Gemeindeschl%C3%BCssel"
+           target="_blank"
+           rel="noopener noreferrer">Amtlicher Gemeindeschlüssel</a>
+      </p>
+    </div>
+    <script>
 		document.addEventListener("click", function (e) {
 			const li = e.target.closest("#vorschlaege li");
 			if (!li) return;
@@ -55,6 +59,6 @@
 			// Vorschläge löschen
 			document.getElementById("vorschlaege").innerHTML = "";
 		});
-	</script>
-</section>
+    </script>
+  </section>
 {% endblock content %}

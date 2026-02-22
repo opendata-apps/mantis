@@ -1,114 +1,117 @@
 {% extends "layout.html" %}
 {% block title %}
-{% if selected_year %}
-Fundmeldungen {{ selected_year }}
-{% else %}
-Fundmeldungen gesamt
-{% endif %}
+  {% if selected_year %}
+    Fundmeldungen {{ selected_year }}
+  {% else %}
+    Fundmeldungen gesamt
+  {% endif %}
 {% endblock title %}
-{% block head %}
-{{ vite_tags('js/map.js') }}
-{% endblock %}
-{% block page_title %}Auswertungen der Beobachtungen | Mantis Religiosa Mitmachprojekt | Gottesanbeterin Gesucht{%
-endblock %}
-{% block meta_keywords %} Auswertungen, Karte, Gottesanbeterin, Mantis religiosa Auswertungen {% endblock %}
-{% block meta_description %} Schauen Sie sich die Auswertungen von Gottesanbeterin-Beobachtungen in Deutschland an. {%
-endblock %}
-{% block text %}
-<p class="mt-4 text-lg text-gray-200 sm:text-xl">
-{% if selected_year %}
-Erkunden Sie alle bestätigten Sichtungen der <span class="font-semibold text-green-300">Mantis religiosa</span> aus dem Jahr {{ selected_year }}
-{% else %}
-Entdecken Sie alle bestätigten Sichtungen der <span class="font-semibold text-green-300">Gottesanbeterin</span> in Deutschland
-{% endif %}
-</p>
-{% endblock text %}
-{% block canonical %}{{ url_for('data.show_map', _external=True) }}{% endblock %}
-
-{% block og_meta %}
-{% if selected_year %}
-  <meta property="og:title" content="Fundmeldungen {{ selected_year }} – Gottesanbeterin in Deutschland" />
-{% else %}
-  <meta property="og:title" content="Auswertungen der Beobachtungen – Gottesanbeterin in Deutschland" />
-{% endif %}
-<meta property="og:type" content="website" />
-<meta property="og:url" content="{{ url_for('data.show_map', _external=True) }}" />
-<meta property="og:image" content="{{ url_for('static', filename='images/berger03.webp', _external=True) }}" />
-<meta property="og:description" content="Interaktive Karte mit bestätigten Sichtungen der Europäischen Gottesanbeterin (Mantis religiosa) – filtern Sie nach Jahren und entdecken Sie Hotspots." />
-<meta property="og:site_name" content="Gottesanbeterin Gesucht" />
-<meta property="og:locale" content="de_DE" />
-{% endblock %}
-
-{% block twitter_meta %}
-<meta name="twitter:card" content="summary_large_image" />
-{% if selected_year %}
-  <meta name="twitter:title" content="Fundmeldungen {{ selected_year }} – Gottesanbeterin" />
-{% else %}
-  <meta name="twitter:title" content="Auswertungen der Beobachtungen – Gottesanbeterin" />
-{% endif %}
-<meta name="twitter:description" content="Interaktive Karte der Gottesanbeterin-Sichtungen in Deutschland." />
-<meta name="twitter:image" content="{{ url_for('static', filename='images/berger03.webp', _external=True) }}" />
-<meta name="twitter:url" content="{{ url_for('data.show_map', _external=True) }}" />
-{% endblock %}
-{% block content %}
-<!-- Map Section with improved styling -->
-<section class="py-6 sm:py-12 bg-linear-to-b from-white to-gray-50">
-  <div class="container px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
-
-    <!-- Information banner with improved design -->
-    <div class="flex justify-center mb-4 sm:mb-8">
-      <div class="overflow-hidden relative bg-white rounded-2xl shadow-lg">
-        <div class="absolute inset-0 bg-linear-to-r from-green-500 to-green-600 opacity-5"></div>
-        <div class="flex relative items-center px-3 py-2 space-x-2 sm:px-6 sm:py-4 sm:space-x-3">
-          <div class="flex-shrink-0 flex justify-center items-center w-8 h-8 sm:w-12 sm:h-12 bg-green-100 rounded-full">
-            <svg class="w-4 h-4 sm:w-6 sm:h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-            </svg>
-          </div>
-          <p class="text-sm sm:text-base text-gray-700">
-            Die Position der Marker kann von den gemeldeten Koordinaten abweichen (Datenschutz).
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Enhanced map container with decorative elements -->
-    <div class="relative">
-      <!-- Decorative corner elements (hidden on mobile) -->
-      <div class="hidden sm:block absolute -top-4 -left-4 w-24 h-24 bg-green-100 rounded-full opacity-20 blur-2xl"></div>
-      <div class="hidden sm:block absolute -right-4 -bottom-4 w-32 h-32 bg-green-200 rounded-full opacity-20 blur-3xl"></div>
-
-      <!-- Map container with improved styling -->
-      <div id="map" class="relative z-10 h-[40vh] sm:h-[70vh] md:h-[75vh] rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden border-2 sm:border-4 border-white"
-           role="application" aria-label="Interaktive Karte der Gottesanbeterin-Sichtungen in Deutschland">
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Animated counter section  -->
-<section class="py-12 bg-linear-to-b from-gray-50 to-gray-100">
-  <div class="container max-w-5xl px-4 mx-auto sm:px-6 lg:px-8">
-    <div class="relative px-6 py-10 bg-green-800 shadow-xl rounded-xl sm:px-10 sm:py-12">
-      <h2 class="mb-6 text-2xl font-bold leading-tight text-center text-white sm:mb-8 sm:text-3xl">
-        {% if not selected_year %}
-        Wir haben insgesamt <br />
-        {% endif %}
+{% block head %}{{ vite_tags("js/map.js") }}{% endblock %}
+{% block page_title %}
+  Auswertungen der Beobachtungen | Mantis Religiosa Mitmachprojekt | Gottesanbeterin Gesucht{%
+  endblock %}
+  {% block meta_keywords %}Auswertungen, Karte, Gottesanbeterin, Mantis religiosa Auswertungen{% endblock %}
+  {% block meta_description %}
+    Schauen Sie sich die Auswertungen von Gottesanbeterin-Beobachtungen in Deutschland an. {%
+    endblock %}
+    {% block text %}
+      <p class="mt-4 text-lg text-gray-200 sm:text-xl">
         {% if selected_year %}
-        Wir haben für das Jahr {{selected_year}} <br />
+          Erkunden Sie alle bestätigten Sichtungen der <span class="font-semibold text-green-300">Mantis religiosa</span> aus dem Jahr {{ selected_year }}
+        {% else %}
+          Entdecken Sie alle bestätigten Sichtungen der <span class="font-semibold text-green-300">Gottesanbeterin</span> in Deutschland
         {% endif %}
-        <span class="text-5xl font-extrabold text-white sm:text-7xl counter" data-target="{{ post_count }}">0</span>
-        <br />
-        Meldungen erhalten.
-      </h2>
-      <p class="mb-6 text-lg text-center text-white sm:mb-8 sm:text-xl">
-        Helfen Sie uns, diese Zahl zu erhöhen!
       </p>
-    </div>
-  </div>
-</section>
-
-<script type="module">
+    {% endblock text %}
+    {% block canonical %}{{ url_for('data.show_map', _external=True) }}{% endblock %}
+    {% block og_meta %}
+      {% if selected_year %}
+        <meta property="og:title"
+              content="Fundmeldungen {{ selected_year }} – Gottesanbeterin in Deutschland" />
+      {% else %}
+        <meta property="og:title"
+              content="Auswertungen der Beobachtungen – Gottesanbeterin in Deutschland" />
+      {% endif %}
+      <meta property="og:type" content="website" />
+      <meta property="og:url"
+            content="{{ url_for('data.show_map', _external=True) }}" />
+      <meta property="og:image"
+            content="{{ url_for('static', filename='images/berger03.webp', _external=True) }}" />
+      <meta property="og:description"
+            content="Interaktive Karte mit bestätigten Sichtungen der Europäischen Gottesanbeterin (Mantis religiosa) – filtern Sie nach Jahren und entdecken Sie Hotspots." />
+      <meta property="og:site_name" content="Gottesanbeterin Gesucht" />
+      <meta property="og:locale" content="de_DE" />
+    {% endblock %}
+    {% block twitter_meta %}
+      <meta name="twitter:card" content="summary_large_image" />
+      {% if selected_year %}
+        <meta name="twitter:title"
+              content="Fundmeldungen {{ selected_year }} – Gottesanbeterin" />
+      {% else %}
+        <meta name="twitter:title"
+              content="Auswertungen der Beobachtungen – Gottesanbeterin" />
+      {% endif %}
+      <meta name="twitter:description"
+            content="Interaktive Karte der Gottesanbeterin-Sichtungen in Deutschland." />
+      <meta name="twitter:image"
+            content="{{ url_for('static', filename='images/berger03.webp', _external=True) }}" />
+      <meta name="twitter:url"
+            content="{{ url_for('data.show_map', _external=True) }}" />
+    {% endblock %}
+    {% block content %}
+      <!-- Map Section with improved styling -->
+      <section class="py-6 sm:py-12 bg-linear-to-b from-white to-gray-50">
+        <div class="container px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+          <!-- Information banner with improved design -->
+          <div class="flex justify-center mb-4 sm:mb-8">
+            <div class="overflow-hidden relative bg-white rounded-2xl shadow-lg">
+              <div class="absolute inset-0 bg-linear-to-r from-green-500 to-green-600 opacity-5"></div>
+              <div class="flex relative items-center px-3 py-2 space-x-2 sm:px-6 sm:py-4 sm:space-x-3">
+                <div class="flex-shrink-0 flex justify-center items-center w-8 h-8 sm:w-12 sm:h-12 bg-green-100 rounded-full">
+                  {{ heroicon_outline("lock-closed", class="w-4 h-4 sm:w-6 sm:h-6 text-green-600", stroke_width=2) }}
+                </div>
+                <p class="text-sm sm:text-base text-gray-700">
+                  Die Position der Marker kann von den gemeldeten Koordinaten abweichen (Datenschutz).
+                </p>
+              </div>
+            </div>
+          </div>
+          <!-- Enhanced map container with decorative elements -->
+          <div class="relative">
+            <!-- Decorative corner elements (hidden on mobile) -->
+            <div class="hidden sm:block absolute -top-4 -left-4 w-24 h-24 bg-green-100 rounded-full opacity-20 blur-2xl"></div>
+            <div class="hidden sm:block absolute -right-4 -bottom-4 w-32 h-32 bg-green-200 rounded-full opacity-20 blur-3xl"></div>
+            <!-- Map container with improved styling -->
+            <div id="map"
+                 class="relative z-10 h-[40vh] sm:h-[70vh] md:h-[75vh] rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden border-2 sm:border-4 border-white"
+                 role="application"
+                 aria-label="Interaktive Karte der Gottesanbeterin-Sichtungen in Deutschland"></div>
+          </div>
+        </div>
+      </section>
+      <!-- Animated counter section  -->
+      <section class="py-12 bg-linear-to-b from-gray-50 to-gray-100">
+        <div class="container max-w-5xl px-4 mx-auto sm:px-6 lg:px-8">
+          <div class="relative px-6 py-10 bg-green-800 shadow-xl rounded-xl sm:px-10 sm:py-12">
+            <h2 class="mb-6 text-2xl font-bold leading-tight text-center text-white sm:mb-8 sm:text-3xl">
+              {% if not selected_year %}
+                Wir haben insgesamt
+                <br />
+              {% endif %}
+              {% if selected_year %}
+                Wir haben für das Jahr {{ selected_year }}
+                <br />
+              {% endif %}
+              <span class="text-5xl font-extrabold text-white sm:text-7xl counter"
+                    data-target="{{ post_count }}">0</span>
+              <br />
+              Meldungen erhalten.
+            </h2>
+            <p class="mb-6 text-lg text-center text-white sm:mb-8 sm:text-xl">Helfen Sie uns, diese Zahl zu erhöhen!</p>
+          </div>
+        </div>
+      </section>
+      <script type="module">
   // Counter animation
   const counter = document.querySelector('.counter');
   const target = +counter.dataset.target;
@@ -229,6 +232,5 @@ Entdecken Sie alle bestätigten Sichtungen der <span class="font-semibold text-g
     if (map.getZoom() > 12) map.setZoom(12);
     if (map.getZoom() < 6) map.setZoom(6);
   });
-</script>
-
-{% endblock content %}
+      </script>
+    {% endblock content %}

@@ -1,7 +1,9 @@
 {# HTMX partial: Inline validation errors using OOB swaps #}
 {# Each error is swapped into its field's error container #}
 {% for field, messages in errors.items() %}
-<div id="error-{{ field }}" class="field-error-message" role="alert" aria-live="assertive" hx-swap-oob="innerHTML">
-  {{ messages[0] }}
-</div>
+  <div id="error-{{ field }}"
+       class="field-error-message"
+       role="alert"
+       aria-live="assertive"
+       hx-swap-oob="innerHTML">{{ messages[0] }}</div>
 {% endfor %}

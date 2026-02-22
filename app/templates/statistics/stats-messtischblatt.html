@@ -1,19 +1,19 @@
 {% extends "layout.html" %}
-{% block title %}Statistiken{% endblock title %}
+{% block title %}
+  Statistiken
+{% endblock title %}
 {% block meta_keywords %}Auswertungen, Meßtischblatt{% endblock %}
 {% from 'statistics/_macros_stats_menu.html' import StatsMenu with context %}
 {% block content %}
-<section class="container px-4 mx-auto mt-10">
-  <div class="p-4 bg-gray-100 rounded-lg border border-gray-200 sm:p-5">
-    <form action="" method="POST" class="space-y-4">
-      {{ StatsMenu() }}
-    </form>
-    <p class="mt-4 text-sm text-gray-700">Für den Zeitraum vom {{ session['date_from'] }} bis {{ session['date_to'] }}.</p>
-    <p class="text-sm text-gray-700">Gebietskennzahl: {{ session["ags"] }}</p>
-    <!-- Grafik -->
-    <div id='myDiv' class="overflow-x-auto w-full">
-      {{svg | safe}}
+  <section class="container px-4 mx-auto mt-10">
+    <div class="p-4 bg-gray-100 rounded-lg border border-gray-200 sm:p-5">
+      <form action="" method="POST" class="space-y-4">
+        {{ StatsMenu() }}
+      </form>
+      <p class="mt-4 text-sm text-gray-700">Für den Zeitraum vom {{ session['date_from'] }} bis {{ session['date_to'] }}.</p>
+      <p class="text-sm text-gray-700">Gebietskennzahl: {{ session["ags"] }}</p>
+      <!-- Grafik -->
+      <div id='myDiv' class="overflow-x-auto w-full">{{ svg | safe }}</div>
     </div>
-  </div>
-</section>
+  </section>
 {% endblock content %}

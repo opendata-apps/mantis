@@ -57,7 +57,9 @@ def seed_command(demo):
     from app.database.populate import populate_all
 
     # Load AGS data from fallback JSON file
-    fallback_path = os.path.join(os.path.dirname(__file__), "data", "ags_gemeinden.json")
+    fallback_path = os.path.join(
+        os.path.dirname(__file__), "data", "ags_gemeinden.json"
+    )
     if os.path.exists(fallback_path):
         with open(fallback_path, "r", encoding="utf-8") as f:
             jsondata = f.read()
@@ -158,11 +160,13 @@ def seed_ags_command():
                 existing.gen = feat["properties"]["GEN"]
                 existing.properties = feat["geometry"]
             else:
-                session.add(TblAemterCoordinaten(
-                    ags=ags,
-                    gen=feat["properties"]["GEN"],
-                    properties=feat["geometry"],
-                ))
+                session.add(
+                    TblAemterCoordinaten(
+                        ags=ags,
+                        gen=feat["properties"]["GEN"],
+                        properties=feat["geometry"],
+                    )
+                )
 
         # Remove stale records not in fresh dataset (e.g. Berlin whole-city)
         all_rows = session.query(TblAemterCoordinaten).all()
@@ -175,7 +179,9 @@ def seed_ags_command():
         session.commit()
         if removed:
             click.echo(f"Removed {removed} stale record(s)")
-        click.echo(f"Synced {len(fresh_ags)} records. Administrative area data is up to date.")
+        click.echo(
+            f"Synced {len(fresh_ags)} records. Administrative area data is up to date."
+        )
 
     except Exception as e:
         click.echo(f"Error fetching AGS data: {e}", err=True)
@@ -184,7 +190,9 @@ def seed_ags_command():
 
 @click.command("validate-coordinates")
 @click.option("--csv", "csv_path", default=None, help="Write mismatches to a CSV file")
-@click.option("--verbose", is_flag=True, help="Show all checked fundorte, not just mismatches")
+@click.option(
+    "--verbose", is_flag=True, help="Show all checked fundorte, not just mismatches"
+)
 @with_appcontext
 def validate_coordinates_command(csv_path, verbose):
     """Check that stored address fields match the coordinates on the map.
@@ -365,6 +373,23 @@ def create_app(config_class=Config):
     from app.tools import vite
 
     vite.init_app(app)
+
+    # Heroicons Jinja globals — usage: {{ heroicon_outline("map-pin", class="w-4 h-4") }}
+    from heroicons.jinja import (
+        heroicon_micro,
+        heroicon_mini,
+        heroicon_outline,
+        heroicon_solid,
+    )
+
+    app.jinja_env.globals.update(
+        {
+            "heroicon_micro": heroicon_micro,
+            "heroicon_mini": heroicon_mini,
+            "heroicon_outline": heroicon_outline,
+            "heroicon_solid": heroicon_solid,
+        }
+    )
 
     # Register CLI commands
     app.cli.add_command(create_all_data_view)

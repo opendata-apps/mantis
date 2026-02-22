@@ -1,50 +1,47 @@
 <!-- Help Popover Macro (CSS hover-based, no JS needed) -->
-
 {% macro popover(target, title, content, link_url=None, link_text=None) %}
-<div class="relative inline-block group">
+  <div class="relative inline-block group">
     <button type="button" class="pl-2 pr-1 text-gray-900" title="Hilfe">
-        <svg class="w-4 h-4 text-gray-600" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
-            viewBox="0 0 20 20">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M7.529 7.988a2.502 2.502 0 0 1 5 .191A2.441 2.441 0 0 1 10 10.582V12m-.01 3.008H10M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-        </svg>
+      {{ heroicon_outline("question-mark-circle", class="w-4 h-4 text-gray-600", stroke_width=2) }}
     </button>
-    <div id="{{ target }}" role="tooltip"
-        class="absolute invisible w-64 text-sm text-gray-600 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 group-hover:visible group-hover:opacity-100 transition-opacity duration-200 z-50 left-full bottom-0 translate-x-2.5">
-        <div class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg">
-            <h3 class="font-semibold text-gray-900">{{ title }}</h3>
-        </div>
-        <div class="px-3 py-2 bg-green-100">
-            <p>{{ content | safe }}</p>
-            {% if link_url and link_text %}
-            <p><a href="{{ link_url }}" class="text-blue-600 underline">{{ link_text }}</a></p>
-            {% endif %}
-        </div>
+    <div id="{{ target }}"
+         role="tooltip"
+         class="absolute invisible w-64 text-sm text-gray-600 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 group-hover:visible group-hover:opacity-100 transition-opacity duration-200 z-50 left-full bottom-0 translate-x-2.5">
+      <div class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg">
+        <h3 class="font-semibold text-gray-900">{{ title }}</h3>
+      </div>
+      <div class="px-3 py-2 bg-green-100">
+        <p>{{ content | safe }}</p>
+        {% if link_url and link_text %}
+          <p>
+            <a href="{{ link_url }}" class="text-blue-600 underline">{{ link_text }}</a>
+          </p>
+        {% endif %}
+      </div>
     </div>
-</div>
+  </div>
 {% endmacro %}
-
 {% macro render_pagination(pagination, endpoint, current_filter_status, current_sort_order, search_query, date_from, date_to, date_type='fund') %}
   <div class="flex items-center justify-center my-2 text-xl font-semibold text-green-600">
     {{ pagination.first }} - {{ pagination.last }} von {{ pagination.total }}
   </div>
-
   <div class="flex items-center justify-center my-4 space-x-2">
     {% set start_page = [pagination.page - 2, 1] | max %}
     {% set end_page = [pagination.page + 2, pagination.pages] | min %}
     {% if pagination.has_prev %}
-      <a href="{{ url_for(endpoint, page=pagination.prev_num, statusInput=current_filter_status, sort_order=current_sort_order, q=search_query, dateFrom=date_from, dateTo=date_to, dateType=date_type) }}" class="flex items-center justify-center px-3 py-2 text-green-500 transition-all duration-300 ease-in-out border border-green-500 rounded-sm hover:bg-green-100 hover:scale-105" title="Previous page">
+      <a href="{{ url_for(endpoint, page=pagination.prev_num, statusInput=current_filter_status, sort_order=current_sort_order, q=search_query, dateFrom=date_from, dateTo=date_to, dateType=date_type) }}"
+         class="flex items-center justify-center px-3 py-2 text-green-500 transition-all duration-300 ease-in-out border border-green-500 rounded-sm hover:bg-green-100 hover:scale-105"
+         title="Previous page">
         <span class="sr-only">Previous</span>
-        <svg class="w-3 h-3 mx-auto" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
-          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 1 1 5l4 4"/>
-        </svg>
+        {{ heroicon_mini("chevron-left", class="w-3 h-3 mx-auto") }}
       </a>
     {% endif %}
     {% for page in range(start_page, end_page + 1) %}
       {% if page != pagination.page %}
-      <a href="{{ url_for(endpoint, page=page, statusInput=current_filter_status, sort_order=current_sort_order, q=search_query, dateFrom=date_from, dateTo=date_to, dateType=date_type) }}" class="px-3 py-2 text-green-500 transition-all duration-300 ease-in-out border border-green-500 rounded-sm hover:bg-green-100 hover:scale-105">
-        {{ page }}
-      </a>
+        <a href="{{ url_for(endpoint, page=page, statusInput=current_filter_status, sort_order=current_sort_order, q=search_query, dateFrom=date_from, dateTo=date_to, dateType=date_type) }}"
+           class="px-3 py-2 text-green-500 transition-all duration-300 ease-in-out border border-green-500 rounded-sm hover:bg-green-100 hover:scale-105">
+          {{ page }}
+        </a>
       {% else %}
         <span class="px-3 py-2 text-gray-100 scale-110 bg-green-500 border border-green-500 rounded-sm shadow-lg">
           {{ page }}
@@ -52,11 +49,11 @@
       {% endif %}
     {% endfor %}
     {% if pagination.has_next %}
-    <a href="{{ url_for(endpoint, page=pagination.next_num, statusInput=current_filter_status, sort_order=current_sort_order, q=search_query, dateFrom=date_from, dateTo=date_to, dateType=date_type) }}" class="flex items-center justify-center px-3 py-2 text-green-500 transition-all duration-300 ease-in-out border border-green-500 rounded-sm hover:bg-green-100 hover:scale-105" title="Next page">
+      <a href="{{ url_for(endpoint, page=pagination.next_num, statusInput=current_filter_status, sort_order=current_sort_order, q=search_query, dateFrom=date_from, dateTo=date_to, dateType=date_type) }}"
+         class="flex items-center justify-center px-3 py-2 text-green-500 transition-all duration-300 ease-in-out border border-green-500 rounded-sm hover:bg-green-100 hover:scale-105"
+         title="Next page">
         <span class="sr-only">Next</span>
-        <svg class="w-3 h-3 mx-auto" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
-          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
-        </svg>
+        {{ heroicon_mini("chevron-right", class="w-3 h-3 mx-auto") }}
       </a>
     {% endif %}
   </div>

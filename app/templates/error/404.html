@@ -1,5 +1,4 @@
 {% extends "error/base.html" %}
-
 {% set page_title = "404" %}
 {% set error_code = "404" %}
 {% set heading_color = "text-green-600" %}
@@ -7,7 +6,4 @@
 {% set message = "Maybe it's hiding in the grass?" %}
 {% set button_text = "Go back home" %}
 {% set button_class = "bg-green-600 hover:bg-green-700 hover:ring-2 hover:ring-offset-2 hover:ring-green-500 animate-bounce" %}
-
-{% block emoji %}
-<span class="magnifier" role="img" aria-label="magnifying glass">🔍</span>
-{% endblock %}
+{% block emoji %}<span class="magnifier" role="img" aria-label="magnifying glass">🔍</span>{% endblock %}

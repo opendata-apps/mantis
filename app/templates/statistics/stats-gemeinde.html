@@ -1,69 +1,75 @@
 {% extends "layout.html" %}
-{% block title %}Statistiken{% endblock title %}
+{% block title %}
+  Statistiken
+{% endblock title %}
 {% block meta_keywords %}Auswertungen, Meßtischblatt{% endblock %}
 {% from 'statistics/_macros_stats_menu.html' import StatsMenu with context %}
-
 {% block content %}
-<section class="container px-4 mx-auto mt-10">
-  <div class="p-4 bg-gray-100 rounded-lg border border-gray-200 sm:p-5">
-    <form action="" method="POST" class="space-y-4">
-      {{ StatsMenu() }}
-    </form>
-    <p class="mt-4 text-sm text-gray-700">Für den Zeitraum vom {{ session['date_from'] }} bis {{ session['date_to'] }} und das Gebiet {{ session["ags"] }} wurden folgende Werte erfasst.</p>
-    {% if marker == "meldungen_amt" %}
-    <form action="/statistik" method="POST">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <div class="mt-3">
-	<input type="text" id="gemeinde" name="gemeinde"
-	       value="{{ gemeinde }}"
-	       class="block px-3 py-2 w-full text-sm text-gray-700 bg-white rounded-lg border border-gray-300 transition-all duration-200 focus:outline-hidden focus-visible:border-green-500 focus-visible:ring-2 focus-visible:ring-green-500/30 md:w-auto"
-               placeholder="Eine gültige AGS eingeben" required />
-      </div>
-      <input type="hidden" name="stats" value="meldungen_amt"/>
-    </form>
-    {% endif %}
-    {% if fehler != True %}
-    <div class="flex flex-wrap justify-center">
-      <div class="m-4">
-	<div class="overflow-x-auto">
-	<table class="w-full min-w-[14rem] table-fixed">
-	  <thead>
-	    <tr>
-	      <th class="w-20">Art</th>
-	      <th class="w-[50px] text-right">Anzahl</th>
-	    </tr>
-	  </thead>
-	  <tbody>
-	    <tr>
-	      <td>Männlich</td>
-	      <td class="text-right">{{result[1]}}</td>
-	    </tr>
-	    <tr>
-	      <td>Weiblich</td>
-	      <td class="text-right">{{result[2]}}</td>
-	    </tr>
-	    <tr>
-	      <td>Nymphe</td>
-	      <td class="text-right">{{result[4]}}</td>
-	    </tr>
-	    <tr>
-	      <td>Oothek</td>
-	      <td class="text-right">{{result[3]}}</td>
-	    </tr>
-	    <tr>
-	      <td>Andere</td>
-	      <td class="text-right">{{result[5]}}</td>
-	    </tr>
-	    <tr class="border-t-2 border-b-4 border-green-500">
-	      <td>Gesamt</td>
-	      <td class="text-right">{{result[6]}}</td>
-	    </tr>
-	  </tbody>
-	</table>
-	</div>
-	{% endif %}
+  <section class="container px-4 mx-auto mt-10">
+    <div class="p-4 bg-gray-100 rounded-lg border border-gray-200 sm:p-5">
+      <form action="" method="POST" class="space-y-4">
+        {{ StatsMenu() }}
+      </form>
+      <p class="mt-4 text-sm text-gray-700">
+        Für den Zeitraum vom {{ session['date_from'] }} bis {{ session['date_to'] }} und das Gebiet {{ session["ags"] }} wurden folgende Werte erfasst.
+      </p>
+      {% if marker == "meldungen_amt" %}
+        <form action="/statistik" method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="mt-3">
+            <input type="text"
+                   id="gemeinde"
+                   name="gemeinde"
+                   value="{{ gemeinde }}"
+                   class="block px-3 py-2 w-full text-sm text-gray-700 bg-white rounded-lg border border-gray-300 transition-all duration-200 focus:outline-hidden focus-visible:border-green-500 focus-visible:ring-2 focus-visible:ring-green-500/30 md:w-auto"
+                   placeholder="Eine gültige AGS eingeben"
+                   required />
+          </div>
+          <input type="hidden" name="stats" value="meldungen_amt" />
+        </form>
+      {% endif %}
+      {% if fehler != True %}
+        <div class="flex flex-wrap justify-center">
+          <div class="m-4">
+            <div class="overflow-x-auto">
+              <table class="w-full min-w-[14rem] table-fixed">
+                <thead>
+                  <tr>
+                    <th class="w-20">Art</th>
+                    <th class="w-[50px] text-right">Anzahl</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Männlich</td>
+                    <td class="text-right">{{ result[1] }}</td>
+                  </tr>
+                  <tr>
+                    <td>Weiblich</td>
+                    <td class="text-right">{{ result[2] }}</td>
+                  </tr>
+                  <tr>
+                    <td>Nymphe</td>
+                    <td class="text-right">{{ result[4] }}</td>
+                  </tr>
+                  <tr>
+                    <td>Oothek</td>
+                    <td class="text-right">{{ result[3] }}</td>
+                  </tr>
+                  <tr>
+                    <td>Andere</td>
+                    <td class="text-right">{{ result[5] }}</td>
+                  </tr>
+                  <tr class="border-t-2 border-b-4 border-green-500">
+                    <td>Gesamt</td>
+                    <td class="text-right">{{ result[6] }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          {% endif %}
+        </div>
       </div>
     </div>
-  </div> 
-</section>
+  </section>
 {% endblock content %}

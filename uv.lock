@@ -415,6 +415,20 @@ wheels = [
 ]
 
 [[package]]
+name = "heroicons"
+version = "2.13.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/c6/b4/ebcb01d7bbca3ef6d7076138383eb01ea83c540204ae6c2e296ce246d986/heroicons-2.13.0.tar.gz", hash = "sha256:c49d919ee3fa19c79bbfc7c111b4849fe8fc3640e4904dfdc538ff592e18b452", size = 420755, upload-time = "2025-09-18T11:25:58.012Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f1/09/80edcba5288b66d54611e978a2afaa406219a9e6637fc8adc43872088838/heroicons-2.13.0-py3-none-any.whl", hash = "sha256:682e3a61ede41cd9b78644977f2988d444ffb02626fe66cccd296d9fc3f4e465", size = 414973, upload-time = "2025-09-18T11:25:55.996Z" },
+]
+
+[package.optional-dependencies]
+jinja = [
+    { name = "jinja2" },
+]
+
+[[package]]
 name = "idna"
 version = "3.11"
 source = { registry = "https://pypi.org/simple" }
@@ -507,6 +521,7 @@ dependencies = [
     { name = "flask-wtf" },
     { name = "geopy" },
     { name = "gunicorn" },
+    { name = "heroicons", extra = ["jinja"] },
     { name = "jinja2" },
     { name = "mako" },
     { name = "pillow" },
@@ -567,6 +582,7 @@ requires-dist = [
     { name = "flask-wtf", specifier = ">=1.2.2" },
     { name = "geopy", specifier = ">=2.4.1" },
     { name = "gunicorn", specifier = ">=23.0.0" },
+    { name = "heroicons", extras = ["jinja"], specifier = ">=2.11.0" },
     { name = "imagesize", marker = "extra == 'docs'", specifier = ">=1.4.1" },
     { name = "jinja2", specifier = ">=3.1.6" },
     { name = "mako", specifier = ">=1.3.10" },

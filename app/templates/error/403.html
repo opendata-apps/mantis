@@ -1,5 +1,4 @@
 {% extends "error/base.html" %}
-
 {% set page_title = "403" %}
 {% set error_code = "403" %}
 {% set heading_color = "text-red-500" %}
@@ -7,7 +6,4 @@
 {% set message = "Maybe you took a wrong turn?" %}
 {% set button_text = "Return to safety" %}
 {% set button_class = "bg-red-600 hover:bg-linear-to-r hover:from-red-600 hover:to-red-500 hover:ring-2 hover:ring-offset-2 hover:ring-red-500 animate-bounce" %}
-
-{% block emoji %}
-<span class="magnifier" role="img" aria-label="stop sign">⛔</span>
-{% endblock %}
+{% block emoji %}<span class="magnifier" role="img" aria-label="stop sign">⛔</span>{% endblock %}

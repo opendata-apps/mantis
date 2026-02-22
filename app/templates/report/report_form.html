@@ -1,35 +1,46 @@
 {% extends "layout.html" %}
 {% block page_title %}Sichtung melden | Gottesanbeterin (Mantis religiosa){% endblock %}
-{% block meta_description %}Melden Sie Ihre Beobachtung der Europäischen Gottesanbeterin (Mantis religiosa): Foto hochladen, Fundort markieren, Entwicklungsstadium angeben und zur Forschung beitragen.{% endblock %}
-{% block meta_keywords %}Sichtung melden, Gottesanbeterin melden, Mantis religiosa melden, Fundmeldung, Oothek, Nymphe, Brandenburg, Berlin{% endblock %}
-{% block canonical %}{{ url_for('report.melden', _external=True) }}{% endblock %}
-
-{% block og_meta %}
-<meta property="og:title" content="Sichtung melden – Gottesanbeterin (Mantis religiosa)" />
-<meta property="og:type" content="website" />
-<meta property="og:url" content="{{ url_for('report.melden', _external=True) }}" />
-<meta property="og:image" content="{{ url_for('static', filename='images/weibchen-mit-oothek.webp', _external=True) }}" />
-<meta property="og:description" content="Foto hochladen, Fundort markieren und Ihre Beobachtung der Gottesanbeterin melden – einfach und schnell." />
-<meta property="og:site_name" content="Gottesanbeterin Gesucht" />
-<meta property="og:locale" content="de_DE" />
+{% block meta_description %}
+  Melden Sie Ihre Beobachtung der Europäischen Gottesanbeterin (Mantis religiosa): Foto hochladen, Fundort markieren, Entwicklungsstadium angeben und zur Forschung beitragen.
 {% endblock %}
-
+{% block meta_keywords %}
+  Sichtung melden, Gottesanbeterin melden, Mantis religiosa melden, Fundmeldung, Oothek, Nymphe, Brandenburg, Berlin
+{% endblock %}
+{% block canonical %}{{ url_for('report.melden', _external=True) }}{% endblock %}
+{% block og_meta %}
+  <meta property="og:title"
+        content="Sichtung melden – Gottesanbeterin (Mantis religiosa)" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url"
+        content="{{ url_for('report.melden', _external=True) }}" />
+  <meta property="og:image"
+        content="{{ url_for('static', filename='images/weibchen-mit-oothek.webp', _external=True) }}" />
+  <meta property="og:description"
+        content="Foto hochladen, Fundort markieren und Ihre Beobachtung der Gottesanbeterin melden – einfach und schnell." />
+  <meta property="og:site_name" content="Gottesanbeterin Gesucht" />
+  <meta property="og:locale" content="de_DE" />
+{% endblock %}
 {% block twitter_meta %}
-<meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="Sichtung melden – Gottesanbeterin (Mantis religiosa)" />
-<meta name="twitter:description" content="Helfen Sie der Forschung: Gottesanbeterin-Sichtung mit Foto und Fundort melden." />
-<meta name="twitter:image" content="{{ url_for('static', filename='images/weibchen-mit-oothek.webp', _external=True) }}" />
-<meta name="twitter:url" content="{{ url_for('report.melden', _external=True) }}" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title"
+        content="Sichtung melden – Gottesanbeterin (Mantis religiosa)" />
+  <meta name="twitter:description"
+        content="Helfen Sie der Forschung: Gottesanbeterin-Sichtung mit Foto und Fundort melden." />
+  <meta name="twitter:image"
+        content="{{ url_for('static', filename='images/weibchen-mit-oothek.webp', _external=True) }}" />
+  <meta name="twitter:url"
+        content="{{ url_for('report.melden', _external=True) }}" />
 {% endblock %}
 {% from 'report/_macros_form.html' import render_photo_upload, render_form_field, render_step_navigation, render_feedback_section %}
-
 {% block title %}Sichtung melden - Gottesanbeterin{% endblock %}
-
 {% block head %}
-{{ vite_tags('js/report-form-htmx.js') }}
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-
-<style>
+  {{ vite_tags("js/report-form-htmx.js") }}
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+        integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer" />
+  <style>
   .form-container {
     min-height: calc(100vh - 240px);
     display: flex;
@@ -145,210 +156,209 @@
     0%, 100% { opacity: 1; }
     50% { opacity: 0.5; }
   }
-</style>
+  </style>
 {% endblock %}
-
 {% block content %}
-<p class="text-center">Zeit der Eiablage: Melden Sie bitte auch Ootheken, sie sind der Start für die nächste Generation im kommenden Jahr.</p>
-
-<div class="form-container">
-  <div class="form-wrapper">
-    <div id="loadingOverlay" class="flex fixed inset-0 invisible z-50 flex-col justify-center items-center bg-white/80 opacity-0 transition-all duration-200 ease-in-out">
-      <div class="w-12 h-12 rounded-full border-4 border-gray-200 animate-spin border-t-green-600"></div>
-      <div id="loadingMessage" class="mt-4 font-medium text-green-700">Wird verarbeitet...</div>
-    </div>
-
-    <noscript>
-      <div class="p-4 mb-6 text-red-800 bg-red-50 border border-red-300 rounded-lg" role="alert">
-        <strong>JavaScript ist deaktiviert.</strong> Dieses Formular benötigt JavaScript für die Kartenansicht, Bildverarbeitung und schrittweise Validierung. Bitte aktivieren Sie JavaScript in Ihren Browser-Einstellungen.
+  <p class="text-center">
+    Zeit der Eiablage: Melden Sie bitte auch Ootheken, sie sind der Start für die nächste Generation im kommenden Jahr.
+  </p>
+  <div class="form-container">
+    <div class="form-wrapper">
+      <div id="loadingOverlay"
+           class="flex fixed inset-0 invisible z-50 flex-col justify-center items-center bg-white/80 opacity-0 transition-all duration-200 ease-in-out">
+        <div class="w-12 h-12 rounded-full border-4 border-gray-200 animate-spin border-t-green-600"></div>
+        <div id="loadingMessage" class="mt-4 font-medium text-green-700">Wird verarbeitet...</div>
       </div>
-    </noscript>
-
-    <form id="reportForm" method="POST" action="{{ url_for('report.melden', usrid=request.view_args.get('usrid')) if request.view_args.get('usrid') else url_for('report.melden') }}" enctype="multipart/form-data" class="space-y-8"
-          data-review-url="{{ url_for('report.review_step') }}"
-          data-ags-url="{{ url_for('report.ags_lookup') }}">
-      {{ form.csrf_token }}
-
-      {# Hidden target for htmx validation - actual errors use OOB swaps #}
-      <div id="validation-errors-container" class="hidden"></div>
-      
-      <h2 class="sr-only">Meldeformular</h2>
-      <div class="step-container">
-
-        <!-- Step 1: Photo & Details -->
-        <div class="p-6 bg-white rounded-lg border border-gray-100 shadow-xs step active" id="step1">
-          <h3 class="mb-4 text-xl font-semibold text-green-700">Foto & Details</h3>
-          
-          <p class="mb-4 text-sm text-gray-600">
-            <i class="mr-1 w-4 h-4 text-green-600 fas fa-camera"></i>
-            Bitte laden Sie ein Foto Ihrer Gottesanbeterin-Sichtung hoch und beschreiben Sie, was Sie gesehen haben.
-          </p>
-          
-          {{ render_photo_upload(form.photo) }}
-          
-          <div class="mt-6 space-y-4">
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-              {{ render_form_field(form.gender, attrs={'id': 'gender'}) }}
-              {{ render_form_field(form.location_description, attrs={'id': 'location_description'}) }}
-            </div>
-              
-            <div class="form-group">
-              {{ render_form_field(form.description, attrs={'id': 'description', 'rows': '4', 'maxlength': '500', 'oninput': 'updateCharCount(this)'}) }}
-              <p class="mt-1 text-xs text-gray-600">Verbleibende Zeichen: <span id="char-count" class="font-mono">500</span></p>
-              <script>function updateCharCount(el){var s=document.getElementById('char-count'),r=500-el.value.length;s.textContent=r;s.classList.toggle('text-red-600',r<0)}</script>
-            </div>
-          </div>
-          
-          {{ render_step_navigation(current_step=1, total_steps=4, show_prev=False, show_next=True) }}
+      <noscript>
+        <div class="p-4 mb-6 text-red-800 bg-red-50 border border-red-300 rounded-lg"
+             role="alert">
+          <strong>JavaScript ist deaktiviert.</strong> Dieses Formular benötigt JavaScript für die Kartenansicht, Bildverarbeitung und schrittweise Validierung. Bitte aktivieren Sie JavaScript in Ihren Browser-Einstellungen.
         </div>
-        
-        <!-- Step 2: Location & Date -->
-        <div class="hidden p-6 bg-white rounded-lg border border-gray-100 shadow-xs step" id="step2">
-          <h3 class="mb-4 text-xl font-semibold text-green-700">Wann und Wo? (Ort & Datum)</h3>
-          
-          <p class="mb-3 text-sm text-gray-600">
-            <i class="mr-1 w-4 h-4 text-green-600 fas fa-map-marker-alt"></i>
-            Tippen Sie auf die Karte, um den genauen Fundort zu markieren.
-          </p>
-          
-          <div class="mb-4 form-group">
-            {{ render_form_field(form.sighting_date, attrs={'id': 'sighting_date', 'max': now().strftime('%Y-%m-%d'), 'min': (now() - timedelta(days=5*365)).strftime('%Y-%m-%d')}) }}
-          </div>
-          
-          <div class="flex flex-col mb-4 lg:flex-row lg:space-x-6">
-            <!-- Map column -->
-            <div class="mb-4 w-full lg:w-3/5 xl:w-2/3 lg:mb-0">
-              <div id="map" class="w-full h-64 border border-gray-300 rounded-md shadow-xs sm:h-80 md:h-96 lg:h-112 xl:h-128 2xl:h-144"></div>
-              {# Inline error container for coordinates - supports HTMX OOB swaps #}
-              <div id="error-coordinates" class="field-error-message" role="alert" aria-live="assertive"></div>
+      </noscript>
+      <form id="reportForm"
+            method="POST"
+            action="{{ url_for('report.melden', usrid=request.view_args.get('usrid') ) if request.view_args.get('usrid') else url_for('report.melden') }}"
+            enctype="multipart/form-data"
+            class="space-y-8"
+            data-review-url="{{ url_for('report.review_step') }}"
+            data-ags-url="{{ url_for('report.ags_lookup') }}">
+        {{ form.csrf_token }}
+        {# Hidden target for htmx validation - actual errors use OOB swaps #}
+        <div id="validation-errors-container" class="hidden"></div>
+        <h2 class="sr-only">Meldeformular</h2>
+        <div class="step-container">
+          <!-- Step 1: Photo & Details -->
+          <div class="p-6 bg-white rounded-lg border border-gray-100 shadow-xs step active"
+               id="step1">
+            <h3 class="mb-4 text-xl font-semibold text-green-700">Foto & Details</h3>
+            <p class="mb-4 text-sm text-gray-600">
+              <i class="mr-1 w-4 h-4 text-green-600 fas fa-camera"></i>
+              Bitte laden Sie ein Foto Ihrer Gottesanbeterin-Sichtung hoch und beschreiben Sie, was Sie gesehen haben.
+            </p>
+            {{ render_photo_upload(form.photo) }}
+            <div class="mt-6 space-y-4">
+              <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                {{ render_form_field(form.gender, attrs={'id': 'gender'}) }}
+                {{ render_form_field(form.location_description, attrs={'id': 'location_description'}) }}
+              </div>
+              <div class="form-group">
+                {{ render_form_field(form.description, attrs={'id': 'description', 'rows': '4', 'maxlength': '500', 'oninput': 'updateCharCount(this)'}) }}
+                <p class="mt-1 text-xs text-gray-600">
+                  Verbleibende Zeichen: <span id="char-count" class="font-mono">500</span>
+                </p>
+                <script>function updateCharCount(el){var s=document.getElementById('char-count'),r=500-el.value.length;s.textContent=r;s.classList.toggle('text-red-600',r<0)}</script>
+              </div>
             </div>
-            
-            <!-- Form fields column -->
-            <div class="space-y-4 w-full lg:w-2/5 xl:w-1/3">
-              <!-- Manual coordinates input -->
-              <div class="p-4 bg-gray-50 rounded-md border border-gray-200">
-                <div class="mb-2">
-                  <span class="text-sm font-medium text-gray-700">Fundort-Koordinaten</span>
+            {{ render_step_navigation(current_step=1, total_steps=4, show_prev=False, show_next=True) }}
+          </div>
+          <!-- Step 2: Location & Date -->
+          <div class="hidden p-6 bg-white rounded-lg border border-gray-100 shadow-xs step"
+               id="step2">
+            <h3 class="mb-4 text-xl font-semibold text-green-700">Wann und Wo? (Ort & Datum)</h3>
+            <p class="mb-3 text-sm text-gray-600">
+              <i class="mr-1 w-4 h-4 text-green-600 fas fa-map-marker-alt"></i>
+              Tippen Sie auf die Karte, um den genauen Fundort zu markieren.
+            </p>
+            <div class="mb-4 form-group">
+              {{ render_form_field(form.sighting_date, attrs={'id': 'sighting_date', 'max': now().strftime('%Y-%m-%d'), 'min': (now() - timedelta(days=5*365)).strftime('%Y-%m-%d')}) }}
+            </div>
+            <div class="flex flex-col mb-4 lg:flex-row lg:space-x-6">
+              <!-- Map column -->
+              <div class="mb-4 w-full lg:w-3/5 xl:w-2/3 lg:mb-0">
+                <div id="map"
+                     class="w-full h-64 border border-gray-300 rounded-md shadow-xs sm:h-80 md:h-96 lg:h-112 xl:h-128 2xl:h-144">
                 </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                  <div class="form-group">
-                    <label for="manual-latitude" class="block mb-1 text-xs font-medium text-gray-700">Breitengrad</label>
-                    <input type="text" id="manual-latitude" inputmode="decimal" pattern="-?[0-9]+\.?[0-9]*" placeholder="z.B. 52.3906" autocomplete="off"
-                      class="block px-4 py-2 w-full text-base text-gray-700 bg-white rounded-lg border border-gray-300 shadow-xs transition duration-300 ease-in-out focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200">
+                {# Inline error container for coordinates - supports HTMX OOB swaps #}
+                <div id="error-coordinates"
+                     class="field-error-message"
+                     role="alert"
+                     aria-live="assertive"></div>
+              </div>
+              <!-- Form fields column -->
+              <div class="space-y-4 w-full lg:w-2/5 xl:w-1/3">
+                <!-- Manual coordinates input -->
+                <div class="p-4 bg-gray-50 rounded-md border border-gray-200">
+                  <div class="mb-2">
+                    <span class="text-sm font-medium text-gray-700">Fundort-Koordinaten</span>
                   </div>
-                  <div class="form-group">
-                    <label for="manual-longitude" class="block mb-1 text-xs font-medium text-gray-700">Längengrad</label>
-                    <input type="text" id="manual-longitude" inputmode="decimal" pattern="-?[0-9]+\.?[0-9]*" placeholder="z.B. 13.0645" autocomplete="off"
-                      class="block px-4 py-2 w-full text-base text-gray-700 bg-white rounded-lg border border-gray-300 shadow-xs transition duration-300 ease-in-out focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200">
+                  <div class="grid grid-cols-2 gap-3">
+                    <div class="form-group">
+                      <label for="manual-latitude"
+                             class="block mb-1 text-xs font-medium text-gray-700">Breitengrad</label>
+                      <input type="text"
+                             id="manual-latitude"
+                             inputmode="decimal"
+                             pattern="-?[0-9]+\.?[0-9]*"
+                             placeholder="z.B. 52.3906"
+                             autocomplete="off"
+                             class="block px-4 py-2 w-full text-base text-gray-700 bg-white rounded-lg border border-gray-300 shadow-xs transition duration-300 ease-in-out focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200">
+                    </div>
+                    <div class="form-group">
+                      <label for="manual-longitude"
+                             class="block mb-1 text-xs font-medium text-gray-700">Längengrad</label>
+                      <input type="text"
+                             id="manual-longitude"
+                             inputmode="decimal"
+                             pattern="-?[0-9]+\.?[0-9]*"
+                             placeholder="z.B. 13.0645"
+                             autocomplete="off"
+                             class="block px-4 py-2 w-full text-base text-gray-700 bg-white rounded-lg border border-gray-300 shadow-xs transition duration-300 ease-in-out focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200">
+                    </div>
+                  </div>
+                </div>
+                <!-- Hidden coordinate fields for form submission -->
+                {{ form.latitude(id="latitude", style="display: none;") }}
+                {{ form.longitude(id="longitude", style="display: none;") }}
+                {% if form.latitude.errors or form.longitude.errors %}
+                  <div class="text-sm text-red-600">
+                    {% if form.latitude.errors %}{{ form.latitude.errors[0] }}{% endif %}
+                    {% if form.longitude.errors %}{{ form.longitude.errors[0] }}{% endif %}
+                  </div>
+                {% endif %}
+                <!-- Address fields -->
+                <div class="p-4 bg-white rounded-md border border-gray-200">
+                  <h4 class="mb-3 text-sm font-medium text-gray-700">Fundort-Adresse</h4>
+                  <div class="space-y-3">
+                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      {{ render_form_field(form.fund_zip_code, attrs={'id': 'fund_zip_code', 'autocomplete': 'off', 'class': 'w-full px-3 py-2 text-sm md:text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-xs focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
+                      {{ render_form_field(form.fund_city, attrs={'id': 'fund_city', 'autocomplete': 'off', 'class': 'w-full px-3 py-2 text-sm md:text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-xs focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
+                    </div>
+                    {{ render_form_field(form.fund_district, attrs={'id': 'fund_district', 'autocomplete': 'off', 'class': 'w-full px-3 py-2 text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-xs focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
+                    {{ render_form_field(form.fund_state, attrs={'id': 'fund_state', 'autocomplete': 'off', 'class': 'w-full px-3 py-2 text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-xs focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
+                    {{ render_form_field(form.fund_street, attrs={'id': 'fund_street', 'autocomplete': 'off', 'class': 'w-full px-3 py-2 text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-xs focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
                   </div>
                 </div>
               </div>
-              
-              <!-- Hidden coordinate fields for form submission -->
-              {{ form.latitude(id="latitude", style="display: none;") }}
-              {{ form.longitude(id="longitude", style="display: none;") }}
-              {% if form.latitude.errors or form.longitude.errors %}
-                <div class="text-sm text-red-600">
-                  {% if form.latitude.errors %}{{ form.latitude.errors[0] }}{% endif %}
-                  {% if form.longitude.errors %}{{ form.longitude.errors[0] }}{% endif %}
-                </div>
+            </div>
+            {{ render_step_navigation(current_step=2, total_steps=4, show_prev=True, show_next=True) }}
+          </div>
+          <!-- Step 3: Contact Information -->
+          <div class="hidden p-6 bg-white rounded-lg border border-gray-100 shadow-xs step"
+               id="step3">
+            <h3 class="mb-4 text-xl font-semibold text-green-700">Ihre Kontaktdaten</h3>
+            <div class="space-y-4">
+              <!-- Reporter fields - readonly if prefilled -->
+              {% if user_prefilled %}
+                {{ render_form_field(form.report_first_name, attrs={'id': 'report_first_name', 'readonly': true}) }}
+                {{ render_form_field(form.report_last_name, attrs={'id': 'report_last_name', 'readonly': true}) }}
+                {{ render_form_field(form.email, attrs={'id': 'email', 'readonly': true}) }}
+              {% else %}
+                {{ render_form_field(form.report_first_name, attrs={'id': 'report_first_name'}) }}
+                {{ render_form_field(form.report_last_name, attrs={'id': 'report_last_name'}) }}
+                {{ render_form_field(form.email, attrs={'id': 'email'}) }}
               {% endif %}
-              
-              <!-- Address fields -->
-              <div class="p-4 bg-white rounded-md border border-gray-200">
-                <h4 class="mb-3 text-sm font-medium text-gray-700">Fundort-Adresse</h4>
-                <div class="space-y-3">
-                  <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    {{ render_form_field(form.fund_zip_code, attrs={'id': 'fund_zip_code', 'autocomplete': 'off', 'class': 'w-full px-3 py-2 text-sm md:text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-xs focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
-                    {{ render_form_field(form.fund_city, attrs={'id': 'fund_city', 'autocomplete': 'off', 'class': 'w-full px-3 py-2 text-sm md:text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-xs focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
-                  </div>
-
-                  {{ render_form_field(form.fund_district, attrs={'id': 'fund_district', 'autocomplete': 'off', 'class': 'w-full px-3 py-2 text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-xs focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
-                  {{ render_form_field(form.fund_state, attrs={'id': 'fund_state', 'autocomplete': 'off', 'class': 'w-full px-3 py-2 text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-xs focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
-                  {{ render_form_field(form.fund_street, attrs={'id': 'fund_street', 'autocomplete': 'off', 'class': 'w-full px-3 py-2 text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-xs focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
-                </div>
+              {# Checkbox with htmx toggle for finder fields #}
+              <div class="flex items-center space-x-2">
+                <input type="checkbox"
+                       id="identical_finder_reporter"
+                       name="identical_finder_reporter"
+                       class="form-checkbox w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded-sm shadow-xs transition duration-150 ease-in-out"
+                       checked
+                       hx-post="{{ url_for('report.toggle_finder') }}"
+                       hx-trigger="change"
+                       hx-target="#finder_fields_container"
+                       hx-swap="innerHTML">
+                <label for="identical_finder_reporter" class="text-sm text-gray-700">
+                  {{ form.identical_finder_reporter.label.text }}
+                </label>
+              </div>
+              {# HTMX-managed finder fields container #}
+              <div id="finder_fields_container">{% include 'report/partials/_finder_fields.html' with context %}</div>
+              <!-- Feedback section - only for new users -->
+              {% if not user_has_feedback %}{{ render_feedback_section(form.feedback_source, form.feedback_detail) }}{% endif %}
+              <!-- Honeypot spam protection -->
+              <div style="position:absolute; left:-5000px;" aria-hidden="true">
+                <label for="honeypot">If you are human, leave this field blank:</label>
+                {{ form.honeypot(id="honeypot", autocomplete="off", tabindex="-1") }}
               </div>
             </div>
+            {{ render_step_navigation(current_step=3, total_steps=4, show_prev=True, show_next=True) }}
           </div>
-                  
-          {{ render_step_navigation(current_step=2, total_steps=4, show_prev=True, show_next=True) }}
-        </div>
-        
-        <!-- Step 3: Contact Information -->
-        <div class="hidden p-6 bg-white rounded-lg border border-gray-100 shadow-xs step" id="step3">
-          <h3 class="mb-4 text-xl font-semibold text-green-700">Ihre Kontaktdaten</h3>
-          
-          <div class="space-y-4">
-            <!-- Reporter fields - readonly if prefilled -->
-            {% if user_prefilled %}
-              {{ render_form_field(form.report_first_name, attrs={'id': 'report_first_name', 'readonly': true}) }}
-              {{ render_form_field(form.report_last_name, attrs={'id': 'report_last_name', 'readonly': true}) }}
-              {{ render_form_field(form.email, attrs={'id': 'email', 'readonly': true}) }}
-            {% else %}
-              {{ render_form_field(form.report_first_name, attrs={'id': 'report_first_name'}) }}
-              {{ render_form_field(form.report_last_name, attrs={'id': 'report_last_name'}) }}
-              {{ render_form_field(form.email, attrs={'id': 'email'}) }}
-            {% endif %}
-             
-            {# Checkbox with htmx toggle for finder fields #}
-            <div class="flex items-center space-x-2">
-              <input type="checkbox" id="identical_finder_reporter" name="identical_finder_reporter"
-                     class="form-checkbox w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded-sm shadow-xs transition duration-150 ease-in-out"
-                     checked
-                     hx-post="{{ url_for('report.toggle_finder') }}"
-                     hx-trigger="change"
-                     hx-target="#finder_fields_container"
-                     hx-swap="innerHTML">
-              <label for="identical_finder_reporter" class="text-sm text-gray-700">{{ form.identical_finder_reporter.label.text }}</label>
+          <!-- Step 4: Review & Submit - Content loaded via htmx -->
+          <div class="hidden p-6 bg-white rounded-lg border border-gray-100 shadow-xs step"
+               id="step4">
+            <h3 class="mb-4 text-xl font-semibold text-green-700">Überprüfen & Absenden</h3>
+            <p class="mb-6 text-sm text-gray-600">
+              <i class="mr-1 w-4 h-4 text-green-600 fas fa-check-circle"></i>
+              Bitte überprüfen Sie Ihre Angaben und senden Sie Ihre Meldung ab. Sie können jederzeit zurückgehen, um Änderungen vorzunehmen.
+            </p>
+            {# HTMX-loaded review content container #}
+            <div id="review-content-container">
+              <div class="flex justify-center items-center py-12">
+                <div class="w-8 h-8 rounded-full border-4 border-gray-200 animate-spin border-t-green-600"></div>
+                <span class="ml-3 text-gray-600">Lade Zusammenfassung...</span>
+              </div>
             </div>
-
-            {# HTMX-managed finder fields container #}
-            <div id="finder_fields_container">
-              {% include 'report/partials/_finder_fields.html' with context %}
-            </div>
-
-            <!-- Feedback section - only for new users -->
-            {% if not user_has_feedback %}
-              {{ render_feedback_section(form.feedback_source, form.feedback_detail) }}
-            {% endif %}
-
-            <!-- Honeypot spam protection -->
-            <div style="position:absolute; left:-5000px;" aria-hidden="true">
-              <label for="honeypot">If you are human, leave this field blank:</label>
-              {{ form.honeypot(id="honeypot", autocomplete="off", tabindex="-1") }}
-            </div>
+            {# General error container for submit failures (JS-only, not a field error) #}
+            <div id="error-general"
+                 class="hidden p-4 mt-4 text-red-800 bg-red-50 border border-red-300 rounded-lg"
+                 role="alert"
+                 aria-live="assertive"></div>
+            {{ render_step_navigation(current_step=4, total_steps=4, show_prev=True, show_submit=True) }}
           </div>
-          
-          {{ render_step_navigation(current_step=3, total_steps=4, show_prev=True, show_next=True) }}
         </div>
-        
-        <!-- Step 4: Review & Submit - Content loaded via htmx -->
-        <div class="hidden p-6 bg-white rounded-lg border border-gray-100 shadow-xs step" id="step4">
-          <h3 class="mb-4 text-xl font-semibold text-green-700">Überprüfen & Absenden</h3>
-
-          <p class="mb-6 text-sm text-gray-600">
-            <i class="mr-1 w-4 h-4 text-green-600 fas fa-check-circle"></i>
-            Bitte überprüfen Sie Ihre Angaben und senden Sie Ihre Meldung ab. Sie können jederzeit zurückgehen, um Änderungen vorzunehmen.
-          </p>
-
-          {# HTMX-loaded review content container #}
-          <div id="review-content-container">
-            <div class="flex justify-center items-center py-12">
-              <div class="w-8 h-8 rounded-full border-4 border-gray-200 animate-spin border-t-green-600"></div>
-              <span class="ml-3 text-gray-600">Lade Zusammenfassung...</span>
-            </div>
-          </div>
-
-          {# General error container for submit failures (JS-only, not a field error) #}
-          <div id="error-general" class="hidden p-4 mt-4 text-red-800 bg-red-50 border border-red-300 rounded-lg" role="alert" aria-live="assertive"></div>
-
-          {{ render_step_navigation(current_step=4, total_steps=4, show_prev=True, show_submit=True) }}
-        </div>
-      </div>
-    </form>
+      </form>
+    </div>
   </div>
-</div>
-
-{# Feedback interactions now handled via htmx #}
-{% endblock %} 
+  {# Feedback interactions now handled via htmx #}
+{% endblock %}

@@ -1,31 +1,28 @@
 {% extends "layout.html" %}
-
 {% block page_title %}{{ region.title }} | Gottesanbeterin Gesucht{% endblock %}
-
 {% block meta_description %}{{ region.meta_description }}{% endblock %}
-
 {% block canonical %}{{ url_for('regionen.region_page', slug=region.slug, _external=True) }}{% endblock %}
-
 {% block og_meta %}
-<meta property="og:title" content="{{ region.og_title }}" />
-<meta property="og:type" content="article" />
-<meta property="og:url" content="{{ url_for('regionen.region_page', slug=region.slug, _external=True) }}" />
-<meta property="og:image" content="{{ url_for('static', filename='images/berger03.webp', _external=True) }}" />
-<meta property="og:description" content="{{ region.meta_description }}" />
-<meta property="og:site_name" content="Gottesanbeterin Gesucht" />
-<meta property="og:locale" content="de_DE" />
+  <meta property="og:title" content="{{ region.og_title }}" />
+  <meta property="og:type" content="article" />
+  <meta property="og:url"
+        content="{{ url_for('regionen.region_page', slug=region.slug, _external=True) }}" />
+  <meta property="og:image"
+        content="{{ url_for('static', filename='images/berger03.webp', _external=True) }}" />
+  <meta property="og:description" content="{{ region.meta_description }}" />
+  <meta property="og:site_name" content="Gottesanbeterin Gesucht" />
+  <meta property="og:locale" content="de_DE" />
 {% endblock %}
-
 {% block twitter_meta %}
-<meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="{{ region.og_title }}" />
-<meta name="twitter:description" content="{{ region.meta_description }}" />
-<meta name="twitter:image" content="{{ url_for('static', filename='images/berger03.webp', _external=True) }}" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="{{ region.og_title }}" />
+  <meta name="twitter:description" content="{{ region.meta_description }}" />
+  <meta name="twitter:image"
+        content="{{ url_for('static', filename='images/berger03.webp', _external=True) }}" />
 {% endblock %}
-
 {% block head %}
-{{ super() }}
-<script type="application/ld+json">
+  {{ super() }}
+  <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "Article",
@@ -51,8 +48,8 @@
   "datePublished": "2026-02-20",
   "dateModified": "2026-02-20"
 }
-</script>
-<script type="application/ld+json">
+  </script>
+  <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -81,82 +78,88 @@
     }{% endif %}
   ]
 }
-</script>
+  </script>
 {% endblock %}
-
 {% block title %}{{ region.title }}{% endblock %}
-
 {% block content %}
-<div class="container max-w-5xl px-4 py-16 mx-auto">
-
+  <div class="container max-w-5xl px-4 py-16 mx-auto">
     {# Breadcrumb navigation #}
     <nav aria-label="Breadcrumb" class="mb-8">
-        <ol class="flex items-center space-x-2 text-sm text-gray-500">
-            <li><a href="{{ url_for('main.index') }}" class="text-green-700 hover:underline">Startseite</a></li>
-            {% if parent %}
-            <li><span class="mx-1">/</span></li>
-            <li><a href="{{ url_for('regionen.region_page', slug=parent.slug) }}" class="text-green-700 hover:underline">{{ parent.name }}</a></li>
-            {% endif %}
-            <li><span class="mx-1">/</span></li>
-            <li class="text-gray-700 font-medium" aria-current="page">{{ region.name }}</li>
-        </ol>
+      <ol class="flex items-center space-x-2 text-sm text-gray-500">
+        <li>
+          <a href="{{ url_for('main.index') }}"
+             class="text-green-700 hover:underline">Startseite</a>
+        </li>
+        {% if parent %}
+          <li>
+            <span class="mx-1">/</span>
+          </li>
+          <li>
+            <a href="{{ url_for('regionen.region_page', slug=parent.slug) }}"
+               class="text-green-700 hover:underline">{{ parent.name }}</a>
+          </li>
+        {% endif %}
+        <li>
+          <span class="mx-1">/</span>
+        </li>
+        <li class="text-gray-700 font-medium" aria-current="page">{{ region.name }}</li>
+      </ol>
     </nav>
-
     {# Intro paragraph #}
     <div class="mb-12">
-        <p class="prose-content-spaced text-lg leading-relaxed">{{ region.intro }}</p>
+      <p class="prose-content-spaced text-lg leading-relaxed">{{ region.intro }}</p>
     </div>
-
     {# Content sections #}
     {% for section in region.sections %}
-    <div class="mb-12">
+      <div class="mb-12">
         <h2 class="section-heading">{{ section.heading }}</h2>
         <div class="prose-content-spaced">{{ section.content | safe }}</div>
-    </div>
+      </div>
     {% endfor %}
-
     {# Call to action #}
     <div class="p-8 mb-12 text-center rounded-lg shadow-xl bg-green-50">
-        <h2 class="mb-4 text-2xl font-bold text-green-800">{{ region.cta_text }}</h2>
-        <p class="mb-6 text-lg text-gray-700">Haben Sie eine Gottesanbeterin in {{ region.name }} entdeckt? Helfen Sie der Forschung und melden Sie Ihre Beobachtung!</p>
-        <a href="{{ region.cta_url }}" class="btn-primary group relative overflow-hidden rounded-md">
-            <span class="relative z-10">Jetzt melden</span>
-            <svg class="w-5 h-5 ml-2 -mr-1 transition-transform duration-300 group-hover:translate-x-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
-            </svg>
-            <div class="absolute inset-0 w-full h-full transition-all duration-300 scale-0 rounded-md group-hover:scale-100 group-hover:bg-white/10"></div>
-        </a>
+      <h2 class="mb-4 text-2xl font-bold text-green-800">{{ region.cta_text }}</h2>
+      <p class="mb-6 text-lg text-gray-700">
+        Haben Sie eine Gottesanbeterin in {{ region.name }} entdeckt? Helfen Sie der Forschung und melden Sie Ihre Beobachtung!
+      </p>
+      <a href="{{ region.cta_url }}"
+         class="btn-primary group relative overflow-hidden rounded-md">
+        <span class="relative z-10">Jetzt melden</span>
+        {{ heroicon_mini("arrow-right", class="w-5 h-5 ml-2 -mr-1 transition-transform duration-300 group-hover:translate-x-1") }}
+        <div class="absolute inset-0 w-full h-full transition-all duration-300 scale-0 rounded-md group-hover:scale-100 group-hover:bg-white/10">
+        </div>
+      </a>
     </div>
-
     {# Related regions #}
     {% if siblings or children %}
-    <div class="mb-12">
+      <div class="mb-12">
         <h2 class="section-heading">Weitere Regionen</h2>
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {% for sib in siblings %}
-            <a href="{{ url_for('regionen.region_page', slug=sib.slug) }}" class="block p-6 transition-shadow bg-white rounded-lg shadow-md hover:shadow-lg">
-                <h3 class="text-lg font-semibold text-green-700">{{ sib.title }}</h3>
-                <p class="mt-2 text-sm text-gray-600">{{ sib.meta_description[:100] }}...</p>
+          {% for sib in siblings %}
+            <a href="{{ url_for('regionen.region_page', slug=sib.slug) }}"
+               class="block p-6 transition-shadow bg-white rounded-lg shadow-md hover:shadow-lg">
+              <h3 class="text-lg font-semibold text-green-700">{{ sib.title }}</h3>
+              <p class="mt-2 text-sm text-gray-600">{{ sib.meta_description[:100] }}...</p>
             </a>
-            {% endfor %}
-            {% for child in children %}
-            <a href="{{ url_for('regionen.region_page', slug=child.slug) }}" class="block p-6 transition-shadow bg-white rounded-lg shadow-md hover:shadow-lg">
-                <h3 class="text-lg font-semibold text-green-700">{{ child.title }}</h3>
-                <p class="mt-2 text-sm text-gray-600">{{ child.meta_description[:100] }}...</p>
+          {% endfor %}
+          {% for child in children %}
+            <a href="{{ url_for('regionen.region_page', slug=child.slug) }}"
+               class="block p-6 transition-shadow bg-white rounded-lg shadow-md hover:shadow-lg">
+              <h3 class="text-lg font-semibold text-green-700">{{ child.title }}</h3>
+              <p class="mt-2 text-sm text-gray-600">{{ child.meta_description[:100] }}...</p>
             </a>
-            {% endfor %}
+          {% endfor %}
         </div>
-    </div>
+      </div>
     {% endif %}
-
     {# Cross-links to other site sections #}
     <div class="pt-8 mt-8 border-t border-gray-200">
-        <p class="text-sm text-gray-500">
-            Mehr erfahren:
-            <a href="/mantis-religiosa" class="text-green-700 hover:underline">Über die Gottesanbeterin</a> ·
-            <a href="/bestimmung" class="text-green-700 hover:underline">Bestimmungsschlüssel</a> ·
-            <a href="/faq" class="text-green-700 hover:underline">Häufige Fragen</a>
-        </p>
+      <p class="text-sm text-gray-500">
+        Mehr erfahren:
+        <a href="/mantis-religiosa" class="text-green-700 hover:underline">Über die Gottesanbeterin</a> ·
+        <a href="/bestimmung" class="text-green-700 hover:underline">Bestimmungsschlüssel</a> ·
+        <a href="/faq" class="text-green-700 hover:underline">Häufige Fragen</a>
+      </p>
     </div>
-</div>
+  </div>
 {% endblock content %}

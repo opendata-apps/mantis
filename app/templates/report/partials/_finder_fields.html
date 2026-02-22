@@ -2,26 +2,40 @@
 {# Default to hidden when show is not defined (initial page load with checkbox checked) #}
 {% set show_fields = show | default(false) %}
 {% if show_fields %}
-<div id="finder_fields" class="p-4 mt-4 space-y-4 bg-gray-50 rounded-md">
-  <div class="form-group">
-    <label for="finder_first_name" class="block text-sm font-medium text-gray-700 mb-1">Vorname des Finders</label>
-    <input type="text" id="finder_first_name" name="finder_first_name"
-           placeholder="Vorname (falls abweichend)" autocomplete="off"
-           class="block w-full px-4 py-2 text-base text-gray-700 bg-white rounded-lg shadow-xs border border-gray-300 focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200 transition ease-in-out duration-300">
-    <div id="error-finder_first_name" class="field-error-message" role="alert" aria-live="assertive"></div>
+  <div id="finder_fields" class="p-4 mt-4 space-y-4 bg-gray-50 rounded-md">
+    <div class="form-group">
+      <label for="finder_first_name"
+             class="block text-sm font-medium text-gray-700 mb-1">Vorname des Finders</label>
+      <input type="text"
+             id="finder_first_name"
+             name="finder_first_name"
+             placeholder="Vorname (falls abweichend)"
+             autocomplete="off"
+             class="block w-full px-4 py-2 text-base text-gray-700 bg-white rounded-lg shadow-xs border border-gray-300 focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200 transition ease-in-out duration-300">
+      <div id="error-finder_first_name"
+           class="field-error-message"
+           role="alert"
+           aria-live="assertive"></div>
+    </div>
+    <div class="form-group">
+      <label for="finder_last_name"
+             class="block text-sm font-medium text-gray-700 mb-1">Nachname des Finders</label>
+      <input type="text"
+             id="finder_last_name"
+             name="finder_last_name"
+             placeholder="Nachname (falls abweichend)"
+             autocomplete="off"
+             class="block w-full px-4 py-2 text-base text-gray-700 bg-white rounded-lg shadow-xs border border-gray-300 focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200 transition ease-in-out duration-300">
+      <div id="error-finder_last_name"
+           class="field-error-message"
+           role="alert"
+           aria-live="assertive"></div>
+    </div>
   </div>
-  <div class="form-group">
-    <label for="finder_last_name" class="block text-sm font-medium text-gray-700 mb-1">Nachname des Finders</label>
-    <input type="text" id="finder_last_name" name="finder_last_name"
-           placeholder="Nachname (falls abweichend)" autocomplete="off"
-           class="block w-full px-4 py-2 text-base text-gray-700 bg-white rounded-lg shadow-xs border border-gray-300 focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200 transition ease-in-out duration-300">
-    <div id="error-finder_last_name" class="field-error-message" role="alert" aria-live="assertive"></div>
-  </div>
-</div>
 {% else %}
-<div id="finder_fields" class="hidden">
-  {# Hidden inputs so form data is still submitted #}
-  <input type="hidden" name="finder_first_name" value="">
-  <input type="hidden" name="finder_last_name" value="">
-</div>
+  <div id="finder_fields" class="hidden">
+    {# Hidden inputs so form data is still submitted #}
+    <input type="hidden" name="finder_first_name" value="">
+    <input type="hidden" name="finder_last_name" value="">
+  </div>
 {% endif %}

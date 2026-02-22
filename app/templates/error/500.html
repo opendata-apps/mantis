@@ -1,5 +1,4 @@
 {% extends "error/base.html" %}
-
 {% set page_title = "500 - Internal Server Error" %}
 {% set error_code = "500" %}
 {% set heading_color = "text-red-500" %}
@@ -7,23 +6,18 @@
 {% set message = "Something went wrong on our end. We're working on it!" %}
 {% set button_text = "Go back home" %}
 {% set button_class = "bg-red-600 hover:bg-linear-to-r hover:from-red-600 hover:to-red-500 hover:ring-2 hover:ring-offset-2 hover:ring-red-500" %}
-
-{% block mantis_animation %}
-animation: mantis-shake 0.5s ease-in-out infinite;
-{% endblock %}
-
+{% block mantis_animation %}animation: mantis-shake 0.5s ease-in-out infinite;{% endblock %}
 {% block keyframes %}
-@keyframes mantis-shake {
+  @keyframes mantis-shake {
   0%, 100% {
-    transform: translateX(0);
+  transform: translateX(0);
   }
   25% {
-    transform: translateX(-5px);
+  transform: translateX(-5px);
   }
   75% {
-    transform: translateX(5px);
+  transform: translateX(5px);
   }
-}
+  }
 {% endblock %}
-
 {% block scripts %}{% endblock %}

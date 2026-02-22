@@ -1,5 +1,4 @@
 {% extends "error/base.html" %}
-
 {% set page_title = "429" %}
 {% set error_code = "429" %}
 {% set heading_color = "text-yellow-600" %}
@@ -7,7 +6,4 @@
 {% set message = "Please wait a moment before trying again." %}
 {% set button_text = "Take it slow, retry" %}
 {% set button_class = "bg-yellow-600 hover:bg-linear-to-r hover:from-yellow-600 hover:to-yellow-500 hover:ring-2 hover:ring-offset-2 hover:ring-yellow-500 animate-bounce" %}
-
-{% block emoji %}
-<span class="magnifier" role="img" aria-label="coffee">☕</span>
-{% endblock %}
+{% block emoji %}<span class="magnifier" role="img" aria-label="coffee">☕</span>{% endblock %}
