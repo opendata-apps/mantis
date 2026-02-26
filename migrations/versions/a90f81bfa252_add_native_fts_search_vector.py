@@ -308,6 +308,10 @@ def downgrade():
     op.execute("DROP FUNCTION IF EXISTS trg_users_search_vector()")
     op.execute("DROP FUNCTION IF EXISTS recompute_search_vector(integer)")
 
+    # Drop materialized view that may reference search_vector (created by
+    # later migration b2c3d4e5f6a7 — must go before the column it depends on)
+    op.execute('DROP MATERIALIZED VIEW IF EXISTS public."all_data_view" CASCADE')
+
     # Drop index and column
     op.drop_index("ix_meldungen_search_vector_gin", table_name="meldungen")
     op.drop_column("meldungen", "search_vector")

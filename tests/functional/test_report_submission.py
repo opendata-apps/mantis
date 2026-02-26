@@ -118,13 +118,11 @@ class TestReportSubmission:
 
     This test class covers form rendering, validation, file upload,
     database integration, and security features of the submission process.
-    """
 
-    # Track test objects for cleanup
-    test_sighting_ids = []
-    test_location_ids = []
-    test_user_ids = []
-    test_relation_ids = []
+    Cleanup is handled automatically by the parent conftest's ``session``
+    fixture which wraps each test in a transaction that rolls back on exit.
+    No manual teardown is needed (see DataMade's transactional testing pattern).
+    """
 
     def test_report_form_renders(self, client):
         """Test that the report form page renders correctly.
@@ -138,60 +136,6 @@ class TestReportSubmission:
 
         assert response.status_code == 200
         assert b"Melden Sie Ihre Beobachtung" in response.data
-
-    # Helper method to set up test data and clean up after
-    @pytest.fixture(autouse=True)
-    def setup_and_teardown(self, session):
-        """Set up test environment and clean up after each test.
-
-        Handles:
-        - Setting up a database session
-        - Tracking test records for cleanup
-        - Deleting test records after each test
-
-        This ensures proper test isolation and prevents test data
-        from affecting other tests.
-        """
-        # Setup - create any common test data here
-        # Get testing session
-        self.session = session
-
-        # Clear tracking lists before each test
-        TestReportSubmission.test_sighting_ids = []
-        TestReportSubmission.test_location_ids = []
-        TestReportSubmission.test_user_ids = []
-        TestReportSubmission.test_relation_ids = []
-
-        # Yield control to the test
-        yield
-
-        # Teardown - clean up test data
-        # Delete all test relations we created
-        for relation_id in TestReportSubmission.test_relation_ids:
-            relation = self.session.get(TblMeldungUser, relation_id)
-            if relation:
-                self.session.delete(relation)
-
-        # Delete all test users with IDs starting with TEST
-        test_users = self.session.scalars(
-            select(TblUsers).where(TblUsers.user_id.like("TEST%"))
-        ).all()
-        for user in test_users:
-            self.session.delete(user)
-
-        # Delete all test sightings we created
-        for sighting_id in TestReportSubmission.test_sighting_ids:
-            sighting = self.session.get(TblMeldungen, sighting_id)
-            if sighting:
-                self.session.delete(sighting)
-
-        # Delete all test locations we created
-        for location_id in TestReportSubmission.test_location_ids:
-            location = self.session.get(TblFundorte, location_id)
-            if location:
-                self.session.delete(location)
-
-        self.session.commit()
 
     #########################
     # Database Model Tests #
@@ -234,8 +178,6 @@ class TestReportSubmission:
         )
         session.add(location)
         session.flush()  # Get the ID without committing
-        TestReportSubmission.test_location_ids.append(location.id)
-
         # 2. Create sighting record
         sighting = TblMeldungen(
             dat_fund_von=heute - datetime.timedelta(days=7),
@@ -249,20 +191,14 @@ class TestReportSubmission:
         )
         session.add(sighting)
         session.flush()
-        TestReportSubmission.test_sighting_ids.append(sighting.id)
-
         # 3. Create user record
         user = TblUsers(**user_test_data)
         session.add(user)
         session.flush()
-        TestReportSubmission.test_user_ids.append(user.id)
-
         # 4. Create user-sighting relation
         relation = TblMeldungUser(id_meldung=sighting.id, id_user=user.id)
         session.add(relation)
         session.commit()
-        TestReportSubmission.test_relation_ids.append(relation.id)
-
         # Verify database entries
         location_db = session.scalar(
             select(TblFundorte).where(TblFundorte.id == location.id)
@@ -423,9 +359,6 @@ class TestReportSubmission:
                     break
 
             if latest_sighting:
-                # Track for cleanup
-                TestReportSubmission.test_sighting_ids.append(latest_sighting.id)
-
                 # Verify sighting record details
                 assert latest_sighting.dat_meld is not None, "Meldedatum should be set"
                 assert latest_sighting.dat_fund_von is not None, (
@@ -458,9 +391,6 @@ class TestReportSubmission:
                     )
                 )
                 if location:
-                    # Track for cleanup
-                    TestReportSubmission.test_location_ids.append(location.id)
-
                     # Verify location record details
                     assert location.ort == form_data["fund_city"], (
                         f"City doesn't match: expected {form_data['fund_city']}, got {location.ort}"
@@ -505,16 +435,10 @@ class TestReportSubmission:
                     )
                 )
                 if user_relation:
-                    # Track for cleanup
-                    TestReportSubmission.test_relation_ids.append(user_relation.id)
-
                     user = session.scalar(
                         select(TblUsers).where(TblUsers.id == user_relation.id_user)
                     )
                     if user:
-                        # Track for cleanup
-                        TestReportSubmission.test_user_ids.append(user.id)
-
                         # Verify user record details - name format is typically "LastName F."
                         expected_name_format = f"{form_data['report_last_name']} {form_data['report_first_name'][0].upper()}."
                         assert user.user_name == expected_name_format, (
