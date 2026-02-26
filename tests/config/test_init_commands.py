@@ -9,7 +9,7 @@ def test_flask_app_with_testing_config():
     """Test the Flask app creation with testing configuration."""
     # Test an init parameter that we haven't hit yet
     from app import create_app
-    from app.test_config import Config as TestConfig
+    from tests.test_config import Config as TestConfig
 
     # Create app with explicit test config
     app = create_app(TestConfig)
@@ -34,7 +34,7 @@ def test_flask_app_with_testing_config():
 def test_error_handlers_register():
     """Test that error handlers are properly registered and work."""
     from app import create_app
-    from app.test_config import Config as TestConfig
+    from tests.test_config import Config as TestConfig
 
     app = create_app(TestConfig)
 

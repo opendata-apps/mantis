@@ -2,7 +2,7 @@ import pytest
 from app import create_app, db
 from alembic import command
 from alembic.config import Config
-from app.test_config import Config as TestConfig
+from tests.test_config import Config as TestConfig
 from sqlalchemy import text
 import app.database.alldata as ad
 import sqlalchemy as sa
@@ -21,8 +21,6 @@ def app():
     """
     app = create_app(TestConfig)
     with app.app_context():
-        # Run Alembic migrations on test database
-        upgrade()
         yield app
 
 
@@ -142,7 +140,7 @@ def upgrade():
     """
     import sqlalchemy as sa
 
-    connstring = "postgresql+psycopg://mantis_user:mantis@localhost/mantis_tester"
+    connstring = TestConfig.URI
     alembic_cfg = Config("migrations/alembic.ini")
     alembic_cfg.set_main_option("sqlalchemy.url", connstring)
     alembic_cfg.set_main_option("script_location", "migrations")
