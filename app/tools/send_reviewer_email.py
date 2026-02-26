@@ -63,7 +63,7 @@ def rendertextmsg(md):
 
     - Behandeln Sie den Link wie ein Passwort!
     - Publizieren Sie den Link nicht in Foren, Messengern, ...
-    """.format(md)
+    """
 
 
 def send_email(data):

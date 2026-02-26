@@ -27,7 +27,7 @@ from flask import (
     send_from_directory,
     url_for,
 )
-from sqlalchemy import inspect, update, select, func
+from sqlalchemy import update, select, func
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import contains_eager, joinedload
 from app.auth import reviewer_required
@@ -254,10 +254,6 @@ def reviewer(usrid=None):
     date_to = request.args.get("dateTo", None)
     date_type = request.args.get("dateType", "fund")
 
-    image_path = current_app.config["UPLOAD_FOLDER"]
-    inspector = inspect(db.engine)
-    tables = inspector.get_table_names()
-
     if "statusInput" not in request.args and "sort_order" not in request.args:
         return redirect(
             url_for(
@@ -297,8 +293,6 @@ def reviewer(usrid=None):
         user_id=usrid,
         paginated_sightings=paginated_sightings,
         reported_sightings=paginated_sightings.items,
-        tables=tables,
-        image_path=image_path,
         user_name=user_name,
         filters={"status": filter_status, "type": filter_type},
         current_filter_status=filter_status,
