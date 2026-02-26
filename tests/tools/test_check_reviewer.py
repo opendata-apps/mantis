@@ -3,7 +3,7 @@
 from unittest.mock import MagicMock, patch
 
 from flask import Flask, g
-from app.tools.check_reviewer import login_required, reviewer_required
+from app.auth import login_required, reviewer_required
 
 
 def _make_mock_user(user_id="9999", user_rolle="9"):
@@ -17,7 +17,7 @@ def _make_mock_user(user_id="9999", user_rolle="9"):
 class TestLoginRequired:
     """Test the login_required decorator functionality."""
 
-    @patch("app.tools.check_reviewer.db")
+    @patch("app.auth.db")
     def test_authenticated_user_gets_200(self, mock_db):
         """Test that authenticated users can access protected routes."""
         mock_db.session.scalar.return_value = _make_mock_user()
@@ -66,7 +66,7 @@ class TestLoginRequired:
         assert decorated_function.__name__ == "original_function"
         assert decorated_function.__doc__ == "Original function docstring."
 
-    @patch("app.tools.check_reviewer.db")
+    @patch("app.auth.db")
     def test_passes_through_function_arguments(self, mock_db):
         """Test that the decorator passes through function arguments correctly."""
         mock_db.session.scalar.return_value = _make_mock_user()
@@ -87,7 +87,7 @@ class TestLoginRequired:
             assert response.status_code == 200
             assert response.data == b"hello,world"
 
-    @patch("app.tools.check_reviewer.db")
+    @patch("app.auth.db")
     def test_handles_keyword_arguments(self, mock_db):
         """Test that the decorator handles keyword arguments."""
         mock_db.session.scalar.return_value = _make_mock_user()
@@ -111,7 +111,7 @@ class TestLoginRequired:
             assert response.status_code == 200
             assert response.data == b"Hello TestUser"
 
-    @patch("app.tools.check_reviewer.db")
+    @patch("app.auth.db")
     def test_works_with_stacked_decorators(self, mock_db):
         """Test that login_required works with other decorators."""
         mock_db.session.scalar.return_value = _make_mock_user()
@@ -143,7 +143,7 @@ class TestLoginRequired:
             assert response.status_code == 200
             assert response.data == b"Modified: Original"
 
-    @patch("app.tools.check_reviewer.db")
+    @patch("app.auth.db")
     def test_cleared_session_denies_access(self, mock_db):
         """Test that clearing session prevents access to protected routes."""
         mock_db.session.scalar.return_value = _make_mock_user()
@@ -169,7 +169,7 @@ class TestLoginRequired:
             response = client.get("/test-logout")
             assert response.status_code == 403
 
-    @patch("app.tools.check_reviewer.db")
+    @patch("app.auth.db")
     def test_deleted_user_gets_403(self, mock_db):
         """Test that a session referencing a deleted user gets 403."""
         mock_db.session.scalar.return_value = None
@@ -189,7 +189,7 @@ class TestLoginRequired:
             response = client.get("/test-deleted-user")
             assert response.status_code == 403
 
-    @patch("app.tools.check_reviewer.db")
+    @patch("app.auth.db")
     def test_deleted_user_session_is_cleared(self, mock_db):
         """Stale session should be purged so subsequent requests don't hit DB."""
         mock_db.session.scalar.return_value = None
@@ -212,7 +212,7 @@ class TestLoginRequired:
             with client.session_transaction() as sess:
                 assert "user_id" not in sess
 
-    @patch("app.tools.check_reviewer.db")
+    @patch("app.auth.db")
     def test_sets_g_current_user(self, mock_db):
         """Decorator must populate g.current_user for downstream route code."""
         mock_user = _make_mock_user()
@@ -238,7 +238,7 @@ class TestLoginRequired:
 class TestReviewerRequired:
     """Test the reviewer_required decorator functionality."""
 
-    @patch("app.tools.check_reviewer.db")
+    @patch("app.auth.db")
     def test_reviewer_gets_200(self, mock_db):
         """Test that a user with role '9' can access reviewer routes."""
         mock_db.session.scalar.return_value = _make_mock_user(user_rolle="9")
@@ -259,7 +259,7 @@ class TestReviewerRequired:
             assert response.status_code == 200
             assert response.data == b"Reviewer Content"
 
-    @patch("app.tools.check_reviewer.db")
+    @patch("app.auth.db")
     def test_non_reviewer_gets_403(self, mock_db):
         """Test that a user with role != '9' is rejected."""
         mock_db.session.scalar.return_value = _make_mock_user(user_rolle="1")
@@ -293,7 +293,7 @@ class TestReviewerRequired:
             response = client.get("/test-reviewer-noauth")
             assert response.status_code == 403
 
-    @patch("app.tools.check_reviewer.db")
+    @patch("app.auth.db")
     def test_deleted_user_gets_403(self, mock_db):
         """Test that a deleted user is rejected with 403 on reviewer routes."""
         mock_db.session.scalar.return_value = None
@@ -313,7 +313,7 @@ class TestReviewerRequired:
             response = client.get("/test-reviewer-deleted")
             assert response.status_code == 403
 
-    @patch("app.tools.check_reviewer.db")
+    @patch("app.auth.db")
     def test_sets_g_current_user(self, mock_db):
         """Reviewer decorator must also populate g.current_user."""
         mock_user = _make_mock_user(user_rolle="9")

@@ -7,7 +7,7 @@ from sqlalchemy import cast, String
 from sqlalchemy import literal_column
 from app import db
 from app.database.models import TblAemterCoordinaten
-from app.tools.check_reviewer import reviewer_required
+from app.auth import reviewer_required
 from app.tools.gen_messtisch_svg import create_measure_sheet
 from app.database.models import TblFundorte, TblMeldungen, TblUserFeedback, ReportStatus
 from datetime import date, datetime, timedelta
@@ -21,6 +21,27 @@ from app.database.ags import (
 )
 
 stats = Blueprint("statistics", __name__)
+
+
+def _gender_sum_columns():
+    """Return the common aggregation columns for gender/stage statistics.
+
+    Used by stats_mtb, stats_geschlecht, stats_amt, stats_laender, stats_bundesland.
+    """
+    return [
+        func.sum(func.coalesce(TblMeldungen.art_m, 0)).label("maennlich"),
+        func.sum(func.coalesce(TblMeldungen.art_w, 0)).label("weiblich"),
+        func.sum(func.coalesce(TblMeldungen.art_o, 0)).label("oothek"),
+        func.sum(func.coalesce(TblMeldungen.art_n, 0)).label("nymphe"),
+        func.sum(func.coalesce(TblMeldungen.art_f, 0)).label("andere"),
+        func.sum(
+            func.coalesce(TblMeldungen.art_m, 0)
+            + func.coalesce(TblMeldungen.art_w, 0)
+            + func.coalesce(TblMeldungen.art_o, 0)
+            + func.coalesce(TblMeldungen.art_n, 0)
+            + func.coalesce(TblMeldungen.art_f, 0)
+        ).label("gesamt"),
+    ]
 
 list_of_stats = {
     "xxx": "Bitte eine Wahl treffen ...",
@@ -143,21 +164,7 @@ def stats_mtb(marker):
     typeInput = ["mtb", "maennlich", "weiblich", "oothek", "nymphe", "andere", "all"]
     dbanswers = []
     stmt = (
-        select(
-            TblFundorte.mtb,
-            func.sum(func.coalesce(TblMeldungen.art_m, 0)).label("maennlich"),
-            func.sum(func.coalesce(TblMeldungen.art_w, 0)).label("weiblich"),
-            func.sum(func.coalesce(TblMeldungen.art_o, 0)).label("oothek"),
-            func.sum(func.coalesce(TblMeldungen.art_n, 0)).label("nymphe"),
-            func.sum(func.coalesce(TblMeldungen.art_f, 0)).label("andere"),
-            func.sum(
-                func.coalesce(TblMeldungen.art_m, 0)
-                + func.coalesce(TblMeldungen.art_w, 0)
-                + func.coalesce(TblMeldungen.art_o, 0)
-                + func.coalesce(TblMeldungen.art_n, 0)
-                + func.coalesce(TblMeldungen.art_f, 0)
-            ).label("gesamt"),
-        )
+        select(TblFundorte.mtb, *_gender_sum_columns())
         .join(TblMeldungen)
         .where(
             TblMeldungen.dat_fund_von >= date.fromisoformat(session["date_from"]),
@@ -272,21 +279,7 @@ def stats_amt(marker):
     fehler = False
 
     stmt = (
-        select(
-            TblFundorte.amt,
-            func.sum(func.coalesce(TblMeldungen.art_m, 0)).label("maennlich"),
-            func.sum(func.coalesce(TblMeldungen.art_w, 0)).label("weiblich"),
-            func.sum(func.coalesce(TblMeldungen.art_o, 0)).label("oothek"),
-            func.sum(func.coalesce(TblMeldungen.art_n, 0)).label("nymphe"),
-            func.sum(func.coalesce(TblMeldungen.art_f, 0)).label("andere"),
-            func.sum(
-                func.coalesce(TblMeldungen.art_m, 0)
-                + func.coalesce(TblMeldungen.art_w, 0)
-                + func.coalesce(TblMeldungen.art_o, 0)
-                + func.coalesce(TblMeldungen.art_n, 0)
-                + func.coalesce(TblMeldungen.art_f, 0)
-            ).label("gesamt"),
-        )
+        select(TblFundorte.amt, *_gender_sum_columns())
         .join(TblMeldungen)
         .where(
             TblMeldungen.dat_meld >= date.fromisoformat(session["date_from"]),
@@ -330,21 +323,7 @@ def stats_laender(marker):
     amt_group_expr = func.substring(TblFundorte.amt, substring_start, state_code_len)
 
     stmt = (
-        select(
-            amt_group_expr.label("amt_group"),
-            func.sum(func.coalesce(TblMeldungen.art_m, 0)).label("maennlich"),
-            func.sum(func.coalesce(TblMeldungen.art_w, 0)).label("weiblich"),
-            func.sum(func.coalesce(TblMeldungen.art_o, 0)).label("oothek"),
-            func.sum(func.coalesce(TblMeldungen.art_n, 0)).label("nymphe"),
-            func.sum(func.coalesce(TblMeldungen.art_f, 0)).label("andere"),
-            func.sum(
-                func.coalesce(TblMeldungen.art_m, 0)
-                + func.coalesce(TblMeldungen.art_w, 0)
-                + func.coalesce(TblMeldungen.art_o, 0)
-                + func.coalesce(TblMeldungen.art_n, 0)
-                + func.coalesce(TblMeldungen.art_f, 0)
-            ).label("gesamt"),
-        )
+        select(amt_group_expr.label("amt_group"), *_gender_sum_columns())
         .join(TblMeldungen)
         .where(
             TblMeldungen.dat_meld >= date.fromisoformat(session["date_from"]),
@@ -403,21 +382,7 @@ def stats_bundesland(marker):
     amt_group_expr = func.substring(TblFundorte.amt, substring_start, district_len)
 
     stmt = (
-        select(
-            amt_group_expr.label("amt_group"),
-            func.sum(func.coalesce(TblMeldungen.art_m, 0)).label("maennlich"),
-            func.sum(func.coalesce(TblMeldungen.art_w, 0)).label("weiblich"),
-            func.sum(func.coalesce(TblMeldungen.art_o, 0)).label("oothek"),
-            func.sum(func.coalesce(TblMeldungen.art_n, 0)).label("nymphe"),
-            func.sum(func.coalesce(TblMeldungen.art_f, 0)).label("andere"),
-            func.sum(
-                func.coalesce(TblMeldungen.art_m, 0)
-                + func.coalesce(TblMeldungen.art_w, 0)
-                + func.coalesce(TblMeldungen.art_o, 0)
-                + func.coalesce(TblMeldungen.art_n, 0)
-                + func.coalesce(TblMeldungen.art_f, 0)
-            ).label("gesamt"),
-        )
+        select(amt_group_expr.label("amt_group"), *_gender_sum_columns())
         .join(TblMeldungen)
         .where(
             TblMeldungen.dat_meld >= date.fromisoformat(session["date_from"]),

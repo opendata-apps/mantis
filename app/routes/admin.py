@@ -30,7 +30,7 @@ from flask import (
 from sqlalchemy import inspect, update, select, func
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import contains_eager, joinedload
-from app.tools.check_reviewer import reviewer_required
+from app.auth import reviewer_required
 import shutil
 from werkzeug.utils import secure_filename
 from pathlib import Path

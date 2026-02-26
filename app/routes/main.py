@@ -15,7 +15,7 @@ from datetime import date
 from sqlalchemy import select, func, text
 from app import db
 from app.database.models import TblMeldungen, ReportStatus
-from app.tools.check_reviewer import login_required
+from app.auth import login_required
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
