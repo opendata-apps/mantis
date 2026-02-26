@@ -277,7 +277,13 @@ function onMapClick(e) {
     if (lngInput) lngInput.value = e.latlng.lng.toFixed(6);
 }
 
-function resetMarker(originalLat, originalLng) {
+function resetMarker() {
+    var mapEl = document.getElementById('map');
+    if (!mapEl) return;
+    var originalLat = parseFloat(mapEl.getAttribute('data-lat'));
+    var originalLng = parseFloat(mapEl.getAttribute('data-lng'));
+    if (isNaN(originalLat) || isNaN(originalLng)) return;
+
     var latLng = L.latLng(originalLat, originalLng);
     if (marker) {
         marker.setLatLng(latLng);
@@ -519,9 +525,9 @@ function toggleModalOverlay() {
 // Clipboard
 // ---------------------------------------------------------------------------
 
-function copyUserId(userId, evt) {
-    var button = evt.target.closest('button');
-    if (!button) return;
+function handleCopyClick(button) {
+    var value = button.getAttribute('data-copy-value');
+    if (!value) return;
     var svg = button.querySelector('svg');
     if (!svg) return;
     if (!navigator.clipboard || typeof navigator.clipboard.writeText !== 'function') {
@@ -529,7 +535,7 @@ function copyUserId(userId, evt) {
         return;
     }
 
-    navigator.clipboard.writeText(userId).then(function () {
+    navigator.clipboard.writeText(value).then(function () {
         var originalTitle = button.title;
 
         var checkPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
@@ -587,6 +593,12 @@ window.addEventListener('load', function () {
 });
 
 document.addEventListener('DOMContentLoaded', function () {
+    // Delegated click handler for copy-to-clipboard buttons
+    document.addEventListener('click', function (e) {
+        var button = e.target.closest('.btn-copy[data-copy-value]');
+        if (button) handleCopyClick(button);
+    });
+
     var editDialog = document.getElementById('modal');
 
     // Backdrop click-to-close (click on <dialog> itself = backdrop area)
@@ -633,5 +645,4 @@ window.toggleMarkerPlacement = toggleMarkerPlacement;
 window.confirmMarkerPlacement = confirmMarkerPlacement;
 window.cancelMarkerPlacement = cancelMarkerPlacement;
 window.resetMarker = resetMarker;
-window.copyUserId = copyUserId;
 window.toggleModalOverlay = toggleModalOverlay;

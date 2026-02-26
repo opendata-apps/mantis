@@ -10,7 +10,7 @@
      hx-sync="this:abort"
      hx-target="#report-card-{{ sighting.id }}"
      hx-swap="outerHTML swap:150ms"
-     hx-vals='{"filter_status": "{{ current_filter_status }}"}'>
+     hx-vals='{{ {"filter_status": current_filter_status}|tojson }}'>
   {# ── Image section ── #}
   <div class="relative">
     <a href="{{ url_for('admin.report_img', filename=fundort.ablage) }}"

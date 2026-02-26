@@ -47,8 +47,8 @@
                   title="Anzahl Meldungen dieses Nutzers">· {{ user_report_count }} {{ "Meldung" if user_report_count == 1 else "Meldungen" }}</span>
             {%- if reporter.user_kontakt %}
               <span class="font-normal text-gray-400">({{ reporter.user_kontakt }})</span>
-              <button onclick="copyUserId({{ reporter.user_kontakt|tojson }}, event)"
-                      class="p-0.5 text-gray-400 rounded transition-colors hover:text-gray-600 hover:bg-gray-100"
+              <button data-copy-value="{{ reporter.user_kontakt }}"
+                      class="btn-copy p-0.5 text-gray-400 rounded transition-colors hover:text-gray-600 hover:bg-gray-100"
                       title="E-Mail kopieren">
                 {{ heroicon_outline("clipboard-document", class="w-3 h-3", stroke_width=2) }}
               </button>
@@ -58,8 +58,8 @@
             <span class="font-mono text-[10px] text-gray-400"
                   id="userId-{{ sighting.id }}"
                   title="{{ reporter.user_id }}">{{ reporter.user_id }}</span>
-            <button onclick="copyUserId({{ reporter.user_id|tojson }}, event)"
-                    class="p-0.5 text-gray-400 rounded transition-colors hover:text-gray-600 hover:bg-gray-100"
+            <button data-copy-value="{{ reporter.user_id }}"
+                    class="btn-copy p-0.5 text-gray-400 rounded transition-colors hover:text-gray-600 hover:bg-gray-100"
                     title="User ID kopieren">
               {{ heroicon_outline("clipboard-document", class="w-3 h-3", stroke_width=2) }}
             </button>
@@ -96,7 +96,7 @@
                  hx-post="{{ url_for('admin.change_mantis_count', id=sighting.id) }}"
                  hx-trigger="change"
                  hx-swap="none"
-                 hx-vals='{"type": "{{ label }}"}'
+                 hx-vals='{{ {"type": label}|tojson }}'
                  class="w-full text-center input-field-admin {{ edit_ring }}"
                  {% if editable %}title="Dieses Feld kann jetzt bearbeitet werden"{% endif %}
                  {{ disabled }}>
