@@ -1,4 +1,3 @@
-import json
 from random import uniform
 
 from flask import (
@@ -104,10 +103,9 @@ def show_map():
             lati, long = obfuscate_location(lati, long)
             koords.append({"report_id": report_id, "latitude": lati, "longitude": long})
 
-    reportsJson = json.dumps(koords)
     return render_template(
         "map.html",
-        reportsJson=reportsJson,
+        reports=koords,
         post_count=post_count,
         years=years,
         selected_year=selected_year,

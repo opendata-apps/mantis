@@ -10,10 +10,6 @@ from flask_wtf.csrf import CSRFProtect
 from flask_mail import Mail
 from flask_favicon import FlaskFavicon
 from werkzeug.middleware.proxy_fix import ProxyFix
-import sqlalchemy as sa
-import sqlalchemy.schema
-import sqlalchemy.ext.compiler
-import sqlalchemy.orm as orm
 from .config import Config
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -23,7 +19,7 @@ db = SQLAlchemy()
 migrate = Migrate()
 limiter = Limiter(
     key_func=get_remote_address,
-    storage_uri="memory://",
+    storage_uri=os.getenv("RATELIMIT_STORAGE_URI", "memory://"),
     strategy="fixed-window",
     default_limits=["200 per day", "100 per hour"],
     headers_enabled=True,
@@ -39,12 +35,7 @@ def create_all_data_view():
     """Create the materialized view."""
     import app.database.alldata as ad
 
-    conn = Config.SQLALCHEMY_DATABASE_URI
-    db_engine = sa.create_engine(conn)
-    Session = orm.sessionmaker(bind=db_engine)
-    session = Session()
-
-    ad.create_materialized_view(db_engine, session=session)
+    ad.create_materialized_view(db.engine, session=db.session)
     click.echo("Materialized view created.")
 
 
@@ -71,24 +62,19 @@ def seed_command(demo):
         )
         jsondata = None
 
-    db_engine = sa.create_engine(Config.SQLALCHEMY_DATABASE_URI)
-    session = orm.sessionmaker(bind=db_engine)()
-
     # Always populate base data (idempotent)
-    populate_all(db_engine, session, jsondata)
+    populate_all(db.engine, db.session, jsondata)
     click.echo("Base data seeded.")
 
     if demo:
         from app.demodata.filldb import insert_data_reports
 
-        insert_data_reports(session)
+        insert_data_reports(db.session)
         _copy_demo_images()
         click.echo("Demo data seeded.")
 
     # Refresh views
-    from app import db as flask_db
-
-    ad.refresh_materialized_view(flask_db)
+    ad.refresh_materialized_view(db)
     click.echo("Done.")
 
 
@@ -145,22 +131,19 @@ def seed_ags_command():
         click.echo("Syncing aemter table...")
         from app.database.aemter_koordinaten import TblAemterCoordinaten
 
-        db_engine = sa.create_engine(Config.SQLALCHEMY_DATABASE_URI)
-        session = orm.sessionmaker(bind=db_engine)()
-
         # Build set of AGS codes in the fresh dataset
         fresh_ags = set()
         for feat in merged["features"]:
             ags = int(feat["properties"]["AGS"])
             fresh_ags.add(ags)
 
-            existing = session.get(TblAemterCoordinaten, ags)
+            existing = db.session.get(TblAemterCoordinaten, ags)
             if existing:
                 # Update geometry and name in case they changed
                 existing.gen = feat["properties"]["GEN"]
                 existing.properties = feat["geometry"]
             else:
-                session.add(
+                db.session.add(
                     TblAemterCoordinaten(
                         ags=ags,
                         gen=feat["properties"]["GEN"],
@@ -169,14 +152,14 @@ def seed_ags_command():
                 )
 
         # Remove stale records not in fresh dataset (e.g. Berlin whole-city)
-        all_rows = session.query(TblAemterCoordinaten).all()
+        all_rows = db.session.query(TblAemterCoordinaten).all()
         removed = 0
         for row in all_rows:
             if row.ags not in fresh_ags:
-                session.delete(row)
+                db.session.delete(row)
                 removed += 1
 
-        session.commit()
+        db.session.commit()
         if removed:
             click.echo(f"Removed {removed} stale record(s)")
         click.echo(
@@ -325,20 +308,15 @@ def _copy_demo_images():
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
-    mail.init_app(app)
 
-    # Simple logging configuration
+    # Logging first — so all init_app calls can log properly
     if not app.debug:
-        # Production logging - log to file with rotation
         import logging
         from logging.handlers import RotatingFileHandler
-        import os
 
-        # Create logs directory if it doesn't exist
         if not os.path.exists("logs"):
             os.mkdir("logs")
 
-        # Set up file handler with rotation
         file_handler = RotatingFileHandler(
             "logs/mantis.log", maxBytes=10240000, backupCount=10
         )
@@ -348,7 +326,6 @@ def create_app(config_class=Config):
             )
         )
 
-        # Get log level from environment variable or default to INFO
         log_level = os.environ.get("FLASK_LOG_LEVEL", "INFO").upper()
         file_handler.setLevel(log_level)
 
@@ -356,8 +333,10 @@ def create_app(config_class=Config):
         app.logger.setLevel(log_level)
         app.logger.info("Mantis tracker startup")
 
+    # Extensions
     csrf.init_app(app)
     db.init_app(app)
+    mail.init_app(app)
     limiter.init_app(app)
     flaskFavicon.init_app(app)
 
@@ -408,9 +387,11 @@ def create_app(config_class=Config):
             "TblFundorte": TblFundorte,
         }
 
-    # If using Flask-App behind Nginx
-    # https://flask.palletsprojects.com/en/2.3.x/deploying/proxy_fix/
-    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+    # Only apply ProxyFix when behind a reverse proxy (e.g. Nginx).
+    # Applying unconditionally lets clients forge X-Forwarded-For headers.
+    # https://flask.palletsprojects.com/en/stable/deploying/proxy_fix/
+    if not app.debug:
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
     @app.context_processor
     def inject_now():

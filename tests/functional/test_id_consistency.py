@@ -97,7 +97,7 @@ class TestIDConsistency:
         # Parse the HTML
         soup = BeautifulSoup(response.data, "html.parser")
 
-        # Find the reports JSON in the script - it's rendered as {{ reportsJson | safe }}
+        # Find the reports JSON in the script - it's rendered as {{ reports|tojson }}
         script_tags = soup.find_all("script")
         reports_json = None
 

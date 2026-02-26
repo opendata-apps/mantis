@@ -1,5 +1,4 @@
 import os
-from datetime import datetime
 
 # Compute absolute paths based on project structure (Flask best practice)
 _config_dir = os.path.dirname(os.path.abspath(__file__))  # app/
@@ -25,7 +24,6 @@ class Config:
         (99, "Anderer Fundort"),
     ]
 
-    CURRENT_YEAR = datetime.now().year
     MIN_MAP_YEAR = 2025
     CELEBRATION_THRESHOLD = 10000
     SECRET_KEY = os.environ.get("SECRET_KEY") or "do-not-get-tired-youll-never-find"

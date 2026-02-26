@@ -1,10 +1,12 @@
 import io
+import json
 from datetime import datetime, timedelta
 from pathlib import Path
 
 from flask import (
     Blueprint,
     jsonify,
+    make_response,
     render_template,
     request,
     url_for,
@@ -481,15 +483,13 @@ def validate_step_partial():
 
     if is_valid:
         # Return a trigger to advance to next step + clear any previous errors via OOB
-        from flask import make_response
-
         visible_fields = get_visible_error_fields(step)
         clear_html = render_template(
             "report/partials/_clear_errors.html", fields=visible_fields, step=step
         )
         response = make_response(clear_html)
-        response.headers["HX-Trigger"] = (
-            f'{{"stepValid": {{"step": {step}, "nextStep": {step + 1}}}}}'
+        response.headers["HX-Trigger"] = json.dumps(
+            {"stepValid": {"step": step, "nextStep": step + 1}}
         )
         return response
     else:

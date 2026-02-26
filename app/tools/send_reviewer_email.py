@@ -1,6 +1,12 @@
+import logging
+
+from flask import current_app
 from flask_mail import Message
-from app import create_app, mail
-import datetime
+
+from app import mail
+
+
+logger = logging.getLogger(__name__)
 
 
 def rendertextmsg(md):
@@ -76,16 +82,17 @@ def send_email(data):
         body=(rendertextmsg(md)),
     )
 
-    app = create_app()
-    with app.app_context():
-        mail.send(msg)
-        print(f"✅ Mail an {data['user_kontakt']} verschickt.")
+    mail.send(msg)
+    current_app.logger.info(f"Mail an {data['user_kontakt']} verschickt.")
 
 
 if __name__ == "__main__":
     # check script with real data and:
     # cd project-root
     # python -m app.tools.send_reviewer_email
+    import datetime
+
+    from app import create_app
 
     data = {
         "user_id": "xxxxxxxxx",

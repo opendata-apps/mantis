@@ -1,7 +1,6 @@
 import os
 from dotenv import load_dotenv
 from datetime import timedelta
-from datetime import datetime
 
 # Load .env file from project root
 load_dotenv()
@@ -64,11 +63,13 @@ class Config:
     MIN_MAP_YEAR = 2023
 
     # Security Configuration
+    # FLASK_ENV was removed in Flask 3.0 — use FLASK_DEBUG as the dev indicator.
+    # When DEBUG is not explicitly enabled, SECRET_KEY is mandatory.
     SECRET_KEY = os.getenv("SECRET_KEY")
     if not SECRET_KEY:
-        if os.getenv("FLASK_ENV") == "production":
+        if os.getenv("FLASK_DEBUG", "0") not in ("1", "true", "True"):
             raise ValueError(
-                "SECRET_KEY must be set in production. "
+                "SECRET_KEY must be set when FLASK_DEBUG is not enabled. "
                 "Generate one with: python -c \"import secrets; print(secrets.token_hex(32))\""
             )
         import secrets
@@ -112,5 +113,4 @@ class Config:
     # Application Settings
     STATIC_FOLDER = os.path.join(_config_dir, "static")
     FAVICON_BUILD_DIR = os.path.join(_config_dir, "static", "favicon")
-    CURRENT_YEAR = datetime.now().year
     CELEBRATION_THRESHOLD = int(os.getenv("CELEBRATION_THRESHOLD", "10000"))
