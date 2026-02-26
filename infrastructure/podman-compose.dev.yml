@@ -9,7 +9,6 @@ services:
     volumes:
       - ..:/mantis:z
     environment:
-      - FLASK_ENV=development
       - FLASK_DEBUG=1
 
   vite:

@@ -61,3 +61,9 @@ docs = [
     "sphinxcontrib-qthelp>=2.0.0",
     "sphinxcontrib-serializinghtml>=2.0.0",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-x -l"
+filterwarnings = ["ignore::DeprecationWarning"]
