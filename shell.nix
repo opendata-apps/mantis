@@ -2,7 +2,6 @@ with (import <nixpkgs> {});
 mkShell {
   buildInputs = [
     bun
-    pnpm
     # vite is installed via bun/npm, not nix (nixpkgs "vite" is a different scientific tool)
   ];
   shellHook = ''
