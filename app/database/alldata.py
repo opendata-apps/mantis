@@ -56,12 +56,6 @@ class TblAllData(Base):
     user_kontakt = db.Column(db.String(45))
 
 
-class Drop(sa.schema.DDLElement):
-    def __init__(self, name, schema):
-        self.name = name
-        self.schema = schema
-
-
 class Create(sa.schema.DDLElement):
     def __init__(self, name, select, schema="public"):
         self.name = name
@@ -69,7 +63,6 @@ class Create(sa.schema.DDLElement):
         self.select = select
 
         event.listen(meta, "after_create", self)
-        event.listen(meta, "before_drop", Drop(name, schema))
 
 
 @compiler.compiles(Create)
@@ -79,16 +72,6 @@ def createGen(element, compiler, **kwargs):
         schema=element.schema,
         select=compiler.sql_compiler.process(element.select, literal_binds=True),
     )
-
-
-@compiler.compiles(Drop)
-def dropGen(element, compiler, **kwargs):
-    # Den SQL-Ausdruck mit text() umschließen,
-    # damit SQLAlchemy ihn korrekt behandelt
-    sql = 'DROP MATERIALIZED VIEW {schema}."{name}"'.format(
-        name=element.name, schema=element.schema
-    )
-    return text(sql)  # text() um den SQL-Ausdruck
 
 
 def create_materialized_view(
