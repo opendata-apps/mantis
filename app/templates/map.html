@@ -14,15 +14,6 @@
   {% block meta_description %}
     Schauen Sie sich die Auswertungen von Gottesanbeterin-Beobachtungen in Deutschland an. {%
     endblock %}
-    {% block text %}
-      <p class="mt-4 text-lg text-gray-200 sm:text-xl">
-        {% if selected_year %}
-          Erkunden Sie alle bestätigten Sichtungen der <span class="font-semibold text-green-300">Mantis religiosa</span> aus dem Jahr {{ selected_year }}
-        {% else %}
-          Entdecken Sie alle bestätigten Sichtungen der <span class="font-semibold text-green-300">Gottesanbeterin</span> in Deutschland
-        {% endif %}
-      </p>
-    {% endblock text %}
     {% block canonical %}{{ url_for('data.show_map', _external=True) }}{% endblock %}
     {% block og_meta %}
       {% if selected_year %}

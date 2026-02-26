@@ -9,6 +9,8 @@ from typing import Optional
 from app import db
 
 meta = sa.MetaData()
+# Separate Base for the materialized view — intentionally decoupled from
+# db.Model so Alembic does not try to manage this view as a regular table.
 Base = orm.declarative_base()
 
 
