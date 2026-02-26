@@ -1,4 +1,3 @@
-from ..database import Base
 from .fundmeldungen import TblMeldungen
 from .fundortbeschreibung import TblFundortBeschreibung
 from .fundorte import TblFundorte
@@ -21,5 +20,4 @@ __all__ = [
     "FeedbackSource",
     "TblAllData",
     "ReportStatus",
-    "Base",
 ]
