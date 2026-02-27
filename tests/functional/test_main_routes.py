@@ -1,6 +1,14 @@
 """Regression tests for main/public route query handling."""
 
 
+def test_health_returns_200_and_healthy(client):
+    """The /health endpoint should return JSON with status healthy."""
+    response = client.get("/health")
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["status"] == "healthy"
+
+
 class TestMainRouteQueryHandling:
     """Legacy query parameters should not break page rendering."""
 
