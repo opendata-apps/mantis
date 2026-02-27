@@ -19,8 +19,8 @@ Project website: [gottesanbeterin-gesucht.de](https://gottesanbeterin-gesucht.de
 
 Prerequisites:
 
-- Podman or Docker with Compose
-- `just`
+- [Podman](https://podman.io/docs/installation) or [Docker](https://docs.docker.com/get-started/get-docker/) with [Compose](https://docs.docker.com/compose/install/)
+- [`just`](https://github.com/casey/just#installation)
 
 ```bash
 cp .env.example .env

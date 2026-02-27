@@ -58,8 +58,8 @@ Container-Setup (Alternative)
 
 Voraussetzungen:
 
-- Podman oder Docker mit Compose
-- ``just``
+- `Podman <https://podman.io/docs/installation>`_ oder `Docker <https://docs.docker.com/get-started/get-docker/>`_ mit `Compose <https://docs.docker.com/compose/install/>`_
+- `just <https://github.com/casey/just#installation>`_
 
 Start/Stopp:
 
