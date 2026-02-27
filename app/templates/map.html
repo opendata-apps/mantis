@@ -189,6 +189,19 @@
   L.control.yearSelector({ position: 'topleft' }).addTo(map);
   L.control.zoom({ position: 'topleft' }).addTo(map);
 
+  // Cluster legend
+  L.Control.ClusterLegend = L.Control.extend({
+    onAdd: function () {
+      var div = L.DomUtil.create('div', 'cluster-legend leaflet-bar');
+      div.innerHTML =
+        '<span class="cluster-legend-item"><span class="cluster-dot cluster-dot--small"></span> &lt; 10</span>' +
+        '<span class="cluster-legend-item"><span class="cluster-dot cluster-dot--medium"></span> 10 – 99</span>' +
+        '<span class="cluster-legend-item"><span class="cluster-dot cluster-dot--large"></span> 100 +</span>';
+      return div;
+    }
+  });
+  new L.Control.ClusterLegend({ position: 'bottomright' }).addTo(map);
+
   // Markers
   const markers = L.markerClusterGroup({ showCoverageOnHover: false });
   const customIcon = L.icon({

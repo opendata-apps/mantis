@@ -11,6 +11,57 @@
   background-clip: padding-box;
 }
 
+/* Cluster legend control */
+.cluster-legend {
+  background: white;
+  padding: 6px 10px;
+  font-size: 12px;
+  line-height: 1;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.cluster-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.cluster-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.cluster-dot--small {
+  background: rgba(110, 204, 57, 0.8);
+}
+
+.cluster-dot--medium {
+  background: rgba(240, 194, 12, 0.8);
+}
+
+.cluster-dot--large {
+  background: rgba(241, 128, 23, 0.8);
+}
+
+@media (max-width: 640px) {
+  .cluster-legend {
+    padding: 4px 6px;
+    font-size: 10px;
+    gap: 6px;
+  }
+
+  .cluster-dot {
+    width: 10px;
+    height: 10px;
+  }
+}
+
 /* Popup style overrides — MUST come after leaflet imports to win the cascade */
 #map .leaflet-popup {
   padding-top: 10px;
