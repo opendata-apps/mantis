@@ -1,0 +1,7 @@
+# rsync is needed for backup tasks
+# Build Image:
+# podman build -t backup-alpine -f Dockerfile.backup .
+# used in infrastrcture-backup.sh
+
+FROM alpine:latest
+RUN apk add --no-cache rsync
