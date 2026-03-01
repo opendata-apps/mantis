@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
 ### ==============================
@@ -6,18 +6,18 @@ set -euo pipefail
 ### ==============================
 
 DATE=$(date +%F_%H-%M)
-BASE_DIR="<path-to>backup_mantis"
+BASE_DIR="<path-to>/backup_mantis"
 PG_DIR="$BASE_DIR/postgres"
 IMG_DIR="$BASE_DIR/images"
 LOG_FILE="$BASE_DIR/backup.log"
 
-POSTGRES_CONTAINER="infrastructure_db_1"
-WEB_CONTAINER="infrastructure_web_1"
+# Docker-Container Namen (podman ps -a --format "{{.Names}}")
+POSTGRES_CONTAINER="infrastructure-db-1"
+WEB_CONTAINER="infrastructure-web-1"
 
+# Datenbank-Zugangsdaten (ggf. anpassen)
 POSTGRES_DB="mantis_tracker"
-POSTGRES_USER="mate_user"
-
-# IMAGE_VOLUME="infrastructure_web_1"
+POSTGRES_USER="mantis_user"
 
 RETENTION_DAYS=14
 
@@ -38,12 +38,12 @@ error_exit() {
 ### Start
 ### ==============================
 
-log "===== Backup gestartet ====="
-
 mkdir -p "$PG_DIR" "$IMG_DIR"
 
+log "===== Backup gestartet ====="
+
 ### ==============================
-### 1️⃣ PostgreSQL Dump
+### PostgreSQL Dump
 ### ==============================
 
 log "Erstelle PostgreSQL Dump..."
@@ -56,7 +56,7 @@ podman exec "$POSTGRES_CONTAINER" \
 log "Postgres Dump erfolgreich."
 
 ### ==============================
-### 2️⃣ Bilder inkrementell sichern
+### Bilder inkrementell sichern
 ### ==============================
 
 log "Synchronisiere Bilder..."
@@ -68,7 +68,7 @@ podman exec "$WEB_CONTAINER" \
 log "Bilder-Sync erfolgreich."
 
 ### ==============================
-### 3️⃣ Alte Backups löschen
+### Alte Backups löschen
 ### ==============================
 
 log "Bereinige alte Dumps (> $RETENTION_DAYS Tage)..."
