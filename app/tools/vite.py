@@ -161,6 +161,34 @@ def vite_preload(entry: str) -> Markup:
     return Markup("\n".join(links))
 
 
+def vite_font_preloads(*patterns: str) -> Markup:
+    """Generate <link rel="preload"> tags for font files matching patterns.
+
+    Searches the Vite manifest for font entries whose keys contain any of
+    the given substrings and returns preload tags for them.
+
+    Args:
+        *patterns: Substrings to match against manifest keys,
+                   e.g. 'inter-latin-wght-normal', 'inter-latin-wght-italic'
+
+    Returns:
+        Markup containing <link rel="preload" as="font"> tags
+    """
+    manifest = _load_manifest(current_app)
+    if not manifest:
+        return Markup("")
+
+    links = []
+    for key, entry in manifest.items():
+        if key.endswith(".woff2") and any(p in key for p in patterns):
+            font_url = url_for("static", filename=f"build/{entry['file']}")
+            links.append(
+                f'<link rel="preload" as="font" type="font/woff2"'
+                f' crossorigin href="{font_url}">'
+            )
+    return Markup("\n".join(sorted(links)))
+
+
 def vite_tags(entry: str) -> Markup:
     """Generate all required tags for a JS entry point.
 
@@ -210,5 +238,6 @@ def init_app(app):
             "vite_asset": vite_asset,
             "vite_css": vite_css,
             "vite_preload": vite_preload,
+            "vite_font_preloads": vite_font_preloads,
             "vite_tags": vite_tags,
         }

@@ -43,12 +43,14 @@
       <meta name="twitter:url"
             content="{{ request.url | replace('http:', 'https:') }}" />
     {% endblock %}
+    {{ vite_font_preloads('inter-latin-wght-normal', 'inter-latin-wght-italic') }}
     <link rel="preload"
           as="image"
+          type="image/avif"
           href="{{ url_for('static', filename='images/berger03.avif') }}" />
-    <link rel="stylesheet" href="{{ vite_asset('css/theme.css') }}" />
     {% block head %}
     {% endblock head %}
+    <link rel="stylesheet" href="{{ vite_asset('css/theme.css') }}" />
   </head>
   <body class="flex flex-col min-h-screen antialiased bg-gray-100">
     <a href="#content-container"

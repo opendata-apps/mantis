@@ -33,6 +33,7 @@
 {% endblock %}
 {% block head %}
   {{ super() }}
+  <link rel="preload" as="image" type="image/avif" fetchpriority="high" href="{{ url_for('static', filename='images/weibchen-mit-oothek.avif') }}" />
   <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -70,7 +71,7 @@
                 <img src="{{ url_for('static', filename='images/weibchen-mit-oothek.avif') }}"
                      alt="Gottesanbeterin bei der Eiablage (Oothek)"
                      class="object-cover object-center w-full h-full transition-transform duration-700 group-hover:scale-105"
-                     loading="lazy" />
+                     fetchpriority="high" />
                 <div class="absolute inset-0 bg-black/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
               </div>
               <!-- Decorative Camera Icon -->
