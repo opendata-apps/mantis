@@ -21,7 +21,7 @@
       var yValues = [];
       //separate keys and values in two lists
       for (let i in keys) {
-        key = keys[i];
+        const key = keys[i];
         if (daten.hasOwnProperty(key)) {
           xValues.push(key);
           yValues.push(daten[key]);

@@ -228,7 +228,7 @@ def _render_updated_sighting_by_id(report_id: int, filter_status: str):
     return _render_report_card_or_delete(rendered_sighting, filter_status)
 
 
-# SECURITY NOTE: URL-based auth tokens (user_id) are SHA-1 hashes (2^160 keyspace).
+# SECURITY NOTE: URL-based auth tokens (user_id) are secrets.token_hex(20) — 160-bit random.
 # Primary risk is token leakage via browser history, HTTP Referer, or server logs.
 # The admin blueprint is rate-limit exempt (see __init__.py:165).
 # Future improvement: migrate to session-only auth with login form.
