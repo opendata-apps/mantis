@@ -35,11 +35,6 @@
 {% block title %}Sichtung melden - Gottesanbeterin{% endblock %}
 {% block head %}
   {{ vite_tags("js/report-form-htmx.js") }}
-  <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
-        integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
-        crossorigin="anonymous"
-        referrerpolicy="no-referrer" />
   <style>
   .form-container {
     min-height: calc(100vh - 240px);
@@ -192,7 +187,7 @@
                id="step1">
             <h3 class="mb-4 text-xl font-semibold text-green-700">Foto & Details</h3>
             <p class="mb-4 text-sm text-gray-600">
-              <i class="mr-1 w-4 h-4 text-green-600 fas fa-camera"></i>
+              {{ heroicon_outline("camera", class="inline mr-1 w-4 h-4 text-green-600", stroke_width=2) }}
               Bitte laden Sie ein Foto Ihrer Gottesanbeterin-Sichtung hoch und beschreiben Sie, was Sie gesehen haben.
             </p>
             {{ render_photo_upload(form.photo) }}
@@ -216,7 +211,7 @@
                id="step2">
             <h3 class="mb-4 text-xl font-semibold text-green-700">Wann und Wo? (Ort & Datum)</h3>
             <p class="mb-3 text-sm text-gray-600">
-              <i class="mr-1 w-4 h-4 text-green-600 fas fa-map-marker-alt"></i>
+              {{ heroicon_outline("map-pin", class="inline mr-1 w-4 h-4 text-green-600", stroke_width=2) }}
               Tippen Sie auf die Karte, um den genauen Fundort zu markieren.
             </p>
             <div class="mb-4 form-group">
@@ -339,7 +334,7 @@
                id="step4">
             <h3 class="mb-4 text-xl font-semibold text-green-700">Überprüfen & Absenden</h3>
             <p class="mb-6 text-sm text-gray-600">
-              <i class="mr-1 w-4 h-4 text-green-600 fas fa-check-circle"></i>
+              {{ heroicon_outline("check-circle", class="inline mr-1 w-4 h-4 text-green-600", stroke_width=2) }}
               Bitte überprüfen Sie Ihre Angaben und senden Sie Ihre Meldung ab. Sie können jederzeit zurückgehen, um Änderungen vorzunehmen.
             </p>
             {# HTMX-loaded review content container #}
