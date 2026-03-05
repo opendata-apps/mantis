@@ -4,13 +4,13 @@
   <div class="overflow-hidden bg-white border border-gray-200 rounded-lg shadow-xs review-section">
     <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-gray-50">
       <h4 class="flex items-center font-medium text-gray-700 text-md">
-        <i class="fas fa-image w-5 h-5 mr-2 text-green-600"></i>
+        {{ heroicon_outline("photo", class="w-5 h-5 mr-2 text-green-600") }}
         Foto & Details
       </h4>
       <button type="button"
               class="edit-btn flex items-center p-1 text-sm font-medium text-green-700 rounded-sm hover:text-green-800 hover:bg-green-50"
               data-step="1">
-        <i class="w-4 h-4 mr-1 fas fa-pencil-alt"></i>
+        {{ heroicon_outline("pencil-square", class="w-4 h-4 mr-1") }}
         Bearbeiten
       </button>
     </div>
@@ -50,13 +50,13 @@
   <div class="overflow-hidden bg-white border border-gray-200 rounded-lg shadow-xs review-section">
     <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-gray-50">
       <h4 class="flex items-center font-medium text-gray-700 text-md">
-        <i class="fas fa-map-marker-alt w-5 h-5 mr-2 text-green-600"></i>
+        {{ heroicon_outline("map-pin", class="w-5 h-5 mr-2 text-green-600") }}
         Wann und Wo?
       </h4>
       <button type="button"
               class="edit-btn flex items-center p-1 text-sm font-medium text-green-700 rounded-sm hover:text-green-800 hover:bg-green-50"
               data-step="2">
-        <i class="w-4 h-4 mr-1 fas fa-pencil-alt"></i>
+        {{ heroicon_outline("pencil-square", class="w-4 h-4 mr-1") }}
         Bearbeiten
       </button>
     </div>
@@ -64,14 +64,14 @@
       <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div class="p-3 rounded-md bg-gray-50">
           <div class="flex items-center mb-2">
-            <i class="fas fa-calendar-alt w-5 h-5 text-green-500 mr-2"></i>
+            {{ heroicon_outline("calendar", class="w-5 h-5 text-green-500 mr-2") }}
             <span class="font-medium text-gray-700">Datum der Sichtung</span>
           </div>
           <div class="text-gray-900 ml-7">{{ review.sighting_date }}</div>
         </div>
         <div class="p-3 rounded-md bg-gray-50">
           <div class="flex items-center mb-2">
-            <i class="fas fa-location-dot w-5 h-5 text-green-500 mr-2"></i>
+            {{ heroicon_outline("map-pin", class="w-5 h-5 text-green-500 mr-2") }}
             <span class="font-medium text-gray-700">Genaue Koordinaten</span>
           </div>
           <div class="text-gray-900 ml-7">{{ review.coordinates }}</div>
@@ -80,7 +80,7 @@
         <div class="md:col-span-2">
           <div class="p-3 rounded-md bg-gray-50">
             <div class="flex items-center mb-2">
-              <i class="fas fa-home w-5 h-5 text-green-500 mr-2"></i>
+              {{ heroicon_outline("home-modern", class="w-5 h-5 text-green-500 mr-2") }}
               <span class="font-medium text-gray-700">Adressinformationen</span>
             </div>
             <div class="grid grid-cols-1 gap-2 ml-7 md:grid-cols-2">
@@ -114,13 +114,13 @@
   <div class="overflow-hidden bg-white border border-gray-200 rounded-lg shadow-xs review-section">
     <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-gray-50">
       <h4 class="flex items-center font-medium text-gray-700 text-md">
-        <i class="fas fa-user w-5 h-5 mr-2 text-green-600"></i>
+        {{ heroicon_outline("user", class="w-5 h-5 mr-2 text-green-600") }}
         Ihre Kontaktdaten
       </h4>
       <button type="button"
               class="edit-btn flex items-center p-1 text-sm font-medium text-green-700 rounded-sm hover:text-green-800 hover:bg-green-50"
               data-step="3">
-        <i class="w-4 h-4 mr-1 fas fa-pencil-alt"></i>
+        {{ heroicon_outline("pencil-square", class="w-4 h-4 mr-1") }}
         Bearbeiten
       </button>
     </div>
@@ -128,14 +128,14 @@
       <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
         <div class="p-3 rounded-md bg-gray-50">
           <div class="flex items-center mb-2">
-            <i class="fas fa-user w-5 h-5 text-green-500 mr-2"></i>
+            {{ heroicon_outline("user", class="w-5 h-5 text-green-500 mr-2") }}
             <span class="font-medium text-gray-700">Melder</span>
           </div>
           <div class="text-gray-900 ml-7">{{ review.reporter_name }}</div>
         </div>
         <div class="p-3 rounded-md bg-gray-50">
           <div class="flex items-center mb-2">
-            <i class="fas fa-envelope w-5 h-5 text-green-500 mr-2"></i>
+            {{ heroicon_outline("envelope", class="w-5 h-5 text-green-500 mr-2") }}
             <span class="font-medium text-gray-700">E-Mail</span>
           </div>
           <div class="text-gray-900 ml-7">{{ review.email }}</div>
@@ -144,7 +144,7 @@
           <div class="md:col-span-2">
             <div class="p-3 rounded-md bg-gray-50">
               <div class="flex items-center mb-2">
-                <i class="fas fa-user w-5 h-5 text-green-500 mr-2"></i>
+                {{ heroicon_outline("user", class="w-5 h-5 text-green-500 mr-2") }}
                 <span class="font-medium text-gray-700">Finder</span>
               </div>
               <div class="text-gray-900 ml-7">{{ review.finder_name }}</div>
@@ -154,7 +154,7 @@
         <div class="md:col-span-2">
           <div class="p-3 rounded-md bg-gray-50">
             <div class="flex items-center mb-2">
-              <i class="fas fa-lightbulb w-5 h-5 text-green-500 mr-2"></i>
+              {{ heroicon_outline("light-bulb", class="w-5 h-5 text-green-500 mr-2") }}
               <span class="font-medium text-gray-700">Wie haben Sie von uns erfahren?</span>
             </div>
             <div class="text-gray-900 ml-7">{{ review.feedback_source }}</div>
@@ -170,7 +170,7 @@
   <div class="p-4 bg-amber-50 rounded-lg border border-amber-200 shadow-xs">
     <div class="flex">
       <div class="shrink-0">
-        <i class="w-5 h-5 text-amber-500 fas fa-exclamation-triangle"></i>
+        {{ heroicon_outline("exclamation-triangle", class="w-5 h-5 text-amber-500") }}
       </div>
       <div class="ml-3">
         <p class="text-sm text-amber-800">

@@ -40,7 +40,7 @@
                   id="remove-photo"
                   class="absolute p-1 text-white bg-red-500 rounded-full top-2 right-2 hover:bg-red-600 focus:outline-hidden"
                   title="Foto entfernen">
-            <i class="w-5 h-5 fas fa-times"></i>
+            {{ heroicon_outline("x-mark", class="w-5 h-5") }}
           </button>
         </div>
         <!-- EXIF Metadata display -->
@@ -92,7 +92,7 @@
       <button type="button"
               class="nav-button flex items-center justify-center w-24 px-4 py-2 font-medium text-white transition-colors duration-200 ease-in-out bg-gray-600 rounded-md shadow-xs hover:bg-gray-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
               data-prev-step="{{ current_step }}">
-        <i class="w-4 h-4 mr-1 fas fa-chevron-left"></i> <span class="hidden sm:inline">Zurück</span>
+        {{ heroicon_outline("chevron-left", class="w-4 h-4 mr-1") }} <span class="hidden sm:inline">Zurück</span>
       </button>
     {% else %}
       <span class="nav-button w-24"></span>
@@ -110,12 +110,12 @@
               hx-swap="innerHTML"
               hx-disabled-elt="this"
               data-step="{{ current_step }}">
-        <span class="hidden sm:inline">Weiter</span> <i class="w-4 h-4 ml-1 fas fa-chevron-right"></i>
+        <span class="hidden sm:inline">Weiter</span> {{ heroicon_outline("chevron-right", class="w-4 h-4 ml-1") }}
       </button>
     {% elif show_submit %}
       <button type="submit"
               class="nav-button flex items-center justify-center w-auto px-4 py-2 font-medium text-white transition-colors duration-200 ease-in-out bg-green-600 rounded-md shadow-xs hover:bg-green-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-        Absenden <i class="w-4 h-4 ml-1 fas fa-paper-plane"></i>
+        Absenden {{ heroicon_outline("paper-airplane", class="w-4 h-4 ml-1") }}
       </button>
     {% else %}
       <span class="w-24"></span>
@@ -125,7 +125,7 @@
 {% macro render_feedback_section(feedback_source_field, feedback_detail_field) %}
   <div class="p-4 border border-green-200 rounded-lg bg-green-50">
     <div class="flex items-start mb-3">
-      <i class="w-5 h-5 mr-2 text-green-600 fas fa-lightbulb"></i>
+      {{ heroicon_outline("light-bulb", class="w-5 h-5 mr-2 text-green-600") }}
       <div>
         <h4 class="font-medium text-green-800">Helfen Sie uns, unser Projekt zu verbessern!</h4>
         <p class="mt-1 text-sm text-green-700">
