@@ -29,7 +29,8 @@
              class="transition-opacity duration-300 hover:opacity-75">
             <img src="{{ url_for('static', filename='images/galerie/' + slide.bildname) }}"
                  alt="Gallery Image"
-                 class="object-cover w-full h-full rounded-lg shadow-lg">
+                 class="object-cover w-full h-full rounded-lg shadow-lg"
+                 loading="lazy">
           </a>
         </div>
       {% endfor %}
@@ -58,3 +59,4 @@
   }
   </script>
 {% endblock content %}
+{% block scripts %}<script type="module" src="{{ vite_asset('js/gallery.js') }}"></script>{% endblock %}

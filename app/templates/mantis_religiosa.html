@@ -229,6 +229,7 @@
                 <img src="{{ url_for('static', filename='images/mantis--maennchen__krueger.webp') }}"
                      alt="Männliche Mantis religiosa (Europäische Gottesanbeterin) in Lauerstellung"
                      class="inline-block w-full max-w-xs mb-2 rounded-sm hover:opacity-90"
+                     fetchpriority="high"
                      itemprop="image">
               </a>
               <div class="mb-4 text-sm italic text-gray-600">Männliche Mantis religiosa</div>
@@ -562,13 +563,5 @@
       </article>
     </div>
   </main>
-  <style>
-  @media (max-width: 767px) {
-    .article-thumb, .species-info {
-      float: none;
-      margin: 1rem auto;
-      max-width: 100%;
-    }
-  }
-  </style>
 {% endblock content %}
+{% block scripts %}<script type="module" src="{{ vite_asset('js/gallery.js') }}"></script>{% endblock %}

@@ -186,7 +186,7 @@
     </script>
     {%- set show_cta = request.path == '/' or request.path.startswith("/start") or
         request.path.startswith("/sichtungen") or request.path.startswith("/report") -%}
-    <section class="relative flex items-center justify-center h-60 md:bg-fixed bg-center bg-no-repeat bg-cover"
+    <section class="relative flex items-center justify-center h-60 bg-center bg-no-repeat bg-cover"
              style="background-image: url('{{ url_for('static', filename='images/berger03.avif') }}')">
       <div id="overlay" class="absolute inset-0 z-10 bg-black/50"></div>
       <div class="relative z-20 mt-14 text-center">
@@ -356,8 +356,7 @@
       </span>
     <span>Lizenz: <a href="/lizenz" class="font-medium text-green-700 hover:underline">MIT</a>
   </span>
-  <span id="copyright-year"></span>
-  <script>document.getElementById("copyright-year").textContent = new Date().getFullYear();</script>
+  <span>{{ now.year }}</span>
 </div>
 </div>
 </footer>
@@ -368,6 +367,6 @@
 		console.log("%c🔗 https://gitlab.com/opendata-apps/mantis", "color: #3B82F6; font-size: 16px; font-weight: bold;");
 </script>
 <!--! End Footer -->
-<script type="module" src="{{ vite_asset('js/gallery.js') }}"></script>
+{% block scripts %}{% endblock scripts %}
 </body>
 </html>
