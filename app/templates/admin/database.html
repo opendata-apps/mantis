@@ -1,6 +1,9 @@
 {% extends "layout.html" %}
 {% block meta_robots %}noindex,nofollow{% endblock %}
 {% block title %}Database Admin{% endblock %}
+{% block head %}
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+{% endblock %}
 {%
 block content %}
 <script type="module" src="{{ vite_asset('js/vendor.js') }}"></script>
@@ -877,6 +880,7 @@ block content %}
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "X-CSRFToken": document.querySelector('meta[name="csrf-token"]').content,
       },
       body: JSON.stringify({
         table: table,
@@ -885,7 +889,7 @@ block content %}
         value: formattedValue,
       }),
     })
-      .then((response) => response.jsnon())
+      .then((response) => response.json())
       .then((data) => {
         if (data.success) {
           cell.textContent = newValue;
