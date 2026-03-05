@@ -1,6 +1,6 @@
-# from app.database.models import Mantis
 import json
 import os
+import time
 from flask import (
     Blueprint,
     Response,
@@ -20,29 +20,58 @@ from app.auth import login_required
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+# --- Cached static data ---
+
+_galerie_cache = None
+
+
+def _load_galerie():
+    """Load and cache galerie.json (static file, read once)."""
+    global _galerie_cache
+    if _galerie_cache is None:
+        json_path = os.path.join(
+            BASE_DIR, "..", "static", "images", "galerie", "galerie.json"
+        )
+        with open(json_path, "r", encoding="utf-8") as file:
+            _galerie_cache = json.load(file)
+    return _galerie_cache
+
+
+_sitemap_cache = None
+_robots_cache = None
+
+
+_post_count_cache = {"value": None, "timestamp": 0}
+
 # Blueprints
 main = Blueprint("main", __name__)
 
 
-@main.route("/")
-@main.route("/start")
-def index():
-    "Index page."
+def _get_post_count():
+    """Get approved post count with a 5-minute TTL cache."""
+    now = time.monotonic()
+    if _post_count_cache["value"] is not None and (now - _post_count_cache["timestamp"]) < 300:
+        return _post_count_cache["value"]
+
     count_stmt = (
         select(func.count())
         .select_from(TblMeldungen)
         .where(TblMeldungen.dat_fund_von >= date(current_app.config["MIN_MAP_YEAR"], 1, 1))
         .where(TblMeldungen.statuses.contains([ReportStatus.APPR.value]))
     )
-    post_count = db.session.execute(count_stmt).scalar()
+    value = db.session.execute(count_stmt).scalar()
+    _post_count_cache["value"] = value
+    _post_count_cache["timestamp"] = now
+    return value
 
+
+@main.route("/")
+@main.route("/start")
+def index():
+    "Index page."
+    post_count = _get_post_count()
     celebration_enabled = check_celebration_flag(post_count)
-
-    json_path = os.path.join(
-        BASE_DIR, "..", "static", "images", "galerie", "galerie.json"
-    )
-    with open(json_path, "r", encoding="utf-8") as file:
-        bilder = json.load(file)
+    bilder = _load_galerie()
 
     return render_template(
         "home.html",
@@ -108,33 +137,31 @@ def bestimmung():
 @main.route("/sitemap.xml")
 def sitemap():
     "Return the sitemap.xml file."
-    with current_app.open_resource("static/sitemap.xml") as f:
-        content = f.read()
-    return Response(content, mimetype="application/xml")
+    global _sitemap_cache
+    if _sitemap_cache is None:
+        with current_app.open_resource("static/sitemap.xml") as f:
+            _sitemap_cache = f.read()
+    return Response(_sitemap_cache, mimetype="application/xml")
 
 
 @main.route("/robots.txt")
 def robots():
     "Return the robots.txt file."
-    with current_app.open_resource("static/robots.txt") as f:
-        content = f.read()
-    return Response(content, mimetype="text/plain")
+    global _robots_cache
+    if _robots_cache is None:
+        with current_app.open_resource("static/robots.txt") as f:
+            _robots_cache = f.read()
+    return Response(_robots_cache, mimetype="text/plain")
 
 
 @main.route("/galerie")
 @login_required
 def galerie():
     "Galerie."
-    json_path = os.path.join(
-        BASE_DIR, "..", "static", "images", "galerie", "galerie.json"
-    )
-    with open(json_path, "r", encoding="utf-8") as file:
-        bilder = json.load(file)
-
     return render_template(
         "galerie.html",
         user_id=g.current_user.user_id,
-        bilder=bilder,
+        bilder=_load_galerie(),
     )
 
 

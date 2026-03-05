@@ -48,7 +48,7 @@ LOCATION_DESCRIPTION_CHOICES = [
 ]
 
 # Feedback source choices - derived from FeedbackSource enum (single source of truth)
-from app.database.feedback_type import FeedbackSource
+from app.database.feedback_type import FeedbackSource  # noqa: E402
 
 FEEDBACK_SOURCE_CHOICES = FeedbackSource.choices()
 

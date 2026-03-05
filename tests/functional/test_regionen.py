@@ -1,4 +1,3 @@
-import pytest
 
 
 def test_region_page_returns_200_for_valid_slug(client):

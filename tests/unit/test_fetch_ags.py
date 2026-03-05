@@ -5,7 +5,6 @@ administrative area (AGS) data from WFS services. No HTTP calls needed —
 these all operate on plain dicts and files.
 """
 
-import json
 import pytest
 
 from app.tools.fetch_ags import (
