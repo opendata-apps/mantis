@@ -210,47 +210,7 @@
       </div>
     </div>
   </section>
-  <script>
-  // Counter animation with performance optimization
-  const counter = document.querySelector('.counter');
-  const target = +counter.dataset.target;
-  const duration = 2000;
-  const frameRate = 1000 / 30; // 30 FPS
-  let startTime = null;
-
-  function easeOutExpo(t) {
-    return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
-  }
-
-  function animateCounter(currentTime) {
-    if (!startTime) startTime = currentTime;
-    const elapsedTime = currentTime - startTime;
-    const progress = Math.min(elapsedTime / duration, 1);
-    
-    if (progress < 1) {
-      const nextValue = Math.floor(easeOutExpo(progress) * target);
-      if (counter.innerText !== nextValue.toString()) {
-        counter.innerText = nextValue;
-      }
-      setTimeout(() => requestAnimationFrame(animateCounter), frameRate);
-    } else {
-      counter.innerText = target;
-    }
-  }
-
-  // Intersection Observer with options for better performance
-  const observer = new IntersectionObserver(
-    entries => {
-      if (entries[0].isIntersecting) {
-        requestAnimationFrame(animateCounter);
-        observer.disconnect();
-      }
-    },
-    { threshold: 0.1 }
-  );
-
-  observer.observe(counter);
-  </script>
+  <script type="module" src="{{ vite_asset('js/counter.js') }}"></script>
   <!-- Modal -->
   {% if celebration_enabled %}
     <div id="thanksModal"
