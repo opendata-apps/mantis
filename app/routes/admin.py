@@ -146,19 +146,30 @@ def _load_sighting(report_id: int) -> TblMeldungen | None:
 
 
 def _get_user_report_count(user: TblUsers) -> int:
-    """Count total reports by this person (match by email or user ID)."""
+    """Count total reports by this person (match by email or user ID).
+
+    Cached per-request in g to avoid redundant COUNT queries when
+    the same user is looked up across modal open + tab switches.
+    """
+    cache = g.setdefault("_user_report_counts", {})
+    if user.id in cache:
+        return cache[user.id]
+
     if user.user_kontakt:
-        return db.session.scalar(
+        count = db.session.scalar(
             select(func.count())
             .select_from(TblMeldungUser)
             .join(TblMeldungUser.reporter)
             .where(TblUsers.user_kontakt == user.user_kontakt)
         )
-    return db.session.scalar(
-        select(func.count())
-        .select_from(TblMeldungUser)
-        .where(TblMeldungUser.id_user == user.id)
-    )
+    else:
+        count = db.session.scalar(
+            select(func.count())
+            .select_from(TblMeldungUser)
+            .where(TblMeldungUser.id_user == user.id)
+        )
+    cache[user.id] = count
+    return count
 
 
 def _load_sighting_for_render(report_id: int) -> tuple[TblMeldungen | None, TblUsers | None]:
@@ -217,6 +228,10 @@ def _render_updated_sighting_by_id(report_id: int, filter_status: str):
     return _render_report_card_or_delete(rendered_sighting, filter_status)
 
 
+# SECURITY NOTE: URL-based auth tokens (user_id) are SHA-1 hashes (2^160 keyspace).
+# Primary risk is token leakage via browser history, HTTP Referer, or server logs.
+# The admin blueprint is rate-limit exempt (see __init__.py:165).
+# Future improvement: migrate to session-only auth with login form.
 @admin.route("/reviewer")
 @admin.route("/reviewer/<usrid>")
 def reviewer(usrid=None):
