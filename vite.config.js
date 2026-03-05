@@ -8,7 +8,7 @@ function copyPlotly() {
   return {
     name: 'copy-plotly',
     closeBundle() {
-      const src = resolve(__dirname, 'node_modules/plotly.js-dist-min/plotly.min.js')
+      const src = resolve(__dirname, 'node_modules/plotly.js-basic-dist-min/plotly-basic.min.js')
       const dest = resolve(__dirname, 'app/static/build/plotly.min.js')
       if (existsSync(src)) {
         copyFileSync(src, dest)
@@ -38,6 +38,7 @@ export default defineConfig({
         admin: resolve(__dirname, 'app/static/js/admin.js'),
         'admin-htmx': resolve(__dirname, 'app/static/js/admin-htmx.js'),
         'admin-modal': resolve(__dirname, 'app/static/js/admin-modal.js'),
+        counter: resolve(__dirname, 'app/static/js/counter.js'),
         theme: resolve(__dirname, 'app/static/css/theme.css'),
       },
       output: {
