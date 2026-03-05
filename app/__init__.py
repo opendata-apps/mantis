@@ -6,6 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
 from flask_mail import Mail
 from flask_favicon import FlaskFavicon
+from werkzeug.exceptions import HTTPException
 from werkzeug.middleware.proxy_fix import ProxyFix
 from .config import Config
 from flask_limiter import Limiter
@@ -174,12 +175,14 @@ def create_app(config_class=Config):
     # Global exception handler
     @app.errorhandler(Exception)
     def handle_exception(e):
-        # Log the exception
+        # Pass through HTTP errors with their correct status codes
+        if isinstance(e, HTTPException):
+            return e
+
         app.logger.exception(f"Unhandled exception: {str(e)}")
 
-        # Return 500 error for unhandled exceptions
         if app.debug:
-            raise e  # Re-raise in debug mode
+            raise e
         return render_template("error/500.html"), 500
 
     return app
