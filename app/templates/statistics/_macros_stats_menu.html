@@ -1,5 +1,5 @@
 {% macro StatsMenu() -%}
-  <script src="{{ url_for('static', filename='build/plotly.min.js') }}"></script>
+  <script defer src="{{ url_for('static', filename='build/plotly.min.js') }}"></script>
   <script type="module" src="{{ vite_asset('js/vendor.js') }}"></script>
   <div class="p-3 bg-white rounded-lg border border-gray-200 sm:p-4">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

@@ -11,6 +11,10 @@
 
 /* .site-header base layout is TW utilities on the <header> element.
    Only JS-toggled state changes live here. */
+.site-header {
+  will-change: backdrop-filter;
+}
+
 .site-header.scrolled,
 .site-header.menu-open {
   background: color-mix(in srgb, var(--color-green-800) 95%, transparent);
