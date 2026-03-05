@@ -431,8 +431,7 @@ block content %}
     });
 
     // Load initial state and data
-    loadState();
-    fetchTableData().then(() => {
+    loadState().then(() => {
       initializeInfiniteScroll();
     });
   }
@@ -931,7 +930,7 @@ block content %}
 
     document.getElementById("searchInput").value = searchTerm;
     changeInputPattern();
-    fetchTableData();
+    return fetchTableData();
   }
 
   function clearSearch() {
@@ -965,7 +964,7 @@ block content %}
     changeInputPattern();
   });
 
-  window.addEventListener("load", loadState);
+
 
   function checkIfMoreDataNeeded() {
     const scrollContainer = document.getElementById("scrollContainer");
