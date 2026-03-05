@@ -14,7 +14,7 @@
       <p class="text-sm text-gray-700">Gebietskennzahl: {{ session["ags"] }}</p>
       <!-- Grafik -->
       <div id='myDiv' class="overflow-x-auto w-full"></div>
-      <script>
+      <script type="module">
       let keys = ['Männchen', 'Weibchen', 'Nymphen', 'Ootheken', 'Andere'];
       var daten = {{ values| tojson }};
       var xValues = [];
