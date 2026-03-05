@@ -2,7 +2,15 @@ with (import <nixpkgs> {});
 mkShell {
   buildInputs = [
     bun
+    just
+    python313Packages.pytest_8_3
+    python313Packages.ruff
     # vite is installed via bun/npm, not nix (nixpkgs "vite" is a different scientific tool)
+  ];
+  packages = with pkgs; [
+    (python3.withPackages (ps: [ ps.flask ]))
+    curl
+    jq
   ];
   shellHook = ''
       mkdir -p .nix-node

@@ -20,7 +20,6 @@ from well-known open source projects:
 """
 
 import ast
-import re
 from pathlib import Path
 
 import pytest

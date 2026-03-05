@@ -9,7 +9,8 @@ from app import db
 from app.database.models import TblAemterCoordinaten
 from app.auth import reviewer_required
 from app.tools.gen_messtisch_svg import create_measure_sheet
-from app.database.models import TblFundorte, TblMeldungen, TblUserFeedback, ReportStatus
+from app.database.models import TblFundorte, TblMeldungen
+from app.database.models import TblUserFeedback, ReportStatus
 from datetime import date, datetime, timedelta
 from collections import defaultdict
 from app.database.feedback_type import FeedbackSource
@@ -26,7 +27,8 @@ stats = Blueprint("statistics", __name__)
 def _gender_sum_columns():
     """Return the common aggregation columns for gender/stage statistics.
 
-    Used by stats_mtb, stats_geschlecht, stats_amt, stats_laender, stats_bundesland.
+    Used by stats_mtb, stats_geschlecht,
+    stats_amt, stats_laender, stats_bundesland.
     """
     return [
         func.sum(func.coalesce(TblMeldungen.art_m, 0)).label("maennlich"),
@@ -43,6 +45,7 @@ def _gender_sum_columns():
         ).label("gesamt"),
     ]
 
+
 list_of_stats = {
     "xxx": "Bitte eine Wahl treffen ...",
     "start": "Startseite/Filter",
@@ -56,6 +59,7 @@ list_of_stats = {
     "meldungen_brb": "Meldungen Brandenburg",
     "meldungen_berlin": "Meldungen Berlin",
     "meldungen_gesamt": "Alle Summen (Tabelle)",
+    "meldungen_zeiten": "Meldezeiten",
     "feedback": "Feedback",
 }
 
@@ -97,7 +101,8 @@ def get_date_interval():
     now = datetime.now().isoformat()
     last_year = datetime.now() - timedelta(weeks=52)
     last_year = last_year.isoformat()
-    start_date = request.form.get("dateFrom", session.get("date_from", last_year))
+    start_date = request.form.get("dateFrom",
+                                  session.get("date_from", last_year))
     end_date = request.form.get("dateTo", session.get("date_to", now))
 
     return (start_date[:10], end_date[:10])
@@ -119,11 +124,15 @@ def stats_start():
             return stats_geschlecht(marker=value)
         case "meldungen_meldedatum":
             return stats_bardiagram_datum(
-                dbfields=["dat_meld"], page="stats-meldedatum.html", marker=value
+                dbfields=["dat_meld"],
+                page="stats-meldedatum.html",
+                marker=value
             )
         case "meldungen_funddatum":
             return stats_bardiagram_datum(
-                dbfields=["dat_fund_von"], page="stats-funddatum.html", marker=value
+                dbfields=["dat_fund_von"],
+                page="stats-funddatum.html",
+                marker=value
             )
         case "meldungen_meld_fund":
             return stats_bardiagram_datum(
@@ -143,6 +152,8 @@ def stats_start():
             return stats_bundesland(marker="meldungen_berlin")
         case "meldungen_gesamt":
             return stats_gesamt(marker="meldungen_gesamt")
+        case "meldungen_zeiten":
+            return stats_daily_average(marker="meldungen_zeiten")
         case "feedback":
             return stats_feedback(
                 marker="feedback",
@@ -158,10 +169,54 @@ def stats_start():
             )
 
 
+def stats_daily_average(marker="meldungen_zeiten"):
+    """Get reports based on hours
+
+    We are using timestamps included in image names
+    (column »ablage« in table fundorte).
+    """
+
+    timestamp_expr = func.to_timestamp(
+        func.substring(TblFundorte.ablage, r'-([0-9]{14})-'),
+        'YYYYMMDDHH24MISS'
+    )
+    hour_expr = func.extract("hour", timestamp_expr)
+
+    stmt = (
+        select(
+            hour_expr.label("stunde"),
+            func.count().label("anzahl_meldungen")
+        )
+        .group_by(hour_expr)
+        .order_by(hour_expr)
+    )
+
+    results = db.session.execute(stmt).all()
+
+    daily = {
+        "0": 0, "1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0,
+        "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0, "13": 0,
+        "14": 0, "15": 0, "16": 0, "17": 0, "18": 0, "19": 0,
+        "20": 0, "21": 0, "22": 0, "23": 0
+    }
+
+    for row in results[:]:
+        daily[f"{int(row[0])}"] = row[1]
+
+    return render_template(
+        "statistics/stats-daily-average.html",
+        menu=list_of_stats,
+        daten=daily,
+        marker=marker,
+    )
+
+
 def stats_mtb(marker):
     "Results as MTB (Messtischblatt-Raster)"
+
     art = request.form.get("typeInput", "all")
-    typeInput = ["mtb", "maennlich", "weiblich", "oothek", "nymphe", "andere", "all"]
+    typeInput = ["mtb", "maennlich", "weiblich", "oothek",
+                 "nymphe", "andere", "all"]
     dbanswers = []
     stmt = (
         select(TblFundorte.mtb, *_gender_sum_columns())
@@ -274,7 +329,8 @@ def stats_geschlecht(marker):
 def stats_amt(marker):
     "Statistics pro Gemeinden (AGS))"
 
-    typeInput = ["amt", "maennlich", "weiblich", "oothek", "nymphe", "andere", "all"]
+    typeInput = ["amt", "maennlich", "weiblich",
+                 "oothek", "nymphe", "andere", "all"]
     dbanswers = ["", 0, 0, 0, 0, 0, 0]
     fehler = False
 
@@ -320,7 +376,9 @@ def stats_laender(marker):
 
     substring_start = literal_column("1")
     state_code_len = literal_column("2")
-    amt_group_expr = func.substring(TblFundorte.amt, substring_start, state_code_len)
+    amt_group_expr = func.substring(TblFundorte.amt,
+                                    substring_start,
+                                    state_code_len)
 
     stmt = (
         select(amt_group_expr.label("amt_group"), *_gender_sum_columns())
@@ -379,8 +437,9 @@ def stats_bundesland(marker):
     state_prefix_expr = func.substring(
         TblFundorte.amt, substring_start, state_code_len
     )
-    amt_group_expr = func.substring(TblFundorte.amt, substring_start, district_len)
-
+    amt_group_expr = func.substring(TblFundorte.amt,
+                                    substring_start,
+                                    district_len)
     stmt = (
         select(amt_group_expr.label("amt_group"), *_gender_sum_columns())
         .join(TblMeldungen)

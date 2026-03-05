@@ -1,0 +1,62 @@
+{% extends "layout.html" %}
+{% block title %}
+Statistiken
+{% endblock title %}
+{% block meta_keywords %}Auswertungen, Statistik{% endblock %}
+{% from 'statistics/_macros_stats_menu.html' import StatsMenu with context %}
+{% block content %}
+<section class="container px-4 mx-auto mt-10">
+  <div class="p-4 bg-gray-100 rounded-lg border border-gray-200 sm:p-5">
+    <form action="" method="POST" class="space-y-4">
+      {{ StatsMenu() }}
+    </form>
+    <p class="mt-4 text-sm text-gray-700">Für den Zeitraum vom {{ session['date_from'] }} bis {{ session['date_to'] }}.</p>
+    <p class="text-sm text-gray-700">Gebietskennzahl: {{ session["ags"] }}</p>
+    <!-- Grafik -->
+    <div id='myDiv' class="overflow-x-auto w-full"></div>
+    <script>
+      
+      var daten = {{ daten | tojson | safe }};
+      var xValues = [];
+      var yValues = [];
+      
+      xValues = Array.from({length: 24}, (_, i) => i);
+      yValues = xValues.map(h => daten[h] ?? 0);	
+      console.log(xValues.length);
+       
+      var trace1 = {
+          x: xValues,
+          y: yValues,
+          type: 'scatter',
+	  mode: 'lines+markers',   // Linie + Punkte
+          text: yValues.map(String),
+          textposition: 'auto',
+          hoverinfo: 'none',
+          marker: {
+              color: '#5bae31',
+              opacity: 0.6,
+              line: {
+                  color: 'rgb(8,48,107)',
+                  width: 1.5
+              }
+          }
+      };
+
+      var data = [trace1];
+      var layout = {
+          title: 'Meldungen pro Stunde',
+          xaxis: {
+              title: 'Uhrzeit',
+              type: 'category'
+          },
+          yaxis: {
+              title: 'Anzahl Meldungen'
+          },
+          barmode: 'group'
+      };
+      
+      Plotly.newPlot('myDiv', data, layout, { displayModeBar: false });
+    </script>
+  </div>
+</section>
+{% endblock content %}
