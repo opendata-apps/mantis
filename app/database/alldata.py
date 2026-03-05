@@ -51,7 +51,7 @@ class TblAllData(Base):
     beschreibung = db.Column(db.String(45))
     id_user = db.Column(db.Integer)
     id_finder = db.Column(db.Integer)
-    user_id = db.Column(db.Integer)
+    user_id = db.Column(db.String(40))
     user_name = db.Column(db.String(45))
     user_kontakt = db.Column(db.String(45))
 
