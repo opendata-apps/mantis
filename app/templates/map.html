@@ -6,7 +6,11 @@
     Fundmeldungen gesamt
   {% endif %}
 {% endblock title %}
-{% block head %}{{ vite_tags("js/map.js") }}{% endblock %}
+{% block head %}
+  {{ vite_tags("js/map.js") }}
+  <link rel="preconnect" href="https://tile.openstreetmap.org">
+  <link rel="preconnect" href="https://server.arcgisonline.com">
+{% endblock %}
 {% block page_title %}
   Auswertungen der Beobachtungen | Mantis Religiosa Mitmachprojekt | Gottesanbeterin Gesucht{%
   endblock %}
@@ -102,37 +106,8 @@
           </div>
         </div>
       </section>
+      <script type="module" src="{{ vite_asset('js/counter.js') }}"></script>
       <script type="module">
-  // Counter animation
-  const counter = document.querySelector('.counter');
-  const target = +counter.dataset.target;
-  const duration = 2000;
-  const frameRate = 1000 / 30;
-  let startTime = null;
-
-  function easeOutExpo(t) {
-    return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
-  }
-
-  function animateCounter(currentTime) {
-    if (!startTime) startTime = currentTime;
-    const progress = Math.min((currentTime - startTime) / duration, 1);
-    if (progress < 1) {
-      counter.innerText = Math.floor(easeOutExpo(progress) * target);
-      setTimeout(() => requestAnimationFrame(animateCounter), frameRate);
-    } else {
-      counter.innerText = target;
-    }
-  }
-
-  const observer = new IntersectionObserver(entries => {
-    if (entries[0].isIntersecting) {
-      requestAnimationFrame(animateCounter);
-      observer.disconnect();
-    }
-  }, { threshold: 0.1 });
-  observer.observe(counter);
-
   // Year selector control
   L.Control.YearSelector = L.Control.extend({
     onAdd: function (map) {
@@ -209,6 +184,13 @@
     iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34]
   });
 
+  function escapeHtml(text) {
+    if (text === null || text === undefined) return '';
+    const div = document.createElement('div');
+    div.textContent = String(text);
+    return div.innerHTML;
+  }
+
   const reports = {{ reports|tojson }};
   reports.forEach(r => {
     const marker = L.marker([r.latitude, r.longitude], { icon: customIcon });
@@ -217,11 +199,11 @@
       fetch(`/get_marker_data/${r.report_id}`)
         .then(res => res.json())
         .then(data => {
-          let html = `<div class="popup-content"><h2>Melde ID: ${data.id}</h2><ul class="popup-list">`;
-          if (data.dat_meld) html += `<li><strong>Melde Datum:</strong> ${data.dat_meld}</li>`;
-          if (data.dat_fund_von) html += `<li><strong>Fund Datum:</strong> ${data.dat_fund_von}</li>`;
-          if (data.ort) html += `<li><strong>Ort:</strong> ${data.ort}</li>`;
-          if (data.kreis) html += `<li><strong>Lkr./Kr./Bez.:</strong> ${data.kreis}</li>`;
+          let html = `<div class="popup-content"><h2>Melde ID: ${escapeHtml(data.id)}</h2><ul class="popup-list">`;
+          if (data.dat_meld) html += `<li><strong>Melde Datum:</strong> ${escapeHtml(data.dat_meld)}</li>`;
+          if (data.dat_fund_von) html += `<li><strong>Fund Datum:</strong> ${escapeHtml(data.dat_fund_von)}</li>`;
+          if (data.ort) html += `<li><strong>Ort:</strong> ${escapeHtml(data.ort)}</li>`;
+          if (data.kreis) html += `<li><strong>Lkr./Kr./Bez.:</strong> ${escapeHtml(data.kreis)}</li>`;
           html += '</ul></div>';
           e.popup.setContent(html);
         })
