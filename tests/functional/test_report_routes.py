@@ -14,7 +14,7 @@ from unittest.mock import patch
 import pytest
 from PIL import Image
 from sqlalchemy import select, func
-from werkzeug.exceptions import BadRequest
+
 
 from app.database.models import (
     TblFundorte,
@@ -85,17 +85,12 @@ HTMX_ENDPOINTS = [
 
 
 class TestHtmxGuard:
-    """All HTMX-only endpoints must abort(400) without HX-Request header.
-
-    Note: Flask with TESTING=True propagates exceptions from abort() since
-    there is no registered error handler for 400. We verify the correct
-    exception type is raised.
-    """
+    """All HTMX-only endpoints must return 400 without HX-Request header."""
 
     @pytest.mark.parametrize("endpoint", HTMX_ENDPOINTS)
     def test_rejects_non_htmx_request(self, client, endpoint):
-        with pytest.raises(BadRequest):
-            client.post(endpoint, data={"step": "1"})
+        response = client.post(endpoint, data={"step": "1"})
+        assert response.status_code == 400
 
 
 # ============================================================================
