@@ -176,17 +176,26 @@ def stats_daily_average(marker="meldungen_zeiten"):
     (column »ablage« in table fundorte).
     """
 
-    timestamp_expr = func.to_timestamp(
-        func.substring(TblFundorte.ablage, r'-([0-9]{14})-'),
-        'YYYYMMDDHH24MISS'
-    )
+    timestamp_substr = func.substring(TblFundorte.ablage, r'-([0-9]{14})-')
+    timestamp_expr = func.to_timestamp(timestamp_substr, 'YYYYMMDDHH24MISS')
     hour_expr = func.extract("hour", timestamp_expr)
+
+    date_from = date.fromisoformat(session["date_from"])
+    date_to = date.fromisoformat(session["date_to"])
 
     stmt = (
         select(
             hour_expr.label("stunde"),
             func.count().label("anzahl_meldungen")
         )
+        .join(TblMeldungen)
+        .where(
+            timestamp_substr.isnot(None),
+            TblMeldungen.dat_fund_von >= date_from,
+            TblMeldungen.dat_fund_von <= date_to,
+            TblMeldungen.statuses.contains([ReportStatus.APPR.value]),
+        )
+        .where(TblFundorte.amt.like(f"{session['ags']}%"))
         .group_by(hour_expr)
         .order_by(hour_expr)
     )
@@ -200,7 +209,7 @@ def stats_daily_average(marker="meldungen_zeiten"):
         "20": 0, "21": 0, "22": 0, "23": 0
     }
 
-    for row in results[:]:
+    for row in results:
         daily[f"{int(row[0])}"] = row[1]
 
     return render_template(
@@ -261,9 +270,11 @@ def stats_bardiagram_datum(dbfields, page, marker=None):
         col = getattr(TblMeldungen, field_name)
         stmt = (
             select(col.label("tag"), func.count(col).label("anzahl"))
+            .join(TblMeldungen.fundort)
             .where(
                 col.between(date_from, date_to),
                 TblMeldungen.statuses.contains([ReportStatus.APPR.value]),
+                TblFundorte.amt.like(f"{session['ags']}%"),
             )
             .group_by(col)
             .order_by(col)
