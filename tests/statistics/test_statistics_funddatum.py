@@ -11,6 +11,7 @@ def test_stats_funddatum(session):
 
     flask_session["date_from"] = "2024-01-07"
     flask_session["date_to"] = "2024-03-06"
+    flask_session["ags"] = ""
 
     with patch("app.routes.statistics.render_template") as mock_render_template:
         mock_render_template.return_value = None

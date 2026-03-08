@@ -1,5 +1,3 @@
-
-
 def test_region_page_returns_200_for_valid_slug(client):
     """Regional page for a known slug returns 200."""
     response = client.get("/gottesanbeterin-in-deutschland/")
