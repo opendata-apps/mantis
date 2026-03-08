@@ -12,9 +12,15 @@ Voraussetzungen
 ---------------
 
 - laufender PostgreSQL-Server
-- Datenbank ``mantis_tester``
-- Benutzer ``mantis_user`` mit Zugriff auf ``mantis_tester``
+- Benutzer ``mantis_user`` mit ``CREATEDB``-Berechtigung
 - Entwicklungsabhängigkeiten: ``uv sync --extra dev``
+
+Die Test-Datenbank ``mantis_tester`` wird automatisch erstellt und nach
+Testende gelöscht. Einmalig muss ``CREATEDB`` vergeben werden:
+
+.. code-block:: sql
+
+   ALTER USER mantis_user CREATEDB;
 
 Testläufe
 ---------
@@ -48,9 +54,10 @@ Fixture-Lebenszyklus
 
 Session-Scope:
 
-1. App wird mit ``app.test_config.Config`` erstellt.
-2. Alembic-Migrationen laufen gegen ``mantis_tester``.
-3. Basisdaten, Demo-Meldungen und Materialized View werden aufgebaut.
+1. ``mantis_tester`` wird automatisch erstellt (``sqlalchemy-utils``).
+2. App wird mit ``app.test_config.Config`` erstellt.
+3. Alembic-Migrationen laufen gegen ``mantis_tester``.
+4. Basisdaten, Demo-Meldungen und Materialized View werden aufgebaut.
 
 Function-Scope:
 
@@ -71,3 +78,4 @@ Hinweise
 
 - Standardoptionen sind ``-x -l`` (Abbruch beim ersten Fehler, lokaler Kontext).
 - Tests laufen gegen ``mantis_tester``, nicht gegen ``mantis_tracker``.
+- Die Datenbank wird nach Testende automatisch gelöscht (``DROP DATABASE``).

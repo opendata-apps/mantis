@@ -29,9 +29,8 @@ Lokale Datenbanken anlegen
 
 .. code-block:: sql
 
-   CREATE USER mantis_user WITH PASSWORD 'mantis';
+   CREATE USER mantis_user WITH PASSWORD 'mantis' CREATEDB;
    CREATE DATABASE mantis_tracker OWNER mantis_user;
-   CREATE DATABASE mantis_tester OWNER mantis_user;
 
 Schema und Basisdaten laden
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^

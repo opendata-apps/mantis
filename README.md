@@ -63,9 +63,8 @@ bun install
 Create databases:
 
 ```sql
-CREATE USER mantis_user WITH PASSWORD 'mantis';
+CREATE USER mantis_user WITH PASSWORD 'mantis' CREATEDB;
 CREATE DATABASE mantis_tracker OWNER mantis_user;
-CREATE DATABASE mantis_tester OWNER mantis_user;
 ```
 
 Run migrations and seed base data:

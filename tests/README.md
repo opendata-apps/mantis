@@ -5,9 +5,15 @@ Diese Test-Suite nutzt Pytest mit echter PostgreSQL-Datenbank.
 ## Voraussetzungen
 
 - laufender PostgreSQL-Server
-- Datenbank `mantis_tester`
-- Benutzer `mantis_user` mit Zugriff auf `mantis_tester`
+- Benutzer `mantis_user` mit `CREATEDB`-Berechtigung
 - Abhängigkeiten installiert mit `uv sync --extra dev`
+
+Die Test-Datenbank `mantis_tester` wird automatisch erstellt und nach Testende gelöscht.
+Einmalig muss `CREATEDB` vergeben werden:
+
+```sql
+ALTER USER mantis_user CREATEDB;
+```
 
 ## Start
 
@@ -47,7 +53,8 @@ In `tests/pytest.ini`:
 
 ## Fixture-Lifecycle (Kurzfassung)
 
-- Session-Scope: App wird erstellt, Migrationen laufen, Basisdaten werden geladen.
+- Session-Scope: Datenbank wird erstellt, Migrationen laufen, Basisdaten werden geladen.
 - Function-Scope: Jeder Test läuft in eigener Transaktion mit anschließendem Rollback.
+- Teardown: Datenbank wird automatisch gelöscht.
 
 Die Fixture-Implementierung liegt in `tests/conftest.py`.

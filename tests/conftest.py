@@ -1,24 +1,36 @@
 import pytest
-from app import create_app, db
 from alembic import command
 from alembic.config import Config
-from tests.test_config import Config as TestConfig
 from sqlalchemy import text
-import app.database.alldata as ad
-import sqlalchemy as sa
-import sqlalchemy.orm as orm
-from app.demodata.filldb import insert_data_reports
-from app.database.populate import populate_all
-from tests.database.jsondata import data as jsondata
+from sqlalchemy_utils import create_database, database_exists, drop_database
+
+from tests.test_config import Config as TestConfig
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _test_database():
+    """Create the test database if it doesn't exist, drop it on teardown.
+
+    Requires CREATEDB privilege on the PostgreSQL role.
+    One-time setup: ALTER USER mantis_user CREATEDB;
+    """
+    if not database_exists(TestConfig.URI):
+        create_database(TestConfig.URI)
+
+    yield
+
+    drop_database(TestConfig.URI)
 
 
 @pytest.fixture(scope="session")
-def app():
+def app(_test_database):
     """Create and configure a Flask app for testing.
 
-    Creates the Flask application with test configuration and runs
-    database migrations before returning the app instance.
+    Depends on _test_database to ensure the DB exists before
+    Flask-SQLAlchemy tries to connect.
     """
+    from app import create_app
+
     app = create_app(TestConfig)
     with app.app_context():
         yield app
@@ -54,58 +66,73 @@ def authenticated_client(client, session_with_user):
     return client
 
 
-def insert_initial_data_command():
-    """Insert initial data into the beschreibung table."""
+def _reset_schema():
+    """Reset the test database to a completely empty state.
 
-    conn = TestConfig.URI
-    db = sa.create_engine(conn)
-    Session = orm.sessionmaker(bind=db)
-    session = Session()
+    Uses DROP SCHEMA public CASCADE to remove all tables, views,
+    functions, triggers, types, and sequences at once.
+    """
+    from app import db
+
+    db.session.execute(text("DROP SCHEMA public CASCADE"))
+    db.session.execute(text("CREATE SCHEMA public"))
+    db.session.commit()
+
+
+def _seed_test_data():
+    """Populate test database with initial + demo data."""
+    from app import db
+    import app.database.alldata as ad
+    from app.demodata.filldb import insert_data_reports
+    from app.database.populate import populate_all
+    from tests.database.jsondata import data as jsondata
+
+    session = db.session
     for id, beschreibung in TestConfig.INITIAL_DATA:
         session.execute(
             text(
-                "INSERT INTO beschreibung (id, beschreibung) VALUES (:id, :beschreibung)"
+                "INSERT INTO beschreibung (id, beschreibung) "
+                "VALUES (:id, :beschreibung)"
             ),
             {"id": id, "beschreibung": beschreibung},
         )
     session.commit()
-    populate_all(db, session=session, vg5000_json_data=jsondata)
+    populate_all(db.engine, session=session, vg5000_json_data=jsondata)
     insert_data_reports(session)
-    ad.create_materialized_view(db, session=session)
+    ad.create_materialized_view(db.engine, session=session)
 
 
-def drop_all_with_views():
-    """Drop all database tables and materialized views.
+def _run_migrations():
+    """Run Alembic migrations on the test database."""
+    alembic_cfg = Config("migrations/alembic.ini")
+    alembic_cfg.set_main_option("sqlalchemy.url", TestConfig.URI)
+    alembic_cfg.set_main_option("script_location", "migrations")
+    command.upgrade(alembic_cfg, "heads")
 
-    This function ensures proper cleanup by dropping tables and views
-    with CASCADE to handle dependencies correctly.
-    """
-    # Drop tables with CASCADE to handle dependencies correctly
-    db.session.execute(text("DROP TABLE IF EXISTS public.meldungen CASCADE"))
-    # Drop all remaining tables
-    db.session.commit()
-    db.drop_all()
-    db.session.commit()
+
+# Public aliases used by tests/migrations/test_migration_chain.py
+insert_initial_data_command = _seed_test_data
+upgrade = _run_migrations
 
 
 @pytest.fixture(scope="session")
 def _db(app):
     """Set up the database for the test session.
 
-    Drops everything, re-runs Alembic migrations (which create tables,
+    Resets schema, runs Alembic migrations (which create tables,
     triggers, and functions), then populates with test data.
     """
-    # Setup: Drop everything and re-run migrations so triggers exist
-    drop_all_with_views()
-    upgrade()
-    # Fill tables with test data
-    insert_initial_data_command()
+    from app import db
+
+    _reset_schema()
+    _run_migrations()
+    _seed_test_data()
 
     yield db
 
-    # Teardown: Run after test session completes
+    # Dispose all connections so _test_database teardown can DROP DATABASE
     db.session.remove()
-    drop_all_with_views()
+    db.engine.dispose()
 
 
 @pytest.fixture(scope="function", autouse=True)
@@ -130,33 +157,3 @@ def session(_db):
     session.remove()
     transaction.rollback()
     connection.close()
-
-
-def upgrade():
-    """Run Alembic migrations on the test database.
-
-    Executes all database migrations to bring the schema
-    to the latest version before running tests.
-    """
-    import sqlalchemy as sa
-
-    connstring = TestConfig.URI
-    alembic_cfg = Config("migrations/alembic.ini")
-    alembic_cfg.set_main_option("sqlalchemy.url", connstring)
-    alembic_cfg.set_main_option("script_location", "migrations")
-
-    # Drop alembic_version table to ensure clean migration state
-    # This is necessary because test database may have inconsistent state
-    # (e.g., stamped but tables not created)
-    engine = sa.create_engine(connstring)
-    with engine.connect() as conn:
-        conn.execute(sa.text("DROP TABLE IF EXISTS alembic_version"))
-        conn.commit()
-    engine.dispose()
-
-    try:
-        # Execute migrations from base to latest version
-        command.upgrade(alembic_cfg, "heads")
-    except Exception as e:
-        print("Error during migration:", e)
-        raise
