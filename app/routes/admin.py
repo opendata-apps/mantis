@@ -38,7 +38,10 @@ from flask import current_app
 from app.tools.send_reviewer_email import send_email
 from app.tools.mtb_calc import get_mtb, pointInRect
 from app.tools.gemeinde_finder import get_amt_enriched
-from app.tools.coordinate_validation import validate_and_normalize_coordinate
+from app.tools.coordinate_validation import (
+    validate_and_normalize_coordinate,
+    validate_coordinate_pair,
+)
 from typing import Optional
 
 INT32_MIN = -(2**31)
@@ -64,6 +67,16 @@ NON_EDITABLE_FIELDS = {
         "user_id",
     ],
 }
+
+
+def _parse_german_date(value: Optional[str]) -> Optional[datetime]:
+    """Parse a dd.mm.YYYY date string, returning None on empty/invalid input."""
+    if not value:
+        return None
+    try:
+        return datetime.strptime(value, "%d.%m.%Y")
+    except ValueError:
+        return None
 
 
 def _maybe_refresh_alldata_view(*, force: bool = False) -> None:
@@ -396,17 +409,11 @@ def update_coordinates(id):
         return jsonify({"error": "Missing coordinates"}), 400
 
     # Validate and normalize both coordinates
-    lat_valid, normalized_lat, lat_error = validate_and_normalize_coordinate(
-        latitude, "latitude"
+    is_valid, normalized_lat, normalized_lon, errors = validate_coordinate_pair(
+        latitude, longitude
     )
-    lon_valid, normalized_lon, lon_error = validate_and_normalize_coordinate(
-        longitude, "longitude"
-    )
-
-    if not lat_valid:
-        return jsonify({"error": lat_error}), 400
-    if not lon_valid:
-        return jsonify({"error": lon_error}), 400
+    if not is_valid:
+        return jsonify({"error": errors[0]}), 400
 
     # Get the sighting and its location
     sighting = db.session.get(TblMeldungen, id)
@@ -529,6 +536,7 @@ def toggle_approve_sighting(id):
     )
 
     # Send reviewer email only when report just became approved.
+    # _load_sighting() populates relationships needed for the email payload.
     if current_app.config.get("REVIEWERMAIL", False) and sighting.is_approved:
         meldung = _load_sighting(id)
         if meldung:
@@ -1172,28 +1180,18 @@ def get_filtered_query(
         TblMeldungen.dat_meld if date_type == "meld" else TblMeldungen.dat_fund_von
     )
 
-    if date_from and date_to:
-        try:
-            date_from_obj = datetime.strptime(date_from, "%d.%m.%Y")
-            date_to_obj = datetime.strptime(date_to, "%d.%m.%Y")
-            stmt = stmt.where(date_column.between(date_from_obj, date_to_obj))
-        except ValueError as e:
-            current_app.logger.error(f"Date parsing error: {e}")
-            stmt = stmt.where(TblMeldungen.id == -1)
-    elif date_from:
-        try:
-            date_from_obj = datetime.strptime(date_from, "%d.%m.%Y")
-            stmt = stmt.where(date_column >= date_from_obj)
-        except ValueError as e:
-            current_app.logger.error(f"Date parsing error: {e}")
-            stmt = stmt.where(TblMeldungen.id == -1)
-    elif date_to:
-        try:
-            date_to_obj = datetime.strptime(date_to, "%d.%m.%Y")
-            stmt = stmt.where(date_column <= date_to_obj)
-        except ValueError as e:
-            current_app.logger.error(f"Date parsing error: {e}")
-            stmt = stmt.where(TblMeldungen.id == -1)
+    parsed_from = _parse_german_date(date_from)
+    parsed_to = _parse_german_date(date_to)
+
+    if (date_from and parsed_from is None) or (date_to and parsed_to is None):
+        current_app.logger.error(f"Date parsing error: {date_from!r} / {date_to!r}")
+        stmt = stmt.where(TblMeldungen.id == -1)
+    elif parsed_from and parsed_to:
+        stmt = stmt.where(date_column.between(parsed_from, parsed_to))
+    elif parsed_from:
+        stmt = stmt.where(date_column >= parsed_from)
+    elif parsed_to:
+        stmt = stmt.where(date_column <= parsed_to)
 
     return stmt
 
