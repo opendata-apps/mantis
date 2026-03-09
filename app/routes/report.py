@@ -15,7 +15,6 @@ from flask import (
     current_app,
 )
 from werkzeug.datastructures import MultiDict
-from werkzeug.utils import secure_filename
 from PIL import Image
 
 from app import db, limiter
@@ -30,8 +29,10 @@ from app.database.models import (
 from app.database.feedback_type import FeedbackSource
 from app.forms import MantisSightingForm
 from app.tools.gen_user_id import get_new_id
-from app.tools.mtb_calc import get_mtb, pointInRect
+from app.tools.mtb_calc import point_in_rect
 from app.tools.gemeinde_finder import get_amt_enriched
+from app.tools.location_enrichment import calculate_spatial_fields
+from app.tools.report_images import build_upload_filename, ensure_upload_dir
 
 # Blueprints
 report = Blueprint("report", __name__)
@@ -58,14 +59,9 @@ def _set_gender_fields(selected_gender_value):
 
 def _process_uploaded_image(photo_file, sighting_date, city_name, user_id):
     """Process uploaded image - trust client-optimized WebP files to avoid double compression."""
-    year_str = sighting_date.strftime("%Y")
-    date_str = sighting_date.strftime("%Y-%m-%d")
-    upload_dir = Path(current_app.config["UPLOAD_FOLDER"]) / year_str / date_str
-    upload_dir.mkdir(parents=True, exist_ok=True)
-
-    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    city_part = secure_filename(city_name or "unknown_city")
-    filename = f"{city_part}-{timestamp}-{secure_filename(user_id)}.webp"
+    upload_root = Path(current_app.config["UPLOAD_FOLDER"])
+    upload_dir = ensure_upload_dir(upload_root, sighting_date)
+    filename = build_upload_filename(city_name, user_id, datetime.now())
     full_path = upload_dir / filename
 
     image_bytes = photo_file.read()
@@ -86,7 +82,7 @@ def _process_uploaded_image(photo_file, sighting_date, city_name, user_id):
     with open(full_path, "wb") as f:
         f.write(image_bytes_to_save)
 
-    return str(Path(year_str) / date_str / filename)
+    return str((upload_dir / filename).relative_to(upload_root))
 
 
 def _create_user(first_name, last_name, email, role=1):
@@ -201,23 +197,14 @@ def melden(usrid=None):
 
                 # 5. Create location record
                 lat, lon = form.latitude.data, form.longitude.data
-                mtb_value = amt_value = ""
-                spatial_land = spatial_kreis = ""
+                spatial_fields = calculate_spatial_fields(lat, lon)
 
-                if lat is not None and lon is not None and pointInRect((lat, lon)):
-                    mtb_value = get_mtb(lat, lon)
-                    spatial = get_amt_enriched((lon, lat))
-                    if spatial:
-                        amt_value = spatial["amt_string"]
-                        spatial_land = spatial["land"]
-                        spatial_kreis = spatial["kreis"]
-
-                location_description = 0
-                if form.location_description.data:
-                    try:
-                        location_description = int(form.location_description.data)
-                    except (ValueError, TypeError):
-                        pass
+                location_description_data = form.location_description.data
+                if not isinstance(location_description_data, str):
+                    raise RuntimeError(
+                        "Expected location description after successful form validation"
+                    )
+                location_description = int(location_description_data)
 
                 fundort = TblFundorte()
                 fundort.plz = form.fund_zip_code.data or "0"
@@ -225,12 +212,12 @@ def melden(usrid=None):
                 fundort.strasse = form.fund_street.data
                 # AGS spatial data is authoritative for land/kreis;
                 # fall back to Nominatim (form) only if spatial lookup missed
-                fundort.kreis = spatial_kreis or form.fund_district.data
-                fundort.land = spatial_land or form.fund_state.data
+                fundort.kreis = spatial_fields["kreis"] or form.fund_district.data
+                fundort.land = spatial_fields["land"] or form.fund_state.data
                 fundort.longitude = lon
                 fundort.latitude = lat
-                fundort.mtb = mtb_value
-                fundort.amt = amt_value
+                fundort.mtb = spatial_fields["mtb"]
+                fundort.amt = spatial_fields["amt"]
                 fundort.beschreibung = location_description
                 fundort.ablage = db_image_path
                 db.session.add(fundort)
@@ -408,7 +395,7 @@ def ags_lookup():
     if not (-90 <= lat <= 90 and -180 <= lon <= 180):
         return jsonify({}), 400
 
-    if not pointInRect((lat, lon)):
+    if not point_in_rect((lat, lon)):
         return jsonify({})
 
     spatial = get_amt_enriched((lon, lat))
@@ -448,8 +435,10 @@ def validate_step_partial():
     # Build form data from request
     form_data = MultiDict(request.form)
     if "identical_finder_reporter" in request.form:
-        form_data["identical_finder_reporter"] = _is_checkbox_true(
-            request.form.get("identical_finder_reporter")
+        form_data["identical_finder_reporter"] = (
+            "y"
+            if _is_checkbox_true(request.form.get("identical_finder_reporter"))
+            else ""
         )
 
     form = MantisSightingForm(formdata=form_data, meta={"csrf": False})
@@ -582,24 +571,26 @@ def review_step():
 
 
 # Helper functions for review display
+def _get_choice_display(selected_value, choices):
+    """Convert a choice value to its display label."""
+    for value, label in choices:
+        if value == selected_value:
+            return label
+    return "-"
+
+
 def _get_gender_display(gender_value):
     """Convert gender field value to display text."""
     from app.forms import GENDER_CHOICES
 
-    for value, label in GENDER_CHOICES:
-        if value == gender_value:
-            return label
-    return "-"
+    return _get_choice_display(gender_value, GENDER_CHOICES)
 
 
 def _get_location_description_display(location_value):
     """Convert location description value to display text."""
     from app.forms import LOCATION_DESCRIPTION_CHOICES
 
-    for value, label in LOCATION_DESCRIPTION_CHOICES:
-        if value == location_value:
-            return label
-    return "-"
+    return _get_choice_display(location_value, LOCATION_DESCRIPTION_CHOICES)
 
 
 def _get_feedback_source_display(feedback_value):

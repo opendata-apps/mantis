@@ -14,6 +14,7 @@ from app.database.models import (
     TblMeldungen,
     TblUsers,
     TblMeldungUser,
+    UserRole,
 )
 
 # Blueprints
@@ -28,18 +29,14 @@ def melder_index(usrid):
     user = db.session.scalar(select(TblUsers).where(TblUsers.user_id == usrid))
 
     # If the user doesn't exist or the role isn't 1 or 9, return 404
-    if not user or (user.user_rolle != "1" and user.user_rolle != "9"):
+    if not user or user.user_rolle not in (UserRole.REPORTER, UserRole.REVIEWER):
         abort(404)
 
-    # Preserve active reviewer session to avoid clobbering admin auth context
-    # when opening provider links from reviewer UI.
+    # Only set session when visitor has no active session or is visiting
+    # their own page. This prevents session hijacking when Reporter A
+    # clicks Reporter B's link, and preserves reviewer sessions.
     current_user_id = session.get("user_id")
-    current_user = None
-    if current_user_id:
-        current_user = db.session.scalar(
-            select(TblUsers).where(TblUsers.user_id == current_user_id)
-        )
-    if not current_user or current_user.user_rolle != "9":
+    if not current_user_id or current_user_id == usrid:
         session["user_id"] = usrid
         session.permanent = True
 

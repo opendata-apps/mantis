@@ -8,6 +8,7 @@ from .user_feedback import TblUserFeedback
 from .feedback_type import FeedbackSource
 from .alldata import TblAllData
 from .report_status import ReportStatus
+from .user_role import UserRole
 
 __all__ = [
     "TblMeldungen",
@@ -20,4 +21,5 @@ __all__ = [
     "FeedbackSource",
     "TblAllData",
     "ReportStatus",
+    "UserRole",
 ]

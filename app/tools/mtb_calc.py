@@ -84,20 +84,11 @@ def get_mtb(zielbreite, ziellaenge):
     return f"{part1:02d}{part2:02d}"
 
 
-def pointInRect(point):
-    "Test, ob Punkt im definierten Rechteck liegt"
-
-    rect = (47.0, 6.0, 9.0, 18.0)
-    x1, y1, w, h = rect
-    x2, y2 = x1 + w, y1 + h
-    x, y = point
-    if x1 < x and x < x2:
-        if y1 < y and y < y2:
-            return True
-        else:
-            return False
-    return False
-
+def point_in_rect(point):
+    """Check if a (lat, lon) point is within the Germany bounding box."""
+    # Germany bounding box: lat 47..56, lon 6..24
+    lat, lon = point
+    return 47.0 < lat < 56.0 and 6.0 < lon < 24.0
 
 if __name__ == "__main__":
     koordinaten = [
@@ -125,5 +116,5 @@ if __name__ == "__main__":
     for row in koordinaten:
         zielbreite, ziellaenge, ort = row
         print(
-            get_mtb(zielbreite, ziellaenge), ort, pointInRect((zielbreite, ziellaenge))
+            get_mtb(zielbreite, ziellaenge), ort, point_in_rect((zielbreite, ziellaenge))
         )

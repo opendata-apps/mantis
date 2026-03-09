@@ -2,15 +2,18 @@ from functools import wraps
 from flask import abort, g, session
 from sqlalchemy import select
 from app import db
-from app.database.models import TblUsers
+from app.database.models import TblUsers, UserRole
 
 
-def _load_session_user():
+def load_session_user(*, require_reviewer: bool = False) -> TblUsers:
     """Load the current user from session, or abort(403).
 
     Verifies the session contains a user_id that maps to an existing user.
     Stores the looked-up user on ``g.current_user`` for downstream access.
     Clears the session on stale user_id to avoid repeated DB misses.
+
+    Args:
+        require_reviewer: When true, enforce reviewer role '9'.
 
     Returns:
         The TblUsers instance for the current session user.
@@ -22,6 +25,8 @@ def _load_session_user():
     if not user:
         session.clear()
         abort(403)
+    if require_reviewer and user.user_rolle != UserRole.REVIEWER:
+        abort(403)
     g.current_user = user
     return user
 
@@ -31,7 +36,7 @@ def login_required(f):
 
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        _load_session_user()
+        load_session_user()
         return f(*args, **kwargs)
 
     return decorated_function
@@ -46,9 +51,7 @@ def reviewer_required(f):
 
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        user = _load_session_user()
-        if user.user_rolle != "9":
-            abort(403)
+        load_session_user(require_reviewer=True)
         return f(*args, **kwargs)
 
     return decorated_function

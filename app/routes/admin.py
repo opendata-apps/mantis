@@ -13,6 +13,7 @@ from app.database.models import (
     TblUsers,
     TblAllData,
     ReportStatus,
+    UserRole,
 )
 from flask import session, g
 from flask import (
@@ -27,22 +28,21 @@ from flask import (
     send_from_directory,
     url_for,
 )
-from sqlalchemy import update, select, func
+from sqlalchemy import update, select, func, inspect as sa_inspect
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import contains_eager, joinedload
-from app.auth import reviewer_required
+from app.auth import load_session_user, reviewer_required
 import shutil
-from werkzeug.utils import secure_filename
 from pathlib import Path
 from flask import current_app
 from app.tools.send_reviewer_email import send_email
-from app.tools.mtb_calc import get_mtb, pointInRect
-from app.tools.gemeinde_finder import get_amt_enriched
 from app.tools.coordinate_validation import (
     validate_and_normalize_coordinate,
     validate_coordinate_pair,
 )
-from typing import Optional
+from app.tools.location_enrichment import calculate_spatial_fields
+from app.tools.report_images import build_upload_filename, ensure_upload_dir
+from typing import Any, Optional
 
 INT32_MIN = -(2**31)
 INT32_MAX = 2**31 - 1
@@ -97,36 +97,37 @@ def _maybe_refresh_alldata_view(*, force: bool = False) -> None:
 
 def recalculate_amt_mtb(fundort):
     """Recalculate AMT, MTB, and fill land/kreis from spatial data."""
-    if not fundort or not fundort.latitude or not fundort.longitude:
+    if not fundort:
         return
 
-    try:
-        # Strip whitespace and convert to float
-        lat = float(fundort.latitude.strip())
-        lon = float(fundort.longitude.strip())
+    spatial_fields = calculate_spatial_fields(fundort.latitude, fundort.longitude)
+    fundort.mtb = spatial_fields["mtb"]
+    fundort.amt = spatial_fields["amt"]
+    # AGS spatial data is authoritative for land/kreis.
+    if spatial_fields["land"]:
+        fundort.land = spatial_fields["land"]
+    if spatial_fields["kreis"]:
+        fundort.kreis = spatial_fields["kreis"]
 
-        if -90 <= lat <= 90 and -180 <= lon <= 180:
-            if pointInRect((lat, lon)):
-                fundort.mtb = get_mtb(lat, lon)
-                spatial = get_amt_enriched((lon, lat))
-                if spatial:
-                    fundort.amt = spatial["amt_string"]
-                    # AGS spatial data is authoritative for land/kreis
-                    if spatial["land"]:
-                        fundort.land = spatial["land"]
-                    if spatial["kreis"]:
-                        fundort.kreis = spatial["kreis"]
-                else:
-                    fundort.amt = ""
-            else:
-                fundort.mtb = ""
-                fundort.amt = ""
-        else:
-            fundort.mtb = ""
-            fundort.amt = ""
-    except (ValueError, TypeError, AttributeError):
-        fundort.mtb = ""
-        fundort.amt = ""
+def _inspect_sqlalchemy(target) -> Any:
+    """Typed boundary for SQLAlchemy inspection APIs with incomplete stubs."""
+    return sa_inspect(target)
+
+
+def _mark_sighting_updated(sighting: TblMeldungen) -> None:
+    """Record the reviewer responsible for the latest mutation."""
+    sighting.bearb_id = g.current_user.user_id
+
+
+def _commit_json_or_error(log_context: str, user_error: str):
+    """Commit the current transaction or return a JSON 500 response."""
+    try:
+        db.session.commit()
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        current_app.logger.error(f"{log_context}: {e}")
+        return jsonify({"error": user_error}), 500
+    return None
 
 
 def _resolve_filter_status(default: str = "offen") -> str:
@@ -181,8 +182,8 @@ def _get_user_report_count(user: TblUsers) -> int:
             .select_from(TblMeldungUser)
             .where(TblMeldungUser.id_user == user.id)
         )
-    cache[user.id] = count
-    return count
+    cache[user.id] = count or 0
+    return cache[user.id]
 
 
 def _load_sighting_for_render(report_id: int) -> tuple[TblMeldungen | None, TblUsers | None]:
@@ -252,21 +253,14 @@ def reviewer(usrid=None):
     if usrid:
         # URL-based login: validate user and establish session
         user = db.session.scalar(select(TblUsers).where(TblUsers.user_id == usrid))
-        if not user or user.user_rolle != "9":
+        if not user or user.user_rolle != UserRole.REVIEWER:
             abort(403)
         session["user_id"] = usrid
         session.permanent = True
     else:
         # Session-based auth (consistent with @reviewer_required)
-        usrid = session.get("user_id")
-        if not usrid:
-            abort(403)
-        user = db.session.scalar(select(TblUsers).where(TblUsers.user_id == usrid))
-        if not user:
-            session.clear()
-            abort(403)
-        if user.user_rolle != "9":
-            abort(403)
+        user = load_session_user(require_reviewer=True)
+        usrid = user.user_id
 
     g.current_user = user
     user_name = user.user_name
@@ -345,14 +339,15 @@ def change_mantis_meta_data(id):
     if not sighting_meldung:
         return jsonify({"error": "Report not found"}), 404
 
-    if fieldname in ["fo_quelle", "anm_bearbeiter"]:
-        sighting_obj = sighting_meldung
-    else:
+    requires_fundort = fieldname not in ["fo_quelle", "anm_bearbeiter"]
+    if requires_fundort:
         sighting_obj = sighting_meldung.fundort
         if not sighting_obj:
-            return jsonify({"error": "Fundort not found"}), 404
+            return jsonify({"error": "Location not found"}), 404
+    else:
+        sighting_obj = sighting_meldung
 
-    sighting_meldung.bearb_id = g.current_user.user_id
+    _mark_sighting_updated(sighting_meldung)
     update_fields = {
         "fo_quelle": "fo_quelle",
         "anm_bearbeiter": "anm_bearbeiter",
@@ -384,17 +379,17 @@ def change_mantis_meta_data(id):
         if fieldname in ["latitude", "longitude"]:
             recalculate_amt_mtb(sighting_obj)
 
-        try:
-            db.session.commit()
-            current_app.logger.info(
-                f"Report {id} metadata updated: {fieldname} to {new_data} by user {sighting_meldung.bearb_id}"
-            )
+        error_response = _commit_json_or_error(
+            f"Database error updating report {id}",
+            "Database error",
+        )
+        if error_response:
+            return error_response
 
-            return jsonify({"success": True})
-        except Exception as e:
-            db.session.rollback()
-            current_app.logger.error(f"Database error updating report {id}: {e}")
-            return jsonify({"error": "Database error"}), 500
+        current_app.logger.info(
+            f"Report {id} metadata updated: {fieldname} to {new_data} by user {sighting_meldung.bearb_id}"
+        )
+        return jsonify({"success": True})
     else:
         return jsonify({"error": "Invalid field type"}), 400
 
@@ -415,7 +410,6 @@ def update_coordinates(id):
     if not is_valid:
         return jsonify({"error": errors[0]}), 400
 
-    # Get the sighting and its location
     sighting = db.session.get(TblMeldungen, id)
     if not sighting:
         return jsonify({"error": "Report not found"}), 404
@@ -429,15 +423,13 @@ def update_coordinates(id):
     fundort.longitude = normalized_lon
     recalculate_amt_mtb(fundort)
 
-    # Update bearer ID
-    sighting.bearb_id = g.current_user.user_id
-
-    try:
-        db.session.commit()
-    except SQLAlchemyError as e:
-        db.session.rollback()
-        current_app.logger.error(f"Error updating coordinates for report {id}: {e}")
-        return jsonify({"error": "Failed to update coordinates"}), 500
+    _mark_sighting_updated(sighting)
+    error_response = _commit_json_or_error(
+        f"Error updating coordinates for report {id}",
+        "Failed to update coordinates",
+    )
+    if error_response:
+        return error_response
 
     return jsonify(
         {"success": True, "amt": fundort.amt or "", "mtb": fundort.mtb or ""}
@@ -480,14 +472,13 @@ def update_address(id):
     if land:
         fundort.land = land
 
-    sighting.bearb_id = g.current_user.user_id
-
-    try:
-        db.session.commit()
-    except SQLAlchemyError as e:
-        db.session.rollback()
-        current_app.logger.error(f"Failed to update address for report {id}: {e}")
-        return jsonify({"error": "Failed to update address"}), 500
+    _mark_sighting_updated(sighting)
+    error_response = _commit_json_or_error(
+        f"Failed to update address for report {id}",
+        "Failed to update address",
+    )
+    if error_response:
+        return error_response
 
     return jsonify({"success": True}), 200
 
@@ -522,7 +513,7 @@ def toggle_approve_sighting(id):
         sighting.statuses = [ReportStatus.APPR.value]
         sighting.dat_bear = datetime.now()
     sighting.deleted = sighting.is_deleted
-    sighting.bearb_id = g.current_user.user_id
+    _mark_sighting_updated(sighting)
 
     try:
         db.session.commit()
@@ -544,7 +535,8 @@ def toggle_approve_sighting(id):
             user = meldung.reporter_link.reporter
             dbdata = {}
             for model in (meldung, fundort, fundort.location_type, meldung.reporter_link, user):
-                for c in model.__table__.columns:
+                inspected_model = _inspect_sqlalchemy(model)
+                for c in inspected_model.mapper.columns:
                     dbdata[c.name] = getattr(model, c.name)
 
             if dbdata.get("user_kontakt"):
@@ -652,7 +644,7 @@ def toggle_flag(id):
 
     sighting.statuses = statuses
     sighting.deleted = sighting.is_deleted
-    sighting.bearb_id = g.current_user.user_id
+    _mark_sighting_updated(sighting)
 
     try:
         db.session.commit()
@@ -669,7 +661,6 @@ def toggle_flag(id):
 @reviewer_required
 def delete_sighting(id):
     "Soft-delete sighting based on id"
-    # Find the report by id
     sighting = db.session.get(TblMeldungen, id)
     if not sighting:
         return "", 404
@@ -677,7 +668,7 @@ def delete_sighting(id):
     # Set statuses to [DEL] only (DEL is exclusive)
     sighting.statuses = [ReportStatus.DEL.value]
     sighting.deleted = True
-    sighting.bearb_id = g.current_user.user_id
+    _mark_sighting_updated(sighting)
     try:
         db.session.commit()
     except SQLAlchemyError as e:
@@ -693,7 +684,6 @@ def delete_sighting(id):
 @reviewer_required
 def undelete_sighting(id):
     "Undelete sighting based on id"
-    # Find the report by id
     sighting = db.session.get(TblMeldungen, id)
     if not sighting:
         return "", 404
@@ -701,7 +691,7 @@ def undelete_sighting(id):
     # Set statuses to [OPEN] and clear deleted flag
     sighting.statuses = [ReportStatus.OPEN.value]
     sighting.deleted = False
-    sighting.bearb_id = g.current_user.user_id
+    _mark_sighting_updated(sighting)
     try:
         db.session.commit()
     except SQLAlchemyError as e:
@@ -751,13 +741,13 @@ def change_mantis_count(id):
 
     setattr(sighting, field, new_count)
 
-    sighting.bearb_id = g.current_user.user_id
-    try:
-        db.session.commit()
-    except SQLAlchemyError as e:
-        db.session.rollback()
-        current_app.logger.error(f"Failed to update mantis count for sighting {id}: {e}")
-        return jsonify({"error": "Failed to update mantis count"}), 500
+    _mark_sighting_updated(sighting)
+    error_response = _commit_json_or_error(
+        f"Failed to update mantis count for sighting {id}",
+        "Failed to update mantis count",
+    )
+    if error_response:
+        return error_response
 
     return jsonify({"success": True})
 
@@ -852,6 +842,8 @@ def export_data(value):
 
         # Use temp file for large exports, BytesIO for small ones
         use_large_mode = row_count > LARGE_EXPORT_THRESHOLD
+        output_path: str | None = None
+        output: BytesIO | None = None
         if use_large_mode:
             # Large export: use temp file + constant_memory mode
             temp_file = tempfile.NamedTemporaryFile(
@@ -962,6 +954,7 @@ def export_data(value):
         mime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         if use_large_mode:
             # Send temp file and clean up after
+            assert output_path is not None
             response = send_file(
                 output_path, mimetype=mime, as_attachment=True, download_name=filename
             )
@@ -976,6 +969,7 @@ def export_data(value):
 
             return response
         else:
+            assert output is not None
             output.seek(0)
             return send_file(
                 output, mimetype=mime, as_attachment=True, download_name=filename
@@ -1020,9 +1014,8 @@ def update_report_image_date(report_id, new_date):
     usrid_with_ext = filename_parts[2]
     usrid = usrid_with_ext.replace(".webp", "")
 
-    new_dir_path = _create_directory(new_date_obj)
-    new_filename = _create_filename(location, usrid, new_date_obj)
-    new_file_path = new_dir_path / (new_filename + ".webp")
+    new_dir_path = ensure_upload_dir(base_dir, new_date_obj)
+    new_file_path = new_dir_path / build_upload_filename(location, usrid, new_date_obj)
 
     # Skip if source and destination are the same
     if str(old_image_path) == str(new_file_path):
@@ -1052,26 +1045,6 @@ def update_report_image_date(report_id, new_date):
         "old_path": str(old_image_path),
         "new_path": str(new_file_path),
     }, 200
-
-
-def _create_directory(new_date):
-    "Create a directory for the new image if it doesn't exist yet"
-    year = new_date.strftime("%Y")
-    base_dir = Path(current_app.config["UPLOAD_FOLDER"])
-    dir_path = base_dir / year / new_date.strftime("%Y-%m-%d")
-    dir_path.mkdir(parents=True, exist_ok=True)
-    return dir_path
-
-
-def _create_filename(location, usrid, new_date):
-    "Create a filename for the new image and location"
-    new_timestamp = new_date.strftime("%Y%m%d%H%M%S")
-    # Generate the filename without the .webp extension
-    return "{}-{}-{}".format(
-        secure_filename(location), new_timestamp, secure_filename(usrid)
-    )
-
-
 def get_filtered_query(
     filter_status: Optional[str] = None,
     filter_type: Optional[str] = None,
@@ -1244,7 +1217,7 @@ def get_table_data(table_name):
                     )  # This ensures no results
             else:  # full_text search
                 ts_query = func.websearch_to_tsquery("german", search)
-                meldungen_tbl = TblMeldungen.__table__
+                meldungen_tbl = _inspect_sqlalchemy(TblMeldungen).mapper.local_table
                 stmt = stmt.join(
                     meldungen_tbl, table.c.meldungen_id == meldungen_tbl.c.id
                 ).where(
@@ -1272,7 +1245,7 @@ def get_table_data(table_name):
                     )
             else:
                 ts_query = func.websearch_to_tsquery("german", search)
-                meldungen_tbl = TblMeldungen.__table__
+                meldungen_tbl = _inspect_sqlalchemy(TblMeldungen).mapper.local_table
                 total_items_stmt = select(func.count()).select_from(
                     table.join(meldungen_tbl, table.c.meldungen_id == meldungen_tbl.c.id)
                 ).where(
@@ -1379,6 +1352,7 @@ def update_cell():
         if not all_data_row:
             return jsonify({"error": "Record not found"}), 404
 
+        fundorte_id = None
         if original_table == TblUsers:
             user_db_id = all_data_row.id_user
             if not user_db_id:
@@ -1429,11 +1403,15 @@ def update_cell():
         # Execute the update
         result = db.session.execute(stmt)
 
-        if result.rowcount == 0:
+        if getattr(result, "rowcount", None) == 0:
             return jsonify({"error": "Record not found"}), 404
 
         # If coordinates were updated, recalculate AMT and MTB
-        if column_name in ["latitude", "longitude"] and original_table == TblFundorte:
+        if (
+            column_name in ["latitude", "longitude"]
+            and original_table == TblFundorte
+            and fundorte_id is not None
+        ):
             fundort = db.session.get(TblFundorte, fundorte_id)
             recalculate_amt_mtb(fundort)
 

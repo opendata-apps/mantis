@@ -555,9 +555,9 @@ class TestAmtMtbRecalculation:
             return "3445"
 
         monkeypatch.setattr(
-            "app.routes.admin.get_amt_enriched", mock_get_amt_enriched
+            "app.tools.location_enrichment.get_amt_enriched", mock_get_amt_enriched
         )
-        monkeypatch.setattr("app.routes.admin.get_mtb", mock_get_mtb)
+        monkeypatch.setattr("app.tools.location_enrichment.get_mtb", mock_get_mtb)
 
         with client.session_transaction() as sess:
             sess["user_id"] = self.reviewer.user_id
@@ -614,9 +614,9 @@ class TestAmtMtbRecalculation:
             return "3544"
 
         monkeypatch.setattr(
-            "app.routes.admin.get_amt_enriched", mock_get_amt_enriched
+            "app.tools.location_enrichment.get_amt_enriched", mock_get_amt_enriched
         )
-        monkeypatch.setattr("app.routes.admin.get_mtb", mock_get_mtb)
+        monkeypatch.setattr("app.tools.location_enrichment.get_mtb", mock_get_mtb)
 
         with client.session_transaction() as sess:
             sess["user_id"] = self.reviewer.user_id
@@ -647,11 +647,13 @@ class TestAmtMtbRecalculation:
     ):
         """Test that AMT/MTB are cleared when coordinates are outside valid region."""
 
-        # Mock pointInRect to return False for these coordinates
-        def mock_pointInRect(coords):
+        # Mock point_in_rect to return False for these coordinates
+        def mock_point_in_rect(coords):
             return False
 
-        monkeypatch.setattr("app.routes.admin.pointInRect", mock_pointInRect)
+        monkeypatch.setattr(
+            "app.tools.location_enrichment.point_in_rect", mock_point_in_rect
+        )
 
         with client.session_transaction() as sess:
             sess["user_id"] = self.reviewer.user_id
