@@ -299,21 +299,18 @@ def stats_bardiagram_datum(dbfields, page, marker=None):
 def stats_geschlecht(marker):
     """Count sum of all kategories"""
 
+    # Reuse shared aggregation columns, then relabel for German display
+    _LABEL_MAP = {
+        "maennlich": "Männchen",
+        "weiblich": "Weibchen",
+        "nymphe": "Nymphen",
+        "oothek": "Ootheken",
+        "andere": "Andere",
+        "gesamt": "Gesamt",
+    }
+
     stmt = (
-        select(
-            func.sum(func.coalesce(TblMeldungen.art_m, 0)).label("Männchen"),
-            func.sum(func.coalesce(TblMeldungen.art_w, 0)).label("Weibchen"),
-            func.sum(func.coalesce(TblMeldungen.art_n, 0)).label("Nymphen"),
-            func.sum(func.coalesce(TblMeldungen.art_o, 0)).label("Ootheken"),
-            func.sum(func.coalesce(TblMeldungen.art_f, 0)).label("Andere"),
-            func.sum(
-                func.coalesce(TblMeldungen.art_m, 0)
-                + func.coalesce(TblMeldungen.art_w, 0)
-                + func.coalesce(TblMeldungen.art_n, 0)
-                + func.coalesce(TblMeldungen.art_o, 0)
-                + func.coalesce(TblMeldungen.art_f, 0)
-            ).label("Gesamt"),
-        )
+        select(*_gender_sum_columns())
         .join(TblMeldungen.fundort)
         .where(
             TblMeldungen.dat_fund_von >= date.fromisoformat(session["date_from"]),
@@ -323,11 +320,10 @@ def stats_geschlecht(marker):
         )
     )
 
-    result = db.session.execute(stmt).all()
-    res = []
-    for row in result:
-        row = row._mapping
-        res = dict((name, val) for name, val in row.items())
+    row = db.session.execute(stmt).first()
+    res = {}
+    if row:
+        res = {_LABEL_MAP[k]: v for k, v in row._mapping.items()}
 
     return render_template(
         "statistics/stats-geschlecht.html",
@@ -340,9 +336,10 @@ def stats_geschlecht(marker):
 def stats_amt(marker):
     "Statistics pro Gemeinden (AGS))"
 
-    typeInput = ["amt", "maennlich", "weiblich",
-                 "oothek", "nymphe", "andere", "all"]
-    dbanswers = ["", 0, 0, 0, 0, 0, 0]
+    totals = {
+        "amt": "", "maennlich": 0, "weiblich": 0,
+        "oothek": 0, "nymphe": 0, "andere": 0, "gesamt": 0,
+    }
     fehler = False
 
     stmt = (
@@ -364,13 +361,19 @@ def stats_amt(marker):
         gemeinde = ""
         fehler = True
     for row in results:
-        dbanswers[0] = row[0]
-        for idx, val in enumerate(typeInput):
-            if idx > 0:
-                try:
-                    dbanswers[idx] += row[idx]
-                except ValueError as e:
-                    current_app.logger.error(f"Error parsing value: {e}")
+        totals["amt"] = row[0]
+        totals["maennlich"] += row.maennlich or 0
+        totals["weiblich"] += row.weiblich or 0
+        totals["oothek"] += row.oothek or 0
+        totals["nymphe"] += row.nymphe or 0
+        totals["andere"] += row.andere or 0
+        totals["gesamt"] += row.gesamt or 0
+
+    # Convert to list format expected by template: [amt, m, w, o, n, a, g]
+    dbanswers = [
+        totals["amt"], totals["maennlich"], totals["weiblich"],
+        totals["oothek"], totals["nymphe"], totals["andere"], totals["gesamt"],
+    ]
 
     return render_template(
         "statistics/stats-gemeinde.html",
@@ -514,35 +517,37 @@ def stats_gesamt(marker):
     )
 
     results = db.session.execute(stmt).all()
-    keys = list(result_dict.keys())
+    keys = set(result_dict.keys())
     for result in results:
         try:
-            if result[0]:
-                # Länder
-                result_dict[f"{result[0][:2]}"][3] += result[1]
-                # Landkreise für Brandenburg
-                if str(f"{result[0][:5]}") in keys:
-                    result_dict[f"{result[0][:5]}"][3] += result[1]
-                # Berlin
-                if str(f"{result[0]}") in keys:
-                    result_dict[f"{result[0]}"][3] += result[1]
-                # Berliner Stadtbezirke
-                if result[0].startswith("11"):
-                    id, gemeinde = result[0][:2]
-                    result_dict["11"][4].append(
-                        [result[0], "", "", gemeinde, result[1]]
-                    )
+            amt = result[0]
+            if not amt:
+                continue
+            land_code = amt[:2]
+            kreis_code = amt[:5]
 
-                # Brandenburg
-                if result[0].startswith("12"):
-                    id, gemeinde = result[0][:2]
-                    result_dict[f"{result[0][:5]}"][4].append(
-                        [result[0], "", "", gemeinde, result[1]]
-                    )
+            # Länder
+            result_dict[land_code][3] += result[1]
+            # Landkreise für Brandenburg
+            if kreis_code in keys:
+                result_dict[kreis_code][3] += result[1]
+            # Berlin (full AMT code)
+            if amt in keys:
+                result_dict[amt][3] += result[1]
+            # Berliner Stadtbezirke
+            if amt.startswith("11"):
+                result_dict["11"][4].append(
+                    [amt, "", "", amt, result[1]]
+                )
+            # Brandenburg
+            elif amt.startswith("12"):
+                result_dict[kreis_code][4].append(
+                    [amt, "", "", amt, result[1]]
+                )
         except Exception as e:
-            current_app.logger.error(f"""
-            Error in statistics query - Result: {result}, Error: {e}
-            """)
+            current_app.logger.error(
+                f"Error in statistics query - Result: {result}, Error: {e}"
+            )
 
     return render_template(
         "statistics/stats-table-all.html",
