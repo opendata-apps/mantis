@@ -93,9 +93,7 @@ def health():
 
 
 def check_celebration_flag(post_count):
-    if post_count <= current_app.config["CELEBRATION_THRESHOLD"]:
-        return False
-    return True
+    return post_count > current_app.config["CELEBRATION_THRESHOLD"]
 
 
 @main.route("/faq")

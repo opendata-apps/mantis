@@ -152,21 +152,14 @@ def melden(usrid=None):
 
             try:
                 # 1. Handle reporter user (existing or new)
-                if usrid:
-                    reporter = db.session.scalar(
+                reporter = (
+                    db.session.scalar(
                         select(TblUsers).where(TblUsers.user_id == usrid)
                     )
-                    if not reporter:
-                        # User ID provided but not found, create new user
-                        reporter = _create_user(
-                            form.report_first_name.data,
-                            form.report_last_name.data,
-                            form.email.data,
-                        )
-                        db.session.add(reporter)
-                        db.session.flush()
-                else:
-                    # No user ID provided, create new user
+                    if usrid
+                    else None
+                )
+                if not reporter:
                     reporter = _create_user(
                         form.report_first_name.data,
                         form.report_last_name.data,
@@ -393,6 +386,11 @@ def _is_partial_request():
     return request.headers.get("HX-Request") == "true"
 
 
+def _is_checkbox_true(value):
+    """Check if a form checkbox value is truthy."""
+    return value in ("true", "on", "1", "True")
+
+
 @report.route("/melden/ags-lookup")
 @limiter.limit("30 per minute")
 def ags_lookup():
@@ -450,9 +448,9 @@ def validate_step_partial():
     # Build form data from request
     form_data = MultiDict(request.form)
     if "identical_finder_reporter" in request.form:
-        form_data["identical_finder_reporter"] = request.form.get(
-            "identical_finder_reporter"
-        ) in ("true", "on", "1", "True")
+        form_data["identical_finder_reporter"] = _is_checkbox_true(
+            request.form.get("identical_finder_reporter")
+        )
 
     form = MantisSightingForm(formdata=form_data, meta={"csrf": False})
 
@@ -503,11 +501,8 @@ def toggle_finder():
     if not _is_partial_request():
         abort(400)
 
-    is_identical = request.form.get("identical_finder_reporter") in (
-        "true",
-        "on",
-        "1",
-        "True",
+    is_identical = _is_checkbox_true(
+        request.form.get("identical_finder_reporter")
     )
 
     if is_identical:
@@ -573,8 +568,9 @@ def review_step():
         "reporter_name": f"{request.form.get('report_first_name', '')} {request.form.get('report_last_name', '')}".strip()
         or "-",
         "email": request.form.get("email", "-") or "-",
-        "identical_finder": request.form.get("identical_finder_reporter")
-        in ("true", "on", "1", "True"),
+        "identical_finder": _is_checkbox_true(
+            request.form.get("identical_finder_reporter")
+        ),
         "finder_name": _get_finder_name(request.form),
         "feedback_source": _get_feedback_source_display(
             request.form.get("feedback_source", "")

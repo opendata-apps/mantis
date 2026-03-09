@@ -5,25 +5,33 @@ from app import db
 from app.database.models import TblUsers
 
 
-def login_required(f):
-    """Require an authenticated user whose account still exists in the DB.
+def _load_session_user():
+    """Load the current user from session, or abort(403).
 
     Verifies the session contains a user_id that maps to an existing user.
     Stores the looked-up user on ``g.current_user`` for downstream access.
     Clears the session on stale user_id to avoid repeated DB misses.
-    Aborts with 403 (rendered as access denied by the app error handler).
+
+    Returns:
+        The TblUsers instance for the current session user.
     """
+    user_id = session.get("user_id")
+    if not user_id:
+        abort(403)
+    user = db.session.scalar(select(TblUsers).where(TblUsers.user_id == user_id))
+    if not user:
+        session.clear()
+        abort(403)
+    g.current_user = user
+    return user
+
+
+def login_required(f):
+    """Require an authenticated user whose account still exists in the DB."""
 
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        user_id = session.get("user_id")
-        if not user_id:
-            abort(403)
-        user = db.session.scalar(select(TblUsers).where(TblUsers.user_id == user_id))
-        if not user:
-            session.clear()
-            abort(403)
-        g.current_user = user
+        _load_session_user()
         return f(*args, **kwargs)
 
     return decorated_function
@@ -38,19 +46,9 @@ def reviewer_required(f):
 
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        user_id = session.get("user_id")
-        if not user_id:
-            abort(403)
-
-        user = db.session.scalar(select(TblUsers).where(TblUsers.user_id == user_id))
-        if not user:
-            session.clear()
-            abort(403)
-
+        user = _load_session_user()
         if user.user_rolle != "9":
             abort(403)
-
-        g.current_user = user
         return f(*args, **kwargs)
 
     return decorated_function
