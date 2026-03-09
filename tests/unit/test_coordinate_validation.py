@@ -3,7 +3,6 @@
 from app.tools.coordinate_validation import (
     validate_and_normalize_coordinate,
     validate_coordinate_pair,
-    is_coordinate_in_germany,
 )
 
 
@@ -121,25 +120,6 @@ class TestCoordinateValidation:
         assert lat is None
         assert lon is None
         assert len(errors) == 2
-
-    def test_is_coordinate_in_germany(self):
-        """Test checking if coordinates are within Germany."""
-        # Within Germany
-        assert is_coordinate_in_germany("52.520008", "13.404954") is True  # Berlin
-        assert is_coordinate_in_germany("48.1351", "11.5820") is True  # Munich
-        assert is_coordinate_in_germany("53.5511", "9.9937") is True  # Hamburg
-
-        # Outside Germany
-        assert is_coordinate_in_germany("40.7128", "-74.0060") is False  # New York
-        assert is_coordinate_in_germany("35.6762", "139.6503") is False  # Tokyo
-        assert (
-            is_coordinate_in_germany("51.5074", "-0.1278") is False
-        )  # London (close but outside)
-
-        # Invalid coordinates
-        assert is_coordinate_in_germany("invalid", "13.404954") is False
-        assert is_coordinate_in_germany("52.520008", "invalid") is False
-        assert is_coordinate_in_germany(None, None) is False
 
     def test_normalize_edge_cases(self):
         """Test normalization of edge cases."""

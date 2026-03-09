@@ -11,7 +11,6 @@ Geometries are simplified (~11m tolerance) to reduce vertex count by ~12%.
 A Germany bounding box pre-filter rejects clearly-outside points cheaply.
 """
 
-import json
 import os
 from collections import namedtuple
 from threading import RLock
@@ -94,14 +93,8 @@ class GemeindeFinder:
                         gen = row.gen
                         properties = row.properties
 
-                        # Parse geometry more safely
-                        if isinstance(properties, str):
-                            geometry_data = json.loads(properties)
-                        else:
-                            geometry_data = properties
-
-                        # Create shapely geometry
-                        geom = shape(geometry_data)
+                        # properties is JSONB — psycopg deserializes to dict automatically
+                        geom = shape(properties)
 
                         # Format AGS with leading zero if needed
                         ags_str = f"0{ags}" if ags < 10000000 else str(ags)
@@ -131,12 +124,7 @@ class GemeindeFinder:
                                 f"Skipping non-polygon geometry for {amt_string}"
                             )
 
-                    except (
-                        json.JSONDecodeError,
-                        KeyError,
-                        ValueError,
-                        Exception,
-                    ) as e:
+                    except Exception as e:
                         current_app.logger.error(
                             f"Error parsing geometry for row (AGS: {ags}): {e}"
                         )

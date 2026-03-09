@@ -107,24 +107,3 @@ def validate_coordinate_pair(latitude, longitude):
     return is_valid, normalized_lat, normalized_lon, errors
 
 
-def is_coordinate_in_germany(latitude, longitude):
-    """
-    Check if coordinates are within Germany's approximate bounds.
-
-    Germany approximate bounds:
-    - Latitude: 47.3 to 55.1
-    - Longitude: 5.9 to 15.0
-
-    Args:
-        latitude: float or string latitude
-        longitude: float or string longitude
-
-    Returns:
-        bool: True if coordinates are within Germany's bounds
-    """
-    try:
-        lat = float(latitude)
-        lon = float(longitude)
-        return 47.3 <= lat <= 55.1 and 5.9 <= lon <= 15.0
-    except (ValueError, TypeError):
-        return False

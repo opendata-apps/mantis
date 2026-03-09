@@ -10,16 +10,12 @@ def create_measure_sheet(
     horizontal_range=(24, 46), vertical_range=(33, 54), box_size=50, dataset=None
 ):
     logger.debug("dataset = %s", dataset)
-    vertical_size = (24, 46)
-    horizontal_size = (33, 54)
     # Breite und Höhe der SVG-Datei
     width = (horizontal_range[1] - horizontal_range[0] + 1) * box_size
     height = (vertical_range[1] - vertical_range[0] + 3) * box_size
 
     # Erstellen der SVG-Zeichenfläche
-    dwg = svgwrite.Drawing(
-        filename="measure_sheet.svg", size=(f"{width}px", f"{height}px")
-    )
+    dwg = svgwrite.Drawing(size=(f"{width}px", f"{height}px"))
     # Pfad zur vorhandenen SVG-Datei mit dem Brandenburg-Bild
 
     bg_image = url_for("static", filename="images/land_brandenburg.svg")
@@ -83,9 +79,8 @@ def create_measure_sheet(
         for coord, count in dataset:
             x_coord = coord % 100
             y_coord = coord // 100
-            vertical_offset = 1
-            distance_from_start_x = abs(x_coord - horizontal_size[0])
-            distance_from_start_y = abs(y_coord - vertical_size[0])
+            distance_from_start_x = abs(x_coord - horizontal_range[0])
+            distance_from_start_y = abs(y_coord - vertical_range[0])
             circle_center = (
                 distance_from_start_x * box_size + (box_size * 1.5),
                 distance_from_start_y * box_size + (box_size * 1.5),
@@ -99,7 +94,7 @@ def create_measure_sheet(
                     dominant_baseline="middle",
                     text_anchor="middle",
                     font_size=(box_size / 3),
-                    dy=f"{vertical_offset}",
+                    dy="1",
                 )
             )
 
