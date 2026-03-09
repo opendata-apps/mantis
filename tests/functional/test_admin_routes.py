@@ -620,6 +620,28 @@ class TestAdminRoutes:
         assert len(response.data) > 0
         assert response.data[:2] == b"PK"
 
+    def test_export_xlsx_searched(self, client):
+        """Test exporting searched data with the shared reviewer filter args."""
+        with client.session_transaction() as sess:
+            sess["user_id"] = "9999"
+
+        response = client.get(
+            "/admin/export/xlsx/searched"
+            "?statusInput=offen"
+            "&q=Test"
+            "&search_type=full_text"
+            "&dateFrom=01.01.2024"
+            "&dateTo=31.12.2026"
+            "&dateType=fund"
+        )
+        assert response.status_code == 200
+        assert (
+            response.content_type
+            == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+        assert len(response.data) > 0
+        assert response.data[:2] == b"PK"
+
     def test_alldata_view_access(self, client):
         """Test accessing the alldata view."""
         # Set up session
@@ -645,6 +667,37 @@ class TestAdminRoutes:
         assert "total_items" in data
         assert "columns" in data
         assert len(data["data"]) > 0  # Should have at least our test sighting
+
+    def test_get_table_data_full_text_search_keeps_count_in_sync(self, client):
+        """Full-text search should filter both rows and total_items the same way."""
+        with client.session_transaction() as sess:
+            sess["user_id"] = "9999"
+
+        response = client.get(
+            "/admin/get_table_data/all_data_view"
+            "?page=1&per_page=10&search=Test%20sighting&search_type=full_text"
+        )
+        assert response.status_code == 200
+        data = json.loads(response.data)
+
+        assert data["total_items"] >= 1
+        assert len(data["data"]) >= 1
+        assert len(data["data"]) <= data["total_items"]
+
+    def test_get_table_data_invalid_id_search_returns_zero_rows_and_count(self, client):
+        """Invalid ID search input should produce an empty page with total_items=0."""
+        with client.session_transaction() as sess:
+            sess["user_id"] = "9999"
+
+        response = client.get(
+            "/admin/get_table_data/all_data_view"
+            "?page=1&per_page=10&search=not-an-int&search_type=id"
+        )
+        assert response.status_code == 200
+        data = json.loads(response.data)
+
+        assert data["total_items"] == 0
+        assert data["data"] == []
 
     def test_update_cell_valid_table(self, client, session):
         """Test updating a cell in a valid table."""

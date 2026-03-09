@@ -242,6 +242,19 @@ def _render_updated_sighting_by_id(report_id: int, filter_status: str):
     return _render_report_card_or_delete(rendered_sighting, filter_status)
 
 
+def _get_reviewer_filter_args():
+    """Read the shared reviewer/export filter arguments from the request."""
+    return {
+        "filter_status": request.args.get("statusInput", "offen"),
+        "filter_type": request.args.get("typeInput"),
+        "search_query": request.args.get("q"),
+        "search_type": request.args.get("search_type", "full_text"),
+        "date_from": request.args.get("dateFrom"),
+        "date_to": request.args.get("dateTo"),
+        "date_type": request.args.get("dateType", "fund"),
+    }
+
+
 # SECURITY NOTE: URL-based auth tokens (user_id) are secrets.token_hex(20) — 160-bit random.
 # Primary risk is token leakage via browser history, HTTP Referer, or server logs.
 # The admin blueprint is rate-limit exempt (see __init__.py:165).
@@ -266,15 +279,15 @@ def reviewer(usrid=None):
     user_name = user.user_name
     page = request.args.get("page", 1, type=int)
     per_page = request.args.get("per_page", 21, type=int)
-
-    filter_status = request.args.get("statusInput", "offen")
-    filter_type = request.args.get("typeInput", None)
+    filter_args = _get_reviewer_filter_args()
+    filter_status = filter_args["filter_status"]
+    filter_type = filter_args["filter_type"]
     sort_order = request.args.get("sort_order", "id_desc")  # Changed default to desc
-    search_query = request.args.get("q", None)
-    search_type = request.args.get("search_type", "full_text")
-    date_from = request.args.get("dateFrom", None)
-    date_to = request.args.get("dateTo", None)
-    date_type = request.args.get("dateType", "fund")
+    search_query = filter_args["search_query"]
+    search_type = filter_args["search_type"]
+    date_from = filter_args["date_from"]
+    date_to = filter_args["date_to"]
+    date_type = filter_args["date_type"]
 
     if "statusInput" not in request.args and "sort_order" not in request.args:
         return redirect(
@@ -512,6 +525,7 @@ def toggle_approve_sighting(id):
     else:
         sighting.statuses = [ReportStatus.APPR.value]
         sighting.dat_bear = datetime.now()
+    # Sync deprecated boolean column with canonical statuses array
     sighting.deleted = sighting.is_deleted
     _mark_sighting_updated(sighting)
 
@@ -643,6 +657,7 @@ def toggle_flag(id):
         return "", 400
 
     sighting.statuses = statuses
+    # Sync deprecated boolean column with canonical statuses array
     sighting.deleted = sighting.is_deleted
     _mark_sighting_updated(sighting)
 
@@ -764,15 +779,7 @@ def export_data(value):
     """
     try:
         current_time = datetime.now().strftime("%d.%m.%Y_%H%M")
-
-        # Get parameters from request, using same defaults as reviewer function
-        filter_status = request.args.get("statusInput", "offen")
-        filter_type = request.args.get("typeInput", "all")
-        search_query = request.args.get("q", None)
-        search_type = request.args.get("search_type", "full_text")
-        date_from = request.args.get("dateFrom", None)
-        date_to = request.args.get("dateTo", None)
-        date_type = request.args.get("dateType", "fund")
+        filter_args = _get_reviewer_filter_args()
 
         # Get filtered select statement based on export type
         if value == "all":
@@ -786,15 +793,7 @@ def export_data(value):
             stmt = get_filtered_query(filter_status="offen")
         elif value == "searched":
             filename = f"Suchergebnisse_{current_time}.xlsx"
-            stmt = get_filtered_query(
-                filter_status=filter_status,
-                filter_type=filter_type,
-                search_query=search_query,
-                search_type=search_type,
-                date_from=date_from,
-                date_to=date_to,
-                date_type=date_type,
-            )
+            stmt = get_filtered_query(**filter_args)
         else:
             abort(404, description="Resource not found")
 
@@ -990,25 +989,25 @@ def update_report_image_date(report_id, new_date):
     # Fetch the report
     report = db.session.get(TblMeldungen, report_id)
     if not report:
-        return {"error": "Report not found"}, 404
+        raise LookupError("Report not found")
 
     fundorte_record = report.fundort
     if not fundorte_record or not fundorte_record.ablage:
         # No image to move
-        return {"status": "no_image"}, 200
+        return {"status": "no_image"}
 
     base_dir = Path(current_app.config["UPLOAD_FOLDER"])
     old_image_path = base_dir / fundorte_record.ablage
 
     # Check if the old image file exists
     if not old_image_path.exists():
-        return {"error": f"Image file not found: {fundorte_record.ablage}"}, 404
+        raise FileNotFoundError(f"Image file not found: {fundorte_record.ablage}")
 
     old_dir, old_filename = os.path.split(old_image_path)
     # Extract location and user id from filename
     filename_parts = old_filename.rsplit("-", 2)
     if len(filename_parts) != 3:
-        return {"error": f"Invalid filename format: {old_filename}"}, 400
+        raise ValueError(f"Invalid filename format: {old_filename}")
 
     location = filename_parts[0]
     usrid_with_ext = filename_parts[2]
@@ -1019,7 +1018,7 @@ def update_report_image_date(report_id, new_date):
 
     # Skip if source and destination are the same
     if str(old_image_path) == str(new_file_path):
-        return {"status": "no_change"}, 200
+        return {"status": "no_change"}
 
     try:
         # Move the file
@@ -1034,17 +1033,17 @@ def update_report_image_date(report_id, new_date):
                 os.rmdir(old_year_dir)
 
     except IOError as e:
-        return {"error": f"Failed to move file: {e}"}, 500
+        raise OSError(f"Failed to move file: {e}") from e
 
     # Update the path in fundorte table
     fundorte_record.ablage = str(new_file_path.relative_to(base_dir))
-    db.session.commit()
+    db.session.flush()
 
     return {
         "status": "success",
         "old_path": str(old_image_path),
         "new_path": str(new_file_path),
-    }, 200
+    }
 def get_filtered_query(
     filter_status: Optional[str] = None,
     filter_type: Optional[str] = None,
@@ -1200,7 +1199,8 @@ def get_table_data(table_name):
         if sort_column not in columns:
             sort_column = "meldungen_id"
 
-        # Create a select statement
+        # Create a filtered select statement first; count and paginated data
+        # should come from the same search conditions.
         stmt = select(table)
 
         # Apply search filter if search term is provided
@@ -1224,34 +1224,15 @@ def get_table_data(table_name):
                     meldungen_tbl.c.search_vector.op("@@")(ts_query)
                 )
 
+        total_items = db.session.scalar(
+            select(func.count()).select_from(stmt.order_by(None).subquery())
+        )
+
         # Apply sorting
         if sort_direction == "asc":
             stmt = stmt.order_by(table.c[sort_column].asc())
         else:
             stmt = stmt.order_by(table.c[sort_column].desc())
-
-        # Get total count for pagination
-        total_items_stmt = select(func.count()).select_from(table)
-        if search:
-            if search_type == "id":
-                try:
-                    search_id = int(search)
-                    total_items_stmt = total_items_stmt.where(
-                        table.c.meldungen_id == search_id
-                    )
-                except ValueError:
-                    total_items_stmt = total_items_stmt.where(
-                        table.c.meldungen_id == -1
-                    )
-            else:
-                ts_query = func.websearch_to_tsquery("german", search)
-                meldungen_tbl = _inspect_sqlalchemy(TblMeldungen).mapper.local_table
-                total_items_stmt = select(func.count()).select_from(
-                    table.join(meldungen_tbl, table.c.meldungen_id == meldungen_tbl.c.id)
-                ).where(
-                    meldungen_tbl.c.search_vector.op("@@")(ts_query)
-                )
-        total_items = db.session.execute(total_items_stmt).scalar()
 
         # Apply pagination
         stmt = stmt.offset((page - 1) * per_page).limit(per_page)
@@ -1417,16 +1398,16 @@ def update_cell():
 
         # Handle dat_fund_von changes - move images to new date folder
         if column_name == "dat_fund_von" and table_name == "all_data_view":
-            image_update_result = update_report_image_date(id_value, new_value)
-            if image_update_result[1] != 200:
-                # Rollback database change if image move failed
+            try:
+                image_update_result = update_report_image_date(id_value, new_value)
+            except (LookupError, FileNotFoundError, ValueError, OSError) as exc:
                 db.session.rollback()
-                error_msg = image_update_result[0].get("error", "Failed to move image")
-                return jsonify({"error": f"Date update failed: {error_msg}"}), 500
-            elif image_update_result[0].get("status") == "success":
+                return jsonify({"error": f"Date update failed: {exc}"}), 500
+
+            if image_update_result.get("status") == "success":
                 current_app.logger.info(
-                    f"Moved image for report {id_value} from {image_update_result[0].get('old_path')} "
-                    f"to {image_update_result[0].get('new_path')}"
+                    f"Moved image for report {id_value} from {image_update_result.get('old_path')} "
+                    f"to {image_update_result.get('new_path')}"
                 )
 
         db.session.commit()

@@ -71,12 +71,9 @@ def test_update_report_image_date_success(
 
             # Update to new date
             new_date = date(2024, 8, 20)
-            result, status_code = update_report_image_date(
-                mock_meldung_with_image.id, new_date
-            )
+            result = update_report_image_date(mock_meldung_with_image.id, new_date)
 
             # Verify success
-            assert status_code == 200
             assert result["status"] == "success"
 
             # Check file was moved
@@ -138,9 +135,8 @@ def test_update_report_image_date_no_image(app, session):
     with patch("app.routes.admin.current_app") as mock_app:
         mock_app.config = {"UPLOAD_FOLDER": "/tmp"}
 
-        result, status_code = update_report_image_date(meldung.id, date(2024, 8, 20))
+        result = update_report_image_date(meldung.id, date(2024, 8, 20))
 
-        assert status_code == 200
         assert result["status"] == "no_image"
 
 
@@ -184,12 +180,8 @@ def test_update_report_image_date_file_not_found(app, session):
             mock_app.config = {"UPLOAD_FOLDER": temp_dir}
 
             # Don't create the file, just try to update
-            result, status_code = update_report_image_date(
-                meldung.id, date(2024, 8, 20)
-            )
-
-            assert status_code == 404
-            assert "Image file not found" in result["error"]
+            with pytest.raises(FileNotFoundError, match="Image file not found"):
+                update_report_image_date(meldung.id, date(2024, 8, 20))
 
 
 def test_update_report_image_date_same_date(app, session):
@@ -238,11 +230,8 @@ def test_update_report_image_date_same_date(app, session):
             original_file.write_text("test image content")
 
             # Update to same date
-            result, status_code = update_report_image_date(
-                meldung.id, date(2024, 7, 15)
-            )
+            result = update_report_image_date(meldung.id, date(2024, 7, 15))
 
-            assert status_code == 200
             # The file gets moved with a new timestamp even for the same date
             assert result["status"] == "success"
 
@@ -259,7 +248,5 @@ def test_update_report_record_not_found(app, session):
         mock_app.config = {"UPLOAD_FOLDER": "/tmp"}
 
         missing_id = (session.scalar(select(func.max(TblMeldungen.id))) or 0) + 1
-        result, status_code = update_report_image_date(missing_id, date(2024, 8, 20))
-
-        assert status_code == 404
-        assert result["error"] == "Report not found"
+        with pytest.raises(LookupError, match="Report not found"):
+            update_report_image_date(missing_id, date(2024, 8, 20))
