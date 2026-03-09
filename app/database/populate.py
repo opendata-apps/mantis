@@ -1,6 +1,7 @@
-from sqlalchemy import text
 from sqlalchemy.orm import Session
 from flask import current_app
+
+from app.database.fundortbeschreibung import TblFundortBeschreibung
 
 # Initial data for beschreibung table
 INITIAL_BESCHREIBUNG_DATA = [
@@ -23,31 +24,15 @@ def populate_beschreibung(session: Session):
     """Populates the beschreibung table with initial data."""
     current_app.logger.info("Populating beschreibung table...")
     count = 0
-    # Use INITIAL_BESCHREIBUNG_DATA directly
     for id, beschreibung in INITIAL_BESCHREIBUNG_DATA:
-        try:
-            # Check if the record already exists
-            existing = session.execute(
-                text("SELECT id FROM beschreibung WHERE id = :id"), {"id": id}
-            ).fetchone()
-
-            if not existing:
-                session.execute(
-                    text(
-                        "INSERT INTO beschreibung (id, beschreibung) VALUES (:id, :beschreibung)"
-                    ),
-                    {"id": id, "beschreibung": beschreibung},
-                )
-                current_app.logger.info(f"Inserted beschreibung: {id} - {beschreibung}")
-                count += 1
-            else:
-                current_app.logger.debug(
-                    f"Beschreibung record with id {id} already exists."
-                )
-        except Exception as e:
-            current_app.logger.error(f"Error inserting beschreibung record {id}: {e}")
-            session.rollback()  # Rollback on error for this specific record
-            raise  # Re-raise the exception to potentially halt the process if critical
+        if not session.get(TblFundortBeschreibung, id):
+            session.add(TblFundortBeschreibung(id=id, beschreibung=beschreibung))
+            current_app.logger.info(f"Inserted beschreibung: {id} - {beschreibung}")
+            count += 1
+        else:
+            current_app.logger.debug(
+                f"Beschreibung record with id {id} already exists."
+            )
     if count > 0:
         session.commit()
     current_app.logger.info(

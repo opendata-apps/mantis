@@ -75,16 +75,16 @@ def createGen(element, compiler, **kwargs):
 
 
 def create_materialized_view(
-    db: Optional[Engine] = None, session: Optional[Session] = None
+    engine: Optional[Engine] = None, session: Optional[Session] = None
 ) -> None:
     "create or recreate a materialized view for admin data"
-    if not db:
+    if not engine:
         from flask import current_app
 
-        db = sa.create_engine(current_app.config["SQLALCHEMY_DATABASE_URI"])
+        engine = sa.create_engine(current_app.config["SQLALCHEMY_DATABASE_URI"])
 
     if not session:
-        SessionClass = orm.sessionmaker(bind=db)
+        SessionClass = orm.sessionmaker(bind=engine)
         session = SessionClass()
 
     # Drop the existing materialized view if it exists
@@ -198,7 +198,7 @@ def create_materialized_view(
 
     # Create View
     Create(name="all_data_view", select=view_query)
-    meta.create_all(bind=db, checkfirst=True)
+    meta.create_all(bind=engine, checkfirst=True)
     session.commit()
     session.close()
 

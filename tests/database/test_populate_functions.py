@@ -31,7 +31,7 @@ class TestPopulateFunctions:
 
     def test_populate_beschreibung_database_error(self, session):
         """Test handling of database errors during population."""
-        with patch.object(session, "execute", side_effect=SQLAlchemyError("DB Error")):
+        with patch.object(session, "get", side_effect=SQLAlchemyError("DB Error")):
             with pytest.raises(SQLAlchemyError):
                 populate_beschreibung(session)
 

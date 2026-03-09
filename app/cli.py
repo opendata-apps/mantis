@@ -22,7 +22,7 @@ def create_all_data_view():
 
     from app import db
 
-    ad.create_materialized_view(db.engine, session=db.session)
+    ad.create_materialized_view(engine=db.engine, session=db.session)
     click.echo("Materialized view created.")
 
 
