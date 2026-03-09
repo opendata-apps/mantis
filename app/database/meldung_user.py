@@ -64,7 +64,7 @@ class TblMeldungUser(db.Model):
     )
 
     def __repr__(self):
-        return f"<Report {self.id}>"
+        return f"<MeldungUser {self.id}>"
 
     def to_dict(self):
         return {"id": self.id, "id_meldung": self.id_meldung, "id_user": self.id_user}

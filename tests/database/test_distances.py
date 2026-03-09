@@ -20,7 +20,7 @@ _NOMINATIM_RESPONSES = {
 }
 
 
-def _mock_nominatim_get(url, params=None, headers=None):
+def _mock_nominatim_get(url, params=None, headers=None, **kwargs):
     """Return canned Nominatim responses based on the query city."""
     query = params.get("q", "") if params else ""
     for city, coords in _NOMINATIM_RESPONSES.items():

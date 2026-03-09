@@ -23,7 +23,7 @@ limiter = Limiter(
     headers_enabled=True,
 )
 mail = Mail()
-flaskFavicon = FlaskFavicon()
+flask_favicon = FlaskFavicon()
 
 
 def create_app(config_class=Config):
@@ -59,13 +59,13 @@ def create_app(config_class=Config):
     db.init_app(app)
     mail.init_app(app)
     limiter.init_app(app)
-    flaskFavicon.init_app(app)
+    flask_favicon.init_app(app)
 
     # Register favicons
-    flaskFavicon.register_favicon("app/static/images/logo.png", "default")
+    flask_favicon.register_favicon("app/static/images/logo.png", "default")
     # You can register additional favicons for different sections
     # For example, a special one for admin pages:
-    # flaskFavicon.register_favicon('app/static/images/admin-logo.png', 'admin')
+    # flask_favicon.register_favicon('app/static/images/admin-logo.png', 'admin')
 
     migrate.init_app(app, db)
 

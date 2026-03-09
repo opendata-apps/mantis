@@ -1,12 +1,12 @@
 import requests
 import re
 
-overpass_url = "http://overpass-api.de/api/interpreter"
+overpass_url = "https://overpass-api.de/api/interpreter"
 
 
 def check_location(fundort):
     results = []
-    lat, lon, ort, id = fundort
+    lat, lon, ort, fundort_id = fundort
     weiter = True
     dist = 200
     ort = re.findall(r"[\w']+", ort)[0]
@@ -28,7 +28,7 @@ def check_location(fundort):
                   out body;
                 }}
             """
-            response = requests.get(overpass_url, params={"data": overpass_query})
+            response = requests.get(overpass_url, params={"data": overpass_query}, timeout=30)
             data = response.json()
             for element in data["elements"]:
                 if "tags" in element and "name" in element["tags"]:
@@ -39,19 +39,19 @@ def check_location(fundort):
             # Extrahieren der Ortsnamen
 
             if ort in orte:
-                results.append((f"{dist}, {ort}, {id}, OK\n"))
+                results.append((f"{dist}, {ort}, {fundort_id}, OK\n"))
                 weiter = False
-                print((f"{dist}, {ort}, {id}, OK\n"))
+                print((f"{dist}, {ort}, {fundort_id}, OK\n"))
             elif dist < 5000:
                 dist += 200
             else:
                 dist += 5000
 
             if dist == 50000:
-                results.append((f"{dist}, {ort}, {id}, <-- Prüfen!\n"))
+                results.append((f"{dist}, {ort}, {fundort_id}, <-- Prüfen!\n"))
                 weiter = False
     except Exception as e:
-        results.append((f" {dist},  {ort}, {id},  <-- Abbruch!\n"))
+        results.append((f" {dist},  {ort}, {fundort_id},  <-- Abbruch!\n"))
         print(e)
 
     return results

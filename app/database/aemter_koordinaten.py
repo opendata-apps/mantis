@@ -15,7 +15,7 @@ class TblAemterCoordinaten(db.Model):
     properties = db.Column(JSONB, nullable=False)
 
     def __repr__(self):
-        return f"<Report {self.ags}>"
+        return f"<Amt {self.ags}>"
 
     def to_dict(self):
         return {
