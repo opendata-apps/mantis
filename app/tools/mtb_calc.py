@@ -43,45 +43,19 @@ o-------o
 
 
 def get_mtb(zielbreite, ziellaenge):
-    "Berechnung der Messtischblattnummer"
+    """Berechnung der Messtischblattnummer.
 
-    # Berechnung der Zeilennummer
+    Uses full decimal-degree precision to avoid off-by-one errors
+    at tile boundaries. Each TK25 sheet covers 6' latitude (row)
+    and 10' longitude (column).
+    """
+    startbreite = 55.87688  # Grid origin latitude (north edge of row 1)
+    startlaenge = 6.0       # Grid origin longitude (west edge of column 2)
 
-    # 55.49839 # Quadrat liegt im Meer Höhe Esbjerg (Dänemark)
-    startbreite = 55.87688
-    # 5.99931  # und markiert den 0-Punkt für die Berechnungen
-    startlaenge = 6.0
-    startnummer = 1  # Zeile im Kachelsystem
-    zielstunden, zielnach = (int(zielbreite // 1), zielbreite % 1)
-    zielminsec = zielnach * 60
-    zielminuten = int(zielminsec // 1)
-    # zielsekunden = (zielminsec % 1) * 60
-    startvor, startnach = (int(startbreite // 1), startbreite % 1)
-    startminsec = startnach * 60
-    startminuten = int(startminsec // 1)
-    # startsekunden = (startminsec % 1) * 60
-    diffstunden = startvor - zielstunden
-    diffminuten = startminuten - zielminuten
-    diffgesamt = diffstunden * 60 + diffminuten
-    part1 = int(startnummer + diffgesamt / 6)
+    row = int(1 + ((startbreite - zielbreite) * 60) / 6)
+    col = int(2 + ((ziellaenge - startlaenge) * 60) / 10)
 
-    # Berechnung der Spaltennummer
-
-    zielstunden, zielnach = (int(ziellaenge // 1), ziellaenge % 1)
-    zielminsec = zielnach * 60
-    zielminuten = int(zielminsec // 1)
-    # zielsekunden = (zielminsec % 1) * 60
-    startnummer = 2  # Spalte im Kachelsystem
-    startvor, startnach = (int(startlaenge // 1), startlaenge % 1)
-    startminsec = startnach * 60
-    startminuten = int(startminsec // 1)
-    # startsekunden = (startminsec % 1) * 60
-    diffstunden = abs(startvor - zielstunden)
-    diffminuten = abs(abs(startminuten) + abs(zielminuten))
-    diffgesamt = abs(diffstunden) * 60 + abs(diffminuten)
-    part2 = int(startnummer + diffgesamt / 10)
-
-    return f"{part1:02d}{part2:02d}"
+    return f"{row:02d}{col:02d}"
 
 
 def point_in_rect(point):
@@ -102,11 +76,11 @@ if __name__ == "__main__":
         (52.05791, 13.18969, "Kolzenburg"),  # 3945
         (52.04057, 13.49549, "Baruth"),  # 3946
         (51.36304, 11.11348, "Kyffhäuserkreis | Bad Frankenhausen"),
-        (51.57738, 13.99804, "Großräschen"),  # 4450
+        (51.57738, 13.99804, "Großräschen"),  # 4349
         (52.95927, 9.9396, "Visselhövede"),
         (52.37225, 12.96936, "Werder"),  # 3643
-        (52.3874, 13.40296, "Lichtenrade"),  # 3646
-        (52.83862, 13.81361, "Eberswalde"),  # 3149
+        (52.3874, 13.40296, "Lichtenrade"),  # 3546
+        (52.83862, 13.81361, "Eberswalde"),  # 3148
         (53.116606, 20.36675, "Mława"),
         (54.144753, 19.410705, "Elbing"),  # 1882
         (55.710785, 21.131742, "Klaipeda, Litauen"),  # 0292
