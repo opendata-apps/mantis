@@ -52,8 +52,12 @@ def request_context(app):
 
 @pytest.fixture
 def session_with_user(request_context):
-    """Fixture that sets up a user in the session.
-    Use when you need an authenticated session."""
+    """Fixture that sets up a user in the Flask request context session.
+
+    Use when testing functions that read session directly (e.g. statistics
+    helpers called outside the test client). For test-client authentication
+    use ``authenticated_client`` instead.
+    """
     from flask import session
 
     session["user_id"] = "9999"
@@ -61,8 +65,14 @@ def session_with_user(request_context):
 
 
 @pytest.fixture
-def authenticated_client(client, session_with_user):
-    """Provides a test client with an authenticated session."""
+def authenticated_client(client):
+    """Provides a test client with an authenticated reviewer session.
+
+    Uses ``client.session_transaction()`` — the correct way to populate
+    the cookie-backed session used by the Flask test client.
+    """
+    with client.session_transaction() as sess:
+        sess["user_id"] = "9999"
     return client
 
 
