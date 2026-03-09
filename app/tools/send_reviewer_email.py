@@ -67,7 +67,7 @@ def rendertextmsg(md):
 
 
 def send_email(data):
-    md = data
+    md = dict(data)
     if not md["anm_bearbeiter"]:
         text = "Keine Anmerkung(en) vom Reviewer."
     else:

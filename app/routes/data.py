@@ -10,8 +10,6 @@ from flask import (
 from datetime import date
 from sqlalchemy import select, func
 
-from app.tools.coordinate_validation import validate_and_normalize_coordinate
-
 from app import db
 from app.database.models import (
     TblFundorte,
@@ -60,53 +58,25 @@ def show_map():
         reports_stmt = reports_stmt.where(
             func.extract("year", TblMeldungen.dat_fund_von) == selected_year
         )
-        # Count should be based on the selected year
-        count_stmt = (
-            select(func.count())
-            .select_from(TblMeldungen)
-            .join(TblMeldungen.fundort)
-            .where(*_public_map_filters(min_map_date))
-            .where(func.extract("year", TblMeldungen.dat_fund_von) == selected_year)
-        )
-        post_count = db.session.execute(count_stmt).scalar()
-    else:
-        # Summe aller Meldungen für den Counter
-        count_stmt = (
-            select(func.count())
-            .select_from(TblMeldungen)
-            .where(*_public_map_filters(min_map_date))
-        )
-        post_count = db.session.execute(count_stmt).scalar()
 
     reports = db.session.execute(reports_stmt).all()
 
     # Serialize the reports data as a JSON object
+    # post_count derived from result set — avoids a separate COUNT query
     koords = []
     for report_id, latitude, longitude in reports:
-        # Validate and normalize coordinates using centralized function
-        lat_valid, normalized_lat, _ = validate_and_normalize_coordinate(
-            latitude, "latitude"
-        )
-        lon_valid, normalized_lon, _ = validate_and_normalize_coordinate(
-            longitude, "longitude"
-        )
-
-        if (
-            lat_valid
-            and lon_valid
-            and normalized_lat is not None
-            and normalized_lon is not None
-        ):
-            # Convert back to float for obfuscation
-            lati = float(normalized_lat)
-            long = float(normalized_lon)
-            lati, long = obfuscate_location(lati, long)
-            koords.append({"report_id": report_id, "latitude": lati, "longitude": long})
+        try:
+            lati = float(latitude)
+            long = float(longitude)
+        except (ValueError, TypeError):
+            continue
+        lati, long = obfuscate_location(lati, long)
+        koords.append({"report_id": report_id, "latitude": lati, "longitude": long})
 
     return render_template(
         "map.html",
         reports=koords,
-        post_count=post_count,
+        post_count=len(koords),
         years=years,
         selected_year=selected_year,
     )

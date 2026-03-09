@@ -92,7 +92,7 @@ class Config:
 
     # Upload Configuration - always absolute path (Flask best practice)
     UPLOAD_FOLDER = _resolve_upload_folder()
-    ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
+    ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp", "heic", "heif"}
 
     # Session Configuration
     PERMANENT_SESSION_LIFETIME = timedelta(hours=1)

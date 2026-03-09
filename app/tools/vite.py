@@ -213,17 +213,21 @@ def vite_tags(entry: str) -> Markup:
 
     tags = []
 
-    # CSS tags
-    for css_url in vite_css(entry):
+    # CSS tags (inline to avoid re-loading manifest)
+    css_files = _collect_css_recursive(manifest, entry)
+    for css_file in sorted(css_files):
+        css_url = url_for("static", filename=f"build/{css_file}")
         tags.append(f'<link rel="stylesheet" href="{css_url}">')
 
-    # Modulepreload hints
-    preload = vite_preload(entry)
-    if preload:
-        tags.append(str(preload))
+    # Modulepreload hints (inline to avoid re-loading manifest)
+    import_files = _collect_imports_recursive(manifest, entry)
+    for file in sorted(import_files):
+        preload_url = url_for("static", filename=f"build/{file}")
+        tags.append(f'<link rel="modulepreload" href="{preload_url}">')
 
     # Main script tag (type="module" for ES module support)
-    script_url = vite_asset(entry)
+    hashed_file = manifest[entry]["file"]
+    script_url = url_for("static", filename=f"build/{hashed_file}")
     tags.append(f'<script type="module" src="{script_url}"></script>')
 
     return Markup("\n".join(tags))
