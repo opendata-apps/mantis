@@ -135,8 +135,6 @@ def melden(usrid=None):
             form.report_last_name.data = last_name
             form.report_first_name.data = first_name
             form.email.data = user_to_prefill.user_kontakt or ""
-
-            # Check if user already provided feedback
             user_has_feedback = user_to_prefill.feedback_source is not None
             user_prefilled_data = True
 
@@ -147,7 +145,6 @@ def melden(usrid=None):
                 abort(403)
 
             try:
-                # 1. Handle reporter user (existing or new)
                 reporter = (
                     db.session.scalar(
                         select(TblUsers).where(TblUsers.user_id == usrid)
@@ -164,7 +161,6 @@ def melden(usrid=None):
                     db.session.add(reporter)
                     db.session.flush()
 
-                # 2. Handle finder user (if different from reporter)
                 finder_instance = None
                 if not form.identical_finder_reporter.data:
                     if form.finder_first_name.data and form.finder_last_name.data:
@@ -177,7 +173,6 @@ def melden(usrid=None):
                         db.session.add(finder_instance)
                         db.session.flush()
 
-                # 3. Handle user feedback (how did you hear about us?)
                 if form.feedback_source.data and not reporter.feedback_source:
                     user_feedback = TblUserFeedback()
                     user_feedback.user_id = reporter.id
@@ -185,7 +180,6 @@ def melden(usrid=None):
                     user_feedback.source_detail = form.feedback_detail.data
                     db.session.add(user_feedback)
 
-                # 4. Process uploaded photo
                 db_image_path = None
                 if form.photo.data:
                     db_image_path = _process_uploaded_image(
@@ -195,7 +189,6 @@ def melden(usrid=None):
                         reporter.user_id,
                     )
 
-                # 5. Create location record
                 lat, lon = form.latitude.data, form.longitude.data
                 spatial_fields = calculate_spatial_fields(lat, lon)
 
@@ -223,7 +216,6 @@ def melden(usrid=None):
                 db.session.add(fundort)
                 db.session.flush()
 
-                # 6. Create sighting record
                 gender_fields = _set_gender_fields(form.gender.data)
                 meldung = TblMeldungen()
                 meldung.dat_fund_von = form.sighting_date.data
@@ -233,13 +225,11 @@ def melden(usrid=None):
                 meldung.tiere = "1"
                 meldung.anm_melder = form.description.data
 
-                # Set gender fields
                 for field, value in gender_fields.items():
                     setattr(meldung, field, value)
                 db.session.add(meldung)
                 db.session.flush()
 
-                # 7. Link user to sighting
                 user_link = TblMeldungUser()
                 user_link.id_meldung = meldung.id
                 user_link.id_user = reporter.id
