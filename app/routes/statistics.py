@@ -12,7 +12,6 @@ from app.tools.gen_messtisch_svg import create_measure_sheet
 from app.database.models import TblFundorte, TblMeldungen
 from app.database.models import TblUserFeedback, ReportStatus
 from datetime import date, datetime, timedelta
-from collections import defaultdict
 from app.database.feedback_type import FeedbackSource
 from app.database.ags import (
     BUNDESLAENDER,
@@ -44,7 +43,6 @@ def _gender_sum_columns():
             + func.coalesce(TblMeldungen.art_f, 0)
         ).label("gesamt"),
     ]
-
 
 list_of_stats = {
     "xxx": "Bitte eine Wahl treffen ...",
@@ -393,8 +391,7 @@ def stats_laender(marker):
     amt_group_expr = func.substring(TblFundorte.amt,
                                     substring_start,
                                     state_code_len)
-
-    stmt = (
+    results = db.session.execute(
         select(amt_group_expr.label("amt_group"), *_gender_sum_columns())
         .join(TblMeldungen)
         .where(
@@ -403,22 +400,22 @@ def stats_laender(marker):
             TblMeldungen.statuses.contains([ReportStatus.APPR.value]),
         )
         .group_by(amt_group_expr)
-    )
+    ).all()
 
-    results = db.session.execute(stmt).all()
+    result_dict = {}
+    for row in results:
+        if not row.amt_group:
+            continue
+        state_name = BUNDESLAENDER.get(row.amt_group, "Unbekannt")
+        result_dict[f"{row.amt_group} --  {state_name}"] = {
+            "maennlich": row.maennlich,
+            "weiblich": row.weiblich,
+            "oothek": row.oothek,
+            "nymphe": row.nymphe,
+            "andere": row.andere,
+            "gesamt": row.gesamt,
+        }
 
-    result_dict = defaultdict(dict)
-    for result in results:
-        if result.amt_group:
-            state_name = BUNDESLAENDER.get(result.amt_group, "Unbekannt")
-            result_dict[f"{result.amt_group} --  {state_name}"] = {
-                "maennlich": result.maennlich,
-                "weiblich": result.weiblich,
-                "oothek": result.oothek,
-                "nymphe": result.nymphe,
-                "andere": result.andere,
-                "gesamt": result.gesamt,
-            }
     return render_template(
         "statistics/stats-laender.html",
         menu=list_of_stats,
@@ -444,6 +441,8 @@ def stats_bundesland(marker):
         maxchars = 5
         land = "Brandenburg"
         laender = BRANDENBURG_LANDKREISE
+    else:
+        raise ValueError(f"Unsupported marker: {marker}")
 
     substring_start = literal_column("1")
     state_code_len = literal_column("2")
@@ -454,7 +453,7 @@ def stats_bundesland(marker):
     amt_group_expr = func.substring(TblFundorte.amt,
                                     substring_start,
                                     district_len)
-    stmt = (
+    results = db.session.execute(
         select(amt_group_expr.label("amt_group"), *_gender_sum_columns())
         .join(TblMeldungen)
         .where(
@@ -464,22 +463,21 @@ def stats_bundesland(marker):
             TblMeldungen.statuses.contains([ReportStatus.APPR.value]),
         )
         .group_by(amt_group_expr)
-    )
+    ).all()
 
-    results = db.session.execute(stmt).all()
-
-    result_dict = defaultdict(dict)
-    for result in results:
-        if result.amt_group:
-            district_name = laender.get(result.amt_group, "Unbekannt")
-            result_dict[f"{result.amt_group} -- {district_name}"] = {
-                "maennlich": result.maennlich,
-                "weiblich": result.weiblich,
-                "oothek": result.oothek,
-                "nymphe": result.nymphe,
-                "andere": result.andere,
-                "gesamt": result.gesamt,
-            }
+    result_dict = {}
+    for row in results:
+        if not row.amt_group:
+            continue
+        district_name = laender.get(row.amt_group, "Unbekannt")
+        result_dict[f"{row.amt_group} -- {district_name}"] = {
+            "maennlich": row.maennlich,
+            "weiblich": row.weiblich,
+            "oothek": row.oothek,
+            "nymphe": row.nymphe,
+            "andere": row.andere,
+            "gesamt": row.gesamt,
+        }
 
     return render_template(
         "statistics/stats-bundesland.html",

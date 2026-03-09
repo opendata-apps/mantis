@@ -4,7 +4,7 @@ import pytest
 import json
 from datetime import datetime
 from app.database.models import TblMeldungen, TblFundorte, ReportStatus
-from bs4 import BeautifulSoup
+from tests.helpers import extract_reports_json
 
 
 class TestMapDataFilters:
@@ -85,29 +85,7 @@ class TestMapDataFilters:
         response = client.get("/auswertungen")
         assert response.status_code == 200
 
-        soup = BeautifulSoup(response.data, "html.parser")
-
-        script_tags = soup.find_all("script")
-        reports_json = None
-
-        for script in script_tags:
-            if script.string and "const reports = " in script.string:
-                start = script.string.find("const reports = ") + len("const reports = ")
-                bracket_count = 0
-                end = start
-                for i, char in enumerate(script.string[start:], start):
-                    if char == "[":
-                        bracket_count += 1
-                    elif char == "]":
-                        bracket_count -= 1
-                        if bracket_count == 0:
-                            end = i + 1
-                            break
-                json_str = script.string[start:end]
-                reports_json = json.loads(json_str)
-                break
-
-        assert reports_json is not None, "Could not find reports JSON in response"
+        reports_json = extract_reports_json(response.data)
 
         # Extract report IDs from the JSON
         report_ids = [report["report_id"] for report in reports_json]
@@ -134,28 +112,7 @@ class TestMapDataFilters:
         response = client.get(f"/auswertungen?year={current_year}")
         assert response.status_code == 200
 
-        soup = BeautifulSoup(response.data, "html.parser")
-        script_tags = soup.find_all("script")
-        reports_json = None
-
-        for script in script_tags:
-            if script.string and "const reports = " in script.string:
-                start = script.string.find("const reports = ") + len("const reports = ")
-                bracket_count = 0
-                end = start
-                for i, char in enumerate(script.string[start:], start):
-                    if char == "[":
-                        bracket_count += 1
-                    elif char == "]":
-                        bracket_count -= 1
-                        if bracket_count == 0:
-                            end = i + 1
-                            break
-                json_str = script.string[start:end]
-                reports_json = json.loads(json_str)
-                break
-
-        assert reports_json is not None, "Failed to parse reports JSON from map page"
+        reports_json = extract_reports_json(response.data)
         report_ids = [report["report_id"] for report in reports_json]
         assert self.deleted_sighting.id not in report_ids
         assert self.unapproved_sighting.id not in report_ids
@@ -207,28 +164,7 @@ class TestMapDataFilters:
         response = client.get("/auswertungen")
         assert response.status_code == 200
 
-        soup = BeautifulSoup(response.data, "html.parser")
-        script_tags = soup.find_all("script")
-        reports_json = None
-
-        for script in script_tags:
-            if script.string and "const reports = " in script.string:
-                start = script.string.find("const reports = ") + len("const reports = ")
-                bracket_count = 0
-                end = start
-                for i, char in enumerate(script.string[start:], start):
-                    if char == "[":
-                        bracket_count += 1
-                    elif char == "]":
-                        bracket_count -= 1
-                        if bracket_count == 0:
-                            end = i + 1
-                            break
-                json_str = script.string[start:end]
-                reports_json = json.loads(json_str)
-                break
-
-        assert reports_json is not None, "Failed to parse reports JSON from map page"
+        reports_json = extract_reports_json(response.data)
         report_ids = [report["report_id"] for report in reports_json]
 
         for sighting_id, should_appear in created_sightings:
@@ -260,28 +196,7 @@ class TestMapDataFilters:
         response = client.get("/auswertungen")
         assert response.status_code == 200
 
-        soup = BeautifulSoup(response.data, "html.parser")
-        script_tags = soup.find_all("script")
-        reports_json = None
-
-        for script in script_tags:
-            if script.string and "const reports = " in script.string:
-                start = script.string.find("const reports = ") + len("const reports = ")
-                bracket_count = 0
-                end = start
-                for i, char in enumerate(script.string[start:], start):
-                    if char == "[":
-                        bracket_count += 1
-                    elif char == "]":
-                        bracket_count -= 1
-                        if bracket_count == 0:
-                            end = i + 1
-                            break
-                json_str = script.string[start:end]
-                reports_json = json.loads(json_str)
-                break
-
-        assert reports_json is not None, "Could not find reports JSON in response"
+        reports_json = extract_reports_json(response.data)
         report_ids = [report["report_id"] for report in reports_json]
         assert old_approved.id not in report_ids
 

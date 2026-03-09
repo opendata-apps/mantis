@@ -12,6 +12,7 @@ from app.database.models import (
     TblMeldungUser,
     ReportStatus,
 )
+from tests.helpers import extract_reports_json, set_client_user
 
 
 class TestIDConsistency:
@@ -94,33 +95,7 @@ class TestIDConsistency:
         response = client.get("/auswertungen")
         assert response.status_code == 200
 
-        # Parse the HTML
-        soup = BeautifulSoup(response.data, "html.parser")
-
-        # Find the reports JSON in the script - it's rendered as {{ reports|tojson }}
-        script_tags = soup.find_all("script")
-        reports_json = None
-
-        for script in script_tags:
-            if script.string and "const reports = " in script.string:
-                # Extract the JSON from "const reports = [...];"
-                start = script.string.find("const reports = ") + len("const reports = ")
-                # Find the end of the array (next semicolon after the array)
-                bracket_count = 0
-                end = start
-                for i, char in enumerate(script.string[start:], start):
-                    if char == "[":
-                        bracket_count += 1
-                    elif char == "]":
-                        bracket_count -= 1
-                        if bracket_count == 0:
-                            end = i + 1
-                            break
-                json_str = script.string[start:end]
-                reports_json = json.loads(json_str)
-                break
-
-        assert reports_json is not None, "Could not find reports JSON"
+        reports_json = extract_reports_json(response.data)
 
         # Find our test report
         our_report = None
@@ -136,8 +111,7 @@ class TestIDConsistency:
 
     def test_admin_view_shows_correct_id(self, client):
         """Test that admin view shows the correct report ID."""
-        with client.session_transaction() as sess:
-            sess["user_id"] = self.reviewer.user_id
+        set_client_user(client, self.reviewer.user_id)
 
         response = client.get(
             f"/reviewer/{self.reviewer.user_id}?statusInput=all&sort_order=id_desc"
@@ -192,8 +166,7 @@ class TestIDConsistency:
     def test_no_internal_ids_exposed(self, client):
         """Test that internal database IDs are not exposed."""
         # Test that the alldata view doesn't expose sensitive internal IDs
-        with client.session_transaction() as sess:
-            sess["user_id"] = self.reviewer.user_id
+        set_client_user(client, self.reviewer.user_id)
 
         # Check the get_table_data endpoint which might expose internal IDs
         response = client.get("/admin/get_table_data/all_data_view?page=1&per_page=100")
@@ -223,8 +196,7 @@ class TestIDConsistency:
 
     def test_database_view_uses_consistent_naming(self, client):
         """Test that database view uses consistent ID naming."""
-        with client.session_transaction() as sess:
-            sess["user_id"] = self.reviewer.user_id
+        set_client_user(client, self.reviewer.user_id)
 
         response = client.get("/alldata")
         assert response.status_code == 200

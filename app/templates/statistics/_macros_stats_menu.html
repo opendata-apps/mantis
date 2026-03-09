@@ -1,24 +1,19 @@
 {% macro StatsMenu() -%}
-  <script src="{{ url_for('static', filename='build/plotly.min.js') }}"></script>
-  <script type="module" src="{{ vite_asset('js/vendor.js') }}"></script>
-  <div class="p-3 bg-white rounded-lg border border-gray-200 sm:p-4">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <input type="hidden"
-           id="usertId"
-           name="userId"
-           value="{{ session['user_id'] }}"
-           class="rounded-lg">
-    <div class="relative w-full max-w-xs">
-      <select id="stats"
-              name="stats"
-              onchange="this.form.submit()"
-              class="appearance-none bg-none py-2.5 pr-9 pl-3.5 w-full text-sm text-gray-700 bg-white rounded-lg border border-gray-300 transition-all duration-200 focus:outline-hidden focus-visible:border-green-500 focus-visible:ring-2 focus-visible:ring-green-500/30">
-        {% for statistik in menu.items() %}
-          <option value="{{ statistik[0] }}"
-                  {% if statistik[0]==marker %}selected="selected"{% endif %}>{{ statistik[1] }}</option>
-        {% endfor %}
-      </select>
-      {{ heroicon_outline("chevron-down", class="absolute right-3 top-1/2 w-4 h-4 text-gray-500 pointer-events-none transform -translate-y-1/2", stroke_width=2) }}
-    </div>
+<script src="{{ url_for('static', filename='build/plotly.min.js') }}"></script>
+<script type="module" src="{{ vite_asset('js/vendor.js') }}"></script>
+<div class="p-3 bg-white rounded-lg border border-gray-200 sm:p-4">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input type="hidden" id="usertId" name="userId" value="{{ session['user_id'] }}" class="rounded-lg">
+  <div class="relative w-full max-w-xs">
+    <select id="stats" name="stats" onchange="this.form.submit()"
+      class="appearance-none bg-none py-2.5 pr-9 pl-3.5 w-full text-sm text-gray-700 bg-white rounded-lg border border-gray-300 transition-all duration-200 focus:outline-hidden focus-visible:border-green-500 focus-visible:ring-2 focus-visible:ring-green-500/30">
+      {% for statistik in menu.items() %}
+      <option value="{{ statistik[0] }}" {% if statistik[0]==marker %}selected="selected" {% endif %}>{{ statistik[1] }}
+      </option>
+      {% endfor %}
+    </select>
+    {{ heroicon_outline("chevron-down", class="absolute right-3 top-1/2 w-4 h-4 text-gray-500 pointer-events-none
+    transform -translate-y-1/2", stroke_width=2) }}
   </div>
+</div>
 {%- endmacro %}

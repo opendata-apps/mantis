@@ -3,14 +3,13 @@ from unittest.mock import patch
 from datetime import datetime
 from app.database.models import TblMeldungen
 from app.config import Config
+from tests.helpers import set_client_user
 
 
 @pytest.fixture
 def authenticated_admin_client(client, session_with_user):
     """Fixture that provides a client with admin user session."""
-    with client.session_transaction() as session:
-        session["user_id"] = "9999"  # Set a valid admin ID
-    return client
+    return set_client_user(client, "9999")
 
 
 @pytest.fixture

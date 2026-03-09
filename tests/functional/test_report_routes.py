@@ -7,13 +7,12 @@ Design principles:
 - HTMX endpoints tested with and without HX-Request header
 """
 
-import io
 import datetime
 from unittest.mock import patch
 
 import pytest
-from PIL import Image
 from sqlalchemy import select, func
+from tests.helpers import build_valid_report_form_data, make_test_image
 
 
 from app.database.models import (
@@ -31,11 +30,7 @@ from app.database.models import (
 
 def _create_test_image(fmt="jpeg", name="test.jpg"):
     """Create a small in-memory image for upload tests."""
-    buf = io.BytesIO()
-    Image.new("RGB", (10, 10), color="green").save(buf, fmt)
-    buf.name = name
-    buf.seek(0)
-    return buf
+    return make_test_image(fmt=fmt, name=name, color="green")
 
 
 def _htmx_headers():
@@ -45,31 +40,15 @@ def _htmx_headers():
 @pytest.fixture
 def valid_form_data():
     """Minimal valid form data for a full report submission."""
-    sighting_date = (datetime.date.today() - datetime.timedelta(days=3)).strftime(
-        "%Y-%m-%d"
+    return build_valid_report_form_data(
+        sighting_days_ago=3,
+        report_first_name="Anna",
+        report_last_name="Testerin",
+        email="anna@example.com",
+        identical_finder_reporter="true",
+        location_description="2",
+        description="Auf einer Pflanze entdeckt",
     )
-    return {
-        "report_first_name": "Anna",
-        "report_last_name": "Testerin",
-        "email": "anna@example.com",
-        "identical_finder_reporter": "true",
-        "finder_first_name": "",
-        "finder_last_name": "",
-        "feedback_source": "",
-        "feedback_detail": "",
-        "sighting_date": sighting_date,
-        "latitude": "52.520008",
-        "longitude": "13.404954",
-        "fund_city": "Berlin",
-        "fund_state": "Berlin",
-        "fund_district": "Mitte",
-        "fund_street": "Alexanderplatz 1",
-        "fund_zip_code": "10178",
-        "gender": "Männlich",
-        "location_description": "2",
-        "description": "Auf einer Pflanze entdeckt",
-        "honeypot": "",
-    }
 
 
 # ============================================================================

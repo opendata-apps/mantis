@@ -9,68 +9,43 @@ This test suite validates the complete report submission functionality including
 6. Gender field mapping
 """
 
-import io
 import datetime
+import io
 from unittest.mock import patch
-from PIL import Image
 import pytest
 from sqlalchemy import select, func
 from sqlalchemy.exc import IntegrityError
 from app.database.models import TblFundorte, TblMeldungen, TblUsers, TblMeldungUser
 from app.database.fundortbeschreibung import TblFundortBeschreibung
+from tests.helpers import build_valid_report_form_data, make_test_image
 
 
 def create_test_image():
-    """Create a test image file in memory.
-
-    Returns:
-        BytesIO: In-memory file object with a small JPEG image
-    """
-    file = io.BytesIO()
-    image = Image.new("RGB", (100, 100), color="red")
-    image.save(file, "jpeg")
-    file.name = "test_image.jpg"
-    file.seek(0)
-    return file
+    """Create a test image file in memory."""
+    return make_test_image(
+        fmt="jpeg",
+        name="test_image.jpg",
+        size=(100, 100),
+        color="red",
+    )
 
 
 @pytest.fixture
 def report_form_data():
-    """Creates valid data for the mantis sighting report form.
-
-    This fixture provides default values for all form fields required
-    for a successful submission, and is used as a base for modifying
-    specific fields in tests.
-
-    Returns:
-        dict: Form data with valid values for all required fields
-    """
-    today = datetime.date.today()
-    sighting_date = (today - datetime.timedelta(days=7)).strftime("%Y-%m-%d")
-
-    return {
-        "userid": "",  # Let the app generate a new one
-        # Make latitude greater than longitude to pass validation
-        "longitude": "13.404954",
-        "latitude": "52.520008",  # This is already greater than longitude
-        "fund_city": "Berlin",
-        "fund_state": "Berlin",
-        "fund_district": "Mitte",
-        "fund_street": "Alexanderplatz",  # Correct field name
-        "fund_zip_code": "10178",  # Correct field name
-        "report_first_name": "Test",
-        "report_last_name": "Reporter",
-        "email": "test@example.com",  # Added email field
-        "contact": "test@example.com",
-        "sighting_date": sighting_date,
-        "gender": "Männlich",  # Fixed: Changed from 'Männchen' to 'Männlich'
-        "location_description": "1",  # Added required field
-        "description": "Spotted on a plant",  # Fixed field name
-        "identical_finder_reporter": True,  # Added missing field
-        "feedback_source": "",  # Optional feedback field
-        "feedback_detail": "",  # Optional feedback detail
-        "honeypot": "",  # Should be empty to pass spam check
-    }
+    """Creates valid data for the mantis sighting report form."""
+    return build_valid_report_form_data(
+        sighting_days_ago=7,
+        userid="",
+        report_first_name="Test",
+        report_last_name="Reporter",
+        email="test@example.com",
+        contact="test@example.com",
+        fund_street="Alexanderplatz",
+        gender="Männlich",
+        location_description="1",
+        description="Spotted on a plant",
+        identical_finder_reporter=True,
+    )
 
 
 @pytest.fixture
