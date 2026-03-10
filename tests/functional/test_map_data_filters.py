@@ -117,6 +117,23 @@ class TestMapDataFilters:
         assert self.deleted_sighting.id not in report_ids
         assert self.unapproved_sighting.id not in report_ids
 
+    def test_map_view_normalizes_legacy_comma_decimal_coordinates(self, client, session):
+        """Approved reports with legacy comma decimals must still appear on the map."""
+        self.location.latitude = "52,520008"
+        self.location.longitude = " 13,404954 "
+        session.commit()
+
+        response = client.get("/auswertungen")
+        assert response.status_code == 200
+
+        reports_json = extract_reports_json(response.data)
+        report_ids = [report["report_id"] for report in reports_json]
+
+        assert self.approved_sighting.id in report_ids
+        assert self.approved_not_deleted.id in report_ids
+        expected_counter = f'data-target="{len(report_ids)}"'
+        assert expected_counter in response.data.decode("utf-8")
+
     def test_get_marker_data_respects_approval(self, client):
         """Test that individual marker data endpoint respects approval status."""
         # Try to get data for approved sighting - should work

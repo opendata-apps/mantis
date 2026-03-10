@@ -1,4 +1,5 @@
 from app.tools.gemeinde_finder import get_amt_enriched
+from app.tools.coordinate_validation import validate_coordinate_pair
 from app.tools.mtb_calc import get_mtb, point_in_rect
 
 
@@ -8,14 +9,15 @@ def calculate_spatial_fields(latitude, longitude) -> dict[str, str]:
     if latitude is None or longitude is None:
         return fields
 
-    try:
-        lat = float(str(latitude).strip())
-        lon = float(str(longitude).strip())
-    except (ValueError, TypeError, AttributeError):
+    is_valid, normalized_lat, normalized_lon, _ = validate_coordinate_pair(
+        latitude,
+        longitude,
+    )
+    if not is_valid or normalized_lat is None or normalized_lon is None:
         return fields
 
-    if not (-90 <= lat <= 90 and -180 <= lon <= 180):
-        return fields
+    lat = float(normalized_lat)
+    lon = float(normalized_lon)
     if not point_in_rect((lat, lon)):
         return fields
 

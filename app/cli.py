@@ -11,6 +11,7 @@ def register_commands(app):
     app.cli.add_command(create_all_data_view)
     app.cli.add_command(seed_command)
     app.cli.add_command(seed_ags_command)
+    app.cli.add_command(normalize_coordinates_command)
     app.cli.add_command(validate_coordinates_command)
 
 
@@ -202,6 +203,71 @@ def validate_coordinates_command(csv_path, verbose):
         click.echo(f"\nCSV written to {csv_path}")
 
     if mismatches:
+        raise SystemExit(1)
+
+
+@click.command("normalize-coordinates")
+@with_appcontext
+def normalize_coordinates_command():
+    """Normalize stored coordinate formatting in fundorte.
+
+    Converts legacy comma decimals and whitespace-padded values to the canonical
+    normalized string form already used by the validated write paths.
+    """
+    from sqlalchemy import select, func
+
+    from app import db
+    from app.database.fundorte import TblFundorte
+    from app.tools.coordinate_validation import validate_coordinate_pair
+
+    total = db.session.scalar(select(func.count(TblFundorte.id))) or 0
+    click.echo(f"Scanning {total} Fundorte...")
+
+    fundorte = db.session.scalars(
+        select(TblFundorte).order_by(TblFundorte.id)
+    ).all()
+
+    changed = 0
+    invalid_rows = []
+
+    for fundort in fundorte:
+        is_valid, normalized_lat, normalized_lon, errors = validate_coordinate_pair(
+            fundort.latitude,
+            fundort.longitude,
+        )
+        if not is_valid or normalized_lat is None or normalized_lon is None:
+            invalid_rows.append(
+                (
+                    fundort.id,
+                    fundort.latitude,
+                    fundort.longitude,
+                    "; ".join(errors),
+                )
+            )
+            continue
+
+        if (
+            fundort.latitude != normalized_lat
+            or fundort.longitude != normalized_lon
+        ):
+            fundort.latitude = normalized_lat
+            fundort.longitude = normalized_lon
+            changed += 1
+
+    db.session.commit()
+    click.echo(f"Normalized {changed} Fundorte.")
+
+    invalid_count = len(invalid_rows)
+    if invalid_count:
+        click.echo(
+            f"Found {invalid_count} Fundorte with invalid coordinates.", err=True
+        )
+        click.echo("Invalid rows (up to 20 shown):", err=True)
+        for fundort_id, latitude, longitude, error in invalid_rows[:20]:
+            click.echo(
+                f"- id={fundort_id} lat={latitude!r} lon={longitude!r} error={error}",
+                err=True,
+            )
         raise SystemExit(1)
 
 

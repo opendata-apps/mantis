@@ -16,6 +16,7 @@ from app.database.models import (
     TblMeldungen,
     ReportStatus,
 )
+from app.tools.coordinate_validation import validate_coordinate_pair
 
 
 # Blueprints
@@ -65,11 +66,14 @@ def show_map():
     # post_count derived from result set — avoids a separate COUNT query
     koords = []
     for report_id, latitude, longitude in reports:
-        try:
-            lati = float(latitude)
-            long = float(longitude)
-        except (ValueError, TypeError):
+        is_valid, normalized_lat, normalized_lon, _ = validate_coordinate_pair(
+            latitude,
+            longitude,
+        )
+        if not is_valid or normalized_lat is None or normalized_lon is None:
             continue
+        lati = float(normalized_lat)
+        long = float(normalized_lon)
         lati, long = obfuscate_location(lati, long)
         koords.append({"report_id": report_id, "latitude": lati, "longitude": long})
 
