@@ -359,17 +359,12 @@ class TestCoordinateUpdates:
         assert self.test_location.latitude == "52.53"
         assert self.test_location.longitude == "13.41"
 
-    def test_coordinate_update_validation_german_bounds(self, client, session):
-        """Test that coordinates are validated to be within reasonable bounds for Germany."""
+    def test_coordinate_update_outside_germany_is_allowed(self, client, session):
+        """Coordinates outside Germany are allowed; only spatial enrichment is skipped."""
         # Set up session
         with client.session_transaction() as sess:
             sess["user_id"] = self.reviewer.user_id
 
-        # Germany approximate bounds:
-        # Latitude: 47.3 to 55.1
-        # Longitude: 5.9 to 15.0
-
-        # Test coordinates outside Germany
         coordinates_outside_germany = [
             ("latitude", "40.7128"),  # New York latitude
             ("longitude", "-74.0060"),  # New York longitude
@@ -382,14 +377,11 @@ class TestCoordinateUpdates:
                 f"/change_mantis_meta_data/{self.test_sighting.id}",
                 data={"type": coord_type, "new_data": coord_value},
             )
-            # Depending on implementation, this might be accepted or rejected
-            # Document the actual behavior
-            if response.status_code == 200:
-                # If accepted, verify it was stored (normalized)
-                location = session.get(TblFundorte, self.test_location.id)
-                stored_value = getattr(location, coord_type)
-                # Check that the stored value matches the normalized input
-                assert stored_value == str(float(coord_value))
+            assert response.status_code == 200
+
+            location = session.get(TblFundorte, self.test_location.id)
+            stored_value = getattr(location, coord_type)
+            assert stored_value == str(float(coord_value))
 
     def test_coordinate_format_normalization(self, client, session):
         """Test that different coordinate formats are normalized correctly."""

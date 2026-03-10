@@ -433,6 +433,56 @@ class TestReportSubmission:
         else:
             assert False, f"Unexpected status code: {response.status_code}"
 
+    @patch("app.routes.report._process_uploaded_image")
+    def test_submission_outside_germany_is_allowed(
+        self, mock_process_image, client, report_form_data, session
+    ):
+        """Reports outside Germany must still be accepted without AGS/MTB enrichment."""
+        mock_process_image.return_value = "dummy/path/outside_germany.webp"
+
+        form_data = report_form_data.copy()
+        form_data.update(
+            {
+                "latitude": "40.7128",
+                "longitude": "-74.0060",
+                "fund_city": "New York",
+                "fund_state": "New York",
+                "fund_district": "Manhattan",
+                "fund_street": "Broadway",
+                "fund_zip_code": "10001",
+                "location_description": "1",
+            }
+        )
+
+        response = client.post(
+            "/melden",
+            data={**form_data, "photo": create_test_image()},
+            content_type="multipart/form-data",
+        )
+
+        assert response.status_code == 200
+        payload = response.get_json()
+        assert payload is not None
+        assert payload["success"] is True
+        mock_process_image.assert_called_once()
+
+        sighting = session.scalar(
+            select(TblMeldungen)
+            .where(TblMeldungen.anm_melder == form_data["description"])
+            .order_by(TblMeldungen.id.desc())
+        )
+        assert sighting is not None
+
+        location = session.get(TblFundorte, sighting.fo_zuordnung)
+        assert location is not None
+        assert location.latitude == str(float(form_data["latitude"]))
+        assert location.longitude == str(float(form_data["longitude"]))
+        assert location.ort == form_data["fund_city"]
+        assert location.land == form_data["fund_state"]
+        assert location.kreis == form_data["fund_district"]
+        assert location.amt == ""
+        assert location.mtb == ""
+
     ############################
     # Form Validation Tests #
     ############################
