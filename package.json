@@ -17,7 +17,7 @@
     "htmx.org": "2.0.8",
     "leaflet": "^1.9.4",
     "leaflet-control-geocoder": "^3.3.1",
-    "leaflet.locatecontrol": "^0.88.0",
+    "leaflet.locatecontrol": "^0.89.0",
     "leaflet.markercluster": "^1.5.3",
     "plotly.js-basic-dist-min": "^3.4.0"
   },
@@ -26,6 +26,6 @@
     "@tailwindcss/forms": "^0.5.11",
     "@tailwindcss/vite": "^4.2.1",
     "tailwindcss": "^4.2.1",
-    "vite": "^7.3.1"
+    "vite": "^8.0.0"
   }
 }
