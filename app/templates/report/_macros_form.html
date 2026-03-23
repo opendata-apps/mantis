@@ -38,7 +38,7 @@
                alt="Preview">
           <button type="button"
                   id="remove-photo"
-                  class="absolute p-1 text-white bg-red-500 rounded-full top-2 right-2 hover:bg-red-600 focus:outline-hidden"
+                  class="absolute p-1 text-white bg-red-500 rounded-full top-2 right-2 hover:bg-red-600 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2"
                   title="Foto entfernen">
             {{ heroicon_outline("x-mark", class="w-5 h-5") }}
           </button>
@@ -92,13 +92,13 @@
       <button type="button"
               class="nav-button flex items-center justify-center w-24 px-4 py-2 font-medium text-white transition-colors duration-200 ease-in-out bg-gray-600 rounded-md shadow-xs hover:bg-gray-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
               data-prev-step="{{ current_step }}">
-        {{ heroicon_outline("chevron-left", class="w-4 h-4 mr-1") }} <span class="hidden sm:inline">Zurück</span>
+        {{ heroicon_outline("chevron-left", class="w-4 h-4 mr-1", stroke_width=2.5) }} <span class="hidden sm:inline">Zurück</span>
       </button>
     {% else %}
       <span class="nav-button w-24"></span>
     {% endif %}
     <span class="absolute text-xs sm:text-sm text-gray-600 -translate-x-1/2 -translate-y-1/2 left-1/2 top-1/2 whitespace-nowrap">
-      <span class="hidden sm:inline">Schritt</span> {{ current_step }}<span class="sm:hidden">/</span><span class="hidden sm:inline">von</span>{{ total_steps }}
+      <span class="hidden sm:inline">Schritt</span> {{ current_step }}<span class="sm:hidden">/</span><span class="hidden sm:inline"> von </span>{{ total_steps }}
     </span>
     {% if show_next %}
       <button type="button"
@@ -110,12 +110,12 @@
               hx-swap="innerHTML"
               hx-disabled-elt="this"
               data-step="{{ current_step }}">
-        <span class="hidden sm:inline">Weiter</span> {{ heroicon_outline("chevron-right", class="w-4 h-4 ml-1") }}
+        <span class="hidden sm:inline">Weiter</span> {{ heroicon_outline("chevron-right", class="w-4 h-4 ml-1", stroke_width=2.5) }}
       </button>
     {% elif show_submit %}
       <button type="submit"
               class="nav-button flex items-center justify-center w-auto px-4 py-2 font-medium text-white transition-colors duration-200 ease-in-out bg-green-600 rounded-md shadow-xs hover:bg-green-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-        Absenden {{ heroicon_outline("paper-airplane", class="w-4 h-4 ml-1") }}
+        Absenden {{ heroicon_outline("paper-airplane", class="w-4 h-4 ml-1", stroke_width=2) }}
       </button>
     {% else %}
       <span class="w-24"></span>

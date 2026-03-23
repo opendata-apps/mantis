@@ -53,9 +53,9 @@
             ] %}
       <div class="space-y-8" id="faq-container">
         {% for faq in faq_entries %}
-          <div class="transition-all duration-300 bg-white rounded-lg shadow-md faq-item hover:shadow-lg"
+          <div class="transition-shadow duration-300 bg-white rounded-lg shadow-md faq-item hover:shadow-lg"
                data-title="{{ faq.title|lower }}">
-            <button class="w-full text-left focus:outline-hidden"
+            <button class="w-full text-left focus:outline-hidden focus-visible:ring-2 focus-visible:ring-green-500/30 rounded-lg"
                     data-id="faq{{ loop.index }}"
                     aria-expanded="false">
               <div class="flex items-center justify-between p-6">
@@ -63,7 +63,7 @@
                 {{ heroicon_outline("chevron-down", class="w-6 h-6 text-gray-500 transition-transform duration-200 ease-in transform", stroke_width=2) }}
               </div>
             </button>
-            <div class="overflow-hidden transition-all duration-300 max-h-0"
+            <div class="overflow-hidden transition-[max-height] duration-300 max-h-0"
                  id="faq{{ loop.index }}">
               <div class="p-6 bg-gray-50">
                 <p class="text-lg leading-relaxed text-gray-600 max-w-prose">{{ faq.content|safe }}</p>

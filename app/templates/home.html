@@ -55,8 +55,8 @@
 {% endblock title %}
 {% from "_macros_ui.html" import popover %}
 {% block content %}
-  <p class="text-center">
-    Zeit der Eiablage: Melden Sie bitte auch Ootheken, sie sind der Start für die nächste Generation im kommenden Jahr.
+  <p class="py-3 text-center text-sm text-green-800 bg-green-50 border-b border-green-100 text-pretty">
+    <strong class="font-semibold">Zeit der Eiablage</strong> — Melden Sie bitte auch Ootheken, sie sind der Start für die nächste Generation im kommenden Jahr.
   </p>
   <!--Projektbeschreibung section -->
   <section id="Projektbeschreibung"
@@ -67,7 +67,7 @@
         <div class="relative">
           <div class="items-center lg:grid lg:grid-cols-2 lg:gap-12">
             <div class="relative mb-8 lg:row-start-1 lg:col-start-2 lg:mb-0">
-              <div class="relative overflow-hidden rounded-2xl shadow-2xl aspect-[3/2] group">
+              <div class="relative overflow-hidden rounded-2xl shadow-2xl ring-1 ring-black/[.06] aspect-[3/2] group">
                 <img src="{{ url_for('static', filename='images/weibchen-mit-oothek.avif') }}"
                      alt="Gottesanbeterin bei der Eiablage (Oothek)"
                      class="object-cover object-center w-full h-full transition-transform duration-700 group-hover:scale-105"
@@ -80,7 +80,7 @@
               </div>
             </div>
             <div class="relative lg:row-start-1 lg:col-start-1">
-              <h2 class="pb-6 text-3xl font-bold tracking-tight text-transparent bg-clip-text bg-linear-to-r from-green-500 to-green-700 sm:text-4xl">
+              <h2 class="pb-6 text-3xl font-bold tracking-tight text-transparent text-balance bg-clip-text bg-linear-to-r from-green-500 to-green-700 sm:text-4xl">
                 Gottesanbeterin gesucht! -Projekt
               </h2>
               <p class="prose-content mb-6">
@@ -109,7 +109,7 @@
         <div class="relative">
           <div class="items-center lg:grid lg:grid-cols-2 lg:gap-12">
             <div class="relative mb-8 lg:mb-0">
-              <div class="relative overflow-hidden rounded-2xl shadow-2xl aspect-[3/2] group">
+              <div class="relative overflow-hidden rounded-2xl shadow-2xl ring-1 ring-black/[.06] aspect-[3/2] group">
                 <img src="{{ url_for('static', filename='images/berger03.webp') }}"
                      alt="Gottesanbeterin nahaufnahme"
                      class="object-cover object-center w-full h-full transition-transform duration-700 group-hover:scale-105"
@@ -122,7 +122,7 @@
               </div>
             </div>
             <div class="relative">
-              <h2 class="pb-6 text-3xl font-bold tracking-tight text-transparent bg-clip-text bg-linear-to-r from-green-500 to-green-700 sm:text-4xl">
+              <h2 class="pb-6 text-3xl font-bold tracking-tight text-transparent text-balance bg-clip-text bg-linear-to-r from-green-500 to-green-700 sm:text-4xl">
                 <i>Mantis religiosa</i> L. 1758
               </h2>
               <p class="prose-content mb-6">
@@ -155,7 +155,7 @@
         <div class="relative">
           <div class="items-center lg:grid lg:grid-cols-2 lg:gap-12">
             <div class="relative mb-8 lg:row-start-1 lg:col-start-2 lg:mb-0">
-              <div class="relative overflow-hidden rounded-2xl shadow-2xl aspect-[3/2] group">
+              <div class="relative overflow-hidden rounded-2xl shadow-2xl ring-1 ring-black/[.06] aspect-[3/2] group">
                 <img src="{{ url_for('static', filename='images/berger10.avif') }}"
                      alt="Gottesanbeterin in ihrem Lebensraum"
                      class="object-cover object-center w-full h-full transition-transform duration-700 group-hover:scale-105"
@@ -168,7 +168,7 @@
               </div>
             </div>
             <div class="relative lg:row-start-1 lg:col-start-1">
-              <h2 class="pb-6 text-3xl font-bold tracking-tight text-transparent bg-clip-text bg-linear-to-r from-green-500 to-green-700 sm:text-4xl">
+              <h2 class="pb-6 text-3xl font-bold tracking-tight text-transparent text-balance bg-clip-text bg-linear-to-r from-green-500 to-green-700 sm:text-4xl">
                 Was passiert mit meiner Meldung?
               </h2>
               <p class="prose-content mb-6">
@@ -198,10 +198,10 @@
   <section class="py-16 bg-gray-100">
     <div class="container px-4 mx-auto">
       <div class="relative px-8 py-12 bg-green-800 rounded-lg shadow-2xl">
-        <h2 class="mb-8 text-3xl font-bold leading-tight text-center text-gray-100">
+        <h2 class="mb-8 text-3xl font-bold leading-tight text-center text-gray-100 text-balance">
           Wir haben insgesamt
           <br />
-          <span class="text-7xl font-extrabold text-gray-100 counter"
+          <span class="text-7xl font-extrabold text-gray-100 counter tabular-nums"
                 data-target="{{ post_count }}">0</span>
           <br />
           Meldungen erhalten

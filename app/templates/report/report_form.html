@@ -105,7 +105,7 @@
   .photo-dropzone {
     border: 2px dashed var(--color-gray-200);
     border-radius: 0.5rem;
-    transition: all 0.3s ease;
+    transition: border-color 0.3s ease, background-color 0.3s ease;
   }
   
   .photo-dropzone:hover, .photo-dropzone.dragover {
@@ -154,8 +154,8 @@
   </style>
 {% endblock %}
 {% block content %}
-  <p class="text-center">
-    Zeit der Eiablage: Melden Sie bitte auch Ootheken, sie sind der Start für die nächste Generation im kommenden Jahr.
+  <p class="py-3 text-center text-sm text-green-800 bg-green-50 border-b border-green-100 text-pretty">
+    <strong class="font-semibold">Zeit der Eiablage</strong> — Melden Sie bitte auch Ootheken, sie sind der Start für die nächste Generation im kommenden Jahr.
   </p>
   <div class="form-container">
     <div class="form-wrapper">
@@ -199,7 +199,7 @@
               <div class="form-group">
                 {{ render_form_field(form.description, attrs={'id': 'description', 'rows': '4', 'maxlength': '500', 'oninput': 'updateCharCount(this)'}) }}
                 <p class="mt-1 text-xs text-gray-600">
-                  Verbleibende Zeichen: <span id="char-count" class="font-mono">500</span>
+                  Verbleibende Zeichen: <span id="char-count" class="font-mono tabular-nums">500</span>
                 </p>
                 <script>function updateCharCount(el){var s=document.getElementById('char-count'),r=500-el.value.length;s.textContent=r;s.classList.toggle('text-red-600',r<0)}</script>
               </div>

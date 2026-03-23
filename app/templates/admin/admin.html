@@ -48,7 +48,7 @@
       <div class="w-full lg:w-auto">
         <!-- Filter dropdown -->
         <details class="relative dropdown group">
-          <summary class="group flex justify-center items-center px-4 py-2.5 w-full text-sm font-medium text-gray-700 bg-white rounded-lg border border-gray-300 transition-all duration-200 lg:w-auto focus:outline-hidden hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900 focus-visible:border-green-500 focus-visible:ring-2 focus-visible:ring-green-500/30 group-open:border-green-500 group-open:ring-2 group-open:ring-green-500/30 cursor-pointer list-none">
+          <summary class="group flex justify-center items-center px-4 py-2.5 w-full text-sm font-medium text-gray-700 bg-white rounded-lg border border-gray-300 transition-[color,background-color,border-color,box-shadow] duration-200 lg:w-auto focus:outline-hidden hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900 focus-visible:border-green-500 focus-visible:ring-2 focus-visible:ring-green-500/30 group-open:border-green-500 group-open:ring-2 group-open:ring-green-500/30 cursor-pointer list-none">
             {{ heroicon_mini("funnel", class="mr-2 w-4 h-4 text-gray-500 transition-colors duration-200 group-hover:text-gray-700") }}
             Filter
             {{ heroicon_mini("chevron-down", class="-mr-1 ml-1.5 w-5 h-5 text-gray-500 transition-colors duration-200 group-hover:text-gray-700") }}
@@ -146,7 +146,7 @@
               <div class="flex justify-between mt-4 space-x-4">
                 <button id="clearFilters"
                         type="button"
-                        class="inline-flex justify-center items-center px-2 py-1 w-24 text-sm font-medium text-red-600 bg-white rounded-lg border border-red-300 transition-all duration-200 hover:bg-red-50 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-red-500/30">
+                        class="inline-flex justify-center items-center px-2 py-1 w-24 text-sm font-medium text-red-600 bg-white rounded-lg border border-red-300 transition-[color,background-color,border-color,box-shadow] duration-200 hover:bg-red-50 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-red-500/30">
                   {{ heroicon_outline("x-mark", class="mr-1 w-4 h-4", stroke_width=2) }}
                   Löschen
                 </button>
@@ -166,7 +166,7 @@
       <div class="flex relative items-center w-full lg:flex-1 lg:min-w-[24rem]">
         <form action="{{ url_for('admin.reviewer') }}"
               method="GET"
-              class="flex items-center w-full bg-white rounded-lg border border-gray-300 transition-all duration-200 focus-within:border-green-500 focus-within:ring-2 focus-within:ring-green-500/30">
+              class="flex items-center w-full bg-white rounded-lg border border-gray-300 transition-[color,background-color,border-color,box-shadow] duration-200 focus-within:border-green-500 focus-within:ring-2 focus-within:ring-green-500/30">
           <!-- Left select (grouped with input, subtle style) -->
           <div class="relative shrink-0">
             <select id="searchType"
@@ -193,12 +193,12 @@
               <button type="button"
                       onclick="clearSearch()"
                       title="Löschen"
-                      class="inline-flex justify-center items-center p-1 text-gray-500 rounded-md transition-colors hover:text-gray-700 hover:bg-gray-100 focus:outline-hidden">
+                      class="inline-flex justify-center items-center p-2 text-gray-500 rounded-md transition-colors hover:text-gray-700 hover:bg-gray-100 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-green-500/30">
                 {{ heroicon_mini("x-mark", size=16) }}
               </button>
               <span class="w-px h-5 bg-gray-300"></span>
               <button type="submit"
-                      class="inline-flex justify-center items-center p-1 rounded-md transition-colors group hover:bg-gray-100 focus:outline-hidden"
+                      class="inline-flex justify-center items-center p-1 rounded-md transition-colors group hover:bg-gray-100 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-green-500/30"
                       title="Suchsyntax: &#8226; Exakte Phrase: &quot;berlin mitte&quot; &#8226; ODER-Suche: berlin OR hamburg &#8226; Ausschluss: -nymphe &#8226; Gruppierung: (berlin OR hamburg) -nymphe">
                 {{ heroicon_mini("magnifying-glass", class="w-5 h-5 text-gray-500 transition-colors duration-200 group-hover:text-green-600") }}
               </button>
@@ -228,7 +228,7 @@
       <div class="flex gap-2 items-center w-full lg:w-auto lg:shrink-0">
         <!-- Sortieren Dropdown -->
         <details class="relative grow dropdown lg:grow-0 group">
-          <summary class="group flex justify-center items-center px-4 py-2.5 w-full text-sm font-medium text-gray-700 bg-white rounded-lg border border-gray-300 transition-all duration-200 focus:outline-hidden hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900 focus-visible:border-green-500 focus-visible:ring-2 focus-visible:ring-green-500/30 group-open:border-green-500 group-open:ring-2 group-open:ring-green-500/30 cursor-pointer list-none lg:min-w-[9.5rem]">
+          <summary class="group flex justify-center items-center px-4 py-2.5 w-full text-sm font-medium text-gray-700 bg-white rounded-lg border border-gray-300 transition-[color,background-color,border-color,box-shadow] duration-200 focus:outline-hidden hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900 focus-visible:border-green-500 focus-visible:ring-2 focus-visible:ring-green-500/30 group-open:border-green-500 group-open:ring-2 group-open:ring-green-500/30 cursor-pointer list-none lg:min-w-[9.5rem]">
             <span id="sortText">Sortieren...</span>
             {{ heroicon_mini("chevron-down", class="-mr-1 ml-1.5 w-5 h-5 text-gray-500 transition-colors duration-200 group-hover:text-gray-700") }}
           </summary>
@@ -237,7 +237,7 @@
                 aria-labelledby="dropdownSortButton">
               <li>
                 <button onclick="setSortOrder('id_asc')"
-                        class="flex items-center w-full px-4 py-2.5 text-left text-gray-700 transition-all duration-200 hover:bg-gray-50 hover:text-gray-900 {% if current_sort_order == 'id_asc' %}bg-gray-50{% endif %}">
+                        class="flex items-center w-full px-4 py-2.5 text-left text-gray-700 transition-colors duration-200 hover:bg-gray-50 hover:text-gray-900 {% if current_sort_order == 'id_asc' %}bg-gray-50{% endif %}">
                   <div class="w-2 h-2 mr-2 {% if current_sort_order == 'id_asc' %}bg-green-500{% else %}bg-transparent{% endif %} rounded-full">
                   </div>
                   <svg xmlns="http://www.w3.org/2000/svg"
@@ -255,7 +255,7 @@
               </li>
               <li>
                 <button onclick="setSortOrder('id_desc')"
-                        class="flex items-center w-full px-4 py-2.5 text-left text-gray-700 transition-all duration-200 hover:bg-gray-50 hover:text-gray-900 {% if current_sort_order == 'id_desc' %}bg-gray-50{% endif %}">
+                        class="flex items-center w-full px-4 py-2.5 text-left text-gray-700 transition-colors duration-200 hover:bg-gray-50 hover:text-gray-900 {% if current_sort_order == 'id_desc' %}bg-gray-50{% endif %}">
                   <div class="w-2 h-2 mr-2 {% if current_sort_order == 'id_desc' %}bg-green-500{% else %}bg-transparent{% endif %} rounded-full">
                   </div>
                   <svg xmlns="http://www.w3.org/2000/svg"
@@ -276,7 +276,7 @@
         </details>
         <!-- Export Dropdown -->
         <details class="relative grow dropdown lg:grow-0 group">
-          <summary class="group flex justify-center items-center px-4 py-2.5 w-full text-sm font-medium text-white bg-green-600 rounded-lg border border-green-700 transition-all duration-200 hover:bg-green-700 focus:outline-hidden focus-visible:border-green-700 focus-visible:ring-2 focus-visible:ring-green-500/30 group-open:border-green-700 group-open:ring-2 group-open:ring-green-500/30 cursor-pointer list-none lg:min-w-[8.5rem]">
+          <summary class="group flex justify-center items-center px-4 py-2.5 w-full text-sm font-medium text-white bg-green-600 rounded-lg border border-green-700 transition-[color,background-color,border-color,box-shadow] duration-200 hover:bg-green-700 focus:outline-hidden focus-visible:border-green-700 focus-visible:ring-2 focus-visible:ring-green-500/30 group-open:border-green-700 group-open:ring-2 group-open:ring-green-500/30 cursor-pointer list-none lg:min-w-[8.5rem]">
             {{ heroicon_outline("arrow-up-tray", class="mr-2 w-4 h-4 transition-transform duration-200 group-hover:scale-110", stroke_width=2) }}
             Export
           </summary>
@@ -285,25 +285,25 @@
                 aria-labelledby="dropdownExportButton">
               <li>
                 <button onclick="exportData('all')"
-                        class="flex items-center px-4 py-2.5 w-full text-left text-gray-700 transition-all duration-200 hover:bg-gray-200 hover:text-gray-900">
+                        class="flex items-center px-4 py-2.5 w-full text-left text-gray-700 transition-colors duration-200 hover:bg-gray-200 hover:text-gray-900">
                   <span class="grow">Export alle Meldungen</span>
                 </button>
               </li>
               <li>
                 <button onclick="exportData('accepted')"
-                        class="flex items-center px-4 py-2.5 w-full text-left text-gray-700 transition-all duration-200 hover:bg-gray-200 hover:text-gray-900">
+                        class="flex items-center px-4 py-2.5 w-full text-left text-gray-700 transition-colors duration-200 hover:bg-gray-200 hover:text-gray-900">
                   <span class="grow">Export angenommene Meldungen</span>
                 </button>
               </li>
               <li>
                 <button onclick="exportData('non_accepted')"
-                        class="flex items-center px-4 py-2.5 w-full text-left text-gray-700 transition-all duration-200 hover:bg-gray-200 hover:text-gray-900">
+                        class="flex items-center px-4 py-2.5 w-full text-left text-gray-700 transition-colors duration-200 hover:bg-gray-200 hover:text-gray-900">
                   <span class="grow">Export nicht angenommene Meldungen</span>
                 </button>
               </li>
               <li>
                 <button onclick="exportData('searched')"
-                        class="flex items-center px-4 py-2.5 w-full text-left text-gray-700 transition-all duration-200 hover:bg-gray-200 hover:text-gray-900">
+                        class="flex items-center px-4 py-2.5 w-full text-left text-gray-700 transition-colors duration-200 hover:bg-gray-200 hover:text-gray-900">
                   <span class="grow">Export gesuchte Meldungen</span>
                 </button>
               </li>

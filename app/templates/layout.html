@@ -190,7 +190,7 @@
              style="background-image: url('{{ url_for('static', filename='images/berger03.avif') }}')">
       <div id="overlay" class="absolute inset-0 z-10 bg-black/50"></div>
       <div class="relative z-20 mt-14 text-center">
-        <h1 class="mb-6 text-4xl font-bold text-gray-100 md:text-5xl lg:text-6xl">
+        <h1 class="mb-6 text-4xl font-bold text-gray-100 text-balance md:text-5xl lg:text-6xl">
           {% block title %}
           {% endblock title %}
         </h1>
@@ -238,7 +238,7 @@
         {# Caption — below image #}
         <div class="lightbox-info px-2 pt-2.5 pb-1 text-white text-center max-w-[90vw]">
           <div class="lightbox-caption"></div>
-          <span class="lightbox-counter block mt-0.5 text-xs opacity-70"></span>
+          <span class="lightbox-counter block mt-0.5 text-xs opacity-70 tabular-nums"></span>
         </div>
         {# New-tab: hidden by default, JS shows it only in compact/reviewer mode #}
         <button class="lightbox-btn lightbox-newtab absolute z-10 top-3 right-15 flex size-11 items-center justify-center rounded-full bg-black/35 text-white transition-[opacity,background-color] duration-300"
@@ -265,7 +265,7 @@
           <a href="/"
              class="text-2xl tracking-widest transition-colors sm:text-3xl text-green-700 hover:text-green-800">MITMACHPROJEKT</a>
         </div>
-        <p class="mx-auto mb-6 max-w-xl text-sm leading-relaxed text-center text-gray-600 sm:text-base">
+        <p class="mx-auto mb-6 max-w-xl text-sm leading-relaxed text-center text-gray-600 text-pretty sm:text-base">
           Die
           Gottesanbeterin ( <i>Mantis religiosa </i> L., 1758) ist eine faszinierende Insektenart mit einer
           einzigartigen Jagdstrategie.
@@ -301,52 +301,52 @@
             <a href="https://gitlab.com/opendata-apps/mantis"
                rel="noreferrer noopener"
                target="_blank"
-               class="inline-block">
+               class="inline-flex items-center justify-center p-1">
               <span class="sr-only">GitLab</span>
               <img loading="lazy"
                    src="/static/images/svg/gitlab.svg"
                    alt="GitLab (Code)"
                    title="GitLab"
-                   class="w-8 h-8" />
+                   class="w-10 h-10" />
             </a>
           </li>
           <li>
             <a href="https://github.com/opendata-apps/mantis"
                rel="noreferrer noopener"
                target="_blank"
-               class="inline-block">
+               class="inline-flex items-center justify-center p-1">
               <span class="sr-only">GitHub</span>
               <img loading="lazy"
                    src="/static/images/svg/github.svg"
                    alt="GitHub (Code)"
                    title="GitHub"
-                   class="w-8 h-8" />
+                   class="w-10 h-10" />
             </a>
           </li>
           <li>
             <a href="https://www.naturkundemuseum-potsdam.de/gottesanbeterin-gesucht"
                rel="noreferrer noopener"
                target="_blank"
-               class="inline-block">
+               class="inline-flex items-center justify-center p-1">
               <span class="sr-only">Naturkundemuseum Potsdam</span>
               <img loading="lazy"
                    src="/static/images/svg/praying-mantis.svg"
                    alt="Museum"
                    title="Naturkundemuseum Potsdam"
-                   class="w-8 h-8" />
+                   class="w-10 h-10" />
             </a>
           </li>
           <li>
             <a href="https://mantis-religiosa.readthedocs.io"
                rel="noreferrer noopener"
                target="_blank"
-               class="inline-block">
+               class="inline-flex items-center justify-center p-1">
               <span class="sr-only">Dokumentation</span>
               <img loading="lazy"
                    src="/static/images/svg/readme.svg"
                    alt="Dokumentation"
                    title="Dokumentation"
-                   class="w-8 h-8" />
+                   class="w-10 h-10" />
             </a>
           </li>
         </ul>

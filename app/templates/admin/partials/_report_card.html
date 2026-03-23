@@ -6,7 +6,7 @@
 {% set has_appr = 'APPR' in sighting.statuses %}
 {% set fundort = sighting.fundort %}
 <div id="report-card-{{ sighting.id }}"
-     class="flex flex-col overflow-hidden mb-4 rounded-lg shadow-md transition-all duration-200 hover:shadow-lg report-card {% if has_del %}bg-gray-50 ring-2 ring-red-300 {% elif has_unkl %}bg-white ring-2 ring-orange-400 {% elif has_info %}bg-white ring-2 ring-yellow-400 {% else %}bg-white{% endif %}"
+     class="flex flex-col overflow-hidden mb-4 rounded-lg shadow-md transition-shadow duration-200 hover:shadow-lg report-card {% if has_del %}bg-gray-50 ring-2 ring-red-300 {% elif has_unkl %}bg-white ring-2 ring-orange-400 {% elif has_info %}bg-white ring-2 ring-yellow-400 {% else %}bg-white{% endif %}"
      hx-sync="this:abort"
      hx-target="#report-card-{{ sighting.id }}"
      hx-swap="outerHTML swap:150ms"
@@ -16,9 +16,9 @@
     <a href="{{ url_for('admin.report_img', filename=fundort.ablage) }}"
        data-lightbox="sightings">
       <img loading="lazy"
-           class="object-cover w-full h-48 rounded-t-lg transition-transform duration-200 ease-in-out cursor-pointer md:h-64 hover:scale-105 {% if has_del %}opacity-60{% endif %}"
+           class="object-cover w-full h-48 rounded-t-lg ring-1 ring-black/[.06] transition-transform duration-200 ease-in-out cursor-pointer md:h-64 hover:scale-105 {% if has_del %}opacity-60{% endif %}"
            src="{{ url_for('admin.report_img', filename=fundort.ablage) }}"
-           alt="Image not found">
+           alt="Foto zur Meldung {{ sighting.id }}">
     </a>
     {# Location badge #}
     <div title="{{ fundort.ort }}&#13;&#10;Postleitzahl: {{ fundort.plz }}&#13;&#10;Kreis: {{ fundort.kreis }}&#13;&#10;Land: {{ fundort.land }}"
@@ -69,21 +69,21 @@
                 hx-swap="innerHTML"
                 hx-on::before-request="openModal()"
                 title="Bearbeiten"
-                class="inline-flex items-center justify-center w-8 h-8 rounded-md text-gray-500 transition-colors duration-200 focus:outline-hidden hover:bg-green-100 hover:text-green-700">
+                class="inline-flex items-center justify-center w-10 h-10 rounded-md text-gray-500 transition-colors duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-green-500/30 hover:bg-green-100 hover:text-green-700">
           {{ heroicon_outline("pencil-square", class="w-4 h-4 md:w-5 md:h-5", stroke_width=1.5) }}
         </button>
         {% if has_del %}
           <button hx-post="{{ url_for('admin.undelete_sighting', id=sighting.id) }}"
                   hx-confirm="Meldung wiederherstellen?"
                   title="Wiederherstellen"
-                  class="inline-flex items-center justify-center w-8 h-8 ml-1 rounded-md text-green-600 transition-colors duration-200 focus:outline-hidden hover:bg-green-100 hover:text-green-700">
+                  class="inline-flex items-center justify-center w-10 h-10 ml-1 rounded-md text-green-600 transition-colors duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-green-500/30 hover:bg-green-100 hover:text-green-700">
             {{ heroicon_outline("arrow-uturn-left", class="w-4 h-4 md:w-5 md:h-5", stroke_width=1.5) }}
           </button>
         {% else %}
           <button hx-post="{{ url_for('admin.delete_sighting', id=sighting.id) }}"
                   hx-confirm="Sind Sie sicher, dass Sie die Meldung löschen möchten?"
                   title="Löschen"
-                  class="inline-flex items-center justify-center w-8 h-8 ml-1 rounded-md text-gray-500 transition-colors duration-200 focus:outline-hidden hover:bg-red-100 hover:text-red-600">
+                  class="inline-flex items-center justify-center w-10 h-10 ml-1 rounded-md text-gray-500 transition-colors duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-red-500/30 hover:bg-red-100 hover:text-red-600">
             {{ heroicon_outline("trash", class="w-4 h-4 md:w-5 md:h-5", stroke_width=1.5) }}
           </button>
         {% endif %}

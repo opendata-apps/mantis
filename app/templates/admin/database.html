@@ -13,7 +13,7 @@ block content %}
     <div class="w-full lg:w-auto">
       <!-- Filter dropdown -->
       <details class="relative dropdown group">
-        <summary class="group flex justify-center items-center px-4 py-2.5 w-full text-sm font-medium text-gray-700 bg-white rounded-lg border border-gray-300 transition-all duration-200 lg:w-auto focus:outline-hidden hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900 focus-visible:border-green-500 focus-visible:ring-2 focus-visible:ring-green-500/30 group-open:border-green-500 group-open:ring-2 group-open:ring-green-500/30 cursor-pointer list-none">
+        <summary class="group flex justify-center items-center px-4 py-2.5 w-full text-sm font-medium text-gray-700 bg-white rounded-lg border border-gray-300 transition-[color,background-color,border-color,box-shadow] duration-200 lg:w-auto focus:outline-hidden hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900 focus-visible:border-green-500 focus-visible:ring-2 focus-visible:ring-green-500/30 group-open:border-green-500 group-open:ring-2 group-open:ring-green-500/30 cursor-pointer list-none">
           {{ heroicon_mini("funnel", class="mr-2 w-4 h-4 text-gray-500 transition-colors duration-200 group-hover:text-gray-700") }}
           Filter
           {{ heroicon_mini("chevron-down", class="-mr-1 ml-1.5 w-5 h-5 text-gray-500 transition-colors duration-200 group-hover:text-gray-700") }}
@@ -31,7 +31,7 @@ block content %}
     </div>
     <div class="flex relative items-center w-full lg:flex-1 lg:min-w-[24rem]">
       <form id="searchForm"
-            class="flex items-center w-full bg-white rounded-lg border border-gray-300 transition-all duration-200 focus-within:border-green-500 focus-within:ring-2 focus-within:ring-green-500/30">
+            class="flex items-center w-full bg-white rounded-lg border border-gray-300 transition-[color,background-color,border-color,box-shadow] duration-200 focus-within:border-green-500 focus-within:ring-2 focus-within:ring-green-500/30">
         <div class="relative shrink-0">
           <select id="searchType"
                   name="search_type"
@@ -53,12 +53,12 @@ block content %}
             <button type="button"
                     onclick="clearSearch()"
                     title="Clear"
-                    class="inline-flex justify-center items-center p-1 text-gray-500 rounded-md transition-colors hover:text-gray-700 hover:bg-gray-100 focus:outline-hidden">
+                    class="inline-flex justify-center items-center p-2 text-gray-500 rounded-md transition-colors hover:text-gray-700 hover:bg-gray-100 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-green-500/30">
               {{ heroicon_mini("x-mark", size=16) }}
             </button>
             <span class="w-px h-5 bg-gray-300"></span>
             <button type="submit"
-                    class="inline-flex justify-center items-center p-1 rounded-md transition-colors group hover:bg-gray-100 focus:outline-hidden"
+                    class="inline-flex justify-center items-center p-1 rounded-md transition-colors group hover:bg-gray-100 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-green-500/30"
                     title="Search">
               {{ heroicon_mini("magnifying-glass", class="w-5 h-5 text-gray-500 transition-colors duration-200 group-hover:text-green-600") }}
             </button>
@@ -109,7 +109,7 @@ block content %}
               class="btn-secondary px-5 py-2.5 text-sm">Cancel</button>
       <button type="button"
               id="resetEditButton"
-              class="inline-flex items-center justify-center px-5 py-2.5 text-sm font-medium text-red-600 bg-white rounded-lg border border-red-300 transition-all duration-200 hover:bg-red-50 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-red-500/30">
+              class="inline-flex items-center justify-center px-5 py-2.5 text-sm font-medium text-red-600 bg-white rounded-lg border border-red-300 transition-[color,background-color,border-color,box-shadow] duration-200 hover:bg-red-50 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-red-500/30">
         Reset
       </button>
     </div>
@@ -199,7 +199,7 @@ block content %}
     font-size: 14px;
     color: var(--color-gray-800);
     border-bottom: 1px solid var(--color-gray-200);
-    transition: all 0.2s;
+    transition: background-color 0.2s;
   }
 
   #dataTable tr:last-child td {

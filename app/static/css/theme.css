@@ -46,7 +46,7 @@
 }
 
 .nav-links li a:hover {
-  color: var(--color-gray-300);
+  color: white;
   background-size: 100% 3px;
 }
 
@@ -82,12 +82,12 @@
   flex-direction: column;
   justify-content: center;
   gap: 5px;
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   background: none;
   border: none;
   cursor: pointer;
-  padding: 4px;
+  padding: 8px;
 }
 
 .nav-toggle span {
@@ -282,32 +282,36 @@
   }
 
   .btn-primary:active {
-    transform: scale(0.97);
-    opacity: 0.9;
+    transform: scale(0.96);
+  }
+
+  .btn-green:active,
+  .btn-secondary:active {
+    transform: scale(0.96);
   }
 
   /* Prose Content - Body text for content pages (41 occurrences in 5 files)
      Usage: <p class="prose-content">...</p> or <div class="prose-content">...</div> */
   .prose-content {
-    @apply text-lg leading-relaxed text-gray-700;
+    @apply text-lg leading-relaxed text-gray-700 text-pretty;
     max-width: 75ch;
   }
 
   /* Prose Content with bottom margin (most common variant) */
   .prose-content-spaced {
-    @apply mb-4 text-lg leading-relaxed text-gray-700;
+    @apply mb-4 text-lg leading-relaxed text-gray-700 text-pretty;
     max-width: 75ch;
   }
 
   /* Section Heading - Green headings for content sections
      Usage: <h2 class="section-heading">...</h2> */
   .section-heading {
-    @apply mb-6 text-3xl font-semibold text-green-700;
+    @apply mb-6 text-3xl font-semibold text-green-700 text-balance;
   }
 
   /* Sub-section Heading */
   .section-subheading {
-    @apply mb-4 text-2xl font-semibold text-green-700;
+    @apply mb-4 text-2xl font-semibold text-green-700 text-balance;
   }
 
   /* ==========================================================================
@@ -749,7 +753,9 @@ body:has(dialog:modal) {
     transition: color 0.01ms, background-color 0.01ms !important;
   }
 
-  .btn-primary:active {
+  .btn-primary:active,
+  .btn-green:active,
+  .btn-secondary:active {
     transform: none;
   }
 
