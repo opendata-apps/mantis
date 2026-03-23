@@ -70,7 +70,7 @@ class Config:
         if os.getenv("FLASK_DEBUG", "0") not in ("1", "true", "True"):
             raise ValueError(
                 "SECRET_KEY must be set when FLASK_DEBUG is not enabled. "
-                "Generate one with: python -c \"import secrets; print(secrets.token_hex(32))\""
+                'Generate one with: python -c "import secrets; print(secrets.token_hex(32))"'
             )
         import secrets
 
