@@ -7,7 +7,7 @@ _project_root = os.path.dirname(_config_dir)  # project root
 
 class Config:
     TESTING = True
-    URI = "postgresql+psycopg://mantis_user:mantis@localhost/mantis_tester"
+    URI = "postgresql+psycopg://mantis_user:mantis@infrastructure_db_1:5432/mantis_tester"
     SQLALCHEMY_DATABASE_URI = URI
     INITIAL_DATA = [
         (1, "Im Haus"),

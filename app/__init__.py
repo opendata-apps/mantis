@@ -142,6 +142,7 @@ def create_app(config_class=Config):
 
     # Import the routes
     from app.routes.admin import admin
+    from app.routes.backup import backup
     from app.routes.data import data
     from app.routes.main import main
     from app.routes.provider import provider
@@ -151,6 +152,7 @@ def create_app(config_class=Config):
 
     app.register_blueprint(main)
     app.register_blueprint(admin)
+    app.register_blueprint(backup)
     app.register_blueprint(data)
     app.register_blueprint(stats)
     app.register_blueprint(provider)

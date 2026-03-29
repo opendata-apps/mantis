@@ -40,6 +40,7 @@ from app.tools.mtb_calc import get_mtb, pointInRect
 from app.tools.gemeinde_finder import get_amt_enriched
 from app.tools.coordinate_validation import validate_and_normalize_coordinate
 from typing import Optional
+from datetime import date
 
 INT32_MIN = -(2**31)
 INT32_MAX = 2**31 - 1
@@ -1186,8 +1187,24 @@ def get_filtered_query(
 @admin.route("/alldata")
 @reviewer_required
 def database_view():
+
+    min_map_date = date(current_app.config["MIN_MAP_YEAR"], 1, 1)
+
+    # Get distinct years from dat_fund_von beginning with MIN_MAP_YEAR
+    years_stmt = (
+        select(func.extract("year", TblMeldungen.dat_fund_von).label("year"))
+        .where(TblMeldungen.dat_fund_von >= min_map_date)
+        .distinct()
+        .order_by("year")
+    )
+    years = [int(row[0]) for row in db.session.execute(years_stmt).all()]
+
+    print(years)
+    
     _maybe_refresh_alldata_view()
-    return render_template("admin/database.html", user_id=g.current_user.user_id)
+    return render_template("admin/database.html",
+                           user_id=g.current_user.user_id,
+                           years=years)
 
 
 @admin.route("/admin/get_table_data/<table_name>")

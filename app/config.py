@@ -89,7 +89,8 @@ class Config:
         os.getenv("MAIL_DEFAULT_SENDER", "mantis@projekt.de"),
     )
     REVIEWERMAIL = os.getenv("REVIEWERMAIL", "False").lower() in ("true", "1", "yes")
-
+    BACKUPMAIL = os.getenv("BACKUPMAIL", "False")
+    
     # Upload Configuration - always absolute path (Flask best practice)
     UPLOAD_FOLDER = _resolve_upload_folder()
     ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}

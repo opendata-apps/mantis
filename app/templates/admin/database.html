@@ -4,6 +4,7 @@
 {%
 block content %}
 <script type="module" src="{{ vite_asset('js/vendor.js') }}"></script>
+<script type="module" src="{{ vite_asset('js/htmx.js') }}"></script>
 <div class="container px-4 py-8 mx-auto">
   <h1 class="mb-6 text-3xl font-bold text-gray-800">Database Administration</h1>
   <div class="flex flex-col gap-3 mb-5 lg:flex-row lg:items-center">
@@ -45,7 +46,7 @@ block content %}
                  id="searchInput"
                  name="search"
                  placeholder="Search..."
-                 class="py-2.5 pr-22 pl-3.5 w-full text-sm bg-transparent border-0 rounded-r-lg shadow-none placeholder:text-gray-500 focus:outline-hidden focus:ring-0 focus:border-transparent" />
+                 class="py-2.5 pr-22 pl-3.5  text-sm bg-transparent border-0 rounded-r-lg shadow-none placeholder:text-gray-500 focus:outline-hidden focus:ring-0 focus:border-transparent" />
           <div class="flex absolute inset-y-0 right-2 items-center gap-1">
             <button type="button"
                     onclick="clearSearch()"
@@ -61,6 +62,29 @@ block content %}
             </button>
           </div>
         </div>
+	    <!-- Export Dropdown -->
+        <details class="relative grow dropdown lg:grow-0 group">
+          <summary class="group flex justify-center items-center px-4 py-2.5 w-full text-sm font-medium text-white bg-green-600 rounded-lg border border-green-700 transition-all duration-200 hover:bg-green-700 focus:outline-hidden focus-visible:border-green-700 focus-visible:ring-2 focus-visible:ring-green-500/30 group-open:border-green-700 group-open:ring-2 group-open:ring-green-500/30 cursor-pointer list-none lg:min-w-[8.5rem]">
+            {{ heroicon_outline("arrow-up-tray", class="mr-2 w-4 h-4 transition-transform duration-200 group-hover:scale-110", stroke_width=2) }}
+            Backup
+          </summary>
+
+          <div class="absolute right-0 z-100 w-56 bg-white rounded-lg divide-y divide-gray-100 shadow-lg mt-1">
+            <ul class="py-2 text-sm text-gray-700"
+                aria-labelledby="dropdownExportButton">
+	      {% for year in years %}
+              <li>
+                <button hx-get="/export/{{ year }}"
+                        class="flex items-center px-4 py-2.5 w-full text-left text-gray-700
+			       transition-all duration-200 hover:bg-gray-200 hover:text-gray-900">
+                  <span class="grow">{{ year }}</span>
+                </button>
+              </li>
+	      {% endfor %}
+              </li>
+            </ul>
+          </div>
+ 
       </form>
     </div>
   </div>

@@ -31,6 +31,16 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev --no-install-project
 
+# packages for backup functionality
+
+RUN apt-get update && \
+    apt-get install -y \
+    postgresql-client \
+    postgresql-client-common \
+    libpq-dev && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 # Copy application and install project
 COPY app/ ./app/
 COPY migrations/ ./migrations/
