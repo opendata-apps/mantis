@@ -104,20 +104,16 @@ def trigger_dump(year: int):
         with zipfile.ZipFile(zip_name, 'w', zipfile.ZIP_DEFLATED) as zipf:
             for datei in pfade:
                 file_in_datastore = "/mantis/app/datastore/"+ datei
-                print(file_in_datastore)
-                if os.path.isfile(file_in_datastore):  # nur existierende Dateien
-                    # zipf.write(Dateipfad, arcname) -> arcname = Name innerhalb der ZIP
-                    zipf.write(file_in_datastore, os.path.basename(file_in_datastore))
+                 if os.path.isfile(file_in_datastore):  # nur existierende Dateien
+                     zipf.write(file_in_datastore, os.path.basename(file_in_datastore))
                 else:
                     print(f"Warning: file not found -> {file_in_datastore}")
             zipf.write(backup_file, os.path.basename(backup_file))
-        # print(f"Backup created: {zip_name}")
-        
+         
     except subprocess.CalledProcessError as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
-    # prepair message
-    data = {
+     data = {
         "user_kontakt": current_app.config.get("BACKUPMAIL", False),
         "backup": f"backup_{year}.zip",
         "sender": current_app.config.get("MAIL_DEFAULT_SENDER")

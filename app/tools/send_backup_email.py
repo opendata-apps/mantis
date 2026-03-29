@@ -41,8 +41,7 @@ def send_backup_email(data):
         sender=data["sender"],
         body=(rendertextmsg(md)),
     )
-    print(msg)
-    #mail.send(msg)
+
     current_app.logger.info(f"Mail an {data['user_kontakt']} verschickt.")
 
 
