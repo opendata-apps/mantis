@@ -13,7 +13,7 @@ from flask import (
 
 from datetime import date
 from sqlalchemy import select, func, text
-from app import db
+from app import db, limiter
 from app.database.models import TblMeldungen, ReportStatus
 from app.auth import login_required
 
@@ -50,13 +50,18 @@ main = Blueprint("main", __name__)
 def _get_post_count():
     """Get approved post count with a 5-minute TTL cache."""
     now = time.monotonic()
-    if _post_count_cache["value"] is not None and (now - _post_count_cache["timestamp"]) < 300:
+    if (
+        _post_count_cache["value"] is not None
+        and (now - _post_count_cache["timestamp"]) < 300
+    ):
         return _post_count_cache["value"]
 
     count_stmt = (
         select(func.count())
         .select_from(TblMeldungen)
-        .where(TblMeldungen.dat_fund_von >= date(current_app.config["MIN_MAP_YEAR"], 1, 1))
+        .where(
+            TblMeldungen.dat_fund_von >= date(current_app.config["MIN_MAP_YEAR"], 1, 1)
+        )
         .where(TblMeldungen.statuses.contains([ReportStatus.APPR.value]))
     )
     value = db.session.execute(count_stmt).scalar()
@@ -83,6 +88,7 @@ def index():
 
 
 @main.route("/health")
+@limiter.exempt
 def health():
     """Health check endpoint."""
     try:
@@ -167,4 +173,3 @@ def galerie():
 def favicon():
     "Return the favicon.ico file."
     return send_from_directory("static", "images/favicon/favicon.ico")
-
