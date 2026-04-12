@@ -1,4 +1,5 @@
 from flask import (
+    g,
     session,
     render_template,
     Blueprint,
@@ -7,6 +8,7 @@ from flask import (
     current_app,
 )
 from app import db
+from app.auth import login_required
 from sqlalchemy import select
 from sqlalchemy.orm import contains_eager
 from app.database.models import (
@@ -53,10 +55,12 @@ def melder_index(usrid):
         .join(TblMeldungen.fundort)
         .join(TblFundorte.location_type)
         .options(
-            contains_eager(TblMeldungen.fundort)
-            .contains_eager(TblFundorte.location_type),
-            contains_eager(TblMeldungen.reporter_link)
-            .contains_eager(TblMeldungUser.reporter),
+            contains_eager(TblMeldungen.fundort).contains_eager(
+                TblFundorte.location_type
+            ),
+            contains_eager(TblMeldungen.reporter_link).contains_eager(
+                TblMeldungUser.reporter
+            ),
         )
     )
 
@@ -78,8 +82,35 @@ def melder_index(usrid):
 
 
 @provider.route("/images/<path:filename>")
+@login_required
 def report_img(filename):
-    """Serve report images securely from the upload folder."""
+    """Serve report images — only to the owning reporter or reviewers."""
+    user = g.current_user
+
+    # Reviewers can see all images
+    if user.user_rolle == "9":
+        return send_from_directory(
+            current_app.config["UPLOAD_FOLDER"], filename, mimetype="image/webp"
+        )
+
+    # Verify reporter owns this image (mirrors melder_index email-grouping logic)
+    ownership_query = (
+        select(TblFundorte.id)
+        .join(TblMeldungen, TblMeldungen.fo_zuordnung == TblFundorte.id)
+        .join(TblMeldungUser, TblMeldungUser.id_meldung == TblMeldungen.id)
+        .join(TblUsers, TblUsers.id == TblMeldungUser.id_user)
+        .where(TblFundorte.ablage == filename)
+    )
+    if user.user_kontakt:
+        ownership_query = ownership_query.where(
+            TblUsers.user_kontakt == user.user_kontakt
+        )
+    else:
+        ownership_query = ownership_query.where(TblUsers.user_id == user.user_id)
+
+    if not db.session.scalar(ownership_query):
+        abort(403)
+
     return send_from_directory(
         current_app.config["UPLOAD_FOLDER"], filename, mimetype="image/webp"
     )
