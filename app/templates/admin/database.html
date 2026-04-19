@@ -7,6 +7,7 @@
 {%
 block content %}
 <script type="module" src="{{ vite_asset('js/vendor.js') }}"></script>
+{{ vite_tags("js/admin-htmx.js") }}
 <div class="container px-4 py-8 mx-auto">
   <h1 class="mb-6 text-3xl font-bold text-gray-800">Database Administration</h1>
   <div class="flex flex-col gap-3 mb-5 lg:flex-row lg:items-center">
@@ -66,7 +67,37 @@ block content %}
         </div>
       </form>
     </div>
+    <div class="w-full lg:w-auto">
+      <details class="relative dropdown group">
+        <summary class="group flex justify-center items-center px-4 py-2.5 w-full text-sm font-medium text-white bg-green-600 rounded-lg border border-green-700 transition-[color,background-color,border-color,box-shadow] duration-200 hover:bg-green-700 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-green-500/30 group-open:ring-2 group-open:ring-green-500/30 cursor-pointer list-none lg:w-auto">
+          {{ heroicon_outline("archive-box-arrow-down", class="mr-2 w-4 h-4", stroke_width=2) }}
+          Backup
+          {{ heroicon_mini("chevron-down", class="-mr-1 ml-1.5 w-5 h-5 text-white/80") }}
+        </summary>
+        <div class="absolute right-0 z-50 mt-1 w-48 overflow-hidden bg-white rounded-lg divide-y divide-gray-100 shadow-lg">
+          <ul class="py-1 text-sm text-gray-700">
+            {% for year in backup_years | sort(reverse=true) %}
+              <li>
+                <button type="button"
+                        hx-post="{{ url_for('backup.trigger_year_backup', year=year) }}"
+                        hx-target="#backupStatus"
+                        hx-swap="innerHTML"
+                        hx-disabled-elt="this"
+                        hx-confirm="Backup für {{ year }} erstellen und Download-Link per E-Mail senden?"
+                        class="flex items-center px-4 py-2.5 w-full text-left transition-colors hover:bg-gray-100 hover:text-gray-900 disabled:opacity-60 disabled:cursor-wait">
+                  <span class="grow">{{ year }}</span>
+                  {{ heroicon_mini("arrow-right", class="w-4 h-4 text-gray-400") }}
+                </button>
+              </li>
+            {% else %}
+              <li class="px-4 py-2.5 text-gray-500">Keine Jahre verfügbar</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </details>
+    </div>
   </div>
+  <div id="backupStatus" class="mb-5" role="status" aria-live="polite"></div>
   <div id="tableContainer" class="hidden">
     <h2 id="tableTitle" class="mb-4 text-2xl font-semibold text-gray-700"></h2>
     <div class="overflow-x-auto shadow-md sm:rounded-lg">

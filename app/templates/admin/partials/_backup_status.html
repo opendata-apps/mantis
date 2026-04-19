@@ -1,0 +1,15 @@
+{% if error %}
+  <div class="px-4 py-3 text-sm font-medium text-red-800 bg-red-100 rounded-lg border border-red-300">
+    Backup fehlgeschlagen.
+  </div>
+{% elif mail_error %}
+  <div class="px-4 py-3 text-sm font-medium text-amber-900 bg-amber-100 rounded-lg border border-amber-300">
+    Backup {{ year }} wurde erstellt, aber die E-Mail an {{ recipient }} konnte nicht gesendet werden.
+    <a href="{{ download_url }}" class="underline hover:no-underline">Backup herunterladen</a>
+  </div>
+{% else %}
+  <div class="px-4 py-3 text-sm font-medium text-green-800 bg-green-100 rounded-lg border border-green-300">
+    Backup {{ year }} wurde erstellt. Der Download-Link wurde an {{ recipient }} gesendet.
+    <a href="{{ download_url }}" class="underline hover:no-underline">Backup herunterladen</a>
+  </div>
+{% endif %}

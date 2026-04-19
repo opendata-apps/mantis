@@ -18,6 +18,7 @@ Wichtige Regeln
 
 - ``SECRET_KEY`` ist in Produktion verpflichtend.
 - ``UPLOAD_FOLDER`` muss ein absoluter Pfad sein, falls gesetzt.
+- ``BACKUP_DIR`` muss ein absoluter Pfad sein, falls gesetzt.
 - Datenbank-URI wird aus ``POSTGRES_*`` und ``DATABASE_*`` zusammengesetzt.
 
 Umgebungsvariablen
@@ -98,6 +99,9 @@ Dateiablage
    * - ``UPLOAD_FOLDER``
      - ``app/datastore`` (absolut aufgelöst)
      - Basisordner für Uploads
+   * - ``BACKUP_DIR``
+     - ``backups`` (absolut aufgelöst)
+     - Zielordner für erzeugte Backup-ZIP-Dateien
 
 Mail
 ^^^^
@@ -135,6 +139,9 @@ Mail
    * - ``REVIEWERMAIL``
      - ``False``
      - Aktiviert Reviewer-Mailversand
+   * - ``BACKUPMAIL``
+     - leer
+     - Empfängeradresse für Backup-Downloadlinks
 
 Security/Session
 ^^^^^^^^^^^^^^^^
@@ -151,6 +158,9 @@ Security/Session
    * - ``SESSION_COOKIE_SECURE``
      - ``True`` (Config) / ``False`` (.env.example)
      - Secure-Flag für Session-Cookie
+   * - ``BACKUP_DOWNLOAD_MAX_AGE_SECONDS``
+     - ``604800``
+     - Gültigkeitsdauer signierter Backup-Downloadlinks
 
 Sonstiges
 ^^^^^^^^^

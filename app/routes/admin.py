@@ -32,6 +32,7 @@ from sqlalchemy import update, select, func, inspect as sa_inspect
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import contains_eager, joinedload
 from app.auth import load_session_user, reviewer_required
+from app.routes.backup import available_backup_years
 import shutil
 from pathlib import Path
 from flask import current_app
@@ -1172,7 +1173,11 @@ def get_filtered_query(
 @reviewer_required
 def database_view():
     _maybe_refresh_alldata_view()
-    return render_template("admin/database.html", user_id=g.current_user.user_id)
+    return render_template(
+        "admin/database.html",
+        user_id=g.current_user.user_id,
+        backup_years=available_backup_years(),
+    )
 
 
 @admin.route("/admin/get_table_data/<table_name>")

@@ -28,8 +28,10 @@ services:
       - FLASK_DEBUG=0
       - DATABASE_HOST=db
       - UPLOAD_FOLDER=/mantis/app/datastore
+      - BACKUP_DIR=/mantis/backups
     volumes:
       - ../app/datastore:/mantis/app/datastore:z
+      - ../backups:/mantis/backups:z
     networks:
       - mantis_backend
     ports:

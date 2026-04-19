@@ -24,6 +24,12 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /mantis
 
+# Connect to other container via postgres client
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends postgresql-client && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 

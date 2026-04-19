@@ -62,6 +62,14 @@ Hauptaktionen:
 Alle oben genannten Admin-Endpunkte (außer ``/reviewer``) sind mit
 ``@reviewer_required`` geschützt.
 
+``backup`` (Reviewer/signierter Download)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- ``/admin/backup/<year>`` (POST): erstellt ein Backup-ZIP für ein Fundjahr,
+  geschützt mit ``@reviewer_required`` und CSRF.
+- ``/admin/backup/download/<filename>?token=...`` (GET): Download eines
+  erzeugten Backup-ZIPs über einen signierten, zeitlich begrenzten Link.
+
 ``regionen`` (öffentlich)
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 

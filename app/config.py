@@ -33,6 +33,21 @@ def _resolve_upload_folder():
     return os.path.join(_config_dir, "datastore")
 
 
+def _resolve_backup_dir():
+    """Resolve BACKUP_DIR to an absolute path."""
+    env_path = os.getenv("BACKUP_DIR")
+    if env_path:
+        if not os.path.isabs(env_path):
+            raise ValueError(f"BACKUP_DIR must be an absolute path, got: '{env_path}'.")
+        return env_path
+    return os.path.join(_project_root, "backups")
+
+
+def _env_or_default(name: str, default: str) -> str:
+    value = os.getenv(name)
+    return default if value is None or value == "" else value
+
+
 class Config:
     # Database Configuration (constructed from components, like Superset/Paperless-ngx)
     # Container deployments override DATABASE_HOST=db via docker-compose environment.
@@ -78,21 +93,34 @@ class Config:
     WTF_CSRF_ENABLED = True
 
     # Email Configuration
-    MAIL_SERVER = os.getenv("MAIL_SERVER", "mail.mantis-projekt.de")
-    MAIL_PORT = int(os.getenv("MAIL_PORT", 25))
-    MAIL_USE_TLS = os.getenv("MAIL_USE_TLS", "True").lower() in ("true", "1", "yes")
-    MAIL_USE_SSL = os.getenv("MAIL_USE_SSL", "False").lower() in ("true", "1", "yes")
+    MAIL_SERVER = _env_or_default("MAIL_SERVER", "mail.mantis-projekt.de")
+    MAIL_PORT = int(_env_or_default("MAIL_PORT", "25"))
+    MAIL_USE_TLS = _env_or_default("MAIL_USE_TLS", "True").lower() in (
+        "true",
+        "1",
+        "yes",
+    )
+    MAIL_USE_SSL = _env_or_default("MAIL_USE_SSL", "False").lower() in (
+        "true",
+        "1",
+        "yes",
+    )
     MAIL_USERNAME = os.getenv("MAIL_USERNAME", "")
     MAIL_PASSWORD = os.getenv("MAIL_PASSWORD", "")
     MAIL_DEFAULT_SENDER = (
-        os.getenv("MAIL_DEFAULT_SENDER_NAME", "Mantis-Projekt"),
-        os.getenv("MAIL_DEFAULT_SENDER", "mantis@projekt.de"),
+        _env_or_default("MAIL_DEFAULT_SENDER_NAME", "Mantis-Projekt"),
+        _env_or_default("MAIL_DEFAULT_SENDER", "mantis@projekt.de"),
     )
     REVIEWERMAIL = os.getenv("REVIEWERMAIL", "False").lower() in ("true", "1", "yes")
+    BACKUPMAIL = os.getenv("BACKUPMAIL", "").strip()
+    BACKUP_DOWNLOAD_MAX_AGE_SECONDS = int(
+        os.getenv("BACKUP_DOWNLOAD_MAX_AGE_SECONDS", str(7 * 24 * 60 * 60))
+    )
 
     # Upload Configuration - always absolute path (Flask best practice)
     UPLOAD_FOLDER = _resolve_upload_folder()
     ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp", "heic", "heif"}
+    BACKUP_DIR = _resolve_backup_dir()
 
     # Session Configuration
     PERMANENT_SESSION_LIFETIME = timedelta(hours=1)
