@@ -54,4 +54,4 @@ compose_dev := compose + " -f infrastructure/podman-compose.dev.yml"
 @prod-deploy:
     git pull --ff-only
     {{ compose }} up -d --build --force-recreate --no-deps web
-    curl -fsS http://localhost:5000/health && echo "✔ deploy ok"
+    curl -fsS --retry 15 --retry-delay 1 --retry-connrefused http://localhost:5000/health && echo "✔ deploy ok"
