@@ -692,11 +692,9 @@ def toggle_flag(id):
         return "", 500
 
     filter_status = _resolve_filter_status()
-    card_response = _render_updated_sighting_by_id(id, filter_status)
-    # OOB: keep modal footer in sync with the new flag state so the
-    # "Annehmen" button enables/disables live when UNKL is toggled inside
-    # the open modal. toggle_flag is only invoked from the modal, so the
-    # OOB target always exists when this response is swapped.
+    # OOB: keep the modal footer in sync with the new flag state so the
+    # "Annehmen" button enables/disables live when UNKL is toggled. This
+    # route is only called from the open modal, so the target always exists.
     modal_actions_html = render_template(
         "admin/partials/_modal_actions.html",
         sighting=sighting,
@@ -706,13 +704,11 @@ def toggle_flag(id):
         active_tab="general",
         filter_status=filter_status,
     )
-    oob = f'<div id="modal-actions" hx-swap-oob="innerHTML">{modal_actions_html}</div>'
-    response = (
-        make_response(card_response)
-        if isinstance(card_response, str)
-        else card_response
+    response = make_response(_render_updated_sighting_by_id(id, filter_status))
+    response.set_data(
+        response.get_data(as_text=True)
+        + f'<div id="modal-actions" hx-swap-oob="innerHTML">{modal_actions_html}</div>'
     )
-    response.set_data((response.get_data(as_text=True) or "") + oob)
     return response
 
 

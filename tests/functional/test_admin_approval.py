@@ -126,12 +126,11 @@ class TestAdminApproval:
         sighting.statuses = ["OPEN", "UNKL"]
         session.commit()
 
-        with patch.object(Config, "REVIEWERMAIL", False):
-            response = authenticated_admin_client.post(
-                f"/toggle_approve_sighting/{sighting.id}",
-                data={"filter_status": "all"},
-                headers={"HX-Request": "true"},
-            )
+        response = authenticated_admin_client.post(
+            f"/toggle_approve_sighting/{sighting.id}",
+            data={"filter_status": "all"},
+            headers={"HX-Request": "true"},
+        )
 
         assert response.status_code == 400
 
