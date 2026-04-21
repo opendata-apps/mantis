@@ -116,14 +116,22 @@ class TestAdminApproval:
             # Verify send_email was not called
             mock_send_email.assert_not_called()
 
-    def test_approve_blocked_while_unkl_flag_set(
-        self, authenticated_admin_client, mock_sighting_factory, session
+    @pytest.mark.parametrize(
+        "flag, suffix",
+        [("UNKL", 2), ("INFO", 3)],
+    )
+    def test_approve_blocked_while_review_flag_set(
+        self,
+        flag,
+        suffix,
+        authenticated_admin_client,
+        mock_sighting_factory,
+        session,
     ):
-        """A sighting flagged UNKL ("Unklar") cannot be approved — Bernd's case."""
-        # Use a distinct id_suffix so this sighting does not collide with
-        # test_toggle_approve_sighting's fixture when tests run in sequence.
-        sighting = mock_sighting_factory(2)
-        sighting.statuses = ["OPEN", "UNKL"]
+        """Active review flags (UNKL or INFO) block approval — Bernd's case."""
+        # Distinct id_suffix avoids collision with test_toggle_approve_sighting.
+        sighting = mock_sighting_factory(suffix)
+        sighting.statuses = ["OPEN", flag]
         session.commit()
 
         response = authenticated_admin_client.post(
@@ -135,8 +143,7 @@ class TestAdminApproval:
         assert response.status_code == 400
 
         session.refresh(sighting)
-        # Status array and approval timestamp must be untouched.
-        assert set(sighting.statuses) == {"OPEN", "UNKL"}
+        assert set(sighting.statuses) == {"OPEN", flag}
         assert sighting.dat_bear is None
 
     def test_toggle_approve_nonexistent_sighting(self, authenticated_admin_client):

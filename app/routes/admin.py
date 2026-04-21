@@ -514,9 +514,9 @@ def report_img(filename):
 def toggle_approve_sighting(id):
     """Toggle APPR/OPEN workflow state.
 
-    Approving clears flags; un-approving preserves them. A report flagged
-    UNKL ("Unklar") cannot be approved directly — the reviewer must first
-    resolve the uncertainty and unset the flag.
+    A report with any active review flag (UNKL "Unklar" or INFO "Informiert")
+    cannot be approved — the reviewer must resolve the open review concern
+    and clear the flag first. Un-approving preserves flags.
     """
 
     sighting = db.session.get(TblMeldungen, id)
@@ -531,10 +531,9 @@ def toggle_approve_sighting(id):
         sighting.statuses = [ReportStatus.OPEN.value] + flags
         sighting.dat_bear = None
     else:
-        # UNKL means the reviewer is unsure — approval must be blocked
-        # until the flag is cleared. INFO (reporter contacted) is fine to
-        # drop silently on approval.
-        if sighting.is_unclear:
+        # Any active review flag blocks approval — open concerns must be
+        # resolved explicitly, not silently dropped on accept.
+        if sighting.is_unclear or sighting.needs_info:
             return "", 400
         sighting.statuses = [ReportStatus.APPR.value]
         sighting.dat_bear = datetime.now()
