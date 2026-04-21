@@ -66,6 +66,13 @@ NON_EDITABLE_FIELDS = {
         "beschreibung_id",
         "id_user",
         "user_id",
+        # Internal review state — must not be reachable through the cell editor.
+        # `statuses` is the canonical workflow source; `deleted` is the
+        # deprecated mirror. `bearb_id` is set automatically when a reviewer
+        # mutates a record. `ablage` is the image path managed server-side.
+        "deleted",
+        "bearb_id",
+        "ablage",
     ],
 }
 
@@ -389,6 +396,14 @@ def change_mantis_meta_data(id):
             if not is_valid:
                 return jsonify({"error": error_msg}), 400
             new_data = normalized_value
+
+        # plz is an integer column; reject non-numeric input at the boundary
+        # so the user sees a 400 instead of a generic DB error on commit.
+        if fieldname == "plz":
+            plz_raw = new_data.strip()
+            if not plz_raw.isdigit() or int(plz_raw) > 99999:
+                return jsonify({"error": "Invalid ZIP code"}), 400
+            new_data = int(plz_raw)
 
         setattr(sighting_obj, field_to_update, new_data)
 
@@ -1351,10 +1366,14 @@ def update_cell():
     data = request.json
     if data is None:
         return jsonify({"error": "Invalid request"}), 400
-    table_name = data["table"]
-    column_name = data["column"]
-    id_value = data["meldungen_id"]
-    new_value = data["value"]
+
+    try:
+        table_name = data["table"]
+        column_name = data["column"]
+        id_value = data["meldungen_id"]
+        new_value = data["value"]
+    except KeyError as exc:
+        return jsonify({"error": f"Missing field: {exc.args[0]}"}), 400
 
     if table_name != "all_data_view":
         return jsonify({"error": "Only all_data_view is supported"}), 403
@@ -1442,6 +1461,7 @@ def update_cell():
             recalculate_amt_mtb(fundort)
 
         # Handle dat_fund_von changes - move images to new date folder
+        image_update_result = None
         if column_name == "dat_fund_von" and table_name == "all_data_view":
             try:
                 image_update_result = update_report_image_date(id_value, new_value)
@@ -1455,7 +1475,27 @@ def update_cell():
                     f"to {image_update_result.get('new_path')}"
                 )
 
-        db.session.commit()
+        try:
+            db.session.commit()
+        except SQLAlchemyError:
+            db.session.rollback()
+            # Compensate the filesystem change if the DB commit failed — otherwise
+            # the DB would roll back to the old `ablage` while the file is already
+            # at the new location, leaving the image inaccessible to /admin/images.
+            if image_update_result and image_update_result.get("status") == "success":
+                try:
+                    shutil.move(
+                        image_update_result["new_path"],
+                        image_update_result["old_path"],
+                    )
+                except Exception:
+                    current_app.logger.critical(
+                        f"Could not revert image move for report {id_value} after "
+                        f"commit failure: file stuck at "
+                        f"{image_update_result['new_path']}, "
+                        f"DB expects {image_update_result['old_path']}"
+                    )
+            raise
 
         # Force-refresh materialized view after update
         _maybe_refresh_alldata_view(force=True)

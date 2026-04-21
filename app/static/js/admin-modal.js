@@ -318,8 +318,14 @@ function validateAndUpdateCoordinate(input, type) {
             var lat = parseFloat(latInput.value.replace(',', '.'));
             var lng = parseFloat(lngInput.value.replace(',', '.'));
             if (!isNaN(lat) && !isNaN(lng)) {
-                marker.setLatLng([lat, lng]);
-                map.setView([lat, lng], map.getZoom());
+                // Map/marker are initialized on htmx:afterSettle. A user who
+                // edits a coord input before that event fires would otherwise
+                // hit a null dereference — guard the map update and let the
+                // HTMX submission still run to persist the value.
+                if (marker && map) {
+                    marker.setLatLng([lat, lng]);
+                    map.setView([lat, lng], map.getZoom());
+                }
                 // Dispatch coord-valid to trigger HTMX form submission
                 triggerCoordUpdate();
             }

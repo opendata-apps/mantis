@@ -52,15 +52,16 @@
       Bearbeiten
     </button>
   {% elif is_approved and edit_mode %}
-    {# Approved + edit mode → show "Speichern" to exit edit mode #}
+    {# Approved + edit mode → exit back to read-only. Each field already
+       saves on change, so this just closes the editing affordance. #}
     <button type="button"
             hx-get="{{ url_for('admin.modal_tab', tab=active_tab, id=sighting.id) }}?{{ filter_query }}"
             hx-target="#tab-content"
             hx-swap="innerHTML swap:150ms"
             class="btn-green w-full px-5 py-2.5 rounded-lg sm:w-auto"
-            title="Klicken Sie hier, um die Änderungen zu speichern">
+            title="Bearbeitungsmodus verlassen (Änderungen werden bereits automatisch gespeichert)">
       {{ heroicon_outline("check", class="mr-2 w-4 h-4", stroke_width=2) }}
-      Speichern
+      Fertig
     </button>
   {% elif not is_approved and (has_unkl or has_info) %}
     {# Active review flag → approval blocked until the reviewer clears it #}

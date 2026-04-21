@@ -199,7 +199,7 @@ class TestAdminRoutes:
 
         response = client.get("/report/1111")
         assert response.status_code == 200
-        assert b'/melden/1111' in response.data
+        assert b"/melden/1111" in response.data
 
     def test_provider_view_does_not_render_reviewer_nav_links(self, client):
         """Provider page should not expose reviewer/statistics nav links for reporter context."""
@@ -208,8 +208,8 @@ class TestAdminRoutes:
 
         response = client.get("/report/1111")
         assert response.status_code == 200
-        assert b'/reviewer/1111' not in response.data
-        assert b'/statistik' not in response.data
+        assert b"/reviewer/1111" not in response.data
+        assert b"/statistik" not in response.data
 
     def test_toggle_approve_still_works_after_opening_provider_page(
         self, client, session
@@ -297,7 +297,7 @@ class TestAdminRoutes:
             headers={"HX-Request": "true"},
         )
         assert response.status_code == 200
-        assert b"id=\"report-card-" in response.data
+        assert b'id="report-card-' in response.data
 
         # Verify approval happened
         session.refresh(self.test_sighting)
@@ -317,7 +317,7 @@ class TestAdminRoutes:
             headers={"HX-Request": "true"},
         )
         assert response.status_code == 200
-        assert b"id=\"report-card-" in response.data
+        assert b'id="report-card-' in response.data
 
         # Verify soft delete in database
         session.refresh(self.test_sighting)
@@ -341,7 +341,7 @@ class TestAdminRoutes:
             headers={"HX-Request": "true"},
         )
         assert response.status_code == 200
-        assert b"id=\"report-card-" in response.data
+        assert b'id="report-card-' in response.data
 
         # Verify undelete in database
         session.refresh(self.test_sighting)
@@ -723,25 +723,60 @@ class TestAdminRoutes:
         session.refresh(self.test_sighting)
         assert self.test_sighting.anm_melder == "Updated comment"
 
-    def test_update_cell_non_editable_field(self, client):
+    @pytest.mark.parametrize(
+        "column, value",
+        [
+            ("meldungen_id", "999"),
+            # Internal review state must not be reachable through the cell
+            # editor — these used to bypass status guards entirely.
+            ("deleted", True),
+            ("ablage", "/etc/passwd"),
+            ("bearb_id", "9999"),
+        ],
+    )
+    def test_update_cell_non_editable_field(self, client, column, value):
         """Test that non-editable fields cannot be updated."""
-        # Set up session
         with client.session_transaction() as sess:
             sess["user_id"] = "9999"
 
-        # Try to update non-editable field (meldungen_id)
         response = client.post(
             "/admin/update_cell",
             json={
                 "table": "all_data_view",
                 "meldungen_id": self.test_sighting.id,
-                "column": "meldungen_id",
-                "value": "999",
+                "column": column,
+                "value": value,
             },
         )
         assert response.status_code == 403
         data = json.loads(response.data)
         assert "not editable" in data["error"]
+
+    def test_update_cell_missing_required_field(self, client):
+        """Malformed JSON payload returns 400, not a 500 KeyError."""
+        with client.session_transaction() as sess:
+            sess["user_id"] = "9999"
+
+        response = client.post(
+            "/admin/update_cell",
+            json={"table": "all_data_view"},  # missing column / id / value
+        )
+        assert response.status_code == 400
+        data = json.loads(response.data)
+        assert "Missing field" in data["error"]
+
+    def test_change_mantis_meta_plz_non_numeric_returns_400(self, client):
+        """plz is an integer column — non-numeric input must yield 400, not 500."""
+        with client.session_transaction() as sess:
+            sess["user_id"] = "9999"
+
+        response = client.post(
+            f"/change_mantis_meta_data/{self.test_sighting.id}",
+            data={"type": "plz", "new_data": "not-a-zip"},
+        )
+        assert response.status_code == 400
+        data = json.loads(response.data)
+        assert "Invalid ZIP" in data["error"]
 
     def test_static_file_serving(self, client):
         """Test serving static files through admin route."""

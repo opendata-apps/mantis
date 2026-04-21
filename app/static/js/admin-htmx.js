@@ -12,9 +12,9 @@ document.body.addEventListener('htmx:configRequest', (event) => {
 
 // When a card is removed (HX-Reswap:delete), check if container is now empty → reload
 document.body.addEventListener('htmx:afterSwap', (event) => {
-    if (!event.detail.target?.closest('#reportContainer')) return;
-    const container = document.getElementById('reportContainer');
-    if (container && container.querySelectorAll('.report-card').length === 0) {
+    const container = event.detail.target?.closest('#reportContainer');
+    if (!container) return;
+    if (container.querySelectorAll('.report-card').length === 0) {
         location.reload();
     }
 });

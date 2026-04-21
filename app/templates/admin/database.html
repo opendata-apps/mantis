@@ -438,15 +438,13 @@ block content %}
         currentlyEditingCell = null;
         currentlyEditingCellData = null;
       });
-      // Prevent closing on backdrop click (static backdrop behavior)
+      // Prevent closing on stray backdrop clicks (accidental data loss).
+      // ESC is allowed through — it is an intentional cancel gesture, the
+      // keyboard equivalent of clicking the Cancel button.
       editModal.addEventListener('click', (e) => {
         if (e.target === editModal) {
           e.preventDefault();
         }
-      });
-      // Prevent ESC key closing
-      editModal.addEventListener('cancel', (e) => {
-        e.preventDefault();
       });
     }
 
