@@ -49,3 +49,9 @@ compose_dev := compose + " -f infrastructure/podman-compose.dev.yml"
 # Stop production
 @prod-down *ARGS:
     {{ compose }} down {{ ARGS }}
+
+# Pull latest, rebuild web, verify health. Never touches the DB volume.
+@prod-deploy:
+    git pull --ff-only
+    {{ compose }} up -d --build --force-recreate --no-deps web
+    curl -fsS http://localhost:5000/health && echo "✔ deploy ok"
