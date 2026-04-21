@@ -116,6 +116,30 @@ class TestAdminApproval:
             # Verify send_email was not called
             mock_send_email.assert_not_called()
 
+    def test_approve_blocked_while_unkl_flag_set(
+        self, authenticated_admin_client, mock_sighting_factory, session
+    ):
+        """A sighting flagged UNKL ("Unklar") cannot be approved — Bernd's case."""
+        # Use a distinct id_suffix so this sighting does not collide with
+        # test_toggle_approve_sighting's fixture when tests run in sequence.
+        sighting = mock_sighting_factory(2)
+        sighting.statuses = ["OPEN", "UNKL"]
+        session.commit()
+
+        with patch.object(Config, "REVIEWERMAIL", False):
+            response = authenticated_admin_client.post(
+                f"/toggle_approve_sighting/{sighting.id}",
+                data={"filter_status": "all"},
+                headers={"HX-Request": "true"},
+            )
+
+        assert response.status_code == 400
+
+        session.refresh(sighting)
+        # Status array and approval timestamp must be untouched.
+        assert set(sighting.statuses) == {"OPEN", "UNKL"}
+        assert sighting.dat_bear is None
+
     def test_toggle_approve_nonexistent_sighting(self, authenticated_admin_client):
         """Test that attempting to approve a nonexistent sighting returns a 404."""
         # Attempt to approve a sighting with an ID that doesn't exist

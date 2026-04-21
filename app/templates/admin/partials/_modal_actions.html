@@ -62,6 +62,12 @@
       {{ heroicon_outline("check", class="mr-2 w-4 h-4", stroke_width=2) }}
       Speichern
     </button>
+  {% elif not is_approved and has_unkl %}
+    {# UNKL set → approval is blocked until the Unklar flag is cleared #}
+    <button type="button"
+            disabled
+            class="btn-green w-full sm:w-auto opacity-50 cursor-not-allowed"
+            title="Bitte erst den Unklar-Haken entfernen, um diese Meldung anzunehmen">Annehmen</button>
   {% elif not is_approved %}
     {# Not approved → show "Annehmen" #}
     <button type="button"

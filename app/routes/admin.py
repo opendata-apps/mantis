@@ -110,6 +110,7 @@ def recalculate_amt_mtb(fundort):
     if spatial_fields["kreis"]:
         fundort.kreis = spatial_fields["kreis"]
 
+
 def _inspect_sqlalchemy(target) -> Any:
     """Typed boundary for SQLAlchemy inspection APIs with incomplete stubs."""
     return sa_inspect(target)
@@ -149,10 +150,12 @@ def _load_sighting(report_id: int) -> TblMeldungen | None:
         .join(TblMeldungen.reporter_link)
         .join(TblMeldungUser.reporter)
         .options(
-            contains_eager(TblMeldungen.fundort)
-            .contains_eager(TblFundorte.location_type),
-            contains_eager(TblMeldungen.reporter_link)
-            .contains_eager(TblMeldungUser.reporter),
+            contains_eager(TblMeldungen.fundort).contains_eager(
+                TblFundorte.location_type
+            ),
+            contains_eager(TblMeldungen.reporter_link).contains_eager(
+                TblMeldungUser.reporter
+            ),
             joinedload(TblMeldungen.approver),
         )
         .where(TblMeldungen.id == report_id)
@@ -187,14 +190,14 @@ def _get_user_report_count(user: TblUsers) -> int:
     return cache[user.id]
 
 
-def _load_sighting_for_render(report_id: int) -> tuple[TblMeldungen | None, TblUsers | None]:
+def _load_sighting_for_render(
+    report_id: int,
+) -> tuple[TblMeldungen | None, TblUsers | None]:
     """Load a report for modal/card rendering."""
     meldung = _load_sighting(report_id)
     if not meldung:
         return None, None
     return meldung, meldung.reporter_link.reporter
-
-
 
 
 def _matches_filter_status(sighting: TblMeldungen, filter_status: str) -> bool:
@@ -509,7 +512,12 @@ def report_img(filename):
 @admin.route("/toggle_approve_sighting/<int:id>", methods=["POST"])
 @reviewer_required
 def toggle_approve_sighting(id):
-    """Toggle APPR/OPEN workflow state. Clears flags on approval."""
+    """Toggle APPR/OPEN workflow state.
+
+    Approving clears flags; un-approving preserves them. A report flagged
+    UNKL ("Unklar") cannot be approved directly — the reviewer must first
+    resolve the uncertainty and unset the flag.
+    """
 
     sighting = db.session.get(TblMeldungen, id)
     if not sighting:
@@ -517,13 +525,17 @@ def toggle_approve_sighting(id):
         return "", 404
 
     # Toggle between APPR and OPEN.
-    # Approving clears flags (review concerns are resolved).
     # Un-approving preserves flags (re-opening keeps existing context).
     if sighting.is_approved:
         flags = [s for s in (sighting.statuses or []) if s in ("INFO", "UNKL")]
         sighting.statuses = [ReportStatus.OPEN.value] + flags
         sighting.dat_bear = None
     else:
+        # UNKL means the reviewer is unsure — approval must be blocked
+        # until the flag is cleared. INFO (reporter contacted) is fine to
+        # drop silently on approval.
+        if sighting.is_unclear:
+            return "", 400
         sighting.statuses = [ReportStatus.APPR.value]
         sighting.dat_bear = datetime.now()
     # Sync deprecated boolean column with canonical statuses array
@@ -549,7 +561,13 @@ def toggle_approve_sighting(id):
             fundort = meldung.fundort
             user = meldung.reporter_link.reporter
             dbdata = {}
-            for model in (meldung, fundort, fundort.location_type, meldung.reporter_link, user):
+            for model in (
+                meldung,
+                fundort,
+                fundort.location_type,
+                meldung.reporter_link,
+                user,
+            ):
                 inspected_model = _inspect_sqlalchemy(model)
                 for c in inspected_model.mapper.columns:
                     dbdata[c.name] = getattr(model, c.name)
@@ -649,7 +667,11 @@ def toggle_flag(id):
     else:
         statuses.append(flag)
 
-    workflow_states = {ReportStatus.OPEN.value, ReportStatus.APPR.value, ReportStatus.DEL.value}
+    workflow_states = {
+        ReportStatus.OPEN.value,
+        ReportStatus.APPR.value,
+        ReportStatus.DEL.value,
+    }
     if not any(s in workflow_states for s in statuses):
         statuses.insert(0, ReportStatus.OPEN.value)
 
@@ -670,7 +692,28 @@ def toggle_flag(id):
         return "", 500
 
     filter_status = _resolve_filter_status()
-    return _render_updated_sighting_by_id(id, filter_status)
+    card_response = _render_updated_sighting_by_id(id, filter_status)
+    # OOB: keep modal footer in sync with the new flag state so the
+    # "Annehmen" button enables/disables live when UNKL is toggled inside
+    # the open modal. toggle_flag is only invoked from the modal, so the
+    # OOB target always exists when this response is swapped.
+    modal_actions_html = render_template(
+        "admin/partials/_modal_actions.html",
+        sighting=sighting,
+        is_approved=sighting.is_approved,
+        editable=not sighting.is_approved,
+        edit_mode=False,
+        active_tab="general",
+        filter_status=filter_status,
+    )
+    oob = f'<div id="modal-actions" hx-swap-oob="innerHTML">{modal_actions_html}</div>'
+    response = (
+        make_response(card_response)
+        if isinstance(card_response, str)
+        else card_response
+    )
+    response.set_data((response.get_data(as_text=True) or "") + oob)
+    return response
 
 
 @admin.route("/delete_sighting/<int:id>", methods=["POST"])
@@ -886,7 +929,9 @@ def export_data(value):
 
             # Write row data directly (no intermediate dict/list)
             worksheet.write(row_idx, 0, meldung.id)
-            worksheet.write(row_idx, 1, ReportStatus.get_display_names(meldung.statuses or []))
+            worksheet.write(
+                row_idx, 1, ReportStatus.get_display_names(meldung.statuses or [])
+            )
             worksheet.write(
                 row_idx,
                 2,
@@ -1045,6 +1090,8 @@ def update_report_image_date(report_id, new_date):
         "old_path": str(old_image_path),
         "new_path": str(new_file_path),
     }
+
+
 def get_filtered_query(
     filter_status: Optional[str] = None,
     filter_type: Optional[str] = None,
@@ -1072,10 +1119,12 @@ def get_filtered_query(
         .join(TblMeldungen.reporter_link)
         .join(TblMeldungUser.reporter)
         .options(
-            contains_eager(TblMeldungen.fundort)
-            .contains_eager(TblFundorte.location_type),
-            contains_eager(TblMeldungen.reporter_link)
-            .contains_eager(TblMeldungUser.reporter),
+            contains_eager(TblMeldungen.fundort).contains_eager(
+                TblFundorte.location_type
+            ),
+            contains_eager(TblMeldungen.reporter_link).contains_eager(
+                TblMeldungUser.reporter
+            ),
             # joinedload auto-aliases the users table to avoid conflict
             # with the reporter JOIN that already references users.
             joinedload(TblMeldungen.approver),
@@ -1137,9 +1186,7 @@ def get_filtered_query(
 
             if search_type == "full_text":
                 ts_query = func.websearch_to_tsquery("german", search_query)
-                stmt = stmt.where(
-                    TblMeldungen.search_vector.op("@@")(ts_query)
-                )
+                stmt = stmt.where(TblMeldungen.search_vector.op("@@")(ts_query))
                 stmt = stmt.order_by(
                     func.ts_rank_cd(TblMeldungen.search_vector, ts_query).desc()
                 )
@@ -1225,9 +1272,7 @@ def get_table_data(table_name):
                 meldungen_tbl = _inspect_sqlalchemy(TblMeldungen).mapper.local_table
                 stmt = stmt.join(
                     meldungen_tbl, table.c.meldungen_id == meldungen_tbl.c.id
-                ).where(
-                    meldungen_tbl.c.search_vector.op("@@")(ts_query)
-                )
+                ).where(meldungen_tbl.c.search_vector.op("@@")(ts_query))
 
         total_items = db.session.scalar(
             select(func.count()).select_from(stmt.order_by(None).subquery())
