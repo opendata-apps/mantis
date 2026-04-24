@@ -101,7 +101,6 @@ class TestValidateCombination:
 # get_workflow_state — priority-based extraction
 # ---------------------------------------------------------------------------
 class TestGetWorkflowState:
-
     def test_del_takes_highest_priority(self):
         assert ReportStatus.get_workflow_state(["DEL"]) == "DEL"
 
@@ -122,35 +121,9 @@ class TestGetWorkflowState:
 
 
 # ---------------------------------------------------------------------------
-# get_css_class — badge styling
-# ---------------------------------------------------------------------------
-class TestGetCssClass:
-
-    @pytest.mark.parametrize(
-        "status, expected_fragment",
-        [
-            ("OPEN", "bg-gray-100"),
-            ("APPR", "bg-green-100"),
-            ("DEL", "bg-red-500"),
-            ("INFO", "bg-yellow-100"),
-            ("UNKL", "bg-orange-100"),
-        ],
-        ids=["open-gray", "approved-green", "deleted-red", "info-yellow", "unclear-orange"],
-    )
-    def test_known_status_returns_correct_color(self, status, expected_fragment):
-        css = ReportStatus.get_css_class(status)
-        assert expected_fragment in css
-
-    def test_unknown_status_falls_back_to_gray(self):
-        css = ReportStatus.get_css_class("NONEXISTENT")
-        assert "bg-gray-100" in css
-
-
-# ---------------------------------------------------------------------------
 # get_display_name / get_display_names — German labels
 # ---------------------------------------------------------------------------
 class TestDisplayNames:
-
     @pytest.mark.parametrize(
         "status, expected",
         [
@@ -183,7 +156,6 @@ class TestDisplayNames:
 # values — enum listing
 # ---------------------------------------------------------------------------
 class TestValues:
-
     def test_returns_all_five_statuses(self):
         vals = ReportStatus.values()
         assert set(vals) == {"OPEN", "APPR", "DEL", "INFO", "UNKL"}

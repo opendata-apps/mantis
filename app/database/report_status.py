@@ -50,18 +50,6 @@ class ReportStatus(StrEnum):
         return ", ".join(cls.get_display_name(s) for s in statuses)
 
     @classmethod
-    def get_css_class(cls, status: str) -> str:
-        """Return Tailwind CSS classes for status badge."""
-        css_classes = {
-            cls.OPEN.value: "bg-gray-100 text-gray-800",
-            cls.APPR.value: "bg-green-100 text-gray-800",
-            cls.DEL.value: "bg-red-500/80 text-gray-800",
-            cls.INFO.value: "bg-yellow-100 text-yellow-800",
-            cls.UNKL.value: "bg-orange-100 text-orange-800",
-        }
-        return css_classes.get(status, "bg-gray-100 text-gray-800")
-
-    @classmethod
     def values(cls) -> list[str]:
         """Return list of all status values."""
         return [s.value for s in cls if isinstance(s.value, str)]
