@@ -18,7 +18,6 @@ class Issue(str, Enum):
     LAND_MISMATCH = "LAND_MISMATCH"
     ORT_MISMATCH = "ORT_MISMATCH"
     OUTSIDE_DE = "OUTSIDE_DE"
-    NO_COORDS = "NO_COORDS"
 
 
 @dataclass(frozen=True, slots=True)
@@ -78,14 +77,16 @@ def validate_fundorte(fundorte, get_spatial):
         spatial = get_spatial((lon, lat))
 
         if spatial is None:
-            mismatches.append(Mismatch(
-                fundort_id=f.id,
-                issue=Issue.OUTSIDE_DE,
-                stored_land=f.land or "",
-                expected_land="—",
-                stored_ort=f.ort or "",
-                expected_ort="—",
-            ))
+            mismatches.append(
+                Mismatch(
+                    fundort_id=f.id,
+                    issue=Issue.OUTSIDE_DE,
+                    stored_land=f.land or "",
+                    expected_land="—",
+                    stored_ort=f.ort or "",
+                    expected_ort="—",
+                )
+            )
             continue
 
         expected_land = spatial["land"]
@@ -96,27 +97,31 @@ def validate_fundorte(fundorte, get_spatial):
         # Land (Bundesland) check — exact case-insensitive match
         if stored_land and expected_land:
             if stored_land.strip().lower() != expected_land.strip().lower():
-                mismatches.append(Mismatch(
-                    fundort_id=f.id,
-                    issue=Issue.LAND_MISMATCH,
-                    stored_land=stored_land,
-                    expected_land=expected_land,
-                    stored_ort=stored_ort,
-                    expected_ort=expected_ort,
-                ))
+                mismatches.append(
+                    Mismatch(
+                        fundort_id=f.id,
+                        issue=Issue.LAND_MISMATCH,
+                        stored_land=stored_land,
+                        expected_land=expected_land,
+                        stored_ort=stored_ort,
+                        expected_ort=expected_ort,
+                    )
+                )
                 continue  # Land wrong → skip Ort check (redundant)
 
         # Ort (city/municipality) check — substring containment
         if stored_ort and expected_ort:
             if not names_match(stored_ort, expected_ort):
-                mismatches.append(Mismatch(
-                    fundort_id=f.id,
-                    issue=Issue.ORT_MISMATCH,
-                    stored_land=stored_land,
-                    expected_land=expected_land,
-                    stored_ort=stored_ort,
-                    expected_ort=expected_ort,
-                ))
+                mismatches.append(
+                    Mismatch(
+                        fundort_id=f.id,
+                        issue=Issue.ORT_MISMATCH,
+                        stored_land=stored_land,
+                        expected_land=expected_land,
+                        stored_ort=stored_ort,
+                        expected_ort=expected_ort,
+                    )
+                )
 
     return mismatches, checked, skipped
 
