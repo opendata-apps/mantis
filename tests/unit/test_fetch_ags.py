@@ -13,7 +13,6 @@ from app.tools.fetch_ags import (
     build_kreise_lookup,
     merge_gemeinden_with_berlin,
     save_fallback,
-    load_fallback,
     save_kreise_lookup,
     load_kreise_lookup,
 )
@@ -194,28 +193,26 @@ def test_merge_normalizes_all_properties(gemeinden_data, berlin_feature):
 
 
 # ---------------------------------------------------------------------------
-# save_fallback / load_fallback
+# save_fallback
 # ---------------------------------------------------------------------------
 
 
-def test_save_and_load_fallback_roundtrip(tmp_path):
+def test_save_fallback_writes_valid_json(tmp_path):
+    import json
+
     data = {"type": "FeatureCollection", "features": [{"id": 1}]}
     path = tmp_path / "sub" / "fallback.json"
-
     save_fallback(data, path)
-    loaded = load_fallback(path)
 
-    assert loaded == data
+    assert path.exists()
+    with open(path, "r", encoding="utf-8") as f:
+        assert json.load(f) == data
 
 
 def test_save_fallback_creates_parent_dirs(tmp_path):
     path = tmp_path / "a" / "b" / "c" / "data.json"
     save_fallback({"features": []}, path)
     assert path.exists()
-
-
-def test_load_fallback_returns_none_for_missing_file(tmp_path):
-    assert load_fallback(tmp_path / "nonexistent.json") is None
 
 
 # ---------------------------------------------------------------------------

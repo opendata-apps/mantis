@@ -76,9 +76,7 @@ def fetch_berlin_bezirke():
     Returns a list of GeoJSON features.
     """
     logger.info("Fetching Berlin Bezirke from ALKIS WFS...")
-    data = _wfs_get_feature(
-        BERLIN_WFS_BASE, "alkis_bezirke:bezirksgrenzen"
-    )
+    data = _wfs_get_feature(BERLIN_WFS_BASE, "alkis_bezirke:bezirksgrenzen")
     features = data.get("features", [])
     logger.info(f"Fetched {len(features)} Berlin Bezirke")
     return features
@@ -103,8 +101,8 @@ def _normalize_berlin_feature(feature):
     return {
         "type": "Feature",
         "properties": {
-            "AGS": props["name"],       # "11000001"
-            "GEN": props["namgem"],     # "Mitte"
+            "AGS": props["name"],  # "11000001"
+            "GEN": props["namgem"],  # "Mitte"
         },
         "geometry": feature["geometry"],
     }
@@ -177,15 +175,6 @@ def save_kreise_lookup(lookup, path):
     with open(path, "w", encoding="utf-8") as f:
         json.dump(lookup, f, ensure_ascii=False, indent=2, sort_keys=True)
     logger.info(f"Saved {len(lookup)} Kreise to {path}")
-
-
-def load_fallback(path):
-    """Load GeoJSON from fallback file. Returns None if not found."""
-    path = Path(path)
-    if not path.exists():
-        return None
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
 
 
 def load_kreise_lookup(path):
