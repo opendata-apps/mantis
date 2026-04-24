@@ -218,16 +218,6 @@ class GemeindeFinder:
         self._load_data()
 
     @property
-    def is_loaded(self):
-        """Check if data is loaded."""
-        return self._is_loaded
-
-    @property
-    def polygon_count(self):
-        """Get number of loaded polygons."""
-        return len(self._geometries)
-
-    @property
     def stats(self):
         """Return polygon count, vertex count, and load status for observability."""
         if not self._geometries:
