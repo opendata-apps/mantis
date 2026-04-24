@@ -53,7 +53,7 @@ def seed_command(demo):
         jsondata = None
 
     # Always populate base data (idempotent)
-    populate_all(db.engine, db.session, jsondata)
+    populate_all(db.session, jsondata)
     click.echo("Base data seeded.")
 
     if demo:

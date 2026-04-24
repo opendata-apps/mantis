@@ -1,7 +1,7 @@
 """Tests for database population functions."""
 
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from sqlalchemy import select, func
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -37,14 +37,11 @@ class TestPopulateFunctions:
 
     @patch("app.database.vg5000_fill_aemter.import_aemter_data")
     @patch("app.database.populate.populate_beschreibung")
-    def test_populate_all_success(
-        self, mock_beschreibung, mock_aemter, session
-    ):
+    def test_populate_all_success(self, mock_beschreibung, mock_aemter, session):
         """Test successful execution of populate_all."""
-        mock_engine = MagicMock()
         mock_json_data = '{"test": "data"}'
 
-        populate_all(mock_engine, session, mock_json_data)
+        populate_all(session, mock_json_data)
 
         mock_beschreibung.assert_called_once_with(session)
         mock_aemter.assert_called_once_with(session, mock_json_data)
@@ -52,7 +49,6 @@ class TestPopulateFunctions:
     @patch("app.database.vg5000_fill_aemter.import_aemter_data")
     def test_populate_all_beschreibung_error_stops_pipeline(self, mock_aemter, session):
         """Test populate_all when beschreibung population fails."""
-        mock_engine = MagicMock()
         mock_json_data = '{"test": "data"}'
 
         with patch(
@@ -60,7 +56,7 @@ class TestPopulateFunctions:
             side_effect=Exception("Beschreibung failed"),
         ):
             with pytest.raises(Exception, match="Beschreibung failed"):
-                populate_all(mock_engine, session, mock_json_data)
+                populate_all(session, mock_json_data)
 
         mock_aemter.assert_not_called()
 
@@ -73,10 +69,9 @@ class TestPopulateFunctions:
         self, mock_beschreibung, mock_aemter, session
     ):
         """Test populate_all catches import errors without raising."""
-        mock_engine = MagicMock()
         mock_json_data = '{"test": "data"}'
 
-        populate_all(mock_engine, session, mock_json_data)
+        populate_all(session, mock_json_data)
 
         mock_beschreibung.assert_called_once()
         mock_aemter.assert_called_once()
@@ -87,9 +82,7 @@ class TestPopulateFunctions:
         self, mock_beschreibung, mock_aemter, session
     ):
         """Test populate_all skips aemter when vg5000_json_data is None."""
-        mock_engine = MagicMock()
-
-        populate_all(mock_engine, session, None)
+        populate_all(session, None)
 
         mock_beschreibung.assert_called_once_with(session)
         mock_aemter.assert_not_called()

@@ -40,7 +40,7 @@ def populate_beschreibung(session: Session):
     )
 
 
-def populate_all(db_engine, session: Session, vg5000_json_data):
+def populate_all(session: Session, vg5000_json_data):
     """Populates all required tables with initial data."""
     current_app.logger.info("Starting initial data population...")
 

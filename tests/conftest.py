@@ -107,7 +107,7 @@ def _seed_test_data():
             {"id": id, "beschreibung": beschreibung},
         )
     session.commit()
-    populate_all(db.engine, session=session, vg5000_json_data=jsondata)
+    populate_all(session=session, vg5000_json_data=jsondata)
     insert_data_reports(session)
     ad.create_materialized_view(db.engine, session=session)
 
