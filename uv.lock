@@ -240,18 +240,6 @@ wheels = [
 ]
 
 [[package]]
-name = "faker"
-version = "40.4.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "tzdata", marker = "sys_platform == 'win32'" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/fc/7e/dccb7013c9f3d66f2e379383600629fec75e4da2698548bdbf2041ea4b51/faker-40.4.0.tar.gz", hash = "sha256:76f8e74a3df28c3e2ec2caafa956e19e37a132fdc7ea067bc41783affcfee364", size = 1952221, upload-time = "2026-02-06T23:30:15.515Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/ac/63/58efa67c10fb27810d34351b7a10f85f109a7f7e2a07dc3773952459c47b/faker-40.4.0-py3-none-any.whl", hash = "sha256:486d43c67ebbb136bc932406418744f9a0bdf2c07f77703ea78b58b77e9aa443", size = 1987060, upload-time = "2026-02-06T23:30:13.44Z" },
-]
-
-[[package]]
 name = "flask"
 version = "3.1.3"
 source = { registry = "https://pypi.org/simple" }
@@ -541,7 +529,6 @@ dependencies = [
 
 [package.optional-dependencies]
 dev = [
-    { name = "faker" },
     { name = "pyright" },
     { name = "pytest" },
     { name = "pytest-cov" },
@@ -573,7 +560,6 @@ requires-dist = [
     { name = "click", specifier = ">=8.2.1" },
     { name = "docutils", marker = "extra == 'docs'", specifier = ">=0.21.2" },
     { name = "email-validator", specifier = ">=2.2.0" },
-    { name = "faker", marker = "extra == 'dev'", specifier = ">=37.4.0" },
     { name = "flask", specifier = ">=3.1.1" },
     { name = "flask-favicon", specifier = ">=0.1.4" },
     { name = "flask-limiter", specifier = ">=3.12" },

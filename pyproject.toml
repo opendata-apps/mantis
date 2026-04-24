@@ -39,7 +39,6 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "faker>=37.4.0",
     "pytest>=8.4.1",
     "pytest-cov>=6.0.0",
     "pyright>=1.1.0",
