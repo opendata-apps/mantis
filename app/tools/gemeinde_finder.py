@@ -55,6 +55,7 @@ class GemeindeFinder:
         )
         try:
             from app.tools.fetch_ags import load_kreise_lookup
+
             self._kreise_lookup = load_kreise_lookup(kreise_path)
             if self._kreise_lookup:
                 current_app.logger.info(
@@ -80,10 +81,7 @@ class GemeindeFinder:
                 # Load Kreise lookup for enrichment
                 self._load_kreise()
 
-                stmt = (
-                    select(TblAemterCoordinaten)
-                    .order_by(TblAemterCoordinaten.ags)
-                )
+                stmt = select(TblAemterCoordinaten).order_by(TblAemterCoordinaten.ags)
                 rows = db.session.scalars(stmt).all()
 
                 for row in rows:
@@ -117,7 +115,9 @@ class GemeindeFinder:
                             )
                             geometries.append(geom)
                             metadata.append(
-                                AmtRecord(amt_string, gen, ags_str, land_name, kreis_name)
+                                AmtRecord(
+                                    amt_string, gen, ags_str, land_name, kreis_name
+                                )
                             )
                         else:
                             current_app.logger.warning(
@@ -177,21 +177,6 @@ class GemeindeFinder:
         except GEOSException as e:
             current_app.logger.error(f"GEOS error finding AMT for point {point}: {e}")
             return None
-
-    def find_amt(self, point):
-        """
-        Find which administrative area contains the given point.
-
-        Args:
-            point: Tuple of (longitude, latitude) coordinates
-
-        Returns:
-            String in format "AGS -- Name" if found, None otherwise
-        """
-        record = self._query_point(point)
-        if record is None:
-            return None
-        return record.amt_string
 
     def find_amt_enriched(self, point):
         """
@@ -254,9 +239,7 @@ class GemeindeFinder:
                     [g.exterior] + list(g.interiors)
                     if isinstance(g, Polygon)
                     else [
-                        r
-                        for p in g.geoms
-                        for r in ([p.exterior] + list(p.interiors))
+                        r for p in g.geoms for r in ([p.exterior] + list(p.interiors))
                     ]
                 )
             )
@@ -273,19 +256,6 @@ class GemeindeFinder:
 _gemeinde_finder = GemeindeFinder()
 
 # Module initialization - logging will happen when used within app context
-
-
-def get_amt_optimized(point):
-    """
-    Get AMT string for a point using spatial indexing and caching.
-
-    Args:
-        point: Tuple of (longitude, latitude) coordinates
-
-    Returns:
-        String in format "AGS -- Name" if found, None otherwise
-    """
-    return _gemeinde_finder.find_amt(point)
 
 
 def get_amt_enriched(point):

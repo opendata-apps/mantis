@@ -2,8 +2,14 @@
 
 import pytest
 from sqlalchemy import delete
-from app.tools.gemeinde_finder import get_amt_optimized, reload_gemeinde_cache
+from app.tools.gemeinde_finder import get_amt_enriched, reload_gemeinde_cache
 from app.database.aemter_koordinaten import TblAemterCoordinaten
+
+
+def _amt_string(point):
+    """Helper: look up amt_string for a point, or None if not found."""
+    result = get_amt_enriched(point)
+    return result["amt_string"] if result else None
 
 
 class TestGemeindeOptimization:
@@ -99,14 +105,14 @@ class TestGemeindeOptimization:
         ]
 
         for point, expected in test_points:
-            result = get_amt_optimized(point)
+            result = _amt_string(point)
             assert result == expected, (
                 f"Wrong result for point {point}: got {result}, expected {expected}"
             )
 
     def test_returns_none_for_outside_points(self, session):
         """Test that points outside all areas return None."""
-        result = get_amt_optimized((10.0, 50.0))
+        result = _amt_string((10.0, 50.0))
         assert result is None
 
     def test_handles_malformed_data(self, session):
@@ -124,7 +130,7 @@ class TestGemeindeOptimization:
         reload_gemeinde_cache()
 
         # Should not crash when searching
-        get_amt_optimized((13.0, 52.0))
+        _amt_string((13.0, 52.0))
         # Result doesn't matter, just shouldn't crash
 
         # Cleanup
@@ -173,8 +179,8 @@ class TestGemeindeOptimization:
         point1 = (14.05, 53.05)  # In first polygon
         point2 = (14.25, 53.25)  # In second polygon
 
-        result1 = get_amt_optimized(point1)
-        result2 = get_amt_optimized(point2)
+        result1 = _amt_string(point1)
+        result2 = _amt_string(point2)
 
         assert result1 == "77777777 -- Multi Area"
         assert result2 == "77777777 -- Multi Area"
