@@ -135,6 +135,5 @@ class Config:
     MAX_FORM_PARTS = 1000  # max 1000 form fields
 
     # Application Settings
-    STATIC_FOLDER = os.path.join(_config_dir, "static")
     FAVICON_BUILD_DIR = os.path.join(_config_dir, "static", "favicon")
     CELEBRATION_THRESHOLD = int(os.getenv("CELEBRATION_THRESHOLD", "10000"))
