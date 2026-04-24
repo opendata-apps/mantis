@@ -5,7 +5,6 @@ from wtforms import (
     FloatField,
     TextAreaField,
     DateField,
-    SubmitField,
     SelectField,
     BooleanField,
 )
@@ -271,8 +270,6 @@ class MantisSightingForm(FlaskForm):
     honeypot = StringField(
         validators=[Optional(), Length(max=1)]
     )  # max=1 is a small defense
-
-    submit = SubmitField("Bericht einreichen")
 
     def validate_finder_names_dependency(self):
         if not self.identical_finder_reporter.data:
