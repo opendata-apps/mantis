@@ -71,10 +71,7 @@ class Config:
         "pool_pre_ping": True,
     }
 
-    # Map Configuration (Static - Brandenburg, Germany)
-    MAP_CENTER_LONGITUDE = 13.0
-    MAP_CENTER_LATITUDE = 52.4
-    MAP_ZOOM = 8
+    # Map Configuration
     MIN_MAP_YEAR = 2023
 
     # Security Configuration
