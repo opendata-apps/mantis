@@ -98,29 +98,6 @@ class TestValidateCombination:
 
 
 # ---------------------------------------------------------------------------
-# get_workflow_state — priority-based extraction
-# ---------------------------------------------------------------------------
-class TestGetWorkflowState:
-    def test_del_takes_highest_priority(self):
-        assert ReportStatus.get_workflow_state(["DEL"]) == "DEL"
-
-    def test_appr_returned(self):
-        assert ReportStatus.get_workflow_state(["APPR"]) == "APPR"
-
-    def test_open_returned(self):
-        assert ReportStatus.get_workflow_state(["OPEN"]) == "OPEN"
-
-    def test_open_with_flags_returns_open(self):
-        assert ReportStatus.get_workflow_state(["OPEN", "INFO", "UNKL"]) == "OPEN"
-
-    def test_empty_list_returns_none(self):
-        assert ReportStatus.get_workflow_state([]) is None
-
-    def test_flags_only_returns_none(self):
-        assert ReportStatus.get_workflow_state(["INFO", "UNKL"]) is None
-
-
-# ---------------------------------------------------------------------------
 # get_display_name / get_display_names — German labels
 # ---------------------------------------------------------------------------
 class TestDisplayNames:

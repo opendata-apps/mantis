@@ -98,11 +98,3 @@ class ReportStatus(StrEnum):
             return False, "Must have exactly one workflow state (OPEN, APPR, or DEL)"
 
         return True, None
-
-    @classmethod
-    def get_workflow_state(cls, statuses: list[str]) -> str | None:
-        """Extract the primary workflow state from a list of statuses."""
-        for state in [cls.DEL.value, cls.APPR.value, cls.OPEN.value]:
-            if state in statuses:
-                return state
-        return None
