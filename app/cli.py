@@ -166,11 +166,8 @@ def seed_ags_command():
 
 @click.command("validate-coordinates")
 @click.option("--csv", "csv_path", default=None, help="Write mismatches to a CSV file")
-@click.option(
-    "--verbose", is_flag=True, help="Show all checked fundorte, not just mismatches"
-)
 @with_appcontext
-def validate_coordinates_command(csv_path, verbose):
+def validate_coordinates_command(csv_path):
     """Check that stored address fields match the coordinates on the map.
 
     Compares each Fundort's 'land' and 'ort' against what the GemeindeFinder
@@ -223,9 +220,7 @@ def normalize_coordinates_command():
     total = db.session.scalar(select(func.count(TblFundorte.id))) or 0
     click.echo(f"Scanning {total} Fundorte...")
 
-    fundorte = db.session.scalars(
-        select(TblFundorte).order_by(TblFundorte.id)
-    ).all()
+    fundorte = db.session.scalars(select(TblFundorte).order_by(TblFundorte.id)).all()
 
     changed = 0
     invalid_rows = []
@@ -246,10 +241,7 @@ def normalize_coordinates_command():
             )
             continue
 
-        if (
-            fundort.latitude != normalized_lat
-            or fundort.longitude != normalized_lon
-        ):
+        if fundort.latitude != normalized_lat or fundort.longitude != normalized_lon:
             fundort.latitude = normalized_lat
             fundort.longitude = normalized_lon
             changed += 1
