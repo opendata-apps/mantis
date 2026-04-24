@@ -116,7 +116,6 @@ class Config:
 
     # Upload Configuration - always absolute path (Flask best practice)
     UPLOAD_FOLDER = _resolve_upload_folder()
-    ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp", "heic", "heif"}
     BACKUP_DIR = _resolve_backup_dir()
 
     # Session Configuration

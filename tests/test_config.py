@@ -26,7 +26,6 @@ class Config:
 
     # Upload Configuration - always absolute path (Flask best practice)
     UPLOAD_FOLDER = os.path.join(_project_root, "datastore")
-    ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp", "heic", "heif"}
     BACKUP_DIR = os.path.join(_project_root, "backups")
 
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
