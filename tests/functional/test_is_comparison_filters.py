@@ -18,7 +18,7 @@ class TestIsComparisonFilters:
 
         for row in results:
             meldung = row[0]  # First element is TblMeldungen
-            assert meldung.has_status(ReportStatus.OPEN), (
+            assert meldung.is_open, (
                 f"Sighting {meldung.id} has statuses={meldung.statuses}, expected OPEN"
             )
 
@@ -29,7 +29,7 @@ class TestIsComparisonFilters:
 
         for row in results:
             meldung = row[0]
-            assert meldung.has_status(ReportStatus.APPR), (
+            assert meldung.is_approved, (
                 f"Sighting {meldung.id} has statuses={meldung.statuses}, expected APPR"
             )
 
@@ -40,7 +40,7 @@ class TestIsComparisonFilters:
 
         for row in results:
             meldung = row[0]
-            assert meldung.has_status(ReportStatus.DEL), (
+            assert meldung.is_deleted, (
                 f"Sighting {meldung.id} has statuses={meldung.statuses}, expected DEL"
             )
 
@@ -147,9 +147,7 @@ class TestIsComparisonFilters:
 
         for row in results:
             meldung = row[0]
-            assert meldung.has_status(ReportStatus.OPEN), (
-                "Non-OPEN status in open filter"
-            )
+            assert meldung.is_open, "Non-OPEN status in open filter"
             assert meldung.art_m >= 1, "Non-male sighting in male filter"
 
     def test_default_filter_behavior(self, session):
@@ -160,7 +158,7 @@ class TestIsComparisonFilters:
 
         for row in results:
             meldung = row[0]
-            assert not meldung.has_status(ReportStatus.DEL), (
+            assert not meldung.is_deleted, (
                 f"Deleted sighting {meldung.id} shown in default view"
             )
 

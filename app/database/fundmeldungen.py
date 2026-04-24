@@ -60,9 +60,7 @@ class TblMeldungen(db.Model):
     dat_fund_bis = db.Column(db.Date, nullable=True)
     dat_meld = db.Column(db.Date, nullable=True)
     dat_bear = db.Column(db.Date, nullable=True)  # Keep for approval date tracking
-    bearb_id = db.Column(
-        db.String(40), db.ForeignKey("users.user_id"), nullable=True
-    )
+    bearb_id = db.Column(db.String(40), db.ForeignKey("users.user_id"), nullable=True)
     tiere = db.Column(db.Integer, nullable=True)
     art_m = db.Column(db.Integer, nullable=True)
     art_w = db.Column(db.Integer, nullable=True)
@@ -134,11 +132,6 @@ class TblMeldungen(db.Model):
             "anm_bearbeiter": self.anm_bearbeiter,
         }
         return data
-
-    def has_status(self, status: ReportStatus | str) -> bool:
-        """Check if report has a specific status."""
-        value = status.value if isinstance(status, ReportStatus) else status
-        return value in (self.statuses or [])
 
     @property
     def is_deleted(self) -> bool:

@@ -1,6 +1,6 @@
-"""Tests for TblMeldungen status helper methods and boolean properties.
+"""Tests for TblMeldungen boolean status properties.
 
-These verify has_status() and the convenience properties (is_deleted, is_approved,
+These verify the convenience properties (is_deleted, is_approved,
 is_open, is_unclear, needs_info) that the admin UI and query filters rely on.
 """
 
@@ -33,38 +33,9 @@ def make_sighting(session):
 
 
 # ---------------------------------------------------------------------------
-# has_status — generic status check
-# ---------------------------------------------------------------------------
-class TestHasStatus:
-
-    def test_accepts_enum_member(self, make_sighting):
-        s = make_sighting([ReportStatus.OPEN.value])
-        assert s.has_status(ReportStatus.OPEN) is True
-        assert s.has_status(ReportStatus.APPR) is False
-
-    def test_accepts_string(self, make_sighting):
-        s = make_sighting(["APPR"])
-        assert s.has_status("APPR") is True
-        assert s.has_status("OPEN") is False
-
-    def test_multiple_statuses(self, make_sighting):
-        s = make_sighting(["OPEN", "INFO", "UNKL"])
-        assert s.has_status("OPEN") is True
-        assert s.has_status("INFO") is True
-        assert s.has_status("UNKL") is True
-        assert s.has_status("APPR") is False
-
-    def test_none_statuses_returns_false(self, make_sighting):
-        s = make_sighting(["OPEN"])
-        s.statuses = None
-        assert s.has_status("OPEN") is False
-
-
-# ---------------------------------------------------------------------------
 # Boolean properties — each tests True and False
 # ---------------------------------------------------------------------------
 class TestIsDeleted:
-
     def test_true_when_del_present(self, make_sighting):
         s = make_sighting(["DEL"])
         assert s.is_deleted is True
@@ -79,7 +50,6 @@ class TestIsDeleted:
 
 
 class TestIsApproved:
-
     def test_true_when_appr_present(self, make_sighting):
         s = make_sighting(["APPR"])
         assert s.is_approved is True
@@ -90,7 +60,6 @@ class TestIsApproved:
 
 
 class TestIsOpen:
-
     def test_true_when_open_present(self, make_sighting):
         s = make_sighting(["OPEN"])
         assert s.is_open is True
@@ -105,7 +74,6 @@ class TestIsOpen:
 
 
 class TestIsUnclear:
-
     def test_true_when_unkl_present(self, make_sighting):
         s = make_sighting(["OPEN", "UNKL"])
         assert s.is_unclear is True
@@ -120,7 +88,6 @@ class TestIsUnclear:
 
 
 class TestNeedsInfo:
-
     def test_true_when_info_present(self, make_sighting):
         s = make_sighting(["OPEN", "INFO"])
         assert s.needs_info is True
