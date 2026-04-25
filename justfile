@@ -50,19 +50,24 @@ compose_dev := compose + " -f infrastructure/podman-compose.dev.yml"
 @prod-down *ARGS:
     {{ compose }} down {{ ARGS }}
 
-# Migrations run BEFORE swap so a broken schema fails fast — no downtime.
+# Migrations are run by entrypoint.sh on container start (`flask db upgrade`),
+# so a schema-changing commit will be applied automatically when the new
+# container boots. Trade-off: a broken migration causes startup to fail and
+# `restart: unless-stopped` will loop until you `just prod-rollback`. We
+# don't pre-flight migrations because entrypoint.sh has no `exec "$@"` —
+# `compose run --rm web flask db upgrade` would be ignored and run the full
+# entrypoint (incl. gunicorn), deadlocking the deploy.
 # Container is found via `compose ps -q web` so the recipe survives
 # podman-compose's underscore->hyphen separator change (PR #1241).
 # Tags :previous before build so `just prod-rollback` is a one-liner.
 # SHA-equality check is belt-and-braces against compose claiming a swap
 # it didn't make (the failure mode that bit us with infrastructure_vite_1).
 # Never touches the DB volume.
-# Pull latest, migrate, rebuild & swap web, verify health.
+# Pull latest, rebuild & swap web, verify health.
 @prod-deploy:
     git pull --ff-only
     -podman tag localhost/infrastructure_web:latest localhost/infrastructure_web:previous
     {{ compose }} build --pull web
-    {{ compose }} run --rm web flask db upgrade
     bash -c 'cid=$({{ compose }} ps -q web); if [ -n "$cid" ]; then podman stop -t 10 "$cid"; podman rm -f "$cid"; fi'
     {{ compose }} up -d --no-deps web
     podman image prune -f --filter "dangling=true" | tail -1
