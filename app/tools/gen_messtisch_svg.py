@@ -1,36 +1,42 @@
 import logging
 
 import svgwrite
-from flask import url_for
 
 logger = logging.getLogger(__name__)
 
 
 def create_measure_sheet(
-    row_range=(24, 46), col_range=(33, 54), box_size=50, dataset=None
+    row_range=(24, 46),
+    col_range=(33, 54),
+    box_size=50,
+    dataset=None,
+    bg_image_url=None,
 ):
+    """Render an MTB grid SVG and return it as a string.
+
+    ``bg_image_url`` is optional; when provided it is referenced by an ``<image>``
+    element. Keeping this as a parameter (rather than calling ``url_for`` here)
+    decouples rendering from a Flask request context.
+    """
     logger.debug("dataset = %s", dataset)
     # MTB number = RRCC, rows go N->S (vertical axis), cols go W->E (horizontal axis).
     width = (col_range[1] - col_range[0] + 2) * box_size
     height = (row_range[1] - row_range[0] + 2) * box_size
 
-    # Erstellen der SVG-Zeichenfläche
     dwg = svgwrite.Drawing(size=(f"{width}px", f"{height}px"))
-    # Pfad zur vorhandenen SVG-Datei mit dem Brandenburg-Bild
 
-    bg_image = url_for("static", filename="images/land_brandenburg.svg")
-    bg_size = (width - box_size * 1.2, height - box_size * 2)
-    bg_insert = (box_size * 1.3, box_size * 1.2)
-    # Mittelpunkt des Hintergrundbildes
-    bg_center = (bg_insert[0] + bg_size[0] / 2, bg_insert[1] + bg_size[1] / 2)
-    dwg.add(
-        dwg.image(
-            href=bg_image,
-            insert=bg_insert,
-            size=bg_size,
-            transform="rotate(3, {0}, {1})".format(bg_center[0], bg_center[1]),
+    if bg_image_url:
+        bg_size = (width - box_size * 1.2, height - box_size * 2)
+        bg_insert = (box_size * 1.3, box_size * 1.2)
+        bg_center = (bg_insert[0] + bg_size[0] / 2, bg_insert[1] + bg_size[1] / 2)
+        dwg.add(
+            dwg.image(
+                href=bg_image_url,
+                insert=bg_insert,
+                size=bg_size,
+                transform="rotate(3, {0}, {1})".format(bg_center[0], bg_center[1]),
+            )
         )
-    )
 
     # Zeichnen der horizontalen Linien und Beschriften (eine pro Zeilengrenze)
     for i in range(row_range[0], row_range[1] + 2):
@@ -79,8 +85,19 @@ def create_measure_sheet(
         for coord, count in dataset:
             col = coord % 100
             row = coord // 100
-            distance_from_start_x = abs(col - col_range[0])
-            distance_from_start_y = abs(row - row_range[0])
+            if not (
+                row_range[0] <= row <= row_range[1]
+                and col_range[0] <= col <= col_range[1]
+            ):
+                logger.warning(
+                    "Skipping MTB %s: outside grid (rows %s, cols %s)",
+                    coord,
+                    row_range,
+                    col_range,
+                )
+                continue
+            distance_from_start_x = col - col_range[0]
+            distance_from_start_y = row - row_range[0]
             circle_center = (
                 distance_from_start_x * box_size + (box_size * 1.5),
                 distance_from_start_y * box_size + (box_size * 1.5),
@@ -115,4 +132,4 @@ if __name__ == "__main__":
 
     dbanswer = [(3328, 5), (3830, 10), (4138, 1), (5446, 3), (4634, 99)]
 
-    create_measure_sheet(rows, cols, box_size, dataset=dbanswer)
+    print(create_measure_sheet(rows, cols, box_size, dataset=dbanswer))
