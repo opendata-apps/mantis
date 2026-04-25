@@ -10,6 +10,10 @@ import 'leaflet.locatecontrol/dist/L.Control.Locate.min.css';
 import EXIF from 'exif-js';
 import htmx from 'htmx.org';
 
+// CSP hardening: disable eval-based attribute features (hx-on::*, `js:` prefix).
+// The report form does not use them; this lets us drop `unsafe-eval` from CSP.
+htmx.config.allowEval = false;
+
 // Configure HTMX to include CSRF token in all requests
 // This is the recommended approach from Flask-WTF documentation for AJAX requests
 document.body.addEventListener('htmx:configRequest', (event) => {

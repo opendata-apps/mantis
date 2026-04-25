@@ -637,9 +637,20 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 // ---------------------------------------------------------------------------
+// CSP-safe modal triggers (replaces inline hx-on::* handlers).
+// `js-open-modal` class on a button → modal opens when htmx fires its request.
+// Server returns `HX-Trigger: closeModal` → body closes the modal.
+// ---------------------------------------------------------------------------
+document.body.addEventListener('htmx:beforeRequest', (event) => {
+    if (event.detail?.elt?.classList?.contains('js-open-modal')) {
+        openModal();
+    }
+});
+document.body.addEventListener('closeModal', closeModal);
+
+// ---------------------------------------------------------------------------
 // Window exports (only functions referenced from template onclick handlers)
 // ---------------------------------------------------------------------------
-window.openModal = openModal;
 window.closeModal = closeModal;
 window.setSortOrder = setSortOrder;
 window.clearSearch = clearSearch;

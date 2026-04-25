@@ -2,6 +2,11 @@
 import htmx from 'htmx.org';
 window.htmx = htmx;
 
+// CSP hardening: disable htmx's eval-based attribute features (hx-on::*,
+// `js:` value prefixes). Their replacements are delegated event listeners
+// in admin-modal.js + `HX-Trigger` response headers from the server.
+htmx.config.allowEval = false;
+
 // CSRF via meta tag (admin uses <meta name="csrf-token">)
 document.body.addEventListener('htmx:configRequest', (event) => {
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
