@@ -50,8 +50,17 @@ compose_dev := compose + " -f infrastructure/podman-compose.dev.yml"
 @prod-down *ARGS:
     {{ compose }} down {{ ARGS }}
 
+# Explicit stop+rm avoids podman-compose --force-recreate failing when
+# leftover dev containers (e.g. infrastructure_vite_1) claim a dependency.
+# A SHA check after `up` is the safety net: it fails loudly if the running
+# container did not pick up the freshly-built image.
 # Pull latest, rebuild web, verify health. Never touches the DB volume.
 @prod-deploy:
     git pull --ff-only
-    {{ compose }} up -d --build --force-recreate --no-deps web
-    curl -fsS --retry 15 --retry-delay 1 --retry-all-errors http://localhost:5000/health && echo "✔ deploy ok"
+    {{ compose }} build --pull web
+    -podman stop -t 10 infrastructure_web_1
+    -podman rm -f infrastructure_web_1
+    {{ compose }} up -d --no-deps web
+    podman image prune -f --filter "dangling=true"
+    bash -c 'run=$(podman inspect infrastructure_web_1 --format "{{{{.Image}}"); tag=$(podman image inspect localhost/infrastructure_web:latest --format "{{{{.Id}}"); [ "$run" = "$tag" ] || { echo "✗ image SHA mismatch: running=$run latest=$tag"; exit 1; }; echo "✓ image SHA matches: $run"'
+    curl -fsS --retry 30 --retry-delay 2 --retry-all-errors http://localhost:5000/health && echo "✔ deploy ok"
