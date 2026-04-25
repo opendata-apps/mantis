@@ -7,12 +7,12 @@ logger = logging.getLogger(__name__)
 
 
 def create_measure_sheet(
-    horizontal_range=(24, 46), vertical_range=(33, 54), box_size=50, dataset=None
+    row_range=(24, 46), col_range=(33, 54), box_size=50, dataset=None
 ):
     logger.debug("dataset = %s", dataset)
-    # Breite und Höhe der SVG-Datei
-    width = (horizontal_range[1] - horizontal_range[0] + 1) * box_size
-    height = (vertical_range[1] - vertical_range[0] + 3) * box_size
+    # MTB number = RRCC, rows go N->S (vertical axis), cols go W->E (horizontal axis).
+    width = (col_range[1] - col_range[0] + 2) * box_size
+    height = (row_range[1] - row_range[0] + 2) * box_size
 
     # Erstellen der SVG-Zeichenfläche
     dwg = svgwrite.Drawing(size=(f"{width}px", f"{height}px"))
@@ -32,9 +32,9 @@ def create_measure_sheet(
         )
     )
 
-    # Zeichnen der horizontalen Linien und Beschriften
-    for i in range(horizontal_range[0], horizontal_range[1] + 2):
-        y_coord = (i - horizontal_range[0] + 1) * box_size
+    # Zeichnen der horizontalen Linien und Beschriften (eine pro Zeilengrenze)
+    for i in range(row_range[0], row_range[1] + 2):
+        y_coord = (i - row_range[0] + 1) * box_size
         dwg.add(
             dwg.line(
                 start=(box_size, y_coord),
@@ -53,9 +53,9 @@ def create_measure_sheet(
             )
         )
 
-    # Zeichnen der vertikalen Linien und Beschriften
-    for j in range(vertical_range[0], vertical_range[1] + 2):
-        x_coord = (j - vertical_range[0] + 1) * box_size
+    # Zeichnen der vertikalen Linien und Beschriften (eine pro Spaltengrenze)
+    for j in range(col_range[0], col_range[1] + 2):
+        x_coord = (j - col_range[0] + 1) * box_size
         dwg.add(
             dwg.line(
                 start=(x_coord, box_size),
@@ -77,10 +77,10 @@ def create_measure_sheet(
     # Zeichnen der Kreiszeichen und Beschriften basierend auf dbanswer
     if dataset is not None:
         for coord, count in dataset:
-            x_coord = coord % 100
-            y_coord = coord // 100
-            distance_from_start_x = abs(x_coord - horizontal_range[0])
-            distance_from_start_y = abs(y_coord - vertical_range[0])
+            col = coord % 100
+            row = coord // 100
+            distance_from_start_x = abs(col - col_range[0])
+            distance_from_start_y = abs(row - row_range[0])
             circle_center = (
                 distance_from_start_x * box_size + (box_size * 1.5),
                 distance_from_start_y * box_size + (box_size * 1.5),
@@ -106,15 +106,13 @@ def create_measure_sheet(
 
 if __name__ == "__main__":
     # Bereich des Messtischblatts
-    # (horizontal (x) 33-54,
-    # vertikal (y) 24-46)
-    vertical_size = (24, 46)
-    horizontal_size = (33, 54)
+    # Zeilen (rows, vertikal): 24-46
+    # Spalten (cols, horizontal): 33-54
+    rows = (24, 46)
+    cols = (33, 54)
 
-    # Größe der Kästchen in Pixeln
     box_size = 50
 
     dbanswer = [(3328, 5), (3830, 10), (4138, 1), (5446, 3), (4634, 99)]
 
-    # Er<stellen des Messtischblatts
-    create_measure_sheet(vertical_size, horizontal_size, box_size, dataset=dbanswer)
+    create_measure_sheet(rows, cols, box_size, dataset=dbanswer)
