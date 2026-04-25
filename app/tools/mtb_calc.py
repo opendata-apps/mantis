@@ -50,7 +50,7 @@ def get_mtb(zielbreite, ziellaenge):
     and 10' longitude (column).
     """
     startbreite = 55.87688  # Grid origin latitude (north edge of row 1)
-    startlaenge = 6.0       # Grid origin longitude (west edge of column 2)
+    startlaenge = 6.0  # Grid origin longitude (west edge of column 2)
 
     row = int(1 + ((startbreite - zielbreite) * 60) / 6)
     col = int(2 + ((ziellaenge - startlaenge) * 60) / 10)
@@ -59,10 +59,14 @@ def get_mtb(zielbreite, ziellaenge):
 
 
 def point_in_rect(point):
-    """Check if a (lat, lon) point is within the Germany bounding box."""
-    # Germany bounding box: lat 47..56, lon 6..24
+    """Check if a (lat, lon) point is within the Germany bounding box.
+
+    Western bound is 5.83 (not 6.0) to include the Selfkant exclave (NRW),
+    home of TK25 sheet 4901 at ~5°55' E.
+    """
     lat, lon = point
-    return 47.0 < lat < 56.0 and 6.0 < lon < 24.0
+    return 47.0 < lat < 56.0 and 5.83 < lon < 24.0
+
 
 if __name__ == "__main__":
     koordinaten = [
@@ -90,5 +94,7 @@ if __name__ == "__main__":
     for row in koordinaten:
         zielbreite, ziellaenge, ort = row
         print(
-            get_mtb(zielbreite, ziellaenge), ort, point_in_rect((zielbreite, ziellaenge))
+            get_mtb(zielbreite, ziellaenge),
+            ort,
+            point_in_rect((zielbreite, ziellaenge)),
         )
