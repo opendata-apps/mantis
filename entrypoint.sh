@@ -22,7 +22,7 @@ if [ "$FLASK_DEBUG" = "1" ]; then
 else
     exec gunicorn run:app \
         --bind 0.0.0.0:5000 \
-        --workers 2 \
+        --workers 4 \
         --threads 2 \
         --worker-tmp-dir /dev/shm \
         --access-logfile - \
