@@ -604,11 +604,12 @@ def toggle_approve_sighting(id):
 
     filter_status = _resolve_filter_status()
     response = make_response(_render_updated_sighting_by_id(id, filter_status))
-    # CSP-safe modal close: body listens for the `closeModal` event and
-    # closes the dialog. Replaces the previous hx-on::after-request inline
-    # handler on the Annehmen button. No-op when no modal is open (the
-    # report-card variant of this button calls the endpoint without a modal).
-    response.headers["HX-Trigger"] = "closeModal"
+    # CSP-safe modal close: body listens for `mantis:modal-close` and closes
+    # the dialog. Replaces the previous hx-on::after-request inline handler
+    # on the Annehmen button. No-op when no modal is open (the report-card
+    # variant of this button calls the endpoint without a modal). Namespaced
+    # per htmx's `<ns>:<event>` convention to avoid collisions.
+    response.headers["HX-Trigger"] = "mantis:modal-close"
     return response
 
 
