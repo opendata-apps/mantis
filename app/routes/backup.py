@@ -69,13 +69,19 @@ def _validate_download_token(filename: str, token: str | None) -> None:
         abort(403)
 
 
-def _resolve_upload_path(relative_path: str) -> Path:
+def _resolve_upload_path(relative_path: str) -> Path | None:
+    """Resolve a DB-stored upload path under UPLOAD_FOLDER.
+
+    Returns the Path if the file exists, None if it is missing on disk.
+    Path-traversal escapes (e.g. `../secret`) still raise ValueError —
+    that's a security boundary, not a data-integrity issue.
+    """
     upload_root = Path(current_app.config["UPLOAD_FOLDER"]).resolve()
     image_path = (upload_root / relative_path).resolve()
     if not image_path.is_relative_to(upload_root):
         raise ValueError(f"Unsafe upload path in database: {relative_path!r}")
     if not image_path.is_file():
-        raise FileNotFoundError(f"Upload file missing: {relative_path}")
+        return None
     return image_path
 
 
@@ -88,7 +94,28 @@ def _image_paths_for_year(year: int) -> list[Path]:
         .where(TblMeldungen.dat_fund_von >= start, TblMeldungen.dat_fund_von < end)
         .order_by(TblMeldungen.id)
     )
-    return [_resolve_upload_path(path) for path in db.session.scalars(stmt)]
+
+    paths: list[Path] = []
+    missing: list[str] = []
+    for ablage in db.session.scalars(stmt):
+        resolved = _resolve_upload_path(ablage)
+        if resolved is None:
+            missing.append(ablage)
+        else:
+            paths.append(resolved)
+
+    if missing:
+        sample = ", ".join(missing[:3])
+        suffix = f" (+{len(missing) - 3} more)" if len(missing) > 3 else ""
+        current_app.logger.warning(
+            "Backup year %d: %d image(s) referenced in DB but missing on "
+            "disk; skipped — %s%s",
+            year,
+            len(missing),
+            sample,
+            suffix,
+        )
+    return paths
 
 
 def _run_pg_dump(output_path: Path) -> None:

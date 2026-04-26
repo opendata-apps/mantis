@@ -68,6 +68,12 @@ def test_resolve_upload_path_rejects_path_traversal(backup_app):
         backup_routes._resolve_upload_path("../secret.txt")
 
 
+def test_resolve_upload_path_returns_none_for_missing_file(backup_app):
+    # Missing files must not raise — the backup walks thousands of
+    # rows and a single missing image must not abort the whole run.
+    assert backup_routes._resolve_upload_path("does/not/exist.webp") is None
+
+
 def test_pg_dump_runs_non_interactively(backup_app, tmp_path):
     output_path = tmp_path / "dump.sql"
 
