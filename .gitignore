@@ -3,7 +3,7 @@ datastore
 backups/
 import
 .#*
-.*~
+*~
 \#*
 db-import.sh
 \.mantis
