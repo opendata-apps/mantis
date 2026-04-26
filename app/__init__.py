@@ -1,5 +1,7 @@
 from datetime import datetime
 import os
+import tomllib
+from pathlib import Path
 from flask import Flask, jsonify, render_template, request
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
@@ -24,6 +26,11 @@ limiter = Limiter(
 )
 mail = Mail()
 flask_favicon = FlaskFavicon()
+
+with (Path(__file__).resolve().parent.parent / "pyproject.toml").open(
+    "rb"
+) as _pyproject:
+    __version__ = tomllib.load(_pyproject)["project"]["version"]
 
 
 def create_app(config_class=Config):
@@ -115,7 +122,7 @@ def create_app(config_class=Config):
 
     @app.context_processor
     def inject_now():
-        return {"now": datetime.now()}
+        return {"now": datetime.now(), "version": __version__}
 
     # Security headers middleware
     @app.after_request
