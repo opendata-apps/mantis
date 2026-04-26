@@ -129,11 +129,45 @@ def create_app(config_class=Config):
     def add_security_headers(response):
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "SAMEORIGIN"
-        response.headers["X-XSS-Protection"] = "1; mode=block"
+        # X-XSS-Protection is deprecated and can introduce XSS bugs of its
+        # own (OWASP Secure Headers, MDN). `0` disables the legacy filter;
+        # CSP below is the actual XSS defense.
+        response.headers["X-XSS-Protection"] = "0"
         if app.config.get("PREFERRED_URL_SCHEME") == "https":
             response.headers["Strict-Transport-Security"] = (
                 "max-age=31536000; includeSubDomains"
             )
+        # Content Security Policy. `script-src` deliberately omits
+        # 'unsafe-eval' — htmx's eval-based features are gated off via
+        # `htmx.config.allowEval = false` in every JS entrypoint.
+        # 'unsafe-inline' is still required for the remaining inline
+        # `onclick=` handlers and `<script>` blocks; migrating those to
+        # delegated listeners is tracked as separate work.
+        # `worker-src 'self' blob:` — canvas-confetti spawns its render
+        # worker via URL.createObjectURL(new Blob(...)) for performance.
+        response.headers["Content-Security-Policy"] = "; ".join(
+            [
+                "default-src 'self'",
+                "script-src 'self' 'unsafe-inline'",
+                "style-src 'self' 'unsafe-inline'",
+                "worker-src 'self' blob:",
+                "img-src 'self' data: blob: "
+                "https://i.creativecommons.org "
+                "https://tile.openstreetmap.org "
+                "https://*.tile.openstreetmap.org "
+                "https://server.arcgisonline.com",
+                "connect-src 'self' "
+                "https://nominatim.openstreetmap.org "
+                "https://tile.openstreetmap.org "
+                "https://*.tile.openstreetmap.org "
+                "https://server.arcgisonline.com",
+                "font-src 'self' data:",
+                "object-src 'none'",
+                "base-uri 'self'",
+                "frame-ancestors 'none'",
+                "form-action 'self'",
+            ]
+        )
         return response
 
     # HTMX error recovery middleware
