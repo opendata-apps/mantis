@@ -186,7 +186,7 @@
     </script>
     {%- set show_cta = request.path == '/' or request.path.startswith("/start") or
         request.path.startswith("/sichtungen") or request.path.startswith("/report") -%}
-    <section class="relative flex items-center justify-center h-60 bg-center bg-no-repeat bg-cover"
+    <section class="relative flex items-center justify-center h-60 bg-fixed bg-center bg-no-repeat bg-cover"
              style="background-image: url('{{ url_for('static', filename='images/berger03.avif') }}')">
       <div id="overlay" class="absolute inset-0 z-10 bg-black/50"></div>
       <div class="relative z-20 mt-14 text-center">

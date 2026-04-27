@@ -15,10 +15,14 @@
   will-change: backdrop-filter;
 }
 
-.site-header.scrolled,
+.site-header.scrolled {
+  background: color-mix(in srgb, var(--color-green-800) 80%, transparent);
+  backdrop-filter: blur(16px);
+}
+
 .site-header.menu-open {
   background: color-mix(in srgb, var(--color-green-800) 95%, transparent);
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(16px);
 }
 
 /* Nav links - horizontal on desktop */
