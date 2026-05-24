@@ -171,5 +171,9 @@ def galerie():
 
 @main.route("/favicon.ico")
 def favicon():
-    "Return the favicon.ico file."
-    return send_from_directory("static", "images/favicon/favicon.ico")
+    "Serve root /favicon.ico from the flask-favicon build output."
+    return send_from_directory(
+        os.path.join(current_app.config["FAVICON_BUILD_DIR"], "default"),
+        "favicon.ico",
+        mimetype="image/vnd.microsoft.icon",
+    )
