@@ -613,6 +613,14 @@ def toggle_approve_sighting(id):
     return response
 
 
+def _resolve_layout() -> str:
+    """Pick the General-tab layout. Explicit ?layout= wins (set by the toggle
+    buttons); otherwise fall back to the reviewer's stored preference sent as a
+    header by admin-htmx.js. Defaults to the detailed layout."""
+    layout = request.args.get("layout") or request.headers.get("X-Reviewer-Layout")
+    return "compact" if layout == "compact" else "detailed"
+
+
 @admin.route("/modal/<int:id>", methods=["GET"])
 @reviewer_required
 def modal_open(id):
@@ -635,6 +643,7 @@ def modal_open(id):
         active_tab="general",
         edit_mode=edit_mode,
         filter_status=filter_status,
+        layout=_resolve_layout(),
     )
 
 
@@ -663,6 +672,7 @@ def modal_tab(tab: str, id: int):
         active_tab=tab,
         edit_mode=edit_mode,
         filter_status=filter_status,
+        layout=_resolve_layout(),
     )
 
 

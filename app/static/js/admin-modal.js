@@ -605,6 +605,40 @@ document.addEventListener('DOMContentLoaded', function () {
         if (button) handleCopyClick(button);
     });
 
+    // Auto-sum for the compact reviewer layout: the derived "Anzahl" field
+    // ([data-sum-output]) mirrors the sum of the [data-sum-input] counts within
+    // its [data-sum-group]. 'input' updates the displayed total live; 'change'
+    // also re-dispatches a change on the output so its hx-post persists `tiere`.
+    function handleAutoSum(e) {
+        var input = e.target;
+        if (!input.matches || !input.matches('[data-sum-input]')) return;
+        var group = input.closest('[data-sum-group]');
+        if (!group) return;
+        var output = group.querySelector('[data-sum-output]');
+        if (!output) return;
+        var sum = 0;
+        group.querySelectorAll('[data-sum-input]').forEach(function (el) {
+            sum += parseInt(el.value, 10) || 0;
+        });
+        output.value = sum;
+        if (e.type === 'change') {
+            output.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+    }
+    document.addEventListener('input', handleAutoSum);
+    document.addEventListener('change', handleAutoSum);
+
+    // Prevent accidental value changes when scrolling the modal over a focused
+    // number input. Browsers step <input type=number> on wheel while focused,
+    // which would silently corrupt counts (and the derived auto-sum). Blurring
+    // on wheel stops the step without disabling legitimate keyboard/typing.
+    document.addEventListener('wheel', function (e) {
+        var el = e.target;
+        if (el && el.type === 'number' && el === document.activeElement) {
+            el.blur();
+        }
+    }, { passive: true });
+
     var editDialog = document.getElementById('modal');
 
     // Backdrop click-to-close (click on <dialog> itself = backdrop area)
