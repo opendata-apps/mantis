@@ -6,9 +6,8 @@
 {% else %}
   {% set qs = 'filter_status=' ~ filter_status %}
 {% endif %}
-{% set layout = layout|default('detailed') %}
 <div id="modal-tabs"
-     class="relative flex flex-wrap items-center justify-center gap-2 mb-3"
+     class="flex flex-wrap justify-center gap-2 mb-3"
      {% if oob_tabs %}hx-swap-oob="outerHTML"{% endif %}>
   <button hx-get="{{ url_for('admin.modal_tab', tab='general', id=sighting.id) }}?{{ qs }}"
           hx-target="#tab-content"
@@ -22,27 +21,4 @@
           class="px-4 py-2 text-sm font-medium rounded-lg transition duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-green-500/30 {% if active_tab == 'location' %}bg-green-600 text-white shadow-md{% else %}text-green-800 bg-green-100 hover:bg-green-600 hover:text-white hover:shadow-md{% endif %}">
     Position auf der Karte
   </button>
-  {# Layout toggle — switches the General tab between the detailed and the
-     compact "Freigabe" layout. Explicit ?layout= makes the click deterministic;
-     onclick persists the choice so it survives the next modal open. #}
-  <div class="inline-flex overflow-hidden rounded-lg border border-gray-200 sm:absolute sm:right-0"
-       role="group"
-       aria-label="Layout umschalten">
-    <button type="button"
-            hx-get="{{ url_for('admin.modal_tab', tab=active_tab, id=sighting.id) }}?layout=detailed&{{ qs }}"
-            hx-target="#tab-content"
-            hx-swap="innerHTML swap:150ms"
-            onclick="localStorage.setItem('reviewerLayout', 'detailed')"
-            aria-pressed="{{ 'true' if layout != 'compact' else 'false' }}"
-            class="px-2.5 py-1.5 text-xs font-medium transition-[color,background-color,transform] touch-manipulation active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500/40 focus-visible:relative {% if layout != 'compact' %}bg-green-600 text-white{% else %}text-gray-600 bg-white hover:bg-gray-50{% endif %}"
-            title="Detaillierte Ansicht">Detail</button>
-    <button type="button"
-            hx-get="{{ url_for('admin.modal_tab', tab=active_tab, id=sighting.id) }}?layout=compact&{{ qs }}"
-            hx-target="#tab-content"
-            hx-swap="innerHTML swap:150ms"
-            onclick="localStorage.setItem('reviewerLayout', 'compact')"
-            aria-pressed="{{ 'true' if layout == 'compact' else 'false' }}"
-            class="px-2.5 py-1.5 text-xs font-medium border-l border-gray-200 transition-[color,background-color,transform] touch-manipulation active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500/40 focus-visible:relative {% if layout == 'compact' %}bg-green-600 text-white{% else %}text-gray-600 bg-white hover:bg-gray-50{% endif %}"
-            title="Kompakte Freigabe-Ansicht">Kompakt</button>
-  </div>
 </div>

@@ -13,12 +13,6 @@ document.body.addEventListener('htmx:configRequest', (event) => {
     if (csrfToken) {
         event.detail.headers['X-CSRFToken'] = csrfToken;
     }
-    // Carry the reviewer's preferred modal layout so the server renders the
-    // matching General-tab template on every modal open / tab switch.
-    const layout = localStorage.getItem('reviewerLayout');
-    if (layout) {
-        event.detail.headers['X-Reviewer-Layout'] = layout;
-    }
 });
 
 // When a card is removed (HX-Reswap:delete), check if container is now empty → reload

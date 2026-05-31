@@ -5,6 +5,6 @@
 {% include "admin/partials/_modal_tabs.html" %}
 <div id="tab-content"
      class="overflow-y-auto overscroll-contain touch-pan-y grow min-h-0 scrollbar-thin rounded-lg"
-     role="tabpanel">{% if layout == 'compact' %}{% include "admin/partials/_modal_general_compact.html" %}{% else %}{% include "admin/partials/_modal_general.html" %}{% endif %}</div>
+     role="tabpanel">{% include "admin/partials/_modal_general.html" %}</div>
 {# OOB: update footer buttons to match current state #}
 <div id="modal-actions" hx-swap-oob="innerHTML">{% include "admin/partials/_modal_actions.html" %}</div>

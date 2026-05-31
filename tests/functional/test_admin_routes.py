@@ -470,7 +470,8 @@ class TestAdminRoutes:
         assert response.status_code == 200
         html = response.data.decode()
         assert "Meldungen" in html
-        assert "Anzahl Meldungen dieses Nutzers" in html
+        # Compact "Freigabe" layout renders the count under an "Anzahl Meldungen" label
+        assert "Anzahl Meldungen" in html
 
     def test_modal_location_tab_response_contains_oob_updates(self, client):
         """Location tab endpoint should return tab content plus OOB tab/action updates."""

@@ -4,11 +4,7 @@
 active_tab, edit_mode, filter_status #}
 {# Primary swap: tab content #}
 {% if active_tab == 'general' %}
-  {% if layout == 'compact' %}
-    {% include "admin/partials/_modal_general_compact.html" %}
-  {% else %}
-    {% include "admin/partials/_modal_general.html" %}
-  {% endif %}
+  {% include "admin/partials/_modal_general.html" %}
 {% elif active_tab == 'location' %}
   {% include "admin/partials/_modal_location.html" %}
 {% endif %}
