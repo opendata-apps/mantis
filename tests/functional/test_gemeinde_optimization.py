@@ -1,5 +1,9 @@
 """Functional tests for gemeinde finder."""
 
+import importlib.util
+from pathlib import Path
+from types import SimpleNamespace
+
 import pytest
 from sqlalchemy import delete
 from app.tools.gemeinde_finder import get_amt_enriched, reload_gemeinde_cache
@@ -190,3 +194,37 @@ class TestGemeindeOptimization:
             delete(TblAemterCoordinaten).where(TblAemterCoordinaten.ags == 77777777)
         )
         session.commit()
+
+    def test_warm_gemeinde_cache_builds_eagerly(self, session):
+        """warm_gemeinde_cache() must build the cache without any lookup."""
+        from app.tools import gemeinde_finder as gf
+
+        finder = gf.GemeindeFinder()
+        assert not finder.stats["loaded"]
+        gf._gemeinde_finder = finder
+        try:
+            gf.warm_gemeinde_cache()
+            assert finder.stats["loaded"]
+            assert finder.stats["polygons"] >= 3  # the fixture's test areas
+        finally:
+            gf._gemeinde_finder = gf.GemeindeFinder()
+
+    def test_gunicorn_post_worker_init_warms_cache(self, app, session):
+        """The gunicorn hook must leave a query-ready cache behind."""
+        conf_path = Path(__file__).parents[2] / "gunicorn.conf.py"
+        spec = importlib.util.spec_from_file_location("gunicorn_conf", conf_path)
+        assert spec is not None and spec.loader is not None
+        conf = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(conf)
+
+        from app.tools import gemeinde_finder as gf
+
+        finder = gf.GemeindeFinder()
+        gf._gemeinde_finder = finder
+        try:
+            conf.post_worker_init(SimpleNamespace(wsgi=app))
+            assert finder.stats["loaded"]
+            # cache answers without further loading
+            assert _amt_string((13.40, 52.52)) == "99999901 -- Test Berlin Mitte"
+        finally:
+            gf._gemeinde_finder = gf.GemeindeFinder()

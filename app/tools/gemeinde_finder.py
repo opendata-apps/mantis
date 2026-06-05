@@ -7,7 +7,8 @@ indexing to avoid database queries on every lookup.
 
 Performance: Uses STRtree.query(predicate="within") to push the precise
 point-in-polygon check into GEOS C code, eliminating the Python-level loop.
-Geometries are simplified (~11m tolerance) to reduce vertex count by ~12%.
+Geometries are fetched as raw GeoJSON text and parsed by GEOS (from_geojson),
+skipping psycopg's JSONB->dict conversion — ~4x faster cold load.
 A Germany bounding box pre-filter rejects clearly-outside points cheaply.
 """
 
@@ -15,10 +16,10 @@ import os
 from collections import namedtuple
 from threading import RLock
 
-from shapely import GEOSException, simplify
-from shapely.geometry import Point, Polygon, MultiPolygon, shape
+from shapely import GEOSException, from_geojson
+from shapely.geometry import Point, Polygon, MultiPolygon
 from shapely.strtree import STRtree
-from sqlalchemy import select
+from sqlalchemy import Text, select
 from flask import current_app
 
 from app import db
@@ -30,10 +31,6 @@ AmtRecord = namedtuple("AmtRecord", ["amt_string", "gen", "ags", "land", "kreis"
 
 # Germany bounding box (generous, includes North Sea islands)
 _DE_BOUNDS = (5.8, 15.1, 47.2, 55.2)  # min_lon, max_lon, min_lat, max_lat
-
-# Simplification tolerance in degrees (~11m at 50°N latitude).
-# Removes near-duplicate vertices well within GPS/map-click precision.
-_SIMPLIFY_TOLERANCE = 0.0001
 
 
 class GemeindeFinder:
@@ -81,18 +78,22 @@ class GemeindeFinder:
                 # Load Kreise lookup for enrichment
                 self._load_kreise()
 
-                stmt = select(TblAemterCoordinaten).order_by(TblAemterCoordinaten.ags)
-                rows = db.session.scalars(stmt).all()
+                # Cast JSONB to text and parse with GEOS' C parser: skipping
+                # psycopg's JSONB->dict conversion makes the load ~4x faster.
+                stmt = select(
+                    TblAemterCoordinaten.ags,
+                    TblAemterCoordinaten.gen,
+                    TblAemterCoordinaten.properties.cast(Text).label("properties"),
+                ).order_by(TblAemterCoordinaten.ags)
+                rows = db.session.execute(stmt).all()
 
                 for row in rows:
                     ags = None
                     try:
                         ags = row.ags
                         gen = row.gen
-                        properties = row.properties
 
-                        # properties is JSONB — psycopg deserializes to dict automatically
-                        geom = shape(properties)
+                        geom = from_geojson(row.properties)
 
                         # Format AGS with leading zero if needed
                         ags_str = f"0{ags}" if ags < 10000000 else str(ags)
@@ -106,13 +107,6 @@ class GemeindeFinder:
 
                         # Store polygon with its metadata
                         if isinstance(geom, (Polygon, MultiPolygon)):
-                            # Simplify to reduce vertex count (~12%) while
-                            # preserving topology within ~11m precision.
-                            geom = simplify(
-                                geom,
-                                tolerance=_SIMPLIFY_TOLERANCE,
-                                preserve_topology=True,
-                            )
                             geometries.append(geom)
                             metadata.append(
                                 AmtRecord(
@@ -265,3 +259,13 @@ def reload_gemeinde_cache():
     Call this if the aemter table has been updated.
     """
     _gemeinde_finder.reload_cache()
+
+
+def warm_gemeinde_cache():
+    """
+    Eagerly build the polygon cache.
+
+    Called from gunicorn's post_worker_init hook so the cold load happens at
+    worker boot instead of on the first user lookup (~1.8s in production).
+    """
+    _gemeinde_finder._load_data()

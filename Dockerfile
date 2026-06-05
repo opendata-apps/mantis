@@ -40,7 +40,7 @@ RUN uv sync --frozen --no-dev --no-install-project
 # Copy application and install project
 COPY app/ ./app/
 COPY migrations/ ./migrations/
-COPY run.py entrypoint.sh ./
+COPY run.py entrypoint.sh gunicorn.conf.py ./
 COPY --from=frontend-builder /build/app/static/build/ ./app/static/build/
 
 RUN uv sync --frozen --no-dev && \
