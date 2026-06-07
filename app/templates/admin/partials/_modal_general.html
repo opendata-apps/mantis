@@ -1,259 +1,393 @@
 {# General Info tab for the reviewer modal — loaded via HTMX into #tab-content.
-   "Freigabe" review layout: identity + large image on the left, species counts
-   + comments on the right. Anzahl is an auto-summed, read-only total
-   (Männchen+Weibchen+Nymphe+andere; Oothek excluded). Quelldaten collapse by
-   default. Dates kept subtle (also shown on the list view).
-   Template variables: sighting, feedback, editable, edit_mode, user_report_count #}
-{% set disabled = '' if editable else 'disabled' %}
-{% set edit_ring = 'border-green-500 focus:ring-green-500' if edit_mode else '' %}
-{% set fundort = sighting.fundort %}
-{% set reporter = sighting.reporter_link.reporter %}
-{% set finder = sighting.reporter_link.finder %}
+"Freigabe" review layout: identity + large image on the left, species counts +
+comments on the right. Anzahl is an auto-summed, read-only total
+(Männchen+Weibchen+Nymphe+Oothek+andere). Quelldaten collapse by default. Dates
+kept subtle (also shown on the list view). Template variables: sighting,
+feedback, editable, edit_mode, user_report_count #} {% set disabled = '' if
+editable else 'disabled' %} {% set edit_ring = 'border-green-500
+focus:ring-green-500' if edit_mode else '' %} {% set fundort = sighting.fundort
+%} {% set reporter = sighting.reporter_link.reporter %} {% set finder =
+sighting.reporter_link.finder %}
 <div class="flex flex-col p-4 h-auto md:h-full">
-  <div class="grid grid-cols-1 gap-5 md:grid-cols-2 grow min-h-0">
-    {# ── Left column: identity + photo ── #}
-    <div class="flex flex-col gap-3 min-h-0">
-      <div>
-        <div class="flex flex-wrap gap-x-2 gap-y-1 items-center mb-3">
-          <span class="inline-flex items-center px-2.5 py-1 text-sm font-bold text-green-800 bg-green-100 rounded-md">#{{ sighting.id }}</span>
-          {# Dates kept subtle — present for plausibility, not a focal point #}
-          <span class="text-xs text-gray-400 tabular-nums">
-            <span class="text-gray-400">Gemeldet</span> {{ sighting.dat_meld.strftime('%d.%m.%Y') }}
-            {%- if sighting.dat_fund_von %}
-              <span class="text-gray-300">·</span>
-              <span class="text-gray-400">Fund</span> <span class="text-gray-600">{{ sighting.dat_fund_von.strftime('%d.%m.%Y') }}{% if sighting.dat_fund_bis %}–{{ sighting.dat_fund_bis.strftime('%d.%m.%Y') }}{% endif %}</span>
-            {%- endif %}
-            {%- if sighting.dat_bear %}
-              <span class="text-gray-300">·</span>
-              <span class="text-gray-400">Geprüft</span> {{ sighting.dat_bear.strftime('%d.%m.%Y') }}{% if sighting.approver %} <span class="text-gray-400">von</span> <span class="text-gray-600">{{ sighting.approver.user_name }}</span>{% endif %}
-            {%- endif %}
-          </span>
-        </div>
-        <div class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 items-baseline">
-          <span class="text-sm text-gray-500">Melder</span>
-          <span class="flex flex-wrap gap-x-2 gap-y-0.5 items-center min-w-0">
-            <a href="{{ url_for('provider.melder_index', usrid=reporter.user_id) }}"
-               target="_blank"
-               class="inline-flex items-center gap-1 text-sm font-medium text-gray-800 hover:text-green-700 transition-colors"
-               title="Meldungen dieses Nutzers anzeigen">
-              {{- reporter.user_name -}}
-              {{ heroicon_outline("arrow-top-right-on-square", class="w-3 h-3 text-green-600 shrink-0", stroke_width=2) }}
+    <div class="grid grid-cols-1 gap-5 md:grid-cols-2 grow min-h-0">
+        {# ── Left column: identity + photo ── #}
+        <div class="flex flex-col gap-3 min-h-0">
+            <div>
+                <div class="flex flex-wrap gap-x-2 gap-y-1 items-center mb-3">
+                    <span
+                        class="inline-flex items-center px-2.5 py-1 text-sm font-bold text-green-800 bg-green-100 rounded-md"
+                        >#{{ sighting.id }}</span
+                    >
+                    {# Dates kept subtle — present for plausibility, not a focal
+                    point #}
+                    <span class="text-xs text-gray-400 tabular-nums">
+                        <span class="text-gray-400">Gemeldet</span> {{
+                        sighting.dat_meld.strftime('%d.%m.%Y') }} {%- if
+                        sighting.dat_fund_von %}
+                        <span class="text-gray-300">·</span>
+                        <span class="text-gray-400">Fund</span>
+                        <span class="text-gray-600"
+                            >{{ sighting.dat_fund_von.strftime('%d.%m.%Y') }}{%
+                            if sighting.dat_fund_bis %}–{{
+                            sighting.dat_fund_bis.strftime('%d.%m.%Y') }}{%
+                            endif %}</span
+                        >
+                        {%- endif %} {%- if sighting.dat_bear %}
+                        <span class="text-gray-300">·</span>
+                        <span class="text-gray-400">Geprüft</span> {{
+                        sighting.dat_bear.strftime('%d.%m.%Y') }}{% if
+                        sighting.approver %}
+                        <span class="text-gray-400">von</span>
+                        <span class="text-gray-600"
+                            >{{ sighting.approver.user_name }}</span
+                        >{% endif %} {%- endif %}
+                    </span>
+                </div>
+                <div
+                    class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 items-baseline"
+                >
+                    <span class="text-sm text-gray-500">Melder</span>
+                    <span
+                        class="flex flex-wrap gap-x-2 gap-y-0.5 items-center min-w-0"
+                    >
+                        <a
+                            href="{{ url_for('provider.melder_index', usrid=reporter.user_id) }}"
+                            target="_blank"
+                            class="inline-flex items-center gap-1 text-sm font-medium text-gray-800 hover:text-green-700 transition-colors"
+                            title="Meldungen dieses Nutzers anzeigen"
+                        >
+                            {{- reporter.user_name -}} {{
+                            heroicon_outline("arrow-top-right-on-square",
+                            class="w-3 h-3 text-green-600 shrink-0",
+                            stroke_width=2) }}
+                        </a>
+                        <span class="inline-flex gap-1 items-center min-w-0">
+                            <span
+                                class="font-mono text-[10px] text-gray-400 truncate"
+                                title="{{ reporter.user_id }}"
+                                >{{ reporter.user_id }}</span
+                            >
+                            <button
+                                data-copy-value="{{ reporter.user_id }}"
+                                class="btn-copy p-0.5 text-gray-400 rounded transition-colors hover:text-gray-600 hover:bg-gray-100 shrink-0"
+                                title="User ID kopieren"
+                                aria-label="User ID kopieren"
+                            >
+                                {{ heroicon_outline("clipboard-document",
+                                class="w-3 h-3", stroke_width=2) }}
+                            </button>
+                        </span>
+                    </span>
+                    {% if finder and finder.id != reporter.id %}
+                    <span class="text-sm text-gray-500">Finder</span>
+                    <span class="text-sm text-gray-800"
+                        >{{ finder.user_name }}</span
+                    >
+                    {% endif %} {% if reporter.user_kontakt %}
+                    <span class="text-sm text-gray-500">Mail</span>
+                    <span class="inline-flex items-center gap-1 min-w-0">
+                        <span class="text-sm text-gray-800 truncate"
+                            >{{ reporter.user_kontakt }}</span
+                        >
+                        <button
+                            data-copy-value="{{ reporter.user_kontakt }}"
+                            class="btn-copy p-0.5 text-gray-400 rounded transition-colors hover:text-gray-600 hover:bg-gray-100 shrink-0"
+                            title="E-Mail kopieren"
+                            aria-label="E-Mail kopieren"
+                        >
+                            {{ heroicon_outline("clipboard-document",
+                            class="w-3.5 h-3.5", stroke_width=2) }}
+                        </button>
+                    </span>
+                    {% endif %}
+                    <span class="text-sm text-gray-500">Anzahl Meldungen</span>
+                    <span class="text-sm text-gray-800 tabular-nums"
+                        >{{ user_report_count }}</span
+                    >
+                    {% if feedback %}
+                    <span class="text-sm text-gray-500">Feedback</span>
+                    <span class="text-sm text-gray-700">
+                        <span class="font-medium"
+                            >{{ feedback.feedback_source_display }}</span
+                        >{% if feedback.source_detail %}
+                        <span class="text-gray-500"
+                            >— {{ feedback.source_detail }}</span
+                        >{% endif %}
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+            {# Photo — letterboxed so the whole specimen is visible; click =
+            full size #}
+            <a
+                href="{{ url_for('admin.report_img', filename=fundort.ablage) }}"
+                data-lightbox="sighting-detail"
+                aria-label="Meldungsfoto in Originalgröße öffnen"
+                class="group relative block overflow-hidden rounded-lg bg-gray-50 outline outline-1 -outline-offset-1 outline-black/5 cursor-zoom-in h-48 md:grow md:h-auto md:min-h-0 transition-[outline-color] hover:outline-black/15 focus-visible:outline-2 focus-visible:outline-green-500 touch-manipulation"
+            >
+                {# Blurred backdrop fills the letterbox bars for portrait photos
+                #}
+                <img
+                    loading="lazy"
+                    aria-hidden="true"
+                    alt=""
+                    class="absolute inset-0 object-cover w-full h-full scale-110 opacity-70 blur-2xl"
+                    src="{{ url_for('admin.report_img', filename=fundort.ablage) }}"
+                />
+                <img
+                    loading="lazy"
+                    class="object-contain relative w-full h-full"
+                    src="{{ url_for('admin.report_img', filename=fundort.ablage) }}"
+                    alt="Meldungsfoto"
+                />
+                {# Full-size affordance — appears on hover/focus #}
+                <span
+                    class="absolute top-2 left-2 inline-flex items-center gap-1 px-2 py-1 text-[11px] font-medium text-white rounded-md pointer-events-none bg-black/55 opacity-100 transition-opacity duration-150 md:opacity-0 md:group-hover:opacity-100 md:group-focus-visible:opacity-100 motion-reduce:transition-none"
+                >
+                    {{ heroicon_outline("magnifying-glass-plus", class="w-3.5
+                    h-3.5", stroke_width=2) }} Originalgröße
+                </span>
+                {# Flag overlay — toggled live via JS from footer checkboxes #}
+                <div
+                    id="modal-flag-overlay"
+                    class="absolute inset-0 flex items-center justify-center gap-3 pointer-events-none {% if 'UNKL' not in (sighting.statuses or []) and 'INFO' not in (sighting.statuses or []) %}hidden{% endif %}"
+                >
+                    <div
+                        id="modal-overlay-unkl"
+                        class="flex items-center justify-center w-14 h-14 rounded-full bg-orange-500/70 backdrop-blur-xs {% if 'UNKL' not in (sighting.statuses or []) %}hidden{% endif %}"
+                    >
+                        {{ heroicon_outline("question-mark-circle", class="w-8
+                        h-8 text-white", stroke_width=2) }}
+                    </div>
+                    <div
+                        id="modal-overlay-info"
+                        class="flex items-center justify-center w-14 h-14 rounded-full bg-yellow-500/70 backdrop-blur-xs {% if 'INFO' not in (sighting.statuses or []) %}hidden{% endif %}"
+                    >
+                        {{ heroicon_outline("chat-bubble-left-ellipsis",
+                        class="w-8 h-8 text-white", stroke_width=2) }}
+                    </div>
+                </div>
             </a>
-            <span class="inline-flex gap-1 items-center min-w-0">
-              <span class="font-mono text-[10px] text-gray-400 truncate" title="{{ reporter.user_id }}">{{ reporter.user_id }}</span>
-              <button data-copy-value="{{ reporter.user_id }}"
-                      class="btn-copy p-0.5 text-gray-400 rounded transition-colors hover:text-gray-600 hover:bg-gray-100 shrink-0"
-                      title="User ID kopieren"
-                      aria-label="User ID kopieren">
-                {{ heroicon_outline("clipboard-document", class="w-3 h-3", stroke_width=2) }}
-              </button>
-            </span>
-          </span>
-          {% if finder and finder.id != reporter.id %}
-            <span class="text-sm text-gray-500">Finder</span>
-            <span class="text-sm text-gray-800">{{ finder.user_name }}</span>
-          {% endif %}
-          {% if reporter.user_kontakt %}
-            <span class="text-sm text-gray-500">Mail</span>
-            <span class="inline-flex items-center gap-1 min-w-0">
-              <span class="text-sm text-gray-800 truncate">{{ reporter.user_kontakt }}</span>
-              <button data-copy-value="{{ reporter.user_kontakt }}"
-                      class="btn-copy p-0.5 text-gray-400 rounded transition-colors hover:text-gray-600 hover:bg-gray-100 shrink-0"
-                      title="E-Mail kopieren"
-                      aria-label="E-Mail kopieren">
-                {{ heroicon_outline("clipboard-document", class="w-3.5 h-3.5", stroke_width=2) }}
-              </button>
-            </span>
-          {% endif %}
-          <span class="text-sm text-gray-500">Anzahl Meldungen</span>
-          <span class="text-sm text-gray-800 tabular-nums">{{ user_report_count }}</span>
-          {% if feedback %}
-            <span class="text-sm text-gray-500">Feedback</span>
-            <span class="text-sm text-gray-700">
-              <span class="font-medium">{{ feedback.feedback_source_display }}</span>{% if feedback.source_detail %} <span class="text-gray-500">— {{ feedback.source_detail }}</span>{% endif %}
-            </span>
-          {% endif %}
         </div>
-      </div>
-      {# Photo — letterboxed so the whole specimen is visible; click = full size #}
-      <a href="{{ url_for('admin.report_img', filename=fundort.ablage) }}"
-         data-lightbox="sighting-detail"
-         aria-label="Meldungsfoto in Originalgröße öffnen"
-         class="group relative block overflow-hidden rounded-lg bg-gray-50 outline outline-1 -outline-offset-1 outline-black/5 cursor-zoom-in h-48 md:grow md:h-auto md:min-h-0 transition-[outline-color] hover:outline-black/15 focus-visible:outline-2 focus-visible:outline-green-500 touch-manipulation">
-        {# Blurred backdrop fills the letterbox bars for portrait photos #}
-        <img loading="lazy"
-             aria-hidden="true"
-             alt=""
-             class="absolute inset-0 object-cover w-full h-full scale-110 opacity-70 blur-2xl"
-             src="{{ url_for('admin.report_img', filename=fundort.ablage) }}">
-        <img loading="lazy"
-             class="object-contain relative w-full h-full"
-             src="{{ url_for('admin.report_img', filename=fundort.ablage) }}"
-             alt="Meldungsfoto">
-        {# Full-size affordance — appears on hover/focus #}
-        <span class="absolute top-2 left-2 inline-flex items-center gap-1 px-2 py-1 text-[11px] font-medium text-white rounded-md pointer-events-none bg-black/55 opacity-100 transition-opacity duration-150 md:opacity-0 md:group-hover:opacity-100 md:group-focus-visible:opacity-100 motion-reduce:transition-none">
-          {{ heroicon_outline("magnifying-glass-plus", class="w-3.5 h-3.5", stroke_width=2) }}
-          Originalgröße
-        </span>
-        {# Flag overlay — toggled live via JS from footer checkboxes #}
-        <div id="modal-flag-overlay"
-             class="absolute inset-0 flex items-center justify-center gap-3 pointer-events-none {% if 'UNKL' not in (sighting.statuses or []) and 'INFO' not in (sighting.statuses or []) %}hidden{% endif %}">
-          <div id="modal-overlay-unkl"
-               class="flex items-center justify-center w-14 h-14 rounded-full bg-orange-500/70 backdrop-blur-xs {% if 'UNKL' not in (sighting.statuses or []) %}hidden{% endif %}">
-            {{ heroicon_outline("question-mark-circle", class="w-8 h-8 text-white", stroke_width=2) }}
-          </div>
-          <div id="modal-overlay-info"
-               class="flex items-center justify-center w-14 h-14 rounded-full bg-yellow-500/70 backdrop-blur-xs {% if 'INFO' not in (sighting.statuses or []) %}hidden{% endif %}">
-            {{ heroicon_outline("chat-bubble-left-ellipsis", class="w-8 h-8 text-white", stroke_width=2) }}
-          </div>
+        {# ── Right column: counts + comments ── #}
+        <div class="flex flex-col gap-3 min-h-0">
+            {# Specimen counts. Männchen/Weibchen/Nymphe/Oothek/Andere feed the
+            auto-sum; Anzahl is derived + read-only. #}
+            <div>
+                <h4 class="modal-section-heading">Artbestimmung</h4>
+                <div data-sum-group class="space-y-1.5">
+                    {% set sum_rows = [('Männchen', sighting.art_m),
+                    ('Weibchen', sighting.art_w), ('Nymphe', sighting.art_n),
+                    ('Oothek', sighting.art_o)] %} {% for label, count in
+                    sum_rows %}
+                    <div class="grid grid-cols-[1fr_5rem] items-center gap-3">
+                        <label
+                            for="cc-{{ label }}"
+                            class="text-sm text-gray-600"
+                            >{{ label }}</label
+                        >
+                        <input
+                            id="cc-{{ label }}"
+                            type="number"
+                            inputmode="numeric"
+                            min="0"
+                            name="new_count"
+                            value="{{ count }}"
+                            data-sum-input
+                            hx-post="{{ url_for('admin.change_mantis_count', id=sighting.id) }}"
+                            hx-trigger="change"
+                            hx-swap="none"
+                            hx-vals='{{ {"type": label}|tojson }}'
+                            class="w-full text-center tabular-nums input-field-admin {{ edit_ring }}"
+                            {{
+                            disabled
+                            }}
+                        />
+                    </div>
+                    {% endfor %}
+                    <div
+                        class="grid grid-cols-2 gap-3 pt-1.5 mt-0.5 border-t border-gray-100"
+                    >
+                        <div
+                            class="grid grid-cols-[1fr_auto] items-center gap-2"
+                        >
+                            <label for="cc-Andere" class="text-sm text-gray-600"
+                                >andere</label
+                            >
+                            <input
+                                id="cc-Andere"
+                                type="number"
+                                inputmode="numeric"
+                                min="0"
+                                name="new_count"
+                                value="{{ sighting.art_f }}"
+                                data-sum-input
+                                hx-post="{{ url_for('admin.change_mantis_count', id=sighting.id) }}"
+                                hx-trigger="change"
+                                hx-swap="none"
+                                hx-vals='{{ {"type": "Andere"}|tojson }}'
+                                class="w-20 text-center tabular-nums input-field-admin {{ edit_ring }}"
+                                {{
+                                disabled
+                                }}
+                            />
+                        </div>
+                        <div
+                            class="grid grid-cols-[1fr_auto] items-center gap-2"
+                        >
+                            <label
+                                for="cc-Anzahl"
+                                class="text-sm font-semibold text-gray-700"
+                                >Anzahl</label
+                            >
+                            <input
+                                id="cc-Anzahl"
+                                type="number"
+                                inputmode="numeric"
+                                min="0"
+                                name="new_count"
+                                value="{{ sighting.tiere }}"
+                                data-sum-output
+                                aria-label="Anzahl — automatische Summe"
+                                tabindex="-1"
+                                disabled
+                                hx-post="{{ url_for('admin.change_mantis_count', id=sighting.id) }}"
+                                hx-trigger="change"
+                                hx-swap="none"
+                                hx-vals='{{ {"type": "Anzahl"}|tojson }}'
+                                class="w-20 font-semibold text-center text-gray-800 rounded-md cursor-default bg-gray-100 hover:bg-gray-100 tabular-nums input-field-admin"
+                                title="Automatische Summe aus allen Kategorien"
+                            />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {# Quelldaten — collapsed by default to keep the review view tidy,
+            but editable here so the reviewer never has to leave the compact
+            layout. #}
+            <details class="group rounded-md border border-gray-200 shrink-0">
+                <summary
+                    class="flex gap-1.5 items-center px-2.5 py-1.5 text-xs font-medium text-gray-600 rounded-md cursor-pointer select-none list-none marker:content-none [&::-webkit-details-marker]:hidden hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500/40"
+                >
+                    {{ heroicon_outline("chevron-right", class="w-3.5 h-3.5
+                    text-gray-400 transition-transform group-open:rotate-90
+                    motion-reduce:transition-none", stroke_width=2) }}
+                    Quelldaten
+                </summary>
+                <div class="grid grid-cols-2 gap-2 px-2.5 pt-1 pb-2.5">
+                    <div>
+                        <label class="block mb-0.5 text-xs text-gray-500"
+                            >Fundortquelle</label
+                        >
+                        <input
+                            type="text"
+                            class="w-full input-field-admin {{ edit_ring }}"
+                            name="new_data"
+                            hx-post="{{ url_for('admin.change_mantis_meta_data', id=sighting.id) }}"
+                            hx-trigger="change"
+                            hx-swap="none"
+                            hx-vals='{"type": "fo_quelle"}'
+                            value="{{ sighting.fo_quelle or '' }}"
+                            {{
+                            disabled
+                            }}
+                        />
+                    </div>
+                    <div>
+                        <label class="block mb-0.5 text-xs text-gray-500"
+                            >Amt</label
+                        >
+                        <input
+                            type="text"
+                            class="w-full input-field-admin {{ edit_ring }}"
+                            name="new_data"
+                            hx-post="{{ url_for('admin.change_mantis_meta_data', id=sighting.id) }}"
+                            hx-trigger="change"
+                            hx-swap="none"
+                            hx-vals='{"type": "amt"}'
+                            value="{{ fundort.amt or '' }}"
+                            {{
+                            disabled
+                            }}
+                        />
+                    </div>
+                    <div>
+                        <label class="block mb-0.5 text-xs text-gray-500">
+                            Messtischblatt
+                            <a
+                                href="https://susudata.de/messtisch/tk25.html?lat={{ fundort.latitude }}&lng={{ fundort.longitude }}&zoom=15&marker=Fundort"
+                                target="_blank"
+                                class="ml-0.5 text-green-600 hover:text-green-700"
+                                title="Karte öffnen"
+                                >↗</a
+                            >
+                        </label>
+                        <input
+                            type="text"
+                            class="w-full input-field-admin {{ edit_ring }}"
+                            name="new_data"
+                            hx-post="{{ url_for('admin.change_mantis_meta_data', id=sighting.id) }}"
+                            hx-trigger="change"
+                            hx-swap="none"
+                            hx-vals='{"type": "mtb"}'
+                            value="{{ fundort.mtb or '' }}"
+                            {{
+                            disabled
+                            }}
+                        />
+                    </div>
+                    <div>
+                        <label class="block mb-0.5 text-xs text-gray-500"
+                            >Beleg</label
+                        >
+                        <input
+                            type="text"
+                            class="w-full input-field-admin"
+                            value="{{ sighting.fo_beleg or '' }}"
+                            disabled
+                        />
+                    </div>
+                </div>
+            </details>
+            {# Melder comment (read-only) #}
+            <div class="flex flex-col grow min-h-0 basis-1/2">
+                <h4 class="modal-section-heading shrink-0">
+                    Kommentar (Melder)
+                </h4>
+                <div
+                    class="overflow-auto grow min-h-24 p-2.5 text-sm whitespace-pre-wrap text-gray-700 bg-gray-50 rounded-md border border-gray-200"
+                    hx-disable
+                >
+                    {{ sighting.anm_melder or '' }}
+                </div>
+            </div>
+            {# Reviewer comment (editable) #}
+            <div class="flex flex-col grow min-h-0 basis-1/2">
+                <h4 class="modal-section-heading shrink-0">
+                    Kommentar (Reviewer)
+                </h4>
+                <textarea
+                    class="grow min-h-24 p-2.5 text-sm rounded-md border border-gray-200 outline-hidden resize-none input-field-admin {{ edit_ring }}"
+                    name="new_data"
+                    hx-post="{{ url_for('admin.change_mantis_meta_data', id=sighting.id) }}"
+                    hx-trigger="change"
+                    hx-swap="none"
+                    hx-vals='{"type": "anm_bearbeiter"}'
+                    placeholder="Notiz zur Prüfung …"
+                    {%
+                    if
+                    editable
+                    %}title="Dieses Feld kann jetzt bearbeitet werden"
+                    {%
+                    endif
+                    %}
+                    {{
+                    disabled
+                    }}
+                >
+{{ sighting.anm_bearbeiter or '' }}</textarea
+                >
+            </div>
         </div>
-      </a>
     </div>
-    {# ── Right column: counts + comments ── #}
-    <div class="flex flex-col gap-3 min-h-0">
-      {# Specimen counts. Männchen/Weibchen/Nymphe/Andere feed the auto-sum;
-         Oothek (egg case) is excluded. Anzahl is derived + read-only. #}
-      <div>
-        <h4 class="modal-section-heading">Artbestimmung</h4>
-        <div data-sum-group class="space-y-1.5">
-          {% set sum_rows = [('Männchen', sighting.art_m), ('Weibchen', sighting.art_w), ('Nymphe', sighting.art_n), ('Oothek', sighting.art_o)] %}
-          {% for label, count in sum_rows %}
-            <div class="grid grid-cols-[1fr_5rem] items-center gap-3">
-              <label for="cc-{{ label }}" class="text-sm text-gray-600">{{ label }}</label>
-              <input id="cc-{{ label }}"
-                     type="number"
-                     inputmode="numeric"
-                     min="0"
-                     name="new_count"
-                     value="{{ count }}"
-                     {% if label != 'Oothek' %}data-sum-input{% endif %}
-                     hx-post="{{ url_for('admin.change_mantis_count', id=sighting.id) }}"
-                     hx-trigger="change"
-                     hx-swap="none"
-                     hx-vals='{{ {"type": label}|tojson }}'
-                     class="w-full text-center tabular-nums input-field-admin {{ edit_ring }}"
-                     {{ disabled }}>
-            </div>
-          {% endfor %}
-          <div class="grid grid-cols-2 gap-3 pt-1.5 mt-0.5 border-t border-gray-100">
-            <div class="grid grid-cols-[1fr_auto] items-center gap-2">
-              <label for="cc-Andere" class="text-sm text-gray-600">andere</label>
-              <input id="cc-Andere"
-                     type="number"
-                     inputmode="numeric"
-                     min="0"
-                     name="new_count"
-                     value="{{ sighting.art_f }}"
-                     data-sum-input
-                     hx-post="{{ url_for('admin.change_mantis_count', id=sighting.id) }}"
-                     hx-trigger="change"
-                     hx-swap="none"
-                     hx-vals='{{ {"type": "Andere"}|tojson }}'
-                     class="w-20 text-center tabular-nums input-field-admin {{ edit_ring }}"
-                     {{ disabled }}>
-            </div>
-            <div class="grid grid-cols-[1fr_auto] items-center gap-2">
-              <label for="cc-Anzahl" class="text-sm font-semibold text-gray-700">Anzahl</label>
-              <input id="cc-Anzahl"
-                     type="number"
-                     inputmode="numeric"
-                     min="0"
-                     name="new_count"
-                     value="{{ sighting.tiere }}"
-                     data-sum-output
-                     readonly
-                     aria-label="Anzahl — automatische Summe ohne Oothek"
-                     tabindex="-1"
-                     hx-post="{{ url_for('admin.change_mantis_count', id=sighting.id) }}"
-                     hx-trigger="change"
-                     hx-swap="none"
-                     hx-vals='{{ {"type": "Anzahl"}|tojson }}'
-                     class="w-20 font-semibold text-center text-gray-800 rounded-md cursor-default bg-gray-100 hover:bg-gray-100 tabular-nums input-field-admin"
-                     title="Automatische Summe aus Männchen, Weibchen, Nymphe und andere (ohne Oothek)"
-                     {{ disabled }}>
-            </div>
-          </div>
-        </div>
-        <p class="mt-1 text-[11px] text-right text-gray-400">Anzahl = automatische Summe (ohne Oothek)</p>
-      </div>
-      {# Quelldaten — collapsed by default to keep the review view tidy, but
-         editable here so the reviewer never has to leave the compact layout. #}
-      <details class="group rounded-md border border-gray-200 shrink-0">
-        <summary class="flex gap-1.5 items-center px-2.5 py-1.5 text-xs font-medium text-gray-600 rounded-md cursor-pointer select-none list-none marker:content-none [&::-webkit-details-marker]:hidden hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500/40">
-          {{ heroicon_outline("chevron-right", class="w-3.5 h-3.5 text-gray-400 transition-transform group-open:rotate-90 motion-reduce:transition-none", stroke_width=2) }}
-          Quelldaten
-        </summary>
-        <div class="grid grid-cols-2 gap-2 px-2.5 pt-1 pb-2.5">
-          <div>
-            <label class="block mb-0.5 text-xs text-gray-500">Fundortquelle</label>
-            <input type="text"
-                   class="w-full input-field-admin {{ edit_ring }}"
-                   name="new_data"
-                   hx-post="{{ url_for('admin.change_mantis_meta_data', id=sighting.id) }}"
-                   hx-trigger="change"
-                   hx-swap="none"
-                   hx-vals='{"type": "fo_quelle"}'
-                   value="{{ sighting.fo_quelle or '' }}"
-                   {{ disabled }}>
-          </div>
-          <div>
-            <label class="block mb-0.5 text-xs text-gray-500">Amt</label>
-            <input type="text"
-                   class="w-full input-field-admin {{ edit_ring }}"
-                   name="new_data"
-                   hx-post="{{ url_for('admin.change_mantis_meta_data', id=sighting.id) }}"
-                   hx-trigger="change"
-                   hx-swap="none"
-                   hx-vals='{"type": "amt"}'
-                   value="{{ fundort.amt or '' }}"
-                   {{ disabled }}>
-          </div>
-          <div>
-            <label class="block mb-0.5 text-xs text-gray-500">
-              Messtischblatt
-              <a href="https://susudata.de/messtisch/tk25.html?lat={{ fundort.latitude }}&lng={{ fundort.longitude }}&zoom=15&marker=Fundort"
-                 target="_blank"
-                 class="ml-0.5 text-green-600 hover:text-green-700"
-                 title="Karte öffnen">↗</a>
-            </label>
-            <input type="text"
-                   class="w-full input-field-admin {{ edit_ring }}"
-                   name="new_data"
-                   hx-post="{{ url_for('admin.change_mantis_meta_data', id=sighting.id) }}"
-                   hx-trigger="change"
-                   hx-swap="none"
-                   hx-vals='{"type": "mtb"}'
-                   value="{{ fundort.mtb or '' }}"
-                   {{ disabled }}>
-          </div>
-          <div>
-            <label class="block mb-0.5 text-xs text-gray-500">Beleg</label>
-            <input type="text"
-                   class="w-full input-field-admin"
-                   value="{{ sighting.fo_beleg or '' }}"
-                   disabled>
-          </div>
-        </div>
-      </details>
-      {# Melder comment (read-only) #}
-      <div class="flex flex-col grow min-h-0 basis-1/2">
-        <h4 class="modal-section-heading shrink-0">Kommentar (Melder)</h4>
-        <div class="overflow-auto grow min-h-24 p-2.5 text-sm whitespace-pre-wrap text-gray-700 bg-gray-50 rounded-md border border-gray-200"
-             hx-disable>{{ sighting.anm_melder or '' }}</div>
-      </div>
-      {# Reviewer comment (editable) #}
-      <div class="flex flex-col grow min-h-0 basis-1/2">
-        <h4 class="modal-section-heading shrink-0">Kommentar (Reviewer)</h4>
-        <textarea class="grow min-h-24 p-2.5 text-sm rounded-md border border-gray-200 outline-hidden resize-none input-field-admin {{ edit_ring }}"
-                  name="new_data"
-                  hx-post="{{ url_for('admin.change_mantis_meta_data', id=sighting.id) }}"
-                  hx-trigger="change"
-                  hx-swap="none"
-                  hx-vals='{"type": "anm_bearbeiter"}'
-                  placeholder="Notiz zur Prüfung …"
-                  {% if editable %}title="Dieses Feld kann jetzt bearbeitet werden"{% endif %}
-                  {{ disabled }}>{{ sighting.anm_bearbeiter or '' }}</textarea>
-      </div>
-    </div>
-  </div>
 </div>
