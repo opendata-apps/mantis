@@ -233,7 +233,7 @@ sighting.reporter_link.finder %}
                             />
                         </div>
                         <div
-                            class="grid grid-cols-[1fr_auto] items-center gap-2"
+                            class="grid grid-cols-[1fr_auto] items-center gap-2 pointer-events-none"
                         >
                             <label
                                 for="cc-Anzahl"
@@ -250,12 +250,13 @@ sighting.reporter_link.finder %}
                                 data-sum-output
                                 aria-label="Anzahl — automatische Summe"
                                 tabindex="-1"
-                                disabled
+                                readonly
+                                aria-disabled="true"
                                 hx-post="{{ url_for('admin.change_mantis_count', id=sighting.id) }}"
                                 hx-trigger="change"
                                 hx-swap="none"
                                 hx-vals='{{ {"type": "Anzahl"}|tojson }}'
-                                class="w-20 font-semibold text-center text-gray-800 rounded-md cursor-default bg-gray-100 hover:bg-gray-100 tabular-nums input-field-admin"
+                                class="w-20 font-semibold text-center text-gray-800 rounded-md cursor-default bg-gray-100 hover:bg-gray-100 tabular-nums input-field-admin pointer-events-none"
                                 title="Automatische Summe aus allen Kategorien"
                             />
                         </div>
