@@ -356,6 +356,12 @@ def change_mantis_meta_data(id):
     new_data = request.form.get("new_data")
     fieldname = request.form.get("type")
 
+    # Normalize free-text at the boundary: WTForms is bypassed on this path, so
+    # strip here to keep stored values (e.g. anm_bearbeiter) and the Excel export
+    # free of stray leading/trailing whitespace.
+    if isinstance(new_data, str):
+        new_data = new_data.strip()
+
     if not new_data or not fieldname:
         return jsonify({"error": "Missing data in request"}), 400
 

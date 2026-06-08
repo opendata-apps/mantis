@@ -68,8 +68,28 @@ def validate_zip_code(form, field):
         raise ValidationError("Postleitzahl muss genau 5 Ziffern haben.")
 
 
+def _strip(value):
+    """Trim surrounding whitespace from string input, leaving non-string field
+    data (dates, files, bools) untouched. WTForms applies filters before
+    validation, so this also lets the Email validator accept pasted addresses
+    with a stray trailing space/NBSP."""
+    return value.strip() if isinstance(value, str) else value
+
+
+class StrippedForm(FlaskForm):
+    """Base form that strips whitespace on every field, matching Django's
+    CharField(strip=True) default. WTForms does not strip by default."""
+
+    class Meta:
+        def bind_field(self, form, unbound_field, options):
+            filters = list(unbound_field.kwargs.get("filters", []))
+            if _strip not in filters:
+                filters.append(_strip)
+            return unbound_field.bind(form=form, filters=filters, **options)
+
+
 # Define WTForms form class for the sighting report
-class MantisSightingForm(FlaskForm):
+class MantisSightingForm(StrippedForm):
     # Observer Information
     report_first_name = StringField(
         "Vorname *",

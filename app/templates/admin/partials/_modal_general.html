@@ -358,9 +358,7 @@ sighting.reporter_link.finder %}
                 <div
                     class="overflow-auto grow min-h-24 p-2.5 text-sm whitespace-pre-wrap text-gray-700 bg-gray-50 rounded-md border border-gray-200"
                     hx-disable
-                >
-                    {{ sighting.anm_melder or '' }}
-                </div>
+                >{{- (sighting.anm_melder or '') | trim -}}</div>
             </div>
             {# Reviewer comment (editable) #}
             <div class="flex flex-col grow min-h-0 basis-1/2">
