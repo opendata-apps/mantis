@@ -4,6 +4,9 @@ Revision ID: 1aa77659662a
 Revises: 09020629e539
 Create Date: 2025-04-13 20:40:12.940173
 
+
+Constraint names are pinned to the PostgreSQL defaults this migration
+originally produced (see 09020629e539 for rationale).
 """
 
 from alembic import op
@@ -23,8 +26,8 @@ def upgrade():
         "feedback_types",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("name", sa.String(length=100), nullable=False),
-        sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint("name"),
+        sa.PrimaryKeyConstraint("id", name="feedback_types_pkey"),
+        sa.UniqueConstraint("name", name="feedback_types_name_key"),
     )
     op.create_table(
         "user_feedback",
@@ -35,13 +38,15 @@ def upgrade():
         sa.ForeignKeyConstraint(
             ["feedback_type_id"],
             ["feedback_types.id"],
+            name="user_feedback_feedback_type_id_fkey",
         ),
         sa.ForeignKeyConstraint(
             ["user_id"],
             ["users.id"],
+            name="user_feedback_user_id_fkey",
         ),
-        sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint("user_id"),
+        sa.PrimaryKeyConstraint("id", name="user_feedback_pkey"),
+        sa.UniqueConstraint("user_id", name="user_feedback_user_id_key"),
     )
     # ### end Alembic commands ###
 

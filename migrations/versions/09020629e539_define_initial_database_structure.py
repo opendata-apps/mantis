@@ -4,6 +4,11 @@ Revision ID: 09020629e539
 Revises:
 Create Date: 2025-02-23 20:34:59.652603
 
+
+Constraint names are pinned to the PostgreSQL defaults this migration
+originally produced, so fresh databases match existing ones now that the
+model MetaData carries a naming_convention (which would otherwise rename
+unnamed constraints here retroactively).
 """
 
 from alembic import op
@@ -26,13 +31,13 @@ def upgrade():
         sa.Column(
             "properties", postgresql.JSONB(astext_type=sa.Text()), nullable=False
         ),
-        sa.PrimaryKeyConstraint("ags"),
+        sa.PrimaryKeyConstraint("ags", name="aemter_pkey"),
     )
     op.create_table(
         "beschreibung",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("beschreibung", sa.String(length=45), nullable=False),
-        sa.PrimaryKeyConstraint("id"),
+        sa.PrimaryKeyConstraint("id", name="beschreibung_pkey"),
     )
     op.create_table(
         "users",
@@ -41,7 +46,7 @@ def upgrade():
         sa.Column("user_name", sa.String(length=45), nullable=False),
         sa.Column("user_rolle", sa.String(length=1), nullable=False),
         sa.Column("user_kontakt", sa.String(length=45), nullable=True),
-        sa.PrimaryKeyConstraint("id"),
+        sa.PrimaryKeyConstraint("id", name="users_pkey"),
     )
     op.create_table(
         "fundorte",
@@ -60,8 +65,9 @@ def upgrade():
         sa.ForeignKeyConstraint(
             ["beschreibung"],
             ["beschreibung.id"],
+            name="fundorte_beschreibung_fkey",
         ),
-        sa.PrimaryKeyConstraint("id"),
+        sa.PrimaryKeyConstraint("id", name="fundorte_pkey"),
     )
     op.create_table(
         "meldungen",
@@ -86,8 +92,9 @@ def upgrade():
         sa.ForeignKeyConstraint(
             ["fo_zuordnung"],
             ["fundorte.id"],
+            name="meldungen_fo_zuordnung_fkey",
         ),
-        sa.PrimaryKeyConstraint("id"),
+        sa.PrimaryKeyConstraint("id", name="meldungen_pkey"),
     )
     op.create_table(
         "melduser",
@@ -98,16 +105,19 @@ def upgrade():
         sa.ForeignKeyConstraint(
             ["id_finder"],
             ["users.id"],
+            name="melduser_id_finder_fkey",
         ),
         sa.ForeignKeyConstraint(
             ["id_meldung"],
             ["meldungen.id"],
+            name="melduser_id_meldung_fkey",
         ),
         sa.ForeignKeyConstraint(
             ["id_user"],
             ["users.id"],
+            name="melduser_id_user_fkey",
         ),
-        sa.PrimaryKeyConstraint("id"),
+        sa.PrimaryKeyConstraint("id", name="melduser_pkey"),
     )
     ### end Alembic commands ###
 

@@ -6,6 +6,8 @@ from flask import Flask, jsonify, render_template, request
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
+from sqlalchemy import MetaData
+from sqlalchemy.orm import DeclarativeBase
 from flask_mail import Mail
 from flask_favicon import FlaskFavicon
 from werkzeug.exceptions import HTTPException
@@ -14,8 +16,25 @@ from .config import Config
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
+# Deterministic constraint names so migrations can DROP/ALTER by name.
+# https://alembic.sqlalchemy.org/en/latest/naming.html
+NAMING_CONVENTION = {
+    "ix": "ix_%(column_0_label)s",
+    "uq": "uq_%(table_name)s_%(column_0_name)s",
+    "ck": "ck_%(table_name)s_%(constraint_name)s",
+    "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+    "pk": "pk_%(table_name)s",
+}
+
+
+class Base(DeclarativeBase):
+    # Flask-SQLAlchemy 3.1 ignores the SQLAlchemy(metadata=...) kwarg for
+    # 2.x-style bases — the convention must live on the Base class itself.
+    metadata = MetaData(naming_convention=NAMING_CONVENTION)
+
+
 csrf = CSRFProtect()
-db = SQLAlchemy()
+db = SQLAlchemy(model_class=Base)
 migrate = Migrate()
 limiter = Limiter(
     key_func=get_remote_address,
