@@ -1,9 +1,26 @@
-from sqlalchemy import CheckConstraint, Index
+from datetime import date, datetime
+from typing import TYPE_CHECKING
+
+from sqlalchemy import (
+    CheckConstraint,
+    Date,
+    DateTime,
+    ForeignKey,
+    Identity,
+    Index,
+    String,
+    func,
+)
 from sqlalchemy.dialects.postgresql import ARRAY, TSVECTOR
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app import db
 from app.database.report_status import ReportStatus
+
+if TYPE_CHECKING:
+    from app.database.fundorte import TblFundorte
+    from app.database.meldung_user import TblMeldungUser
+    from app.database.users import TblUsers
 
 
 class TblMeldungen(db.Model):
@@ -23,8 +40,6 @@ class TblMeldungen(db.Model):
 
     __tablename__ = "meldungen"
 
-    # Define indexes via __table_args__
-    # Per SQLAlchemy docs: https://docs.sqlalchemy.org/en/20/orm/declarative_tables.html
     __table_args__ = (
         # GIN index for array containment queries: statuses @> '{APPR}'
         Index("ix_meldungen_statuses_gin", "statuses", postgresql_using="gin"),
@@ -53,79 +68,69 @@ class TblMeldungen(db.Model):
         ),
     )
 
-    id = db.Column(db.Integer, db.Identity(), primary_key=True)
+    id: Mapped[int] = mapped_column(Identity(), primary_key=True)
 
     # Multi-select statuses array
     # Valid combinations enforced by ReportStatus.validate_combination()
-    statuses = db.Column(
-        ARRAY(db.String(5)),
-        nullable=False,
+    statuses: Mapped[list[str]] = mapped_column(
+        ARRAY(String(5)),
         default=[ReportStatus.OPEN.value],
         server_default="{OPEN}",
     )
-    dat_fund_von = db.Column(db.Date, nullable=False)
-    dat_fund_bis = db.Column(db.Date, nullable=True)
-    dat_meld = db.Column(db.Date, nullable=True)
-    dat_bear = db.Column(db.Date, nullable=True)  # Keep for approval date tracking
-    bearb_id = db.Column(
-        db.String(40),
-        db.ForeignKey("users.user_id", ondelete="SET NULL"),
-        nullable=True,
+    dat_fund_von: Mapped[date] = mapped_column(Date)
+    dat_fund_bis: Mapped[date | None] = mapped_column(Date)
+    dat_meld: Mapped[date | None] = mapped_column(Date)
+    # Keep for approval date tracking
+    dat_bear: Mapped[date | None] = mapped_column(Date)
+    bearb_id: Mapped[str | None] = mapped_column(
+        String(40), ForeignKey("users.user_id", ondelete="SET NULL")
     )
-    tiere = db.Column(db.Integer, nullable=True)
-    art_m = db.Column(db.Integer, nullable=True)
-    art_w = db.Column(db.Integer, nullable=True)
-    art_n = db.Column(db.Integer, nullable=True)
-    art_o = db.Column(db.Integer, nullable=True)
-    art_f = db.Column(db.Integer, nullable=True)
+    tiere: Mapped[int | None]
+    art_m: Mapped[int | None]
+    art_w: Mapped[int | None]
+    art_n: Mapped[int | None]
+    art_o: Mapped[int | None]
+    art_f: Mapped[int | None]
 
     # Note: fo_zuordnung FK does NOT get auto-indexed by PostgreSQL
-    fo_zuordnung = db.Column(db.Integer, db.ForeignKey("fundorte.id"), nullable=True)
-    fo_quelle = db.Column(db.String(1), nullable=True)
-    fo_beleg = db.Column(db.String(1), nullable=True)
-    anm_melder = db.Column(db.String(500), nullable=True)
-    anm_bearbeiter = db.Column(db.String(500), nullable=True)
+    fo_zuordnung: Mapped[int | None] = mapped_column(ForeignKey("fundorte.id"))
+    fo_quelle: Mapped[str | None] = mapped_column(String(1))
+    fo_beleg: Mapped[str | None] = mapped_column(String(1))
+    anm_melder: Mapped[str | None] = mapped_column(String(500))
+    anm_bearbeiter: Mapped[str | None] = mapped_column(String(500))
 
     # Full-text search vector, maintained by PostgreSQL triggers across
     # meldungen, fundorte, beschreibung, melduser, and users tables.
     # Weighted: A=location, B=people, C=details, D=notes
-    search_vector = db.Column(TSVECTOR)
+    search_vector: Mapped[str | None] = mapped_column(TSVECTOR)
 
     # Audit timestamps: when the row was inserted / last modified via the
     # ORM (bearb_id records who; raw SQL bypasses onupdate).
-    created_at = db.Column(
-        db.DateTime(timezone=True), nullable=False, server_default=db.func.now()
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
     )
-    updated_at = db.Column(
-        db.DateTime(timezone=True),
-        nullable=False,
-        server_default=db.func.now(),
-        onupdate=db.func.now(),
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
     # --- Relationships ---
     # Many-to-one: each report links to one location
-    fundort = relationship(
-        "TblFundorte",
+    fundort: Mapped["TblFundorte | None"] = relationship(
         foreign_keys=[fo_zuordnung],
         back_populates="meldungen",
         lazy="select",
     )
 
     # One-to-one: each report has one melduser link row
-    reporter_link = relationship(
-        "TblMeldungUser",
+    reporter_link: Mapped["TblMeldungUser | None"] = relationship(
         back_populates="meldung",
-        uselist=False,
         lazy="select",
     )
 
     # Many-to-one: approver (reviewer who last touched this report)
     # Safe now that users.user_id has a UNIQUE constraint.
-    approver = relationship(
-        "TblUsers",
+    approver: Mapped["TblUsers | None"] = relationship(
         foreign_keys=[bearb_id],
-        uselist=False,
         lazy="select",
     )
 
