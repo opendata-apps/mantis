@@ -179,16 +179,24 @@ def melden(usrid=None):
                     user_feedback.source_detail = form.feedback_detail.data
                     db.session.add(user_feedback)
 
-                db_image_path = None
-                if form.photo.data:
-                    db_image_path = _process_uploaded_image(
-                        form.photo.data,
-                        form.sighting_date.data,
-                        form.fund_city.data,
-                        reporter.user_id,
+                # Photo is FileRequired — fundorte.ablage is NOT NULL
+                if not form.photo.data:
+                    raise RuntimeError(
+                        "Expected photo after successful form validation"
                     )
+                db_image_path = _process_uploaded_image(
+                    form.photo.data,
+                    form.sighting_date.data,
+                    form.fund_city.data,
+                    reporter.user_id,
+                )
 
                 lat, lon = form.latitude.data, form.longitude.data
+                sighting_date = form.sighting_date.data
+                if lat is None or lon is None or sighting_date is None:
+                    raise RuntimeError(
+                        "Expected coordinates and date after successful form validation"
+                    )
                 spatial_fields = calculate_spatial_fields(lat, lon)
 
                 location_description_data = form.location_description.data
@@ -217,11 +225,11 @@ def melden(usrid=None):
 
                 gender_fields = _set_gender_fields(form.gender.data)
                 meldung = TblMeldungen()
-                meldung.dat_fund_von = form.sighting_date.data
+                meldung.dat_fund_von = sighting_date
                 meldung.dat_meld = datetime.now()
                 meldung.fo_zuordnung = fundort.id
                 meldung.fo_quelle = "F"
-                meldung.tiere = "1"
+                meldung.tiere = 1
                 meldung.anm_melder = form.description.data
 
                 for field, value in gender_fields.items():
