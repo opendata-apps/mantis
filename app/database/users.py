@@ -23,6 +23,18 @@ class TblUsers(db.Model):
     # Note: user_kontakt is NOT indexed - only used with %text% ILIKE which cannot use B-tree
     user_kontakt = db.Column(db.String(45), nullable=True)
 
+    # Audit timestamps: when the row was inserted / last modified via the
+    # ORM (bearb_id records who; raw SQL bypasses onupdate).
+    created_at = db.Column(
+        db.DateTime(timezone=True), nullable=False, server_default=db.func.now()
+    )
+    updated_at = db.Column(
+        db.DateTime(timezone=True),
+        nullable=False,
+        server_default=db.func.now(),
+        onupdate=db.func.now(),
+    )
+
     # Relationship to the feedback source
     feedback_source = relationship(
         "TblUserFeedback",
