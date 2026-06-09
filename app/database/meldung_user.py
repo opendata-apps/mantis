@@ -1,7 +1,13 @@
-from sqlalchemy import Index
-from sqlalchemy.orm import relationship
+from typing import TYPE_CHECKING
+
+from sqlalchemy import ForeignKey, Identity, Index
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app import db
+
+if TYPE_CHECKING:
+    from app.database.fundmeldungen import TblMeldungen
+    from app.database.users import TblUsers
 
 
 class TblMeldungUser(db.Model):
@@ -24,41 +30,31 @@ class TblMeldungUser(db.Model):
     # Queries join: meldungen.id -> melduser.id_meldung -> melduser.id_user -> users.id
     __table_args__ = (Index("ix_melduser_id_meldung_id_user", "id_meldung", "id_user"),)
 
-    id = db.Column(db.Integer, db.Identity(), primary_key=True)
+    id: Mapped[int] = mapped_column(Identity(), primary_key=True)
     # FK to meldungen - used in every JOIN operation.
     # UNIQUE enforces the 1:1 invariant: one melduser row per meldung.
-    id_meldung = db.Column(
-        db.Integer,
-        db.ForeignKey("meldungen.id", ondelete="CASCADE"),
-        unique=True,
-        nullable=False,
+    id_meldung: Mapped[int] = mapped_column(
+        ForeignKey("meldungen.id", ondelete="CASCADE"), unique=True
     )
     # FK to users - used in every JOIN operation
-    id_user = db.Column(
-        db.Integer, db.ForeignKey("users.id"), unique=False, nullable=False
-    )
+    id_user: Mapped[int] = mapped_column(ForeignKey("users.id"))
     # FK to finder (optional) - not frequently queried, no index needed
-    id_finder = db.Column(
-        db.Integer, db.ForeignKey("users.id"), unique=False, nullable=True
-    )
+    id_finder: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
 
     # --- Relationships ---
-    meldung = relationship(
-        "TblMeldungen",
+    meldung: Mapped["TblMeldungen"] = relationship(
         foreign_keys=[id_meldung],
         back_populates="reporter_link",
         lazy="select",
     )
 
-    reporter = relationship(
-        "TblUsers",
+    reporter: Mapped["TblUsers"] = relationship(
         foreign_keys=[id_user],
         back_populates="reported_links",
         lazy="select",
     )
 
-    finder = relationship(
-        "TblUsers",
+    finder: Mapped["TblUsers | None"] = relationship(
         foreign_keys=[id_finder],
         back_populates="found_links",
         lazy="select",
