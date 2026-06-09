@@ -203,7 +203,7 @@ def _load_sighting_for_render(
     meldung = _load_sighting(report_id)
     if not meldung:
         return None, None
-    return meldung, meldung.reporter_link.reporter
+    return meldung, meldung.reporter_link.reporter if meldung.reporter_link else None
 
 
 def _matches_filter_status(sighting: TblMeldungen, filter_status: str) -> bool:
@@ -573,7 +573,7 @@ def toggle_approve_sighting(id):
     # _load_sighting() populates relationships needed for the email payload.
     if current_app.config.get("REVIEWERMAIL", False) and sighting.is_approved:
         meldung = _load_sighting(id)
-        if meldung:
+        if meldung and meldung.fundort and meldung.reporter_link:
             fundort = meldung.fundort
             user = meldung.reporter_link.reporter
             dbdata = {}
