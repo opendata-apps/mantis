@@ -1,10 +1,9 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 from io import BytesIO
 import os
 import tempfile
 import xlsxwriter
 from app import db
-import app.database.alldata as ad
 from app.database.models import (
     TblFundortBeschreibung,
     TblFundorte,
@@ -84,22 +83,6 @@ def _parse_german_date(value: Optional[str]) -> Optional[datetime]:
         return datetime.strptime(value, "%d.%m.%Y")
     except ValueError:
         return None
-
-
-def _maybe_refresh_alldata_view(*, force: bool = False) -> None:
-    """Refresh the alldata materialized view if stale (>1 min) or forced."""
-    if not force:
-        last_updated = session.get("last_updated_all_data_view")
-        # Handle timezone info that Flask session serialization may add
-        if last_updated and hasattr(last_updated, "tzinfo") and last_updated.tzinfo:
-            last_updated = last_updated.replace(tzinfo=None)
-        now = datetime.now()
-        if last_updated is not None and (now - last_updated <= timedelta(minutes=1)):
-            return
-    else:
-        now = datetime.now()
-    ad.refresh_materialized_view(db)
-    session["last_updated_all_data_view"] = now
 
 
 def recalculate_amt_mtb(fundort):
@@ -1240,7 +1223,6 @@ def get_filtered_query(
 @admin.route("/alldata")
 @reviewer_required
 def database_view():
-    _maybe_refresh_alldata_view()
     return render_template(
         "admin/database.html",
         user_id=g.current_user.user_id,
@@ -1260,8 +1242,6 @@ def get_table_data(table_name):
         search_type = request.args.get("search_type", "full_text")
         sort_column = request.args.get("sort_column", "meldungen_id")
         sort_direction = request.args.get("sort_direction", "asc")
-
-        _maybe_refresh_alldata_view()
 
         # Get the table object - we only work with TblAllData now
         table = TblAllData.__table__
@@ -1507,9 +1487,6 @@ def update_cell():
                         f"DB expects {image_update_result['old_path']}"
                     )
             raise
-
-        # Force-refresh materialized view after update
-        _maybe_refresh_alldata_view(force=True)
 
         return jsonify({"success": True})
 

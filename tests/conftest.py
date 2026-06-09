@@ -92,7 +92,6 @@ def _reset_schema():
 def _seed_test_data():
     """Populate test database with initial + demo data."""
     from app import db
-    import app.database.alldata as ad
     from app.demodata.filldb import insert_data_reports
     from app.database.populate import populate_all
     from tests.database.jsondata import data as jsondata
@@ -109,7 +108,6 @@ def _seed_test_data():
     session.commit()
     populate_all(session=session, vg5000_json_data=jsondata)
     insert_data_reports(session)
-    ad.create_materialized_view(db.engine, session=session)
 
 
 def _run_migrations():

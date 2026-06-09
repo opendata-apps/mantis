@@ -94,16 +94,6 @@ class TestAdminRoutes:
 
         session.commit()
 
-        # Ensure the materialized view reflects new rows used by admin APIs
-        try:
-            from app import db
-            import app.database.alldata as ad
-
-            ad.refresh_materialized_view(db)
-        except Exception:
-            # Tests that don't depend on the view can proceed; specific tests will fail if needed
-            pass
-
         yield
 
         # Cleanup happens automatically with session rollback
