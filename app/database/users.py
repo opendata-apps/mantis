@@ -13,7 +13,7 @@ class TblUsers(db.Model):
 
     __tablename__ = "users"
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, db.Identity(), primary_key=True)
     # UNIQUE on user_id — external-facing identifier (SHA-1 hash or reviewer code).
     # Enables uselist=False relationships (e.g. meldungen.approver) and serves
     # as FK target for meldungen.bearb_id.

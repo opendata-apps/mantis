@@ -6,7 +6,7 @@ from app import db
 class TblFundortBeschreibung(db.Model):
     __tablename__ = "beschreibung"
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, db.Identity(), primary_key=True)
     beschreibung = db.Column(db.String(45), nullable=False)
 
     fundorte = relationship(
