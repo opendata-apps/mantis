@@ -403,13 +403,13 @@ def change_mantis_meta_data(id):
                 return jsonify({"error": error_msg}), 400
             new_data = normalized_value
 
-        # plz is an integer column; reject non-numeric input at the boundary
-        # so the user sees a 400 instead of a generic DB error on commit.
+        # plz must be a 5-digit code (DB CHECK ck_fundorte_plz_format);
+        # reject at the boundary so the user sees a 400, not a DB error.
         if fieldname == "plz":
             plz_raw = new_data.strip()
-            if not plz_raw.isdigit() or int(plz_raw) > 99999:
+            if not (plz_raw.isdigit() and len(plz_raw) == 5):
                 return jsonify({"error": "Invalid ZIP code"}), 400
-            new_data = int(plz_raw)
+            new_data = plz_raw
 
         setattr(sighting_obj, field_to_update, new_data)
 
@@ -494,13 +494,10 @@ def update_address(id):
     land = (request.form.get("land") or "").strip()
 
     if plz_raw:
-        if not plz_raw.isdigit():
+        # German postal codes are exactly 5 digits (DB CHECK enforces this).
+        if not (plz_raw.isdigit() and len(plz_raw) == 5):
             return jsonify({"error": "Invalid ZIP code"}), 400
-        plz_value = int(plz_raw)
-        # German postal codes are max 5 digits; reject oversized numeric input.
-        if plz_value > 99999:
-            return jsonify({"error": "Invalid ZIP code"}), 400
-        fundort.plz = plz_value
+        fundort.plz = plz_raw
     if ort:
         fundort.ort = ort
     if strasse:

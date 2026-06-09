@@ -62,7 +62,7 @@ class TestAdminRoutes:
             land="Test State",
             kreis="Test District",
             strasse="Test Street",
-            plz=10178,
+            plz="10178",
             amt="Test Amt",
             ablage="test_image.jpg",
             beschreibung=self.test_description.id,
@@ -542,7 +542,7 @@ class TestAdminRoutes:
         assert payload["success"] is True
 
         location = session.get(TblFundorte, self.test_location.id)
-        assert location.plz == 14467
+        assert location.plz == "14467"
         assert location.ort == "Potsdam"
         assert location.strasse == "Breite Straße 1"
         assert location.kreis == "Potsdam"
@@ -775,7 +775,7 @@ class TestAdminRoutes:
         assert "Missing field" in data["error"]
 
     def test_change_mantis_meta_plz_non_numeric_returns_400(self, client):
-        """plz is an integer column — non-numeric input must yield 400, not 500."""
+        """plz is CHECK-constrained to 5 digits — non-numeric input must yield 400, not 500."""
         with client.session_transaction() as sess:
             sess["user_id"] = "9999"
 
@@ -810,7 +810,7 @@ class TestAdminRoutes:
                 land="Test State",
                 kreis="Test District",
                 strasse=f"Test Street {i}",
-                plz=10178,
+                plz="10178",
                 amt="Test Amt",
                 ablage=f"test_image_{i}.jpg",
                 beschreibung=self.test_description.id,

@@ -56,7 +56,7 @@ class TestIDConsistency:
             land="BB",
             kreis="Test District",
             strasse="Test Street",
-            plz=10178,
+            plz="10178",
             amt="Test Amt",
             ablage="test.jpg",
             beschreibung=1,

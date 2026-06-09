@@ -1,4 +1,4 @@
-from sqlalchemy import Index
+from sqlalchemy import CheckConstraint, Index
 from sqlalchemy.orm import relationship
 
 from app import db
@@ -29,10 +29,14 @@ class TblFundorte(db.Model):
             "amt",
             postgresql_ops={"amt": "varchar_pattern_ops"},
         ),
+        # German PLZ are 5-digit identifiers with significant leading zeros
+        # (01067 Dresden) — never store as integer.
+        CheckConstraint("plz ~ '^[0-9]{5}$'", name="plz_format"),
     )
 
     id = db.Column(db.Integer, primary_key=True)
-    plz = db.Column(db.Integer, nullable=False)
+    # NULL = reporter gave no PLZ (the form field is optional)
+    plz = db.Column(db.String(5), nullable=True)
     ort = db.Column(db.String, nullable=False)
     strasse = db.Column(db.String(100), nullable=False)
     kreis = db.Column(db.String, nullable=False)

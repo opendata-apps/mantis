@@ -146,9 +146,7 @@ def melden(usrid=None):
 
             try:
                 reporter = (
-                    db.session.scalar(
-                        select(TblUsers).where(TblUsers.user_id == usrid)
-                    )
+                    db.session.scalar(select(TblUsers).where(TblUsers.user_id == usrid))
                     if usrid
                     else None
                 )
@@ -200,7 +198,7 @@ def melden(usrid=None):
                 location_description = int(location_description_data)
 
                 fundort = TblFundorte()
-                fundort.plz = form.fund_zip_code.data or "0"
+                fundort.plz = form.fund_zip_code.data or None
                 fundort.ort = form.fund_city.data
                 fundort.strasse = form.fund_street.data
                 # AGS spatial data is authoritative for land/kreis;
@@ -392,10 +390,12 @@ def ags_lookup():
     if not spatial:
         return jsonify({})
 
-    return jsonify({
-        "land": spatial["land"],
-        "kreis": spatial["kreis"],
-    })
+    return jsonify(
+        {
+            "land": spatial["land"],
+            "kreis": spatial["kreis"],
+        }
+    )
 
 
 @report.route("/melden/validate-step", methods=["POST"])
@@ -480,9 +480,7 @@ def toggle_finder():
     if not _is_partial_request():
         abort(400)
 
-    is_identical = _is_checkbox_true(
-        request.form.get("identical_finder_reporter")
-    )
+    is_identical = _is_checkbox_true(request.form.get("identical_finder_reporter"))
 
     if is_identical:
         # Return hidden/empty finder fields
