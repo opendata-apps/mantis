@@ -176,24 +176,24 @@ class TestIsComparisonFilters:
         )
 
         # Create test sightings with different status values
+        # Flags (INFO/UNKL) only exist combined with OPEN — enforced by
+        # the ck_meldungen_statuses_valid CHECK constraint.
         test_cases = [
             ([ReportStatus.OPEN.value], "status_open"),
             ([ReportStatus.APPR.value], "status_approved"),
             ([ReportStatus.DEL.value], "status_deleted"),
-            ([ReportStatus.INFO.value], "status_info"),
-            ([ReportStatus.UNKL.value], "status_unclear"),
-            ([ReportStatus.OPEN.value, ReportStatus.INFO.value], "status_open_info"),
-            ([ReportStatus.OPEN.value, ReportStatus.UNKL.value], "status_open_unclear"),
+            ([ReportStatus.OPEN.value, ReportStatus.INFO.value], "status_info"),
+            ([ReportStatus.OPEN.value, ReportStatus.UNKL.value], "status_unclear"),
         ]
 
         created_sightings = {}
-        for statuses, name in test_cases:
+        for status_vals, name in test_cases:
             sighting = TblMeldungen(
                 dat_fund_von=datetime.now().date(),
                 dat_meld=datetime.now().date(),
                 fo_zuordnung=existing.fo_zuordnung,
-                statuses=statuses,
-                deleted=(statuses == [ReportStatus.DEL.value]),
+                statuses=status_vals,
+                deleted=(ReportStatus.DEL.value in status_vals),
                 anm_melder=name,
             )
             session.add(sighting)
@@ -214,16 +214,14 @@ class TestIsComparisonFilters:
             "offen": ["status_open"],
             "bearbeitet": ["status_approved"],
             "geloescht": ["status_deleted"],
-            "informiert": ["status_info", "status_open_info"],
-            "unklar": ["status_unclear", "status_open_unclear"],
+            "informiert": ["status_info"],
+            "unklar": ["status_unclear"],
             "all": [
                 "status_open",
                 "status_approved",
                 "status_deleted",
                 "status_info",
                 "status_unclear",
-                "status_open_info",
-                "status_open_unclear",
             ],
         }
 

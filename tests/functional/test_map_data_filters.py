@@ -135,24 +135,28 @@ class TestMapDataFilters:
     def test_edge_case_combinations(self, client, session):
         """Test various edge case combinations of status values."""
         # Test cases: (status, should_appear, description)
+        # Flags (INFO/UNKL) only exist combined with OPEN — enforced by
+        # the ck_meldungen_statuses_valid CHECK constraint.
         test_cases = [
-            (ReportStatus.APPR.value, True, "approved status"),
-            (ReportStatus.OPEN.value, False, "open status"),
-            (ReportStatus.DEL.value, False, "deleted status"),
-            (ReportStatus.INFO.value, False, "info status"),
-            (ReportStatus.UNKL.value, False, "unclear status"),
+            ([ReportStatus.APPR.value], True, "approved status"),
+            ([ReportStatus.OPEN.value], False, "open status"),
+            ([ReportStatus.DEL.value], False, "deleted status"),
+            ([ReportStatus.OPEN.value, ReportStatus.INFO.value], False, "info status"),
+            ([ReportStatus.OPEN.value, ReportStatus.UNKL.value], False, "unclear status"),
         ]
 
         created_sightings = []
 
-        for status, should_appear, desc in test_cases:
+        for statuses, should_appear, desc in test_cases:
             sighting = TblMeldungen(
                 dat_fund_von=datetime.now().date(),
                 dat_meld=datetime.now().date(),
                 fo_zuordnung=self.location.id,
-                dat_bear=datetime.now() if status == ReportStatus.APPR.value else None,
-                deleted=(status == ReportStatus.DEL.value),
-                statuses=[status],
+                dat_bear=datetime.now()
+                if ReportStatus.APPR.value in statuses
+                else None,
+                deleted=(ReportStatus.DEL.value in statuses),
+                statuses=statuses,
                 anm_melder=desc,
             )
             session.add(sighting)

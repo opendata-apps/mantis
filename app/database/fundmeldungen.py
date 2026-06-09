@@ -1,4 +1,4 @@
-from sqlalchemy import Index
+from sqlalchemy import CheckConstraint, Index
 from sqlalchemy.dialects.postgresql import ARRAY, TSVECTOR
 from sqlalchemy.orm import relationship
 
@@ -42,6 +42,14 @@ class TblMeldungen(db.Model):
             "search_vector",
             postgresql_using="gin",
             postgresql_with={"fastupdate": "off"},
+        ),
+        # DB-level mirror of ReportStatus.validate_combination(): the six
+        # legal arrays are {OPEN}(+INFO/UNKL flags), {APPR}, {DEL}.
+        CheckConstraint(
+            "statuses = '{APPR}'::varchar[] "
+            "OR statuses = '{DEL}'::varchar[] "
+            "OR ('OPEN' = ANY(statuses) AND statuses <@ '{OPEN,INFO,UNKL}'::varchar[])",
+            name="statuses_valid",
         ),
     )
 
