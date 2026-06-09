@@ -46,7 +46,6 @@ def mock_meldung_with_image(session, mock_fundorte_with_image):
         art_o=0,
         art_f=0,
         fo_quelle="T",
-        deleted=False,
     )
     session.add(meldung)
     session.commit()
@@ -127,7 +126,6 @@ def test_update_report_image_date_no_image(app, session):
         art_o=0,
         art_f=0,
         fo_quelle="T",
-        deleted=False,
     )
     session.add(meldung)
     session.commit()
@@ -170,7 +168,6 @@ def test_update_report_image_date_file_not_found(app, session):
         art_o=0,
         art_f=0,
         fo_quelle="T",
-        deleted=False,
     )
     session.add(meldung)
     session.commit()
@@ -214,7 +211,6 @@ def test_update_report_image_date_same_date(app, session):
         art_o=0,
         art_f=0,
         fo_quelle="T",
-        deleted=False,
     )
     session.add(meldung)
     session.commit()

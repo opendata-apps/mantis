@@ -80,7 +80,6 @@ class TestAdminRoutes:
             art_n=0,
             art_o=0,
             anm_melder="Test sighting",
-            deleted=False,
             bearb_id=None,  # Not approved yet
             dat_bear=None,
         )
@@ -329,7 +328,7 @@ class TestAdminRoutes:
 
         # Verify soft delete in database
         session.refresh(self.test_sighting)
-        assert self.test_sighting.deleted is True
+        assert self.test_sighting.is_deleted
 
     def test_undelete_sighting(self, client, session):
         """Test undeleting a soft-deleted sighting."""
@@ -339,7 +338,6 @@ class TestAdminRoutes:
 
         # First delete the sighting
         self.test_sighting.statuses = ["DEL"]
-        self.test_sighting.deleted = True
         session.commit()
 
         # Undelete sighting
@@ -353,7 +351,7 @@ class TestAdminRoutes:
 
         # Verify undelete in database
         session.refresh(self.test_sighting)
-        assert self.test_sighting.deleted is False
+        assert not self.test_sighting.is_deleted
 
     def test_change_mantis_count(self, client, session):
         """Test changing mantis count fields."""
@@ -738,7 +736,6 @@ class TestAdminRoutes:
             ("meldungen_id", "999"),
             # Internal review state must not be reachable through the cell
             # editor — these used to bypass status guards entirely.
-            ("deleted", True),
             ("ablage", "/etc/passwd"),
             ("bearb_id", "9999"),
         ],
@@ -827,7 +824,6 @@ class TestAdminRoutes:
                 art_n=0,
                 art_o=0,
                 anm_melder=f"Test sighting {i}",
-                deleted=False,
                 bearb_id=None,
             )
             session.add(sighting)
