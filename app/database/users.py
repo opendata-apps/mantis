@@ -1,5 +1,7 @@
-from app import db
+from sqlalchemy import CheckConstraint
 from sqlalchemy.orm import relationship
+
+from app import db
 
 
 class TblUsers(db.Model):
@@ -12,6 +14,11 @@ class TblUsers(db.Model):
     """
 
     __tablename__ = "users"
+
+    __table_args__ = (
+        # '1' reporter, '2' finder, '9' reviewer — keep in sync with UserRole
+        CheckConstraint("user_rolle IN ('1', '2', '9')", name="user_rolle_valid"),
+    )
 
     id = db.Column(db.Integer, db.Identity(), primary_key=True)
     # UNIQUE on user_id — external-facing identifier (SHA-1 hash or reviewer code).

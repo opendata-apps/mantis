@@ -25,6 +25,7 @@ from app.database.models import (
     TblMeldungUser,
     TblUsers,
     TblUserFeedback,
+    UserRole,
 )
 from app.database.feedback_type import FeedbackSource
 from app.forms import MantisSightingForm
@@ -85,7 +86,7 @@ def _process_uploaded_image(photo_file, sighting_date, city_name, user_id):
     return str((upload_dir / filename).relative_to(upload_root))
 
 
-def _create_user(first_name, last_name, email, role=1):
+def _create_user(first_name, last_name, email, role=UserRole.REPORTER):
     """Create a new user with standardized name format."""
     user_id = get_new_id()
     name = f"{last_name.strip()} {first_name.strip()[0].upper()}."
@@ -166,7 +167,7 @@ def melden(usrid=None):
                             form.finder_first_name.data,
                             form.finder_last_name.data,
                             "",
-                            role=2,
+                            role=UserRole.FINDER,
                         )
                         db.session.add(finder_instance)
                         db.session.flush()
