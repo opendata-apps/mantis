@@ -8,22 +8,9 @@ from flask.cli import with_appcontext
 
 def register_commands(app):
     """Register all CLI commands with the Flask app."""
-    app.cli.add_command(create_all_data_view)
     app.cli.add_command(seed_command)
     app.cli.add_command(seed_ags_command)
     app.cli.add_command(validate_coordinates_command)
-
-
-@click.command("create_all_data_view")
-@with_appcontext
-def create_all_data_view():
-    """Create the materialized view."""
-    import app.database.alldata as ad
-
-    from app import db
-
-    ad.create_materialized_view(engine=db.engine, session=db.session)
-    click.echo("Materialized view created.")
 
 
 @click.command("seed")
@@ -31,7 +18,6 @@ def create_all_data_view():
 @with_appcontext
 def seed_command(demo):
     """Seed database with base data. Use --demo to include sample reports."""
-    import app.database.alldata as ad
     from app.database.populate import populate_all
 
     from app import db
@@ -62,8 +48,6 @@ def seed_command(demo):
         _copy_demo_images()
         click.echo("Demo data seeded.")
 
-    # Refresh views
-    ad.refresh_materialized_view(db)
     click.echo("Done.")
 
 

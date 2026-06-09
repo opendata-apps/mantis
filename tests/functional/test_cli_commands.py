@@ -16,16 +16,6 @@ def cli_runner(app):
     return app.test_cli_runner()
 
 
-# NOTE: The ``create_all_data_view`` CLI command cannot be cleanly tested
-# in isolation. It issues ``CREATE MATERIALIZED VIEW`` directly on
-# ``db.engine`` (bypassing the test transaction), while the conftest
-# already created the view at session scope — so the command always hits
-# "relation already exists". Dropping first inside the test tx doesn't
-# help because the test's ``commit`` releases a SAVEPOINT, not a real
-# transaction. The function itself is exercised by ``_seed_test_data``
-# on every pytest run, so coverage isn't actually lost.
-
-
 class TestValidateCoordinatesCommand:
     def test_constant_stub_produces_mismatches(self, cli_runner, session):
         """Every seeded Fundort is in a different Gemeinde than the stub

@@ -51,14 +51,13 @@ Status- und Suchmodell
 - ``INFO`` und ``UNKL`` sind Zusatzflags.
 - Volltextsuche läuft über ``meldungen.search_vector`` mit GIN-Index.
 
-Materialized View
------------------
+View
+----
 
-- Name: ``all_data_view``
+- Name: ``all_data_view`` (normale SQL-View, von Alembic-Migrationen verwaltet)
 - Modell: ``TblAllData``
 - Aufbau: Join aus ``meldungen``, ``fundorte``, ``beschreibung``, ``melduser``, ``users``
 - Verwendung: Admin- und Superuser-Ansichten
-- Funktionen: ``create_materialized_view`` und ``refresh_materialized_view``
 
 Regelworkflow bei Schemaänderungen
 ----------------------------------
@@ -68,12 +67,11 @@ Regelworkflow bei Schemaänderungen
    uv run flask db migrate -m "kurze beschreibung"
    uv run flask db upgrade
 
-Materialized View und Seed-Daten
---------------------------------
+Seed-Daten
+----------
 
 .. code-block:: bash
 
-   uv run flask create_all_data_view
    uv run flask seed
    # optional:
    uv run flask seed --demo
@@ -104,5 +102,4 @@ Nur für lokale Entwicklungsumgebungen:
 .. code-block:: bash
 
    uv run flask db upgrade
-   uv run flask create_all_data_view
    uv run flask seed

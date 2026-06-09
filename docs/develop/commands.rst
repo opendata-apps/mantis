@@ -33,8 +33,6 @@ Flask-CLI
      - Migrationen auf aktuellen Stand bringen
    * - ``uv run flask db migrate -m "..."``
      - neue Alembic-Migration erzeugen
-   * - ``uv run flask create_all_data_view``
-     - Materialized View ``all_data_view`` erzeugen
    * - ``uv run flask seed``
      - Basisdaten einspielen (nutzt lokale JSON-Fallback-Datei)
    * - ``uv run flask seed --demo``

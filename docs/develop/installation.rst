@@ -38,7 +38,6 @@ Schema und Basisdaten laden
 .. code-block:: bash
 
    uv run flask db upgrade
-   uv run flask create_all_data_view
    uv run flask seed
    # optional:
    uv run flask seed --demo

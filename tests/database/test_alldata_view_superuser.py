@@ -1,4 +1,4 @@
-"""Tests for the alldata materialized view search."""
+"""Tests for the alldata view search."""
 
 
 def test_view_alldata_search(client):
