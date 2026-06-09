@@ -67,10 +67,9 @@ NON_EDITABLE_FIELDS = {
         "id_user",
         "user_id",
         # Internal review state — must not be reachable through the cell editor.
-        # `statuses` is the canonical workflow source; `deleted` is the
-        # deprecated mirror. `bearb_id` is set automatically when a reviewer
-        # mutates a record. `ablage` is the image path managed server-side.
-        "deleted",
+        # `statuses` is the canonical workflow source. `bearb_id` is set
+        # automatically when a reviewer mutates a record. `ablage` is the
+        # image path managed server-side.
         "bearb_id",
         "ablage",
     ],
@@ -746,7 +745,6 @@ def delete_sighting(id):
 
     # Set statuses to [DEL] only (DEL is exclusive)
     sighting.statuses = [ReportStatus.DEL.value]
-    sighting.deleted = True
     _mark_sighting_updated(sighting)
     try:
         db.session.commit()
@@ -767,9 +765,8 @@ def undelete_sighting(id):
     if not sighting:
         return "", 404
 
-    # Set statuses to [OPEN] and clear deleted flag
+    # Reopen: back to the plain OPEN workflow state
     sighting.statuses = [ReportStatus.OPEN.value]
-    sighting.deleted = False
     _mark_sighting_updated(sighting)
     try:
         db.session.commit()
@@ -1526,7 +1523,6 @@ def update_cell():
 def find_original_table_and_column(column_name):
     table_column_mapping = {
         "meldungen_id": (TblMeldungen, "id"),
-        "deleted": (TblMeldungen, "deleted"),
         "dat_fund_von": (TblMeldungen, "dat_fund_von"),
         "dat_fund_bis": (TblMeldungen, "dat_fund_bis"),
         "dat_meld": (TblMeldungen, "dat_meld"),

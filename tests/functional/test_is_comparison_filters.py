@@ -92,7 +92,6 @@ class TestIsComparisonFilters:
             dat_meld=datetime.now().date(),
             fo_zuordnung=existing.fo_zuordnung,
             statuses=[ReportStatus.OPEN.value],
-            deleted=None,
             art_m=1,
         )
         session.add(open_sighting)
@@ -193,7 +192,6 @@ class TestIsComparisonFilters:
                 dat_meld=datetime.now().date(),
                 fo_zuordnung=existing.fo_zuordnung,
                 statuses=status_vals,
-                deleted=(ReportStatus.DEL.value in status_vals),
                 anm_melder=name,
             )
             session.add(sighting)

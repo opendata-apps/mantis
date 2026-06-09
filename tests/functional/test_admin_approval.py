@@ -35,7 +35,6 @@ def mock_sighting_factory(session):
             dat_fund_von=datetime.now().date(),
             dat_meld=datetime.now().date(),
             dat_bear=None,
-            deleted=False,
             tiere=1,
             art_m=1,
             art_w=0,

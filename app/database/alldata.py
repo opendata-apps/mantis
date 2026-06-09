@@ -19,7 +19,6 @@ class TblAllData(Base):
     __table_args__ = {"schema": "public"}
 
     meldungen_id = db.Column(db.Integer, primary_key=True)
-    deleted = db.Column(db.Boolean)
     statuses = db.Column(db.ARRAY(db.String(5)))
     dat_fund_von = db.Column(db.Date)
     dat_fund_bis = db.Column(db.Date)
@@ -98,7 +97,6 @@ def create_materialized_view(
     meldungen = sa.table(
         "meldungen",
         sa.column("id"),
-        sa.column("deleted"),
         sa.column("statuses"),
         sa.column("dat_fund_von"),
         sa.column("dat_fund_bis"),
@@ -151,7 +149,6 @@ def create_materialized_view(
     # Query Definition
     view_query = sa.select(
         meldungen.c.id.label("meldungen_id"),
-        meldungen.c.deleted,
         meldungen.c.statuses,
         meldungen.c.dat_fund_von,
         meldungen.c.dat_fund_bis,

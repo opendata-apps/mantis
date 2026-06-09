@@ -36,7 +36,6 @@ class TestMapDataFilters:
             dat_meld=datetime.now().date(),
             fo_zuordnung=self.location.id,
             dat_bear=datetime.now(),
-            deleted=None,
             statuses=[ReportStatus.APPR.value],
             art_m=1,
         )
@@ -48,7 +47,6 @@ class TestMapDataFilters:
             dat_meld=datetime.now().date(),
             fo_zuordnung=self.location.id,
             dat_bear=datetime.now(),
-            deleted=False,
             statuses=[ReportStatus.APPR.value],
             art_o=1,
         )
@@ -60,7 +58,6 @@ class TestMapDataFilters:
             dat_meld=datetime.now().date(),
             fo_zuordnung=self.location.id,
             dat_bear=None,
-            deleted=None,
             statuses=[ReportStatus.OPEN.value],
             art_w=1,
         )
@@ -72,7 +69,6 @@ class TestMapDataFilters:
             dat_meld=datetime.now().date(),
             fo_zuordnung=self.location.id,
             dat_bear=datetime.now(),
-            deleted=True,
             statuses=[ReportStatus.DEL.value],
             art_n=1,
         )
@@ -155,7 +151,6 @@ class TestMapDataFilters:
                 dat_bear=datetime.now()
                 if ReportStatus.APPR.value in statuses
                 else None,
-                deleted=(ReportStatus.DEL.value in statuses),
                 statuses=statuses,
                 anm_melder=desc,
             )
@@ -189,7 +184,6 @@ class TestMapDataFilters:
             dat_meld=datetime.now().date(),
             fo_zuordnung=self.location.id,
             dat_bear=datetime.now(),
-            deleted=False,
             statuses=[ReportStatus.APPR.value],
             art_m=1,
             anm_melder="old approved report",

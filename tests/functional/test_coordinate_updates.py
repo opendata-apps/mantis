@@ -79,7 +79,6 @@ class TestCoordinateUpdates:
             art_n=0,
             art_o=0,
             anm_melder="Test sighting for coordinate updates",
-            deleted=False,
             bearb_id=None,
             dat_bear=None,
         )
@@ -444,7 +443,6 @@ class TestCoordinateUpdates:
             fo_zuordnung=location2.id,
             art_m=1,
             anm_melder="Second test sighting",
-            deleted=False,
         )
         session.add(sighting2)
         session.commit()
@@ -521,7 +519,6 @@ class TestAmtMtbRecalculation:
             art_n=0,
             art_o=0,
             anm_melder="Test for AMT/MTB recalculation",
-            deleted=False,
         )
         session.add(self.test_sighting)
         session.commit()

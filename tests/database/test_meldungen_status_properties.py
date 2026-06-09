@@ -7,7 +7,7 @@ is_open, is_unclear, needs_info) that the admin UI and query filters rely on.
 import pytest
 from datetime import date
 from sqlalchemy import select
-from app.database.models import TblMeldungen, ReportStatus
+from app.database.models import TblMeldungen
 
 
 @pytest.fixture
@@ -23,7 +23,6 @@ def make_sighting(session):
             dat_meld=date.today(),
             fo_zuordnung=existing.fo_zuordnung,
             statuses=statuses,
-            deleted=ReportStatus.DEL.value in statuses,
         )
         session.add(sighting)
         session.flush()

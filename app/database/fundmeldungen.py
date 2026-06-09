@@ -54,7 +54,6 @@ class TblMeldungen(db.Model):
     )
 
     id = db.Column(db.Integer, primary_key=True)
-    deleted = db.Column(db.Boolean, nullable=True)  # Deprecated: use statuses instead
 
     # Multi-select statuses array
     # Valid combinations enforced by ReportStatus.validate_combination()
@@ -120,7 +119,6 @@ class TblMeldungen(db.Model):
     def to_dict(self):
         data = {
             "id": self.id,
-            "deleted": self.deleted,
             "statuses": self.statuses,
             "dat_fund_von": self.dat_fund_von,
             "dat_fund_bis": self.dat_fund_bis,

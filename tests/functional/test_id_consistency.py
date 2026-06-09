@@ -71,7 +71,6 @@ class TestIDConsistency:
             fo_zuordnung=self.location.id,
             dat_bear=datetime.now(),
             bearb_id=self.reviewer.user_id,
-            deleted=False,
             statuses=[ReportStatus.APPR.value],
             art_m=1,
             anm_melder="Test sighting for ID consistency",
