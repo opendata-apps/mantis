@@ -74,17 +74,6 @@ class TestValidateCoordinatesCommand:
         assert header.startswith("id,issue,")
 
 
-class TestNormalizeCoordinatesCommand:
-    def test_normalizes_and_reports(self, cli_runner, session):
-        """The command scans all Fundorte and normalizes any legacy
-        comma-decimal or whitespace-padded coordinate to canonical form.
-        On the seeded demo data everything is already normalized —
-        the command should run cleanly and print ``Normalized 0``."""
-        result = cli_runner.invoke(args=["normalize-coordinates"])
-        assert result.exit_code == 0
-        assert "Normalized" in result.output
-
-
 class TestSeedCommand:
     """Coverage for ``flask seed`` — the subprocess that populates base
     data. We invoke it after the fixture-seeded DB so it should remain

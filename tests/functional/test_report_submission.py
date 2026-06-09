@@ -383,10 +383,10 @@ class TestReportSubmission:
                         assert str(location.plz) == form_data["fund_zip_code"], (
                             f"ZIP code doesn't match: expected {form_data['fund_zip_code']}, got {location.plz}"
                         )
-                    assert location.longitude == form_data["longitude"], (
+                    assert location.longitude == float(form_data["longitude"]), (
                         f"Longitude doesn't match: expected {form_data['longitude']}, got {location.longitude}"
                     )
-                    assert location.latitude == form_data["latitude"], (
+                    assert location.latitude == float(form_data["latitude"]), (
                         f"Latitude doesn't match: expected {form_data['latitude']}, got {location.latitude}"
                     )
                     assert location.beschreibung == int(
@@ -475,8 +475,8 @@ class TestReportSubmission:
 
         location = session.get(TblFundorte, sighting.fo_zuordnung)
         assert location is not None
-        assert location.latitude == str(float(form_data["latitude"]))
-        assert location.longitude == str(float(form_data["longitude"]))
+        assert location.latitude == float(form_data["latitude"])
+        assert location.longitude == float(form_data["longitude"])
         assert location.ort == form_data["fund_city"]
         assert location.land == form_data["fund_state"]
         assert location.kreis == form_data["fund_district"]

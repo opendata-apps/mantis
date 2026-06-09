@@ -32,6 +32,8 @@ class TblFundorte(db.Model):
         # German PLZ are 5-digit identifiers with significant leading zeros
         # (01067 Dresden) — never store as integer.
         CheckConstraint("plz ~ '^[0-9]{5}$'", name="plz_format"),
+        CheckConstraint("latitude BETWEEN -90 AND 90", name="latitude_range"),
+        CheckConstraint("longitude BETWEEN -180 AND 180", name="longitude_range"),
     )
 
     id = db.Column(db.Integer, primary_key=True)
@@ -47,8 +49,8 @@ class TblFundorte(db.Model):
     beschreibung = db.Column(
         db.Integer, db.ForeignKey("beschreibung.id"), nullable=False
     )
-    longitude = db.Column(db.VARCHAR(25), nullable=False)
-    latitude = db.Column(db.VARCHAR(25), nullable=False)
+    longitude = db.Column(db.Double, nullable=False)
+    latitude = db.Column(db.Double, nullable=False)
     ablage = db.Column(db.VARCHAR(255), nullable=False)
 
     # --- Relationships ---

@@ -117,7 +117,7 @@ class TestCoordinateUpdates:
 
         # Verify in database (normalized - trailing zeros removed)
         location = session.get(TblFundorte, self.test_location.id)
-        assert location.latitude == "52.53"
+        assert location.latitude == 52.53
 
         # Verify reviewer ID was recorded
         session.refresh(self.test_sighting)
@@ -142,7 +142,7 @@ class TestCoordinateUpdates:
 
         # Verify in database (normalized - trailing zeros removed)
         location = session.get(TblFundorte, self.test_location.id)
-        assert location.longitude == "13.41"
+        assert location.longitude == 13.41
 
     def test_update_both_coordinates_sequentially(self, client, session):
         """Test updating both latitude and longitude in sequence."""
@@ -168,8 +168,8 @@ class TestCoordinateUpdates:
 
         # Verify both changes persisted (normalized)
         location = session.get(TblFundorte, self.test_location.id)
-        assert location.latitude == "52.54"
-        assert location.longitude == "13.42"
+        assert location.latitude == 52.54
+        assert location.longitude == 13.42
 
     def test_update_coordinates_unauthenticated(self, client):
         """Test that unauthenticated users cannot update coordinates."""
@@ -318,8 +318,8 @@ class TestCoordinateUpdates:
         # Verify coordinates were stored (normalized by Python's float->str conversion)
         location = session.get(TblFundorte, self.test_location.id)
         # Python float conversion maintains significant precision
-        assert location.latitude == str(float(precise_latitude))
-        assert location.longitude == str(float(precise_longitude))
+        assert location.latitude == float(precise_latitude)
+        assert location.longitude == float(precise_longitude)
 
     def test_coordinate_update_affects_map_display(self, client, session):
         """Test that coordinate updates are reflected in the database."""
@@ -356,8 +356,8 @@ class TestCoordinateUpdates:
 
         # Verify coordinates were updated in the database (normalized)
         session.refresh(self.test_location)
-        assert self.test_location.latitude == "52.53"
-        assert self.test_location.longitude == "13.41"
+        assert self.test_location.latitude == 52.53
+        assert self.test_location.longitude == 13.41
 
     def test_coordinate_update_outside_germany_is_allowed(self, client, session):
         """Coordinates outside Germany are allowed; only spatial enrichment is skipped."""
@@ -381,7 +381,7 @@ class TestCoordinateUpdates:
 
             location = session.get(TblFundorte, self.test_location.id)
             stored_value = getattr(location, coord_type)
-            assert stored_value == str(float(coord_value))
+            assert stored_value == float(coord_value)
 
     def test_coordinate_format_normalization(self, client, session):
         """Test that different coordinate formats are normalized correctly."""
@@ -412,8 +412,8 @@ class TestCoordinateUpdates:
             # Verify it was normalized when stored
             location = session.get(TblFundorte, self.test_location.id)
             stored_value = getattr(location, coord_type)
-            # Coordinates are normalized (spaces/plus removed, converted to float then string)
-            assert stored_value == expected_value
+            # Coordinates are parsed (spaces/plus removed) and stored as floats
+            assert stored_value == float(expected_value)
 
     def test_concurrent_coordinate_updates(self, client, session):
         """Test handling of concurrent coordinate updates."""
@@ -465,8 +465,8 @@ class TestCoordinateUpdates:
         # Verify both updates succeeded
         session.refresh(self.test_location)
         session.refresh(location2)
-        assert self.test_location.latitude == "52.521111"
-        assert location2.latitude == "52.522222"
+        assert self.test_location.latitude == 52.521111
+        assert location2.latitude == 52.522222
 
 
 class TestAmtMtbRecalculation:
@@ -578,8 +578,8 @@ class TestAmtMtbRecalculation:
 
         # Verify coordinates and AMT/MTB were updated
         session.refresh(self.test_location)
-        assert self.test_location.latitude == new_latitude
-        assert self.test_location.longitude == new_longitude
+        assert self.test_location.latitude == float(new_latitude)
+        assert self.test_location.longitude == float(new_longitude)
 
         # AMT/MTB should have been recalculated (mocked values)
         assert self.test_location.amt == "11000004 -- Test District"
@@ -629,8 +629,8 @@ class TestAmtMtbRecalculation:
 
         # Verify database was updated
         session.refresh(self.test_location)
-        assert self.test_location.latitude == new_coords["latitude"]
-        assert self.test_location.longitude == new_coords["longitude"]
+        assert self.test_location.latitude == float(new_coords["latitude"])
+        assert self.test_location.longitude == float(new_coords["longitude"])
         assert self.test_location.amt == data["amt"]
         assert self.test_location.mtb == data["mtb"]
 
@@ -722,7 +722,7 @@ class TestAmtMtbRecalculation:
             if response.status_code == 200:
                 # Verify AMT was recalculated
                 session.refresh(self.test_location)
-                assert self.test_location.latitude == "52.450000"
+                assert self.test_location.latitude == 52.45
                 # AMT might change due to new coordinates
                 # Just verify it's not empty if coordinates are valid
                 if self.test_location.latitude and self.test_location.longitude:

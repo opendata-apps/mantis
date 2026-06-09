@@ -401,11 +401,11 @@ def change_mantis_meta_data(id):
             )
             if not is_valid:
                 return jsonify({"error": error_msg}), 400
-            new_data = normalized_value
+            new_data = float(normalized_value)
 
         # plz must be a 5-digit code (DB CHECK ck_fundorte_plz_format);
         # reject at the boundary so the user sees a 400, not a DB error.
-        if fieldname == "plz":
+        elif fieldname == "plz":
             plz_raw = new_data.strip()
             if not (plz_raw.isdigit() and len(plz_raw) == 5):
                 return jsonify({"error": "Invalid ZIP code"}), 400
@@ -457,8 +457,8 @@ def update_coordinates(id):
         return jsonify({"error": "Location not found"}), 404
 
     # Update coordinates and recalculate
-    fundort.latitude = normalized_lat
-    fundort.longitude = normalized_lon
+    fundort.latitude = float(normalized_lat)
+    fundort.longitude = float(normalized_lon)
     recalculate_amt_mtb(fundort)
 
     _mark_sighting_updated(sighting)
@@ -1433,7 +1433,7 @@ def update_cell():
                 )
                 if not is_valid:
                     return jsonify({"error": error_msg}), 400
-                new_value = normalized_value
+                new_value = float(normalized_value)
 
             stmt = (
                 update(original_table)
