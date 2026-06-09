@@ -1,16 +1,21 @@
-from sqlalchemy.orm import relationship
+from typing import TYPE_CHECKING
+
+from sqlalchemy import Identity, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app import db
+
+if TYPE_CHECKING:
+    from app.database.fundorte import TblFundorte
 
 
 class TblFundortBeschreibung(db.Model):
     __tablename__ = "beschreibung"
 
-    id = db.Column(db.Integer, db.Identity(), primary_key=True)
-    beschreibung = db.Column(db.String(45), nullable=False)
+    id: Mapped[int] = mapped_column(Identity(), primary_key=True)
+    beschreibung: Mapped[str] = mapped_column(String(45))
 
-    fundorte = relationship(
-        "TblFundorte",
+    fundorte: Mapped[list["TblFundorte"]] = relationship(
         back_populates="location_type",
         lazy="select",
     )
