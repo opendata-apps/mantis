@@ -53,7 +53,7 @@ class TblMeldungen(db.Model):
         ),
     )
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, db.Identity(), primary_key=True)
 
     # Multi-select statuses array
     # Valid combinations enforced by ReportStatus.validate_combination()

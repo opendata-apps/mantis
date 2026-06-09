@@ -10,7 +10,8 @@ from sqlalchemy.dialects.postgresql import JSONB
 class TblAemterCoordinaten(db.Model):
     __tablename__ = "aemter"
 
-    ags = db.Column(db.Integer, primary_key=True)
+    # Natural key: official AGS code, always assigned explicitly
+    ags = db.Column(db.Integer, primary_key=True, autoincrement=False)
     gen = db.Column(db.String(100), nullable=False)
     properties = db.Column(JSONB, nullable=False)
 

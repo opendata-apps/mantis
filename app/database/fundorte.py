@@ -36,7 +36,7 @@ class TblFundorte(db.Model):
         CheckConstraint("longitude BETWEEN -180 AND 180", name="longitude_range"),
     )
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, db.Identity(), primary_key=True)
     # NULL = reporter gave no PLZ (the form field is optional)
     plz = db.Column(db.String(5), nullable=True)
     ort = db.Column(db.String, nullable=False)
