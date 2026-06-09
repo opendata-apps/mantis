@@ -21,7 +21,7 @@
            alt="Foto zur Meldung {{ sighting.id }}">
     </a>
     {# Location badge #}
-    <div title="{{ fundort.ort }}&#13;&#10;Postleitzahl: {{ fundort.plz }}&#13;&#10;Kreis: {{ fundort.kreis }}&#13;&#10;Land: {{ fundort.land }}"
+    <div title="{{ fundort.ort }}&#13;&#10;Postleitzahl: {{ fundort.plz or '' }}&#13;&#10;Kreis: {{ fundort.kreis }}&#13;&#10;Land: {{ fundort.land }}"
          class="absolute bottom-0 px-3 py-1 mb-4 ml-4 font-semibold text-gray-800 rounded-full backdrop-blur-md bg-white/80">
       {{ fundort.kreis }} | {{ fundort.ort }}
     </div>

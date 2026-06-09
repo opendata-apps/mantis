@@ -37,7 +37,7 @@ class TblAllData(Base):
     anm_melder = db.Column(db.String(500))
     anm_bearbeiter = db.Column(db.String(500))
     fundorte_id = db.Column(db.Integer)
-    plz = db.Column(db.Integer)
+    plz = db.Column(db.String(5))
     ort = db.Column(db.String)
     strasse = db.Column(db.String(100))
     kreis = db.Column(db.String)
