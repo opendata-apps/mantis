@@ -22,15 +22,16 @@ class TblMeldungUser(db.Model):
     # Composite index for the typical join pattern
     # Per PostgreSQL docs: column order should match query join order
     # Queries join: meldungen.id -> melduser.id_meldung -> melduser.id_user -> users.id
-    __table_args__ = (
-        Index("ix_melduser_id_meldung_id_user", "id_meldung", "id_user"),
-    )
+    __table_args__ = (Index("ix_melduser_id_meldung_id_user", "id_meldung", "id_user"),)
 
     id = db.Column(db.Integer, primary_key=True)
     # FK to meldungen - used in every JOIN operation.
     # UNIQUE enforces the 1:1 invariant: one melduser row per meldung.
     id_meldung = db.Column(
-        db.Integer, db.ForeignKey("meldungen.id"), unique=True, nullable=False
+        db.Integer,
+        db.ForeignKey("meldungen.id", ondelete="CASCADE"),
+        unique=True,
+        nullable=False,
     )
     # FK to users - used in every JOIN operation
     id_user = db.Column(

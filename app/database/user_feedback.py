@@ -6,7 +6,10 @@ class TblUserFeedback(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(
-        db.Integer, db.ForeignKey("users.id"), unique=True, nullable=False
+        db.Integer,
+        db.ForeignKey("users.id", ondelete="CASCADE"),
+        unique=True,
+        nullable=False,
     )
     feedback_source = db.Column(db.String(20), nullable=False)
     source_detail = db.Column(db.String(255), nullable=True)
@@ -17,6 +20,7 @@ class TblUserFeedback(db.Model):
     @property
     def feedback_source_display(self) -> str:
         from app.database.feedback_type import FeedbackSource
+
         return FeedbackSource.get_display_name(self.feedback_source)
 
     def __repr__(self):

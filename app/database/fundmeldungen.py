@@ -67,7 +67,11 @@ class TblMeldungen(db.Model):
     dat_fund_bis = db.Column(db.Date, nullable=True)
     dat_meld = db.Column(db.Date, nullable=True)
     dat_bear = db.Column(db.Date, nullable=True)  # Keep for approval date tracking
-    bearb_id = db.Column(db.String(40), db.ForeignKey("users.user_id"), nullable=True)
+    bearb_id = db.Column(
+        db.String(40),
+        db.ForeignKey("users.user_id", ondelete="SET NULL"),
+        nullable=True,
+    )
     tiere = db.Column(db.Integer, nullable=True)
     art_m = db.Column(db.Integer, nullable=True)
     art_w = db.Column(db.Integer, nullable=True)
