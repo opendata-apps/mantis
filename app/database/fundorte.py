@@ -1,7 +1,23 @@
-from sqlalchemy import CheckConstraint, Index
-from sqlalchemy.orm import relationship
+from datetime import datetime
+from typing import TYPE_CHECKING
+
+from sqlalchemy import (
+    CheckConstraint,
+    DateTime,
+    Double,
+    ForeignKey,
+    Identity,
+    Index,
+    String,
+    func,
+)
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app import db
+
+if TYPE_CHECKING:
+    from app.database.fundmeldungen import TblMeldungen
+    from app.database.fundortbeschreibung import TblFundortBeschreibung
 
 
 class TblFundorte(db.Model):
@@ -19,8 +35,6 @@ class TblFundorte(db.Model):
 
     __tablename__ = "fundorte"
 
-    # Define index with PostgreSQL-specific operator class for pattern matching
-    # Per SQLAlchemy docs: https://docs.sqlalchemy.org/en/20/dialects/postgresql.html#operator-classes
     __table_args__ = (
         # Index for PREFIX LIKE queries: amt LIKE '12%', amt LIKE '120%', etc.
         # varchar_pattern_ops enables efficient pattern matching for LIKE 'prefix%'
@@ -36,45 +50,38 @@ class TblFundorte(db.Model):
         CheckConstraint("longitude BETWEEN -180 AND 180", name="longitude_range"),
     )
 
-    id = db.Column(db.Integer, db.Identity(), primary_key=True)
+    id: Mapped[int] = mapped_column(Identity(), primary_key=True)
     # NULL = reporter gave no PLZ (the form field is optional)
-    plz = db.Column(db.String(5), nullable=True)
-    ort = db.Column(db.String, nullable=False)
-    strasse = db.Column(db.String(100), nullable=False)
-    kreis = db.Column(db.String, nullable=False)
-    land = db.Column(db.String(50), nullable=False)
+    plz: Mapped[str | None] = mapped_column(String(5))
+    ort: Mapped[str]
+    strasse: Mapped[str] = mapped_column(String(100))
+    kreis: Mapped[str]
+    land: Mapped[str] = mapped_column(String(50))
     # amt (AGS code) - used in 8+ queries with LIKE 'prefix%' pattern
-    amt = db.Column(db.String(50), nullable=True)
-    mtb = db.Column(db.String(50), nullable=True)
-    beschreibung = db.Column(
-        db.Integer, db.ForeignKey("beschreibung.id"), nullable=False
-    )
-    longitude = db.Column(db.Double, nullable=False)
-    latitude = db.Column(db.Double, nullable=False)
-    ablage = db.Column(db.VARCHAR(255), nullable=False)
+    amt: Mapped[str | None] = mapped_column(String(50))
+    mtb: Mapped[str | None] = mapped_column(String(50))
+    beschreibung: Mapped[int] = mapped_column(ForeignKey("beschreibung.id"))
+    longitude: Mapped[float] = mapped_column(Double)
+    latitude: Mapped[float] = mapped_column(Double)
+    ablage: Mapped[str] = mapped_column(String(255))
 
     # Audit timestamps: when the row was inserted / last modified via the
     # ORM (bearb_id records who; raw SQL bypasses onupdate).
-    created_at = db.Column(
-        db.DateTime(timezone=True), nullable=False, server_default=db.func.now()
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
     )
-    updated_at = db.Column(
-        db.DateTime(timezone=True),
-        nullable=False,
-        server_default=db.func.now(),
-        onupdate=db.func.now(),
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
     # --- Relationships ---
-    meldungen = relationship(
-        "TblMeldungen",
+    meldungen: Mapped[list["TblMeldungen"]] = relationship(
         back_populates="fundort",
         lazy="select",
     )
 
     # Named `location_type` to avoid collision with the `beschreibung` FK column
-    location_type = relationship(
-        "TblFundortBeschreibung",
+    location_type: Mapped["TblFundortBeschreibung"] = relationship(
         foreign_keys=[beschreibung],
         back_populates="fundorte",
         lazy="select",
