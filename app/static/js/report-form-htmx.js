@@ -7,7 +7,7 @@ import 'leaflet-control-geocoder';
 import 'leaflet-control-geocoder/dist/Control.Geocoder.css';
 import { locate } from 'leaflet.locatecontrol';
 import 'leaflet.locatecontrol/dist/L.Control.Locate.min.css';
-import EXIF from 'exif-js';
+import ExifReader from 'exifreader';
 import htmx from 'htmx.org';
 
 // CSP hardening: disable eval-based attribute features (hx-on::*, `js:` prefix).
@@ -32,7 +32,6 @@ L.Icon.Default.mergeOptions({
 });
 
 window.L = L;
-window.EXIF = EXIF;
 window.htmx = htmx;
 
 const ReportForm = {
@@ -199,8 +198,9 @@ const ReportForm = {
         try {
             const data = new FormData(form);
             data.delete('photo');
-            const name = (this.webpData.fileName || 'photo.webp').replace(/\.[^.]+$/, '.webp');
-            data.append('photo', new File([this.webpData.blob], name, { type: 'image/webp' }));
+            const ext = this.webpData.blob.type === 'image/jpeg' ? '.jpg' : '.webp';
+            const name = (this.webpData.fileName || 'photo').replace(/\.[^.]+$/, ext);
+            data.append('photo', new File([this.webpData.blob], name, { type: this.webpData.blob.type }));
 
             const res = await fetch(form.action, {
                 method: 'POST',
@@ -286,29 +286,19 @@ const ReportForm = {
     },
 
     extractExif(file) {
-        return new Promise((resolve) => {
-            const timeout = setTimeout(() => resolve({}), 5000);
-            try {
-                EXIF.getData(file, function () {
-                    clearTimeout(timeout);
-                    const dt = EXIF.getTag(this, 'DateTimeOriginal') || EXIF.getTag(this, 'DateTime');
-                    const lat = EXIF.getTag(this, 'GPSLatitude');
-                    const lng = EXIF.getTag(this, 'GPSLongitude');
-                    const latRef = EXIF.getTag(this, 'GPSLatitudeRef');
-                    const lngRef = EXIF.getTag(this, 'GPSLongitudeRef');
-
-                    let gps = null;
-                    if (lat && lng && latRef && lngRef) {
-                        const toDec = (dms, ref) => {
-                            let dd = dms[0] + dms[1] / 60 + dms[2] / 3600;
-                            return (ref === 'S' || ref === 'W') ? -dd : dd;
-                        };
-                        gps = { lat: toDec(lat, latRef), lng: toDec(lng, lngRef) };
-                    }
-                    resolve({ dateTime: dt, gps });
-                });
-            } catch { clearTimeout(timeout); resolve({}); }
-        });
+        // EXIF autofill is a non-essential enhancement; it must never block or freeze
+        // the upload. Time-box it and swallow every failure (degrade to no autofill).
+        const parse = ExifReader.load(file, { expanded: true })
+            .then((tags) => {
+                const dateTime = tags.exif?.DateTimeOriginal?.description || tags.exif?.DateTime?.description;
+                const gps = (typeof tags.gps?.Latitude === 'number' && typeof tags.gps?.Longitude === 'number')
+                    ? { lat: tags.gps.Latitude, lng: tags.gps.Longitude }
+                    : null;
+                return { dateTime, gps };
+            })
+            .catch(() => ({}));
+        const timeout = new Promise((resolve) => setTimeout(() => resolve({}), 3000));
+        return Promise.race([parse, timeout]);
     },
 
     async toWebp(file) {
@@ -356,12 +346,17 @@ const ReportForm = {
         if (pixels > 8e6) q = Math.min(q, 0.6);
         else if (pixels > 4e6) q = Math.min(q, 0.7);
 
-        return new Promise((res, rej) => {
-            canvas.toBlob((blob) => {
-                if (!blob) return rej(new Error('Conversion failed'));
-                res({ blob, dataUrl: canvas.toDataURL('image/webp', q) });
-            }, 'image/webp', q);
-        });
+        const encode = (type) => new Promise((r) => canvas.toBlob(r, type, q));
+        // WebKit (incl. iOS 26) cannot encode WebP via canvas: toBlob returns null
+        // or silently falls back to PNG. Fall back to JPEG, which every engine encodes
+        // and the server (PIL) decodes — unlike HEIC. See WebKit regression 89356ad.
+        const webp = await encode('image/webp');
+        if (webp && webp.type === 'image/webp') {
+            return { blob: webp, dataUrl: canvas.toDataURL('image/webp', q) };
+        }
+        const jpg = await encode('image/jpeg');
+        if (!jpg) throw new Error('Conversion failed');
+        return { blob: jpg, dataUrl: canvas.toDataURL('image/jpeg', q) };
     },
 
     removePhoto() {
