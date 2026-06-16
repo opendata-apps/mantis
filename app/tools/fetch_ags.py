@@ -48,52 +48,88 @@ def _wfs_get_feature(base_url, typename, *, srs="EPSG:4326", extra_params=None):
 
 GN250_WFS_BASE = "https://sgx.geodatenzentrum.de/wfs_gn250_inspire"
 
-# GN250 settlement classes worth grading against (drop landforms, water, etc.)
+# GN250 NamedPlace type values (the href suffix) worth grading against.
 _GEONAME_SETTLEMENT_TYPES = {"populatedPlace"}
+
+# Server-side page size; the INSPIRE endpoint caps a single GetFeature response
+# and does not report numberMatched, so we page on startIndex until a short page.
+GN250_PAGE_SIZE = 10000
+
+
+def _geoname_text(name_prop):
+    """Extract the spelling text from an INSPIRE GeographicalName property.
+
+    The property nests as name.GeographicalName.spelling.SpellingOfName.text;
+    either of the inner objects may be a list (a place with several names).
+    """
+    if isinstance(name_prop, list):
+        name_prop = name_prop[0] if name_prop else None
+    if not isinstance(name_prop, dict):
+        return None
+    gn = name_prop.get("GeographicalName") or {}
+    spelling = gn.get("spelling")
+    if isinstance(spelling, list):
+        spelling = spelling[0] if spelling else None
+    son = (spelling or {}).get("SpellingOfName") or {}
+    text = son.get("text")
+    return text.strip() if isinstance(text, str) and text.strip() else None
 
 
 def parse_geonames_featurecollection(fc):
-    """Normalize a GN250 GeoJSON FeatureCollection to geo_names rows.
+    """Normalize a GN250 INSPIRE GeoJSON FeatureCollection to geo_names rows.
 
-    Keeps only populated places with a point geometry.
+    Keeps only populated places with a point geometry. The INSPIRE-harmonized
+    view exposes no administrative keys, so ags/kreis are always None.
     """
     rows = []
     for feat in fc.get("features", []):
         props = feat.get("properties") or {}
-        if props.get("type") not in _GEONAME_SETTLEMENT_TYPES:
+        href = (props.get("type") or {}).get("href", "")
+        if href.rsplit("/", 1)[-1] not in _GEONAME_SETTLEMENT_TYPES:
             continue
         geom = feat.get("geometry") or {}
         coords = geom.get("coordinates") if geom.get("type") == "Point" else None
         if not coords or len(coords) < 2:
             continue
-        name = props.get("name")
+        name = _geoname_text(props.get("name"))
         if not name:
             continue
-        ags = props.get("ags")
         rows.append(
             {
                 "name": name,
                 "longitude": float(coords[0]),
                 "latitude": float(coords[1]),
-                "ags": int(ags) if ags not in (None, "") else None,
-                "kreis": props.get("kreis"),
+                "ags": None,
+                "kreis": None,
             }
         )
     return rows
 
 
 def fetch_geonames():
-    """Fetch GN250 populated places from the BKG INSPIRE WFS as GeoJSON.
+    """Fetch all GN250 populated places from the BKG INSPIRE WFS as GeoJSON.
 
-    GN250 advertises 'application/geo+json' (it rejects 'application/json').
+    Pages on startIndex until a short page; GN250 advertises
+    'application/geo+json' (it rejects 'application/json').
     """
     logger.info("Fetching GN250 named places from BKG WFS...")
-    data = _wfs_get_feature(
-        GN250_WFS_BASE,
-        "gn:NamedPlace",
-        extra_params={"outputFormat": "application/geo+json"},
-    )
-    rows = parse_geonames_featurecollection(data)
+    rows = []
+    start = 0
+    while True:
+        data = _wfs_get_feature(
+            GN250_WFS_BASE,
+            "gn:NamedPlace",
+            extra_params={
+                "outputFormat": "application/geo+json",
+                "count": GN250_PAGE_SIZE,
+                "startIndex": start,
+            },
+        )
+        feats = data.get("features", [])
+        rows.extend(parse_geonames_featurecollection(data))
+        if len(feats) < GN250_PAGE_SIZE:
+            break
+        start += GN250_PAGE_SIZE
     logger.info(f"Fetched {len(rows)} GN250 populated places")
     return rows
 
