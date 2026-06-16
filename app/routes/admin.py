@@ -1092,6 +1092,17 @@ def update_report_image_date(report_id, new_date):
     }
 
 
+# Reviewer filter label -> the status a report must contain to match.
+# "all"/search bypass the filter; any other value defaults to "hide deleted".
+_STATUS_FILTERS = {
+    "bearbeitet": ReportStatus.APPR.value,
+    "offen": ReportStatus.OPEN.value,
+    "geloescht": ReportStatus.DEL.value,
+    "informiert": ReportStatus.INFO.value,
+    "unklar": ReportStatus.UNKL.value,
+}
+
+
 def get_filtered_query(
     filter_status: Optional[str] = None,
     filter_type: Optional[str] = None,
@@ -1133,28 +1144,21 @@ def get_filtered_query(
 
     # Apply filter conditions based on 'filter_status' using statuses array
     # Array containment: statuses.contains(['VALUE']) checks if VALUE is in array
-    if filter_status == "bearbeitet":
-        stmt = stmt.where(TblMeldungen.statuses.contains([ReportStatus.APPR.value]))
-    elif filter_status == "offen":
+    if filter_status == "offen":
         stmt = stmt.where(
             TblMeldungen.statuses.contains([ReportStatus.OPEN.value]),
             ~TblMeldungen.statuses.contains([ReportStatus.INFO.value]),
             ~TblMeldungen.statuses.contains([ReportStatus.UNKL.value]),
         )
-    elif filter_status == "geloescht":
-        stmt = stmt.where(TblMeldungen.statuses.contains([ReportStatus.DEL.value]))
-    elif filter_status == "informiert":
-        stmt = stmt.where(TblMeldungen.statuses.contains([ReportStatus.INFO.value]))
-    elif filter_status == "unklar":
-        stmt = stmt.where(TblMeldungen.statuses.contains([ReportStatus.UNKL.value]))
-    elif filter_status == "all":
-        # No filter - show all statuses
-        pass
-    elif search_query:
-        # If there's a search query, don't apply any status filter
+    elif filter_status in _STATUS_FILTERS:
+        stmt = stmt.where(
+            TblMeldungen.statuses.contains([_STATUS_FILTERS[filter_status]])
+        )
+    elif filter_status == "all" or search_query:
+        # Show all statuses (explicit "all", or a search that spans statuses)
         pass
     else:
-        # Default behavior: Exclude deleted items
+        # Default behavior: exclude deleted items
         stmt = stmt.where(~TblMeldungen.statuses.contains([ReportStatus.DEL.value]))
 
     # Apply type filter
