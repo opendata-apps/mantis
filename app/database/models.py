@@ -1,6 +1,7 @@
 from .fundmeldungen import TblMeldungen
 from .fundortbeschreibung import TblFundortBeschreibung
 from .fundorte import TblFundorte
+from .geo_names import TblGeoNames
 from .meldung_user import TblMeldungUser
 from .aemter_koordinaten import TblAemterCoordinaten
 from .users import TblUsers
@@ -14,6 +15,7 @@ __all__ = [
     "TblMeldungen",
     "TblFundortBeschreibung",
     "TblFundorte",
+    "TblGeoNames",
     "TblMeldungUser",
     "TblAemterCoordinaten",
     "TblUsers",
