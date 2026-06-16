@@ -74,7 +74,9 @@ class TblMeldungen(db.Model):
     # Valid combinations enforced by ReportStatus.validate_combination()
     statuses: Mapped[list[str]] = mapped_column(
         ARRAY(String(5)),
-        default=[ReportStatus.OPEN.value],
+        # Callable, not a literal list: a scalar mutable default is one shared
+        # object across all instances, so an in-place mutation would leak.
+        default=lambda: [ReportStatus.OPEN.value],
         server_default="{OPEN}",
     )
     dat_fund_von: Mapped[date] = mapped_column(Date)
