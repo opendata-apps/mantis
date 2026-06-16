@@ -233,6 +233,17 @@ def melden(usrid=None):
                 fundort.amt = spatial_fields["amt"]
                 fundort.beschreibung = location_description
                 fundort.ablage = db_image_path
+
+                try:
+                    from app.tools.geo_grade_service import grade_fundort_fields
+
+                    for k, v in grade_fundort_fields(
+                        lat, lon, fundort.land, fundort.kreis, fundort.ort
+                    ).items():
+                        setattr(fundort, k, v)
+                except Exception as grade_err:  # enrichment, never blocks submission
+                    current_app.logger.warning(f"Grade skipped: {grade_err}")
+
                 db.session.add(fundort)
                 db.session.flush()
 
