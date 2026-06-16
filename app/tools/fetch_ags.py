@@ -46,6 +46,58 @@ def _wfs_get_feature(base_url, typename, *, srs="EPSG:4326", extra_params=None):
     return resp.json()
 
 
+GN250_WFS_BASE = "https://sgx.geodatenzentrum.de/wfs_gn250_inspire"
+
+# GN250 settlement classes worth grading against (drop landforms, water, etc.)
+_GEONAME_SETTLEMENT_TYPES = {"populatedPlace"}
+
+
+def parse_geonames_featurecollection(fc):
+    """Normalize a GN250 GeoJSON FeatureCollection to geo_names rows.
+
+    Keeps only populated places with a point geometry.
+    """
+    rows = []
+    for feat in fc.get("features", []):
+        props = feat.get("properties") or {}
+        if props.get("type") not in _GEONAME_SETTLEMENT_TYPES:
+            continue
+        geom = feat.get("geometry") or {}
+        coords = geom.get("coordinates") if geom.get("type") == "Point" else None
+        if not coords or len(coords) < 2:
+            continue
+        name = props.get("name")
+        if not name:
+            continue
+        ags = props.get("ags")
+        rows.append(
+            {
+                "name": name,
+                "longitude": float(coords[0]),
+                "latitude": float(coords[1]),
+                "ags": int(ags) if ags not in (None, "") else None,
+                "kreis": props.get("kreis"),
+            }
+        )
+    return rows
+
+
+def fetch_geonames():
+    """Fetch GN250 populated places from the BKG INSPIRE WFS as GeoJSON.
+
+    GN250 advertises 'application/geo+json' (it rejects 'application/json').
+    """
+    logger.info("Fetching GN250 named places from BKG WFS...")
+    data = _wfs_get_feature(
+        GN250_WFS_BASE,
+        "gn:NamedPlace",
+        extra_params={"outputFormat": "application/geo+json"},
+    )
+    rows = parse_geonames_featurecollection(data)
+    logger.info(f"Fetched {len(rows)} GN250 populated places")
+    return rows
+
+
 def fetch_gemeinden():
     """Fetch all Gemeinden (municipalities) from BKG VG5000 WFS.
 
