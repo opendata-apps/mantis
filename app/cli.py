@@ -186,7 +186,6 @@ def validate_coordinates_command(csv_path):
         raise SystemExit(1)
 
 
-
 def _copy_demo_images():
     """Copy demo images for sample reports."""
     # Source: demodata folder (tracked in git, not publicly served)
