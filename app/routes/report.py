@@ -59,31 +59,43 @@ def _set_gender_fields(selected_gender_value):
 
 
 def _process_uploaded_image(photo_file, sighting_date, city_name, user_id):
-    """Process uploaded image - trust client-optimized WebP files to avoid double compression."""
+    """Process and store the uploaded image atomically.
+
+    Bytes are written to a temporary ``.part`` sibling and only renamed into
+    place once fully written (``Path.replace`` is ``os.replace`` — atomic on
+    the same filesystem). A failure mid-processing therefore never leaves a
+    partial/0-byte file at the final path; the temp file is removed instead.
+    Client-optimized WebP is trusted to avoid double compression.
+    """
     upload_root = Path(current_app.config["UPLOAD_FOLDER"])
     upload_dir = ensure_upload_dir(upload_root, sighting_date)
     filename = build_upload_filename(city_name, user_id, datetime.now())
     full_path = upload_dir / filename
+    tmp_path = full_path.with_name(full_path.name + ".part")
 
     image_bytes = photo_file.read()
     photo_file.seek(0)
 
-    with Image.open(io.BytesIO(image_bytes)) as img:
-        file_size_mb = len(image_bytes) / (1024 * 1024)
+    try:
+        with Image.open(io.BytesIO(image_bytes)) as img:
+            file_size_mb = len(image_bytes) / (1024 * 1024)
 
-        if img.format == "WEBP" and file_size_mb <= 8.0:
-            # Trust client-optimized WebP
-            image_bytes_to_save = image_bytes
-        else:
-            # Re-compress if needed
-            output_buffer = io.BytesIO()
-            img.save(output_buffer, format="WEBP", quality=60)
-            image_bytes_to_save = output_buffer.getvalue()
+            if img.format == "WEBP" and file_size_mb <= 8.0:
+                # Trust client-optimized WebP
+                image_bytes_to_save = image_bytes
+            else:
+                # Re-compress if needed
+                output_buffer = io.BytesIO()
+                img.save(output_buffer, format="WEBP", quality=60)
+                image_bytes_to_save = output_buffer.getvalue()
 
-    with open(full_path, "wb") as f:
-        f.write(image_bytes_to_save)
+        tmp_path.write_bytes(image_bytes_to_save)
+        tmp_path.replace(full_path)  # atomic publish (same directory/filesystem)
+    except Exception:
+        tmp_path.unlink(missing_ok=True)
+        raise
 
-    return str((upload_dir / filename).relative_to(upload_root))
+    return str(full_path.relative_to(upload_root))
 
 
 def _create_user(first_name, last_name, email, role=UserRole.REPORTER):
@@ -145,6 +157,7 @@ def melden(usrid=None):
             if form.honeypot.data:
                 abort(403)
 
+            db_image_path: str | None = None
             try:
                 reporter = (
                     db.session.scalar(select(TblUsers).where(TblUsers.user_id == usrid))
@@ -259,6 +272,13 @@ def melden(usrid=None):
 
             except Exception as e:
                 db.session.rollback()
+                # The DB transaction is reverted, but the image write is not
+                # transactional — remove it so a failed submission can't leave
+                # an orphaned file with no fundorte row.
+                if db_image_path:
+                    (Path(current_app.config["UPLOAD_FOLDER"]) / db_image_path).unlink(
+                        missing_ok=True
+                    )
                 current_app.logger.error(f"Failed to save report: {str(e)}")
                 return (
                     jsonify(
