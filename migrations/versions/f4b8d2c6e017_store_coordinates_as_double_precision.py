@@ -82,6 +82,22 @@ LEFT JOIN users u ON mu.id_user = u.id
 def upgrade():
     op.execute(DROP_VIEW)
 
+    # Fail loudly on numeric-but-out-of-range legacy coordinates; the
+    # post-cast CHECK below would otherwise abort opaquely (mirrors the PLZ guard).
+    op.execute("""
+        DO $$
+        BEGIN
+            IF EXISTS (
+                SELECT 1 FROM fundorte
+                WHERE replace(btrim(latitude), ',', '.')::double precision NOT BETWEEN -90 AND 90
+                   OR replace(btrim(longitude), ',', '.')::double precision NOT BETWEEN -180 AND 180
+            ) THEN
+                RAISE EXCEPTION 'fundorte.latitude/longitude contains values outside valid geographic range';
+            END IF;
+        END
+        $$
+    """)
+
     for col in ("latitude", "longitude"):
         op.execute(f"""
             ALTER TABLE fundorte
