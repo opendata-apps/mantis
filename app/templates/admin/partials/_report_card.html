@@ -33,6 +33,11 @@
     {% endif %}
     <span class="inline-block absolute top-2 left-2 px-2 py-1 font-semibold tracking-wide leading-none text-white uppercase bg-green-600 rounded-full">{{
     sighting.id }}</span>
+    {% if fundort.geo_grade %}
+      {% set _gc = {'HIGH': 'bg-emerald-500', 'MEDIUM': 'bg-amber-500', 'LOW': 'bg-red-500'} %}
+      <span title="Konfidenz: {{ fundort.geo_grade }}&#10;{{ (fundort.geo_reasons or [])|join('&#10;') }}"
+            class="absolute top-2 right-2 w-3 h-3 rounded-full ring-2 ring-white/70 {{ _gc.get(fundort.geo_grade, 'bg-gray-400') }}"></span>
+    {% endif %}
   </div>
   {# ── Content section ── #}
   <div class="flex flex-col flex-1 p-4 {% if has_del %}bg-gray-50{% else %}bg-white{% endif %} rounded-b-lg">
