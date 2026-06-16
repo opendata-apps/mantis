@@ -399,6 +399,18 @@ def change_mantis_meta_data(id):
         if fieldname in ["latitude", "longitude"]:
             recalculate_amt_mtb(sighting_obj)
 
+        if fieldname in ("latitude", "longitude", "ort", "land"):
+            try:
+                from app.tools.geo_grade_service import grade_fundort_fields
+
+                fo = sighting_meldung.fundort
+                for k, v in grade_fundort_fields(
+                    fo.latitude, fo.longitude, fo.land, fo.kreis, fo.ort
+                ).items():
+                    setattr(fo, k, v)
+            except Exception as grade_err:  # enrichment, never blocks the edit
+                current_app.logger.warning(f"Re-grade skipped: {grade_err}")
+
         error_response = _commit_json_or_error(
             f"Database error updating report {id}",
             "Database error",

@@ -14,6 +14,7 @@ def register_commands(app):
     app.cli.add_command(seed_command)
     app.cli.add_command(seed_ags_command)
     app.cli.add_command(seed_gn250_command)
+    app.cli.add_command(grade_fundorte_command)
     app.cli.add_command(validate_coordinates_command)
 
 
@@ -184,6 +185,33 @@ def seed_gn250_command():
         )
     db.session.commit()
     click.echo(f"Seeded {len(rows)} GN250 populated places.")
+
+
+@click.command("grade-fundorte")
+@click.option("--only-ungraded", is_flag=True, help="Skip rows already graded.")
+@with_appcontext
+def grade_fundorte_command(only_ungraded):
+    """(Re)grade stored Fundorte coordinate/address agreement."""
+    from sqlalchemy import select
+
+    from app import db
+    from app.database.fundorte import TblFundorte
+    from app.tools.geo_grade_service import grade_fundort_fields
+
+    stmt = select(TblFundorte)
+    if only_ungraded:
+        stmt = stmt.where(TblFundorte.geo_grade.is_(None))
+
+    n = 0
+    for fo in db.session.scalars(stmt.execution_options(yield_per=500)):
+        cols = grade_fundort_fields(
+            fo.latitude, fo.longitude, fo.land, fo.kreis, fo.ort
+        )
+        for k, v in cols.items():
+            setattr(fo, k, v)
+        n += 1
+    db.session.commit()
+    click.echo(f"Graded {n} Fundorte.")
 
 
 @click.command("validate-coordinates")
