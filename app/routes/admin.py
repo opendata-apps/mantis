@@ -245,6 +245,7 @@ def _get_reviewer_filter_args():
         "date_from": request.args.get("dateFrom"),
         "date_to": request.args.get("dateTo"),
         "date_type": request.args.get("dateType", "fund"),
+        "confidence": request.args.get("confidence"),
     }
 
 
@@ -281,6 +282,7 @@ def reviewer(usrid=None):
     date_from = filter_args["date_from"]
     date_to = filter_args["date_to"]
     date_type = filter_args["date_type"]
+    confidence = filter_args["confidence"]
 
     if "statusInput" not in request.args and "sort_order" not in request.args:
         return redirect(
@@ -300,6 +302,7 @@ def reviewer(usrid=None):
         date_from=date_from,
         date_to=date_to,
         date_type=date_type,
+        confidence=confidence,
     )
 
     # Apply sort order
@@ -1123,6 +1126,7 @@ def get_filtered_query(
     date_from: Optional[str] = None,
     date_to: Optional[str] = None,
     date_type: Optional[str] = None,
+    confidence: Optional[str] = None,
 ):
     """Get filtered select statement based on parameters.
 
@@ -1172,6 +1176,10 @@ def get_filtered_query(
     else:
         # Default behavior: exclude deleted items
         stmt = stmt.where(~TblMeldungen.statuses.contains([ReportStatus.DEL.value]))
+
+    # Low-confidence geo grade: surface questionable coordinate/address pairs.
+    if confidence == "low":
+        stmt = stmt.where(TblFundorte.geo_grade == "LOW")
 
     # Apply type filter
     if filter_type:
