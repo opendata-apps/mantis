@@ -5,11 +5,15 @@ import click
 from flask import current_app
 from flask.cli import with_appcontext
 
+from app.tools.fetch_ags import fetch_geonames
+from app.tools.normalize_text import normalize_place_name
+
 
 def register_commands(app):
     """Register all CLI commands with the Flask app."""
     app.cli.add_command(seed_command)
     app.cli.add_command(seed_ags_command)
+    app.cli.add_command(seed_gn250_command)
     app.cli.add_command(validate_coordinates_command)
 
 
@@ -145,6 +149,41 @@ def seed_ags_command():
     except Exception as e:
         click.echo(f"Error fetching AGS data: {e}", err=True)
         raise click.Abort()
+
+
+@click.command("seed-gn250")
+@with_appcontext
+def seed_gn250_command():
+    """Fetch BKG GN250 populated places into the geo_names table."""
+    from sqlalchemy import delete, insert
+
+    from app import db
+    from app.database.geo_names import TblGeoNames
+
+    try:
+        rows = fetch_geonames()
+    except Exception as e:
+        click.echo(f"Error fetching GN250 data: {e}", err=True)
+        raise click.Abort()
+
+    db.session.execute(delete(TblGeoNames))
+    if rows:
+        db.session.execute(
+            insert(TblGeoNames),
+            [
+                {
+                    "name": r["name"],
+                    "name_norm": normalize_place_name(r["name"]),
+                    "ags": r["ags"],
+                    "kreis": r["kreis"],
+                    "longitude": r["longitude"],
+                    "latitude": r["latitude"],
+                }
+                for r in rows
+            ],
+        )
+    db.session.commit()
+    click.echo(f"Seeded {len(rows)} GN250 populated places.")
 
 
 @click.command("validate-coordinates")
