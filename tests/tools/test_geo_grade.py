@@ -82,3 +82,33 @@ def test_land_mismatch_is_low():
         nearest_place=place("Faraway", 9000, ags=99999999),
     )
     assert g.matched_level in ("LAND", "NONE") and g.grade == "LOW"
+
+
+def test_city_state_ort_matches_land_is_high():
+    # Pin resolves to a Berlin Bezirk (gen='Mitte'); typed ort 'Berlin' names the
+    # city-state and the pin is really in Berlin -> GEMEINDE/HIGH, not LOW.
+    g = grade_location(
+        52.52,
+        13.40,
+        "Berlin",
+        "Berlin",
+        "Berlin",
+        find_amt=amt("Berlin", "Mitte", "Berlin", ags=11000000),
+        nearest_place=place("Alexanderplatz", 300, ags=99999999),
+    )
+    assert g.matched_level == "GEMEINDE" and g.grade == "HIGH"
+
+
+def test_wrong_pin_typed_city_state_stays_low():
+    # Typed 'Berlin' but the pin is actually in Brandenburg: the rule keys off the
+    # resolved Land (Brandenburg, not a city-state) so it must NOT be promoted.
+    g = grade_location(
+        52.4,
+        13.0,
+        "Berlin",
+        "Berlin",
+        "Berlin",
+        find_amt=amt("Brandenburg", "Eichwalde", "Dahme-Spreewald", ags=12061),
+        nearest_place=place("Eichwalde", 200, ags=99999999),
+    )
+    assert g.grade == "LOW"

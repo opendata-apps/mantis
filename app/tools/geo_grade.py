@@ -2,9 +2,14 @@
 
 from dataclasses import dataclass
 
-from app.tools.normalize_text import names_match_norm
+from app.tools.normalize_text import names_match_norm, normalize_place_name
 
 _ORTSTEIL_MAX_M = 2000.0
+
+# City-states: the Land *is* the Gemeinde, but BKG splits Berlin into 12 Bezirke,
+# so a coordinate there resolves gen='Mitte' etc. — typed ort 'Berlin' can never
+# match the Bezirk. Confirm at city-state level using the pin's resolved Land.
+_CITY_STATES = {"berlin", "hamburg", "bremen"}
 
 # matched_level -> (grade, base confidence)
 _LEVELS = {
@@ -62,6 +67,15 @@ def grade_location(
     ):
         reasons.append(f"nearest place '{place.name}' {int(dist)} m matches ort")
         return _make("ORTSTEIL", dist, reasons)
+
+    resolved_land = resolved["land"] or ""
+    if (
+        stored_ort
+        and normalize_place_name(resolved_land) in _CITY_STATES
+        and names_match_norm(stored_ort, resolved_land)
+    ):
+        reasons.append(f"ort names the city-state '{resolved_land}'")
+        return _make("GEMEINDE", dist, reasons)
 
     gemeinde_match = (
         stored_ort and names_match_norm(stored_ort, resolved["gen"] or "")
