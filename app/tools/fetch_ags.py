@@ -28,7 +28,9 @@ BERLIN_WHOLE_CITY_AGS = "11000000"
 REQUEST_TIMEOUT = 30  # seconds
 
 
-def _wfs_get_feature(base_url, typename, *, srs="EPSG:4326", extra_params=None):
+def _wfs_get_feature(
+    base_url, typename, *, srs="EPSG:4326", extra_params=None, timeout=REQUEST_TIMEOUT
+):
     """Fetch all features from a WFS endpoint as GeoJSON."""
     params = {
         "service": "wfs",
@@ -41,7 +43,7 @@ def _wfs_get_feature(base_url, typename, *, srs="EPSG:4326", extra_params=None):
     if extra_params:
         params.update(extra_params)
 
-    resp = requests.get(base_url, params=params, timeout=REQUEST_TIMEOUT)
+    resp = requests.get(base_url, params=params, timeout=timeout)
     resp.raise_for_status()
     return resp.json()
 
@@ -53,7 +55,11 @@ _GEONAME_SETTLEMENT_TYPES = {"populatedPlace"}
 
 # Server-side page size; the INSPIRE endpoint caps a single GetFeature response
 # and does not report numberMatched, so we page on startIndex until a short page.
-GN250_PAGE_SIZE = 10000
+# 5k keeps each geo+json page small enough to generate within the read timeout.
+GN250_PAGE_SIZE = 5000
+# Large geo+json pages are slow to render server-side; the shared 30s is too tight.
+GN250_READ_TIMEOUT = 120
+GN250_MAX_RETRIES = 3
 
 
 def _geoname_text(name_prop):
@@ -106,6 +112,33 @@ def parse_geonames_featurecollection(fc):
     return rows
 
 
+def _fetch_gn250_page(start):
+    """Fetch one GN250 page, retrying on transient network errors.
+
+    Re-raises the last error once retries are exhausted (no silent fallback).
+    """
+    last_err = None
+    for attempt in range(1, GN250_MAX_RETRIES + 1):
+        try:
+            return _wfs_get_feature(
+                GN250_WFS_BASE,
+                "gn:NamedPlace",
+                extra_params={
+                    "outputFormat": "application/geo+json",
+                    "count": GN250_PAGE_SIZE,
+                    "startIndex": start,
+                },
+                timeout=GN250_READ_TIMEOUT,
+            )
+        except requests.exceptions.RequestException as e:
+            last_err = e
+            logger.warning(
+                f"GN250 page at startIndex {start} failed "
+                f"(attempt {attempt}/{GN250_MAX_RETRIES}): {e}"
+            )
+    raise last_err
+
+
 def fetch_geonames():
     """Fetch all GN250 populated places from the BKG INSPIRE WFS as GeoJSON.
 
@@ -116,17 +149,10 @@ def fetch_geonames():
     rows = []
     start = 0
     while True:
-        data = _wfs_get_feature(
-            GN250_WFS_BASE,
-            "gn:NamedPlace",
-            extra_params={
-                "outputFormat": "application/geo+json",
-                "count": GN250_PAGE_SIZE,
-                "startIndex": start,
-            },
-        )
+        data = _fetch_gn250_page(start)
         feats = data.get("features", [])
         rows.extend(parse_geonames_featurecollection(data))
+        logger.info(f"GN250 page at {start}: {len(feats)} features ({len(rows)} kept)")
         if len(feats) < GN250_PAGE_SIZE:
             break
         start += GN250_PAGE_SIZE
