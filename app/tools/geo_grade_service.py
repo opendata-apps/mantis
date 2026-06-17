@@ -17,7 +17,7 @@ def grade_fundort_fields(lat, lon, stored_land, stored_kreis, stored_ort):
         stored_kreis,
         stored_ort,
         find_amt=get_amt_enriched,
-        nearest_place=index.nearest if index else (lambda pt: None),
+        nearest_place=index.nearest_places if index else (lambda pt: []),
     )
     return {
         "geo_grade": grade.grade,

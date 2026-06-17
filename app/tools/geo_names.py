@@ -16,6 +16,12 @@ class NearestPlace:
     distance_m: float
 
 
+# Lower bound for metres-per-degree across German latitudes (1° lon at ~55°N ≈
+# 63.9 km). Dividing a metre radius by this over-estimates the planar dwithin
+# pre-filter, so no in-range place is missed; haversine then trims precisely.
+_MIN_M_PER_DEG = 60000.0
+
+
 def _haversine_m(lon1, lat1, lon2, lat2):
     r = 6371000.0
     p1, p2 = math.radians(lat1), math.radians(lat2)
@@ -55,6 +61,43 @@ class GeoNamesIndex:
             kreis=kreis,
             distance_m=_haversine_m(lon, lat, plon, plat),
         )
+
+    def nearest_places(self, point, radius_m=5000.0, k=12):
+        """point: (lon, lat) -> up to k NearestPlace within radius_m, nearest first.
+
+        Unlike nearest(), this returns every place inside the radius — so a closer
+        but differently-named point cannot shadow a matching Ortsteil that also lies
+        in range. Falls back to the single absolute-nearest place when nothing is
+        within radius_m, so callers always have a distance for non-match grading.
+        """
+        if not self._tree:
+            return []
+        lon, lat = point
+        pt = Point(lon, lat)
+        idxs = self._tree.query(
+            pt, predicate="dwithin", distance=radius_m / _MIN_M_PER_DEG
+        )
+        cands = []
+        for i in idxs:
+            name, ags, kreis, plon, plat = self._meta[i]
+            d = _haversine_m(lon, lat, plon, plat)
+            if d <= radius_m:
+                cands.append(
+                    NearestPlace(name=name, ags=ags, kreis=kreis, distance_m=d)
+                )
+        if not cands:
+            i = self._tree.nearest(pt)
+            name, ags, kreis, plon, plat = self._meta[i]
+            cands.append(
+                NearestPlace(
+                    name=name,
+                    ags=ags,
+                    kreis=kreis,
+                    distance_m=_haversine_m(lon, lat, plon, plat),
+                )
+            )
+        cands.sort(key=lambda p: p.distance_m)
+        return cands[:k]
 
 
 _index = None
