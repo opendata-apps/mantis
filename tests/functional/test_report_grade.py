@@ -17,8 +17,8 @@ def test_grade_fundort_fields_returns_columns(app, session, monkeypatch):
     )
 
     class _Idx:
-        def nearest(self, pt):
-            return NearestPlace("Schadewitz", 12062264, "Elbe-Elster", 120.0)
+        def nearest_places(self, pt):
+            return [NearestPlace("Schadewitz", 12062264, "Elbe-Elster", 120.0)]
 
     monkeypatch.setattr(svc, "get_geo_names_index", lambda: _Idx())
 

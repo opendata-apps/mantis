@@ -12,11 +12,20 @@ def no_amt(pt):
 
 
 def place(name, dist, ags=12062264):
-    return lambda pt: NearestPlace(name=name, ags=ags, kreis="K", distance_m=dist)
+    return lambda pt: [NearestPlace(name=name, ags=ags, kreis="K", distance_m=dist)]
+
+
+def places(*specs):
+    """specs: (name, dist) tuples -> sorted-by-distance candidate list."""
+    items = sorted(
+        (NearestPlace(name=n, ags=12062264, kreis="K", distance_m=d) for n, d in specs),
+        key=lambda p: p.distance_m,
+    )
+    return lambda pt: items
 
 
 def no_place(pt):
-    return None
+    return []
 
 
 def test_outside_de_is_low():
@@ -41,6 +50,35 @@ def test_ortsteil_match_is_high_schadewitz_regression():
         "Schadewitz",
         find_amt=amt("Brandenburg", "Schönborn", "Elbe-Elster"),
         nearest_place=place("Schadewitz", 120),
+    )
+    assert g.matched_level == "ORTSTEIL" and g.grade == "HIGH"
+
+
+def test_ortsteil_not_shadowed_by_closer_other_place():
+    # The absolute-nearest place is a differently-named point (Elstal's Olympic
+    # Village) but the typed Ortsteil also lies in range — must still be ORTSTEIL.
+    g = grade_location(
+        52.526,
+        13.005,
+        "Brandenburg",
+        "Havelland",
+        "Elstal",
+        find_amt=amt("Brandenburg", "Wustermark", "Havelland"),
+        nearest_place=places(("Olympisches Dorf", 1353), ("Elstal", 1620)),
+    )
+    assert g.matched_level == "ORTSTEIL" and g.grade == "HIGH"
+
+
+def test_ortsteil_within_bumped_cap():
+    # Saarmund's GN250 centroid is 2050 m from the pin — inside the 3 km cap.
+    g = grade_location(
+        52.308,
+        13.103,
+        "Brandenburg",
+        "Potsdam-Mittelmark",
+        "Saarmund",
+        find_amt=amt("Brandenburg", "Nuthetal", "Potsdam-Mittelmark"),
+        nearest_place=place("Saarmund", 2050),
     )
     assert g.matched_level == "ORTSTEIL" and g.grade == "HIGH"
 

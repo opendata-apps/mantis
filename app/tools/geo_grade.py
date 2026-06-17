@@ -4,7 +4,9 @@ from dataclasses import dataclass
 
 from app.tools.normalize_text import names_match_norm, normalize_place_name
 
-_ORTSTEIL_MAX_M = 2000.0
+# Bumped from 2000: large rural Ortsteile (e.g. Saarmund) sit >2 km from the
+# GN250 point centroid yet the pin is still inside the named locality.
+_ORTSTEIL_MAX_M = 3000.0
 
 # City-states: the Land *is* the Gemeinde, but BKG splits Berlin into 12 Bezirke,
 # so a coordinate there resolves gen='Mitte' etc. — typed ort 'Berlin' can never
@@ -55,18 +57,23 @@ def grade_location(
 
     land_match = names_match_norm(stored_land or "", resolved["land"] or "")
     kreis_match = names_match_norm(stored_kreis or "", resolved.get("kreis") or "")
-    place = nearest_place((lon, lat))
-    dist = place.distance_m if place else None
+    places = nearest_place((lon, lat)) or []
+    nearest = places[0] if places else None
+    dist = nearest.distance_m if nearest else None
 
-    if (
-        place
-        and stored_ort
-        and names_match_norm(stored_ort, place.name)
-        and dist is not None
-        and dist <= _ORTSTEIL_MAX_M
-    ):
-        reasons.append(f"nearest place '{place.name}' {int(dist)} m matches ort")
-        return _make("ORTSTEIL", dist, reasons)
+    ort_hit = None
+    if stored_ort:
+        for cand in places:
+            if cand.distance_m > _ORTSTEIL_MAX_M:
+                break  # sorted ascending: nothing closer remains
+            if names_match_norm(stored_ort, cand.name):
+                ort_hit = cand
+                break
+    if ort_hit is not None:
+        reasons.append(
+            f"place '{ort_hit.name}' {int(ort_hit.distance_m)} m matches ort"
+        )
+        return _make("ORTSTEIL", ort_hit.distance_m, reasons)
 
     resolved_land = resolved["land"] or ""
     if (
@@ -79,7 +86,7 @@ def grade_location(
 
     gemeinde_match = (
         stored_ort and names_match_norm(stored_ort, resolved["gen"] or "")
-    ) or (place is not None and _ags_equal(place.ags, resolved.get("ags")))
+    ) or (nearest is not None and _ags_equal(nearest.ags, resolved.get("ags")))
     if gemeinde_match:
         reasons.append(f"ort matches Gemeinde '{resolved['gen']}'")
         return _make("GEMEINDE", dist, reasons)
