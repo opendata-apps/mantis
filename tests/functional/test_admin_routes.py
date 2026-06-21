@@ -3,6 +3,7 @@
 import pytest
 from datetime import datetime, timedelta
 import json
+from pathlib import Path
 from sqlalchemy import select, func
 
 from app.database.models import (
@@ -146,6 +147,13 @@ class TestAdminRoutes:
             "/reviewer/9999?dateFrom=2024-01-01&dateTo=2024-12-31&statusInput=offen&sort_order=id_desc"
         )
         assert response.status_code == 200
+
+    def test_clear_filters_keeps_open_status_default(self):
+        """The filter reset button should reset to the reviewer default, not Alle."""
+        admin_js = Path("app/static/js/admin-modal.js").read_text()
+
+        assert 'if (statusInput) statusInput.value = "offen";' in admin_js
+        assert 'if (statusInput) statusInput.value = "all";' not in admin_js
 
     def test_reviewer_page_session_storage(self, client):
         """Test that user_id is stored in session when accessing reviewer page."""

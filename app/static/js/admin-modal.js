@@ -781,7 +781,7 @@ document.addEventListener("DOMContentLoaded", function () {
       var dateFromInput = document.getElementById("dateFrom");
       var dateToInput = document.getElementById("dateTo");
       var typeInput = document.getElementById("typeInput");
-      if (statusInput) statusInput.value = "all";
+      if (statusInput) statusInput.value = "offen";
       if (dateFromInput) dateFromInput.value = "";
       if (dateToInput) dateToInput.value = "";
       if (typeInput) typeInput.value = "all";

@@ -18,8 +18,8 @@ class TestIsComparisonFilters:
 
         for row in results:
             meldung = row[0]  # First element is TblMeldungen
-            assert meldung.is_open, (
-                f"Sighting {meldung.id} has statuses={meldung.statuses}, expected OPEN"
+            assert meldung.statuses == [ReportStatus.OPEN.value], (
+                f"Sighting {meldung.id} has statuses={meldung.statuses}, expected plain OPEN"
             )
 
     def test_approved_filter_query(self, session):
@@ -177,21 +177,23 @@ class TestIsComparisonFilters:
 
         # Create test sightings with different status values
         test_cases = [
-            (ReportStatus.OPEN.value, "status_open"),
-            (ReportStatus.APPR.value, "status_approved"),
-            (ReportStatus.DEL.value, "status_deleted"),
-            (ReportStatus.INFO.value, "status_info"),
-            (ReportStatus.UNKL.value, "status_unclear"),
+            ([ReportStatus.OPEN.value], "status_open"),
+            ([ReportStatus.APPR.value], "status_approved"),
+            ([ReportStatus.DEL.value], "status_deleted"),
+            ([ReportStatus.INFO.value], "status_info"),
+            ([ReportStatus.UNKL.value], "status_unclear"),
+            ([ReportStatus.OPEN.value, ReportStatus.INFO.value], "status_open_info"),
+            ([ReportStatus.OPEN.value, ReportStatus.UNKL.value], "status_open_unclear"),
         ]
 
         created_sightings = {}
-        for status_val, name in test_cases:
+        for statuses, name in test_cases:
             sighting = TblMeldungen(
                 dat_fund_von=datetime.now().date(),
                 dat_meld=datetime.now().date(),
                 fo_zuordnung=existing.fo_zuordnung,
-                statuses=[status_val],
-                deleted=(status_val == ReportStatus.DEL.value),
+                statuses=statuses,
+                deleted=(statuses == [ReportStatus.DEL.value]),
                 anm_melder=name,
             )
             session.add(sighting)
@@ -212,14 +214,16 @@ class TestIsComparisonFilters:
             "offen": ["status_open"],
             "bearbeitet": ["status_approved"],
             "geloescht": ["status_deleted"],
-            "informiert": ["status_info"],
-            "unklar": ["status_unclear"],
+            "informiert": ["status_info", "status_open_info"],
+            "unklar": ["status_unclear", "status_open_unclear"],
             "all": [
                 "status_open",
                 "status_approved",
                 "status_deleted",
                 "status_info",
                 "status_unclear",
+                "status_open_info",
+                "status_open_unclear",
             ],
         }
 
