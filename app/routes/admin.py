@@ -215,7 +215,7 @@ def _matches_filter_status(sighting: TblMeldungen, filter_status: str) -> bool:
     if normalized == "bearbeitet":
         return sighting.is_approved
     if normalized == "offen":
-        return sighting.is_open
+        return sighting.is_open and not sighting.needs_info and not sighting.is_unclear
     if normalized == "geloescht":
         return sighting.is_deleted
     if normalized == "informiert":
@@ -1159,7 +1159,11 @@ def get_filtered_query(
     if filter_status == "bearbeitet":
         stmt = stmt.where(TblMeldungen.statuses.contains([ReportStatus.APPR.value]))
     elif filter_status == "offen":
-        stmt = stmt.where(TblMeldungen.statuses.contains([ReportStatus.OPEN.value]))
+        stmt = stmt.where(
+            TblMeldungen.statuses.contains([ReportStatus.OPEN.value]),
+            ~TblMeldungen.statuses.contains([ReportStatus.INFO.value]),
+            ~TblMeldungen.statuses.contains([ReportStatus.UNKL.value]),
+        )
     elif filter_status == "geloescht":
         stmt = stmt.where(TblMeldungen.statuses.contains([ReportStatus.DEL.value]))
     elif filter_status == "informiert":
