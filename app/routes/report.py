@@ -146,9 +146,7 @@ def melden(usrid=None):
 
             try:
                 reporter = (
-                    db.session.scalar(
-                        select(TblUsers).where(TblUsers.user_id == usrid)
-                    )
+                    db.session.scalar(select(TblUsers).where(TblUsers.user_id == usrid))
                     if usrid
                     else None
                 )
@@ -382,7 +380,7 @@ def ags_lookup():
     except (KeyError, ValueError, TypeError):
         return jsonify({}), 400
 
-    if not (-90 <= lat <= 90 and -180 <= lon <= 180):
+    if not (30 <= lat <= 60 and -20 <= lon <= 30):
         return jsonify({}), 400
 
     if not point_in_rect((lat, lon)):
@@ -392,10 +390,12 @@ def ags_lookup():
     if not spatial:
         return jsonify({})
 
-    return jsonify({
-        "land": spatial["land"],
-        "kreis": spatial["kreis"],
-    })
+    return jsonify(
+        {
+            "land": spatial["land"],
+            "kreis": spatial["kreis"],
+        }
+    )
 
 
 @report.route("/melden/validate-step", methods=["POST"])
@@ -480,9 +480,7 @@ def toggle_finder():
     if not _is_partial_request():
         abort(400)
 
-    is_identical = _is_checkbox_true(
-        request.form.get("identical_finder_reporter")
-    )
+    is_identical = _is_checkbox_true(request.form.get("identical_finder_reporter"))
 
     if is_identical:
         # Return hidden/empty finder fields

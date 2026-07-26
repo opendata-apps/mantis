@@ -465,14 +465,14 @@ const ReportForm = {
         const manLng = document.getElementById('manual-longitude');
         [manLat, manLng].forEach(el => el?.addEventListener('change', () => {
             const lat = parseFloat(manLat?.value), lng = parseFloat(manLng?.value);
-            if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+            if (!isNaN(lat) && !isNaN(lng) && lat >= 30 && lat <= 60 && lng >= -20 && lng <= 30) {
                 this.setMarker(lat, lng);
                 this.map.setView([lat, lng], this.map.getZoom());
             } else {
                 document.getElementById('latitude').value = '';
                 document.getElementById('longitude').value = '';
                 if (this.marker) { this.marker.remove(); this.marker = null; }
-                this.showError('coordinates', 'Bitte gültige Koordinaten eingeben (Breitengrad: -90 bis 90, Längengrad: -180 bis 180).');
+                this.showError('coordinates', 'Bitte gültige Koordinaten eingeben (Breitengrad: 30 bis 60, Längengrad: -20 bis 30).');
             }
         }));
 
@@ -526,8 +526,8 @@ const ReportForm = {
     },
 
     setMarker(lat, lng, geocode = true) {
-        lat = Math.max(-90, Math.min(90, lat));
-        lng = Math.max(-180, Math.min(180, lng));
+        lat = Math.max(30, Math.min(60, lat));
+        lng = Math.max(-20, Math.min(30, lng));
 
         if (this.marker) this.marker.setLatLng([lat, lng]);
         else {

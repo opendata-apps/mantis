@@ -347,8 +347,8 @@ function validateAndUpdateCoordinate(input, type) {
 
   var isValid =
     type === "latitude"
-      ? !isNaN(num) && num >= -90 && num <= 90
-      : !isNaN(num) && num >= -180 && num <= 180;
+      ? !isNaN(num) && num >= 30 && num <= 60
+      : !isNaN(num) && num >= -20 && num <= 30;
 
   if (isValid) {
     input.classList.remove("border-red-500");
