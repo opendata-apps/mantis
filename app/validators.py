@@ -1,46 +1,51 @@
 """Custom validators for WTForms that use centralized validation logic."""
 
-from wtforms.validators import ValidationError
-from app.tools.coordinate_validation import validate_and_normalize_coordinate
+from wtforms.validators import StopValidation, ValidationError
+
+from app.tools.coordinate_validation import (
+    SWAPPED_MESSAGE,
+    coordinates_look_swapped,
+    validate_and_normalize_coordinate,
+)
 
 
 class CoordinateValidator:
-    """
-    Validator for coordinate fields that uses centralized validation logic.
+    """Checks one coordinate field against the accepted range."""
 
-    This validator can be used with WTForms FloatField to ensure coordinates
-    are valid and within the correct range.
-    """
-
-    def __init__(self, coord_type, message=None):
-        """
-        Initialize the validator.
-
-        Args:
-            coord_type: Either 'latitude' or 'longitude'
-            message: Optional custom error message
-        """
+    def __init__(self, coord_type):
         self.coord_type = coord_type
-        self.message = message
 
     def __call__(self, form, field):
-        """
-        Validate the coordinate field.
-
-        Args:
-            form: The form instance
-            field: The field to validate
-
-        Raises:
-            ValidationError: If the coordinate is invalid
-        """
         if field.data is None:
             return  # Let Required validator handle this
 
         is_valid, _, error_msg = validate_and_normalize_coordinate(
             field.data, self.coord_type
         )
-
         if not is_valid:
-            message = self.message or error_msg or f"Invalid {self.coord_type}"
-            raise ValidationError(message)
+            raise ValidationError(error_msg)
+
+
+class SwappedCoordinateValidator:
+    """
+    Rejects a transposed latitude/longitude pair.
+
+    Reads both fields off the form, so it can hang on either one. Place it
+    before CoordinateValidator: it stops the chain so the reporter gets the
+    "swapped" hint instead of two range errors that don't explain anything.
+    """
+
+    def __init__(self, latitude_field="latitude", longitude_field="longitude"):
+        self.latitude_field = latitude_field
+        self.longitude_field = longitude_field
+
+    def __call__(self, form, field):
+        latitude = getattr(form, self.latitude_field, None)
+        longitude = getattr(form, self.longitude_field, None)
+        if latitude is None or longitude is None:
+            return
+        if latitude.data is None or longitude.data is None:
+            return  # Let Required validator handle this
+
+        if coordinates_look_swapped(latitude.data, longitude.data):
+            raise StopValidation(SWAPPED_MESSAGE)

@@ -366,10 +366,10 @@ class TestCoordinateUpdates:
             sess["user_id"] = self.reviewer.user_id
 
         coordinates_outside_germany = [
-            ("latitude", "40.7128"),  # New York latitude
-            ("longitude", "-74.0060"),  # New York longitude
-            ("latitude", "35.6762"),  # Tokyo latitude
-            ("longitude", "139.6503"),  # Tokyo longitude
+            ("latitude", "48.2082"),  # Wien latitude
+            ("longitude", "16.3738"),  # Wien longitude
+            ("latitude", "38.7223"),  # Lisboa latitude
+            ("longitude", "-9.1393"),  # Lisboa longitude
         ]
 
         for coord_type, coord_value in coordinates_outside_germany:
@@ -653,7 +653,7 @@ class TestAmtMtbRecalculation:
         # Coordinates outside Brandenburg/Germany
         response = client.post(
             f"/update_coordinates/{self.test_sighting.id}",
-            data={"latitude": "40.7128", "longitude": "-74.0060"},  # New York
+            data={"latitude": "48.2082", "longitude": "16.3738"},  # Wien
         )
 
         assert response.status_code == 200

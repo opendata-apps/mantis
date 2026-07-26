@@ -18,7 +18,7 @@ from wtforms.validators import (
 )
 from datetime import date, timedelta
 import re
-from app.validators import CoordinateValidator
+from app.validators import CoordinateValidator, SwappedCoordinateValidator
 
 # Define constants for choices
 GENDER_CHOICES = [
@@ -190,9 +190,8 @@ class MantisSightingForm(StrippedForm):
         "Breitengrad *",
         validators=[
             InputRequired(message="Breitengrad ist erforderlich (Karte nutzen)."),
-            CoordinateValidator(
-                "latitude", message="Breitengrad muss zwischen -90 und 90 liegen."
-            ),
+            SwappedCoordinateValidator(),
+            CoordinateValidator("latitude"),
         ],
         render_kw={"readonly": True, "aria-label": "Breitengrad (von Karte gesetzt)"},
     )
@@ -200,9 +199,8 @@ class MantisSightingForm(StrippedForm):
         "Längengrad *",
         validators=[
             InputRequired(message="Längengrad ist erforderlich (Karte nutzen)."),
-            CoordinateValidator(
-                "longitude", message="Längengrad muss zwischen -180 und 180 liegen."
-            ),
+            SwappedCoordinateValidator(),
+            CoordinateValidator("longitude"),
         ],
         render_kw={"readonly": True, "aria-label": "Längengrad (von Karte gesetzt)"},
     )

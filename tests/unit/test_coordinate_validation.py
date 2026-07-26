@@ -1,9 +1,13 @@
 """Unit tests for coordinate validation module."""
 
 from app.tools.coordinate_validation import (
+    coordinates_look_swapped,
     validate_and_normalize_coordinate,
     validate_coordinate_pair,
 )
+
+LAT_RANGE_ERROR = "Breitengrad muss zwischen 24,6 und 60 liegen."
+LON_RANGE_ERROR = "Längengrad muss zwischen -20 und 44,83 liegen."
 
 
 class TestCoordinateValidation:
@@ -17,10 +21,9 @@ class TestCoordinateValidation:
             (" 52.52 ", "52.52"),  # With spaces
             ("+52.52", "52.52"),  # With plus sign
             ("52,52", "52.52"),  # Comma as decimal separator
-            (-89.9, "-89.9"),  # Float input
-            (0, "0.0"),  # Zero
-            ("90", "90.0"),  # Max value
-            ("-90", "-90.0"),  # Min value
+            (24.6, "24.6"),  # Min value
+            (60, "60.0"),  # Max value
+            ("5.252e1", "52.52"),  # Scientific notation
         ]
 
         for input_val, expected in test_cases:
@@ -36,15 +39,19 @@ class TestCoordinateValidation:
     def test_validate_latitude_invalid(self):
         """Test validation of invalid latitude values."""
         test_cases = [
-            ("91", "Latitude must be between -90 and 90"),
-            ("-91", "Latitude must be between -90 and 90"),
-            ("invalid", "Invalid latitude format"),
-            ("++13", "Invalid latitude format"),
-            ("+-13", "Invalid latitude format"),
-            ("", "Latitude is required"),
-            (None, "Latitude is required"),
-            ("52.52.52", "Invalid latitude format"),
-            ("abc123", "Invalid latitude format"),
+            ("69.224997", LAT_RANGE_ERROR),  # North of the accepted range
+            ("13.4", LAT_RANGE_ERROR),  # South of the accepted range
+            ("91", LAT_RANGE_ERROR),
+            ("-91", LAT_RANGE_ERROR),
+            ("invalid", "Breitengrad ist keine gültige Zahl."),
+            ("++13", "Breitengrad ist keine gültige Zahl."),
+            ("+-13", "Breitengrad ist keine gültige Zahl."),
+            ("52.52.52", "Breitengrad ist keine gültige Zahl."),
+            ("nan", "Breitengrad ist keine gültige Zahl."),
+            ("inf", "Breitengrad ist keine gültige Zahl."),
+            ("", "Breitengrad ist erforderlich."),
+            ("   ", "Breitengrad ist erforderlich."),
+            (None, "Breitengrad ist erforderlich."),
         ]
 
         for input_val, expected_error in test_cases:
@@ -60,11 +67,11 @@ class TestCoordinateValidation:
         test_cases = [
             ("13.404954", "13.404954"),  # Normal value
             ("13.40", "13.4"),  # Trailing zero removed
-            (" -74.006 ", "-74.006"),  # Negative with spaces
-            ("+139.6503", "139.6503"),  # With plus sign
+            (" -8.61 ", "-8.61"),  # Negative with spaces (Lisbon)
+            ("+13.4", "13.4"),  # With plus sign
             ("13,404954", "13.404954"),  # Comma as decimal separator
-            (180, "180.0"),  # Max value
-            (-180, "-180.0"),  # Min value
+            (-20, "-20.0"),  # Min value
+            (44.83, "44.83"),  # Max value
         ]
 
         for input_val, expected in test_cases:
@@ -80,13 +87,14 @@ class TestCoordinateValidation:
     def test_validate_longitude_invalid(self):
         """Test validation of invalid longitude values."""
         test_cases = [
-            ("181", "Longitude must be between -180 and 180"),
-            ("-181", "Longitude must be between -180 and 180"),
-            ("not_a_number", "Invalid longitude format"),
-            ("++13", "Invalid longitude format"),
-            ("+-13", "Invalid longitude format"),
-            ("", "Longitude is required"),
-            (None, "Longitude is required"),
+            ("-23.552937", LON_RANGE_ERROR),  # West of the accepted range
+            ("74.006", LON_RANGE_ERROR),  # East of the accepted range
+            ("181", LON_RANGE_ERROR),
+            ("-181", LON_RANGE_ERROR),
+            ("not_a_number", "Längengrad ist keine gültige Zahl."),
+            ("++13", "Längengrad ist keine gültige Zahl."),
+            ("", "Längengrad ist erforderlich."),
+            (None, "Längengrad ist erforderlich."),
         ]
 
         for input_val, expected_error in test_cases:
@@ -106,13 +114,12 @@ class TestCoordinateValidation:
         assert lon == "13.4"
         assert errors == []
 
-        # Invalid latitude
-        is_valid, lat, lon, errors = validate_coordinate_pair("91", "13.40")
+        # Out-of-range latitude (the Greenland Sea pin)
+        is_valid, lat, lon, errors = validate_coordinate_pair("69.224997", "13.0")
         assert is_valid is False
         assert lat is None
-        assert lon == "13.4"
-        assert len(errors) == 1
-        assert "Latitude must be between -90 and 90" in errors[0]
+        assert lon == "13.0"
+        assert errors == [LAT_RANGE_ERROR]
 
         # Both invalid
         is_valid, lat, lon, errors = validate_coordinate_pair("invalid", "also_invalid")
@@ -121,30 +128,55 @@ class TestCoordinateValidation:
         assert lon is None
         assert len(errors) == 2
 
-    def test_normalize_edge_cases(self):
-        """Test normalization of edge cases."""
-        # Multiple spaces and signs
-        is_valid, normalized, _ = validate_and_normalize_coordinate(
-            "  +52.520000  ", "latitude"
-        )
-        assert is_valid is True
-        assert normalized == "52.52"
+    def test_transposed_pair_reported_as_swap(self):
+        """A transposed pair gets the swap hint, not two range errors."""
+        is_valid, lat, lon, errors = validate_coordinate_pair("13.40", "52.52")
+        assert is_valid is False
+        assert errors == ["Breiten- und Längengrad scheinen vertauscht zu sein."]
 
-        # Scientific notation
-        is_valid, normalized, _ = validate_and_normalize_coordinate(
-            "5.252e1", "latitude"
-        )
-        assert is_valid is True
-        assert normalized == "52.52"
 
-        # Very small values
-        is_valid, normalized, _ = validate_and_normalize_coordinate(
-            "0.0001", "latitude"
-        )
-        assert is_valid is True
-        assert normalized == "0.0001"
+class TestSwappedCoordinates:
+    """Test suite for transposed latitude/longitude detection."""
 
-        # Negative zero
-        is_valid, normalized, _ = validate_and_normalize_coordinate("-0.0", "latitude")
-        assert is_valid is True
-        assert normalized == "-0.0"
+    def test_swapped_pairs_detected(self):
+        """Transposed European coordinates are flagged."""
+        test_cases = [
+            (13.4, 52.52, "Berlin"),
+            (11.58, 48.14, "München"),
+            ("2.35", "48.86", "Paris"),
+            (-0.13, 51.51, "London"),
+            (18.07, 59.33, "Stockholm"),
+        ]
+
+        for lat, lon, label in test_cases:
+            assert coordinates_look_swapped(lat, lon) is True, (
+                f"Expected transposed {label} to be detected"
+            )
+
+    def test_correct_pairs_not_flagged(self):
+        """Correctly ordered coordinates are never flagged."""
+        test_cases = [
+            (52.52, 13.4, "Berlin"),
+            (48.14, 11.58, "München"),
+            (35.9, 14.5, "Malta — southern edge"),
+            (59.91, 10.75, "Oslo — near the northern edge"),
+            (64.13, -21.9, "Reykjavík — out of range, but no valid swap"),
+            (38.0, 38.0, "ambiguous: both values in the lat/lon overlap"),
+            (39.93, 32.86, "Ankara — swap also plausible, so not flagged"),
+        ]
+
+        for lat, lon, label in test_cases:
+            assert coordinates_look_swapped(lat, lon) is False, (
+                f"Expected {label} not to be flagged"
+            )
+
+    def test_outside_range_both_ways_not_flagged(self):
+        """Points out of range in either order are left to the range check."""
+        # Tokyo — swapping does not bring it into range either
+        assert coordinates_look_swapped(35.68, 139.69) is False
+        assert coordinates_look_swapped(139.69, 35.68) is False
+
+    def test_invalid_input_not_flagged(self):
+        """Unparseable values are left to the per-field format check."""
+        assert coordinates_look_swapped("abc", "13.4") is False
+        assert coordinates_look_swapped(None, None) is False
