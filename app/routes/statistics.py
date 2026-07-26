@@ -3,7 +3,7 @@ from flask import render_template, request, current_app, url_for
 from flask import session
 from markupsafe import escape
 from sqlalchemy import func, select
-from sqlalchemy import cast, String
+from sqlalchemy import cast, String, Text
 from sqlalchemy import literal_column
 from app import db
 from app.database.models import TblAemterCoordinaten
@@ -11,6 +11,7 @@ from app.auth import reviewer_required
 from app.tools.gen_messtisch_svg import create_measure_sheet
 from app.database.models import TblFundorte, TblMeldungen
 from app.database.models import TblUserFeedback, ReportStatus
+from app.database.models import TblUsers, TblMeldungUser
 from datetime import date, datetime, timedelta
 from app.database.feedback_type import FeedbackSource
 from app.database.ags import (
@@ -60,6 +61,7 @@ list_of_stats = {
     "meldungen_gesamt": "Alle Summen (Tabelle)",
     "meldungen_zeiten": "Meldezeiten",
     "feedback": "Feedback",
+    "observer": "Fleißige Melder",
 }
 
 
@@ -151,8 +153,11 @@ def stats_start():
         case "feedback":
             return stats_feedback(
                 marker="feedback",
-                page="stats-feedback.html",
-            )
+                page="stats-feedback.html")
+        case "observer":
+            return stats_observer(
+                marker="observer",
+                page="stats-observer.html")
         case "start":
             return render_template(
                 "statistics/statistiken.html", menu=list_of_stats, marker=value
@@ -599,4 +604,41 @@ def stats_feedback(page, marker):
         feedback=feedback,
         details=details,
         marker=marker,
+    )
+
+
+def stats_observer(page, marker):
+    """Observers with the most reports."""
+
+    cnt = func.count(TblUsers.user_kontakt).label("anzahl")
+
+    stmt = (
+        select(
+            cnt,
+            TblUsers.user_name,
+            TblUsers.user_kontakt
+        )
+        .select_from(TblMeldungUser)
+        .join(
+            TblUsers,
+            cast(TblMeldungUser.id_user, Text) == cast(TblUsers.id, Text),
+        )
+        .group_by(
+            TblUsers.user_kontakt,
+            TblUsers.user_name
+        )
+        .having(cnt > 0)
+        .order_by(cnt.desc())
+    )
+
+    rows= db.session.execute(stmt).all()
+    
+    observer = [(anzahl, user_name, user_kontakt)
+                for anzahl, user_name, user_kontakt  in rows ]
+        
+    return render_template(
+        "statistics/" + page,
+        menu=list_of_stats,
+        observer=observer,
+        marker=marker
     )

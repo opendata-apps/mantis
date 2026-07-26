@@ -1,0 +1,40 @@
+{% extends "layout.html" %}
+{% block title %}
+  Statistiken
+{% endblock title %}
+{% block meta_keywords %}Auswertungen, Melder{% endblock %}
+{% from 'statistics/_macros_stats_menu.html' import StatsMenu with context %}
+{% block content %}
+  <section class="container px-4 mx-auto mt-10">
+    <div class="p-4 bg-gray-100 rounded-lg border border-gray-200 sm:p-5">
+      <form action="" method="POST" class="space-y-4">
+        {{ StatsMenu() }}
+      </form>
+      <div class="mt-4">
+        {% if fehler != True %}
+          <p class="mt-2 mb-5">Die fleißigsten Melder</p>
+          <div class="overflow-x-auto">
+            <table>
+              <thead>
+                <tr>
+		  <th class="w-[100px] text-center">Anzahl</th>
+                  <th class="w-[200px]">Name</th>
+                  <th class="w-[50px] ">Kontakt</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for f in observer %}
+                  <tr>
+                    <td class="w-[100px] text-center">{{ f[0] }}</td>
+		    <td class="w-[200px]">{{ f[1] }}</td>
+                    <td class="">{{ f[2] }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+{% endblock content %}
