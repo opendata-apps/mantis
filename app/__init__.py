@@ -143,12 +143,15 @@ def create_app(config_class=Config):
         # 'unsafe-inline' is still required for the remaining inline
         # `onclick=` handlers and `<script>` blocks; migrating those to
         # delegated listeners is tracked as separate work.
+        # 'wasm-unsafe-eval' is what lets the report form's HEIC decoder
+        # (heic2any = libheif compiled to wasm) compile at all; without it
+        # every HEIC upload hangs. It permits WebAssembly only — not JS eval.
         # `worker-src 'self' blob:` — canvas-confetti spawns its render
         # worker via URL.createObjectURL(new Blob(...)) for performance.
         response.headers["Content-Security-Policy"] = "; ".join(
             [
                 "default-src 'self'",
-                "script-src 'self' 'unsafe-inline'",
+                "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'",
                 "style-src 'self' 'unsafe-inline'",
                 "worker-src 'self' blob:",
                 "img-src 'self' data: blob: "

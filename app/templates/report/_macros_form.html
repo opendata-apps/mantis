@@ -14,7 +14,9 @@
           <label for="{{ field.id }}"
                  class="relative font-medium text-green-600 bg-white rounded-md cursor-pointer">
             <span class="text-sm md:text-base">Klicken Sie, um ein Foto auszuwählen</span>
-            {{ field(class="sr-only", required=true, accept=".jpg,.jpeg,.png,.webp,.heic,.heif") }}
+            {# MIME types first: Android pickers ignore extension-only accept lists
+               and can end up greying out every file in the gallery. #}
+            {{ field(class="sr-only", required=true, accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.heic,.heif") }}
           </label>
           <p class="mt-1">oder ziehen Sie ein Bild hierher</p>
           <p class="mt-1 text-xs text-gray-600">JPG, PNG, WEBP, HEIC, HEIF bis zu 12MB</p>

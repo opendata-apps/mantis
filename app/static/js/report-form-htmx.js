@@ -34,6 +34,11 @@ L.Icon.Default.mergeOptions({
 window.L = L;
 window.htmx = htmx;
 
+const MIME_BY_EXT = {
+    jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png',
+    webp: 'image/webp', heic: 'image/heic', heif: 'image/heif'
+};
+
 const ReportForm = {
     step: 0,
     submitting: false,
@@ -235,7 +240,12 @@ const ReportForm = {
         if (!input || !dropzone) return;
 
         input.addEventListener('change', (e) => this.handlePhoto(e.target.files?.[0]));
-        dropzone.addEventListener('click', () => input.click());
+        // The <label> already activates the input. Letting its click bubble to
+        // the dropzone opens the Android picker a second time, and the second
+        // intent cancels the first selection — the form then looks untouched.
+        dropzone.addEventListener('click', (e) => {
+            if (!e.target.closest('label')) input.click();
+        });
         dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
         dropzone.addEventListener('dragleave', (e) => { e.preventDefault(); dropzone.classList.remove('dragover'); });
         dropzone.addEventListener('drop', (e) => {
@@ -251,22 +261,33 @@ const ReportForm = {
 
     async handlePhoto(file) {
         if (!file) return;
-        const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
-        const ext = file.name.toLowerCase().split('.').pop();
-        if (!validTypes.includes(file.type.toLowerCase()) && !['jpg', 'jpeg', 'png', 'webp', 'heic', 'heif'].includes(ext)) {
-            return this.showError('photo', 'Ungültiges Bildformat.');
-        }
+        const type = this.imageType(file);
+        if (!type) return this.showError('photo', 'Ungültiges Bildformat.');
         if (file.size > 12 * 1024 * 1024) return this.showError('photo', 'Max 12MB.');
 
         this.clearError('photo');
         this.setDropzoneLoading(true, 'Bild wird verarbeitet...');
 
+        // Start the read here, still inside the change event's own task: Android
+        // hands gallery items over as proxy content:// URIs that can turn
+        // unreadable moments later.
+        const read = file.arrayBuffer();
+
         try {
-            const exif = await this.extractExif(file);
-            const webp = await this.toWebp(file);
+            const bytes = await this.stage('read', read);
+            const exif = await this.extractExif(bytes);
+            const webp = await this.toWebp(bytes, type, file.size);
 
             this.webpData = { dataUrl: webp.dataUrl, blob: webp.blob, fileName: file.name };
             this.dirty = true;
+
+            // A photo that encodes to a few KB is the signature of the Android
+            // GPU-canvas bug that hands back an all-black surface. The report
+            // still goes through — but a silently black photo is worthless to a
+            // reviewer, so it has to be visible to us.
+            if (webp.blob.size < 10000) {
+                this.reportPhotoFailure(file, { stage: 'suspect-output', message: `${webp.blob.size} bytes` });
+            }
 
             document.getElementById('photo-upload-area')?.classList.add('hidden');
             const preview = document.getElementById('photoPreview');
@@ -278,17 +299,76 @@ const ReportForm = {
 
             this.applyExif(exif);
         } catch (err) {
-            this.showError('photo', 'Fehler bei der Bildverarbeitung.');
+            // Reset before reporting: removePhoto() clears the photo error, so
+            // the other order erases the message the user needs to see.
             this.removePhoto();
+            this.showError('photo',
+                `Das Foto konnte nicht verarbeitet werden (Fehler: ${err.stage || 'unbekannt'}). `
+                + 'Bitte versuchen Sie es erneut oder wählen Sie ein anderes Foto.');
+            this.reportPhotoFailure(file, err);
         } finally {
             this.setDropzoneLoading(false);
         }
     },
 
-    extractExif(file) {
+    // Android pickers sometimes deliver a File with an empty `type`, so the
+    // extension has to be able to stand in for it — and vice versa.
+    imageType(file) {
+        const ext = (file.name || '').toLowerCase().split('.').pop();
+        const type = (file.type || '').toLowerCase();
+        if (Object.values(MIME_BY_EXT).includes(type)) return type;
+        return MIME_BY_EXT[ext] || null;
+    },
+
+    // One catch covers the whole pipeline, so each step has to name itself —
+    // the label is what tells the user and the failure report which one broke.
+    async stage(name, work) {
+        try {
+            return await work;
+        } catch (cause) {
+            throw this.photoError(name, cause);
+        }
+    },
+
+    photoError(stage, cause) {
+        // Both halves matter: the name carries the browser's verdict
+        // (NotReadableError, SecurityError), the message the detail.
+        const detail = cause ? `${cause.name || 'Error'} ${cause.message || ''}`.trim() : 'no detail';
+        const err = new Error(`${stage}: ${detail}`);
+        err.stage = stage;
+        return err;
+    },
+
+    // The conversion runs entirely in the browser, so until now a failure here
+    // was invisible to the project — the report was simply never submitted.
+    // Reports the failing step and the file class, never the image itself.
+    reportPhotoFailure(file, err) {
+        const url = document.getElementById('reportForm')?.dataset.photoErrorUrl;
+        if (!url) return;
+        fetch(url, {
+            method: 'POST',
+            keepalive: true,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('input[name="csrf_token"]')?.value
+            },
+            body: JSON.stringify({
+                stage: err?.stage || 'unbekannt',
+                error: String(err?.message || err).slice(0, 200),
+                size: file?.size ?? null,
+                type: file?.type || '',
+                ext: (file?.name || '').toLowerCase().split('.').pop().slice(0, 10)
+            })
+        }).catch(() => { }); // diagnostics must never turn into a second failure
+    },
+
+    extractExif(bytes) {
         // EXIF autofill is a non-essential enhancement; it must never block or freeze
         // the upload. Time-box it and swallow every failure (degrade to no autofill).
-        const parse = ExifReader.load(file, { expanded: true })
+        // ExifReader returns tags synchronously for an ArrayBuffer (a promise only for
+        // a File), so the parse has to be lifted into one before it can be raced.
+        const parse = Promise.resolve()
+            .then(() => ExifReader.load(bytes, { expanded: true }))
             .then((tags) => {
                 const dateTime = tags.exif?.DateTimeOriginal?.description || tags.exif?.DateTime?.description;
                 const gps = (typeof tags.gps?.Latitude === 'number' && typeof tags.gps?.Longitude === 'number')
@@ -301,32 +381,38 @@ const ReportForm = {
         return Promise.race([parse, timeout]);
     },
 
-    async toWebp(file) {
-        const isHeic = file.type.includes('heic') || file.type.includes('heif');
+    // An object URL, not a data URL: base64 inflates a 6MB photo into an 8MB
+    // string handed to img.src, four times Chromium's 2MB URL ceiling, and it
+    // keeps that string in memory next to the decoded bitmap.
+    decode(blob) {
+        const url = URL.createObjectURL(blob);
+        return new Promise((res, rej) => {
+            const el = new Image();
+            el.onload = () => res(el);
+            el.onerror = () => rej(new Error('image decode failed'));
+            el.src = url;
+        }).finally(() => URL.revokeObjectURL(url));
+    },
 
-        const loadImg = (src) => new Promise((res, rej) => {
-            const img = new Image();
-            img.onload = () => res(img);
-            img.onerror = rej;
-            img.src = src;
-        });
+    async toWebp(bytes, type, size) {
+        const blob = new Blob([bytes], { type });
 
-        let imgSrc;
-        if (isHeic) {
+        // Safari 17+ decodes HEIC natively, so try the browser first and only
+        // pull in the 1.3MB wasm converter when it can't — which is also the
+        // path that keeps working if the unmaintained heic2any ever breaks.
+        let failure = null;
+        let img = await this.decode(blob).catch((cause) => { failure = cause; return null; });
+        if (!img && (type.includes('heic') || type.includes('heif'))) {
             const { default: heic2any } = await import('heic2any');
-            const converted = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.85 });
-            imgSrc = URL.createObjectURL(converted);
-        } else {
-            imgSrc = await new Promise((res, rej) => {
-                const r = new FileReader();
-                r.onload = (e) => res(e.target.result);
-                r.onerror = rej;
-                r.readAsDataURL(file);
-            });
+            // libheif never settles when its wasm cannot run or stalls, which
+            // strands the user on the spinner with nothing to act on.
+            const jpeg = await this.stage('heic', Promise.race([
+                heic2any({ blob, toType: 'image/jpeg', quality: 0.85 }),
+                new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 25000))
+            ]));
+            img = await this.stage('decode', this.decode(jpeg));
         }
-
-        const img = await loadImg(imgSrc);
-        if (isHeic) URL.revokeObjectURL(imgSrc);
+        if (!img) throw this.photoError('decode', failure);
 
         const maxDim = /Mobile|Android|iPhone|iPad/i.test(navigator.userAgent) ? 2048 : 4096;
         let w = img.naturalWidth, h = img.naturalHeight;
@@ -336,27 +422,42 @@ const ReportForm = {
             else { h = maxDim; w = Math.round(maxDim * ratio); }
         }
 
-        const canvas = document.createElement('canvas');
-        canvas.width = w; canvas.height = h;
-        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        let canvas;
+        try {
+            canvas = document.createElement('canvas');
+            canvas.width = w; canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            // A 12MP phone photo is a ~2.3x reduction in one step; without this
+            // the default bilinear filter aliases fine detail (wing venation).
+            ctx.imageSmoothingQuality = 'high';
+            ctx.drawImage(img, 0, 0, w, h);
+        } catch (cause) {
+            throw this.photoError('canvas', cause);
+        }
 
-        const sizeMB = file.size / 1048576;
+        const sizeMB = size / 1048576;
         const pixels = w * h;
         let q = sizeMB > 10 ? 0.6 : sizeMB > 5 ? 0.7 : 0.8;
         if (pixels > 8e6) q = Math.min(q, 0.6);
         else if (pixels > 4e6) q = Math.min(q, 0.7);
 
-        const encode = (type) => new Promise((r) => canvas.toBlob(r, type, q));
+        const encode = (mime) => new Promise((r) => canvas.toBlob(r, mime, q));
         // WebKit (incl. iOS 26) cannot encode WebP via canvas: toBlob returns null
         // or silently falls back to PNG. Fall back to JPEG, which every engine encodes
         // and the server (PIL) decodes — unlike HEIC. See WebKit regression 89356ad.
-        const webp = await encode('image/webp');
-        if (webp && webp.type === 'image/webp') {
-            return { blob: webp, dataUrl: canvas.toDataURL('image/webp', q) };
+        let mime = 'image/webp';
+        let out = await encode(mime);
+        if (!out || out.type !== mime) {
+            mime = 'image/jpeg';
+            out = await encode(mime);
         }
-        const jpg = await encode('image/jpeg');
-        if (!jpg) throw new Error('Conversion failed');
-        return { blob: jpg, dataUrl: canvas.toDataURL('image/jpeg', q) };
+        if (!out) throw this.photoError('encode');
+
+        const dataUrl = canvas.toDataURL(mime, q);
+        // WebKit only frees a canvas once it is resized away (bug 195325), and on
+        // a phone this is the largest allocation the form makes.
+        canvas.width = canvas.height = 0;
+        return { blob: out, dataUrl };
     },
 
     removePhoto() {

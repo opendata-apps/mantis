@@ -176,7 +176,8 @@
             enctype="multipart/form-data"
             class="space-y-8"
             data-review-url="{{ url_for('report.review_step') }}"
-            data-ags-url="{{ url_for('report.ags_lookup') }}">
+            data-ags-url="{{ url_for('report.ags_lookup') }}"
+            data-photo-error-url="{{ url_for('report.photo_failure') }}">
         {{ form.csrf_token }}
         {# Hidden target for htmx validation - actual errors use OOB swaps #}
         <div id="validation-errors-container" class="hidden"></div>

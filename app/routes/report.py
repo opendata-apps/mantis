@@ -398,6 +398,27 @@ def ags_lookup():
     )
 
 
+@report.route("/melden/foto-fehler", methods=["POST"])
+@limiter.limit("10 per minute")
+def photo_failure():
+    """Record a photo that the browser could not prepare for upload.
+
+    The conversion runs entirely client-side, so without this the failure is
+    invisible here: the report is simply never submitted and the Melder gives up.
+    """
+    data = request.get_json(silent=True) or {}
+    current_app.logger.warning(
+        "Photo pipeline failed: stage=%s error=%s size=%s type=%s ext=%s ua=%s",
+        str(data.get("stage"))[:40],
+        str(data.get("error"))[:200],
+        data.get("size"),
+        str(data.get("type"))[:40],
+        str(data.get("ext"))[:10],
+        request.user_agent.string[:200],
+    )
+    return "", 204
+
+
 @report.route("/melden/validate-step", methods=["POST"])
 @limiter.limit("60 per minute")
 def validate_step_partial():

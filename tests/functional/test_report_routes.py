@@ -351,6 +351,36 @@ class TestMeldenGet:
 
 
 # ============================================================================
+# H2. /melden/foto-fehler  (client-side photo failure report)
+# ============================================================================
+
+
+class TestPhotoFailure:
+    """Browser-side conversion failures are otherwise invisible to the server."""
+
+    def test_logs_reported_failure(self, client, caplog):
+        response = client.post(
+            "/melden/foto-fehler",
+            json={
+                "stage": "decode",
+                "error": "decode: image decode failed",
+                "size": 5618106,
+                "type": "image/jpeg",
+                "ext": "jpg",
+            },
+        )
+        assert response.status_code == 204
+        assert "stage=decode" in caplog.text
+        assert "size=5618106" in caplog.text
+
+    def test_accepts_empty_body(self, client):
+        # A failing browser is exactly the context that may send nothing useful;
+        # the diagnostics endpoint must not add a second error on top.
+        response = client.post("/melden/foto-fehler", data="not json")
+        assert response.status_code == 204
+
+
+# ============================================================================
 # I. /success route
 # ============================================================================
 
