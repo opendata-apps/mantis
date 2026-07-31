@@ -1,4 +1,6 @@
 {% extends "layout.html" %}
+{# Prefilled variant (/melden/<token>) exposes the reporter's name + email — never index it. #}
+{% block meta_robots %}{% if user_prefilled %}noindex,nofollow{% else %}index,follow{% endif %}{% endblock %}
 {% block page_title %}Sichtung melden | Gottesanbeterin (Mantis religiosa){% endblock %}
 {% block meta_description %}
   Melden Sie Ihre Beobachtung der Europäischen Gottesanbeterin (Mantis religiosa): Foto hochladen, Fundort markieren, Entwicklungsstadium angeben und zur Forschung beitragen.

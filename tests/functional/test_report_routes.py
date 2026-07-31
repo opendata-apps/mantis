@@ -756,3 +756,36 @@ class TestMeldenWithExistingUser:
         )
         # User count should NOT increase — existing user reused
         assert post_user_count == pre_user_count
+
+
+class TestPrefillPageNotIndexed:
+    """The prefilled /melden/<token> variant embeds the reporter's name + email,
+    so it must be kept out of search/AI indexes — while the public /melden form
+    stays indexable. noindex is applied page-level (meta + X-Robots-Tag), NOT via
+    robots.txt Disallow, so crawlers can actually read and honour the directive."""
+
+    def test_public_melden_is_indexable(self, client):
+        response = client.get("/melden")
+        assert response.status_code == 200
+        assert b"index,follow" in response.data
+        assert "X-Robots-Tag" not in response.headers
+
+    def test_prefilled_melden_is_noindex(self, client, session):
+        from app.tools.gen_user_id import get_new_id
+
+        user = TblUsers()
+        user.user_id = get_new_id()
+        user.user_name = "Musterfrau Maria"
+        user.user_rolle = "1"
+        user.user_kontakt = "maria@example.com"
+        session.add(user)
+        session.commit()
+
+        response = client.get(f"/melden/{user.user_id}")
+        assert response.status_code == 200
+        # Page-level directive present both as meta tag and response header.
+        assert b"noindex,nofollow" in response.data
+        assert response.headers.get("X-Robots-Tag") == "noindex, nofollow"
+        # The PII must not have leaked into the index-safe path by accident:
+        # its presence is exactly why the page is noindex.
+        assert b"maria@example.com" in response.data

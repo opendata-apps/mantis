@@ -272,14 +272,23 @@ def melden(usrid=None):
                 400,
             )
 
-    return render_template(
-        "report/report_form.html",
-        form=form,
-        now=datetime.now,
-        timedelta=timedelta,
-        user_prefilled=user_prefilled_data,
-        user_has_feedback=user_has_feedback,
+    response = make_response(
+        render_template(
+            "report/report_form.html",
+            form=form,
+            now=datetime.now,
+            timedelta=timedelta,
+            user_prefilled=user_prefilled_data,
+            user_has_feedback=user_has_feedback,
+        )
     )
+    if user_prefilled_data:
+        # A prefilled form embeds the reporter's name + email in the markup;
+        # keep it out of search and AI indexes. Pairs with the meta-robots tag
+        # in report_form.html (page-level noindex, not a robots.txt Disallow —
+        # a disallowed page can't be crawled to read the noindex).
+        response.headers["X-Robots-Tag"] = "noindex, nofollow"
+    return response
 
 
 @report.route("/success")
