@@ -495,7 +495,29 @@ class TestAdminRoutes:
         assert b'id="modal-actions"' in response.data
 
     def test_toggle_flag_returns_card_partial(self, client, session):
-        """HTMX flag toggles should return updated card partial HTML."""
+        """A report still matching the active filter comes back as a card."""
+        with client.session_transaction() as sess:
+            sess["user_id"] = "9999"
+
+        response = client.post(
+            f"/toggle_flag/{self.test_sighting.id}",
+            data={"flag": "UNKL", "filter_status": "all"},
+            headers={"HX-Request": "true"},
+        )
+        assert response.status_code == 200
+        assert b'id="report-card-' in response.data
+        # Modal footer is kept in sync out-of-band
+        assert b'id="modal-actions"' in response.data
+
+        session.refresh(self.test_sighting)
+        assert "UNKL" in (self.test_sighting.statuses or [])
+
+    def test_toggle_flag_removes_card_when_it_leaves_the_filter(self, client, session):
+        """Marking a report "Unklar" takes it out of the "offen" bucket.
+
+        The list must drop the card rather than re-render it, so the response
+        is an HTMX delete swap — the modal footer still rides along OOB.
+        """
         with client.session_transaction() as sess:
             sess["user_id"] = "9999"
 
@@ -505,7 +527,9 @@ class TestAdminRoutes:
             headers={"HX-Request": "true"},
         )
         assert response.status_code == 200
-        assert b'id="report-card-' in response.data
+        assert response.headers["HX-Reswap"] == "delete"
+        assert b'id="report-card-' not in response.data
+        assert b'id="modal-actions"' in response.data
 
         session.refresh(self.test_sighting)
         assert "UNKL" in (self.test_sighting.statuses or [])
@@ -761,6 +785,28 @@ class TestAdminRoutes:
         data = json.loads(response.data)
         assert "not editable" in data["error"]
 
+    @pytest.mark.parametrize("column", ["fo_zuordnung", "id", "not_a_column"])
+    def test_update_cell_rejects_columns_the_view_does_not_expose(self, client, column):
+        """`column` is attacker-controlled, so only view columns are accepted.
+
+        fo_zuordnung in particular is routable to TblMeldungen — accepting it
+        would let a crafted POST repoint a report at any Fundort.
+        """
+        with client.session_transaction() as sess:
+            sess["user_id"] = "9999"
+
+        response = client.post(
+            "/admin/update_cell",
+            json={
+                "table": "all_data_view",
+                "meldungen_id": self.test_sighting.id,
+                "column": column,
+                "value": "1",
+            },
+        )
+        assert response.status_code == 400
+        assert "Unknown column" in json.loads(response.data)["error"]
+
     def test_update_cell_missing_required_field(self, client):
         """Malformed JSON payload returns 400, not a 500 KeyError."""
         with client.session_transaction() as sess:
@@ -856,3 +902,76 @@ class TestAdminRoutes:
         missing_id = (session.scalar(select(func.max(TblMeldungen.id))) or 0) + 1
         response = client.post(f"/delete_sighting/{missing_id}")
         assert response.status_code == 404
+
+
+class TestAlldataColumnRouting:
+    """The cell editor's column -> source table map is derived, not hand-kept."""
+
+    def test_every_editable_view_column_resolves(self):
+        """Guards against the view and the update router drifting apart."""
+        from app.database.alldata import TblAllData
+        from app.routes.admin import (
+            NON_EDITABLE_FIELDS,
+            find_original_table_and_column,
+        )
+
+        editable = {
+            c.name
+            for c in TblAllData.__table__.columns
+            if c.name not in NON_EDITABLE_FIELDS["all_data_view"]
+        }
+        unresolved = [
+            name
+            for name in sorted(editable)
+            if find_original_table_and_column(name) == (None, None)
+        ]
+        assert unresolved == []
+
+    def test_beschreibung_routes_to_the_text_not_the_fk(self):
+        """TblFundorte has a same-named FK column — the view exposes the text."""
+        from app.database.models import TblFundortBeschreibung
+        from app.routes.admin import find_original_table_and_column
+
+        assert find_original_table_and_column("beschreibung") == (
+            TblFundortBeschreibung,
+            "beschreibung",
+        )
+
+    def test_unknown_and_bare_id_do_not_resolve(self):
+        from app.routes.admin import find_original_table_and_column
+
+        assert find_original_table_and_column("id") == (None, None)
+        assert find_original_table_and_column("no_such_column") == (None, None)
+
+
+class TestAlldataViewRefreshThrottle:
+    """The materialized view is global, so the throttle must be too."""
+
+    @pytest.fixture(autouse=True)
+    def _reset_throttle(self):
+        from app.routes import admin as admin_module
+
+        admin_module._alldata_last_refreshed = None
+        yield
+        admin_module._alldata_last_refreshed = None
+
+    def test_throttle_is_shared_across_sessions(self, app):
+        """Two different reviewers must not each get their own refresh window."""
+        from unittest.mock import patch
+
+        from app.routes import admin as admin_module
+
+        with patch.object(admin_module.ad, "refresh_materialized_view") as refresh:
+            admin_module._maybe_refresh_alldata_view()
+            admin_module._maybe_refresh_alldata_view()
+            assert refresh.call_count == 1
+
+    def test_force_refreshes_regardless_of_window(self, app):
+        from unittest.mock import patch
+
+        from app.routes import admin as admin_module
+
+        with patch.object(admin_module.ad, "refresh_materialized_view") as refresh:
+            admin_module._maybe_refresh_alldata_view()
+            admin_module._maybe_refresh_alldata_view(force=True)
+            assert refresh.call_count == 2

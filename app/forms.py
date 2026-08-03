@@ -2,7 +2,6 @@ from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed, FileRequired, FileSize
 from wtforms import (
     StringField,
-    FloatField,
     TextAreaField,
     DateField,
     SelectField,
@@ -18,7 +17,7 @@ from wtforms.validators import (
 )
 from datetime import date, timedelta
 import re
-from app.validators import CoordinateValidator, SwappedCoordinateValidator
+from app.validators import CoordinateField, SwappedCoordinateValidator
 
 # Define constants for choices
 GENDER_CHOICES = [
@@ -186,31 +185,27 @@ class MantisSightingForm(StrippedForm):
     )
 
     # Location Information
-    latitude = FloatField(
+    latitude = CoordinateField(
         "Breitengrad *",
+        coord_type="latitude",
         validators=[
             InputRequired(message="Breitengrad ist erforderlich (Karte nutzen)."),
             SwappedCoordinateValidator(),
-            CoordinateValidator("latitude"),
         ],
         render_kw={"readonly": True, "aria-label": "Breitengrad (von Karte gesetzt)"},
     )
-    longitude = FloatField(
+    longitude = CoordinateField(
         "Längengrad *",
+        coord_type="longitude",
         validators=[
             InputRequired(message="Längengrad ist erforderlich (Karte nutzen)."),
             SwappedCoordinateValidator(),
-            CoordinateValidator("longitude"),
         ],
         render_kw={"readonly": True, "aria-label": "Längengrad (von Karte gesetzt)"},
     )
     fund_zip_code = StringField(
         "Postleitzahl",
-        validators=[
-            Optional(),
-            Length(min=5, max=5, message="PLZ muss 5 Ziffern haben."),
-            validate_zip_code,
-        ],
+        validators=[Optional(), validate_zip_code],
         render_kw={"placeholder": "z.B. 10115", "autocomplete": "postal-code"},
     )
     fund_city = StringField(
@@ -284,10 +279,10 @@ class MantisSightingForm(StrippedForm):
         ],
     )
 
-    # Honeypot field for spam prevention
-    honeypot = StringField(
-        validators=[Optional(), Length(max=1)]
-    )  # max=1 is a small defense
+    # Honeypot field for spam prevention. Deliberately unvalidated — the route
+    # rejects a filled trap before validation runs, and a length error here
+    # would surface the field name in the errors returned to the client.
+    honeypot = StringField(validators=[Optional()])
 
     def validate_finder_names_dependency(self):
         if not self.identical_finder_reporter.data:

@@ -11,12 +11,14 @@ This test suite validates the complete report submission functionality including
 
 import datetime
 import io
+import json
 from unittest.mock import patch
 import pytest
 from sqlalchemy import select, func
 from sqlalchemy.exc import IntegrityError
 from app.database.models import TblFundorte, TblMeldungen, TblUsers, TblMeldungUser
 from app.database.fundortbeschreibung import TblFundortBeschreibung
+from app.tools.coordinate_validation import LAT_RANGE, LON_RANGE
 from tests.helpers import build_valid_report_form_data, make_test_image
 
 
@@ -111,6 +113,15 @@ class TestReportSubmission:
 
         assert response.status_code == 200
         assert b"Melden Sie Ihre Beobachtung" in response.data
+
+    def test_coordinate_range_is_exposed_to_the_frontend(self, client):
+        """The map and reviewer modal read the accepted range off <body>."""
+        response = client.get("/melden")
+
+        expected = json.dumps(
+            {"latitude": list(LAT_RANGE), "longitude": list(LON_RANGE)}
+        )
+        assert f"data-coord-range='{expected}'" in response.data.decode("utf-8")
 
     #########################
     # Database Model Tests #
@@ -493,14 +504,10 @@ class TestReportSubmission:
                 ).strftime("%Y-%m-%d"),
                 "Datum darf nicht in der Zukunft liegen",
             ),
-            ("longitude", "200.0", "Längengrad muss zwischen -20 und 44,83 liegen"),
-            (
-                "longitude",
-                "-23.552937",
-                "Längengrad muss zwischen -20 und 44,83 liegen",
-            ),
-            ("latitude", "100.0", "Breitengrad muss zwischen 24,6 und 60 liegen"),
-            ("latitude", "69.224997", "Breitengrad muss zwischen 24,6 und 60 liegen"),
+            ("longitude", "200.0", "Längengrad muss zwischen -20 und 30 liegen"),
+            ("longitude", "-23.552937", "Längengrad muss zwischen -20 und 30 liegen"),
+            ("latitude", "100.0", "Breitengrad muss zwischen 30 und 60 liegen"),
+            ("latitude", "69.224997", "Breitengrad muss zwischen 30 und 60 liegen"),
             (
                 "email",
                 "invalid-email",
@@ -567,7 +574,7 @@ class TestReportSubmission:
         assert any("vertauscht" in msg for msg in payload["errors"]["longitude"])
 
         location = session.scalar(
-            select(TblFundorte).where(TblFundorte.latitude == 13.404954)
+            select(TblFundorte).where(TblFundorte.latitude == "13.404954")
         )
         assert location is None
 
