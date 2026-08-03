@@ -1,4 +1,5 @@
 {# HTMX partial: Finder fields toggle #}
+{% from 'report/_macros_form.html' import report_field_class %}
 {# Default to hidden when show is not defined (initial page load with checkbox checked) #}
 {% set show_fields = show | default(false) %}
 {% if show_fields %}
@@ -11,7 +12,7 @@
              name="finder_first_name"
              placeholder="Vorname (falls abweichend)"
              autocomplete="off"
-             class="block w-full px-4 py-2 text-base text-gray-700 bg-white rounded-lg shadow-xs border border-gray-300 focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200 transition ease-in-out duration-300">
+             class="{{ report_field_class() }}">
       <div id="error-finder_first_name"
            class="field-error-message"
            role="alert"
@@ -25,7 +26,7 @@
              name="finder_last_name"
              placeholder="Nachname (falls abweichend)"
              autocomplete="off"
-             class="block w-full px-4 py-2 text-base text-gray-700 bg-white rounded-lg shadow-xs border border-gray-300 focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200 transition ease-in-out duration-300">
+             class="{{ report_field_class() }}">
       <div id="error-finder_last_name"
            class="field-error-message"
            role="alert"

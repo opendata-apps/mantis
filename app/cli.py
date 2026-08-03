@@ -245,7 +245,7 @@ def validate_coordinates_command(csv_path):
     click.echo(format_report(mismatches, checked, skipped))
 
     if csv_path and mismatches:
-        with open(csv_path, "w", encoding="utf-8") as f:
+        with open(csv_path, "w", encoding="utf-8", newline="") as f:
             f.write(format_csv(mismatches))
         click.echo(f"\nCSV written to {csv_path}")
 

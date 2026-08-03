@@ -6,6 +6,8 @@ in the form while maintaining the ability to edit the data.
 """
 
 import pytest
+from bs4 import BeautifulSoup
+
 from app.database.models import TblUsers
 from app.tools.gen_user_id import get_new_id
 
@@ -221,22 +223,15 @@ class TestReportPrefill:
 
             assert response.status_code == 200
 
-            response_text = response.data.decode("utf-8")
-
-            # Check that prefilled fields are readonly
-            readonly_count = response_text.lower().count("readonly")
-            assert readonly_count >= 3, (
-                f"Expected at least 3 readonly fields (name, email), found {readonly_count}"
-            )
-
-            # Check that readonly styling is defined in CSS
-            assert "input[readonly]" in response_text, (
-                "Readonly styling should be defined in CSS"
-            )
-            # Check for background-color (may use CSS variable or hex value)
-            assert "background-color:" in response_text and (
-                "var(--color-gray-50)" in response_text or "#f9fafb" in response_text
-            ), "Readonly fields should have gray background styling"
+            soup = BeautifulSoup(response.data, "html.parser")
+            for field_id in ("report_first_name", "report_last_name", "email"):
+                field = soup.find("input", id=field_id)
+                assert field is not None
+                assert field.has_attr("readonly")
+                classes = field.get("class")
+                assert isinstance(classes, list)
+                assert "[&[readonly]]:bg-gray-50!" in classes
+                assert "[&[readonly]]:cursor-not-allowed!" in classes
 
         finally:
             # Clean up

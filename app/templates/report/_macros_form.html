@@ -1,7 +1,20 @@
+{% macro report_field_class(kind="default", extra="") -%}
+  {%- set shared = "text-gray-700 bg-white shadow-xs border border-gray-300 focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out [&[readonly]]:bg-gray-50! [&[readonly]]:text-gray-500! [&[readonly]]:cursor-not-allowed!" -%}
+  {%- if kind == "compact" -%}
+    {{- shared }} w-full px-3 py-2 text-sm md:text-base rounded-md duration-150 max-sm:py-2.5 max-sm:text-base max-sm:min-h-11 {{ extra -}}
+  {%- elif kind == "compact-base" -%}
+    {{- shared }} w-full px-3 py-2 text-base rounded-md duration-150 max-sm:py-2.5 max-sm:min-h-11 {{ extra -}}
+  {%- elif kind == "coordinate" -%}
+    {{- shared }} block w-full px-4 py-2 text-base rounded-md duration-300 hover:bg-gray-200 max-sm:px-3 max-sm:py-2.5 max-sm:min-h-11 {{ extra -}}
+  {%- else -%}
+    {{- shared }} block w-full px-4 py-2 text-base rounded-lg duration-300 hover:bg-gray-200 max-sm:px-3 max-sm:py-2.5 max-sm:min-h-11 {{ extra -}}
+  {%- endif -%}
+{%- endmacro %}
+
 {% macro render_photo_upload(field) %}
   <div class="form-group">
     <div id="photo-upload-area"
-         class="relative flex justify-center h-48 px-6 pt-8 pb-8 mt-1 cursor-pointer photo-dropzone">
+         class="relative flex justify-center h-48 px-6 pt-8 pb-8 mt-1 cursor-pointer border-2 border-dashed border-gray-200 rounded-lg transition-[border-color,background-color] duration-300 ease-[ease] hover:border-green-500 hover:bg-green-500/5 [&.dragover]:border-green-500 [&.dragover]:bg-green-500/5">
       <!-- Loading indicator for dropzone -->
       <div id="dropzoneLoadingIndicator"
            class="absolute inset-0 z-10 flex flex-col items-center justify-center hidden bg-white/80">
@@ -14,7 +27,9 @@
           <label for="{{ field.id }}"
                  class="relative font-medium text-green-600 bg-white rounded-md cursor-pointer">
             <span class="text-sm md:text-base">Klicken Sie, um ein Foto auszuwählen</span>
-            {{ field(class="sr-only", required=true, accept=".jpg,.jpeg,.png,.webp,.heic,.heif") }}
+            {# MIME types first: Android pickers ignore extension-only accept lists
+               and can end up greying out every file in the gallery. #}
+            {{ field(class="sr-only", required=true, accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.heic,.heif") }}
           </label>
           <p class="mt-1">oder ziehen Sie ein Bild hierher</p>
           <p class="mt-1 text-xs text-gray-600">JPG, PNG, WEBP, HEIC, HEIF bis zu 12MB</p>
@@ -38,7 +53,8 @@
                alt="Preview">
           <button type="button"
                   id="remove-photo"
-                  class="absolute p-1 text-white bg-red-500 rounded-full top-2 right-2 hover:bg-red-600 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2"
+                  {# 28px visible; pseudo-element lifts the tap target to 40px without bulking up the badge. #}
+                  class="absolute p-1 text-white bg-red-500 rounded-full top-2 right-2 hover:bg-red-600 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2 after:absolute after:top-1/2 after:left-1/2 after:size-10 after:-translate-x-1/2 after:-translate-y-1/2"
                   title="Foto entfernen">
             {{ heroicon_outline("x-mark", class="w-5 h-5") }}
           </button>
@@ -46,15 +62,15 @@
         <!-- EXIF Metadata display -->
         <div id="exif-data" class="hidden p-4">
           <h4 class="mb-2 font-medium text-gray-700">Aus dem Bild ausgelesene Informationen:</h4>
-          <div class="p-3 exif-panel">
+          <div class="p-3 bg-gray-100 rounded-lg border-l-4 border-green-500">
             <div id="exif-grid" class="grid grid-cols-2 gap-2 text-sm">
               <div>
                 <span class="font-medium">Datum:</span>
-                <span id="exif-date" class="text-green-600">Nicht verfügbar</span>
+                <span id="exif-date" class="text-green-600 tabular-nums">Nicht verfügbar</span>
               </div>
               <div>
                 <span class="font-medium">Standort:</span>
-                <span id="exif-location" class="text-green-600">Nicht verfügbar</span>
+                <span id="exif-location" class="text-green-600 tabular-nums">Nicht verfügbar</span>
               </div>
             </div>
           </div>
@@ -73,8 +89,12 @@
     {# Get label class from attrs or use default, then remove from dict #}
     {% set label_cls = attrs.pop('label_class', 'block text-sm font-medium text-gray-700 mb-1') %}
     {{ field.label(class=label_cls) }}
-    {# Get field class from attrs or use default, then remove from dict #}
-    {% set field_cls = attrs.pop('class', 'block w-full px-4 py-2 text-base text-gray-700 bg-white rounded-lg shadow-xs border border-gray-300 focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200 transition ease-in-out duration-300') %}
+    {% set field_kind = attrs.pop('field_kind', 'default') %}
+    {% set field_extra = attrs.pop('field_extra', '') %}
+    {% set field_cls = attrs.pop('class', report_field_class(field_kind, field_extra)) %}
+    {% if field.type == 'TextAreaField' %}
+      {% set field_cls = field_cls ~ ' min-h-[100px]! max-h-[200px]! resize-y!' %}
+    {% endif %}
     {# Render the field, passing the specific class and unpacking remaining attrs #}
     {{ field(class=field_cls, **attrs) }}
     {# Inline error container for HTMX OOB swaps #}
@@ -87,22 +107,23 @@
   </div>
 {% endmacro %}
 {% macro render_step_navigation(current_step, total_steps, show_prev=True, show_next=False, show_submit=False) %}
-  <div class="relative flex items-center justify-between h-10 mt-6">
+  {% set nav_class = "min-h-11 max-[480px]:min-w-20 max-[480px]:text-sm" %}
+  <div class="relative flex items-center justify-between min-h-11 mt-6">
     {% if show_prev %}
       <button type="button"
-              class="nav-button flex items-center justify-center w-24 px-4 py-2 font-medium text-white transition-colors duration-200 ease-in-out bg-gray-600 rounded-md shadow-xs hover:bg-gray-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+              class="{{ nav_class }} flex items-center justify-center w-24 px-4 sm:pl-3.5 py-2 font-medium text-white transition-colors duration-200 ease-in-out bg-gray-600 rounded-md shadow-xs hover:bg-gray-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
               data-prev-step="{{ current_step }}">
         {{ heroicon_outline("chevron-left", class="w-4 h-4 mr-1", stroke_width=2.5) }} <span class="hidden sm:inline">Zurück</span>
       </button>
     {% else %}
-      <span class="nav-button w-24"></span>
+      <span class="{{ nav_class }} w-24"></span>
     {% endif %}
-    <span class="absolute text-xs sm:text-sm text-gray-600 -translate-x-1/2 -translate-y-1/2 left-1/2 top-1/2 whitespace-nowrap">
+    <span class="absolute text-xs sm:text-sm text-gray-600 tabular-nums -translate-x-1/2 -translate-y-1/2 left-1/2 top-1/2 whitespace-nowrap">
       <span class="hidden sm:inline">Schritt</span> {{ current_step }}<span class="sm:hidden">/</span><span class="hidden sm:inline"> von </span>{{ total_steps }}
     </span>
     {% if show_next %}
       <button type="button"
-              class="nav-button flex items-center justify-center w-24 px-4 py-2 font-medium text-white transition-colors duration-200 ease-in-out bg-green-600 rounded-md shadow-xs hover:bg-green-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-wait"
+              class="{{ nav_class }} flex items-center justify-center w-24 px-4 sm:pr-3.5 py-2 font-medium text-white transition-colors duration-200 ease-in-out bg-green-600 rounded-md shadow-xs hover:bg-green-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-wait"
               hx-post="{{ url_for('report.validate_step_partial') }}"
               hx-include="#reportForm"
               hx-vals='{{ {"step": current_step}|tojson }}'
@@ -114,7 +135,7 @@
       </button>
     {% elif show_submit %}
       <button type="submit"
-              class="nav-button flex items-center justify-center w-auto px-4 py-2 font-medium text-white transition-colors duration-200 ease-in-out bg-green-600 rounded-md shadow-xs hover:bg-green-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+              class="{{ nav_class }} flex items-center justify-center w-auto pl-4 pr-3.5 py-2 font-medium text-white transition-colors duration-200 ease-in-out bg-green-600 rounded-md shadow-xs hover:bg-green-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
         Absenden {{ heroicon_outline("paper-airplane", class="w-4 h-4 ml-1", stroke_width=2) }}
       </button>
     {% else %}
@@ -123,7 +144,8 @@
   </div>
 {% endmacro %}
 {% macro render_feedback_section(feedback_source_field, feedback_detail_field) %}
-  <div class="p-4 border border-green-200 rounded-lg bg-green-50">
+  {# Concentric with the 8px select inside: 8px + 16px padding. #}
+  <div class="p-4 border border-green-200 rounded-3xl bg-green-50">
     <div class="flex items-start mb-3">
       {{ heroicon_outline("light-bulb", class="w-5 h-5 mr-2 text-green-600") }}
       <div>
@@ -140,7 +162,7 @@
         {{ feedback_source_field.label(class='block text-sm font-medium text-gray-700 mb-1') }}
         <select id="feedback_source"
                 name="feedback_source"
-                class="block w-full px-4 py-2 text-base text-gray-700 bg-white rounded-lg shadow-xs border border-gray-300 focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200 transition ease-in-out duration-300"
+                class="{{ report_field_class() }}"
                 hx-post="{{ url_for('report.feedback_detail') }}"
                 hx-trigger="change"
                 hx-target="#feedback_detail_container"

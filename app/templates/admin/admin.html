@@ -9,7 +9,7 @@
   <script type="module" src="{{ vite_asset('js/vendor.js') }}"></script>
   <script type="module" src="{{ vite_asset('js/admin.js') }}"></script>
   {{ vite_tags("js/admin-htmx.js") }}
-  <script type="module" src="{{ vite_asset('js/admin-modal.js') }}"></script>
+  {{ vite_tags("js/admin-modal.js") }}
   <!-- CSRF Token for JavaScript -->
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <div class="container px-4 mx-auto my-10 md:px-12">
@@ -123,7 +123,7 @@
                            id="dateFrom"
                            type="text"
                            value="{{ request.args.get('dateFrom', '') }}"
-                           class="p-2 w-full text-sm bg-white rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                           class="p-2 w-full text-sm bg-white rounded-md shadow-xs focus:ring-2 focus:ring-green-500 focus:border-transparent"
                            placeholder="von">
                     <div class="flex absolute inset-y-0 right-0 items-center pr-3 pointer-events-none">
                       {{ heroicon_mini("calendar", class="w-4 h-4 text-gray-400") }}
@@ -135,7 +135,7 @@
                            id="dateTo"
                            type="text"
                            value="{{ request.args.get('dateTo', '') }}"
-                           class="p-2 w-full text-sm bg-white rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                           class="p-2 w-full text-sm bg-white rounded-md shadow-xs focus:ring-2 focus:ring-green-500 focus:border-transparent"
                            placeholder="bis">
                     <div class="flex absolute inset-y-0 right-0 items-center pr-3 pointer-events-none">
                       {{ heroicon_mini("calendar", class="w-4 h-4 text-gray-400") }}
@@ -150,7 +150,7 @@
                   {{ heroicon_outline("x-mark", class="mr-1 w-4 h-4", stroke_width=2) }}
                   Löschen
                 </button>
-                <button type="submit" class="btn-green px-4 py-2 w-1/2">Filtern</button>
+                <button type="submit" class="btn-green w-1/2">Filtern</button>
               </div>
               <input type="hidden" name="q" value="{{ request.args.get('q', '') }}">
               <input type="hidden"
@@ -341,7 +341,7 @@
         <div id="modal-actions"
              class="flex flex-wrap gap-2 justify-end action-container">
           <button type="button"
-                  class="btn-secondary w-full px-5 py-2.5 rounded-lg sm:w-auto"
+                  class="btn-secondary w-full px-5 py-2.5 sm:w-auto"
                   onclick="closeModal()">Schließen</button>
         </div>
       </div>

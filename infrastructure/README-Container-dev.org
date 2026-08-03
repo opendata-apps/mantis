@@ -50,17 +50,14 @@ Falls alles frisch aufzusetzen ist:
 #+begin_src bash
   podman image ls -a | grep '<none>' | awk '{print $3}' | xargs podman rmi -f
 #+end_src
-** Löschen: Tailwind-Image
+** Frontend-Assets neu bauen
+
+Tailwind läuft über Vite und verwendet kein separates Image oder Volume.
 
 #+begin_src bash
 
-  podman volume ls                  # Liste aller Volumes
-  podman volume rm tailwind_build
+  bun run build
 
-  # Danach Dev-Container neu starten:
-
-  podman-compose -f podman-compose.prod.yml -f podman-compose.dev.yml up
-  
 #+end_src
 
 ** Neu bauen: Podman-Compose
@@ -81,8 +78,8 @@ Alles neu bauen ...
     # 1. Dependencies installieren (einmalig / CI)
     bun install
 
-  # 2. Tailwind CSS im Watch-Mode starten
-    bun run watch:css
+  # 2. Vite mit Tailwind CSS im Watch-Mode starten
+    bun run watch
   
     # 3. Container starten
     cd infrastructure
@@ -94,8 +91,8 @@ Alles neu bauen ...
 
 #+begin_src bash
 
-  # 1. Fertige CSS bauen
-  bun run build:css
+  # 1. Frontend-Assets bauen
+  bun run build
 
   # 2. Docker Image bauen
   podman build -t mantis_web ..
@@ -106,10 +103,10 @@ Alles neu bauen ...
 
 #+end_src
 
-** Logs: überwachen -- tailwind
+** Logs: überwachen -- Vite
 #+begin_src bash
 
-podman-compose logs -f tailwind
+podman-compose logs -f vite
   
 #+end_src
 
@@ -145,19 +142,17 @@ podman exec -it infrastructure_db_1 psql -U mantis_user -d mantis_tracker
 ** Check: Tailwind -- Dateien finden
 #+begin_src bash
 
-  bun run build:css
+  bun run build
   
 #+end_src
 *** leeres theme.css
 
-Leere theme.css → Content-Pfade in tailwind.config.js prüfen:
+Leere theme.css → Quellen in app/static/css/theme.css prüfen:
 
 #+begin_src bash
 
-content: [
-  '../templates/**/*.html',
-  './node_modules/flowbite/**/*.js'
-]
+@source "../../templates/**/*.html";
+@source "../js/**/*.js";
 
 #+end_src
 
@@ -189,5 +184,3 @@ Wenn im Testmode
      insert into users values (1, 999, 'reviewer 1', 9, 'reviewer@mantis.org');
         
 #+end_src
-
-

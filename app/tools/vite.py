@@ -86,6 +86,19 @@ def _collect_imports_recursive(manifest, entry_key, collected=None):
     return collected
 
 
+def _warn_missing_entry(entry: str) -> None:
+    """Report a manifest miss instead of emitting an unusable asset URL.
+
+    Dev runs `vite build --watch`, which writes the same manifest as a
+    production build, so there is no mode where the raw source path works —
+    it would serve an ES module with unresolvable bare imports and render a
+    silently broken page.
+    """
+    current_app.logger.error(
+        f"Vite manifest has no entry for {entry!r} — run `bun run build`."
+    )
+
+
 def vite_asset(entry: str) -> str:
     """Get the URL for a Vite asset.
 
@@ -94,8 +107,7 @@ def vite_asset(entry: str) -> str:
                e.g., 'js/vendor.js', 'css/theme.css'
 
     Returns:
-        URL string with hashed filename in production,
-        or original path in development
+        URL string with the hashed filename from the manifest.
     """
     manifest = _load_manifest(current_app)
 
@@ -103,62 +115,8 @@ def vite_asset(entry: str) -> str:
         hashed_file = manifest[entry]["file"]
         return url_for("static", filename=f"build/{hashed_file}")
 
-    # Fallback: return unbundled path
-    return url_for("static", filename=entry)
-
-
-def vite_css(entry: str) -> list:
-    """Get all CSS URLs associated with a JS entry point (including imports).
-
-    Args:
-        entry: JS entry point (e.g., 'js/report-form.js')
-
-    Returns:
-        List of CSS URLs (includes CSS from imported chunks)
-    """
-    manifest = _load_manifest(current_app)
-
-    if not manifest or entry not in manifest:
-        return []
-
-    # Collect CSS from entry and all its imports recursively
-    css_files = _collect_css_recursive(manifest, entry)
-
-    return [
-        url_for("static", filename=f"build/{css_file}")
-        for css_file in sorted(css_files)  # Sort for consistent ordering
-    ]
-
-
-def vite_preload(entry: str) -> Markup:
-    """Generate modulepreload link tags for a JS entry's imports.
-
-    This improves load performance by preloading imported chunks
-    before the browser discovers them during JS execution.
-
-    Args:
-        entry: JS entry point (e.g., 'js/map.js')
-
-    Returns:
-        Markup containing <link rel="modulepreload"> tags
-    """
-    manifest = _load_manifest(current_app)
-
-    if not manifest or entry not in manifest:
-        return Markup("")
-
-    # Collect all imported chunks
-    import_files = _collect_imports_recursive(manifest, entry)
-
-    if not import_files:
-        return Markup("")
-
-    links = []
-    for file in sorted(import_files):
-        url = url_for("static", filename=f"build/{file}")
-        links.append(f'<link rel="modulepreload" href="{url}">')
-
-    return Markup("\n".join(links))
+    _warn_missing_entry(entry)
+    return ""
 
 
 def vite_font_preloads(*patterns: str) -> Markup:
@@ -192,10 +150,10 @@ def vite_font_preloads(*patterns: str) -> Markup:
 def vite_tags(entry: str) -> Markup:
     """Generate all required tags for a JS entry point.
 
-    Includes:
-    - CSS link tags (from entry and imports)
-    - Modulepreload hints for imported chunks
-    - Script tag for the entry
+    Emits stylesheets, the entry script, then modulepreload hints for the
+    imported chunks — the order Vite's backend integration guide recommends
+    for optimal performance.
+    https://vite.dev/guide/backend-integration
 
     Args:
         entry: JS entry point (e.g., 'js/map.js')
@@ -206,29 +164,23 @@ def vite_tags(entry: str) -> Markup:
     manifest = _load_manifest(current_app)
 
     if not manifest or entry not in manifest:
-        # Fallback for development
-        return Markup(
-            f'<script type="module" src="{url_for("static", filename=entry)}"></script>'
-        )
+        _warn_missing_entry(entry)
+        return Markup("")
 
     tags = []
 
-    # CSS tags (inline to avoid re-loading manifest)
     css_files = _collect_css_recursive(manifest, entry)
     for css_file in sorted(css_files):
         css_url = url_for("static", filename=f"build/{css_file}")
         tags.append(f'<link rel="stylesheet" href="{css_url}">')
 
-    # Modulepreload hints (inline to avoid re-loading manifest)
-    import_files = _collect_imports_recursive(manifest, entry)
-    for file in sorted(import_files):
-        preload_url = url_for("static", filename=f"build/{file}")
-        tags.append(f'<link rel="modulepreload" href="{preload_url}">')
-
-    # Main script tag (type="module" for ES module support)
     hashed_file = manifest[entry]["file"]
     script_url = url_for("static", filename=f"build/{hashed_file}")
     tags.append(f'<script type="module" src="{script_url}"></script>')
+
+    for file in sorted(_collect_imports_recursive(manifest, entry)):
+        preload_url = url_for("static", filename=f"build/{file}")
+        tags.append(f'<link rel="modulepreload" href="{preload_url}">')
 
     return Markup("\n".join(tags))
 
@@ -240,8 +192,6 @@ def init_app(app):
     def vite_context():
         return {
             "vite_asset": vite_asset,
-            "vite_css": vite_css,
-            "vite_preload": vite_preload,
             "vite_font_preloads": vite_font_preloads,
             "vite_tags": vite_tags,
         }

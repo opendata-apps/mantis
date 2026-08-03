@@ -11,12 +11,14 @@ This test suite validates the complete report submission functionality including
 
 import datetime
 import io
+import json
 from unittest.mock import patch
 import pytest
 from sqlalchemy import select, func
 from sqlalchemy.exc import IntegrityError
 from app.database.models import TblFundorte, TblMeldungen, TblUsers, TblMeldungUser
 from app.database.fundortbeschreibung import TblFundortBeschreibung
+from app.tools.coordinate_validation import LAT_RANGE, LON_RANGE
 from tests.helpers import build_valid_report_form_data, make_test_image
 
 
@@ -112,6 +114,15 @@ class TestReportSubmission:
         assert response.status_code == 200
         assert b"Melden Sie Ihre Beobachtung" in response.data
 
+    def test_coordinate_range_is_exposed_to_the_frontend(self, client):
+        """The map and reviewer modal read the accepted range off <body>."""
+        response = client.get("/melden")
+
+        expected = json.dumps(
+            {"latitude": list(LAT_RANGE), "longitude": list(LON_RANGE)}
+        )
+        assert f"data-coord-range='{expected}'" in response.data.decode("utf-8")
+
     #########################
     # Database Model Tests #
     #########################
@@ -189,9 +200,7 @@ class TestReportSubmission:
         assert sighting_db.art_m == 1
         assert sighting_db.fo_zuordnung == location.id
 
-        user_db = session.scalar(
-            select(TblUsers).where(TblUsers.user_id == user_id)
-        )
+        user_db = session.scalar(select(TblUsers).where(TblUsers.user_id == user_id))
         assert user_db is not None
         assert user_db.user_name == "Reporter T."
 
@@ -274,9 +283,7 @@ class TestReportSubmission:
         pre_location_count = session.scalar(
             select(func.count()).select_from(TblFundorte)
         )
-        pre_users_count = session.scalar(
-            select(func.count()).select_from(TblUsers)
-        )
+        pre_users_count = session.scalar(select(func.count()).select_from(TblUsers))
         pre_relation_count = session.scalar(
             select(func.count()).select_from(TblMeldungUser)
         )
@@ -443,13 +450,13 @@ class TestReportSubmission:
         form_data = report_form_data.copy()
         form_data.update(
             {
-                "latitude": "40.7128",
-                "longitude": "-74.0060",
-                "fund_city": "New York",
-                "fund_state": "New York",
-                "fund_district": "Manhattan",
-                "fund_street": "Broadway",
-                "fund_zip_code": "10001",
+                "latitude": "48.8566",
+                "longitude": "2.3522",
+                "fund_city": "Paris",
+                "fund_state": "Île-de-France",
+                "fund_district": "Paris",
+                "fund_street": "Rue de Rivoli",
+                "fund_zip_code": "75001",
                 "location_description": "1",
             }
         )
@@ -497,8 +504,10 @@ class TestReportSubmission:
                 ).strftime("%Y-%m-%d"),
                 "Datum darf nicht in der Zukunft liegen",
             ),
-            ("longitude", "200.0", "Längengrad muss zwischen -180 und 180 liegen"),
-            ("latitude", "100.0", "Breitengrad muss zwischen -90 und 90 liegen"),
+            ("longitude", "200.0", "Längengrad muss zwischen -20 und 30 liegen"),
+            ("longitude", "-23.552937", "Längengrad muss zwischen -20 und 30 liegen"),
+            ("latitude", "100.0", "Breitengrad muss zwischen 30 und 60 liegen"),
+            ("latitude", "69.224997", "Breitengrad muss zwischen 30 und 60 liegen"),
             (
                 "email",
                 "invalid-email",
@@ -537,20 +546,37 @@ class TestReportSubmission:
             follow_redirects=True,
         )
 
-        # Check for appropriate error message and status code
-        response_text = response.data.decode("utf-8")
-
-        # Verify validation works as expected
-        assert response.status_code in [200, 400], (
-            f"Unexpected status code: {response.status_code}"
+        # Invalid submissions are answered with the field errors as JSON
+        assert response.status_code == 400
+        messages = response.get_json()["errors"].get(field, [])
+        assert any(error_message in msg for msg in messages), (
+            f"Expected error message '{error_message}' not found in {messages}"
         )
-        if response.status_code == 200:
-            assert error_message in response_text, (
-                f"Expected error message '{error_message}' not found"
-            )
 
-        # Verify file upload handler wasn't called for validation errors
-        # No file upload should occur for validation errors
+    def test_swapped_coordinates_rejected(self, client, report_form_data, session):
+        """Reversed latitude/longitude must be rejected instead of stored."""
+        form_data = report_form_data.copy()
+        form_data["location_description"] = "1"
+        # Berlin with the two values transposed
+        form_data["latitude"] = "13.404954"
+        form_data["longitude"] = "52.520008"
+
+        response = client.post(
+            "/melden",
+            data={**form_data, "photo": create_test_image()},
+            content_type="multipart/form-data",
+            follow_redirects=True,
+        )
+
+        assert response.status_code == 400
+        payload = response.get_json()
+        assert payload["success"] is False
+        assert any("vertauscht" in msg for msg in payload["errors"]["longitude"])
+
+        location = session.scalar(
+            select(TblFundorte).where(TblFundorte.latitude == 13.404954)
+        )
+        assert location is None
 
     def test_file_upload_validation(self, client, report_form_data):
         """Test validation for file uploads including file type and size constraints.

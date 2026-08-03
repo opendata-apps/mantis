@@ -2,6 +2,7 @@ from datetime import datetime
 import os
 import tomllib
 from pathlib import Path
+from typing import Any
 from flask import Flask, jsonify, render_template, request
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
@@ -13,6 +14,7 @@ from flask_favicon import FlaskFavicon
 from werkzeug.exceptions import HTTPException
 from werkzeug.middleware.proxy_fix import ProxyFix
 from .config import Config
+from app.tools.coordinate_validation import LAT_RANGE, LON_RANGE
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
@@ -108,6 +110,13 @@ def create_app(config_class=Config):
         heroicon_solid,
     )
 
+    # Rendered onto <body> so the map and the reviewer modal validate against
+    # the same range as the server.
+    coord_range: dict[str, Any] = {
+        "coord_range": {"latitude": LAT_RANGE, "longitude": LON_RANGE}
+    }
+    app.jinja_env.globals.update(coord_range)
+
     app.jinja_env.globals.update(
         {
             "heroicon_micro": heroicon_micro,
@@ -162,12 +171,15 @@ def create_app(config_class=Config):
         # 'unsafe-inline' is still required for the remaining inline
         # `onclick=` handlers and `<script>` blocks; migrating those to
         # delegated listeners is tracked as separate work.
+        # 'wasm-unsafe-eval' is what lets the report form's HEIC decoder
+        # (heic2any = libheif compiled to wasm) compile at all; without it
+        # every HEIC upload hangs. It permits WebAssembly only — not JS eval.
         # `worker-src 'self' blob:` — canvas-confetti spawns its render
         # worker via URL.createObjectURL(new Blob(...)) for performance.
         response.headers["Content-Security-Policy"] = "; ".join(
             [
                 "default-src 'self'",
-                "script-src 'self' 'unsafe-inline'",
+                "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'",
                 "style-src 'self' 'unsafe-inline'",
                 "worker-src 'self' blob:",
                 "img-src 'self' data: blob: "
