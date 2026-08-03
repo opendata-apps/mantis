@@ -74,7 +74,12 @@ class TestValidateFundorte:
         """Mock: return different results based on longitude."""
         lon, lat = point
         if lon < 10:
-            return {"land": "Hamburg", "gen": "Hamburg", "kreis": "Hamburg", "ags": "02000000"}
+            return {
+                "land": "Hamburg",
+                "gen": "Hamburg",
+                "kreis": "Hamburg",
+                "ags": "02000000",
+            }
         return {"land": "Berlin", "gen": "Berlin", "kreis": "Berlin", "ags": "11000000"}
 
     def test_matching_fundort_no_mismatch(self):
@@ -140,8 +145,8 @@ class TestValidateFundorte:
 
     def test_multiple_fundorte(self):
         fundorte = [
-            _fundort(1, 52.52, 13.38, "Berlin", "Berlin"),   # OK
-            _fundort(2, 52.52, 13.38, "München", "Bayern"),   # LAND mismatch
+            _fundort(1, 52.52, 13.38, "Berlin", "Berlin"),  # OK
+            _fundort(2, 52.52, 13.38, "München", "Bayern"),  # LAND mismatch
             _fundort(3, 48.85, 2.35, "Paris", "Frankreich"),  # outside DE
         ]
         mismatches, checked, skipped = validate_fundorte(
@@ -186,3 +191,30 @@ class TestFormatCsv:
         assert len(lines) == 2
         assert "42" in lines[1]
         assert "LAND_MISMATCH" in lines[1]
+
+    def test_csv_survives_quotes_commas_and_newlines(self):
+        """Ort/Land are reviewer-editable free text and must round-trip intact."""
+        import csv as csv_module
+        import io
+
+        from app.tools.validate_coordinates import Mismatch
+
+        m = Mismatch(
+            42,
+            Issue.ORT_MISMATCH,
+            'Land "X"',
+            "Berlin",
+            "Sankt Peter, Ording",
+            "Neustadt\nan der Aisch",
+        )
+        rows = list(csv_module.reader(io.StringIO(format_csv([m]))))
+
+        assert len(rows) == 2
+        assert rows[1] == [
+            "42",
+            "ORT_MISMATCH",
+            'Land "X"',
+            "Berlin",
+            "Sankt Peter, Ording",
+            "Neustadt\nan der Aisch",
+        ]

@@ -2,6 +2,7 @@ from datetime import datetime
 import os
 import tomllib
 from pathlib import Path
+from typing import Any
 from flask import Flask, jsonify, render_template, request
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
@@ -11,6 +12,7 @@ from flask_favicon import FlaskFavicon
 from werkzeug.exceptions import HTTPException
 from werkzeug.middleware.proxy_fix import ProxyFix
 from .config import Config
+from app.tools.coordinate_validation import LAT_RANGE, LON_RANGE
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
@@ -88,6 +90,13 @@ def create_app(config_class=Config):
         heroicon_outline,
         heroicon_solid,
     )
+
+    # Rendered onto <body> so the map and the reviewer modal validate against
+    # the same range as the server.
+    coord_range: dict[str, Any] = {
+        "coord_range": {"latitude": LAT_RANGE, "longitude": LON_RANGE}
+    }
+    app.jinja_env.globals.update(coord_range)
 
     app.jinja_env.globals.update(
         {

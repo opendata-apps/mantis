@@ -195,7 +195,7 @@ def validate_coordinates_command(csv_path):
     click.echo(format_report(mismatches, checked, skipped))
 
     if csv_path and mismatches:
-        with open(csv_path, "w", encoding="utf-8") as f:
+        with open(csv_path, "w", encoding="utf-8", newline="") as f:
             f.write(format_csv(mismatches))
         click.echo(f"\nCSV written to {csv_path}")
 
@@ -226,11 +226,11 @@ def normalize_coordinates_command():
     invalid_rows = []
 
     for fundort in fundorte:
-        is_valid, normalized_lat, normalized_lon, errors = validate_coordinate_pair(
+        normalized_lat, normalized_lon, errors = validate_coordinate_pair(
             fundort.latitude,
             fundort.longitude,
         )
-        if not is_valid or normalized_lat is None or normalized_lon is None:
+        if errors:
             invalid_rows.append(
                 (
                     fundort.id,

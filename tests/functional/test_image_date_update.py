@@ -76,12 +76,14 @@ def test_update_report_image_date_success(
             # Verify success
             assert result["status"] == "success"
 
-            # Check file was moved
+            # The image follows its report into the new date folder keeping the
+            # name it was uploaded under — the filename identifies the upload,
+            # not the sighting date.
             new_file_path = (
                 Path(temp_dir)
                 / "2024"
                 / "2024-08-20"
-                / "TestCity-20240820000000-testuser123.webp"
+                / "TestCity-20240715120000-testuser123.webp"
             )
             assert new_file_path.exists()
             assert new_file_path.read_text() == "test image content"
@@ -93,7 +95,7 @@ def test_update_report_image_date_success(
             session.refresh(mock_fundorte_with_image)
             assert (
                 mock_fundorte_with_image.ablage
-                == "2024/2024-08-20/TestCity-20240820000000-testuser123.webp"
+                == "2024/2024-08-20/TestCity-20240715120000-testuser123.webp"
             )
 
 
@@ -232,14 +234,86 @@ def test_update_report_image_date_same_date(app, session):
             # Update to same date
             result = update_report_image_date(meldung.id, date(2024, 7, 15))
 
-            # The file gets moved with a new timestamp even for the same date
-            assert result["status"] == "success"
+            # Same date means same target path — nothing to move.
+            assert result["status"] == "no_change"
 
-            # Check that file still exists in same date folder
+            # The file is left exactly where and as it was
             files_in_dir = list(original_dir.glob("*.webp"))
             assert len(files_in_dir) == 1
-            assert files_in_dir[0].name.startswith("TestCity-")
-            assert files_in_dir[0].name.endswith("-testuser123.webp")
+            assert files_in_dir[0].name == "TestCity-20240715120000-testuser123.webp"
+            assert files_in_dir[0].read_text() == "test image content"
+
+
+def test_update_report_image_date_refuses_to_overwrite(app, session):
+    """Two reports must never end up fighting over one image file.
+
+    Same city, same reporter, both retargeted to one date: the second move has
+    to refuse rather than clobber the first report's image.
+    """
+    fundorte = []
+    for upload_time in ("20240715120000", "20240716093000"):
+        record = TblFundorte(
+            plz="12345",
+            ort="TestCity",
+            strasse="Test Street",
+            kreis="Test District",
+            land="Brandenburg",
+            amt="Test Amt",
+            mtb="1234",
+            beschreibung=1,
+            latitude="52.5",
+            longitude="13.4",
+            ablage=f"2024/2024-07-15/TestCity-{upload_time}-testuser123.webp",
+        )
+        session.add(record)
+        fundorte.append(record)
+    session.commit()
+
+    meldungen = []
+    for record in fundorte:
+        meldung = TblMeldungen(
+            dat_fund_von=date(2024, 7, 15),
+            dat_meld=datetime.now(),
+            fo_zuordnung=record.id,
+            tiere=1,
+            art_m=1,
+            art_w=0,
+            art_n=0,
+            art_o=0,
+            art_f=0,
+            fo_quelle="T",
+            deleted=False,
+        )
+        session.add(meldung)
+        meldungen.append(meldung)
+    session.commit()
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        with patch("app.routes.admin.current_app") as mock_app:
+            mock_app.config = {"UPLOAD_FOLDER": temp_dir}
+            mock_app.logger = MagicMock()
+
+            source_dir = Path(temp_dir) / "2024" / "2024-07-15"
+            source_dir.mkdir(parents=True, exist_ok=True)
+            for record, content in zip(fundorte, ("image one", "image two")):
+                (Path(temp_dir) / record.ablage).write_text(content)
+
+            new_date = date(2024, 8, 20)
+            assert update_report_image_date(meldungen[0].id, new_date)["status"] == (
+                "success"
+            )
+            assert update_report_image_date(meldungen[1].id, new_date)["status"] == (
+                "success"
+            )
+
+            target_dir = Path(temp_dir) / "2024" / "2024-08-20"
+            moved = sorted(p.read_text() for p in target_dir.glob("*.webp"))
+            assert moved == ["image one", "image two"]
+
+            # And the paths recorded in the DB still point at distinct files
+            session.refresh(fundorte[0])
+            session.refresh(fundorte[1])
+            assert fundorte[0].ablage != fundorte[1].ablage
 
 
 def test_update_report_record_not_found(app, session):
