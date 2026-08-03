@@ -222,12 +222,12 @@
           {{ heroicon_outline("x-mark", class="w-6 h-6", stroke_width=2) }}
         </button>
         <h2 class="mb-4 text-2xl font-bold text-center text-green-700">Danke für Ihren Beitrag! 💚</h2>
-        <div class="mb-6 mantis">
+        <div class="relative mx-auto mb-6 size-[150px]">
           <img id="dancingMantis"
                src="{{ url_for('static', filename='images/svg/praying-mantis.svg') }}"
                alt="Gottesanbeterin"
                class="mx-auto w-32 h-32">
-          <span class="magnifier" role="img" aria-label="Lupe">🔍</span>
+          <span class="absolute top-[29%] left-[19%] text-2xl" role="img" aria-label="Lupe">🔍</span>
         </div>
         <p class="mb-6 text-lg text-center text-gray-700">
           {{ celebration_threshold }} Meldungen erreicht! Ihre Unterstützung ist wertvoll für unsere Forschung.
@@ -242,31 +242,11 @@
       </div>
     </div>
     {{ vite_tags("js/confetti.js") }}
+    {# The confetti canvas is created by canvas-confetti at runtime, so it can't
+       carry a utility class. #}
     <style>
     canvas {
         z-index: 12000 !important;
-    }
-
-    
-    .mantis {
-        position: relative;
-        width: 150px;
-        height: 150px;
-        margin: 0 auto;
-    }
-    .magnifier {
-        position: absolute;
-        top: 29%;
-        left: 19%;
-        font-size: 1.5em;
-    }
-    @keyframes dance {
-        0%, 100% { transform: rotate(0deg); }
-        25% { transform: rotate(-15deg); }
-        75% { transform: rotate(15deg); }
-    }
-    .dancing {
-        animation: dance 0.5s ease-in-out infinite;
     }
     </style>
   {% endif %}

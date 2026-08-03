@@ -47,7 +47,7 @@
         const visible = entries.filter(e => e.isIntersecting);
         visible.forEach((entry, i) => {
           entry.target.style.animationDelay = `${i * 40}ms`;
-          entry.target.classList.add('gallery-reveal');
+          entry.target.classList.add('animate-gallery-fade-up');
           io.unobserve(entry.target);
         });
       }, { threshold: 0.05, rootMargin: '0px 0px -40px 0px' });

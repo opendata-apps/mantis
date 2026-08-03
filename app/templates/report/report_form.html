@@ -33,134 +33,17 @@
   <meta name="twitter:url"
         content="{{ url_for('report.melden', _external=True) }}" />
 {% endblock %}
-{% from 'report/_macros_form.html' import render_photo_upload, render_form_field, render_step_navigation, render_feedback_section %}
+{% from 'report/_macros_form.html' import render_photo_upload, render_form_field, render_step_navigation, render_feedback_section, report_field_class %}
 {% block title %}Sichtung melden - Gottesanbeterin{% endblock %}
 {% block head %}
   {{ vite_tags("js/report-form-htmx.js") }}
-  <style>
-  .form-container {
-    min-height: calc(100vh - 240px);
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    padding: 3rem 1rem 2rem;
-  }
-  
-  .form-wrapper {
-    width: 100%;
-    max-width: 72rem; /* Increased from 56rem for better use of space */
-    margin: 0 auto;
-  }
-  
-  /* Responsive container sizing */
-  @media (min-width: 1536px) {
-    .form-wrapper {
-      max-width: 80rem; /* Even wider on 2xl screens */
-    }
-  }
-  
-  @media (max-width: 768px) {
-    .form-container {
-      padding: 2rem 0.75rem;
-      min-height: calc(100vh - 200px);
-    }
-  }
-  
-  @media (max-width: 640px) {
-    .form-container {
-      padding: 1.5rem 0.5rem;
-      min-height: calc(100vh - 180px);
-    }
-  }
-  
-  /* Improve form field sizing on different screens */
-  @media (min-width: 1024px) {
-    .form-group input[type="text"],
-    .form-group input[type="email"],
-    .form-group input[type="date"],
-    .form-group select,
-    .form-group textarea {
-      font-size: 1rem;
-    }
-  }
-  
-  @media (max-width: 640px) {
-    .form-group input[type="text"],
-    .form-group input[type="email"],
-    .form-group input[type="date"],
-    .form-group select,
-    .form-group textarea {
-      font-size: 0.875rem;
-      padding: 0.5rem 0.75rem;
-    }
-  }
-  
-  /* Navigation button improvements */
-  @media (max-width: 480px) {
-    .nav-button {
-      min-width: 5rem;
-      padding: 0.5rem 1rem;
-      font-size: 0.875rem;
-    }
-  }
-
-  .photo-dropzone {
-    border: 2px dashed var(--color-gray-200);
-    border-radius: 0.5rem;
-    transition: border-color 0.3s ease, background-color 0.3s ease;
-  }
-  
-  .photo-dropzone:hover, .photo-dropzone.dragover {
-    border-color: var(--color-green-500);
-    background-color: color-mix(in srgb, var(--color-green-500) 5%, transparent);
-  }
-  
-  /* Readonly fields for prefilled user data */
-  input[readonly], select[readonly], textarea[readonly] {
-    background-color: var(--color-gray-50) !important;
-    color: var(--color-gray-500) !important;
-    cursor: not-allowed !important;
-  }
-  
-  textarea {
-    min-height: 100px !important;
-    max-height: 200px !important;
-    resize: vertical !important;
-  }
-  
-  .exif-panel {
-    background-color: var(--color-gray-100);
-    border-radius: 0.5rem;
-    border-left: 4px solid var(--color-green-500);
-  }
-  
-  .field-error-message {
-    color: var(--color-red-500);
-    font-size: 0.875rem;
-    margin-top: 0.25rem;
-  }
-  
-  .invalid {
-    border-color: var(--color-red-500) !important;
-    border-width: 2px !important;
-  }
-  
-  .processing-indicator {
-    animation: pulse 1.5s ease-in-out infinite;
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-  }
-  </style>
 {% endblock %}
 {% block content %}
   <p class="py-3 text-center text-sm text-green-800 bg-green-50 border-b border-green-100 text-pretty">
     <strong class="font-semibold">Zeit der Eiablage</strong> — Melden Sie bitte auch Ootheken, sie sind der Start für die nächste Generation im kommenden Jahr.
   </p>
-  <div class="form-container">
-    <div class="form-wrapper">
+  <div class="flex items-start justify-center px-4 pt-12 pb-8 min-h-[calc(100vh-240px)] max-md:px-3 max-md:py-8 max-md:min-h-[calc(100vh-200px)] max-sm:px-2 max-sm:py-6 max-sm:min-h-[calc(100vh-180px)]">
+    <div class="mx-auto w-full max-w-6xl 2xl:max-w-7xl">
       <div id="loadingOverlay"
            class="flex fixed inset-0 invisible z-50 flex-col justify-center items-center bg-white/80 opacity-0 transition-all duration-200 ease-in-out">
         <div class="w-12 h-12 rounded-full border-4 border-gray-200 animate-spin border-t-green-600"></div>
@@ -224,7 +107,7 @@
               <!-- Map column -->
               <div class="mb-4 w-full lg:w-3/5 xl:w-2/3 lg:mb-0">
                 <div id="map"
-                     class="w-full h-64 border border-gray-300 rounded-md shadow-xs sm:h-80 md:h-96 lg:h-112 xl:h-128 2xl:h-144">
+                     class="w-full h-64 border border-gray-300 rounded-md shadow-xs sm:h-80 md:h-96 lg:h-112 xl:h-128 2xl:h-144 data-invalid:border-2! data-invalid:border-red-500!">
                 </div>
                 {# Inline error container for coordinates - supports HTMX OOB swaps #}
                 <div id="error-coordinates"
@@ -235,7 +118,8 @@
               <!-- Form fields column -->
               <div class="space-y-4 w-full lg:w-2/5 xl:w-1/3">
                 <!-- Manual coordinates input -->
-                <div class="p-4 bg-gray-50 rounded-md border border-gray-200">
+                {# Concentric with the 6px inputs inside: 6px + 16px padding. #}
+                <div class="p-4 bg-gray-50 rounded-[22px] border border-gray-200">
                   <div class="mb-2">
                     <span class="text-sm font-medium text-gray-700">Fundort-Koordinaten</span>
                   </div>
@@ -246,10 +130,9 @@
                       <input type="text"
                              id="manual-latitude"
                              inputmode="decimal"
-                             pattern="-?[0-9]+\.?[0-9]*"
                              placeholder="z.B. 52.3906"
                              autocomplete="off"
-                             class="block px-4 py-2 w-full text-base text-gray-700 bg-white rounded-lg border border-gray-300 shadow-xs transition duration-300 ease-in-out focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200">
+                             class="{{ report_field_class('coordinate', 'tabular-nums') }}">
                     </div>
                     <div class="form-group">
                       <label for="manual-longitude"
@@ -257,16 +140,15 @@
                       <input type="text"
                              id="manual-longitude"
                              inputmode="decimal"
-                             pattern="-?[0-9]+\.?[0-9]*"
                              placeholder="z.B. 13.0645"
                              autocomplete="off"
-                             class="block px-4 py-2 w-full text-base text-gray-700 bg-white rounded-lg border border-gray-300 shadow-xs transition duration-300 ease-in-out focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200">
+                             class="{{ report_field_class('coordinate', 'tabular-nums') }}">
                     </div>
                   </div>
                 </div>
                 <!-- Hidden coordinate fields for form submission -->
-                {{ form.latitude(id="latitude", style="display: none;") }}
-                {{ form.longitude(id="longitude", style="display: none;") }}
+                {{ form.latitude(id="latitude", class="hidden") }}
+                {{ form.longitude(id="longitude", class="hidden") }}
                 {% if form.latitude.errors or form.longitude.errors %}
                   <div class="text-sm text-red-600">
                     {% if form.latitude.errors %}{{ form.latitude.errors[0] }}{% endif %}
@@ -274,16 +156,17 @@
                   </div>
                 {% endif %}
                 <!-- Address fields -->
-                <div class="p-4 bg-white rounded-md border border-gray-200">
+                {# Concentric with the 6px inputs inside: 6px + 16px padding. #}
+                <div class="p-4 bg-white rounded-[22px] border border-gray-200">
                   <h4 class="mb-3 text-sm font-medium text-gray-700">Fundort-Adresse</h4>
                   <div class="space-y-3">
                     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                      {{ render_form_field(form.fund_zip_code, attrs={'id': 'fund_zip_code', 'autocomplete': 'off', 'class': 'w-full px-3 py-2 text-sm md:text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-xs focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
-                      {{ render_form_field(form.fund_city, attrs={'id': 'fund_city', 'autocomplete': 'off', 'class': 'w-full px-3 py-2 text-sm md:text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-xs focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
+                      {{ render_form_field(form.fund_zip_code, attrs={'id': 'fund_zip_code', 'autocomplete': 'off', 'field_kind': 'compact', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
+                      {{ render_form_field(form.fund_city, attrs={'id': 'fund_city', 'autocomplete': 'off', 'field_kind': 'compact', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
                     </div>
-                    {{ render_form_field(form.fund_district, attrs={'id': 'fund_district', 'autocomplete': 'off', 'class': 'w-full px-3 py-2 text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-xs focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
-                    {{ render_form_field(form.fund_state, attrs={'id': 'fund_state', 'autocomplete': 'off', 'class': 'w-full px-3 py-2 text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-xs focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
-                    {{ render_form_field(form.fund_street, attrs={'id': 'fund_street', 'autocomplete': 'off', 'class': 'w-full px-3 py-2 text-base text-gray-700 bg-white border border-gray-300 rounded-md shadow-xs focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out duration-150', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
+                    {{ render_form_field(form.fund_district, attrs={'id': 'fund_district', 'autocomplete': 'off', 'field_kind': 'compact-base', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
+                    {{ render_form_field(form.fund_state, attrs={'id': 'fund_state', 'autocomplete': 'off', 'field_kind': 'compact-base', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
+                    {{ render_form_field(form.fund_street, attrs={'id': 'fund_street', 'autocomplete': 'off', 'field_kind': 'compact-base', 'label_class': 'block text-xs font-medium text-gray-700 mb-1'}) }}
                   </div>
                 </div>
               </div>
@@ -306,26 +189,28 @@
                 {{ render_form_field(form.email, attrs={'id': 'email'}) }}
               {% endif %}
               {# Checkbox with htmx toggle for finder fields #}
-              <div class="flex items-center space-x-2">
+              {# Whole row is the label so the 16px box gets a full-width, 44px tap target. #}
+              <label for="identical_finder_reporter"
+                     class="flex items-center gap-2 min-h-11 py-2 cursor-pointer">
                 <input type="checkbox"
                        id="identical_finder_reporter"
                        name="identical_finder_reporter"
-                       class="form-checkbox w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded-sm shadow-xs transition duration-150 ease-in-out"
+                       class="form-checkbox w-4 h-4 shrink-0 text-green-600 bg-gray-100 border-gray-300 rounded-sm shadow-xs transition duration-150 ease-in-out"
                        checked
                        hx-post="{{ url_for('report.toggle_finder') }}"
                        hx-trigger="change"
                        hx-target="#finder_fields_container"
                        hx-swap="innerHTML">
-                <label for="identical_finder_reporter" class="text-sm text-gray-700">
+                <span class="text-sm text-gray-700">
                   {{ form.identical_finder_reporter.label.text }}
-                </label>
-              </div>
+                </span>
+              </label>
               {# HTMX-managed finder fields container #}
               <div id="finder_fields_container">{% include 'report/partials/_finder_fields.html' with context %}</div>
               <!-- Feedback section - only for new users -->
               {% if not user_has_feedback %}{{ render_feedback_section(form.feedback_source, form.feedback_detail) }}{% endif %}
               <!-- Honeypot spam protection -->
-              <div style="position:absolute; left:-5000px;" aria-hidden="true">
+              <div class="absolute left-[-5000px]" aria-hidden="true">
                 <label for="honeypot">If you are human, leave this field blank:</label>
                 {{ form.honeypot(id="honeypot", autocomplete="off", tabindex="-1") }}
               </div>

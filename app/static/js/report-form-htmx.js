@@ -9,6 +9,7 @@ import { locate } from 'leaflet.locatecontrol';
 import 'leaflet.locatecontrol/dist/L.Control.Locate.min.css';
 import ExifReader from 'exifreader';
 import htmx from 'htmx.org';
+import { inCoordRange, coordRangeMessage, parseCoordinate } from './coordinates.js';
 
 // CSP hardening: disable eval-based attribute features (hx-on::*, `js:` prefix).
 // The report form does not use them; this lets us drop `unsafe-eval` from CSP.
@@ -33,6 +34,10 @@ L.Icon.Default.mergeOptions({
 
 window.L = L;
 window.htmx = htmx;
+
+// Error containers whose id does not match the input the user actually types in.
+// The hidden latitude/longitude fields share one container next to the map.
+const ERROR_INPUT = { coordinates: 'manual-latitude' };
 
 const MIME_BY_EXT = {
     jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png',
@@ -154,17 +159,15 @@ const ReportForm = {
     },
 
     syncAriaErrors() {
-        // Map error container IDs to their user-facing input IDs
-        const errorToInput = { coordinates: 'manual-latitude' };
         let firstInvalid = null;
 
         document.querySelectorAll('.field-error-message').forEach(el => {
             const field = el.id.replace('error-', '');
-            const inputId = errorToInput[field] || field;
-            const input = document.getElementById(inputId);
+            const input = document.getElementById(ERROR_INPUT[field] || field);
             if (!input) return;
 
-            const hasError = el.textContent.trim().length > 0;
+            // A hint (e.g. the GPS notice) occupies the same slot but is not a rejection.
+            const hasError = !el.classList.contains('is-hint') && el.textContent.trim().length > 0;
             if (hasError) {
                 input.setAttribute('aria-invalid', 'true');
                 input.setAttribute('aria-describedby', el.id);
@@ -222,7 +225,15 @@ const ReportForm = {
                 : null;
 
             if (!res.ok || !json?.success || !json?.redirect_url) {
-                throw new Error(json?.error || 'Server error');
+                this.submitting = false;
+                this.showLoading(false);
+                // A field-level rejection on the last step is otherwise a dead end:
+                // the review page cannot show which answer the server refused.
+                if (json?.errors && Object.keys(json.errors).length) {
+                    return this.showServerErrors(json.errors);
+                }
+                return this.showError('general', json?.error
+                    || 'Die Meldung konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.');
             }
 
             this.dirty = false;
@@ -230,8 +241,47 @@ const ReportForm = {
         } catch (err) {
             this.submitting = false;
             this.showLoading(false);
-            this.showError('general', err.message);
+            this.showError('general',
+                'Verbindung zum Server fehlgeschlagen. Bitte prüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.');
         }
+    },
+
+    // The DOM already records which step owns a field, so the field -> step
+    // mapping never has to be restated in JS.
+    stepOfField(name) {
+        const el = document.getElementById(name) || document.getElementById(`error-${name}`);
+        const step = el?.closest('.step');
+        return step ? [...document.querySelectorAll('.step')].indexOf(step) : -1;
+    },
+
+    showServerErrors(errors) {
+        this.clearErrors();
+
+        let target = Infinity;
+        const unplaced = [];
+        for (const [field, messages] of Object.entries(errors)) {
+            const slot = (field === 'latitude' || field === 'longitude') ? 'coordinates' : field;
+            const msg = Array.isArray(messages) ? messages[0] : String(messages);
+            // Not every field has an error container (finder names, feedback).
+            // Those messages still have to reach the user somewhere.
+            if (!document.getElementById(`error-${slot}`)) {
+                unplaced.push(msg);
+                continue;
+            }
+            this.showError(slot, msg, false);
+            const step = this.stepOfField(slot);
+            if (step >= 0 && step < target) target = step;
+        }
+
+        if (target === Infinity) {
+            // Nothing could be pinned to a step — keep the user on the review
+            // page, where the general error box is visible.
+            return this.showError('general',
+                unplaced.join(' ') || 'Bitte prüfen Sie Ihre Angaben.');
+        }
+        this.showStep(target);
+        document.querySelectorAll('.step')[target]
+            ?.querySelector('[aria-invalid="true"]')?.focus();
     },
 
     setupPhoto() {
@@ -503,7 +553,7 @@ const ReportForm = {
             if (this.map) {
                 setTimeout(() => {
                     this.map.invalidateSize();
-                    this.map.setView([lat, lng], 14);
+                    this.map.setView([lat, lng], this.MIN_ZOOM);
                     this.setMarker(lat, lng, true);
                 }, 100);
             }
@@ -538,7 +588,7 @@ const ReportForm = {
             L.Control.geocoder({ defaultMarkGeocode: false, placeholder: 'Adresse suchen...' })
                 .on('markgeocode', (e) => {
                     // Auto-place marker when user searches for an address
-                    this.map.setView(e.geocode.center, 15);
+                    this.map.setView(e.geocode.center, this.MIN_ZOOM);
                     this.setMarker(e.geocode.center.lat, e.geocode.center.lng);
                 })
                 .addTo(this.map);
@@ -556,7 +606,7 @@ const ReportForm = {
         this.map.on('click', (e) => {
             if (this.map.getZoom() < this.MIN_ZOOM) {
                 this.showError('coordinates', 'Bitte näher heranzoomen, um den Fundort genau zu markieren.');
-                document.getElementById('map')?.classList.add('invalid');
+                document.getElementById('map')?.toggleAttribute('data-invalid', true);
                 return;
             }
             this.setMarker(e.latlng.lat, e.latlng.lng);
@@ -565,30 +615,32 @@ const ReportForm = {
         const manLat = document.getElementById('manual-latitude');
         const manLng = document.getElementById('manual-longitude');
         [manLat, manLng].forEach(el => el?.addEventListener('change', () => {
-            const lat = parseFloat(manLat?.value), lng = parseFloat(manLng?.value);
-            if (!isNaN(lat) && !isNaN(lng) && lat >= 30 && lat <= 60 && lng >= -20 && lng <= 30) {
-                this.setMarker(lat, lng);
-                this.map.setView([lat, lng], this.map.getZoom());
-            } else {
+            const lat = parseCoordinate(manLat?.value), lng = parseCoordinate(manLng?.value);
+            if (lat === null || lng === null) {
                 document.getElementById('latitude').value = '';
                 document.getElementById('longitude').value = '';
                 if (this.marker) { this.marker.remove(); this.marker = null; }
-                this.showError('coordinates', 'Bitte gültige Koordinaten eingeben (Breitengrad: 30 bis 60, Längengrad: -20 bis 30).');
+                this.showError('coordinates', coordRangeMessage());
+                return;
             }
+            // setMarker owns the in-range verdict, so a typed coordinate and a
+            // map click can't disagree about what "out of range" looks like.
+            this.setMarker(lat, lng);
+            this.map.setView([lat, lng], this.map.getZoom());
         }));
 
-        const lat = parseFloat(document.getElementById('latitude')?.value);
-        const lng = parseFloat(document.getElementById('longitude')?.value);
-        if (!isNaN(lat) && !isNaN(lng)) {
+        const lat = parseCoordinate(document.getElementById('latitude')?.value);
+        const lng = parseCoordinate(document.getElementById('longitude')?.value);
+        if (lat !== null && lng !== null) {
             this.setMarker(lat, lng, false);
-            this.map.setView([lat, lng], 14);
+            this.map.setView([lat, lng], this.MIN_ZOOM);
         }
     },
 
     autoLocateIfNeeded() {
-        const lat = parseFloat(document.getElementById('latitude')?.value);
-        const lng = parseFloat(document.getElementById('longitude')?.value);
-        if (isNaN(lat) || isNaN(lng)) {
+        const lat = parseCoordinate(document.getElementById('latitude')?.value);
+        const lng = parseCoordinate(document.getElementById('longitude')?.value);
+        if (lat === null || lng === null) {
             if (navigator.geolocation && this.locateCtrl && this.map) {
                 this._locUpdates = 0;
                 this._bestAccuracy = Infinity;
@@ -604,14 +656,16 @@ const ReportForm = {
 
         if (accuracy < this._bestAccuracy || this._locUpdates === 1) {
             this._bestAccuracy = accuracy;
-            this.map.setView(e.latlng, 15);
+            // MIN_ZOOM, not 15: the message asks the user to click the map, and
+            // clicking below MIN_ZOOM is refused.
+            this.map.setView(e.latlng, this.MIN_ZOOM);
 
             let msg = '📍 GPS-Position gefunden';
             if (accuracy > 1000) msg += ' (ungefähr)';
             else if (accuracy > 100) msg += ` (ca. ${Math.round(accuracy)}m genau)`;
             else msg += ' (präzise)';
             msg += '. Bitte auf die Karte klicken, um den Fundort zu markieren.';
-            this.showError('coordinates', msg);
+            this.showHint('coordinates', msg);
         }
 
         if (accuracy < 50 || this._locUpdates >= 5) {
@@ -627,9 +681,6 @@ const ReportForm = {
     },
 
     setMarker(lat, lng, geocode = true) {
-        lat = Math.max(30, Math.min(60, lat));
-        lng = Math.max(-20, Math.min(30, lng));
-
         if (this.marker) this.marker.setLatLng([lat, lng]);
         else {
             this.marker = L.marker([lat, lng], { draggable: true }).addTo(this.map)
@@ -644,9 +695,17 @@ const ReportForm = {
         if (manLat) manLat.value = str(lat);
         if (manLng) manLng.value = str(lng);
 
-        this.clearError('coordinates');
-        document.getElementById('map')?.classList.remove('invalid');
-        if (geocode) this.reverseGeocode(lat, lng);
+        // The pin stays where it was put — an out-of-range spot has to surface
+        // as an error instead of silently snapping to the edge of the range.
+        const mapEl = document.getElementById('map');
+        if (inCoordRange(lat, lng)) {
+            this.clearError('coordinates');
+            mapEl?.toggleAttribute('data-invalid', false);
+            if (geocode) this.reverseGeocode(lat, lng);
+        } else {
+            this.showError('coordinates', coordRangeMessage());
+            mapEl?.toggleAttribute('data-invalid', true);
+        }
     },
 
     async reverseGeocode(lat, lng) {
@@ -662,7 +721,10 @@ const ReportForm = {
             district: document.getElementById('fund_district'),
             street: document.getElementById('fund_street')
         };
-        Object.values(fields).forEach(f => f && (f.disabled = true));
+        // readOnly, not disabled: a disabled control is omitted from FormData, so
+        // clicking "Weiter" mid-lookup would submit no city/state and fail
+        // validation on fields that visibly hold a value.
+        Object.values(fields).forEach(f => f && (f.readOnly = true));
 
         try {
             // Fetch Nominatim + local AGS lookup in parallel
@@ -683,7 +745,7 @@ const ReportForm = {
         } catch (err) {
             if (err.name === 'AbortError') return; // superseded by a newer request
         } finally {
-            Object.values(fields).forEach(f => f && (f.disabled = false));
+            Object.values(fields).forEach(f => f && (f.readOnly = false));
         }
     },
 
@@ -702,29 +764,38 @@ const ReportForm = {
         if (msgEl && msg) msgEl.textContent = msg;
     },
 
-    showError(field, msg) {
+    showError(field, msg, focus = true) {
         const el = document.getElementById(`error-${field}`);
         if (!el) return;
         el.textContent = msg;
+        el.classList.remove('is-hint');
         if (field === 'general') el.classList.remove('hidden');
-        const errorToInput = { coordinates: 'manual-latitude' };
-        const input = document.getElementById(errorToInput[field] || field);
+        const input = document.getElementById(ERROR_INPUT[field] || field);
         if (input) {
             input.setAttribute('aria-invalid', 'true');
             input.setAttribute('aria-describedby', el.id);
-            input.focus();
+            if (focus) input.focus();
         } else {
             el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
+    },
+
+    // Advice, not a rejection: same slot, muted styling, and no focus steal —
+    // focusing a text input here would pop the keyboard open on mobile.
+    showHint(field, msg) {
+        const el = document.getElementById(`error-${field}`);
+        if (!el) return;
+        el.textContent = msg;
+        el.classList.add('is-hint');
     },
 
     clearError(field) {
         const el = document.getElementById(`error-${field}`);
         if (!el) return;
         el.textContent = '';
+        el.classList.remove('is-hint');
         if (field === 'general') el.classList.add('hidden');
-        const errorToInput = { coordinates: 'manual-latitude' };
-        const input = document.getElementById(errorToInput[field] || field);
+        const input = document.getElementById(ERROR_INPUT[field] || field);
         if (input) {
             input.removeAttribute('aria-invalid');
             input.removeAttribute('aria-describedby');

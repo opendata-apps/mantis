@@ -51,8 +51,13 @@ Validierungsregeln (Server)
   ``png``, ``webp``, ``heic``, ``heif``
 - Funddatum ist Pflicht und muss in der Vergangenheit liegen
 - Funddatum darf nicht weiter als ca. 5 Jahre zurückliegen
-- Breitengrad ist Pflicht und muss im Bereich ``-90`` bis ``90`` liegen
-- Längengrad ist Pflicht und muss im Bereich ``-180`` bis ``180`` liegen
+- Breitengrad ist Pflicht und muss im Bereich ``30`` bis ``60`` liegen
+- Längengrad ist Pflicht und muss im Bereich ``-20`` bis ``30`` liegen
+- vertauschte Koordinaten (Längengrad im Breitengrad-Feld) werden erkannt
+  und abgelehnt
+- der akzeptierte Bereich steht in ``app/tools/coordinate_validation.py``
+  (``LAT_RANGE`` / ``LON_RANGE``) und gilt für Formular, Karte und
+  Reviewer-Werkzeuge gleichermaßen
 - Stadt/Ort und Bundesland sind Pflicht
 - Melder-Vorname und Melder-Nachname sind Pflicht
 - Finderdaten sind konsistent zu erfassen (Vor- und Nachname zusammen)

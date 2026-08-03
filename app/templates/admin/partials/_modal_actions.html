@@ -58,7 +58,7 @@
             hx-get="{{ url_for('admin.modal_tab', tab=active_tab, id=sighting.id) }}?{{ filter_query }}"
             hx-target="#tab-content"
             hx-swap="innerHTML swap:150ms"
-            class="btn-green w-full px-5 py-2.5 rounded-lg sm:w-auto"
+            class="btn-green w-full px-5 py-2.5 sm:w-auto"
             title="Bearbeitungsmodus verlassen (Änderungen werden bereits automatisch gespeichert)">
       {{ heroicon_outline("check", class="mr-2 w-4 h-4", stroke_width=2) }}
       Fertig
@@ -80,6 +80,6 @@
             title="Klicken Sie hier, um die Meldung anzunehmen">Annehmen</button>
   {% endif %}
   <button type="button"
-          class="btn-secondary w-full px-5 py-2.5 rounded-lg sm:w-auto"
+          class="btn-secondary w-full px-5 py-2.5 sm:w-auto"
           onclick="closeModal()">Schließen</button>
 </div>
