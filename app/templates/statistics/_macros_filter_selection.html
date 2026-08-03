@@ -1,7 +1,9 @@
 {% macro StatsAuswahl() -%}
+  {% set input_class = "block px-3 py-2 w-full min-h-11 text-base text-gray-700 bg-white rounded-lg border border-gray-300 transition-[color,background-color,border-color,box-shadow] duration-200 focus:outline-hidden focus-visible:border-green-500 focus-visible:ring-2 focus-visible:ring-green-500/30" %}
   <div class="w-full">
+    {# Concentric with the 8px inputs inside: 8px + 16px padding. #}
     <div id="filterDropdown"
-         class="p-4 space-y-4 bg-white rounded-lg border border-gray-200">
+         class="p-4 space-y-4 bg-white rounded-3xl border border-gray-200">
       <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
           <label for="dateFrom" class="block mb-1 text-sm font-semibold text-gray-700">Funddatum von</label>
@@ -9,7 +11,7 @@
                  id="dateFrom"
                  name="dateFrom"
                  value="{{ session["date_from"] }}"
-                 class="block px-3 py-2 w-full text-sm text-gray-700 bg-white rounded-lg border border-gray-300 transition-[color,background-color,border-color,box-shadow] duration-200 focus:outline-hidden focus-visible:border-green-500 focus-visible:ring-2 focus-visible:ring-green-500/30">
+                 class="{{ input_class }}">
         </div>
         <div>
           <label for="dateTo" class="block mb-1 text-sm font-semibold text-gray-700">Funddatum bis</label>
@@ -17,7 +19,7 @@
                  id="dateTo"
                  name="dateTo"
                  value="{{ session["date_to"] }}"
-                 class="block px-3 py-2 w-full text-sm text-gray-700 bg-white rounded-lg border border-gray-300 transition-[color,background-color,border-color,box-shadow] duration-200 focus:outline-hidden focus-visible:border-green-500 focus-visible:ring-2 focus-visible:ring-green-500/30">
+                 class="{{ input_class }}">
         </div>
       </div>
       <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -32,7 +34,7 @@
                  hx-trigger="keyup changed delay:300ms"
                  hx-target="#vorschlaege"
                  hx-swap="innerHTML"
-                 class="block px-3 py-2 w-full text-sm text-gray-700 bg-white rounded-lg border border-gray-300 transition-[color,background-color,border-color,box-shadow] duration-200 focus:outline-hidden focus-visible:border-green-500 focus-visible:ring-2 focus-visible:ring-green-500/30">
+                 class="{{ input_class }}">
         </div>
         <div>
           <label for="ags" class="block mb-1 text-sm font-semibold text-gray-700">AGS</label>
@@ -40,11 +42,11 @@
                  value="{{ session["ags"] }}"
                  name="ags"
                  id="ags"
-                 class="block px-3 py-2 w-full text-sm text-gray-700 bg-white rounded-lg border border-gray-300 transition-[color,background-color,border-color,box-shadow] duration-200 focus:outline-hidden focus-visible:border-green-500 focus-visible:ring-2 focus-visible:ring-green-500/30">
+                 class="{{ input_class }}">
         </div>
       </div>
       <div class="flex flex-col gap-3 items-start sm:flex-row sm:items-center sm:justify-between">
-        <button type="submit" class="btn-green px-4 py-2 w-full sm:w-auto">Auswahl aktualisieren</button>
+        <button type="submit" class="btn-green w-full sm:w-auto">Auswahl aktualisieren</button>
         <ul id="vorschlaege" class="overflow-auto w-full max-h-40 text-sm">
         </ul>
       </div>

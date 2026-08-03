@@ -6,166 +6,59 @@
 @source "../js/**/*.js";
 
 /* ==========================================================================
-   Header Navigation - Simple & Clean
+   Header Navigation
+   Box model, colors and breakpoints are TW utilities on the elements in
+   layout.html. JS-toggled state is reached through these variants; the
+   hamburger reads aria-expanded, which the button must carry anyway.
    ========================================================================== */
 
-/* .site-header base layout is TW utilities on the <header> element.
-   Only JS-toggled state changes live here. */
-.site-header {
-  will-change: backdrop-filter;
+@custom-variant scrolled (&.scrolled);
+@custom-variant menu-open (&.menu-open);
+@custom-variant nav-open (&.open);
+
+/* Horizontal bar on desktop, slide-down drawer below md. A component rather
+   than ~15 utilities in markup, but written in TW's vocabulary. */
+@utility nav-links {
+  @apply flex items-center gap-6
+         max-md:absolute max-md:inset-x-0 max-md:top-full max-md:flex-col max-md:gap-0
+         max-md:max-h-0 max-md:overflow-hidden max-md:bg-green-800/98
+         max-md:backdrop-blur-sm max-md:transition-[max-height,padding]
+         max-md:duration-300 max-md:*:w-full max-md:*:text-center
+         max-md:nav-open:max-h-125 max-md:nav-open:py-4;
 }
 
-.site-header.scrolled {
-  background: color-mix(in srgb, var(--color-green-800) 80%, transparent);
-  backdrop-filter: blur(16px);
-}
-
-.site-header.menu-open {
-  background: color-mix(in srgb, var(--color-green-800) 95%, transparent);
-  backdrop-filter: blur(16px);
-}
-
-/* Nav links - horizontal on desktop */
-.nav-links {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.nav-links li a {
-  color: var(--color-gray-100);
-  text-decoration: none;
-  font-weight: 700;
-  font-size: 1.25rem;
-  padding: 0.5rem;
-  /* Underline animation */
-  background-image: linear-gradient(transparent, transparent), linear-gradient(white, white);
-  background-size: 0 3px;
-  background-position: 0 100%;
-  background-repeat: no-repeat;
-  transition: background-size 0.3s cubic-bezier(0.22, 1, 0.36, 1), color 0.15s ease;
-}
-
-.nav-links li a:hover {
-  color: white;
-  background-size: 100% 3px;
-}
-
-/* Admin dropdown menu */
-.nav-links details.dropdown ul li a {
-  display: block;
-  padding: 0.625rem 1rem;
-  color: var(--color-gray-700);
-  font-size: 0.9375rem;
-  font-weight: 500;
-  background-image: none;
-  transition: background-color 0.15s ease;
-}
-
-.nav-links details.dropdown ul li a:hover {
-  color: var(--color-gray-900);
-  background-color: var(--color-gray-100);
-}
-
-/* Hide mobile-only items on desktop, show desktop-only */
-.nav-links li.mobile-only {
-  display: none;
-}
-
-.nav-links li.desktop-only {
-  display: flex;
-  align-items: center;
-}
-
-/* Hamburger button - hidden on desktop */
-.nav-toggle {
-  display: none;
-  flex-direction: column;
-  justify-content: center;
-  gap: 5px;
-  width: 40px;
-  height: 40px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 8px;
-}
-
-.nav-toggle span {
-  display: block;
-  width: 100%;
-  height: 2px;
-  background: var(--color-gray-100);
-  border-radius: 2px;
-  transition: transform 0.2s ease, opacity 0.2s ease;
-}
-
-/* Hamburger → X animation */
-.nav-toggle.open span:nth-child(1) {
-  transform: translateY(7px) rotate(45deg);
-}
-.nav-toggle.open span:nth-child(2) {
-  opacity: 0;
-}
-.nav-toggle.open span:nth-child(3) {
-  transform: translateY(-7px) rotate(-45deg);
-}
-
-/* Mobile styles */
-@media (max-width: 767px) {
-  .nav-toggle {
-    display: flex;
-  }
-
-  /* Show mobile-only, hide desktop-only on mobile */
-  .nav-links li.mobile-only {
-    display: block;
-  }
-
-  .nav-links li.desktop-only {
-    display: none;
-  }
-
-  .nav-links {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    flex-direction: column;
-    align-items: center;
-    gap: 0;
-    padding: 0;
-    background: color-mix(in srgb, var(--color-green-800) 98%, transparent);
-    backdrop-filter: blur(8px);
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.3s ease, padding 0.3s ease;
-  }
-
-  .nav-links.open {
-    max-height: 500px;
-    padding: 1rem 0;
-  }
-
-  .nav-links li {
-    width: 100%;
-    text-align: center;
-  }
-
+@layer components {
   .nav-links li a {
-    display: block;
-    padding: 0.75rem 1rem;
-    font-size: 1rem;
-    font-weight: 500;
-    background-image: none;
-    transition: background-color 0.2s ease;
+    @apply text-gray-100;
   }
 
-  .nav-links li a:hover {
-    background-color: var(--color-green-700);
+  /* Underline grows from the left on hover. background-size has no TW scale,
+     so the gradient stays raw. */
+  @media (width >= 48rem) {
+    .nav-links li a {
+      @apply p-2 text-xl font-bold hover:text-white;
+      background: linear-gradient(white, white) no-repeat 0 100% / 0 3px;
+      transition: background-size 0.3s var(--ease-out-quint), color 0.15s ease;
+    }
+
+    .nav-links li a:hover {
+      background-size: 100% 3px;
+    }
+  }
+
+  /* Drawer rows */
+  @media (width < 48rem) {
+    .nav-links li a {
+      @apply block px-4 py-3 text-base font-medium transition-colors duration-200
+             hover:bg-green-700;
+    }
+  }
+
+  /* Admin dropdown menu */
+  .nav-links details.dropdown ul li a {
+    @apply block px-4 py-2.5 text-[0.9375rem] font-medium text-gray-700
+           transition-colors duration-150 hover:bg-gray-100 hover:text-gray-900;
+    background-image: none;
   }
 }
 
@@ -178,6 +71,63 @@
 @theme {
   /* Typography - Inter Variable as default sans-serif */
   --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  /* The house easing curve — was hand-written at seven call sites. */
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Motion. Keyframes live in @theme so each one is defined once and reachable
+     as an animate-* utility; they were previously spread across theme.css,
+     home.html and error/base.html. */
+  --animate-gallery-fade-up: gallery-fade-up 280ms var(--ease-out-quint) both;
+  --animate-mantis-search: mantis-search 5s ease-in-out infinite alternate;
+  --animate-blink: blink 1.5s linear infinite;
+  --animate-dance: dance 0.5s ease-in-out infinite;
+
+  @keyframes gallery-fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes mantis-search {
+    0% {
+      transform: rotate(0deg);
+    }
+    50% {
+      transform: rotate(-30deg);
+    }
+    100% {
+      transform: rotate(30deg);
+    }
+  }
+
+  @keyframes blink {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+
+  @keyframes dance {
+    0%,
+    100% {
+      transform: rotate(0deg);
+    }
+    25% {
+      transform: rotate(-15deg);
+    }
+    75% {
+      transform: rotate(15deg);
+    }
+  }
 
   /* Green palette - Flowbite colors (matches production) */
   --color-green-50: #F3FAF7;
@@ -207,24 +157,37 @@
   --color-red-50: #fef2f2;
   --color-red-100: #fee2e2;
   --color-red-200: #fecaca;
+  --color-red-300: #fca5a5;
+  --color-red-400: #f87171;
   --color-red-500: #ef4444;
   --color-red-600: #dc2626;
   --color-red-700: #b91c1c;
+  --color-red-800: #991b1b;
   --color-red-900: #7f1d1d;
 
   /* Blue palette - for links (v3 hex values) */
+  --color-blue-100: #dbeafe;
   --color-blue-500: #3b82f6;
   --color-blue-600: #2563eb;
+  --color-blue-800: #1e40af;
+  --color-blue-900: #1e3a8a;
 
   /* Yellow palette - for warnings/status (v3 hex values) */
+  --color-yellow-100: #fef9c3;
+  --color-yellow-300: #fde047;
+  --color-yellow-400: #facc15;
   --color-yellow-500: #eab308;
   --color-yellow-600: #ca8a04;
+  --color-yellow-700: #a16207;
 
   /* Amber palette - for warning messages (v3 hex values) */
   --color-amber-50: #fffbeb;
+  --color-amber-100: #fef3c7;
   --color-amber-200: #fde68a;
+  --color-amber-300: #fcd34d;
   --color-amber-500: #f59e0b;
   --color-amber-800: #92400e;
+  --color-amber-900: #78350f;
 }
 
 /*
@@ -250,6 +213,21 @@
     overscroll-behavior: none;
     scrollbar-gutter: stable;
   }
+
+  /* Headings balance by default so content pages don't have to opt in via
+     .section-heading — several already forgot to. */
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p,
+  li,
+  figcaption,
+  blockquote {
+    text-wrap: pretty;
+  }
 }
 
 @layer components {
@@ -261,7 +239,7 @@
 
   @media (hover: hover) and (pointer: fine) {
     .footer-social a {
-      transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+      transition: transform 200ms var(--ease-out-quint);
     }
     .footer-social a:hover {
       transform: scale(1.1);
@@ -269,83 +247,104 @@
   }
 }
 
-@layer utilities {
-  /* ==========================================================================
-     Reusable Component Classes
-     Extracted from repeated patterns across templates to reduce duplication.
-     ========================================================================== */
+/* ==========================================================================
+   Reusable utilities (@utility, not @layer utilities — the v4 directive is
+   variant-aware, so md:btn-primary / hover:section-heading work).
+   ========================================================================== */
 
-  /* Primary Button - Green CTA buttons (30+ occurrences across 12 files)
-     Usage: <a class="btn-primary">...</a> or <button class="btn-primary">...</button>
-     Supports: group hover effects when parent has "group" class */
-  .btn-primary {
-    @apply inline-flex items-center justify-center px-6 py-3 text-base font-medium
-           text-white bg-green-600 rounded-lg shadow-md transition-colors duration-300
-           hover:bg-green-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2
-           focus:ring-green-500;
-  }
-
-  .btn-primary:active {
+/* Primary green CTA. Composes with a parent .group for hover effects. */
+@utility btn-primary {
+  @apply inline-flex items-center justify-center px-6 py-3 text-base font-medium
+         text-white bg-green-600 rounded-lg shadow-md transition-colors duration-300
+         hover:bg-green-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2
+         focus:ring-green-500;
+  &:active {
     transform: scale(0.96);
   }
+}
 
-  .btn-green:active,
-  .btn-secondary:active {
+/* Shared skeleton for the two small buttons; not used directly in markup. */
+@utility btn-base {
+  @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium
+         rounded-lg border transition-colors duration-200 focus:outline-hidden
+         focus-visible:ring-2;
+  &:active {
     transform: scale(0.96);
   }
+}
 
-  /* Prose Content - Body text for content pages (41 occurrences in 5 files)
-     Usage: <p class="prose-content">...</p> or <div class="prose-content">...</div> */
-  .prose-content {
-    @apply text-lg leading-relaxed text-gray-700 text-pretty;
-    max-width: 75ch;
+@utility btn-green {
+  @apply btn-base text-white bg-green-600 border-green-700
+         hover:bg-green-700 focus-visible:ring-green-500/30;
+}
+
+@utility btn-secondary {
+  @apply btn-base text-gray-700 bg-white border-gray-300
+         hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900
+         focus-visible:border-green-500 focus-visible:ring-green-500/30;
+}
+
+@utility prose-content {
+  @apply text-lg leading-relaxed text-gray-700 text-pretty max-w-[75ch];
+}
+
+@utility prose-content-spaced {
+  @apply prose-content mb-4;
+}
+
+@utility section-heading {
+  @apply mb-6 text-3xl font-semibold text-green-700 text-balance;
+}
+
+@utility section-subheading {
+  @apply mb-4 text-2xl font-semibold text-green-700 text-balance;
+}
+
+/* min-h-10: the bare text links were 19.5px tall, half the 40px touch
+   minimum. The footer row's gap-6 keeps rows from colliding. */
+@utility mantis-footer-link {
+  @apply inline-flex items-center min-h-10 text-gray-700 transition-colors hover:text-gray-800/75;
+}
+
+@utility input-field-admin {
+  @apply block px-4 py-2 text-base text-gray-700 bg-white rounded-lg shadow-xs
+         focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent
+         hover:bg-gray-200 transition-colors;
+}
+
+/* red-600 keeps 14px error text above the WCAG AA contrast floor on white. */
+@utility field-error-message {
+  @apply mt-1 text-[0.875rem] text-red-600;
+
+  &.is-hint {
+    @apply text-gray-600;
   }
+}
 
-  /* Prose Content with bottom margin (most common variant) */
-  .prose-content-spaced {
-    @apply mb-4 text-lg leading-relaxed text-gray-700 text-pretty;
-    max-width: 75ch;
-  }
+@utility modal-section-heading {
+  @apply mb-1 text-xs font-semibold tracking-wide text-gray-500 uppercase;
+}
 
-  /* Section Heading - Green headings for content sections
-     Usage: <h2 class="section-heading">...</h2> */
-  .section-heading {
-    @apply mb-6 text-3xl font-semibold text-green-700 text-balance;
-  }
+@utility stats-panel {
+  @apply p-4 bg-gray-100 rounded-lg border border-gray-200 sm:p-5;
+}
 
-  /* Sub-section Heading */
-  .section-subheading {
-    @apply mb-4 text-2xl font-semibold text-green-700 text-balance;
-  }
+@layer components {
+  /* Floated article thumbnail (mantis_religiosa). A component rather than a
+     @utility because it styles descendants; lives here rather than in the
+     template's <style> block because @apply only runs in compiled files. */
+  .article-thumb {
+    @apply float-right clear-right mt-2 mb-4 ml-4 max-w-[220px]
+           max-md:float-none max-md:mx-auto max-md:my-4 max-md:max-w-full;
 
-  /* ==========================================================================
-     Original utility classes (preserved)
-     ========================================================================== */
+    & img {
+      @apply rounded-lg shadow-md outline outline-1 -outline-offset-1 outline-black/10
+             transition-transform duration-300 hover:scale-[1.03];
+    }
 
-  .mantis-footer-link {
-    @apply text-gray-700 transition-colors hover:text-gray-800/75;
-  }
-
-  .input-field-admin {
-    @apply block px-4 py-2 text-base text-gray-700 bg-white rounded-lg shadow-xs focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent hover:bg-gray-200 transition-colors;
-  }
-
-  .btn-green {
-    @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white
-           bg-green-600 rounded-lg border border-green-700 transition-colors duration-200
-           hover:bg-green-700 focus:outline-hidden focus-visible:ring-2
-           focus-visible:ring-green-500/30;
-  }
-
-  .btn-secondary {
-    @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-gray-700
-           bg-white rounded-lg border border-gray-300 transition-colors duration-200
-           hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900 focus:outline-hidden
-           focus-visible:border-green-500 focus-visible:ring-2 focus-visible:ring-green-500/30;
-  }
-
-  .modal-section-heading {
-    @apply mb-1 text-xs font-semibold tracking-wide text-gray-500 uppercase;
+    & figcaption {
+      @apply mt-2 text-[0.9375rem] text-center text-gray-500;
+    }
   }
 }
 
@@ -371,11 +370,7 @@
   padding-bottom: 4px;
 }
 .datepicker-picker {
-  display: inline-block;
-  border-radius: 0.5rem;
-  background-color: white;
-  box-shadow: 0 4px 6px -1px color-mix(in srgb, black 10%, transparent), 0 2px 4px -2px color-mix(in srgb, black 10%, transparent);
-  border: 1px solid var(--color-gray-200);
+  @apply inline-block rounded-lg bg-white shadow-md border border-gray-200;
 }
 .datepicker-picker span {
   display: block;
@@ -595,8 +590,8 @@ body:has(dialog:modal) {
   max-height: calc(100dvh - 2rem);
   opacity: 0;
   transform: scale(0.92);
-  transition: opacity 220ms cubic-bezier(0.22, 1, 0.36, 1),
-              transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+  transition: opacity 220ms var(--ease-out-quint),
+              transform 220ms var(--ease-out-quint),
               overlay 220ms allow-discrete,
               display 220ms allow-discrete;
 }
@@ -614,7 +609,7 @@ body:has(dialog:modal) {
 }
 
 .modal-lightbox::backdrop {
-  transition: opacity 220ms cubic-bezier(0.22, 1, 0.36, 1),
+  transition: opacity 220ms var(--ease-out-quint),
               overlay 220ms allow-discrete,
               display 220ms allow-discrete;
 }
@@ -715,24 +710,55 @@ body:has(dialog:modal) {
 }
 
 /* ==========================================================================
-   Gallery Staggered Reveal
+   Leaflet Control Hit Areas
+   Leaflet ships 30x30 controls, below the 40px touch minimum. Loaded globally
+   so it covers both the /auswertungen map and the /melden location picker,
+   which import leaflet's CSS through separate Vite entries.
    ========================================================================== */
 
-/* .gallery-item opacity-0 is a TW utility on the element in galerie.html.
-   JS adds .gallery-reveal to trigger the animation. */
-.gallery-reveal {
-  animation: galleryFadeUp 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
+.leaflet-touch .leaflet-bar a,
+.leaflet-bar a {
+  width: 40px;
+  height: 40px;
+  line-height: 40px;
 }
 
-@keyframes galleryFadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.leaflet-control-geocoder .leaflet-control-geocoder-icon {
+  width: 40px;
+  height: 40px;
+}
+
+/* The geocoder's own CSS sets font-size:120% (14.4px), which makes iOS Safari
+   zoom the viewport when the address search is focused on the /melden map. */
+.leaflet-control-geocoder-form input {
+  font-size: 16px;
+}
+
+/* Address suggestions ship at padding:5px (~28px tall). Pad rather than flex
+   so the vendor's text-overflow: ellipsis keeps working. */
+.leaflet-control-geocoder-alternatives li {
+  padding-top: 11px;
+  padding-bottom: 11px;
+}
+
+/* ==========================================================================
+   AGS Autocomplete Suggestions
+   These <li> are built in app/routes/statistics.py, outside Tailwind's
+   @source scan, so utilities there would never be generated. They carry a
+   click handler (statistiken.html) but shipped with no padding or hover.
+   ========================================================================== */
+
+#vorschlaege .suggestion {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+}
+
+#vorschlaege .suggestion:hover {
+  background-color: var(--color-gray-100);
 }
 
 /* ==========================================================================

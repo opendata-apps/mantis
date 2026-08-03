@@ -35,10 +35,12 @@ Die Flask-Integration liegt in ``app/tools/vite.py``.
 
 Verfügbare Template-Helper:
 
-- ``vite_asset(entry)``
-- ``vite_css(entry)``
-- ``vite_preload(entry)``
-- ``vite_tags(entry)``
+- ``vite_tags(entry)`` — Standardweg: erzeugt Stylesheets, das Entry-Skript und
+  ``modulepreload``-Hinweise für importierte Chunks, in der von Vite empfohlenen
+  Reihenfolge (siehe `Backend Integration
+  <https://vite.dev/guide/backend-integration>`_)
+- ``vite_asset(entry)`` — nur die URL einer einzelnen Datei
+- ``vite_font_preloads(*patterns)`` — ``preload``-Links für Schriftdateien
 
 In Produktion werden Hash-Dateien aus dem Manifest aufgelöst.
 Im Fallback (kein Manifest) werden ungebundelte Assets aus ``app/static`` genutzt.
