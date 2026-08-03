@@ -9,6 +9,7 @@ import { locate } from 'leaflet.locatecontrol';
 import 'leaflet.locatecontrol/dist/L.Control.Locate.min.css';
 import ExifReader from 'exifreader';
 import htmx from 'htmx.org';
+import { inCoordRange, coordRangeMessage, parseCoordinate } from './coordinates.js';
 
 // CSP hardening: disable eval-based attribute features (hx-on::*, `js:` prefix).
 // The report form does not use them; this lets us drop `unsafe-eval` from CSP.
@@ -33,6 +34,15 @@ L.Icon.Default.mergeOptions({
 
 window.L = L;
 window.htmx = htmx;
+
+// Error containers whose id does not match the input the user actually types in.
+// The hidden latitude/longitude fields share one container next to the map.
+const ERROR_INPUT = { coordinates: 'manual-latitude' };
+
+const MIME_BY_EXT = {
+    jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png',
+    webp: 'image/webp', heic: 'image/heic', heif: 'image/heif'
+};
 
 const ReportForm = {
     step: 0,
@@ -149,17 +159,15 @@ const ReportForm = {
     },
 
     syncAriaErrors() {
-        // Map error container IDs to their user-facing input IDs
-        const errorToInput = { coordinates: 'manual-latitude' };
         let firstInvalid = null;
 
         document.querySelectorAll('.field-error-message').forEach(el => {
             const field = el.id.replace('error-', '');
-            const inputId = errorToInput[field] || field;
-            const input = document.getElementById(inputId);
+            const input = document.getElementById(ERROR_INPUT[field] || field);
             if (!input) return;
 
-            const hasError = el.textContent.trim().length > 0;
+            // A hint (e.g. the GPS notice) occupies the same slot but is not a rejection.
+            const hasError = !el.classList.contains('is-hint') && el.textContent.trim().length > 0;
             if (hasError) {
                 input.setAttribute('aria-invalid', 'true');
                 input.setAttribute('aria-describedby', el.id);
@@ -217,7 +225,15 @@ const ReportForm = {
                 : null;
 
             if (!res.ok || !json?.success || !json?.redirect_url) {
-                throw new Error(json?.error || 'Server error');
+                this.submitting = false;
+                this.showLoading(false);
+                // A field-level rejection on the last step is otherwise a dead end:
+                // the review page cannot show which answer the server refused.
+                if (json?.errors && Object.keys(json.errors).length) {
+                    return this.showServerErrors(json.errors);
+                }
+                return this.showError('general', json?.error
+                    || 'Die Meldung konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.');
             }
 
             this.dirty = false;
@@ -225,8 +241,47 @@ const ReportForm = {
         } catch (err) {
             this.submitting = false;
             this.showLoading(false);
-            this.showError('general', err.message);
+            this.showError('general',
+                'Verbindung zum Server fehlgeschlagen. Bitte prüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.');
         }
+    },
+
+    // The DOM already records which step owns a field, so the field -> step
+    // mapping never has to be restated in JS.
+    stepOfField(name) {
+        const el = document.getElementById(name) || document.getElementById(`error-${name}`);
+        const step = el?.closest('.step');
+        return step ? [...document.querySelectorAll('.step')].indexOf(step) : -1;
+    },
+
+    showServerErrors(errors) {
+        this.clearErrors();
+
+        let target = Infinity;
+        const unplaced = [];
+        for (const [field, messages] of Object.entries(errors)) {
+            const slot = (field === 'latitude' || field === 'longitude') ? 'coordinates' : field;
+            const msg = Array.isArray(messages) ? messages[0] : String(messages);
+            // Not every field has an error container (finder names, feedback).
+            // Those messages still have to reach the user somewhere.
+            if (!document.getElementById(`error-${slot}`)) {
+                unplaced.push(msg);
+                continue;
+            }
+            this.showError(slot, msg, false);
+            const step = this.stepOfField(slot);
+            if (step >= 0 && step < target) target = step;
+        }
+
+        if (target === Infinity) {
+            // Nothing could be pinned to a step — keep the user on the review
+            // page, where the general error box is visible.
+            return this.showError('general',
+                unplaced.join(' ') || 'Bitte prüfen Sie Ihre Angaben.');
+        }
+        this.showStep(target);
+        document.querySelectorAll('.step')[target]
+            ?.querySelector('[aria-invalid="true"]')?.focus();
     },
 
     setupPhoto() {
@@ -235,7 +290,12 @@ const ReportForm = {
         if (!input || !dropzone) return;
 
         input.addEventListener('change', (e) => this.handlePhoto(e.target.files?.[0]));
-        dropzone.addEventListener('click', () => input.click());
+        // The <label> already activates the input. Letting its click bubble to
+        // the dropzone opens the Android picker a second time, and the second
+        // intent cancels the first selection — the form then looks untouched.
+        dropzone.addEventListener('click', (e) => {
+            if (!e.target.closest('label')) input.click();
+        });
         dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
         dropzone.addEventListener('dragleave', (e) => { e.preventDefault(); dropzone.classList.remove('dragover'); });
         dropzone.addEventListener('drop', (e) => {
@@ -251,22 +311,33 @@ const ReportForm = {
 
     async handlePhoto(file) {
         if (!file) return;
-        const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
-        const ext = file.name.toLowerCase().split('.').pop();
-        if (!validTypes.includes(file.type.toLowerCase()) && !['jpg', 'jpeg', 'png', 'webp', 'heic', 'heif'].includes(ext)) {
-            return this.showError('photo', 'Ungültiges Bildformat.');
-        }
+        const type = this.imageType(file);
+        if (!type) return this.showError('photo', 'Ungültiges Bildformat.');
         if (file.size > 12 * 1024 * 1024) return this.showError('photo', 'Max 12MB.');
 
         this.clearError('photo');
         this.setDropzoneLoading(true, 'Bild wird verarbeitet...');
 
+        // Start the read here, still inside the change event's own task: Android
+        // hands gallery items over as proxy content:// URIs that can turn
+        // unreadable moments later.
+        const read = file.arrayBuffer();
+
         try {
-            const exif = await this.extractExif(file);
-            const webp = await this.toWebp(file);
+            const bytes = await this.stage('read', read);
+            const exif = await this.extractExif(bytes);
+            const webp = await this.toWebp(bytes, type, file.size);
 
             this.webpData = { dataUrl: webp.dataUrl, blob: webp.blob, fileName: file.name };
             this.dirty = true;
+
+            // A photo that encodes to a few KB is the signature of the Android
+            // GPU-canvas bug that hands back an all-black surface. The report
+            // still goes through — but a silently black photo is worthless to a
+            // reviewer, so it has to be visible to us.
+            if (webp.blob.size < 10000) {
+                this.reportPhotoFailure(file, { stage: 'suspect-output', message: `${webp.blob.size} bytes` });
+            }
 
             document.getElementById('photo-upload-area')?.classList.add('hidden');
             const preview = document.getElementById('photoPreview');
@@ -278,17 +349,76 @@ const ReportForm = {
 
             this.applyExif(exif);
         } catch (err) {
-            this.showError('photo', 'Fehler bei der Bildverarbeitung.');
+            // Reset before reporting: removePhoto() clears the photo error, so
+            // the other order erases the message the user needs to see.
             this.removePhoto();
+            this.showError('photo',
+                `Das Foto konnte nicht verarbeitet werden (Fehler: ${err.stage || 'unbekannt'}). `
+                + 'Bitte versuchen Sie es erneut oder wählen Sie ein anderes Foto.');
+            this.reportPhotoFailure(file, err);
         } finally {
             this.setDropzoneLoading(false);
         }
     },
 
-    extractExif(file) {
+    // Android pickers sometimes deliver a File with an empty `type`, so the
+    // extension has to be able to stand in for it — and vice versa.
+    imageType(file) {
+        const ext = (file.name || '').toLowerCase().split('.').pop();
+        const type = (file.type || '').toLowerCase();
+        if (Object.values(MIME_BY_EXT).includes(type)) return type;
+        return MIME_BY_EXT[ext] || null;
+    },
+
+    // One catch covers the whole pipeline, so each step has to name itself —
+    // the label is what tells the user and the failure report which one broke.
+    async stage(name, work) {
+        try {
+            return await work;
+        } catch (cause) {
+            throw this.photoError(name, cause);
+        }
+    },
+
+    photoError(stage, cause) {
+        // Both halves matter: the name carries the browser's verdict
+        // (NotReadableError, SecurityError), the message the detail.
+        const detail = cause ? `${cause.name || 'Error'} ${cause.message || ''}`.trim() : 'no detail';
+        const err = new Error(`${stage}: ${detail}`);
+        err.stage = stage;
+        return err;
+    },
+
+    // The conversion runs entirely in the browser, so until now a failure here
+    // was invisible to the project — the report was simply never submitted.
+    // Reports the failing step and the file class, never the image itself.
+    reportPhotoFailure(file, err) {
+        const url = document.getElementById('reportForm')?.dataset.photoErrorUrl;
+        if (!url) return;
+        fetch(url, {
+            method: 'POST',
+            keepalive: true,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('input[name="csrf_token"]')?.value
+            },
+            body: JSON.stringify({
+                stage: err?.stage || 'unbekannt',
+                error: String(err?.message || err).slice(0, 200),
+                size: file?.size ?? null,
+                type: file?.type || '',
+                ext: (file?.name || '').toLowerCase().split('.').pop().slice(0, 10)
+            })
+        }).catch(() => { }); // diagnostics must never turn into a second failure
+    },
+
+    extractExif(bytes) {
         // EXIF autofill is a non-essential enhancement; it must never block or freeze
         // the upload. Time-box it and swallow every failure (degrade to no autofill).
-        const parse = ExifReader.load(file, { expanded: true })
+        // ExifReader returns tags synchronously for an ArrayBuffer (a promise only for
+        // a File), so the parse has to be lifted into one before it can be raced.
+        const parse = Promise.resolve()
+            .then(() => ExifReader.load(bytes, { expanded: true }))
             .then((tags) => {
                 const dateTime = tags.exif?.DateTimeOriginal?.description || tags.exif?.DateTime?.description;
                 const gps = (typeof tags.gps?.Latitude === 'number' && typeof tags.gps?.Longitude === 'number')
@@ -301,32 +431,38 @@ const ReportForm = {
         return Promise.race([parse, timeout]);
     },
 
-    async toWebp(file) {
-        const isHeic = file.type.includes('heic') || file.type.includes('heif');
+    // An object URL, not a data URL: base64 inflates a 6MB photo into an 8MB
+    // string handed to img.src, four times Chromium's 2MB URL ceiling, and it
+    // keeps that string in memory next to the decoded bitmap.
+    decode(blob) {
+        const url = URL.createObjectURL(blob);
+        return new Promise((res, rej) => {
+            const el = new Image();
+            el.onload = () => res(el);
+            el.onerror = () => rej(new Error('image decode failed'));
+            el.src = url;
+        }).finally(() => URL.revokeObjectURL(url));
+    },
 
-        const loadImg = (src) => new Promise((res, rej) => {
-            const img = new Image();
-            img.onload = () => res(img);
-            img.onerror = rej;
-            img.src = src;
-        });
+    async toWebp(bytes, type, size) {
+        const blob = new Blob([bytes], { type });
 
-        let imgSrc;
-        if (isHeic) {
+        // Safari 17+ decodes HEIC natively, so try the browser first and only
+        // pull in the 1.3MB wasm converter when it can't — which is also the
+        // path that keeps working if the unmaintained heic2any ever breaks.
+        let failure = null;
+        let img = await this.decode(blob).catch((cause) => { failure = cause; return null; });
+        if (!img && (type.includes('heic') || type.includes('heif'))) {
             const { default: heic2any } = await import('heic2any');
-            const converted = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.85 });
-            imgSrc = URL.createObjectURL(converted);
-        } else {
-            imgSrc = await new Promise((res, rej) => {
-                const r = new FileReader();
-                r.onload = (e) => res(e.target.result);
-                r.onerror = rej;
-                r.readAsDataURL(file);
-            });
+            // libheif never settles when its wasm cannot run or stalls, which
+            // strands the user on the spinner with nothing to act on.
+            const jpeg = await this.stage('heic', Promise.race([
+                heic2any({ blob, toType: 'image/jpeg', quality: 0.85 }),
+                new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 25000))
+            ]));
+            img = await this.stage('decode', this.decode(jpeg));
         }
-
-        const img = await loadImg(imgSrc);
-        if (isHeic) URL.revokeObjectURL(imgSrc);
+        if (!img) throw this.photoError('decode', failure);
 
         const maxDim = /Mobile|Android|iPhone|iPad/i.test(navigator.userAgent) ? 2048 : 4096;
         let w = img.naturalWidth, h = img.naturalHeight;
@@ -336,27 +472,42 @@ const ReportForm = {
             else { h = maxDim; w = Math.round(maxDim * ratio); }
         }
 
-        const canvas = document.createElement('canvas');
-        canvas.width = w; canvas.height = h;
-        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        let canvas;
+        try {
+            canvas = document.createElement('canvas');
+            canvas.width = w; canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            // A 12MP phone photo is a ~2.3x reduction in one step; without this
+            // the default bilinear filter aliases fine detail (wing venation).
+            ctx.imageSmoothingQuality = 'high';
+            ctx.drawImage(img, 0, 0, w, h);
+        } catch (cause) {
+            throw this.photoError('canvas', cause);
+        }
 
-        const sizeMB = file.size / 1048576;
+        const sizeMB = size / 1048576;
         const pixels = w * h;
         let q = sizeMB > 10 ? 0.6 : sizeMB > 5 ? 0.7 : 0.8;
         if (pixels > 8e6) q = Math.min(q, 0.6);
         else if (pixels > 4e6) q = Math.min(q, 0.7);
 
-        const encode = (type) => new Promise((r) => canvas.toBlob(r, type, q));
+        const encode = (mime) => new Promise((r) => canvas.toBlob(r, mime, q));
         // WebKit (incl. iOS 26) cannot encode WebP via canvas: toBlob returns null
         // or silently falls back to PNG. Fall back to JPEG, which every engine encodes
         // and the server (PIL) decodes — unlike HEIC. See WebKit regression 89356ad.
-        const webp = await encode('image/webp');
-        if (webp && webp.type === 'image/webp') {
-            return { blob: webp, dataUrl: canvas.toDataURL('image/webp', q) };
+        let mime = 'image/webp';
+        let out = await encode(mime);
+        if (!out || out.type !== mime) {
+            mime = 'image/jpeg';
+            out = await encode(mime);
         }
-        const jpg = await encode('image/jpeg');
-        if (!jpg) throw new Error('Conversion failed');
-        return { blob: jpg, dataUrl: canvas.toDataURL('image/jpeg', q) };
+        if (!out) throw this.photoError('encode');
+
+        const dataUrl = canvas.toDataURL(mime, q);
+        // WebKit only frees a canvas once it is resized away (bug 195325), and on
+        // a phone this is the largest allocation the form makes.
+        canvas.width = canvas.height = 0;
+        return { blob: out, dataUrl };
     },
 
     removePhoto() {
@@ -402,7 +553,7 @@ const ReportForm = {
             if (this.map) {
                 setTimeout(() => {
                     this.map.invalidateSize();
-                    this.map.setView([lat, lng], 14);
+                    this.map.setView([lat, lng], this.MIN_ZOOM);
                     this.setMarker(lat, lng, true);
                 }, 100);
             }
@@ -437,7 +588,7 @@ const ReportForm = {
             L.Control.geocoder({ defaultMarkGeocode: false, placeholder: 'Adresse suchen...' })
                 .on('markgeocode', (e) => {
                     // Auto-place marker when user searches for an address
-                    this.map.setView(e.geocode.center, 15);
+                    this.map.setView(e.geocode.center, this.MIN_ZOOM);
                     this.setMarker(e.geocode.center.lat, e.geocode.center.lng);
                 })
                 .addTo(this.map);
@@ -455,7 +606,7 @@ const ReportForm = {
         this.map.on('click', (e) => {
             if (this.map.getZoom() < this.MIN_ZOOM) {
                 this.showError('coordinates', 'Bitte näher heranzoomen, um den Fundort genau zu markieren.');
-                document.getElementById('map')?.classList.add('invalid');
+                document.getElementById('map')?.toggleAttribute('data-invalid', true);
                 return;
             }
             this.setMarker(e.latlng.lat, e.latlng.lng);
@@ -464,30 +615,32 @@ const ReportForm = {
         const manLat = document.getElementById('manual-latitude');
         const manLng = document.getElementById('manual-longitude');
         [manLat, manLng].forEach(el => el?.addEventListener('change', () => {
-            const lat = parseFloat(manLat?.value), lng = parseFloat(manLng?.value);
-            if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
-                this.setMarker(lat, lng);
-                this.map.setView([lat, lng], this.map.getZoom());
-            } else {
+            const lat = parseCoordinate(manLat?.value), lng = parseCoordinate(manLng?.value);
+            if (lat === null || lng === null) {
                 document.getElementById('latitude').value = '';
                 document.getElementById('longitude').value = '';
                 if (this.marker) { this.marker.remove(); this.marker = null; }
-                this.showError('coordinates', 'Bitte gültige Koordinaten eingeben (Breitengrad: -90 bis 90, Längengrad: -180 bis 180).');
+                this.showError('coordinates', coordRangeMessage());
+                return;
             }
+            // setMarker owns the in-range verdict, so a typed coordinate and a
+            // map click can't disagree about what "out of range" looks like.
+            this.setMarker(lat, lng);
+            this.map.setView([lat, lng], this.map.getZoom());
         }));
 
-        const lat = parseFloat(document.getElementById('latitude')?.value);
-        const lng = parseFloat(document.getElementById('longitude')?.value);
-        if (!isNaN(lat) && !isNaN(lng)) {
+        const lat = parseCoordinate(document.getElementById('latitude')?.value);
+        const lng = parseCoordinate(document.getElementById('longitude')?.value);
+        if (lat !== null && lng !== null) {
             this.setMarker(lat, lng, false);
-            this.map.setView([lat, lng], 14);
+            this.map.setView([lat, lng], this.MIN_ZOOM);
         }
     },
 
     autoLocateIfNeeded() {
-        const lat = parseFloat(document.getElementById('latitude')?.value);
-        const lng = parseFloat(document.getElementById('longitude')?.value);
-        if (isNaN(lat) || isNaN(lng)) {
+        const lat = parseCoordinate(document.getElementById('latitude')?.value);
+        const lng = parseCoordinate(document.getElementById('longitude')?.value);
+        if (lat === null || lng === null) {
             if (navigator.geolocation && this.locateCtrl && this.map) {
                 this._locUpdates = 0;
                 this._bestAccuracy = Infinity;
@@ -503,14 +656,16 @@ const ReportForm = {
 
         if (accuracy < this._bestAccuracy || this._locUpdates === 1) {
             this._bestAccuracy = accuracy;
-            this.map.setView(e.latlng, 15);
+            // MIN_ZOOM, not 15: the message asks the user to click the map, and
+            // clicking below MIN_ZOOM is refused.
+            this.map.setView(e.latlng, this.MIN_ZOOM);
 
             let msg = '📍 GPS-Position gefunden';
             if (accuracy > 1000) msg += ' (ungefähr)';
             else if (accuracy > 100) msg += ` (ca. ${Math.round(accuracy)}m genau)`;
             else msg += ' (präzise)';
             msg += '. Bitte auf die Karte klicken, um den Fundort zu markieren.';
-            this.showError('coordinates', msg);
+            this.showHint('coordinates', msg);
         }
 
         if (accuracy < 50 || this._locUpdates >= 5) {
@@ -526,9 +681,6 @@ const ReportForm = {
     },
 
     setMarker(lat, lng, geocode = true) {
-        lat = Math.max(-90, Math.min(90, lat));
-        lng = Math.max(-180, Math.min(180, lng));
-
         if (this.marker) this.marker.setLatLng([lat, lng]);
         else {
             this.marker = L.marker([lat, lng], { draggable: true }).addTo(this.map)
@@ -543,9 +695,17 @@ const ReportForm = {
         if (manLat) manLat.value = str(lat);
         if (manLng) manLng.value = str(lng);
 
-        this.clearError('coordinates');
-        document.getElementById('map')?.classList.remove('invalid');
-        if (geocode) this.reverseGeocode(lat, lng);
+        // The pin stays where it was put — an out-of-range spot has to surface
+        // as an error instead of silently snapping to the edge of the range.
+        const mapEl = document.getElementById('map');
+        if (inCoordRange(lat, lng)) {
+            this.clearError('coordinates');
+            mapEl?.toggleAttribute('data-invalid', false);
+            if (geocode) this.reverseGeocode(lat, lng);
+        } else {
+            this.showError('coordinates', coordRangeMessage());
+            mapEl?.toggleAttribute('data-invalid', true);
+        }
     },
 
     async reverseGeocode(lat, lng) {
@@ -561,7 +721,10 @@ const ReportForm = {
             district: document.getElementById('fund_district'),
             street: document.getElementById('fund_street')
         };
-        Object.values(fields).forEach(f => f && (f.disabled = true));
+        // readOnly, not disabled: a disabled control is omitted from FormData, so
+        // clicking "Weiter" mid-lookup would submit no city/state and fail
+        // validation on fields that visibly hold a value.
+        Object.values(fields).forEach(f => f && (f.readOnly = true));
 
         try {
             // Fetch Nominatim + local AGS lookup in parallel
@@ -582,7 +745,7 @@ const ReportForm = {
         } catch (err) {
             if (err.name === 'AbortError') return; // superseded by a newer request
         } finally {
-            Object.values(fields).forEach(f => f && (f.disabled = false));
+            Object.values(fields).forEach(f => f && (f.readOnly = false));
         }
     },
 
@@ -601,29 +764,38 @@ const ReportForm = {
         if (msgEl && msg) msgEl.textContent = msg;
     },
 
-    showError(field, msg) {
+    showError(field, msg, focus = true) {
         const el = document.getElementById(`error-${field}`);
         if (!el) return;
         el.textContent = msg;
+        el.classList.remove('is-hint');
         if (field === 'general') el.classList.remove('hidden');
-        const errorToInput = { coordinates: 'manual-latitude' };
-        const input = document.getElementById(errorToInput[field] || field);
+        const input = document.getElementById(ERROR_INPUT[field] || field);
         if (input) {
             input.setAttribute('aria-invalid', 'true');
             input.setAttribute('aria-describedby', el.id);
-            input.focus();
+            if (focus) input.focus();
         } else {
             el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
+    },
+
+    // Advice, not a rejection: same slot, muted styling, and no focus steal —
+    // focusing a text input here would pop the keyboard open on mobile.
+    showHint(field, msg) {
+        const el = document.getElementById(`error-${field}`);
+        if (!el) return;
+        el.textContent = msg;
+        el.classList.add('is-hint');
     },
 
     clearError(field) {
         const el = document.getElementById(`error-${field}`);
         if (!el) return;
         el.textContent = '';
+        el.classList.remove('is-hint');
         if (field === 'general') el.classList.add('hidden');
-        const errorToInput = { coordinates: 'manual-latitude' };
-        const input = document.getElementById(errorToInput[field] || field);
+        const input = document.getElementById(ERROR_INPUT[field] || field);
         if (input) {
             input.removeAttribute('aria-invalid');
             input.removeAttribute('aria-describedby');

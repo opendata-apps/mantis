@@ -34,8 +34,8 @@ function fireworks() {
 function danceMantis() {
   const mantis = document.getElementById('dancingMantis');
   if (mantis) {
-    mantis.classList.add('dancing');
-    setTimeout(() => mantis.classList.remove('dancing'), 1000);
+    mantis.classList.add('animate-dance');
+    setTimeout(() => mantis.classList.remove('animate-dance'), 1000);
   }
 }
 

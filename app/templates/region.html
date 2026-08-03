@@ -88,7 +88,7 @@
       <ol class="flex items-center space-x-2 text-sm text-gray-500">
         <li>
           <a href="{{ url_for('main.index') }}"
-             class="text-green-700 hover:underline">Startseite</a>
+             class="inline-flex items-center min-h-10 text-green-700 hover:underline">Startseite</a>
         </li>
         {% if parent %}
           <li>
@@ -96,7 +96,7 @@
           </li>
           <li>
             <a href="{{ url_for('regionen.region_page', slug=parent.slug) }}"
-               class="text-green-700 hover:underline">{{ parent.name }}</a>
+               class="inline-flex items-center min-h-10 text-green-700 hover:underline">{{ parent.name }}</a>
           </li>
         {% endif %}
         <li>
@@ -107,7 +107,7 @@
     </nav>
     {# Intro paragraph #}
     <div class="mb-12">
-      <p class="prose-content-spaced text-lg leading-relaxed">{{ region.intro }}</p>
+      <p class="prose-content-spaced">{{ region.intro }}</p>
     </div>
     {# Content sections #}
     {% for section in region.sections %}

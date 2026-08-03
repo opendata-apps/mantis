@@ -483,7 +483,29 @@ class TestAdminRoutes:
         assert b'id="modal-actions"' in response.data
 
     def test_toggle_flag_returns_card_partial(self, client, session):
-        """HTMX flag toggles should return updated card partial HTML."""
+        """A report still matching the active filter comes back as a card."""
+        with client.session_transaction() as sess:
+            sess["user_id"] = "9999"
+
+        response = client.post(
+            f"/toggle_flag/{self.test_sighting.id}",
+            data={"flag": "UNKL", "filter_status": "all"},
+            headers={"HX-Request": "true"},
+        )
+        assert response.status_code == 200
+        assert b'id="report-card-' in response.data
+        # Modal footer is kept in sync out-of-band
+        assert b'id="modal-actions"' in response.data
+
+        session.refresh(self.test_sighting)
+        assert "UNKL" in (self.test_sighting.statuses or [])
+
+    def test_toggle_flag_removes_card_when_it_leaves_the_filter(self, client, session):
+        """Marking a report "Unklar" takes it out of the "offen" bucket.
+
+        The list must drop the card rather than re-render it, so the response
+        is an HTMX delete swap — the modal footer still rides along OOB.
+        """
         with client.session_transaction() as sess:
             sess["user_id"] = "9999"
 
@@ -493,7 +515,9 @@ class TestAdminRoutes:
             headers={"HX-Request": "true"},
         )
         assert response.status_code == 200
-        assert b'id="report-card-' in response.data
+        assert response.headers["HX-Reswap"] == "delete"
+        assert b'id="report-card-' not in response.data
+        assert b'id="modal-actions"' in response.data
 
         session.refresh(self.test_sighting)
         assert "UNKL" in (self.test_sighting.statuses or [])
@@ -728,6 +752,7 @@ class TestAdminRoutes:
             # editor — these used to bypass status guards entirely.
             ("ablage", "/etc/passwd"),
             ("bearb_id", "9999"),
+            ("fo_zuordnung", "1"),
         ],
     )
     def test_update_cell_non_editable_field(self, client, column, value):
@@ -747,6 +772,24 @@ class TestAdminRoutes:
         assert response.status_code == 403
         data = json.loads(response.data)
         assert "not editable" in data["error"]
+
+    @pytest.mark.parametrize("column", ["id", "not_a_column"])
+    def test_update_cell_rejects_columns_the_view_does_not_expose(self, client, column):
+        """`column` is attacker-controlled, so only view columns are accepted."""
+        with client.session_transaction() as sess:
+            sess["user_id"] = "9999"
+
+        response = client.post(
+            "/admin/update_cell",
+            json={
+                "table": "all_data_view",
+                "meldungen_id": self.test_sighting.id,
+                "column": column,
+                "value": "1",
+            },
+        )
+        assert response.status_code == 400
+        assert "Unknown column" in json.loads(response.data)["error"]
 
     def test_update_cell_missing_required_field(self, client):
         """Malformed JSON payload returns 400, not a 500 KeyError."""
@@ -842,3 +885,43 @@ class TestAdminRoutes:
         missing_id = (session.scalar(select(func.max(TblMeldungen.id))) or 0) + 1
         response = client.post(f"/delete_sighting/{missing_id}")
         assert response.status_code == 404
+
+
+class TestAlldataColumnRouting:
+    """The cell editor's column -> source table map is derived, not hand-kept."""
+
+    def test_every_editable_view_column_resolves(self):
+        """Guards against the view and the update router drifting apart."""
+        from app.database.alldata import TblAllData
+        from app.routes.admin import (
+            NON_EDITABLE_FIELDS,
+            find_original_table_and_column,
+        )
+
+        editable = {
+            c.name
+            for c in TblAllData.__table__.columns
+            if c.name not in NON_EDITABLE_FIELDS["all_data_view"]
+        }
+        unresolved = [
+            name
+            for name in sorted(editable)
+            if find_original_table_and_column(name) == (None, None)
+        ]
+        assert unresolved == []
+
+    def test_beschreibung_routes_to_the_text_not_the_fk(self):
+        """TblFundorte has a same-named FK column — the view exposes the text."""
+        from app.database.models import TblFundortBeschreibung
+        from app.routes.admin import find_original_table_and_column
+
+        assert find_original_table_and_column("beschreibung") == (
+            TblFundortBeschreibung,
+            "beschreibung",
+        )
+
+    def test_unknown_and_bare_id_do_not_resolve(self):
+        from app.routes.admin import find_original_table_and_column
+
+        assert find_original_table_and_column("id") == (None, None)
+        assert find_original_table_and_column("no_such_column") == (None, None)

@@ -2,6 +2,7 @@ import io
 import json
 from datetime import datetime, timedelta
 from pathlib import Path
+from typing import cast
 
 from flask import (
     Blueprint,
@@ -29,6 +30,7 @@ from app.database.models import (
 )
 from app.database.feedback_type import FeedbackSource
 from app.forms import MantisSightingForm
+from app.tools.coordinate_validation import in_range, parse_coordinate
 from app.tools.gen_user_id import get_new_id
 from app.tools.mtb_calc import point_in_rect
 from app.tools.gemeinde_finder import get_amt_enriched
@@ -152,11 +154,13 @@ def melden(usrid=None):
             user_prefilled_data = True
 
     if request.method == "POST":
-        if form.validate_on_submit():
-            # Security: Check honeypot field
-            if form.honeypot.data:
-                abort(403)
+        # Checked before validation: a filled trap must never reach form.errors,
+        # which is returned to the client and would name the field and reveal
+        # that it is watched.
+        if request.form.get("honeypot", "").strip():
+            abort(403)
 
+        if form.validate_on_submit():
             db_image_path: str | None = None
             try:
                 reporter = (
@@ -212,12 +216,10 @@ def melden(usrid=None):
                     )
                 spatial_fields = calculate_spatial_fields(lat, lon)
 
-                location_description_data = form.location_description.data
-                if not isinstance(location_description_data, str):
-                    raise RuntimeError(
-                        "Expected location description after successful form validation"
-                    )
-                location_description = int(location_description_data)
+                # SelectField coerces to str and DataRequired rejects the empty
+                # choice, so validation guarantees one of the numeric keys —
+                # an invariant WTForms' Optional-typed `data` cannot express.
+                location_description = int(cast(str, form.location_description.data))
 
                 fundort = TblFundorte()
                 fundort.plz = form.fund_zip_code.data or None
@@ -312,14 +314,23 @@ def melden(usrid=None):
                 400,
             )
 
-    return render_template(
-        "report/report_form.html",
-        form=form,
-        now=datetime.now,
-        timedelta=timedelta,
-        user_prefilled=user_prefilled_data,
-        user_has_feedback=user_has_feedback,
+    response = make_response(
+        render_template(
+            "report/report_form.html",
+            form=form,
+            now=datetime.now,
+            timedelta=timedelta,
+            user_prefilled=user_prefilled_data,
+            user_has_feedback=user_has_feedback,
+        )
     )
+    if user_prefilled_data:
+        # A prefilled form embeds the reporter's name + email in the markup;
+        # keep it out of search and AI indexes. Pairs with the meta-robots tag
+        # in report_form.html (page-level noindex, not a robots.txt Disallow —
+        # a disallowed page can't be crawled to read the noindex).
+        response.headers["X-Robots-Tag"] = "noindex, nofollow"
+    return response
 
 
 @report.route("/success")
@@ -420,7 +431,7 @@ def ags_lookup():
     except (KeyError, ValueError, TypeError):
         return jsonify({}), 400
 
-    if not (-90 <= lat <= 90 and -180 <= lon <= 180):
+    if not in_range(lat, lon):
         return jsonify({}), 400
 
     if not point_in_rect((lat, lon)):
@@ -436,6 +447,27 @@ def ags_lookup():
             "kreis": spatial["kreis"],
         }
     )
+
+
+@report.route("/melden/foto-fehler", methods=["POST"])
+@limiter.limit("10 per minute")
+def photo_failure():
+    """Record a photo that the browser could not prepare for upload.
+
+    The conversion runs entirely client-side, so without this the failure is
+    invisible here: the report is simply never submitted and the Melder gives up.
+    """
+    data = request.get_json(silent=True) or {}
+    current_app.logger.warning(
+        "Photo pipeline failed: stage=%s error=%s size=%s type=%s ext=%s ua=%s",
+        str(data.get("stage"))[:40],
+        str(data.get("error"))[:200],
+        data.get("size"),
+        str(data.get("type"))[:40],
+        str(data.get("ext"))[:10],
+        request.user_agent.string[:200],
+    )
+    return "", 204
 
 
 @report.route("/melden/validate-step", methods=["POST"])
@@ -643,12 +675,10 @@ def _format_date(date_str):
 
 def _format_coordinates(lat, lng):
     """Format coordinates for display."""
-    if lat and lng:
-        try:
-            return f"{float(lat):.6f}, {float(lng):.6f}"
-        except ValueError:
-            pass
-    return "-"
+    latitude, longitude = parse_coordinate(lat), parse_coordinate(lng)
+    if latitude is None or longitude is None:
+        return "-"
+    return f"{latitude:.6f}, {longitude:.6f}"
 
 
 def _get_finder_name(form_data):

@@ -1,6 +1,8 @@
 // Admin modal module — HTMX-first rewrite
 // JS only for: Leaflet map, marker placement, geocoding, clipboard, export
 
+import { inRange, parseCoordinate } from "./coordinates.js";
+
 // ---------------------------------------------------------------------------
 // State (map only — no more currentSightingId or isEditModeActive)
 // ---------------------------------------------------------------------------
@@ -96,8 +98,8 @@ function getMapDataFromDOM() {
 
 function initiateMap(data) {
   requestAnimationFrame(function () {
-    var lat = parseFloat(String(data.latitude).replace(",", "."));
-    var lng = parseFloat(String(data.longitude).replace(",", "."));
+    var lat = parseCoordinate(data.latitude);
+    var lng = parseCoordinate(data.longitude);
 
     if (!customIcon) initializeCustomIcon();
 
@@ -320,8 +322,8 @@ function onMapClick(e) {
 function resetMarker() {
   var mapEl = document.getElementById("map");
   if (!mapEl) return;
-  var originalLat = parseFloat(mapEl.getAttribute("data-lat"));
-  var originalLng = parseFloat(mapEl.getAttribute("data-lng"));
+  var originalLat = parseCoordinate(mapEl.getAttribute("data-lat"));
+  var originalLng = parseCoordinate(mapEl.getAttribute("data-lng"));
   if (isNaN(originalLat) || isNaN(originalLng)) return;
 
   var latLng = L.latLng(originalLat, originalLng);
@@ -342,13 +344,9 @@ function resetMarker() {
 // ---------------------------------------------------------------------------
 
 function validateAndUpdateCoordinate(input, type) {
-  var value = input.value.replace(",", ".");
-  var num = parseFloat(value);
+  var num = parseCoordinate(input.value);
 
-  var isValid =
-    type === "latitude"
-      ? !isNaN(num) && num >= -90 && num <= 90
-      : !isNaN(num) && num >= -180 && num <= 180;
+  var isValid = num !== null && inRange(num, type);
 
   if (isValid) {
     input.classList.remove("border-red-500");
@@ -356,9 +354,9 @@ function validateAndUpdateCoordinate(input, type) {
 
     var { lat: latInput, lng: lngInput } = getCoordInputs();
     if (latInput.value && lngInput.value) {
-      var lat = parseFloat(latInput.value.replace(",", "."));
-      var lng = parseFloat(lngInput.value.replace(",", "."));
-      if (!isNaN(lat) && !isNaN(lng)) {
+      var lat = parseCoordinate(latInput.value);
+      var lng = parseCoordinate(lngInput.value);
+      if (lat !== null && lng !== null) {
         // Map/marker are initialized on htmx:afterSettle. A user who
         // edits a coord input before that event fires would otherwise
         // hit a null dereference — guard the map update and let the

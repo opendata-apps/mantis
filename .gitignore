@@ -183,3 +183,6 @@ app/static/node_modules
 assets/
 .claude/
 CLAUDE.md
+
+# playwright-cli session logs and snapshots
+.playwright-cli/

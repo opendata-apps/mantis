@@ -1,4 +1,5 @@
 from datetime import datetime
+from functools import lru_cache
 from io import BytesIO
 import os
 import tempfile
@@ -41,7 +42,7 @@ from app.tools.coordinate_validation import (
     validate_coordinate_pair,
 )
 from app.tools.location_enrichment import calculate_spatial_fields
-from app.tools.report_images import build_upload_filename, ensure_upload_dir
+from app.tools.report_images import ensure_upload_dir
 from typing import Any, Optional
 
 INT32_MIN = -(2**31)
@@ -51,19 +52,19 @@ INT32_MAX = 2**31 - 1
 # Blueprints
 admin = Blueprint("admin", __name__)
 
-# Add this constant at the top of the file
+# Columns the cell editor must refuse. Only all_data_view is ever reached —
+# both consumers reject any other table name before they get here.
 NON_EDITABLE_FIELDS = {
-    "meldungen": ["id", "fo_zuordnung"],
-    "beschreibung": ["id"],
-    "fundorte": ["id", "ablage", "beschreibung"],
-    "melduser": ["id", "id_finder", "id_meldung", "id_user"],
-    "users": ["id", "user_id"],
     "all_data_view": [
         "meldungen_id",
         "fo_zuordnung",
         "fundorte_id",
         "beschreibung_id",
         "id_user",
+        # Reporter/finder links are relationship rows, not report data. The
+        # intent was previously recorded under a table key this dict no longer
+        # reaches, which left id_finder nominally editable.
+        "id_finder",
         "user_id",
         # Internal review state — must not be reachable through the cell editor.
         # `statuses` is the canonical workflow source. `bearb_id` is set
@@ -381,10 +382,10 @@ def change_mantis_meta_data(id):
     if field_to_update:
         # Normalize coordinate values before storing
         if fieldname in ["latitude", "longitude"]:
-            is_valid, normalized_value, error_msg = validate_and_normalize_coordinate(
+            normalized_value, error_msg = validate_and_normalize_coordinate(
                 new_data, fieldname
             )
-            if not is_valid:
+            if error_msg:
                 return jsonify({"error": error_msg}), 400
             new_data = float(normalized_value)
 
@@ -407,6 +408,8 @@ def change_mantis_meta_data(id):
                 from app.tools.geo_grade_service import grade_fundort_fields
 
                 fo = sighting_meldung.fundort
+                if fo is None:
+                    return jsonify({"error": "Location not found"}), 404
                 for k, v in grade_fundort_fields(
                     fo.latitude, fo.longitude, fo.land, fo.kreis, fo.ort
                 ).items():
@@ -439,10 +442,10 @@ def update_coordinates(id):
         return jsonify({"error": "Missing coordinates"}), 400
 
     # Validate and normalize both coordinates
-    is_valid, normalized_lat, normalized_lon, errors = validate_coordinate_pair(
+    normalized_lat, normalized_lon, errors = validate_coordinate_pair(
         latitude, longitude
     )
-    if not is_valid:
+    if errors:
         return jsonify({"error": errors[0]}), 400
 
     sighting = db.session.get(TblMeldungen, id)
@@ -552,8 +555,6 @@ def toggle_approve_sighting(id):
             return "", 400
         sighting.statuses = [ReportStatus.APPR.value]
         sighting.dat_bear = datetime.now()
-    # Sync deprecated boolean column with canonical statuses array
-    sighting.deleted = sighting.is_deleted
     _mark_sighting_updated(sighting)
 
     try:
@@ -701,8 +702,6 @@ def toggle_flag(id):
         return "", 400
 
     sighting.statuses = statuses
-    # Sync deprecated boolean column with canonical statuses array
-    sighting.deleted = sighting.is_deleted
     _mark_sighting_updated(sighting)
 
     try:
@@ -1065,36 +1064,31 @@ def update_report_image_date(report_id, new_date):
         raise FileNotFoundError(f"Image file not found: {fundorte_record.ablage}")
 
     old_dir, old_filename = os.path.split(old_image_path)
-    # Extract location and user id from filename
-    filename_parts = old_filename.rsplit("-", 2)
-    if len(filename_parts) != 3:
-        raise ValueError(f"Invalid filename format: {old_filename}")
 
-    location = filename_parts[0]
-    usrid_with_ext = filename_parts[2]
-    usrid = usrid_with_ext.replace(".webp", "")
-
+    # Only the directory changes — the filename stays as it was written at upload
+    # time. Rebuilding it from the new date would collapse the timestamp to
+    # midnight, so two reports by the same reporter for the same city moved to
+    # one date would produce the same name and silently overwrite each other.
     new_dir_path = ensure_upload_dir(base_dir, new_date_obj)
-    new_file_path = new_dir_path / build_upload_filename(location, usrid, new_date_obj)
+    new_file_path = new_dir_path / old_filename
 
     # Skip if source and destination are the same
     if str(old_image_path) == str(new_file_path):
         return {"status": "no_change"}
 
-    try:
-        # Move the file
-        shutil.move(str(old_image_path), str(new_file_path))
+    if new_file_path.exists():
+        raise FileExistsError(f"Target image already exists: {new_file_path}")
 
-        # Check if old directory is empty, if yes, delete it
-        if os.path.exists(old_dir) and not os.listdir(old_dir):
-            os.rmdir(old_dir)
-            # Also check parent year directory
-            old_year_dir = os.path.dirname(old_dir)
-            if os.path.exists(old_year_dir) and not os.listdir(old_year_dir):
-                os.rmdir(old_year_dir)
+    # Move the file
+    shutil.move(str(old_image_path), str(new_file_path))
 
-    except IOError as e:
-        raise OSError(f"Failed to move file: {e}") from e
+    # Check if old directory is empty, if yes, delete it
+    if os.path.exists(old_dir) and not os.listdir(old_dir):
+        os.rmdir(old_dir)
+        # Also check parent year directory
+        old_year_dir = os.path.dirname(old_dir)
+        if os.path.exists(old_year_dir) and not os.listdir(old_year_dir):
+            os.rmdir(old_year_dir)
 
     # Update the path in fundorte table
     fundorte_record.ablage = str(new_file_path.relative_to(base_dir))
@@ -1393,10 +1387,14 @@ def update_cell():
     if table_name != "all_data_view":
         return jsonify({"error": "Only all_data_view is supported"}), 403
 
-    if (
-        table_name in NON_EDITABLE_FIELDS
-        and column_name in NON_EDITABLE_FIELDS[table_name]
-    ):
+    # `column` is attacker-controlled, so only accept columns the table view
+    # actually exposes. Without this the negative list below is the sole guard,
+    # and any column added to the update router later would be editable by
+    # default rather than on purpose.
+    if column_name not in {c.name for c in TblAllData.__table__.columns}:
+        return jsonify({"error": "Unknown column"}), 400
+
+    if column_name in NON_EDITABLE_FIELDS[table_name]:
         return jsonify({"error": "This field is not editable"}), 403
 
     try:
@@ -1429,10 +1427,10 @@ def update_cell():
 
             # Validate and normalize coordinates before storing
             if original_column in ["latitude", "longitude"]:
-                is_valid, normalized_value, error_msg = (
-                    validate_and_normalize_coordinate(new_value, original_column)
+                normalized_value, error_msg = validate_and_normalize_coordinate(
+                    new_value, original_column
                 )
-                if not is_valid:
+                if error_msg:
                     return jsonify({"error": error_msg}), 400
                 new_value = float(normalized_value)
 
@@ -1521,38 +1519,59 @@ def update_cell():
         return errmsg, 500
 
 
-def find_original_table_and_column(column_name):
-    table_column_mapping = {
-        "meldungen_id": (TblMeldungen, "id"),
-        "dat_fund_von": (TblMeldungen, "dat_fund_von"),
-        "dat_fund_bis": (TblMeldungen, "dat_fund_bis"),
-        "dat_meld": (TblMeldungen, "dat_meld"),
-        "dat_bear": (TblMeldungen, "dat_bear"),
-        "bearb_id": (TblMeldungen, "bearb_id"),
-        "tiere": (TblMeldungen, "tiere"),
-        "art_m": (TblMeldungen, "art_m"),
-        "art_w": (TblMeldungen, "art_w"),
-        "art_n": (TblMeldungen, "art_n"),
-        "art_o": (TblMeldungen, "art_o"),
-        "art_f": (TblMeldungen, "art_f"),
-        "fo_zuordnung": (TblMeldungen, "fo_zuordnung"),
-        "fo_quelle": (TblMeldungen, "fo_quelle"),
-        "fo_beleg": (TblMeldungen, "fo_beleg"),
-        "anm_melder": (TblMeldungen, "anm_melder"),
-        "anm_bearbeiter": (TblMeldungen, "anm_bearbeiter"),
-        "plz": (TblFundorte, "plz"),
-        "ort": (TblFundorte, "ort"),
-        "strasse": (TblFundorte, "strasse"),
-        "kreis": (TblFundorte, "kreis"),
-        "land": (TblFundorte, "land"),
-        "amt": (TblFundorte, "amt"),
-        "mtb": (TblFundorte, "mtb"),
-        "longitude": (TblFundorte, "longitude"),
-        "latitude": (TblFundorte, "latitude"),
-        "ablage": (TblFundorte, "ablage"),
-        "beschreibung": (TblFundortBeschreibung, "beschreibung"),
-        "user_id": (TblUsers, "user_id"),
-        "user_name": (TblUsers, "user_name"),
-        "user_kontakt": (TblUsers, "user_kontakt"),
+# The tables all_data_view flattens, in the order the view joins them.
+_ALLDATA_SOURCE_MODELS = (
+    TblMeldungen,
+    TblFundorte,
+    TblFundortBeschreibung,
+    TblUsers,
+)
+
+# Columns whose name does not identify its source table on its own.
+_ALLDATA_COLUMN_OVERRIDES = {
+    # TblFundorte.beschreibung is the FK; the view exposes the text behind it.
+    "beschreibung": (TblFundortBeschreibung, "beschreibung"),
+    "meldungen_id": (TblMeldungen, "id"),
+}
+
+# Every source table has one; the view labels each separately, so a bare "id"
+# never identifies a row and must not resolve to an arbitrary table.
+_ALLDATA_IGNORED_COLUMNS = frozenset({"id"})
+
+
+@lru_cache(maxsize=1)
+def _alldata_column_routing() -> dict[str, tuple[Any, str]]:
+    """Map an all_data_view column back to the table it was selected from.
+
+    Derived from the models so a schema change cannot leave this behind. A
+    name owned by two source tables is a decision, not a default — it has to
+    be listed in the overrides or this raises rather than guessing.
+    """
+    routing: dict[str, tuple[Any, str]] = dict(_ALLDATA_COLUMN_OVERRIDES)
+    claimed: dict[str, list[str]] = {}
+    view_columns = {column.name for column in TblAllData.__table__.columns}
+
+    for model in _ALLDATA_SOURCE_MODELS:
+        for column in model.__table__.columns:
+            name = column.name
+            if name not in view_columns or name in _ALLDATA_IGNORED_COLUMNS:
+                continue
+            claimed.setdefault(name, []).append(model.__name__)
+            if name not in _ALLDATA_COLUMN_OVERRIDES:
+                routing.setdefault(name, (model, name))
+
+    ambiguous = {
+        name: owners
+        for name, owners in claimed.items()
+        if len(owners) > 1 and name not in _ALLDATA_COLUMN_OVERRIDES
     }
-    return table_column_mapping.get(column_name, (None, None))
+    if ambiguous:
+        raise RuntimeError(
+            f"all_data_view columns claimed by several source tables: {ambiguous}. "
+            "Add each to _ALLDATA_COLUMN_OVERRIDES to say which one wins."
+        )
+    return routing
+
+
+def find_original_table_and_column(column_name):
+    return _alldata_column_routing().get(column_name, (None, None))

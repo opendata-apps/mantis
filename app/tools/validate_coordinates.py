@@ -8,6 +8,8 @@ case of users placing a pin in the wrong city or state.
 No external API calls — all lookups use the in-memory STRtree spatial index.
 """
 
+import csv
+import io
 from dataclasses import dataclass
 from enum import Enum
 
@@ -161,17 +163,25 @@ def format_report(mismatches, checked, skipped):
 
 
 def format_csv(mismatches):
-    """Format validation results as CSV lines (including header)."""
-    lines = ["id,issue,stored_land,expected_land,stored_ort,expected_ort"]
+    """Format validation results as CSV lines (including header).
+
+    Ort and Land are reviewer-editable free text, so they can contain the
+    quotes, commas and newlines that csv.writer knows how to escape.
+    """
+    buffer = io.StringIO()
+    writer = csv.writer(buffer, lineterminator="\n")
+    writer.writerow(
+        ["id", "issue", "stored_land", "expected_land", "stored_ort", "expected_ort"]
+    )
     for m in mismatches:
-        # Escape fields that might contain commas
-        fields = [
-            str(m.fundort_id),
-            m.issue.value,
-            f'"{m.stored_land}"',
-            f'"{m.expected_land}"',
-            f'"{m.stored_ort}"',
-            f'"{m.expected_ort}"',
-        ]
-        lines.append(",".join(fields))
-    return "\n".join(lines)
+        writer.writerow(
+            [
+                m.fundort_id,
+                m.issue.value,
+                m.stored_land,
+                m.expected_land,
+                m.stored_ort,
+                m.expected_ort,
+            ]
+        )
+    return buffer.getvalue().rstrip("\n")

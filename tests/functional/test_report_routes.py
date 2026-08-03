@@ -28,6 +28,7 @@ from app.database.models import (
 # Shared helpers and fixtures
 # ---------------------------------------------------------------------------
 
+
 def _create_test_image(fmt="jpeg", name="test.jpg"):
     """Create a small in-memory image for upload tests."""
     return make_test_image(fmt=fmt, name=name, color="green")
@@ -75,6 +76,7 @@ class TestHtmxGuard:
 # ============================================================================
 # B. /melden/validate-step  (HTMX step validation)
 # ============================================================================
+
 
 class TestValidateStepPartial:
     """HTMX endpoint that validates individual form steps."""
@@ -221,8 +223,8 @@ class TestValidateStepPartial:
 # C. /melden/toggle-finder
 # ============================================================================
 
-class TestToggleFinder:
 
+class TestToggleFinder:
     def test_identical_true_hides_fields(self, client):
         response = client.post(
             "/melden/toggle-finder",
@@ -258,8 +260,8 @@ class TestToggleFinder:
 # E. /melden/feedback-detail
 # ============================================================================
 
-class TestFeedbackDetail:
 
+class TestFeedbackDetail:
     def test_known_source_shows_detail(self, client):
         response = client.post(
             "/melden/feedback-detail",
@@ -297,8 +299,8 @@ class TestFeedbackDetail:
 # F. /melden/review
 # ============================================================================
 
-class TestReviewStep:
 
+class TestReviewStep:
     def test_full_review_data(self, client, valid_form_data):
         response = client.post(
             "/melden/review",
@@ -339,8 +341,8 @@ class TestReviewStep:
 # G. /melden GET
 # ============================================================================
 
-class TestMeldenGet:
 
+class TestMeldenGet:
     def test_renders_form(self, client):
         response = client.get("/melden")
         assert response.status_code == 200
@@ -351,11 +353,41 @@ class TestMeldenGet:
 
 
 # ============================================================================
+# H2. /melden/foto-fehler  (client-side photo failure report)
+# ============================================================================
+
+
+class TestPhotoFailure:
+    """Browser-side conversion failures are otherwise invisible to the server."""
+
+    def test_logs_reported_failure(self, client, caplog):
+        response = client.post(
+            "/melden/foto-fehler",
+            json={
+                "stage": "decode",
+                "error": "decode: image decode failed",
+                "size": 5618106,
+                "type": "image/jpeg",
+                "ext": "jpg",
+            },
+        )
+        assert response.status_code == 204
+        assert "stage=decode" in caplog.text
+        assert "size=5618106" in caplog.text
+
+    def test_accepts_empty_body(self, client):
+        # A failing browser is exactly the context that may send nothing useful;
+        # the diagnostics endpoint must not add a second error on top.
+        response = client.post("/melden/foto-fehler", data="not json")
+        assert response.status_code == 204
+
+
+# ============================================================================
 # I. /success route
 # ============================================================================
 
-class TestSuccessRoute:
 
+class TestSuccessRoute:
     def test_without_session_flag(self, client):
         response = client.get("/success")
         assert response.status_code == 200
@@ -382,8 +414,8 @@ class TestSuccessRoute:
 # J. /melden POST — successful submission (mock image only)
 # ============================================================================
 
-class TestMeldenPostSuccess:
 
+class TestMeldenPostSuccess:
     @patch("app.routes.report._process_uploaded_image")
     def test_successful_submission(
         self, mock_process_image, client, valid_form_data, session
@@ -391,16 +423,10 @@ class TestMeldenPostSuccess:
         mock_process_image.return_value = "2025/2025-01-01/test.webp"
 
         pre_counts = {
-            "meldungen": session.scalar(
-                select(func.count()).select_from(TblMeldungen)
-            ),
-            "fundorte": session.scalar(
-                select(func.count()).select_from(TblFundorte)
-            ),
+            "meldungen": session.scalar(select(func.count()).select_from(TblMeldungen)),
+            "fundorte": session.scalar(select(func.count()).select_from(TblFundorte)),
             "users": session.scalar(select(func.count()).select_from(TblUsers)),
-            "links": session.scalar(
-                select(func.count()).select_from(TblMeldungUser)
-            ),
+            "links": session.scalar(select(func.count()).select_from(TblMeldungUser)),
         }
 
         response = client.post(
@@ -417,16 +443,10 @@ class TestMeldenPostSuccess:
         mock_process_image.assert_called_once()
 
         # Verify DB records created
-        post_meldungen = session.scalar(
-            select(func.count()).select_from(TblMeldungen)
-        )
-        post_fundorte = session.scalar(
-            select(func.count()).select_from(TblFundorte)
-        )
+        post_meldungen = session.scalar(select(func.count()).select_from(TblMeldungen))
+        post_fundorte = session.scalar(select(func.count()).select_from(TblFundorte))
         post_users = session.scalar(select(func.count()).select_from(TblUsers))
-        post_links = session.scalar(
-            select(func.count()).select_from(TblMeldungUser)
-        )
+        post_links = session.scalar(select(func.count()).select_from(TblMeldungUser))
 
         assert post_meldungen == pre_counts["meldungen"] + 1
         assert post_fundorte == pre_counts["fundorte"] + 1
@@ -455,9 +475,7 @@ class TestMeldenPostSuccess:
 
         # Find the newly created sighting by unique description
         sighting = session.scalar(
-            select(TblMeldungen).where(
-                TblMeldungen.anm_melder == data["description"]
-            )
+            select(TblMeldungen).where(TblMeldungen.anm_melder == data["description"])
         )
         assert sighting is not None
         assert sighting.art_w == 1
@@ -489,8 +507,8 @@ class TestMeldenPostSuccess:
 # K. /melden POST — validation failures
 # ============================================================================
 
-class TestMeldenPostValidation:
 
+class TestMeldenPostValidation:
     def test_missing_photo(self, client, valid_form_data):
         response = client.post(
             "/melden",
@@ -540,10 +558,40 @@ class TestMeldenPostValidation:
         )
         assert response.status_code == 403
 
+    def test_honeypot_long_value_does_not_name_the_field(self, client, valid_form_data):
+        """A multi-character trap is rejected like any other.
+
+        It previously failed a length validator instead, returning 400 with
+        form.errors — which told a bot the field's name and that it is watched.
+        """
+        data = valid_form_data.copy()
+        data["honeypot"] = "buy cheap pills now"
+        response = client.post(
+            "/melden",
+            data={**data, "photo": _create_test_image()},
+            content_type="multipart/form-data",
+        )
+        assert response.status_code == 403
+        assert b"honeypot" not in response.data
+
+    def test_honeypot_outranks_other_validation_errors(self, client, valid_form_data):
+        """The trap is checked before validation, so a bot cannot use an
+        unrelated field error to tell a 400 apart from a honeypot rejection."""
+        data = valid_form_data.copy()
+        data["honeypot"] = "x"
+        data["email"] = "not-an-email"
+        response = client.post(
+            "/melden",
+            data={**data, "photo": _create_test_image()},
+            content_type="multipart/form-data",
+        )
+        assert response.status_code == 403
+
 
 # ============================================================================
 # K3. /melden POST — JS fetch contract (JSON errors, no false-success redirects)
 # ============================================================================
+
 
 class TestMeldenPostJsContract:
     """Ensure JS submissions receive structured JSON failures."""
@@ -587,6 +635,7 @@ class TestMeldenPostJsContract:
 # K2. /melden POST — additional coverage for submission branches
 # ============================================================================
 
+
 class TestMeldenPostBranches:
     """Cover additional paths: finder creation, feedback, location_description."""
 
@@ -613,15 +662,11 @@ class TestMeldenPostBranches:
 
         # Verify finder user was created
         sighting = session.scalar(
-            select(TblMeldungen).where(
-                TblMeldungen.anm_melder == "Finder-Branch-Test"
-            )
+            select(TblMeldungen).where(TblMeldungen.anm_melder == "Finder-Branch-Test")
         )
         assert sighting is not None
         link = session.scalar(
-            select(TblMeldungUser).where(
-                TblMeldungUser.id_meldung == sighting.id
-            )
+            select(TblMeldungUser).where(TblMeldungUser.id_meldung == sighting.id)
         )
         assert link is not None
         assert link.id_finder is not None  # finder was linked
@@ -660,8 +705,8 @@ class TestMeldenPostBranches:
 # L. /melden/<usrid> POST — submission with existing user
 # ============================================================================
 
-class TestMeldenWithExistingUser:
 
+class TestMeldenWithExistingUser:
     @patch("app.routes.report._process_uploaded_image")
     def test_unknown_usrid_creates_new_user(
         self, mock_process_image, client, valid_form_data, session
@@ -671,9 +716,7 @@ class TestMeldenWithExistingUser:
         data = valid_form_data.copy()
         data["description"] = "Unknown-usrid-test"
 
-        pre_user_count = session.scalar(
-            select(func.count()).select_from(TblUsers)
-        )
+        pre_user_count = session.scalar(select(func.count()).select_from(TblUsers))
 
         response = client.post(
             "/melden/nonexistent_user_id_xyz",
@@ -684,9 +727,7 @@ class TestMeldenWithExistingUser:
         json_data = response.get_json()
         assert json_data["success"] is True
 
-        post_user_count = session.scalar(
-            select(func.count()).select_from(TblUsers)
-        )
+        post_user_count = session.scalar(select(func.count()).select_from(TblUsers))
         assert post_user_count == pre_user_count + 1
 
     @patch("app.routes.report._process_uploaded_image")
@@ -707,9 +748,7 @@ class TestMeldenWithExistingUser:
         session.add(existing_user)
         session.commit()
 
-        pre_user_count = session.scalar(
-            select(func.count()).select_from(TblUsers)
-        )
+        pre_user_count = session.scalar(select(func.count()).select_from(TblUsers))
 
         response = client.post(
             f"/melden/{existing_user.user_id}",
@@ -721,8 +760,39 @@ class TestMeldenWithExistingUser:
         json_data = response.get_json()
         assert json_data["success"] is True
 
-        post_user_count = session.scalar(
-            select(func.count()).select_from(TblUsers)
-        )
+        post_user_count = session.scalar(select(func.count()).select_from(TblUsers))
         # User count should NOT increase — existing user reused
         assert post_user_count == pre_user_count
+
+
+class TestPrefillPageNotIndexed:
+    """The prefilled /melden/<token> variant embeds the reporter's name + email,
+    so it must be kept out of search/AI indexes — while the public /melden form
+    stays indexable. noindex is applied page-level (meta + X-Robots-Tag), NOT via
+    robots.txt Disallow, so crawlers can actually read and honour the directive."""
+
+    def test_public_melden_is_indexable(self, client):
+        response = client.get("/melden")
+        assert response.status_code == 200
+        assert b"index,follow" in response.data
+        assert "X-Robots-Tag" not in response.headers
+
+    def test_prefilled_melden_is_noindex(self, client, session):
+        from app.tools.gen_user_id import get_new_id
+
+        user = TblUsers()
+        user.user_id = get_new_id()
+        user.user_name = "Musterfrau Maria"
+        user.user_rolle = "1"
+        user.user_kontakt = "maria@example.com"
+        session.add(user)
+        session.commit()
+
+        response = client.get(f"/melden/{user.user_id}")
+        assert response.status_code == 200
+        # Page-level directive present both as meta tag and response header.
+        assert b"noindex,nofollow" in response.data
+        assert response.headers.get("X-Robots-Tag") == "noindex, nofollow"
+        # The PII must not have leaked into the index-safe path by accident:
+        # its presence is exactly why the page is noindex.
+        assert b"maria@example.com" in response.data

@@ -1,23 +1,17 @@
 from app.tools.gemeinde_finder import get_amt_enriched
-from app.tools.coordinate_validation import validate_coordinate_pair
+from app.tools.coordinate_validation import in_range, parse_coordinate
 from app.tools.mtb_calc import get_mtb, point_in_rect
 
 
 def calculate_spatial_fields(latitude, longitude) -> dict[str, str]:
     """Calculate shared MTB/AGS-derived fields for a coordinate pair."""
     fields = {"mtb": "", "amt": "", "land": "", "kreis": ""}
-    if latitude is None or longitude is None:
+
+    lat = parse_coordinate(latitude)
+    lon = parse_coordinate(longitude)
+    if lat is None or lon is None or not in_range(lat, lon):
         return fields
 
-    is_valid, normalized_lat, normalized_lon, _ = validate_coordinate_pair(
-        latitude,
-        longitude,
-    )
-    if not is_valid or normalized_lat is None or normalized_lon is None:
-        return fields
-
-    lat = float(normalized_lat)
-    lon = float(normalized_lon)
     if not point_in_rect((lat, lon)):
         return fields
 
