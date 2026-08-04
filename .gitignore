@@ -186,3 +186,6 @@ CLAUDE.md
 
 # playwright-cli session logs and snapshots
 .playwright-cli/
+
+# local planning/spec scratch, not part of the published docs
+docs/superpowers/
