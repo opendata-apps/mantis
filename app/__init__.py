@@ -2,6 +2,9 @@ from datetime import datetime
 import os
 import tomllib
 from pathlib import Path
+
+import pillow_heif
+from PIL import Image
 from flask import Flask, jsonify, render_template, request
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
@@ -60,6 +63,17 @@ def create_app(config_class=Config):
         app.logger.addHandler(file_handler)
         app.logger.setLevel(log_level)
         app.logger.info("Mantis tracker startup")
+
+    # HEIC/HEIF decoding for iPhone uploads. Registers a plugin into Pillow's
+    # own opener table, so `Image.open` handles HEIC and the existing WebP
+    # re-encode path needs no change. Verified rather than assumed: registration
+    # silently no-ops against an incompatible Pillow (pillow-heif #340), which
+    # would turn every HEIC upload into a 500 at runtime instead of here.
+    pillow_heif.register_heif_opener()
+    if "HEIF" not in Image.OPEN:
+        raise RuntimeError(
+            "pillow-heif did not register a HEIF opener; HEIC uploads would fail"
+        )
 
     # Extensions
     csrf.init_app(app)

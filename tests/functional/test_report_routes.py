@@ -9,6 +9,7 @@ Design principles:
 
 import datetime
 from unittest.mock import patch
+from urllib.parse import unquote
 
 import pytest
 from sqlalchemy import select, func
@@ -374,6 +375,89 @@ class TestPhotoFailure:
         assert response.status_code == 204
         assert "stage=decode" in caplog.text
         assert "size=5618106" in caplog.text
+
+    def test_logs_device_hints_and_picker_shape(self, client, caplog):
+        """Chrome's Android UA is frozen at "Android 10; K" for every device, and
+        which picker produced the file decides whether its bytes are readable —
+        so the hints and the name shape are the only usable diagnostics."""
+        client.post(
+            "/melden/foto-fehler",
+            json={
+                "stage": "read",
+                "size": 3124606,
+                "mtime": 1754380800000,
+                "name": "numeric",
+                "model": "SM-A715F",
+                "osVersion": "13.0.0",
+            },
+        )
+        assert "model=SM-A715F" in caplog.text
+        assert "osv=13.0.0" in caplog.text
+        assert "name=numeric" in caplog.text
+        assert "mtime=1754380800000" in caplog.text
+
+    def test_client_fields_cannot_forge_a_log_line(self, client, caplog):
+        """The beacon is unauthenticated, so a newline in its strings must not
+        split the line the project greps for photo failures, and the cap must
+        keep the injected text inside its own field."""
+        client.post(
+            "/melden/foto-fehler",
+            json={
+                "stage": "read",
+                "model": "SM-A715F\nPhoto pipeline failed: stage=forged",
+            },
+        )
+        message = next(
+            record.getMessage()
+            for record in caplog.records
+            if "Photo pipeline failed" in record.getMessage()
+        )
+        assert "\n" not in message
+        assert "model=SM-A715F Photo pipeline failed: stage=fo osv=" in message
+
+    def test_escalation_mail_carries_the_device_and_picker(self, client):
+        """The mail becomes a GitLab ticket, and whoever triages it may not have
+        the prod log. The fields the UA cannot supply — the real device and
+        which picker produced the file — have to travel with the photo."""
+        payload = {
+            "stage": "read",
+            "name": "numeric",
+            "model": "SM-A715F",
+            "osVersion": "13.0.0",
+        }
+        client.post("/melden/foto-fehler", json=payload)
+        mailto = client.post("/melden/foto-fehler", json=payload).get_json()["mailto"]
+
+        body = unquote(mailto)
+        assert "Gerät: SM-A715F (Android 13.0.0)" in body
+        assert "Auswahl: numeric" in body
+
+    def test_escalates_after_repeated_failures(self, client, app):
+        """A second failure hands back the support mailto.
+
+        The address is deliberately not in the page: anyone holding it can open
+        tickets, so the server only releases it once it has counted real
+        failures for this session.
+        """
+        payload = {"stage": "read", "error": "read: NotReadableError", "ext": "jpg"}
+
+        assert client.post("/melden/foto-fehler", json=payload).status_code == 204
+
+        second = client.post("/melden/foto-fehler", json=payload)
+        assert second.status_code == 200
+        mailto = second.get_json()["mailto"]
+        assert mailto.startswith(f"mailto:{app.config['PHOTO_SUPPORT_EMAIL']}?")
+        assert "Foto-Upload%20Fehler" in mailto
+
+    def test_escalation_reference_links_mail_to_log(self, client, caplog):
+        """The mail subject carries a handle that also appears in the log line,
+        so a photo that arrives by email can be matched to what broke."""
+        payload = {"stage": "read", "error": "read: NotReadableError"}
+        client.post("/melden/foto-fehler", json=payload)
+        second = client.post("/melden/foto-fehler", json=payload)
+
+        ref = second.get_json()["mailto"].split("Fehler%20")[1].split("&")[0]
+        assert f"ref={ref}" in caplog.text
 
     def test_accepts_empty_body(self, client):
         # A failing browser is exactly the context that may send nothing useful;

@@ -25,11 +25,24 @@ def make_test_image(
     fmt: str = "jpeg",
     name: str = "test.jpg",
     size: tuple[int, int] = (10, 10),
-    color: str = "green",
+    color: str | tuple = "green",
+    mode: str = "RGB",
+    orientation: int | None = None,
 ):
-    """Create a small in-memory image for upload tests."""
+    """Create a small in-memory image for upload tests.
+
+    `orientation` writes an EXIF orientation tag (6 = rotate 90° CW to display),
+    which is how a camera original differs from a canvas-produced upload.
+    """
     buf = io.BytesIO()
-    Image.new("RGB", size, color=color).save(buf, fmt)
+    img = Image.new(mode, size, color=color)
+    # Only pass exif when asked: an empty Exif block is not valid for every format.
+    if orientation is None:
+        img.save(buf, fmt)
+    else:
+        exif = img.getexif()
+        exif[0x0112] = orientation
+        img.save(buf, fmt, exif=exif)
     buf.name = name
     buf.seek(0)
     return buf
