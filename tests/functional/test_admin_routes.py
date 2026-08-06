@@ -495,13 +495,19 @@ class TestAdminRoutes:
         assert b'id="modal-actions"' in response.data
 
     def test_toggle_flag_returns_card_partial(self, client, session):
-        """HTMX flag toggles should return updated card partial HTML."""
+        """HTMX flag toggles should return updated card partial HTML.
+
+        Uses filter_status="all" so the sighting stays in the filtered list
+        after the flag is set: under "offen", toggling UNKL/INFO moves it out of
+        the filter and the endpoint correctly returns an HX delete response
+        (empty body) instead of a card — a different path, covered elsewhere.
+        """
         with client.session_transaction() as sess:
             sess["user_id"] = "9999"
 
         response = client.post(
             f"/toggle_flag/{self.test_sighting.id}",
-            data={"flag": "UNKL", "filter_status": "offen"},
+            data={"flag": "UNKL", "filter_status": "all"},
             headers={"HX-Request": "true"},
         )
         assert response.status_code == 200

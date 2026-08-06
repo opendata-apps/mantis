@@ -566,8 +566,10 @@ class TestReportSubmission:
         assert payload["success"] is False
         assert any("vertauscht" in msg for msg in payload["errors"]["longitude"])
 
+        # latitude is a VARCHAR column, so compare against the string form —
+        # a float bind trips "operator does not exist: varchar = double precision".
         location = session.scalar(
-            select(TblFundorte).where(TblFundorte.latitude == 13.404954)
+            select(TblFundorte).where(TblFundorte.latitude == "13.404954")
         )
         assert location is None
 
