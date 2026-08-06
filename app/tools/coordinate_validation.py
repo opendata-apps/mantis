@@ -10,8 +10,8 @@ import re
 # Accepted range: Europe per the EPSG:3035 (LAEA Europe) area of use, clipped
 # north to 60 and west to -20 — Iceland, Svalbard and the mid-Atlantic are far
 # outside the range of Mantis religiosa.
-LAT_RANGE = (30.0, 60.0)
-LON_RANGE = (-20.0, 30.0)
+LAT_RANGE = (24.6, 60.0)
+LON_RANGE = (-20.0, 44.83)
 
 _RANGES = {"latitude": LAT_RANGE, "longitude": LON_RANGE}
 _LABELS = {"latitude": "Breitengrad", "longitude": "Längengrad"}
