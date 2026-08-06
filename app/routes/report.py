@@ -15,7 +15,7 @@ from flask import (
     current_app,
 )
 from werkzeug.datastructures import MultiDict
-from PIL import Image
+from PIL import Image, ImageOps
 
 from app import db, limiter
 from sqlalchemy import select
@@ -57,6 +57,38 @@ def _set_gender_fields(selected_gender_value):
     return genders
 
 
+class BlankImageError(ValueError):
+    """The uploaded frame has no visible pixels."""
+
+
+def _validation_error_response(errors):
+    """Field-level rejection in the shape `showServerErrors` expects."""
+    return jsonify(
+        {"success": False, "error": "Ungültige Formulardaten.", "errors": errors}
+    ), 400
+
+
+def _has_no_visible_pixels(img):
+    """True when every pixel is fully transparent.
+
+    An Android WebView can drop ``drawImage`` without raising, and the canvas is
+    then encoded at full size still holding its initial value — transparent
+    black. Such a frame is worthless to a reviewer but looks like a valid image
+    file, so it has to be caught by content rather than by byte size (report
+    21953 was 22KB, twice the client-side size threshold).
+    """
+    if not img.has_transparency_data:
+        return False
+    # RGBA/LA already carry alpha as a band; only palette transparency needs a
+    # convert to read it.
+    alpha = (
+        img.getchannel("A")
+        if img.mode in ("RGBA", "LA")
+        else img.convert("RGBA").getchannel("A")
+    )
+    return alpha.getextrema() == (0, 0)
+
+
 def _process_uploaded_image(photo_file, sighting_date, city_name, user_id):
     """Process uploaded image - trust client-optimized WebP files to avoid double compression."""
     upload_root = Path(current_app.config["UPLOAD_FOLDER"])
@@ -68,14 +100,21 @@ def _process_uploaded_image(photo_file, sighting_date, city_name, user_id):
     photo_file.seek(0)
 
     with Image.open(io.BytesIO(image_bytes)) as img:
+        if _has_no_visible_pixels(img):
+            raise BlankImageError("uploaded frame has no visible pixels")
+
         file_size_mb = len(image_bytes) / (1024 * 1024)
 
         if img.format == "WEBP" and file_size_mb <= 8.0:
             # Trust client-optimized WebP
             image_bytes_to_save = image_bytes
         else:
-            # Re-compress if needed
+            # A browser bakes EXIF orientation into the canvas, but an original
+            # uploaded by the conversion fallback arrives untouched and the WebP
+            # re-encode drops the tag — so rotate here or a portrait photo is
+            # archived sideways with nothing left to fix it.
             output_buffer = io.BytesIO()
+            ImageOps.exif_transpose(img, in_place=True)
             img.save(output_buffer, format="WEBP", quality=60)
             image_bytes_to_save = output_buffer.getvalue()
 
@@ -248,6 +287,31 @@ def melden(usrid=None):
                     }
                 ), 200
 
+            except BlankImageError:
+                # The check runs before anything is written, so only the
+                # transaction needs unwinding. Reported as a field error so the
+                # reporter re-picks the photo and keeps the rest of the form.
+                db.session.rollback()
+                # Same shape as the client beacon, so one grep over
+                # "Photo pipeline failed" finds every instance of this bug.
+                current_app.logger.warning(
+                    "Photo pipeline failed: stage=%s error=%s size=%s type=%s ext=%s ua=%s",
+                    "blank-canvas",
+                    "rejected at upload",
+                    None,
+                    None,
+                    None,
+                    request.user_agent.string[:200],
+                )
+                return _validation_error_response(
+                    {
+                        "photo": [
+                            "Das Foto enthält kein sichtbares Bild. "
+                            "Bitte wählen Sie es erneut aus."
+                        ]
+                    }
+                )
+
             except Exception as e:
                 db.session.rollback()
                 current_app.logger.error(f"Failed to save report: {str(e)}")
@@ -261,16 +325,7 @@ def melden(usrid=None):
                     500,
                 )
         else:
-            return (
-                jsonify(
-                    {
-                        "success": False,
-                        "error": "Ungültige Formulardaten.",
-                        "errors": form.errors,
-                    }
-                ),
-                400,
-            )
+            return _validation_error_response(form.errors)
 
     response = make_response(
         render_template(
