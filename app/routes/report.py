@@ -1,7 +1,9 @@
 import io
 import json
+import secrets
 from datetime import datetime, timedelta
 from pathlib import Path
+from urllib.parse import quote, urlencode
 
 from flask import (
     Blueprint,
@@ -55,6 +57,11 @@ def _set_gender_fields(selected_gender_value):
         genders[field_name] = 1
     # For "Unbekannt" or empty selection, all fields remain 0
     return genders
+
+
+# Matches the client's own downscale target, so a photo is archived at the same
+# size whether the browser converted it or the server did.
+MAX_STORED_DIMENSION = 2048
 
 
 class BlankImageError(ValueError):
@@ -115,6 +122,11 @@ def _process_uploaded_image(photo_file, sighting_date, city_name, user_id):
             # archived sideways with nothing left to fix it.
             output_buffer = io.BytesIO()
             ImageOps.exif_transpose(img, in_place=True)
+            # The client caps its own output at 2048; an original forwarded by
+            # the conversion fallback has had no such cap, and a 12MP frame
+            # re-encodes to ~0.9MB against the ~0.16MB the converted path
+            # produces. Cap here so the archive is uniform either way.
+            img.thumbnail((MAX_STORED_DIMENSION, MAX_STORED_DIMENSION))
             img.save(output_buffer, format="WEBP", quality=60)
             image_bytes_to_save = output_buffer.getvalue()
 
@@ -462,6 +474,57 @@ def ags_lookup():
     )
 
 
+def _beacon_field(value, limit):
+    """Everything in the beacon is client-supplied and lands in a log line, so
+    collapse whitespace — a newline in there would forge a second entry."""
+    return " ".join(str(value).split())[:limit]
+
+
+def _photo_report_mailto(ref, stage, data):
+    """Compose the whole mailto server-side.
+
+    The diagnostics are already here, and building the link on the server keeps
+    the Service Desk address out of the page source. Mail to it opens a
+    confidential issue, so the photo and the device details stay internal.
+    """
+    body = "\n".join(
+        [
+            "Bitte hängen Sie das Foto an diese E-Mail an, das nicht",
+            "hochgeladen werden konnte. Ohne die Originaldatei können wir",
+            "den Fehler nicht nachstellen.",
+            "",
+            "Womit haben Sie das Foto aufgenommen bzw. woher stammt es",
+            "(z. B. Kamera-App, Google Fotos, WhatsApp)?",
+            "",
+            # The picker shape below is a machine guess at the same thing. Asking
+            # outright is what confirms it, and it is the one question whose
+            # answer the browser cannot supply.
+            "War das Foto auf dem Handy gespeichert, oder lag es nur in der",
+            "Cloud und musste erst geladen werden?",
+            "",
+            "",
+            "--- Technische Angaben, bitte unverändert lassen ---",
+            f"Referenz: {ref}",
+            f"Schritt: {stage}",
+            f"Dateityp: {_beacon_field(data.get('type') or data.get('ext') or 'unbekannt', 40)}",
+            f"Dateigröße: {_beacon_field(data.get('size'), 20)}",
+            # Which picker produced the file, inferred from the name shape: the
+            # Android photo picker synthesises a numeric name, DocumentsUI passes
+            # the gallery's own. That decides whether the bytes stay readable.
+            f"Auswahl: {_beacon_field(data.get('name') or 'unbekannt', 10)}",
+            f"Browser: {request.user_agent.string[:200]}",
+            # The UA says "Android 10; K" whatever the phone is, so without the
+            # client hint the support mail cannot name the device that failed.
+            f"Gerät: {_beacon_field(data.get('model') or 'unbekannt', 40)}"
+            f" (Android {_beacon_field(data.get('osVersion') or '?', 20)})",
+        ]
+    )
+    query = urlencode(
+        {"subject": f"Foto-Upload Fehler {ref}", "body": body}, quote_via=quote
+    )
+    return f"mailto:{current_app.config['PHOTO_SUPPORT_EMAIL']}?{query}"
+
+
 @report.route("/melden/foto-fehler", methods=["POST"])
 @limiter.limit("10 per minute")
 def photo_failure():
@@ -471,16 +534,38 @@ def photo_failure():
     invisible here: the report is simply never submitted and the Melder gives up.
     """
     data = request.get_json(silent=True) or {}
+    stage = _beacon_field(data.get("stage"), 40)
+
+    # Counted server-side so the tally survives a reload, and so the support
+    # address is never rendered into the page: anyone holding it can open
+    # issues in the tracker.
+    failures = session.get("photo_failures", 0) + 1
+    session["photo_failures"] = failures
+
+    # Short handle shared by the log line and the mail subject, so a report that
+    # arrives by email can be matched to what actually broke.
+    ref = secrets.token_hex(3).upper()
     current_app.logger.warning(
-        "Photo pipeline failed: stage=%s error=%s size=%s type=%s ext=%s ua=%s",
-        str(data.get("stage"))[:40],
-        str(data.get("error"))[:200],
-        data.get("size"),
-        str(data.get("type"))[:40],
-        str(data.get("ext"))[:10],
+        "Photo pipeline failed: ref=%s n=%s stage=%s error=%s size=%s mtime=%s"
+        " type=%s ext=%s name=%s model=%s osv=%s ua=%s",
+        ref,
+        failures,
+        stage,
+        _beacon_field(data.get("error"), 200),
+        _beacon_field(data.get("size"), 20),
+        _beacon_field(data.get("mtime"), 20),
+        _beacon_field(data.get("type"), 40),
+        _beacon_field(data.get("ext"), 10),
+        _beacon_field(data.get("name"), 10),
+        _beacon_field(data.get("model"), 40),
+        _beacon_field(data.get("osVersion"), 20),
         request.user_agent.string[:200],
     )
-    return "", 204
+
+    if failures < current_app.config["PHOTO_ESCALATE_AFTER"]:
+        return "", 204
+
+    return jsonify({"mailto": _photo_report_mailto(ref, stage, data)}), 200
 
 
 @report.route("/melden/validate-step", methods=["POST"])

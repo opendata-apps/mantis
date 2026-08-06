@@ -9,6 +9,7 @@ Design principles:
 
 import datetime
 from unittest.mock import patch
+from urllib.parse import unquote
 
 import pytest
 from sqlalchemy import select, func
@@ -27,6 +28,7 @@ from app.database.models import (
 # ---------------------------------------------------------------------------
 # Shared helpers and fixtures
 # ---------------------------------------------------------------------------
+
 
 def _create_test_image(fmt="jpeg", name="test.jpg"):
     """Create a small in-memory image for upload tests."""
@@ -75,6 +77,7 @@ class TestHtmxGuard:
 # ============================================================================
 # B. /melden/validate-step  (HTMX step validation)
 # ============================================================================
+
 
 class TestValidateStepPartial:
     """HTMX endpoint that validates individual form steps."""
@@ -221,8 +224,8 @@ class TestValidateStepPartial:
 # C. /melden/toggle-finder
 # ============================================================================
 
-class TestToggleFinder:
 
+class TestToggleFinder:
     def test_identical_true_hides_fields(self, client):
         response = client.post(
             "/melden/toggle-finder",
@@ -258,8 +261,8 @@ class TestToggleFinder:
 # E. /melden/feedback-detail
 # ============================================================================
 
-class TestFeedbackDetail:
 
+class TestFeedbackDetail:
     def test_known_source_shows_detail(self, client):
         response = client.post(
             "/melden/feedback-detail",
@@ -297,8 +300,8 @@ class TestFeedbackDetail:
 # F. /melden/review
 # ============================================================================
 
-class TestReviewStep:
 
+class TestReviewStep:
     def test_full_review_data(self, client, valid_form_data):
         response = client.post(
             "/melden/review",
@@ -339,8 +342,8 @@ class TestReviewStep:
 # G. /melden GET
 # ============================================================================
 
-class TestMeldenGet:
 
+class TestMeldenGet:
     def test_renders_form(self, client):
         response = client.get("/melden")
         assert response.status_code == 200
@@ -373,6 +376,89 @@ class TestPhotoFailure:
         assert "stage=decode" in caplog.text
         assert "size=5618106" in caplog.text
 
+    def test_logs_device_hints_and_picker_shape(self, client, caplog):
+        """Chrome's Android UA is frozen at "Android 10; K" for every device, and
+        which picker produced the file decides whether its bytes are readable —
+        so the hints and the name shape are the only usable diagnostics."""
+        client.post(
+            "/melden/foto-fehler",
+            json={
+                "stage": "read",
+                "size": 3124606,
+                "mtime": 1754380800000,
+                "name": "numeric",
+                "model": "SM-A715F",
+                "osVersion": "13.0.0",
+            },
+        )
+        assert "model=SM-A715F" in caplog.text
+        assert "osv=13.0.0" in caplog.text
+        assert "name=numeric" in caplog.text
+        assert "mtime=1754380800000" in caplog.text
+
+    def test_client_fields_cannot_forge_a_log_line(self, client, caplog):
+        """The beacon is unauthenticated, so a newline in its strings must not
+        split the line the project greps for photo failures, and the cap must
+        keep the injected text inside its own field."""
+        client.post(
+            "/melden/foto-fehler",
+            json={
+                "stage": "read",
+                "model": "SM-A715F\nPhoto pipeline failed: stage=forged",
+            },
+        )
+        message = next(
+            record.getMessage()
+            for record in caplog.records
+            if "Photo pipeline failed" in record.getMessage()
+        )
+        assert "\n" not in message
+        assert "model=SM-A715F Photo pipeline failed: stage=fo osv=" in message
+
+    def test_escalation_mail_carries_the_device_and_picker(self, client):
+        """The mail becomes a GitLab ticket, and whoever triages it may not have
+        the prod log. The fields the UA cannot supply — the real device and
+        which picker produced the file — have to travel with the photo."""
+        payload = {
+            "stage": "read",
+            "name": "numeric",
+            "model": "SM-A715F",
+            "osVersion": "13.0.0",
+        }
+        client.post("/melden/foto-fehler", json=payload)
+        mailto = client.post("/melden/foto-fehler", json=payload).get_json()["mailto"]
+
+        body = unquote(mailto)
+        assert "Gerät: SM-A715F (Android 13.0.0)" in body
+        assert "Auswahl: numeric" in body
+
+    def test_escalates_after_repeated_failures(self, client, app):
+        """A second failure hands back the support mailto.
+
+        The address is deliberately not in the page: anyone holding it can open
+        tickets, so the server only releases it once it has counted real
+        failures for this session.
+        """
+        payload = {"stage": "read", "error": "read: NotReadableError", "ext": "jpg"}
+
+        assert client.post("/melden/foto-fehler", json=payload).status_code == 204
+
+        second = client.post("/melden/foto-fehler", json=payload)
+        assert second.status_code == 200
+        mailto = second.get_json()["mailto"]
+        assert mailto.startswith(f"mailto:{app.config['PHOTO_SUPPORT_EMAIL']}?")
+        assert "Foto-Upload%20Fehler" in mailto
+
+    def test_escalation_reference_links_mail_to_log(self, client, caplog):
+        """The mail subject carries a handle that also appears in the log line,
+        so a photo that arrives by email can be matched to what broke."""
+        payload = {"stage": "read", "error": "read: NotReadableError"}
+        client.post("/melden/foto-fehler", json=payload)
+        second = client.post("/melden/foto-fehler", json=payload)
+
+        ref = second.get_json()["mailto"].split("Fehler%20")[1].split("&")[0]
+        assert f"ref={ref}" in caplog.text
+
     def test_accepts_empty_body(self, client):
         # A failing browser is exactly the context that may send nothing useful;
         # the diagnostics endpoint must not add a second error on top.
@@ -384,8 +470,8 @@ class TestPhotoFailure:
 # I. /success route
 # ============================================================================
 
-class TestSuccessRoute:
 
+class TestSuccessRoute:
     def test_without_session_flag(self, client):
         response = client.get("/success")
         assert response.status_code == 200
@@ -412,8 +498,8 @@ class TestSuccessRoute:
 # J. /melden POST — successful submission (mock image only)
 # ============================================================================
 
-class TestMeldenPostSuccess:
 
+class TestMeldenPostSuccess:
     @patch("app.routes.report._process_uploaded_image")
     def test_successful_submission(
         self, mock_process_image, client, valid_form_data, session
@@ -421,16 +507,10 @@ class TestMeldenPostSuccess:
         mock_process_image.return_value = "2025/2025-01-01/test.webp"
 
         pre_counts = {
-            "meldungen": session.scalar(
-                select(func.count()).select_from(TblMeldungen)
-            ),
-            "fundorte": session.scalar(
-                select(func.count()).select_from(TblFundorte)
-            ),
+            "meldungen": session.scalar(select(func.count()).select_from(TblMeldungen)),
+            "fundorte": session.scalar(select(func.count()).select_from(TblFundorte)),
             "users": session.scalar(select(func.count()).select_from(TblUsers)),
-            "links": session.scalar(
-                select(func.count()).select_from(TblMeldungUser)
-            ),
+            "links": session.scalar(select(func.count()).select_from(TblMeldungUser)),
         }
 
         response = client.post(
@@ -447,16 +527,10 @@ class TestMeldenPostSuccess:
         mock_process_image.assert_called_once()
 
         # Verify DB records created
-        post_meldungen = session.scalar(
-            select(func.count()).select_from(TblMeldungen)
-        )
-        post_fundorte = session.scalar(
-            select(func.count()).select_from(TblFundorte)
-        )
+        post_meldungen = session.scalar(select(func.count()).select_from(TblMeldungen))
+        post_fundorte = session.scalar(select(func.count()).select_from(TblFundorte))
         post_users = session.scalar(select(func.count()).select_from(TblUsers))
-        post_links = session.scalar(
-            select(func.count()).select_from(TblMeldungUser)
-        )
+        post_links = session.scalar(select(func.count()).select_from(TblMeldungUser))
 
         assert post_meldungen == pre_counts["meldungen"] + 1
         assert post_fundorte == pre_counts["fundorte"] + 1
@@ -485,9 +559,7 @@ class TestMeldenPostSuccess:
 
         # Find the newly created sighting by unique description
         sighting = session.scalar(
-            select(TblMeldungen).where(
-                TblMeldungen.anm_melder == data["description"]
-            )
+            select(TblMeldungen).where(TblMeldungen.anm_melder == data["description"])
         )
         assert sighting is not None
         assert sighting.art_w == 1
@@ -519,8 +591,8 @@ class TestMeldenPostSuccess:
 # K. /melden POST — validation failures
 # ============================================================================
 
-class TestMeldenPostValidation:
 
+class TestMeldenPostValidation:
     def test_missing_photo(self, client, valid_form_data):
         response = client.post(
             "/melden",
@@ -575,6 +647,7 @@ class TestMeldenPostValidation:
 # K3. /melden POST — JS fetch contract (JSON errors, no false-success redirects)
 # ============================================================================
 
+
 class TestMeldenPostJsContract:
     """Ensure JS submissions receive structured JSON failures."""
 
@@ -617,6 +690,7 @@ class TestMeldenPostJsContract:
 # K2. /melden POST — additional coverage for submission branches
 # ============================================================================
 
+
 class TestMeldenPostBranches:
     """Cover additional paths: finder creation, feedback, location_description."""
 
@@ -643,15 +717,11 @@ class TestMeldenPostBranches:
 
         # Verify finder user was created
         sighting = session.scalar(
-            select(TblMeldungen).where(
-                TblMeldungen.anm_melder == "Finder-Branch-Test"
-            )
+            select(TblMeldungen).where(TblMeldungen.anm_melder == "Finder-Branch-Test")
         )
         assert sighting is not None
         link = session.scalar(
-            select(TblMeldungUser).where(
-                TblMeldungUser.id_meldung == sighting.id
-            )
+            select(TblMeldungUser).where(TblMeldungUser.id_meldung == sighting.id)
         )
         assert link is not None
         assert link.id_finder is not None  # finder was linked
@@ -690,8 +760,8 @@ class TestMeldenPostBranches:
 # L. /melden/<usrid> POST — submission with existing user
 # ============================================================================
 
-class TestMeldenWithExistingUser:
 
+class TestMeldenWithExistingUser:
     @patch("app.routes.report._process_uploaded_image")
     def test_unknown_usrid_creates_new_user(
         self, mock_process_image, client, valid_form_data, session
@@ -701,9 +771,7 @@ class TestMeldenWithExistingUser:
         data = valid_form_data.copy()
         data["description"] = "Unknown-usrid-test"
 
-        pre_user_count = session.scalar(
-            select(func.count()).select_from(TblUsers)
-        )
+        pre_user_count = session.scalar(select(func.count()).select_from(TblUsers))
 
         response = client.post(
             "/melden/nonexistent_user_id_xyz",
@@ -714,9 +782,7 @@ class TestMeldenWithExistingUser:
         json_data = response.get_json()
         assert json_data["success"] is True
 
-        post_user_count = session.scalar(
-            select(func.count()).select_from(TblUsers)
-        )
+        post_user_count = session.scalar(select(func.count()).select_from(TblUsers))
         assert post_user_count == pre_user_count + 1
 
     @patch("app.routes.report._process_uploaded_image")
@@ -737,9 +803,7 @@ class TestMeldenWithExistingUser:
         session.add(existing_user)
         session.commit()
 
-        pre_user_count = session.scalar(
-            select(func.count()).select_from(TblUsers)
-        )
+        pre_user_count = session.scalar(select(func.count()).select_from(TblUsers))
 
         response = client.post(
             f"/melden/{existing_user.user_id}",
@@ -751,9 +815,7 @@ class TestMeldenWithExistingUser:
         json_data = response.get_json()
         assert json_data["success"] is True
 
-        post_user_count = session.scalar(
-            select(func.count()).select_from(TblUsers)
-        )
+        post_user_count = session.scalar(select(func.count()).select_from(TblUsers))
         # User count should NOT increase — existing user reused
         assert post_user_count == pre_user_count
 

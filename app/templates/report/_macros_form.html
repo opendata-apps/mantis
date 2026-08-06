@@ -30,6 +30,17 @@
          aria-live="assertive">
       {% if field.errors %}{{ field.errors[0] }}{% endif %}
     </div>
+    {# Shown only after repeated failures; the mailto is filled in by JS from the
+       server response, so the support address never appears in the page source. #}
+    <div id="photo-escalation"
+         class="hidden p-3 mt-3 text-sm border rounded-lg border-amber-300 bg-amber-50 text-amber-900">
+      <p>Das Foto lässt sich auf diesem Gerät nicht hochladen. Damit wir den Fehler
+         beheben können, schicken Sie es uns bitte per E-Mail — mit einem Klick ist
+         alles Nötige schon eingetragen, Sie hängen nur noch das Foto an.</p>
+      <a id="photo-escalation-link"
+         class="inline-block mt-2 font-semibold underline"
+         href="#">Foto per E-Mail senden</a>
+    </div>
     <!-- Photo preview area -->
     <div id="photoPreview" class="hidden mt-4">
       <div class="overflow-hidden bg-white border border-gray-200 rounded-lg shadow-xs">

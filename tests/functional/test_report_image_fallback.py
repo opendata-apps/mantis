@@ -12,7 +12,11 @@ from datetime import date
 import pytest
 from PIL import Image
 
-from app.routes.report import BlankImageError, _process_uploaded_image
+from app.routes.report import (
+    MAX_STORED_DIMENSION,
+    BlankImageError,
+    _process_uploaded_image,
+)
 from tests.helpers import build_valid_report_form_data, make_test_image
 
 
@@ -61,6 +65,38 @@ def test_exif_orientation_is_baked_in(upload_folder, orientation, expected):
     rel = _store(make_test_image(size=(200, 100), orientation=orientation))
 
     assert Image.open(upload_folder / rel).size == expected
+
+
+def test_heic_original_is_decoded_and_stored_as_webp(upload_folder):
+    """The reason HEIC used to be a hard loss: Pillow could not open it.
+
+    `create_app` registers pillow-heif, so a HEIC forwarded by the fallback now
+    takes the same re-encode path as any other original.
+    """
+    heic = make_test_image(fmt="heif", name="IMG_0001.heic", size=(400, 300))
+
+    rel = _store(heic)
+
+    stored = Image.open(upload_folder / rel)
+    assert stored.format == "WEBP"
+    assert stored.size == (400, 300)
+
+
+def test_oversized_original_is_capped(upload_folder):
+    """A forwarded original has had no client-side downscale.
+
+    Without a cap the archive would hold full-resolution frames from the
+    fallback path (~0.9MB for 12MP) next to ~0.16MB converted ones.
+    """
+    rel = _store(make_test_image(size=(4032, 3024)))
+
+    assert max(Image.open(upload_folder / rel).size) == MAX_STORED_DIMENSION
+
+
+def test_small_original_is_not_upscaled(upload_folder):
+    rel = _store(make_test_image(size=(640, 480)))
+
+    assert Image.open(upload_folder / rel).size == (640, 480)
 
 
 def test_blank_image_is_refused(upload_folder):

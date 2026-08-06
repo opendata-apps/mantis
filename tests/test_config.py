@@ -31,3 +31,8 @@ class Config:
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
     WTF_CSRF_ENABLED = False  # Disable CSRF for testing
     RATELIMIT_ENABLED = False  # Disable rate limiting for testing
+
+    # Not the real Service Desk address: a test must never be able to open a
+    # ticket in the tracker.
+    PHOTO_SUPPORT_EMAIL = "photo-errors@example.com"
+    PHOTO_ESCALATE_AFTER = 2
