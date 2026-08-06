@@ -18,10 +18,10 @@ class TblUsers(db.Model):
     # Enables uselist=False relationships (e.g. meldungen.approver) and serves
     # as FK target for meldungen.bearb_id.
     user_id = db.Column(db.String(40), nullable=False, unique=True)
-    user_name = db.Column(db.String(45), nullable=False)
+    user_name = db.Column(db.String(100), nullable=False)
     user_rolle = db.Column(db.String(1), nullable=False)
     # Note: user_kontakt is NOT indexed - only used with %text% ILIKE which cannot use B-tree
-    user_kontakt = db.Column(db.String(45), nullable=True)
+    user_kontakt = db.Column(db.String(254), nullable=True)
 
     # Relationship to the feedback source
     feedback_source = relationship(
