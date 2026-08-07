@@ -93,7 +93,9 @@ def health():
     """Health check endpoint."""
     try:
         db.session.execute(text("SELECT 1"))
-        return jsonify({"status": "healthy"})
+        return jsonify(
+            {"status": "healthy", "version": os.environ.get("GIT_SHA", "unknown")}
+        )
     except Exception:
         return jsonify({"status": "unhealthy"}), 503
 

@@ -1,5 +1,11 @@
+# Base images are pinned by digest so two builds of the same commit produce
+# the same image. `build --pull` re-resolves floating tags on every deploy —
+# ghcr.io/astral-sh/uv:latest demonstrably moved during the 2026-08-01 deploy.
+# Digests below are the ones running in production as of 2026-08-07.
+# Bump deliberately: change the digest, deploy, watch the health check.
+
 # Stage 1: Build frontend assets
-FROM docker.io/oven/bun:1 AS frontend-builder
+FROM docker.io/oven/bun:1@sha256:e10577f0db68676a7024391c6e5cb4b879ebd17188ab750cf10024a6d700e5c4 AS frontend-builder
 
 WORKDIR /build
 
@@ -17,7 +23,7 @@ RUN bun run build
 
 
 # Stage 2: Python application
-FROM docker.io/python:3.13-slim
+FROM docker.io/python:3.13-slim@sha256:6771159cd4fa5d9bba1258caf0b82e6b73458c694d178ad97c5e925c2d0e1a91
 
 ENV PYTHONUNBUFFERED=1 \
     UV_PROJECT_ENVIRONMENT=/usr/local
@@ -31,7 +37,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Install uv
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
+COPY --from=ghcr.io/astral-sh/uv@sha256:cf4eedcaa81655197f625739489effcbe71b61ceb1506f332c3facae5deceded /uv /bin/uv
 
 # Install dependencies (uv sync with system Python)
 COPY pyproject.toml uv.lock ./
@@ -48,5 +54,11 @@ RUN uv sync --frozen --no-dev && \
 
 ENV FLASK_APP=run.py
 EXPOSE 5000
+
+# Last so a new SHA invalidates nothing above it. Surfaced by /health, which
+# is otherwise the only thing that answers "which commit is actually running?"
+# without an ssh session.
+ARG GIT_SHA=unknown
+ENV GIT_SHA=${GIT_SHA}
 
 ENTRYPOINT ["./entrypoint.sh"]
