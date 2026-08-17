@@ -413,7 +413,7 @@ class TestPhotoFailure:
             if "Photo pipeline failed" in record.getMessage()
         )
         assert "\n" not in message
-        assert "model=SM-A715F Photo pipeline failed: stage=fo osv=" in message
+        assert "model=SM-A715F Photo pipeline failed: stage=fo os=" in message
 
     def test_escalation_mail_carries_the_device_and_picker(self, client):
         """The mail becomes a GitLab ticket, and whoever triages it may not have
@@ -424,6 +424,7 @@ class TestPhotoFailure:
             "name": "numeric",
             "model": "SM-A715F",
             "osVersion": "13.0.0",
+            "platform": "Android",
         }
         client.post("/melden/foto-fehler", json=payload)
         mailto = client.post("/melden/foto-fehler", json=payload).get_json()["mailto"]
@@ -431,6 +432,81 @@ class TestPhotoFailure:
         body = unquote(mailto)
         assert "Gerät: SM-A715F (Android 13.0.0)" in body
         assert "Auswahl: numeric" in body
+
+
+ANDROID_UA = (
+    "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/151.0.0.0 Mobile Safari/537.36"
+)
+IPHONE_UA = (
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 "
+    "(KHTML, like Gecko) Version/26.5.2 Mobile/15E148 Safari/604.1"
+)
+IPAD_UA = (
+    "Mozilla/5.0 (iPad; CPU OS 18_7 like Mac OS X) AppleWebKit/605.1.15 "
+    "(KHTML, like Gecko) Version/26.5.2 Mobile/15E148 Safari/604.1"
+)
+MAC_UA = (
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36"
+)
+
+
+class TestPhotoFailurePlatform:
+    """Which OS failed has to be reported, not assumed.
+
+    ``getHighEntropyValues()`` is Chromium-only, so Safari and Firefox send no
+    platform at all — and Safari on iOS is exactly where the HEIC timeouts come
+    from. The hint is preferred, the UA string is the fallback.
+    """
+
+    def _os_field(self, client, caplog, ua, payload=None):
+        client.post(
+            "/melden/foto-fehler",
+            json={"stage": "read", **(payload or {})},
+            headers={"User-Agent": ua},
+        )
+        message = next(
+            record.getMessage()
+            for record in caplog.records
+            if "Photo pipeline failed" in record.getMessage()
+        )
+        return message.split("os=")[1].split(" ")[0]
+
+    def test_client_hint_wins_over_the_ua_string(self, client, caplog):
+        """The hint carries the real version; the UA is frozen."""
+        assert (
+            self._os_field(client, caplog, ANDROID_UA, {"platform": "macOS"}) == "macOS"
+        )
+
+    def test_iphone_ua_is_ios_not_android(self, client, caplog):
+        """The bug this replaces: every reporter was labelled Android."""
+        assert self._os_field(client, caplog, IPHONE_UA) == "iOS"
+
+    def test_ipad_ua_is_ipados_not_macos(self, client, caplog):
+        """An iPad UA also contains "Macintosh", so order matters."""
+        assert self._os_field(client, caplog, IPAD_UA) == "iPadOS"
+
+    def test_android_ua_is_android_not_linux(self, client, caplog):
+        """An Android UA also contains "Linux", so order matters here too."""
+        assert self._os_field(client, caplog, ANDROID_UA) == "Android"
+
+    def test_desktop_ua_is_macos(self, client, caplog):
+        assert self._os_field(client, caplog, MAC_UA) == "macOS"
+
+    def test_unrecognised_ua_is_not_guessed(self, client, caplog):
+        assert self._os_field(client, caplog, "curl/8.4.0") == "unbekannt"
+
+    def test_iphone_escalation_mail_does_not_claim_android(self, client):
+        """The mail is the whole diagnostic for whoever triages the ticket."""
+        payload = {"stage": "heic", "osVersion": "18.7"}
+        headers = {"User-Agent": IPHONE_UA}
+        client.post("/melden/foto-fehler", json=payload, headers=headers)
+        second = client.post("/melden/foto-fehler", json=payload, headers=headers)
+
+        body = unquote(second.get_json()["mailto"])
+        assert "Gerät: unbekannt (iOS 18.7)" in body
+        assert "Android" not in body
 
     def test_escalates_after_repeated_failures(self, client, app):
         """A second failure hands back the support mailto.

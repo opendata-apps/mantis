@@ -480,6 +480,37 @@ def _beacon_field(value, limit):
     return " ".join(str(value).split())[:limit]
 
 
+# Checked in order, so the more specific token wins: an iPad UA also contains
+# "Macintosh", and Android UAs contain "Linux".
+_UA_PLATFORMS = (
+    ("Android", "Android"),
+    ("iPhone", "iOS"),
+    ("iPad", "iPadOS"),
+    ("Macintosh", "macOS"),
+    ("Windows", "Windows"),
+    ("Linux", "Linux"),
+)
+
+
+def _device_platform(data, user_agent):
+    """Name the operating system behind a failed upload.
+
+    getHighEntropyValues() is Chromium-only — Safari and Firefox expose no
+    userAgentData at all, which is precisely the iOS population the HEIC
+    timeouts come from. So the client hint is preferred and the UA string is
+    the fallback, the same order Sentry's relay and BugSnag use. Previously
+    this line was hardcoded to "Android", which mislabelled every non-Android
+    reporter in the one mail meant to diagnose their device.
+    """
+    hinted = _beacon_field(data.get("platform") or "", 20)
+    if hinted:
+        return hinted
+    for needle, name in _UA_PLATFORMS:
+        if needle in user_agent:
+            return name
+    return "unbekannt"
+
+
 def _photo_report_mailto(ref, stage, data):
     """Compose the whole mailto server-side.
 
@@ -516,7 +547,8 @@ def _photo_report_mailto(ref, stage, data):
             # The UA says "Android 10; K" whatever the phone is, so without the
             # client hint the support mail cannot name the device that failed.
             f"Gerät: {_beacon_field(data.get('model') or 'unbekannt', 40)}"
-            f" (Android {_beacon_field(data.get('osVersion') or '?', 20)})",
+            f" ({_device_platform(data, request.user_agent.string)}"
+            f" {_beacon_field(data.get('osVersion') or '?', 20)})",
         ]
     )
     query = urlencode(
@@ -547,7 +579,7 @@ def photo_failure():
     ref = secrets.token_hex(3).upper()
     current_app.logger.warning(
         "Photo pipeline failed: ref=%s n=%s stage=%s error=%s size=%s mtime=%s"
-        " type=%s ext=%s name=%s model=%s osv=%s ua=%s",
+        " type=%s ext=%s name=%s model=%s os=%s osv=%s ua=%s",
         ref,
         failures,
         stage,
@@ -558,6 +590,7 @@ def photo_failure():
         _beacon_field(data.get("ext"), 10),
         _beacon_field(data.get("name"), 10),
         _beacon_field(data.get("model"), 40),
+        _device_platform(data, request.user_agent.string),
         _beacon_field(data.get("osVersion"), 20),
         request.user_agent.string[:200],
     )

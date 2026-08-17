@@ -374,11 +374,21 @@ const ReportForm = {
     // log cannot tell a Samsung from a Pixel — and which picker hands Chrome the
     // content:// URI depends on exactly that. Client hints are the only way to
     // ask; the JS API needs no Accept-CH opt-in.
+    // platform is a low-entropy hint and comes back alongside the requested
+    // high-entropy ones at no extra cost. The API is Chromium-only — Safari and
+    // Firefox have no userAgentData at all — so this resolves to {} for exactly
+    // the iOS reporters the HEIC failures come from, and the server falls back
+    // to the UA string. Client hint first, UA second is the order Sentry's
+    // relay and BugSnag both use.
     async deviceHints() {
         try {
             const hints = await navigator.userAgentData?.getHighEntropyValues?.(
                 ['model', 'platformVersion']);
-            return { model: hints?.model || '', osVersion: hints?.platformVersion || '' };
+            return {
+                model: hints?.model || '',
+                osVersion: hints?.platformVersion || '',
+                platform: hints?.platform || '',
+            };
         } catch {
             return {};
         }
@@ -424,7 +434,8 @@ const ReportForm = {
                     ext: (file?.name || '').toLowerCase().split('.').pop().slice(0, 10),
                     name: this.nameShape(file?.name),
                     model: hints.model || '',
-                    osVersion: hints.osVersion || ''
+                    osVersion: hints.osVersion || '',
+                    platform: hints.platform || ''
                 })
             });
             return res.status === 200 ? await res.json() : null;
