@@ -6,9 +6,10 @@ set dotenv-load := false
 # same whatever the shell they run in.
 compose := "podman-compose -f infrastructure/compose.yaml -f infrastructure/compose.prod.yaml"
 
-# Outside the checkout: this is the same path compose.prod.yaml mounts, and the
-# dumps must not live in the tree that prod-deploy runs `git pull` in.
-backup_dir := "/srv/mantis/backups/postgres"
+# The same directory compose.prod.yaml bind-mounts. Written from both sides:
+# pg_dump lands here from the host, the yearly archives from inside the
+# container. Outside the checkout, which prod-deploy runs `git pull` in.
+backup_dir := "/home/mantis/data/backups/postgres"
 
 # Not `set default-list := true`, which needs just 1.52; the server runs 1.50.
 @_default:

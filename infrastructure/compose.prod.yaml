@@ -11,14 +11,21 @@ services:
 
   web:
     restart: unless-stopped
-    # Outside the git checkout, deliberately. The base file mounts these from
-    # the repo, which is fine for a throwaway dev tree but puts the only copy of
-    # every reporter's photo — and the database dumps — inside the directory
-    # `prod-deploy` runs `git pull` in. Both are gitignored, so `git clean -fdx`
-    # would take them and a fresh clone would not bring them back.
+    # Neither lives in the checkout. The base mounts both from the repo, which
+    # suits a throwaway dev tree but puts the only copy of every reporter's
+    # photo inside the directory `prod-deploy` runs `git pull` in — and both
+    # paths are gitignored, so `git clean -fdx` takes them and a fresh clone
+    # brings nothing back.
+    #
+    # The two differ in who touches them. Photos are read and written only by
+    # the app, which serves them through send_from_directory, so they belong in
+    # a volume like the database's. Backups are shared: the app writes the
+    # yearly archives, and `just prod-backup` redirects pg_dump into the same
+    # directory from the host — the case the Docker documentation names as the
+    # reason to keep a bind mount.
     volumes:
-      - /srv/mantis/datastore:/mantis/app/datastore:z
-      - /srv/mantis/backups:/mantis/backups:z
+      - mantis_datastore:/mantis/app/datastore
+      - /home/mantis/data/backups:/mantis/backups:z
     environment:
       # Deployment metadata, not image content — don't move this into the
       # Dockerfile as a build ARG. buildah keys the ENV layer on the instruction
@@ -31,3 +38,6 @@ services:
     # and scanner filter.
     ports:
       - "127.0.0.1:${WEB_PORT:-5000}:5000"
+
+volumes:
+  mantis_datastore:
