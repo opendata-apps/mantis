@@ -69,41 +69,50 @@ Vite-Build
    bun run build
    bun run watch
 
+Container-Workflow
+------------------
+
+Der Entwicklungsstack braucht keine Flags: ``compose.override.yaml`` wird
+von Compose selbst geladen, sobald man in ``infrastructure/`` steht.
+
+.. code-block:: bash
+
+   cd infrastructure
+   podman-compose up --build
+   podman-compose down
+   podman-compose logs -f web
+   podman-compose exec web bash
+   podman-compose exec db psql -U mantis_user -d mantis_tracker
+   podman-compose exec web flask db upgrade
+   podman-compose exec web flask seed
+   podman-compose exec web flask seed-ags
+
+Produktion verlangt die zweite Datei ausdrücklich — ohne sie landet man im
+Entwicklungsstack:
+
+.. code-block:: bash
+
+   podman-compose -f compose.yaml -f compose.prod.yaml up -d
+
+   # oder einmal pro Sitzung setzen statt an jeden Befehl hängen:
+   export COMPOSE_FILE=compose.yaml:compose.prod.yaml
+
 Container-Workflow (just)
 -------------------------
 
-``justfile`` kapselt den Compose-Aufruf:
+``just`` deckt nur ab, was eigene Logik trägt und reproduzierbar sein muss.
+Alles andere ist ein gewöhnlicher Compose-Befehl.
 
 .. list-table::
    :header-rows: 1
 
    * - Befehl
      - Zweck
-   * - ``just up --build``
-     - Entwicklungsstack starten
-   * - ``just down``
-     - Entwicklungsstack stoppen
-   * - ``just logs``
-     - Container-Logs anzeigen
-   * - ``just shell``
-     - Shell im Web-Container öffnen
-   * - ``just db``
-     - ``psql`` im DB-Container öffnen
-   * - ``just migrate``
-     - Migrationen im Web-Container ausführen
-   * - ``just seed``
-     - Seed-Befehl im Web-Container ausführen
-   * - ``just seed-ags``
-     - AGS-Daten von WFS-Diensten aktualisieren
-   * - ``just prod --build``
-     - Produktionsstack starten
+   * - ``just prod-backup``
+     - Dump + Rollen sichern, verifizieren, nach 14 Tagen rotieren
+   * - ``just prod-deploy``
+     - Sichern, pullen, bauen, Web tauschen, laufenden Commit prüfen
+   * - ``just prod-rollback``
+     - Web auf das ``:previous``-Image zurücksetzen
    * - ``just prod-down``
-     - Produktionsstack stoppen
-
-Direkter Compose-Aufruf
------------------------
-
-.. code-block:: bash
-
-   podman-compose -f infrastructure/podman-compose.prod.yml -f infrastructure/podman-compose.dev.yml up --build
-   podman-compose -f infrastructure/podman-compose.prod.yml -f infrastructure/podman-compose.dev.yml down
+     - Produktionsstack stoppen (mit Rückfrage)

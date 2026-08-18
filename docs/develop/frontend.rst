@@ -56,7 +56,7 @@ Watcher beim Shutdown. Dadurch reicht lokal ein einzelner Startbefehl:
 Containerbetrieb
 ----------------
 
-In ``infrastructure/podman-compose.dev.yml`` läuft ein eigener ``vite``-Service
+In ``infrastructure/compose.override.yaml`` läuft ein eigener ``vite``-Service
 mit ``bunx vite build --watch``.
 
 Wichtige Hinweise

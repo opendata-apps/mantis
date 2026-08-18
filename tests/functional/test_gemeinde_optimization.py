@@ -6,6 +6,7 @@ from types import SimpleNamespace
 
 import pytest
 from sqlalchemy import delete
+from sqlalchemy.exc import OperationalError
 from app.tools.gemeinde_finder import get_amt_enriched, reload_gemeinde_cache
 from app.database.aemter_koordinaten import TblAemterCoordinaten
 
@@ -226,5 +227,32 @@ class TestGemeindeOptimization:
             assert finder.stats["loaded"]
             # cache answers without further loading
             assert _amt_string((13.40, 52.52)) == "99999901 -- Test Berlin Mitte"
+        finally:
+            gf._gemeinde_finder = gf.GemeindeFinder()
+
+    def test_failed_load_stays_retryable(self, app, session, monkeypatch):
+        """A load failure must not leave the worker permanently blind.
+
+        The failure branch used to set _is_loaded, so one DB hiccup at boot made
+        that worker answer None for every lookup until it was restarted. Reports
+        saved in the meantime carry an empty `amt` — the field report.py has no
+        fallback for and the statistics page filters on.
+        """
+        from app.tools import gemeinde_finder as gf
+
+        finder = gf.GemeindeFinder()
+        gf._gemeinde_finder = finder
+        try:
+
+            def boom(*args, **kwargs):
+                raise OperationalError("SELECT 1", {}, Exception("connection lost"))
+
+            monkeypatch.setattr(gf.db.session, "execute", boom)
+            assert gf.get_amt_enriched((13.40, 52.52)) is None
+            assert not finder.stats["loaded"]
+
+            monkeypatch.undo()
+            assert _amt_string((13.40, 52.52)) == "99999901 -- Test Berlin Mitte"
+            assert finder.stats["loaded"]
         finally:
             gf._gemeinde_finder = gf.GemeindeFinder()
