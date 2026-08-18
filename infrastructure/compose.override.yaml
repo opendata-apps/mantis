@@ -1,13 +1,16 @@
-# Dev override: mounts source for hot-reload, adds Vite watcher
-# Usage: podman-compose -f podman-compose.prod.yml -f podman-compose.dev.yml up
+# Development overlay. Loaded automatically by a bare `podman-compose up` run
+# from this directory, which is why development is the default and production
+# needs compose.prod.yaml spelled out.
 
 services:
   web:
-    # Mount source code for hot-reload (Flask debug mode)
-    volumes:
-      - ..:/mantis:z
     environment:
       - FLASK_DEBUG=1
+    # Source mounted over the image so Flask reloads without a rebuild.
+    volumes:
+      - ..:/mantis:z
+    ports:
+      - "127.0.0.1:5000:5000"
 
   vite:
     image: docker.io/oven/bun:1
@@ -19,6 +22,7 @@ services:
       - mantis_backend
     depends_on:
       - web
+
   db:
     ports:
       - "127.0.0.1:5431:5432"

@@ -4,14 +4,20 @@
 
 * Übersicht
 
-|-------------------------+---------------------------------|
-| Datei                   | Zweck                           |
-|-------------------------+---------------------------------|
-| podman-compose.prod.yml | Prod-Services: Flask + DB       |
-| podman-compose.dev.yml  | Dev-Erweiterung: Tailwind,      |
-|                         | Volumes, Hot-Reload             |
-| Dockerfile              | Python-Image + App-Dependencies |
-|-------------------------+---------------------------------|
+|-----------------------+-----------------------------------|
+| Datei                 | Zweck                             |
+|-----------------------+-----------------------------------|
+| compose.yaml          | Gemeinsame Basis: Flask + DB      |
+| compose.override.yaml | Dev, wird automatisch geladen:    |
+|                       | Hot-Reload, Vite, DB-Port         |
+| compose.prod.yaml     | Prod, muss explizit angegeben     |
+|                       | werden: restart, Loopback-Port    |
+| Dockerfile            | Python-Image + App-Dependencies   |
+|-----------------------+-----------------------------------|
+
+Ein nacktes =podman-compose up= in diesem Verzeichnis startet die
+Entwicklungsumgebung. Produktion erfordert die explizite Angabe von
+=compose.prod.yaml=.
 
 * Arbeiten mit Podman/Podman-Compose
 ** Stoppen
@@ -20,11 +26,11 @@
 
   cd infrastructure
   # podman-compose down
-  podman-compose -f podman-compose.prod.yml -f podman-compose.dev.yml down
+  podman-compose down
 
   # if production
 
-  podman-compose -f podman-compose.prod.yml down
+  podman-compose -f compose.yaml -f compose.prod.yaml down
   
 #+end_src
 
@@ -59,7 +65,7 @@ Falls alles frisch aufzusetzen ist:
 
   # Danach Dev-Container neu starten:
 
-  podman-compose -f podman-compose.prod.yml -f podman-compose.dev.yml up
+  podman-compose up
   
 #+end_src
 
@@ -86,7 +92,7 @@ Alles neu bauen ...
   
     # 3. Container starten
     cd infrastructure
-    podman-compose -f podman-compose.prod.yml -f podman-compose.dev.yml up
+    podman-compose up
 
 #+end_src
 
@@ -101,8 +107,8 @@ Alles neu bauen ...
   podman build -t mantis_web ..
 
   # 3. Container starten
-  podman-compose -f podman-compose.prod.yml up -d
-  podman-compose -f podman-compose.prod.yml up -d --build
+  podman-compose -f compose.yaml -f compose.prod.yaml up -d
+  podman-compose -f compose.yaml -f compose.prod.yaml up -d --build
 
 #+end_src
 

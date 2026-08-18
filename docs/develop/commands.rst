@@ -105,5 +105,5 @@ Direkter Compose-Aufruf
 
 .. code-block:: bash
 
-   podman-compose -f infrastructure/podman-compose.prod.yml -f infrastructure/podman-compose.dev.yml up --build
-   podman-compose -f infrastructure/podman-compose.prod.yml -f infrastructure/podman-compose.dev.yml down
+   podman-compose -f infrastructure/compose.yaml -f infrastructure/compose.override.yaml up --build
+   podman-compose -f infrastructure/compose.yaml -f infrastructure/compose.override.yaml down

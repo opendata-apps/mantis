@@ -1,17 +1,13 @@
 set dotenv-load := false
 
-# Both stacks are the same compose file plus an override, so without distinct
-# project names they resolve to one project (podman-compose derives it from the
-# `infrastructure` directory) and a dev recipe run on the server would drive the
-# *live* containers — where the dev override sets FLASK_DEBUG=1, which makes
-# entrypoint.sh seed demo reports into the production database. Project names are
-# the isolation mechanism the spec defines for running the same files twice on
-# one host: https://github.com/compose-spec/compose-spec/blob/main/04-version-and-name.md
-#
-# Prod keeps its implicit `infrastructure` name on purpose. Renaming it resolves
-# to a new, empty `mantis_data` volume — an empty database.
-compose := "podman-compose -f infrastructure/podman-compose.prod.yml"
-compose_dev := "podman-compose -p mantis_dev -f infrastructure/podman-compose.prod.yml -f infrastructure/podman-compose.dev.yml"
+# Neither line carries -p: the project name travels with the files, so anyone
+# invoking podman-compose by hand gets the same isolation these recipes do.
+# Both stacks share one base, and running them under one project name would let
+# a dev recipe drive the *live* containers — with FLASK_DEBUG=1, which makes
+# entrypoint.sh seed demo reports into the production database.
+# https://github.com/compose-spec/compose-spec/blob/main/04-version-and-name.md
+compose := "podman-compose -f infrastructure/compose.yaml -f infrastructure/compose.prod.yaml"
+compose_dev := "podman-compose -f infrastructure/compose.yaml -f infrastructure/compose.override.yaml"
 
 # Not `set default-list := true`, which needs just 1.52; the server runs 1.50.
 @_default:
