@@ -11,6 +11,14 @@ services:
 
   web:
     restart: unless-stopped
+    # Outside the git checkout, deliberately. The base file mounts these from
+    # the repo, which is fine for a throwaway dev tree but puts the only copy of
+    # every reporter's photo — and the database dumps — inside the directory
+    # `prod-deploy` runs `git pull` in. Both are gitignored, so `git clean -fdx`
+    # would take them and a fresh clone would not bring them back.
+    volumes:
+      - /srv/mantis/datastore:/mantis/app/datastore:z
+      - /srv/mantis/backups:/mantis/backups:z
     environment:
       # Deployment metadata, not image content — don't move this into the
       # Dockerfile as a build ARG. buildah keys the ENV layer on the instruction

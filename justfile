@@ -9,6 +9,10 @@ set dotenv-load := false
 compose := "podman-compose -f infrastructure/compose.yaml -f infrastructure/compose.prod.yaml"
 compose_dev := "podman-compose -f infrastructure/compose.yaml -f infrastructure/compose.override.yaml"
 
+# Outside the checkout: this is the same path compose.prod.yaml mounts, and the
+# dumps must not live in the tree that prod-deploy runs `git pull` in.
+backup_dir := "/srv/mantis/backups/postgres"
+
 # Not `set default-list := true`, which needs just 1.52; the server runs 1.50.
 @_default:
     just --list
@@ -119,18 +123,19 @@ prod-backup:
     #!/usr/bin/env bash
     set -euo pipefail
     d=$(date +%F_%H-%M)
-    mkdir -p backups/postgres
-    part="backups/postgres/.db_$d.dump.partial"
+    dir="{{ backup_dir }}"
+    mkdir -p "$dir"
+    part="$dir/.db_$d.dump.partial"
     {{ compose }} exec -T db pg_dump -U mantis_user -Fc mantis_tracker > "$part"
     {{ compose }} exec -T db pg_dumpall -U mantis_user --globals-only --no-role-passwords \
-        > "backups/postgres/globals_$d.sql"
+        > "$dir/globals_$d.sql"
     {{ compose }} exec -T db sh -c \
         'cat > /tmp/verify.dump && pg_restore --list /tmp/verify.dump > /dev/null && rm -f /tmp/verify.dump' \
         < "$part"
-    mv "$part" "backups/postgres/db_$d.dump"
-    echo "✔ backups/postgres/db_$d.dump ($(du -h "backups/postgres/db_$d.dump" | cut -f1))"
-    find backups/postgres -name 'db_*.dump' -mtime +14 -delete
-    find backups/postgres -name 'globals_*.sql' -mtime +14 -delete
+    mv "$part" "$dir/db_$d.dump"
+    echo "✔ $dir/db_$d.dump ($(du -h "$dir/db_$d.dump" | cut -f1))"
+    find "$dir" -name 'db_*.dump' -mtime +14 -delete
+    find "$dir" -name 'globals_*.sql' -mtime +14 -delete
 
 # Migrations are run by entrypoint.sh on container start (`flask db upgrade`),
 # so a schema-changing commit will be applied automatically when the new
@@ -167,7 +172,7 @@ prod-deploy: prod-backup
 
 # Does not run migrations — schema changes that landed with the bad
 # deploy stay applied; the previous image must still be compatible.
-# If it is not, restore the newest backups/postgres/db_*.dump instead.
+# If it is not, restore the newest {{ backup_dir }}/db_*.dump instead.
 # /health will read "unknown" afterwards: the :previous tag records no commit,
 # and inventing one would be worse than admitting we don't know.
 # Roll back web to the :previous image tag. Use after a failed deploy.
