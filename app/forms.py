@@ -16,9 +16,32 @@ from wtforms.validators import (
     ValidationError,
     InputRequired,
 )
+from email_validator import EmailNotValidError, validate_email
 from datetime import date, timedelta
 import re
+
+
 from app.validators import CoordinateValidator, SwappedCoordinateValidator
+
+
+def _store_deliverable_form(form, field):
+    """Keep the punycode form of an umlaut domain.
+
+    An internationalised domain is a real, deliverable address — receiving
+    servers resolve the punycode — but the raw text does not survive smtplib's
+    ASCII envelope. Normalising here means the address we store is the one we
+    can actually send to. Rejection is Email()'s job; this only rewrites, and
+    stays quiet when the address never parsed in the first place.
+    """
+    if not field.data:
+        return
+    try:
+        field.data = validate_email(
+            field.data, check_deliverability=False, allow_smtputf8=False
+        ).ascii_email
+    except EmailNotValidError:
+        pass
+
 
 # Define constants for choices
 GENDER_CHOICES = [
@@ -122,8 +145,15 @@ class MantisSightingForm(StrippedForm):
             Email(
                 message="Bitte geben Sie eine gültige E-Mail-Adresse ein.",
                 check_deliverability=False,
+                # smtplib encodes the envelope as ASCII, so an umlaut in the
+                # local part raises at send time — after the report is saved
+                # and the reviewer has seen it accepted, with the mail dropped.
+                # SMTPUTF8 would need support along the whole path; refusing at
+                # the form is the honest half of that.
+                allow_smtputf8=False,
             ),
             Length(max=120),
+            _store_deliverable_form,
         ],
         render_kw={"placeholder": "ihre.email@beispiel.de", "autocomplete": "email"},
     )
