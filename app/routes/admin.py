@@ -600,7 +600,9 @@ def toggle_approve_sighting(id):
                         f"Email not sent for sighting {id}. Error: {e}"
                     )
             else:
-                current_app.logger.error(
+                # Contact is optional on the report form, so a blank one is
+                # routine, not an error — at ERROR it drowns out real SMTP faults.
+                current_app.logger.warning(
                     f"Email not sent for sighting {id}. No email address found."
                 )
         else:
