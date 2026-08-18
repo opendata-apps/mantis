@@ -118,15 +118,13 @@ compose_dev := "podman-compose -f infrastructure/compose.yaml -f infrastructure/
 prod-backup:
     #!/usr/bin/env bash
     set -euo pipefail
-    cid=$(podman inspect infrastructure_db_1 -f '{{{{.Id}}' 2>/dev/null \
-       || podman inspect infrastructure-db-1 -f '{{{{.Id}}' 2>/dev/null)
     d=$(date +%F_%H-%M)
     mkdir -p backups/postgres
     part="backups/postgres/.db_$d.dump.partial"
-    podman exec "$cid" pg_dump -U mantis_user -Fc mantis_tracker > "$part"
-    podman exec "$cid" pg_dumpall -U mantis_user --globals-only --no-role-passwords \
+    {{ compose }} exec -T db pg_dump -U mantis_user -Fc mantis_tracker > "$part"
+    {{ compose }} exec -T db pg_dumpall -U mantis_user --globals-only --no-role-passwords \
         > "backups/postgres/globals_$d.sql"
-    podman exec -i "$cid" sh -c \
+    {{ compose }} exec -T db sh -c \
         'cat > /tmp/verify.dump && pg_restore --list /tmp/verify.dump > /dev/null && rm -f /tmp/verify.dump' \
         < "$part"
     mv "$part" "backups/postgres/db_$d.dump"
@@ -141,38 +139,40 @@ prod-backup:
 # don't pre-flight migrations because entrypoint.sh has no `exec "$@"` —
 # `compose run --rm web flask db upgrade` would be ignored and run the full
 # entrypoint (incl. gunicorn), deadlocking the deploy.
-# Container lookup tries `infrastructure_web_1` then `infrastructure-web-1`
-# so the recipe survives podman-compose's eventual underscore->hyphen
-# separator change (PR #1241). podman-compose's `ps -q SERVICE` doesn't
-# accept service args in this version — direct `podman inspect` is the
-# robust path.
-# Tags :previous before build so `just prod-rollback` is a one-liner.
-# SHA-equality check is belt-and-braces against compose claiming a swap
-# it didn't make (the failure mode that bit us with infrastructure_vite_1).
-# Prune runs after verification so a failed check still has both images.
+# Tags :previous before the build so `just prod-rollback` is a one-liner.
 # `--no-deps` keeps the DB container and its volume out of the swap.
-# GIT_SHA is inline rather than a just variable: just evaluates its variables
-# at startup, which is before the `git pull` above, so a variable would stamp
-# the commit we were on before the deploy.
-# Pull latest, back up, rebuild & swap web, verify health.
+# The health response carries the commit the container was started with, so one
+# request proves the app is up *and* that it is the code we just built — which
+# is what the old image-id comparison was reaching for the long way round.
+# Prune runs last so a failed verification still has both images to fall back on.
+# Pull latest, back up, rebuild & swap web, verify the running commit.
 [group('prod')]
-@prod-deploy: prod-backup
+prod-deploy: prod-backup
+    #!/usr/bin/env bash
+    set -euo pipefail
     git pull --ff-only
-    -podman tag localhost/infrastructure_web:latest localhost/infrastructure_web:previous
+    sha=$(git rev-parse --short HEAD)
+    podman tag localhost/infrastructure_web:latest localhost/infrastructure_web:previous || true
     {{ compose }} build --pull web
-    bash -c 'cid=$(podman inspect infrastructure_web_1 -f "{{{{.Id}}" 2>/dev/null || podman inspect infrastructure-web-1 -f "{{{{.Id}}" 2>/dev/null || true); if [ -n "$cid" ]; then podman stop -t 10 "$cid"; podman rm -f "$cid"; fi'
-    GIT_SHA=$(git rev-parse --short HEAD) {{ compose }} up -d --no-deps web
-    bash -c 'cid=$(podman inspect infrastructure_web_1 -f "{{{{.Id}}" 2>/dev/null || podman inspect infrastructure-web-1 -f "{{{{.Id}}" 2>/dev/null); run=$(podman inspect "$cid" --format "{{{{.Image}}"); tag=$(podman image inspect localhost/infrastructure_web:latest --format "{{{{.Id}}"); [ "$run" = "$tag" ] || { echo "✗ image SHA mismatch: running=$run latest=$tag"; exit 1; }; echo "✓ image SHA matches: $run"'
-    bash -c 'curl -fsS --retry 30 --retry-delay 2 --retry-all-errors http://localhost:5000/health && echo "✔ deploy ok" || { echo "✗ health check failed — roll back with: just prod-rollback"; podman logs --tail 40 infrastructure_web_1 2>/dev/null || true; exit 1; }'
-    podman image prune -f --filter "dangling=true" | tail -1
+    GIT_SHA=$sha {{ compose }} up -d --force-recreate --no-deps web
+    running=$(curl -fsS --retry 30 --retry-delay 2 --retry-all-errors http://localhost:5000/health \
+        | python3 -c 'import json, sys; print(json.load(sys.stdin)["version"])')
+    if [ "$running" != "$sha" ]; then
+        echo "✗ running $running, expected $sha — roll back with: just prod-rollback"
+        {{ compose }} logs --tail 40 web
+        exit 1
+    fi
+    echo "✔ deploy ok — $sha"
+    podman image prune -f --filter "dangling=true"
 
 # Does not run migrations — schema changes that landed with the bad
 # deploy stay applied; the previous image must still be compatible.
 # If it is not, restore the newest backups/postgres/db_*.dump instead.
+# /health will read "unknown" afterwards: the :previous tag records no commit,
+# and inventing one would be worse than admitting we don't know.
 # Roll back web to the :previous image tag. Use after a failed deploy.
 [group('prod')]
 @prod-rollback:
     podman tag localhost/infrastructure_web:previous localhost/infrastructure_web:latest
-    bash -c 'cid=$(podman inspect infrastructure_web_1 -f "{{{{.Id}}" 2>/dev/null || podman inspect infrastructure-web-1 -f "{{{{.Id}}" 2>/dev/null || true); if [ -n "$cid" ]; then podman stop -t 10 "$cid"; podman rm -f "$cid"; fi'
-    {{ compose }} up -d --no-deps web
+    {{ compose }} up -d --force-recreate --no-deps web
     curl -fsS --retry 30 --retry-delay 2 --retry-all-errors http://localhost:5000/health && echo "✔ rollback ok"
