@@ -83,9 +83,16 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # Connection Pooling Configuration
+    #
+    # SQLAlchemy's own defaults. Every gunicorn worker builds its own engine, so
+    # the ceiling the server sees is (pool_size + max_overflow) × workers, and it
+    # has to stay under the server's max_connections — otherwise a connection
+    # leak does not degrade this app, it locks everyone out of the database,
+    # including psql and the backup. Raise workers and this sum with the same
+    # hand.
     SQLALCHEMY_ENGINE_OPTIONS = {
-        "pool_size": int(os.getenv("DB_POOL_SIZE", 10)),
-        "max_overflow": int(os.getenv("DB_MAX_OVERFLOW", 20)),
+        "pool_size": int(os.getenv("DB_POOL_SIZE", 5)),
+        "max_overflow": int(os.getenv("DB_MAX_OVERFLOW", 10)),
         "pool_recycle": int(os.getenv("DB_POOL_RECYCLE", 3600)),
         "pool_pre_ping": True,
     }
