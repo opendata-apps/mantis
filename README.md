@@ -27,22 +27,28 @@ cp .env.example .env
 # Set a secure SECRET_KEY, e.g.:
 # python -c "import secrets; print(secrets.token_hex(32))"
 
-just up --build
+cd infrastructure
+podman-compose up --build
 ```
 
 App URL: `http://localhost:5000`
 
-Useful commands:
+Useful commands, all from `infrastructure/`:
 
 ```bash
-just down
-just logs
-just shell
-just db
-just migrate
-just seed
-just prod --build
-just prod-down
+podman-compose down
+podman-compose logs -f web
+podman-compose exec web bash
+podman-compose exec db psql -U mantis_user -d mantis_tracker
+podman-compose exec web flask db upgrade
+podman-compose exec web flask seed
+```
+
+`compose.override.yaml` is loaded automatically, so the development stack
+needs no flags. Production has to be asked for by name:
+
+```bash
+podman-compose -f compose.yaml -f compose.prod.yaml up -d
 ```
 
 ## Local Development (No Container)

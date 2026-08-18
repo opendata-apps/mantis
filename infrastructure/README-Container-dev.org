@@ -19,6 +19,51 @@ Ein nacktes =podman-compose up= in diesem Verzeichnis startet die
 Entwicklungsumgebung. Produktion erfordert die explizite Angabe von
 =compose.prod.yaml=.
 
+Wer länger auf der Produktion arbeitet, setzt die Dateiliste einmal pro
+Sitzung, statt sie an jeden Befehl zu hängen:
+
+#+begin_src bash
+
+  export COMPOSE_FILE=compose.yaml:compose.prod.yaml
+  podman-compose exec db psql -U mantis_user -d mantis_tracker
+
+#+end_src
+
+Ohne die Variable landet man in der Entwicklungsumgebung — das ist so
+gewollt, Produktion muss man verlangen.
+
+=just= deckt nur noch das ab, was eigene Logik hat: =prod-backup=,
+=prod-deploy=, =prod-rollback= und =prod-down=. Alles andere ist ein
+gewöhnlicher compose-Befehl.
+
+** Logs: zwei Fallen
+
+=podman-compose= schreibt Containerausgaben auf beide Ströme — den
+gunicorn-Zugriffslog nach stdout, den Flask-Logger und Postgres nach
+stderr. Ohne =2>&1= findet ein nachgeschaltetes =grep= nichts, obwohl die
+Zeilen auf dem Bildschirm stehen (Issue #178):
+
+#+begin_src bash
+
+  podman-compose logs --tail 100 web 2>&1 | grep -i error
+
+#+end_src
+
+=-f= bedeutet vor dem Unterbefehl die Compose-Datei und danach
+=--follow=. Also =podman-compose logs -f web=, nicht =podman-compose -f
+logs web=.
+
+Der Log eines Containers beginnt mit dem Container, und =prod-deploy=
+erzeugt ihn neu — er reicht also nie über den letzten Deploy hinaus. Die
+durchgehende Historie liegt in journald, lesbar nur von einem Konto mit
+Journalzugriff:
+
+#+begin_src bash
+
+  sudo journalctl _UID=$(id -u mantis) --since '3 days ago'
+
+#+end_src
+
 * Arbeiten mit Podman/Podman-Compose
 ** Stoppen
 *** Anhalten: Stoppen 
@@ -56,17 +101,16 @@ Falls alles frisch aufzusetzen ist:
 #+begin_src bash
   podman image ls -a | grep '<none>' | awk '{print $3}' | xargs podman rmi -f
 #+end_src
-** Löschen: Tailwind-Image
+** Löschen: Frontend-Build verwerfen
+
+Der Vite-Service baut nach =app/static/build/=, einem Bind-Mount ins
+Repo — es gibt kein Volume zu löschen.
 
 #+begin_src bash
 
-  podman volume ls                  # Liste aller Volumes
-  podman volume rm tailwind_build
-
-  # Danach Dev-Container neu starten:
-
+  rm -rf ../app/static/build
   podman-compose up
-  
+
 #+end_src
 
 ** Neu bauen: Podman-Compose
@@ -87,8 +131,8 @@ Alles neu bauen ...
     # 1. Dependencies installieren (einmalig / CI)
     bun install
 
-  # 2. Tailwind CSS im Watch-Mode starten
-    bun run watch:css
+  # 2. Frontend im Watch-Mode (nur nötig, wenn ohne vite-Container gearbeitet wird)
+    bun run watch
   
     # 3. Container starten
     cd infrastructure
@@ -101,7 +145,7 @@ Alles neu bauen ...
 #+begin_src bash
 
   # 1. Fertige CSS bauen
-  bun run build:css
+  bun run build
 
   # 2. Docker Image bauen
   podman build -t mantis_web ..
@@ -112,11 +156,11 @@ Alles neu bauen ...
 
 #+end_src
 
-** Logs: überwachen -- tailwind
+** Logs: überwachen -- vite
 #+begin_src bash
 
-podman-compose logs -f tailwind
-  
+podman-compose logs -f vite
+
 #+end_src
 
 ** Logs: überwachen -- web
@@ -148,24 +192,17 @@ podman exec -it infrastructure_db_1 psql -U mantis_user -d mantis_tracker
   
 #+end_src
 
-** Check: Tailwind -- Dateien finden
+** Check: Frontend -- Dateien finden
 #+begin_src bash
 
-  bun run build:css
-  
+  bun run build
+
 #+end_src
 *** leeres theme.css
 
-Leere theme.css → Content-Pfade in tailwind.config.js prüfen:
-
-#+begin_src bash
-
-content: [
-  '../templates/**/*.html',
-  './node_modules/flowbite/**/*.js'
-]
-
-#+end_src
+Tailwind 4 hat keine =tailwind.config.js= mehr; Quellpfade und Theme
+stehen in =app/static/css/theme.css=. Eine leere theme.css heißt, dass
+=@source= dort nicht auf die Templates zeigt.
 
 ** Check: Web -- separat
 
