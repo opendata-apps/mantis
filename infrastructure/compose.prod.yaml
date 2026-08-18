@@ -3,6 +3,10 @@
 #
 # This name is what the live containers and the mantis_data volume hang off.
 # Changing it resolves to a fresh, empty volume — an empty database.
+#
+# It does not take effect on its own under podman-compose 1.5, which addresses
+# containers under the *first* file's name however many later files override it.
+# The just recipes therefore pass -p as well; keep both in step.
 name: infrastructure
 
 services:
