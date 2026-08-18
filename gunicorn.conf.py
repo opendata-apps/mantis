@@ -1,5 +1,18 @@
 """Gunicorn configuration, loaded via --config in entrypoint.sh."""
 
+bind = "0.0.0.0:5000"
+workers = 4
+# threads > 1 makes gunicorn swap the sync worker for gthread on its own
+# (Config.worker_class), so worker_class stays unset on purpose.
+threads = 2
+# tmpfs, not the default temp dir: the heartbeat calls os.fchmod on a file here
+# and gunicorn documents that as able to block a worker for arbitrary time when
+# the directory is disk-backed.
+worker_tmp_dir = "/dev/shm"
+# "-" is stdout/stderr, which is what puts request logs into journalctl.
+accesslog = "-"
+errorlog = "-"
+
 
 def post_worker_init(worker):
     """Warm per-worker caches after app load, before the worker serves traffic.
