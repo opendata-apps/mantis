@@ -195,6 +195,9 @@ def melden(usrid=None):
             if form.honeypot.data:
                 abort(403)
 
+            # Bound before the try so the failure path can name the photo even
+            # when the save dies before the upload is processed.
+            db_image_path = None
             try:
                 reporter = (
                     db.session.scalar(select(TblUsers).where(TblUsers.user_id == usrid))
@@ -229,7 +232,6 @@ def melden(usrid=None):
                     user_feedback.source_detail = form.feedback_detail.data
                     db.session.add(user_feedback)
 
-                db_image_path = None
                 if form.photo.data:
                     db_image_path = _process_uploaded_image(
                         form.photo.data,
@@ -324,9 +326,17 @@ def melden(usrid=None):
                     }
                 )
 
-            except Exception as e:
+            except Exception:
                 db.session.rollback()
-                current_app.logger.error(f"Failed to save report: {str(e)}")
+                # The reporter's submission is gone at this point — the rollback
+                # discards it and the form is not returned to them. The photo is
+                # already on disk, so name it: it is the only artefact left to
+                # match a lost report against. Without the traceback, the
+                # varchar(45) truncation that ate reports for months looked like
+                # a bare "value too long" line with no origin.
+                current_app.logger.exception(
+                    "Failed to save report; photo retained at %s", db_image_path
+                )
                 return (
                     jsonify(
                         {
