@@ -16,6 +16,7 @@ from flask import (
     session,
     current_app,
 )
+from email_validator import validate_email
 from werkzeug.datastructures import MultiDict
 from PIL import Image, ImageOps
 
@@ -144,7 +145,13 @@ def _create_user(first_name, last_name, email, role=1):
     user.user_id = user_id
     user.user_name = name
     user.user_rolle = role
-    user.user_kontakt = email
+    # The normalized form is what belongs in the database — it lowercases the
+    # domain and applies NFC, so the same mailbox typed two ways is one row and
+    # matches on later lookups. The form validated the address already; both
+    # callers pass a field that went through MantisSightingForm.
+    user.user_kontakt = (
+        validate_email(email, check_deliverability=False).normalized if email else email
+    )
     return user
 
 

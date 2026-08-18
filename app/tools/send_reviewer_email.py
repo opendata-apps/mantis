@@ -1,5 +1,6 @@
 import logging
 
+from email_validator import validate_email
 from flask import current_app
 from flask_mail import Message
 
@@ -76,9 +77,18 @@ def send_email(data):
     string_from_date = md["dat_fund_von"].strftime("%d.%m.%Y")
     md["datum"] = string_from_date
 
+    # Flask-Mail submits through smtplib.sendmail, which puts the envelope on
+    # the wire as ASCII and has no SMTPUTF8 path. An internationalised domain
+    # therefore has to be converted to punycode here, immediately before
+    # submission — the database keeps the address in the form the reporter
+    # knows.
+    recipient = validate_email(
+        data["user_kontakt"], check_deliverability=False
+    ).ascii_email
+
     msg = Message(
         subject="[Gottesanbeterin-Gesucht] Meldung überprüft",
-        recipients=[data["user_kontakt"]],
+        recipients=[recipient],
         body=(rendertextmsg(md)),
     )
 
