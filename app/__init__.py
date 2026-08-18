@@ -40,28 +40,14 @@ def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
 
-    # Logging first — so all init_app calls can log properly
+    # Logging first — so all init_app calls can log properly.
+    #
+    # No file handler: RotatingFileHandler is documented as single-process, and
+    # every gunicorn worker builds its own, so a rollover renames the file out
+    # from under the others and lines are lost. Flask's own handler writes to
+    # stderr, which the container hands to journald — the log we actually read.
     if not app.debug:
-        import logging
-        from logging.handlers import RotatingFileHandler
-
-        if not os.path.exists("logs"):
-            os.mkdir("logs")
-
-        file_handler = RotatingFileHandler(
-            "logs/mantis.log", maxBytes=10240000, backupCount=10
-        )
-        file_handler.setFormatter(
-            logging.Formatter(
-                "%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]"
-            )
-        )
-
-        log_level = os.environ.get("FLASK_LOG_LEVEL", "INFO").upper()
-        file_handler.setLevel(log_level)
-
-        app.logger.addHandler(file_handler)
-        app.logger.setLevel(log_level)
+        app.logger.setLevel(os.environ.get("FLASK_LOG_LEVEL", "INFO").upper())
         app.logger.info("Mantis tracker startup")
 
     # HEIC/HEIF decoding for iPhone uploads. Registers a plugin into Pillow's
