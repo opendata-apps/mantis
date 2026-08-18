@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 from datetime import timedelta
+from email.utils import parseaddr
 
 # Load .env file from project root
 load_dotenv()
@@ -46,6 +47,24 @@ def _resolve_backup_dir():
 def _env_or_default(name: str, default: str) -> str:
     value = os.getenv(name)
     return default if value is None or value == "" else value
+
+
+def _resolve_mail_sender(name: str, address: str) -> tuple[str, str]:
+    """Resolve the From address, rejecting anything smtplib cannot parse.
+
+    An unparseable address does not raise anywhere in Flask-Mail: the From
+    header degrades to a bare display name and smtplib falls back to the null
+    sender `MAIL FROM:<>`, so every mail leaves as an unattributable bounce and
+    is filtered by the recipient. Failing at startup is the only loud moment.
+    """
+    parsed = parseaddr(address)[1]
+    if "@" not in parsed:
+        raise ValueError(
+            f"MAIL_DEFAULT_SENDER must be a plain email address, got: '{address}'. "
+            f"Use MAIL_DEFAULT_SENDER=post@example.com and set the display name "
+            f"in MAIL_DEFAULT_SENDER_NAME."
+        )
+    return (name, parsed)
 
 
 class Config:
@@ -104,7 +123,7 @@ class Config:
     )
     MAIL_USERNAME = os.getenv("MAIL_USERNAME", "")
     MAIL_PASSWORD = os.getenv("MAIL_PASSWORD", "")
-    MAIL_DEFAULT_SENDER = (
+    MAIL_DEFAULT_SENDER = _resolve_mail_sender(
         _env_or_default("MAIL_DEFAULT_SENDER_NAME", "Mantis-Projekt"),
         _env_or_default("MAIL_DEFAULT_SENDER", "mantis@projekt.de"),
     )
