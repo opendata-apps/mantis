@@ -27,6 +27,10 @@ services:
       - DATABASE_HOST=db
       - UPLOAD_FOLDER=/mantis/app/datastore
       - BACKUP_DIR=/mantis/backups
+      # Deployment metadata, not image content: baked in as a build ARG it was
+      # served from the layer cache whenever a deploy touched no copied file,
+      # so /health reported the previous commit. Read at request time.
+      - GIT_SHA=${GIT_SHA:-unknown}
     volumes:
       - ../app/datastore:/mantis/app/datastore:z
       - ../backups:/mantis/backups:z

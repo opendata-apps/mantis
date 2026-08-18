@@ -155,14 +155,17 @@ prod-backup:
 # it didn't make (the failure mode that bit us with infrastructure_vite_1).
 # Prune runs after verification so a failed check still has both images.
 # `--no-deps` keeps the DB container and its volume out of the swap.
+# GIT_SHA is inline rather than a just variable: just evaluates its variables
+# at startup, which is before the `git pull` above, so a variable would stamp
+# the commit we were on before the deploy.
 # Pull latest, back up, rebuild & swap web, verify health.
 [group('prod')]
 @prod-deploy: prod-backup
     git pull --ff-only
     -podman tag localhost/infrastructure_web:latest localhost/infrastructure_web:previous
-    {{ compose }} build --pull --build-arg GIT_SHA=$(git rev-parse --short HEAD) web
+    {{ compose }} build --pull web
     bash -c 'cid=$(podman inspect infrastructure_web_1 -f "{{{{.Id}}" 2>/dev/null || podman inspect infrastructure-web-1 -f "{{{{.Id}}" 2>/dev/null || true); if [ -n "$cid" ]; then podman stop -t 10 "$cid"; podman rm -f "$cid"; fi'
-    {{ compose }} up -d --no-deps web
+    GIT_SHA=$(git rev-parse --short HEAD) {{ compose }} up -d --no-deps web
     bash -c 'cid=$(podman inspect infrastructure_web_1 -f "{{{{.Id}}" 2>/dev/null || podman inspect infrastructure-web-1 -f "{{{{.Id}}" 2>/dev/null); run=$(podman inspect "$cid" --format "{{{{.Image}}"); tag=$(podman image inspect localhost/infrastructure_web:latest --format "{{{{.Id}}"); [ "$run" = "$tag" ] || { echo "✗ image SHA mismatch: running=$run latest=$tag"; exit 1; }; echo "✓ image SHA matches: $run"'
     bash -c 'curl -fsS --retry 30 --retry-delay 2 --retry-all-errors http://localhost:5000/health && echo "✔ deploy ok" || { echo "✗ health check failed — roll back with: just prod-rollback"; podman logs --tail 40 infrastructure_web_1 2>/dev/null || true; exit 1; }'
     podman image prune -f --filter "dangling=true" | tail -1

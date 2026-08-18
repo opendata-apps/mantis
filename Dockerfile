@@ -55,10 +55,4 @@ RUN uv sync --frozen --no-dev && \
 ENV FLASK_APP=run.py
 EXPOSE 5000
 
-# Last so a new SHA invalidates nothing above it. Surfaced by /health, which
-# is otherwise the only thing that answers "which commit is actually running?"
-# without an ssh session.
-ARG GIT_SHA=unknown
-ENV GIT_SHA=${GIT_SHA}
-
 ENTRYPOINT ["./entrypoint.sh"]
