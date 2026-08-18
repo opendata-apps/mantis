@@ -136,15 +136,16 @@ class GemeindeFinder:
                 else:
                     current_app.logger.warning("No administrative area polygons loaded")
 
-            except Exception as e:
-                current_app.logger.error(
-                    f"Failed to load administrative area data: {e}"
-                )
-                # In production, we should not crash the app if gemeinde data fails to load
+            except Exception:
+                # Deliberately left un-loaded so the next lookup tries again. A
+                # worker that gave up here answered None for every lookup for the
+                # rest of its life, and `amt`/`mtb` have no fallback in
+                # report.py — those reports save with the field empty and drop
+                # out of every amt-based statistic, with nothing to notice it.
+                current_app.logger.exception("Failed to load administrative area data")
                 self._geometries = []
                 self._metadata = []
                 self._tree = None
-                self._is_loaded = True  # Mark as loaded to prevent retry loops
 
     def _query_point(self, point):
         """Internal: find the AmtRecord for a point, or None."""
