@@ -137,11 +137,11 @@ class GemeindeFinder:
                     current_app.logger.warning("No administrative area polygons loaded")
 
             except Exception:
-                # Deliberately left un-loaded so the next lookup tries again. A
-                # worker that gave up here answered None for every lookup for the
-                # rest of its life, and `amt`/`mtb` have no fallback in
-                # report.py — those reports save with the field empty and drop
-                # out of every amt-based statistic, with nothing to notice it.
+                # Do not mark the cache loaded here. Doing so retires this
+                # worker from spatial lookups for the rest of its life, and
+                # `amt`/`mtb` have no fallback in report.py — every report it
+                # then saves carries an empty amt and drops out of the
+                # amt-based statistics, with nothing anywhere to notice it.
                 current_app.logger.exception("Failed to load administrative area data")
                 self._geometries = []
                 self._metadata = []

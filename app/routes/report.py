@@ -328,12 +328,9 @@ def melden(usrid=None):
 
             except Exception:
                 db.session.rollback()
-                # The reporter's submission is gone at this point — the rollback
-                # discards it and the form is not returned to them. The photo is
-                # already on disk, so name it: it is the only artefact left to
-                # match a lost report against. Without the traceback, the
-                # varchar(45) truncation that ate reports for months looked like
-                # a bare "value too long" line with no origin.
+                # TODO: the submission is discarded here and never handed back.
+                # Until it is captured durably, the traceback and the photo
+                # named below are the only means of reconstructing a lost report.
                 current_app.logger.exception(
                     "Failed to save report; photo retained at %s", db_image_path
                 )
