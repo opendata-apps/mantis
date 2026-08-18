@@ -11,7 +11,7 @@ from app.auth import reviewer_required
 from app.tools.gen_messtisch_svg import create_measure_sheet
 from app.database.models import TblFundorte, TblMeldungen
 from app.database.models import TblUserFeedback, ReportStatus
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from app.database.feedback_type import FeedbackSource
 from app.database.ags import (
     BUNDESLAENDER,
@@ -94,16 +94,35 @@ def autocomplete_ags():
     )
 
 
+def _iso_date_or(value, fallback):
+    """Return an ISO date string, falling back on anything unparsable.
+
+    The result is stored in the session and read back by every statistics view,
+    so a value date.fromisoformat cannot read is not one bad response — it
+    raises again on every later request from that browser until the cookie is
+    replaced.
+    """
+    try:
+        return date.fromisoformat(str(value)[:10]).isoformat()
+    except (TypeError, ValueError):
+        return fallback
+
+
 def get_date_interval():
     "Calculate and format start and end date"
 
-    now = datetime.now().isoformat()
-    last_year = datetime.now() - timedelta(weeks=52)
-    last_year = last_year.isoformat()
-    start_date = request.form.get("dateFrom", session.get("date_from", last_year))
-    end_date = request.form.get("dateTo", session.get("date_to", now))
+    today = date.today()
 
-    return (start_date[:10], end_date[:10])
+    return (
+        _iso_date_or(
+            request.form.get("dateFrom", session.get("date_from")),
+            (today - timedelta(weeks=52)).isoformat(),
+        ),
+        _iso_date_or(
+            request.form.get("dateTo", session.get("date_to")),
+            today.isoformat(),
+        ),
+    )
 
 
 @stats.route("/statistik", methods=["POST", "GET"])
