@@ -5,8 +5,8 @@ Every report writes a new users row, so a repeat reporter accumulates one row
 per report. provider.py matches reporter to reports by exact user_kontakt
 comparison, so two rows differing only in domain case split one reporter's
 history: reports drop out of "Meine Sichtungen" and their own photos answer 403.
-Addresses have been normalised on write since 2026-08-18; this brings the older
-rows to the same form by calling the same validator.
+Newer rows are already normalised on write; this brings the older ones to the
+same form with the same validator.
 
     python scripts/normalize_contact_domains.py            # report only
     python scripts/normalize_contact_domains.py --apply    # write
@@ -29,9 +29,7 @@ def main(apply_changes):
     ):
         try:
             # The call _create_user() makes, so repaired rows land on exactly
-            # the form new rows get. allow_smtputf8=False mirrors the report
-            # form; without it an umlaut before the @ passes here but yields
-            # ascii_email=None at send time, leaving the row undeliverable.
+            # the form new rows get. allow_smtputf8=False mirrors the form.
             normalized = validate_email(
                 user.user_kontakt, check_deliverability=False, allow_smtputf8=False
             ).normalized

@@ -81,10 +81,8 @@ def test_the_envelope_carries_punycode(app, monkeypatch):
 
 
 def test_an_undeliverable_recipient_is_rejected_before_the_message_is_built(app):
-    """Legacy rows predate the form's SMTPUTF8 guard, so send_email still meets
-    umlaut local parts. Without the guard here ascii_email is None, Message
-    accepts recipients=[None], and the admin route logs a downstream failure
-    that names neither the address nor the reason."""
+    """Rows predating the form's SMTPUTF8 guard still reach send_email. Without
+    the guard, Message takes recipients=[None] and fails far from the cause."""
     from email_validator import EmailNotValidError
 
     from app.tools import send_reviewer_email as sre

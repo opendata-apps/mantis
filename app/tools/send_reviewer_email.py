@@ -81,15 +81,12 @@ def send_email(data):
     # the wire as ASCII and has no SMTPUTF8 path. An internationalised domain
     # therefore has to be converted to punycode here, immediately before
     # submission — the database keeps the address in the form the reporter
-    # knows. allow_smtputf8=False makes an umlaut before the @ raise here
-    # instead of yielding ascii_email=None, which Message accepts and only
-    # fails on much later, naming neither the address nor the reason.
+    # knows. allow_smtputf8=False makes an umlaut before the @ raise here rather
+    # than yield ascii_email=None, which Message takes and fails on much later.
     validated = validate_email(
         data["user_kontakt"], check_deliverability=False, allow_smtputf8=False
     )
-    # The library leaves ascii_email None only for addresses that need SMTPUTF8,
-    # which the call above rejects — an invariant it does not express in its
-    # types, so state it rather than let a None reach the envelope.
+    # None only for addresses needing SMTPUTF8, which the call above rejects.
     assert validated.ascii_email is not None
     recipient = validated.ascii_email
 
