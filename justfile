@@ -29,10 +29,13 @@ backup_dir := "/home/mantis/data/backups/postgres"
 @prod-logs *ARGS="--tail 100":
     {{ compose }} logs {{ ARGS }} web
 
+# positional-arguments, not {{ ARGS }}: plain interpolation splits on spaces, so
+# `just prod-db -c "SELECT count(*) FROM meldungen;"` would reach sh unquoted.
 # Open a psql shell on the production database
 [group('prod')]
+[positional-arguments]
 @prod-db *ARGS:
-    {{ compose }} exec db psql -U mantis_user -d mantis_tracker {{ ARGS }}
+    {{ compose }} exec db psql -U mantis_user -d mantis_tracker "$@"
 
 # Confirmed because it takes the live site down.
 # Stop production
