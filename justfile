@@ -20,6 +20,20 @@ backup_dir := "/home/mantis/data/backups/postgres"
 @_default:
     just --list
 
+# A container's log starts when the container does, and prod-deploy recreates
+# it, so this cannot see past the last deploy. journald keeps the request log
+# across container swaps:
+#     journalctl _UID=$(id -u mantis) --since '3 days ago'
+# Show production web logs
+[group('prod')]
+@prod-logs *ARGS="--tail 100":
+    {{ compose }} logs {{ ARGS }} web
+
+# Open a psql shell on the production database
+[group('prod')]
+@prod-db *ARGS:
+    {{ compose }} exec db psql -U mantis_user -d mantis_tracker {{ ARGS }}
+
 # Confirmed because it takes the live site down.
 # Stop production
 [group('prod')]
