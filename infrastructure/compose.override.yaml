@@ -4,8 +4,13 @@
 
 services:
   web:
+    # Debug stays the default here, but set FLASK_DEBUG=0 for a stack that is
+    # reachable from outside a tunnel: entrypoint.sh reads it to choose between
+    # `flask run` and gunicorn, and `flask run` serves the Werkzeug debugger —
+    # an interactive console on any unhandled exception. Turning it off also
+    # engages the ProxyFix that app/__init__.py applies only when not debugging.
     environment:
-      - FLASK_DEBUG=1
+      - FLASK_DEBUG=${FLASK_DEBUG:-1}
     # Source mounted over the image so Flask reloads without a rebuild.
     volumes:
       - ..:/mantis:z
