@@ -351,6 +351,16 @@ class TestMeldenGet:
         assert 'name="gender"' in html
         assert 'name="sighting_date"' in html
         assert 'name="report_first_name"' in html
+        assert 'data-latitude-min="24.6"' in html
+        assert 'data-latitude-max="60.0"' in html
+        assert 'data-longitude-min="-20.0"' in html
+        assert 'data-longitude-max="44.83"' in html
+        assert 'placeholder="z.B. 52,3906"' in html
+        coordinate_pattern = (
+            'pattern="[+-]?(?:[0-9]+(?:[.,][0-9]*)?|[.,][0-9]+)'
+            '(?:[eE][+-]?[0-9]+)?"'
+        )
+        assert html.count(coordinate_pattern) == 2
 
 
 # ============================================================================

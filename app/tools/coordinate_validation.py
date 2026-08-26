@@ -13,7 +13,7 @@ import re
 LAT_RANGE = (24.6, 60.0)
 LON_RANGE = (-20.0, 44.83)
 
-_RANGES = {"latitude": LAT_RANGE, "longitude": LON_RANGE}
+COORDINATE_RANGES = {"latitude": LAT_RANGE, "longitude": LON_RANGE}
 _LABELS = {"latitude": "Breitengrad", "longitude": "Längengrad"}
 
 SWAPPED_MESSAGE = "Breiten- und Längengrad scheinen vertauscht zu sein."
@@ -38,7 +38,7 @@ def _parse(value):
 
 def range_message(coord_type):
     """The message shown when a coordinate falls outside the accepted range."""
-    low, high = _RANGES[coord_type]
+    low, high = COORDINATE_RANGES[coord_type]
     label = _LABELS[coord_type]
     return (
         f"{label} muss zwischen {_format_bound(low)} und {_format_bound(high)} liegen."
@@ -80,7 +80,7 @@ def validate_and_normalize_coordinate(value, coord_type):
     if number is None:
         return False, None, f"{label} ist keine gültige Zahl."
 
-    low, high = _RANGES[coord_type]
+    low, high = COORDINATE_RANGES[coord_type]
     if not (low <= number <= high):
         return False, None, range_message(coord_type)
 

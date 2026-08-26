@@ -10,6 +10,7 @@ import 'leaflet.locatecontrol/dist/L.Control.Locate.min.css';
 import ExifReader from 'exifreader';
 import htmx from 'htmx.org';
 import { canvasIsBlank, extensionFor } from './image-checks.js';
+import { parseCoordinateInput } from './coordinate-input.js';
 
 // CSP hardening: disable eval-based attribute features (hx-on::*, `js:` prefix).
 // The report form does not use them; this lets us drop `unsafe-eval` from CSP.
@@ -49,6 +50,7 @@ const ReportForm = {
     marker: null,
     webpData: null,
     geocodeController: null,
+    coordinateRanges: null,
     MIN_ZOOM: 17,
 
     init() {
@@ -622,6 +624,14 @@ const ReportForm = {
         const container = document.getElementById('map');
         if (!container) return;
 
+        this.coordinateRanges = {
+            latitude: [Number(container.dataset.latitudeMin), Number(container.dataset.latitudeMax)],
+            longitude: [Number(container.dataset.longitudeMin), Number(container.dataset.longitudeMax)],
+        };
+        if (!Object.values(this.coordinateRanges).flat().every(Number.isFinite)) {
+            throw new Error('Coordinate ranges are missing from the report form');
+        }
+
         this.map = L.map(container, { zoomControl: true, attributionControl: false })
             .setView([51.1657, 10.4515], 6);
         L.control.attribution({ prefix: false }).addTo(this.map);
@@ -670,15 +680,19 @@ const ReportForm = {
         const manLat = document.getElementById('manual-latitude');
         const manLng = document.getElementById('manual-longitude');
         [manLat, manLng].forEach(el => el?.addEventListener('change', () => {
-            const lat = parseFloat(manLat?.value), lng = parseFloat(manLng?.value);
-            if (!isNaN(lat) && !isNaN(lng) && lat >= 30 && lat <= 60 && lng >= -20 && lng <= 30) {
+            const [latMin, latMax] = this.coordinateRanges.latitude;
+            const [lngMin, lngMax] = this.coordinateRanges.longitude;
+            const lat = parseCoordinateInput(manLat?.value, latMin, latMax);
+            const lng = parseCoordinateInput(manLng?.value, lngMin, lngMax);
+            if (lat !== null && lng !== null) {
                 this.setMarker(lat, lng);
                 this.map.setView([lat, lng], this.map.getZoom());
             } else {
                 document.getElementById('latitude').value = '';
                 document.getElementById('longitude').value = '';
                 if (this.marker) { this.marker.remove(); this.marker = null; }
-                this.showError('coordinates', 'Bitte gültige Koordinaten eingeben (Breitengrad: 30 bis 60, Längengrad: -20 bis 30).');
+                const display = (value) => String(value).replace('.', ',');
+                this.showError('coordinates', `Bitte gültige Koordinaten eingeben (Breitengrad: ${display(latMin)} bis ${display(latMax)}, Längengrad: ${display(lngMin)} bis ${display(lngMax)}).`);
             }
         }));
 
@@ -732,8 +746,10 @@ const ReportForm = {
     },
 
     setMarker(lat, lng, geocode = true) {
-        lat = Math.max(30, Math.min(60, lat));
-        lng = Math.max(-20, Math.min(30, lng));
+        const [latMin, latMax] = this.coordinateRanges.latitude;
+        const [lngMin, lngMax] = this.coordinateRanges.longitude;
+        lat = Math.max(latMin, Math.min(latMax, lat));
+        lng = Math.max(lngMin, Math.min(lngMax, lng));
 
         if (this.marker) this.marker.setLatLng([lat, lng]);
         else {

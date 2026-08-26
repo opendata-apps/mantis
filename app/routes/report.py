@@ -36,6 +36,7 @@ from app.tools.mtb_calc import point_in_rect
 from app.tools.gemeinde_finder import get_amt_enriched
 from app.tools.location_enrichment import calculate_spatial_fields
 from app.tools.report_images import build_upload_filename, ensure_upload_dir
+from app.tools.coordinate_validation import COORDINATE_RANGES
 
 # Blueprints
 report = Blueprint("report", __name__)
@@ -361,6 +362,7 @@ def melden(usrid=None):
             timedelta=timedelta,
             user_prefilled=user_prefilled_data,
             user_has_feedback=user_has_feedback,
+            coordinate_ranges=COORDINATE_RANGES,
         )
     )
     if user_prefilled_data:
