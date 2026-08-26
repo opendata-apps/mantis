@@ -78,4 +78,6 @@ class TestRendertextmsg:
 
     def test_contains_determination_reference(self):
         text = rendertextmsg(_make_mail_data())
-        assert "bestimmung" in text
+        assert "https://gottesanbeterin-gesucht.de/bestimmung" in [
+            line.strip() for line in text.splitlines()
+        ]

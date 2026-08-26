@@ -49,7 +49,8 @@ def rendertextmsg(md):
 
     Folgendes Geschlecht bzw. Entwicklungsstadium wurden festgestellt:
 
-    (siehe auch:  https://gottesanbeterin-gesucht.de/bestimmung)
+    Siehe auch:
+    https://gottesanbeterin-gesucht.de/bestimmung
 
     {"Männchen:":<10} {str(md["art_m"]) + " ":10}
     {"Weibchen:":<10} {str(md["art_w"]) + " ":<10}
