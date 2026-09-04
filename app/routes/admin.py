@@ -6,7 +6,6 @@ import xlsxwriter
 from app import db
 import app.database.alldata as ad
 from app.database.models import (
-    TblFundortBeschreibung,
     TblFundorte,
     TblMeldungen,
     TblMeldungUser,
@@ -52,28 +51,30 @@ INT32_MAX = 2**31 - 1
 # Blueprints
 admin = Blueprint("admin", __name__)
 
-# Add this constant at the top of the file
-NON_EDITABLE_FIELDS = {
-    "meldungen": ["id", "fo_zuordnung"],
-    "beschreibung": ["id"],
-    "fundorte": ["id", "ablage", "beschreibung"],
-    "melduser": ["id", "id_finder", "id_meldung", "id_user"],
-    "users": ["id", "user_id"],
-    "all_data_view": [
-        "meldungen_id",
-        "fo_zuordnung",
-        "fundorte_id",
-        "beschreibung_id",
-        "id_user",
-        "user_id",
-        # Internal review state — must not be reachable through the cell editor.
-        # `statuses` is the canonical workflow source; `deleted` is the
-        # deprecated mirror. `bearb_id` is set automatically when a reviewer
-        # mutates a record. `ablage` is the image path managed server-side.
-        "deleted",
-        "bearb_id",
-        "ablage",
-    ],
+EDITABLE_FIELDS = {
+    "dat_fund_von": TblMeldungen,
+    "dat_meld": TblMeldungen,
+    "dat_bear": TblMeldungen,
+    "tiere": TblMeldungen,
+    "art_m": TblMeldungen,
+    "art_w": TblMeldungen,
+    "art_n": TblMeldungen,
+    "art_o": TblMeldungen,
+    "art_f": TblMeldungen,
+    "fo_quelle": TblMeldungen,
+    "anm_melder": TblMeldungen,
+    "anm_bearbeiter": TblMeldungen,
+    "plz": TblFundorte,
+    "ort": TblFundorte,
+    "strasse": TblFundorte,
+    "kreis": TblFundorte,
+    "land": TblFundorte,
+    "amt": TblFundorte,
+    "mtb": TblFundorte,
+    "longitude": TblFundorte,
+    "latitude": TblFundorte,
+    "user_name": TblUsers,
+    "user_kontakt": TblUsers,
 }
 
 
@@ -1370,7 +1371,7 @@ def get_table_data(table_name):
                 "columns": columns,
                 "data": data,
                 "column_types": column_types,
-                "non_editable_fields": NON_EDITABLE_FIELDS.get("all_data_view", []),
+                "editable_fields": list(EDITABLE_FIELDS),
                 "total_items": total_items,
             }
         )
@@ -1387,28 +1388,24 @@ def update_cell():
         return jsonify({"error": "Invalid request"}), 400
 
     try:
-        table_name = data["table"]
         column_name = data["column"]
-        id_value = data["meldungen_id"]
+        raw_id_value = data["meldungen_id"]
         new_value = data["value"]
     except KeyError as exc:
         return jsonify({"error": f"Missing field: {exc.args[0]}"}), 400
 
-    if table_name != "all_data_view":
-        return jsonify({"error": "Only all_data_view is supported"}), 403
+    if isinstance(raw_id_value, bool):
+        return jsonify({"error": "Invalid report ID"}), 400
+    try:
+        id_value = int(raw_id_value)
+    except (TypeError, ValueError):
+        return jsonify({"error": "Invalid report ID"}), 400
 
-    if (
-        table_name in NON_EDITABLE_FIELDS
-        and column_name in NON_EDITABLE_FIELDS[table_name]
-    ):
+    original_table = EDITABLE_FIELDS.get(column_name)
+    if original_table is None:
         return jsonify({"error": "This field is not editable"}), 403
 
     try:
-        # Find the original table and column
-        original_table, original_column = find_original_table_and_column(column_name)
-        if not original_table or not original_column:
-            return jsonify({"error": "Unable to find original table and column"}), 400
-
         # Fetch the corresponding row from all_data_view
         all_data_row = db.session.scalar(
             select(TblAllData).where(TblAllData.meldungen_id == id_value)
@@ -1424,7 +1421,7 @@ def update_cell():
             stmt = (
                 update(original_table)
                 .where(original_table.id == user_db_id)
-                .values(**{original_column: new_value})
+                .values(**{column_name: new_value})
             )
         elif original_table == TblFundorte:
             fundorte_id = all_data_row.fundorte_id
@@ -1432,9 +1429,9 @@ def update_cell():
                 return jsonify({"error": "Fundorte ID not found in the record"}), 400
 
             # Validate and normalize coordinates before storing
-            if original_column in ["latitude", "longitude"]:
+            if column_name in ["latitude", "longitude"]:
                 is_valid, normalized_value, error_msg = (
-                    validate_and_normalize_coordinate(new_value, original_column)
+                    validate_and_normalize_coordinate(new_value, column_name)
                 )
                 if not is_valid:
                     return jsonify({"error": error_msg}), 400
@@ -1443,25 +1440,13 @@ def update_cell():
             stmt = (
                 update(original_table)
                 .where(original_table.id == fundorte_id)
-                .values(**{original_column: new_value})
-            )
-        elif original_table == TblFundortBeschreibung:
-            beschreibung_id = all_data_row.beschreibung_id
-            if not beschreibung_id:
-                return jsonify(
-                    {"error": "Beschreibung ID not found in the record"}
-                ), 400
-            stmt = (
-                update(original_table)
-                .where(original_table.id == beschreibung_id)
-                .values(**{original_column: new_value})
+                .values(**{column_name: new_value})
             )
         else:
-            # Update TblMeldungen using meldungen_id
             stmt = (
                 update(original_table)
                 .where(original_table.id == id_value)
-                .values(**{original_column: new_value})
+                .values(**{column_name: new_value})
             )
 
         # Execute the update
@@ -1481,7 +1466,7 @@ def update_cell():
 
         # Handle dat_fund_von changes - move images to new date folder
         image_update_result = None
-        if column_name == "dat_fund_von" and table_name == "all_data_view":
+        if column_name == "dat_fund_von":
             try:
                 image_update_result = update_report_image_date(id_value, new_value)
             except (LookupError, FileNotFoundError, ValueError, OSError) as exc:
@@ -1516,8 +1501,15 @@ def update_cell():
                     )
             raise
 
-        # Force-refresh materialized view after update
-        _maybe_refresh_alldata_view(force=True)
+        # The edit is already committed; a projection failure must not make the
+        # client retry an update that actually succeeded.
+        try:
+            _maybe_refresh_alldata_view(force=True)
+        except Exception:
+            db.session.rollback()
+            current_app.logger.exception(
+                "Cell updated, but failed to refresh all_data_view"
+            )
 
         return jsonify({"success": True})
 
@@ -1526,41 +1518,3 @@ def update_cell():
         current_app.logger.exception(f"Error in update_cell: {str(e)}")
         errmsg = jsonify({"error": "Error while updating the cell"})
         return errmsg, 500
-
-
-def find_original_table_and_column(column_name):
-    table_column_mapping = {
-        "meldungen_id": (TblMeldungen, "id"),
-        "deleted": (TblMeldungen, "deleted"),
-        "dat_fund_von": (TblMeldungen, "dat_fund_von"),
-        "dat_fund_bis": (TblMeldungen, "dat_fund_bis"),
-        "dat_meld": (TblMeldungen, "dat_meld"),
-        "dat_bear": (TblMeldungen, "dat_bear"),
-        "bearb_id": (TblMeldungen, "bearb_id"),
-        "tiere": (TblMeldungen, "tiere"),
-        "art_m": (TblMeldungen, "art_m"),
-        "art_w": (TblMeldungen, "art_w"),
-        "art_n": (TblMeldungen, "art_n"),
-        "art_o": (TblMeldungen, "art_o"),
-        "art_f": (TblMeldungen, "art_f"),
-        "fo_zuordnung": (TblMeldungen, "fo_zuordnung"),
-        "fo_quelle": (TblMeldungen, "fo_quelle"),
-        "fo_beleg": (TblMeldungen, "fo_beleg"),
-        "anm_melder": (TblMeldungen, "anm_melder"),
-        "anm_bearbeiter": (TblMeldungen, "anm_bearbeiter"),
-        "plz": (TblFundorte, "plz"),
-        "ort": (TblFundorte, "ort"),
-        "strasse": (TblFundorte, "strasse"),
-        "kreis": (TblFundorte, "kreis"),
-        "land": (TblFundorte, "land"),
-        "amt": (TblFundorte, "amt"),
-        "mtb": (TblFundorte, "mtb"),
-        "longitude": (TblFundorte, "longitude"),
-        "latitude": (TblFundorte, "latitude"),
-        "ablage": (TblFundorte, "ablage"),
-        "beschreibung": (TblFundortBeschreibung, "beschreibung"),
-        "user_id": (TblUsers, "user_id"),
-        "user_name": (TblUsers, "user_name"),
-        "user_kontakt": (TblUsers, "user_kontakt"),
-    }
-    return table_column_mapping.get(column_name, (None, None))

@@ -681,6 +681,10 @@ class TestAdminRoutes:
         assert "data" in data
         assert "total_items" in data
         assert "columns" in data
+        assert "editable_fields" in data
+        assert "strasse" in data["editable_fields"]
+        assert "statuses" not in data["editable_fields"]
+        assert "beschreibung" not in data["editable_fields"]
         assert len(data["data"]) > 0  # Should have at least our test sighting
 
     def test_get_table_data_full_text_search_keeps_count_in_sync(self, client):
@@ -714,8 +718,8 @@ class TestAdminRoutes:
         assert data["total_items"] == 0
         assert data["data"] == []
 
-    def test_update_cell_valid_table(self, client, session):
-        """Test updating a cell in a valid table."""
+    def test_update_cell_valid_field(self, client, session):
+        """Test updating a field exposed by the superuser table."""
         # Set up session
         with client.session_transaction() as sess:
             sess["user_id"] = "9999"
@@ -724,7 +728,6 @@ class TestAdminRoutes:
         response = client.post(
             "/admin/update_cell",
             json={
-                "table": "all_data_view",
                 "meldungen_id": self.test_sighting.id,
                 "column": "anm_melder",
                 "value": "Updated comment",
@@ -738,6 +741,56 @@ class TestAdminRoutes:
         session.refresh(self.test_sighting)
         assert self.test_sighting.anm_melder == "Updated comment"
 
+    def test_update_cell_accepts_browser_string_report_id(self, client, session):
+        """The table DOM exposes report IDs as strings in its JSON request."""
+        with client.session_transaction() as sess:
+            sess["user_id"] = "9999"
+
+        response = client.post(
+            "/admin/update_cell",
+            json={
+                "meldungen_id": str(self.test_sighting.id),
+                "column": "strasse",
+                "value": "Neue Straße 12",
+            },
+        )
+
+        assert response.status_code == 200
+        assert response.get_json() == {"success": True}
+        session.refresh(self.test_location)
+        assert self.test_location.strasse == "Neue Straße 12"
+
+    def test_update_cell_succeeds_when_view_refresh_fails(
+        self, client, session, monkeypatch
+    ):
+        """A failed projection refresh must not report a committed edit as failed."""
+        with client.session_transaction() as sess:
+            sess["user_id"] = "9999"
+
+        def fail_refresh(_db):
+            raise RuntimeError("refresh failed")
+
+        monkeypatch.setattr(
+            "app.routes.admin.ad.refresh_materialized_view", fail_refresh
+        )
+
+        response = client.post(
+            "/admin/update_cell",
+            json={
+                "meldungen_id": self.test_sighting.id,
+                "column": "strasse",
+                "value": "Trotz Refresh gespeichert 7",
+            },
+        )
+
+        assert response.status_code == 200
+        assert response.get_json() == {"success": True}
+        session.expire_all()
+        assert (
+            session.get(TblFundorte, self.test_location.id).strasse
+            == "Trotz Refresh gespeichert 7"
+        )
+
     @pytest.mark.parametrize(
         "column, value",
         [
@@ -745,8 +798,12 @@ class TestAdminRoutes:
             # Internal review state must not be reachable through the cell
             # editor — these used to bypass status guards entirely.
             ("deleted", True),
+            ("statuses", ["APPR"]),
             ("ablage", "/etc/passwd"),
             ("bearb_id", "9999"),
+            # This is a shared lookup label. Editing it here would rename the
+            # category for every report that references the same row.
+            ("beschreibung", "Neuer Fundorttyp"),
         ],
     )
     def test_update_cell_non_editable_field(self, client, column, value):
@@ -757,7 +814,6 @@ class TestAdminRoutes:
         response = client.post(
             "/admin/update_cell",
             json={
-                "table": "all_data_view",
                 "meldungen_id": self.test_sighting.id,
                 "column": column,
                 "value": value,
@@ -774,7 +830,7 @@ class TestAdminRoutes:
 
         response = client.post(
             "/admin/update_cell",
-            json={"table": "all_data_view"},  # missing column / id / value
+            json={},
         )
         assert response.status_code == 400
         data = json.loads(response.data)
