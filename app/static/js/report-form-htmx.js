@@ -10,7 +10,7 @@ import 'leaflet.locatecontrol/dist/L.Control.Locate.min.css';
 import ExifReader from 'exifreader';
 import htmx from 'htmx.org';
 import { canvasIsBlank, extensionFor } from './image-checks.js';
-import { parseCoordinateInput } from './coordinate-input.js';
+import { coordinatesInRange, parseCoordinateInput } from './coordinate-input.js';
 
 // CSP hardening: disable eval-based attribute features (hx-on::*, `js:` prefix).
 // The report form does not use them; this lets us drop `unsafe-eval` from CSP.
@@ -596,24 +596,23 @@ const ReportForm = {
             }
         }
 
-        if (gps) {
+        // EXIF GPS is unverified input. A camera without a fix writes a zeroed
+        // tag, and a wrong hemisphere ref flips a sign — both land far outside
+        // Europe. A photo whose position cannot be trusted simply leaves the
+        // map to the reporter, which is the normal flow for a photo with no
+        // GPS at all.
+        if (gps && this.map && coordinatesInRange(gps.lat, gps.lng, this.coordinateRanges)) {
             const { lat, lng } = gps;
-            document.getElementById('latitude').value = lat;
-            document.getElementById('longitude').value = lng;
-            const manLat = document.getElementById('manual-latitude');
-            const manLng = document.getElementById('manual-longitude');
-            if (manLat) manLat.value = lat.toFixed(6);
-            if (manLng) manLng.value = lng.toFixed(6);
-            document.getElementById('exif-location')?.textContent &&
-                (document.getElementById('exif-location').textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+            const exifLocation = document.getElementById('exif-location');
+            if (exifLocation) exifLocation.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
 
-            if (this.map) {
-                setTimeout(() => {
-                    this.map.invalidateSize();
-                    this.map.setView([lat, lng], 14);
-                    this.setMarker(lat, lng, true);
-                }, 100);
-            }
+            // setMarker fills the coordinate fields; writing them here as well
+            // would just put an unformatted copy in front of it for 100ms.
+            setTimeout(() => {
+                this.map.invalidateSize();
+                this.map.setView([lat, lng], 14);
+                this.setMarker(lat, lng, true);
+            }, 100);
             hasData = true;
         }
 
@@ -688,9 +687,7 @@ const ReportForm = {
                 this.setMarker(lat, lng);
                 this.map.setView([lat, lng], this.map.getZoom());
             } else {
-                document.getElementById('latitude').value = '';
-                document.getElementById('longitude').value = '';
-                if (this.marker) { this.marker.remove(); this.marker = null; }
+                this.clearCoordinates({ keepTypedText: true });
                 const display = (value) => String(value).replace('.', ',');
                 this.showError('coordinates', `Bitte gültige Koordinaten eingeben (Breitengrad: ${display(latMin)} bis ${display(latMax)}, Längengrad: ${display(lngMin)} bis ${display(lngMax)}).`);
             }
@@ -698,10 +695,25 @@ const ReportForm = {
 
         const lat = parseFloat(document.getElementById('latitude')?.value);
         const lng = parseFloat(document.getElementById('longitude')?.value);
-        if (!isNaN(lat) && !isNaN(lng)) {
+        if (coordinatesInRange(lat, lng, this.coordinateRanges)) {
             this.setMarker(lat, lng, false);
             this.map.setView([lat, lng], 14);
         }
+    },
+
+    // Drops the marker together with the pair that would be submitted, so no
+    // field is left claiming a position the map no longer shows. keepTypedText
+    // spares the two visible inputs — the manual-entry handler runs on their
+    // own change event, while the reporter is still filling the second one.
+    clearCoordinates({ keepTypedText = false } = {}) {
+        const fields = keepTypedText
+            ? ['latitude', 'longitude']
+            : ['latitude', 'longitude', 'manual-latitude', 'manual-longitude'];
+        fields.forEach((id) => {
+            const field = document.getElementById(id);
+            if (field) field.value = '';
+        });
+        if (this.marker) { this.marker.remove(); this.marker = null; }
     },
 
     autoLocateIfNeeded() {
@@ -745,11 +757,20 @@ const ReportForm = {
         if (this._locTimeout) { clearTimeout(this._locTimeout); this._locTimeout = null; }
     },
 
+    // Out-of-range coordinates are dropped, never clamped. Clamping snapped a
+    // bad pair onto the nearest bound, and the corner of the accepted box —
+    // 24,6 / 44,83, in Saudi Arabia — is a coordinate the server validates as
+    // correct, so garbage became a plausible Fundort instead of an error.
+    // Seven reports reached the reviewers that way. An empty pair is the
+    // honest outcome: the step-2 gate already refuses to advance without one.
     setMarker(lat, lng, geocode = true) {
-        const [latMin, latMax] = this.coordinateRanges.latitude;
-        const [lngMin, lngMax] = this.coordinateRanges.longitude;
-        lat = Math.max(latMin, Math.min(latMax, lat));
-        lng = Math.max(lngMin, Math.min(lngMax, lng));
+        if (!coordinatesInRange(lat, lng, this.coordinateRanges)) {
+            this.clearCoordinates();
+            this.showError('coordinates',
+                'Dieser Punkt liegt außerhalb des Meldegebiets. '
+                + 'Bitte markieren Sie den Fundort auf der Karte.');
+            return;
+        }
 
         if (this.marker) this.marker.setLatLng([lat, lng]);
         else {
