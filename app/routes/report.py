@@ -36,7 +36,7 @@ from app.tools.mtb_calc import point_in_rect
 from app.tools.gemeinde_finder import get_amt_enriched
 from app.tools.location_enrichment import calculate_spatial_fields
 from app.tools.report_images import build_upload_filename, ensure_upload_dir
-from app.tools.coordinate_validation import COORDINATE_RANGES
+from app.tools.coordinate_validation import COORDINATE_RANGES, in_range
 
 # Blueprints
 report = Blueprint("report", __name__)
@@ -472,7 +472,7 @@ def ags_lookup():
     except (KeyError, ValueError, TypeError):
         return jsonify({}), 400
 
-    if not (30 <= lat <= 60 and -20 <= lon <= 30):
+    if not in_range(lat, lon):
         return jsonify({}), 400
 
     if not point_in_rect((lat, lon)):
