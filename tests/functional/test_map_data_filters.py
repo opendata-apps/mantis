@@ -117,7 +117,9 @@ class TestMapDataFilters:
         assert self.deleted_sighting.id not in report_ids
         assert self.unapproved_sighting.id not in report_ids
 
-    def test_map_view_normalizes_legacy_comma_decimal_coordinates(self, client, session):
+    def test_map_view_normalizes_legacy_comma_decimal_coordinates(
+        self, client, session
+    ):
         """Approved reports with legacy comma decimals must still appear on the map."""
         self.location.latitude = "52,520008"
         self.location.longitude = " 13,404954 "

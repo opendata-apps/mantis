@@ -67,9 +67,7 @@ class TestReviewerAuth:
     def test_reviewer_non_reviewer_role_returns_403(self, client):
         """GET /reviewer/<usrid> with non-reviewer role should return 403."""
         # User with id starting with 'e40ada...' has user_rolle='2' (not a reviewer)
-        response = client.get(
-            "/reviewer/e40adafa23250fdd5024c9887544317a1101534d"
-        )
+        response = client.get("/reviewer/e40adafa23250fdd5024c9887544317a1101534d")
         assert response.status_code == 403
 
     def test_reviewer_session_with_non_reviewer_returns_403(self, client):

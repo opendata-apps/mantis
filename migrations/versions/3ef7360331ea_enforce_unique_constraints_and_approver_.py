@@ -11,13 +11,14 @@ Revises: b2c3d4e5f6a7
 Create Date: 2026-02-21 00:50:11.499534
 
 """
+
 from alembic import op
 import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '3ef7360331ea'
-down_revision = 'b2c3d4e5f6a7'
+revision = "3ef7360331ea"
+down_revision = "b2c3d4e5f6a7"
 branch_labels = None
 depends_on = None
 
@@ -35,18 +36,18 @@ def upgrade():
     # The existing composite index (id_meldung, id_user) stays for JOIN optimization.
     # This constraint enforces the 1:1 invariant (one melduser per meldung).
     with op.batch_alter_table("melduser") as batch_op:
-        batch_op.create_unique_constraint(
-            "uq_melduser_id_meldung", ["id_meldung"]
-        )
+        batch_op.create_unique_constraint("uq_melduser_id_meldung", ["id_meldung"])
 
     # 1c. FK on meldungen.bearb_id -> users.user_id
     # Safety: NULL out orphaned bearb_ids before adding FK
-    op.execute(sa.text("""
+    op.execute(
+        sa.text("""
         UPDATE meldungen
         SET bearb_id = NULL
         WHERE bearb_id IS NOT NULL
           AND bearb_id NOT IN (SELECT user_id FROM users)
-    """))
+    """)
+    )
 
     with op.batch_alter_table("meldungen") as batch_op:
         batch_op.create_foreign_key(

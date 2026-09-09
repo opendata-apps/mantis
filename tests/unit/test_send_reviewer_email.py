@@ -31,7 +31,6 @@ def _make_mail_data(**overrides):
 
 
 class TestRendertextmsg:
-
     def test_contains_greeting(self):
         text = rendertextmsg(_make_mail_data())
         assert "Mantis-Freund" in text
@@ -47,7 +46,10 @@ class TestRendertextmsg:
 
     def test_contains_location_fields(self):
         md = _make_mail_data(
-            ort="Potsdam", strasse="Am Neuen Palais", land="Brandenburg", kreis="Potsdam"
+            ort="Potsdam",
+            strasse="Am Neuen Palais",
+            land="Brandenburg",
+            kreis="Potsdam",
         )
         text = rendertextmsg(md)
         assert "Potsdam" in text

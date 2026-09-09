@@ -12,10 +12,13 @@ class TestSearchVector:
     def test_search_vector_populated(self, session, request_context):
         """Verify search_vector is populated for existing rows."""
         result = session.execute(
-            select(TblMeldungen.id, TblMeldungen.search_vector)
-            .where(TblMeldungen.search_vector.is_not(None))
+            select(TblMeldungen.id, TblMeldungen.search_vector).where(
+                TblMeldungen.search_vector.is_not(None)
+            )
         ).first()
-        assert result is not None, "At least one row should have a populated search_vector"
+        assert result is not None, (
+            "At least one row should have a populated search_vector"
+        )
 
     def test_search_by_city(self, session, request_context):
         """Search for a city name via the search_vector."""
@@ -63,7 +66,7 @@ class TestSearchVector:
         results = session.execute(
             select(
                 TblMeldungen.id,
-                func.ts_rank_cd(TblMeldungen.search_vector, ts_query).label("rank")
+                func.ts_rank_cd(TblMeldungen.search_vector, ts_query).label("rank"),
             )
             .where(TblMeldungen.search_vector.op("@@")(ts_query))
             .order_by(func.ts_rank_cd(TblMeldungen.search_vector, ts_query).desc())
@@ -75,8 +78,7 @@ class TestSearchVector:
         """Search for a term that doesn't exist returns empty."""
         ts_query = func.websearch_to_tsquery("german", "Xyznonexistent")
         results = session.scalars(
-            select(TblMeldungen.id)
-            .where(TblMeldungen.search_vector.op("@@")(ts_query))
+            select(TblMeldungen.id).where(TblMeldungen.search_vector.op("@@")(ts_query))
         ).all()
         assert results == []
 
@@ -84,8 +86,7 @@ class TestSearchVector:
         """websearch_to_tsquery supports -exclude syntax."""
         ts_query = func.websearch_to_tsquery("german", "Cottbus -Berlin")
         results = session.scalars(
-            select(TblMeldungen.id)
-            .where(TblMeldungen.search_vector.op("@@")(ts_query))
+            select(TblMeldungen.id).where(TblMeldungen.search_vector.op("@@")(ts_query))
         ).all()
         # Should find Cottbus results but not Berlin
         assert 3 in results or 9 in results

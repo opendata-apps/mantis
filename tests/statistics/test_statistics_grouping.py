@@ -31,9 +31,7 @@ def test_stats_laender_grouping_query_executes(session):
     ],
 )
 @pytest.mark.usefixtures("session_with_user", "request_context")
-def test_stats_bundesland_grouping_query_executes(
-    session, marker, expected_template
-):
+def test_stats_bundesland_grouping_query_executes(session, marker, expected_template):
     """Regression test: district grouping query must execute without PostgreSQL grouping errors."""
 
     flask_session["date_from"] = "2024-01-01"
