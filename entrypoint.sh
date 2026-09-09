@@ -4,9 +4,6 @@ set -e
 # Run migrations
 flask db upgrade
 
-# Create materialized view
-flask create_all_data_view
-
 # Seed database (idempotent)
 if [ "$FLASK_DEBUG" = "1" ]; then
     flask seed --demo
