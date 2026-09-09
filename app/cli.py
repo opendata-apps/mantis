@@ -178,7 +178,7 @@ def validate_coordinates_command(csv_path):
     from app.extensions import db
     from app.database.fundorte import TblFundorte
     from app.tools.gemeinde_finder import get_amt_enriched
-    from app.tools.validate_coordinates import (
+    from app.tools.address_plausibility import (
         validate_fundorte,
         format_report,
         format_csv,
