@@ -1,7 +1,7 @@
 import io
 import json
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 from urllib.parse import quote, urlencode
 
@@ -34,7 +34,7 @@ from app.database.models import (
     UserRole,
 )
 from app.database.feedback_type import FeedbackSource
-from app.forms import MantisSightingForm
+from app.forms import MantisSightingForm, minimum_sighting_date
 from app.tools.gen_user_id import get_new_id
 from app.tools.gemeinde_finder import get_amt_enriched
 from app.tools.location_enrichment import calculate_spatial_fields
@@ -67,9 +67,14 @@ def _set_gender_fields(selected_gender_value):
 # Matches the client's own downscale target, so a photo is archived at the same
 # size whether the browser converted it or the server did.
 MAX_STORED_DIMENSION = 2048
+MAX_UPLOAD_PIXELS = 25_000_000
 
 
-class BlankImageError(ValueError):
+class InvalidImageError(ValueError):
+    """The upload cannot be processed as a report photo."""
+
+
+class BlankImageError(InvalidImageError):
     """The uploaded frame has no visible pixels."""
 
 
@@ -111,29 +116,42 @@ def _process_uploaded_image(photo_file, sighting_date, city_name, user_id):
     image_bytes = photo_file.read()
     photo_file.seek(0)
 
-    with Image.open(io.BytesIO(image_bytes)) as img:
-        if _has_no_visible_pixels(img):
-            raise BlankImageError("uploaded frame has no visible pixels")
+    try:
+        with Image.open(io.BytesIO(image_bytes)) as img:
+            if img.width * img.height > MAX_UPLOAD_PIXELS:
+                raise InvalidImageError(
+                    "Das Foto darf höchstens 25 Megapixel haben. "
+                    "Bitte verkleinern Sie es und wählen Sie es erneut aus."
+                )
+            img.load()
+            if _has_no_visible_pixels(img):
+                raise BlankImageError("uploaded frame has no visible pixels")
 
-        file_size_mb = len(image_bytes) / (1024 * 1024)
+            file_size_mb = len(image_bytes) / (1024 * 1024)
 
-        if img.format == "WEBP" and file_size_mb <= 8.0:
-            # Trust client-optimized WebP
-            image_bytes_to_save = image_bytes
-        else:
-            # A browser bakes EXIF orientation into the canvas, but an original
-            # uploaded by the conversion fallback arrives untouched and the WebP
-            # re-encode drops the tag — so rotate here or a portrait photo is
-            # archived sideways with nothing left to fix it.
-            output_buffer = io.BytesIO()
-            ImageOps.exif_transpose(img, in_place=True)
-            # The client caps its own output at 2048; an original forwarded by
-            # the conversion fallback has had no such cap, and a 12MP frame
-            # re-encodes to ~0.9MB against the ~0.16MB the converted path
-            # produces. Cap here so the archive is uniform either way.
-            img.thumbnail((MAX_STORED_DIMENSION, MAX_STORED_DIMENSION))
-            img.save(output_buffer, format="WEBP", quality=60)
-            image_bytes_to_save = output_buffer.getvalue()
+            if img.format == "WEBP" and file_size_mb <= 8.0:
+                # Preserve client-optimized WebP without recompressing it.
+                image_bytes_to_save = image_bytes
+            else:
+                # A browser bakes EXIF orientation into the canvas, but an original
+                # uploaded by the conversion fallback arrives untouched and the WebP
+                # re-encode drops the tag — so rotate here or a portrait photo is
+                # archived sideways with nothing left to fix it.
+                output_buffer = io.BytesIO()
+                ImageOps.exif_transpose(img, in_place=True)
+                # The client caps its own output at 2048; an original forwarded by
+                # the conversion fallback has had no such cap, and a 12MP frame
+                # re-encodes to ~0.9MB against the ~0.16MB the converted path
+                # produces. Cap here so the archive is uniform either way.
+                img.thumbnail((MAX_STORED_DIMENSION, MAX_STORED_DIMENSION))
+                img.save(output_buffer, format="WEBP", quality=60)
+                image_bytes_to_save = output_buffer.getvalue()
+    except InvalidImageError:
+        raise
+    except (OSError, ValueError, Image.DecompressionBombError) as error:
+        raise InvalidImageError(
+            "Das Foto konnte nicht gelesen werden. Bitte wählen Sie ein anderes Foto."
+        ) from error
 
     with open(full_path, "wb") as f:
         f.write(image_bytes_to_save)
@@ -355,7 +373,7 @@ def melden(usrid=None):
                     None,
                     None,
                     None,
-                    request.user_agent.string[:200],
+                    _beacon_field(request.user_agent.string, 200),
                 )
                 return _validation_error_response(
                     {
@@ -367,6 +385,10 @@ def melden(usrid=None):
                         ]
                     }
                 )
+
+            except InvalidImageError as error:
+                db.session.rollback()
+                return _validation_error_response({"photo": [str(error)]})
 
             except Exception:
                 db.session.rollback()
@@ -393,7 +415,7 @@ def melden(usrid=None):
             "report/report_form.html",
             form=form,
             now=datetime.now,
-            timedelta=timedelta,
+            minimum_sighting_date=minimum_sighting_date(),
             user_prefilled=user_prefilled_data,
             user_has_feedback=user_has_feedback,
             coordinate_ranges=COORDINATE_RANGES,
@@ -524,7 +546,10 @@ def ags_lookup():
 def _beacon_field(value, limit):
     """Everything in the beacon is client-supplied and lands in a log line, so
     collapse whitespace — a newline in there would forge a second entry."""
-    return " ".join(str(value).split())[:limit]
+    if not isinstance(value, (str, int, float)):
+        return ""
+    printable = "".join(char if char.isprintable() else " " for char in str(value))
+    return " ".join(printable.split())[:limit]
 
 
 # Checked in order, so the more specific token wins: an iPad UA also contains
@@ -614,12 +639,16 @@ def photo_failure():
     The conversion runs entirely client-side, so without this the failure is
     invisible here: the report is simply never submitted and the Melder gives up.
     """
-    data = request.get_json(silent=True) or {}
+    request.max_content_length = 8 * 1024
+    data = request.get_json(silent=True)
+    if data is None:
+        data = {}
+    if not isinstance(data, dict):
+        abort(400)
     stage = _beacon_field(data.get("stage"), 40)
 
-    # Counted server-side so the tally survives a reload, and so the support
-    # address is never rendered into the page: anyone holding it can open
-    # issues in the tracker.
+    # Offer email support after repeated failures. This is a UX threshold,
+    # not proof of a real browser failure or permission to create tickets.
     failures = session.get("photo_failures", 0) + 1
     session["photo_failures"] = failures
 
@@ -641,7 +670,7 @@ def photo_failure():
         _beacon_field(data.get("model"), 40),
         _device_platform(data, request.user_agent.string),
         _beacon_field(data.get("osVersion"), 20),
-        request.user_agent.string[:200],
+        _beacon_field(request.user_agent.string, 200),
     )
 
     if failures < current_app.config["PHOTO_ESCALATE_AFTER"]:

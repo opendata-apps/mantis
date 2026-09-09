@@ -1,16 +1,15 @@
 import pytest
 from alembic import command
 from alembic.config import Config
-from flask import g
 from sqlalchemy import text
-from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy.orm import Session
 from sqlalchemy_utils import create_database, database_exists, drop_database
 
 from tests.helpers import set_client_user
 from tests.test_config import Config as TestConfig
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="session")
 def _test_database():
     """Create the test database if it doesn't exist, drop it on teardown.
 
@@ -25,8 +24,18 @@ def _test_database():
     drop_database(TestConfig.URI)
 
 
-@pytest.fixture(scope="session")
-def app(_test_database):
+@pytest.fixture
+def test_config(tmp_path, tmp_path_factory):
+    class Config(TestConfig):
+        UPLOAD_FOLDER = str(tmp_path / "uploads")
+        BACKUP_DIR = str(tmp_path / "backups")
+        FAVICON_BUILD_DIR = str(tmp_path_factory.getbasetemp() / "favicons")
+
+    return Config
+
+
+@pytest.fixture
+def app(_test_database, test_config):
     """Create and configure a Flask app for testing.
 
     Depends on _test_database to ensure the DB exists before
@@ -34,26 +43,26 @@ def app(_test_database):
     """
     from app import create_app
 
-    app = create_app(TestConfig)
+    app = create_app(test_config)
 
-    # Tests query outside requests, so the shared app context stays open.
-    # Clear Flask-Login's cached user before each request in that context.
-    @app.before_request
-    def _clear_cached_user():
-        g.pop("_login_user", None)
-
+    yield app
     with app.app_context():
-        yield app
         from app.extensions import db
 
-        db.session.remove()
         db.engine.dispose()
 
 
 @pytest.fixture
-def client(app):
+def client(app, _db):
     """Create a test client for the Flask application."""
     return app.test_client()
+
+
+@pytest.fixture
+def app_ctx(app):
+    """Provide a context for direct calls to application helpers."""
+    with app.app_context():
+        yield
 
 
 @pytest.fixture
@@ -133,42 +142,28 @@ def _run_migrations():
     command.upgrade(alembic_cfg, "heads")
 
 
-# Public aliases used by tests/migrations/test_migration_chain.py
-insert_initial_data_command = _seed_test_data
-upgrade = _run_migrations
-
-
-@pytest.fixture(scope="session")
+@pytest.fixture
 def _db(app):
-    """Set up the database for the test session.
+    """Rebuild the database before each test that uses it.
 
     Resets schema, runs Alembic migrations (which create tables,
     triggers, and functions), then populates with test data.
     """
     from app.extensions import db
 
-    _reset_schema()
-    _run_migrations()
-    _seed_test_data()
+    with app.app_context():
+        _reset_schema()
+        _run_migrations()
+        _seed_test_data()
 
-    yield db
+    return db
 
 
-@pytest.fixture(scope="function", autouse=True)
-def session(_db):
-    """Isolate each test, including application commits and rollbacks."""
-    # Closing the connection rolls back the outer transaction.
-    with _db.engine.connect() as connection:
-        connection.begin()
-        original_session = _db.session
-        session = scoped_session(
-            sessionmaker(bind=connection, join_transaction_mode="create_savepoint"),
-            scopefunc=original_session.registry.scopefunc,
-        )
-        _db.session = session
+@pytest.fixture
+def session(_db, app):
+    """Use a separate session for test setup and saved-result assertions."""
+    with app.app_context():
+        engine = _db.engine
 
-        try:
-            yield session
-        finally:
-            _db.session = original_session
-            session.remove()
+    with Session(engine) as session:
+        yield session

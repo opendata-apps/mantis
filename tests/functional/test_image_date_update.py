@@ -9,6 +9,9 @@ from sqlalchemy import select, func
 from app.database.fundmeldungen import TblMeldungen
 from app.database.fundorte import TblFundorte
 from app.routes.admin.database import update_report_image_date
+from app.extensions import db
+
+pytestmark = pytest.mark.usefixtures("app_ctx")
 
 
 @pytest.fixture
@@ -70,6 +73,7 @@ def test_update_report_image_date_success(
 
             new_date = date(2024, 8, 20)
             result = update_report_image_date(mock_meldung_with_image.id, new_date)
+            db.session.commit()
 
             assert result["status"] == "success"
 

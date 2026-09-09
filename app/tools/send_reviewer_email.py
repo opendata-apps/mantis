@@ -59,7 +59,7 @@ def rendertextmsg(md):
     {md["anm_bearbeiter"]}
 
     Ihr Link für neue Meldungen:
-    https://gottesanbeterin-gesucht.de/report/{md["user_id"]}
+    https://gottesanbeterin-gesucht.de/melden/{md["user_id"]}
 
     WICHTIGER HINWEIS:
 

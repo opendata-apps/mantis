@@ -95,8 +95,6 @@ class TestCoordinateUpdates:
 
         yield
 
-        # Cleanup happens automatically with session rollback
-
     def test_update_latitude_authenticated(self, client, session):
         """Test updating latitude with authenticated reviewer."""
         with client.session_transaction() as sess:
@@ -364,7 +362,9 @@ class TestCoordinateUpdates:
             )
             assert response.status_code == 200
 
-            location = session.get(TblFundorte, self.test_location.id)
+            location = session.get(
+                TblFundorte, self.test_location.id, populate_existing=True
+            )
             stored_value = getattr(location, coord_type)
             assert stored_value == str(float(coord_value))
 
@@ -394,14 +394,17 @@ class TestCoordinateUpdates:
             assert response.status_code == 200
 
             # Verify it was normalized when stored
-            location = session.get(TblFundorte, self.test_location.id)
+            location = session.get(
+                TblFundorte, self.test_location.id, populate_existing=True
+            )
             stored_value = getattr(location, coord_type)
             # Coordinates are normalized (spaces/plus removed, converted to float then string)
             assert stored_value == expected_value
 
-    def test_concurrent_coordinate_updates(self, client, session):
-        """Test handling of concurrent coordinate updates."""
-        # Set up two sessions
+    def test_updates_to_separate_reports_keep_their_own_coordinates(
+        self, client, session
+    ):
+        """Editing a second report must not change the first report again."""
         with client.session_transaction() as sess:
             sess["_user_id"] = self.reviewer.user_id
 
@@ -616,7 +619,7 @@ class TestAmtMtbRecalculation:
         assert self.test_location.amt == data["amt"]
         assert self.test_location.mtb == data["mtb"]
 
-    def test_amt_mtb_cleared_for_invalid_coordinates(self, client, session):
+    def test_amt_mtb_cleared_for_invalid_coordinates(self, app, client, session):
         """AMT/MTB are cleared for a coordinate outside Germany.
 
         Wien sits inside the MTB grid's bounding box, so the grid formula alone
@@ -648,7 +651,8 @@ class TestAmtMtbRecalculation:
         )
         session.add(area)
         session.commit()
-        reload_gemeinde_cache()
+        with app.app_context():
+            reload_gemeinde_cache()
 
         with client.session_transaction() as sess:
             sess["_user_id"] = self.reviewer.user_id
@@ -678,7 +682,8 @@ class TestAmtMtbRecalculation:
         finally:
             session.delete(area)
             session.commit()
-            reload_gemeinde_cache()
+            with app.app_context():
+                reload_gemeinde_cache()
 
     def test_update_coordinates_validation(self, client):
         """Test validation in update_coordinates endpoint."""
@@ -711,40 +716,59 @@ class TestAmtMtbRecalculation:
         )
         assert response.status_code == 404
 
-    def test_all_data_view_coordinate_update_recalculates_amt(self, client, session):
-        """Test that updating coordinates via all_data_view also recalculates AMT/MTB."""
+    def test_all_data_view_coordinate_update_recalculates_amt(
+        self, app, client, session
+    ):
+        from app.database.models import TblAemterCoordinaten
+        from app.database.alldata import refresh_materialized_view
+        from app.extensions import db
+        from app.tools.gemeinde_finder import reload_gemeinde_cache
+
+        area = TblAemterCoordinaten(
+            ags=11000004,
+            gen="Testgebiet",
+            properties={
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [13.40, 52.51],
+                        [13.41, 52.51],
+                        [13.41, 52.53],
+                        [13.40, 52.53],
+                        [13.40, 52.51],
+                    ]
+                ],
+            },
+        )
+        self.test_location.longitude = "13.404954"
+        session.add(area)
+        session.add(
+            TblMeldungUser(id_meldung=self.test_sighting.id, id_user=self.reviewer.id)
+        )
+        session.commit()
+        with app.app_context():
+            refresh_materialized_view(db)
+            reload_gemeinde_cache()
         with client.session_transaction() as sess:
             sess["_user_id"] = self.reviewer.user_id
-
-        # First, get the all_data_view ID for our test sighting
-        from app.database.models import TblAllData
-
-        all_data_row = session.scalar(
-            select(TblAllData).where(TblAllData.meldungen_id == self.test_sighting.id)
-        )
-
-        if all_data_row:  # Only test if all_data_view exists
-            # Update latitude via all_data_view endpoint
+        try:
             response = client.post(
                 "/admin/update_cell",
                 json={
-                    "table": "all_data_view",
                     "column": "latitude",
                     "meldungen_id": self.test_sighting.id,
-                    "value": "52.450000",
+                    "value": "52.520008",
                 },
-                content_type="application/json",
             )
-
-            if response.status_code == 200:
-                # Verify AMT was recalculated
-                session.refresh(self.test_location)
-                assert self.test_location.latitude == "52.450000"
-                # AMT might change due to new coordinates
-                # Just verify it's not empty if coordinates are valid
-                if self.test_location.latitude and self.test_location.longitude:
-                    lat = float(self.test_location.latitude)
-                    lon = float(self.test_location.longitude)
-                    if -90 <= lat <= 90 and -180 <= lon <= 180:
-                        # Should have some AMT value
-                        assert self.test_location.amt is not None
+            assert response.status_code == 200
+            assert response.json == {"success": True}
+            session.refresh(self.test_location)
+            assert self.test_location.latitude == "52.520008"
+            assert self.test_location.longitude == "13.404954"
+            assert self.test_location.amt == "11000004 -- Testgebiet"
+            assert self.test_location.mtb == "3446"
+        finally:
+            session.delete(area)
+            session.commit()
+            with app.app_context():
+                reload_gemeinde_cache()

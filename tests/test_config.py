@@ -1,16 +1,10 @@
-"""Production config, with only the differences overridden.
+"""Production defaults with test database, HTTP-client and mail settings.
 
-Two reasons qualify as an override: env-dependent settings must be pinned, and
-anything reaching the outside world must be neutralised. Enforced by
-tests/config/test_testing_config.py.
+The test_config fixture supplies temporary filesystem paths per test.
 """
-
-import os
 
 from app.config import Config as AppConfig
 from app.database.populate import INITIAL_BESCHREIBUNG_DATA
-
-_project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 class Config(AppConfig):
@@ -41,11 +35,6 @@ class Config(AppConfig):
     # --- Neutralised: must never reach a real inbox or tracker ---
     BACKUPMAIL = "backup@example.com"
     PHOTO_SUPPORT_EMAIL = "photo-errors@example.com"
-
-    # The dev server's own upload dir, and nothing cleans up after the suite —
-    # every report test leaves a WebP behind.
-    UPLOAD_FOLDER = os.path.join(_project_root, "datastore")
-    BACKUP_DIR = os.path.join(_project_root, "backups")
 
     WTF_CSRF_ENABLED = False
     RATELIMIT_ENABLED = False

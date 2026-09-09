@@ -222,7 +222,7 @@
               Tippen Sie auf die Karte, um den genauen Fundort zu markieren.
             </p>
             <div class="mb-4 form-group">
-              {{ render_form_field(form.sighting_date, attrs={'id': 'sighting_date', 'max': now().strftime('%Y-%m-%d'), 'min': (now() - timedelta(days=5*365)).strftime('%Y-%m-%d')}) }}
+              {{ render_form_field(form.sighting_date, attrs={'id': 'sighting_date', 'max': now().strftime('%Y-%m-%d'), 'min': minimum_sighting_date.isoformat()}) }}
             </div>
             <div class="flex flex-col mb-4 lg:flex-row lg:space-x-6">
               <!-- Map column -->

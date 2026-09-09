@@ -13,6 +13,13 @@ regressions at each layer at once.
 """
 
 import pytest
+from bs4 import BeautifulSoup
+from datetime import date
+import json
+import re
+from sqlalchemy import select
+
+from app.database.models import ReportStatus, TblMeldungen
 
 
 @pytest.fixture
@@ -144,6 +151,41 @@ class TestStatsGesamt:
         )
         assert response.status_code == 200
 
+    @pytest.mark.parametrize("tiere, classified, expected", [(3, 0, 3), (None, 2, 2)])
+    def test_totals_include_unclassified_animals(
+        self, reviewer_client, session, tiere, classified, expected
+    ):
+        report = session.scalar(select(TblMeldungen).order_by(TblMeldungen.id))
+        assert report is not None
+        report.dat_fund_von = report.dat_meld = date(2025, 7, 22)
+        report.statuses = [ReportStatus.APPR.value]
+        report.tiere = tiere
+        report.art_m = classified
+        report.art_w = report.art_n = report.art_o = report.art_f = 0
+        report.fundort.amt = "12072477"
+        session.commit()
+
+        filters = {"dateFrom": "2025-07-22", "dateTo": "2025-07-22", "ags": ""}
+        chart = reviewer_client.post(
+            "/statistik", data={**filters, "stats": "geschlecht"}
+        )
+        assert chart.status_code == 200
+        values = re.search(r"var daten = (.*);", chart.text)
+        assert values is not None
+        assert json.loads(values[1])["Gesamt"] == expected
+
+        table = reviewer_client.post(
+            "/statistik", data={**filters, "stats": "meldungen_gesamt"}
+        )
+        assert table.status_code == 200
+        rows = BeautifulSoup(table.text, "html.parser").select("tbody tr")
+        totals = {
+            cells[0].text.strip(): int(cells[-1].text)
+            for row in rows
+            if (cells := row.select("td"))
+        }
+        assert totals["12"] == expected
+
 
 class TestStatsFeedback:
     def test_empty_feedback_renders(self, reviewer_client):
@@ -173,7 +215,7 @@ class TestStatsFeedback:
                 source_detail="Tagesspiegel",
             )
         )
-        session.flush()
+        session.commit()
 
         response = reviewer_client.post(
             "/statistik",
@@ -184,7 +226,15 @@ class TestStatsFeedback:
             },
         )
         assert response.status_code == 200
-        assert b"Presse" in response.data or b"Tagesspiegel" in response.data
+        soup = BeautifulSoup(response.data, "html.parser")
+        rows = [
+            [cell.get_text(strip=True) for cell in row.select("td")]
+            for row in soup.select("tbody tr")
+        ]
+        assert ["Presse", "1"] in rows
+        assert "Tagesspiegel" in [
+            item.get_text(strip=True) for item in soup.select("li")
+        ]
 
 
 class TestStatsMtbTypeInput:
@@ -194,20 +244,34 @@ class TestStatsMtbTypeInput:
     aggregation columns."""
 
     @pytest.mark.parametrize(
-        "type_input", ["all", "maennlich", "weiblich", "oothek", "nymphe", "andere"]
+        "type_input,expected",
+        [
+            ("all", 15),
+            ("maennlich", 1),
+            ("weiblich", 2),
+            ("oothek", 4),
+            ("nymphe", 3),
+            ("andere", 5),
+        ],
     )
-    def test_mtb_type_input_variants(self, reviewer_client, type_input):
+    def test_mtb_type_input_variants(
+        self, reviewer_client, counted_reports, type_input, expected
+    ):
         response = reviewer_client.post(
             "/statistik",
             data={
                 "stats": "meldungen_mtb",
                 "typeInput": type_input,
-                "dateFrom": "2024-01-01",
-                "dateTo": "2026-12-31",
-                "ags": "",
+                "dateFrom": "1992-06-10",
+                "dateTo": "1992-06-10",
+                "ags": "11",
             },
         )
         assert response.status_code == 200
+        svg = BeautifulSoup(response.data, "html.parser").select_one("svg[xmlns]")
+        assert svg is not None
+        counts = [int(label.text) for label in svg.select('text[fill="white"]')]
+        assert counts == [expected]
 
 
 class TestAutocompleteAgs:
@@ -224,14 +288,7 @@ class TestAutocompleteAgs:
         assert response.data == b""
 
     def test_long_query_returns_suggestions(self, client, session):
-        """Inserting a fresh aemter row with a unique name must make
-        that row discoverable through the autocomplete prefix query.
-
-        We insert our own row (rather than relying on the fixture's
-        four Lebusa/Fichtwald entries) because earlier tests — notably
-        the ``flask seed-ags`` CLI test — may have replaced the seeded
-        aemter within the shared session connection before the
-        transaction rolls back."""
+        """Newly committed places appear in autocomplete prefix results."""
         from app.database.models import TblAemterCoordinaten
 
         sentinel = TblAemterCoordinaten(
@@ -240,7 +297,7 @@ class TestAutocompleteAgs:
             properties={"type": "Point", "coordinates": [0, 0]},
         )
         session.add(sentinel)
-        session.flush()
+        session.commit()
 
         response = client.get("/statistik/ags?ags_input=Testst")
         assert response.status_code == 200
@@ -262,7 +319,7 @@ class TestAutocompleteAgs:
                 properties={"type": "Point", "coordinates": [0, 0]},
             )
         )
-        session.flush()
+        session.commit()
 
         response = client.get("/statistik/ags?ags_input=88888777")
         html = response.data.decode()

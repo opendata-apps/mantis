@@ -7,7 +7,7 @@ from tests.helpers import set_client_user
 
 
 @pytest.fixture
-def authenticated_admin_client(client, session_with_user):
+def authenticated_admin_client(client):
     """Fixture that provides a client with admin user session."""
     return set_client_user(client, "9999")
 
@@ -61,7 +61,6 @@ def mock_sighting(mock_sighting_factory):
     return mock_sighting_factory(1)
 
 
-@pytest.mark.usefixtures("request_context")
 class TestAdminApproval:
     """Test class for admin approval functionality."""
 
@@ -206,7 +205,6 @@ def reported_sighting(session):
     return sighting
 
 
-@pytest.mark.usefixtures("request_context")
 class TestApprovalMailPayload:
     """The approval route must hand the mail helper a payload it can render.
 
@@ -242,4 +240,4 @@ class TestApprovalMailPayload:
         assert "Alexanderplatz" in message.body
         assert "14.07.2025" in message.body
         assert "Klar ein Weibchen." in message.body
-        assert "/report/mailtest-reporter" in message.body
+        assert "/melden/mailtest-reporter" in message.body

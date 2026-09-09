@@ -143,7 +143,10 @@ def configure_middlewares(app: Flask) -> None:
 
     @app.after_request
     def add_security_headers(response):
+        request.environ["mantis.route"] = str(request.url_rule or "unmatched")
         response.headers["X-Content-Type-Options"] = "nosniff"
+        # Keep the site origin for map-provider attribution, never private paths.
+        response.headers["Referrer-Policy"] = "strict-origin"
         response.headers["X-Frame-Options"] = "SAMEORIGIN"
         # Explicitly off, not absent: OWASP Secure Headers asks for "0" so a
         # legacy browser cannot fall back to its own buggy XSS auditor.
@@ -253,7 +256,7 @@ def page_not_found(e):
     from flask import current_app
 
     current_app.logger.warning(
-        f"Page not found: {request.url} - User Agent: {request.headers.get('User-Agent', 'Unknown')}"
+        "Page not found: route=%s", request.url_rule or "unmatched"
     )
     if wants_json_response():
         return jsonify({"error": e.description or "Not found"}), 404
@@ -264,7 +267,7 @@ def forbidden(e):
     from flask import current_app
 
     current_app.logger.warning(
-        f"Forbidden access: {request.url} - User Agent: {request.headers.get('User-Agent', 'Unknown')}"
+        "Forbidden access: route=%s", request.url_rule or "unmatched"
     )
     if wants_json_response():
         return jsonify({"error": e.description or "Forbidden"}), 403
@@ -276,7 +279,7 @@ def too_many_requests(e):
     from flask import current_app
 
     current_app.logger.warning(
-        f"Rate limit exceeded: {request.url} - User Agent: {request.headers.get('User-Agent', 'Unknown')}"
+        "Rate limit exceeded: route=%s", request.url_rule or "unmatched"
     )
     if wants_json_response():
         return jsonify({"error": e.description or "Too many requests"}), 429

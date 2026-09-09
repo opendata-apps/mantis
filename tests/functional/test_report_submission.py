@@ -12,8 +12,9 @@ This test suite validates the complete report submission functionality including
 import datetime
 import io
 from unittest.mock import patch
+from PIL import Image
 import pytest
-from sqlalchemy import select, func
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from app.database.models import TblFundorte, TblMeldungen, TblUsers, TblMeldungUser
 from app.database.fundortbeschreibung import TblFundortBeschreibung
@@ -94,9 +95,7 @@ class TestReportSubmission:
     This test class covers form rendering, validation, file upload,
     database integration, and security features of the submission process.
 
-    Cleanup is handled automatically by the parent conftest's ``session``
-    fixture which wraps each test in a transaction that rolls back on exit.
-    No manual teardown is needed (see DataMade's transactional testing pattern).
+    The database fixture rebuilds and seeds the schema before each test.
     """
 
     def test_report_form_renders(self, client):
@@ -241,192 +240,49 @@ class TestReportSubmission:
     # Form Submission Tests #
     ############################
 
-    @patch("app.routes.report._process_uploaded_image")
     def test_image_upload_integration(
-        self, mock_process_image, client, report_form_data, session
+        self, app, client, report_form_data, session, tmp_path, monkeypatch
     ):
-        """Test the image upload handling during report submission.
-
-        This test verifies the end-to-end process of submitting a report form
-        with an image attachment, ensuring all database records are created
-        correctly and with the right field values.
-
-        Verifies:
-        - File upload handler is called correctly
-        - Database records are created in all relevant tables
-        - Record field values match form input
-        - Proper relationships are established
-        """
-        # Setup mock to simulate successful file upload
-        mock_process_image.return_value = "dummy/path/test_image.webp"
-
-        # Prepare form data with all required fields
-        form_data = report_form_data.copy()
-        form_data["location_description"] = "1"  # Add location description ID
-
-        # Count the number of records before submission
-        pre_submission_count = session.scalar(
-            select(func.count()).select_from(TblMeldungen)
-        )
-        pre_location_count = session.scalar(
-            select(func.count()).select_from(TblFundorte)
-        )
-        pre_users_count = session.scalar(select(func.count()).select_from(TblUsers))
-        pre_relation_count = session.scalar(
-            select(func.count()).select_from(TblMeldungUser)
-        )
-
-        # Submit form with image - should succeed with a valid form
+        monkeypatch.setitem(app.config, "UPLOAD_FOLDER", str(tmp_path))
+        before = set(session.scalars(select(TblMeldungen.id)))
         response = client.post(
             "/melden",
-            data={**form_data, "photo": create_test_image()},
+            data={**report_form_data, "photo": create_test_image()},
             content_type="multipart/form-data",
-            follow_redirects=True,
         )
+        assert response.status_code == 200
+        assert response.json["success"] is True
 
-        # If validation passes and form is accepted
-        if response.status_code == 200 and b"Vielen Dank" in response.data:
-            # The file upload handler should have been called
-            mock_process_image.assert_called_once()
-
-            # Check if new records were created in all related tables
-            post_submission_count = session.scalar(
-                select(func.count()).select_from(TblMeldungen)
-            )
-            post_location_count = session.scalar(
-                select(func.count()).select_from(TblFundorte)
-            )
-            post_users_count = session.scalar(
-                select(func.count()).select_from(TblUsers)
-            )
-            post_relation_count = session.scalar(
-                select(func.count()).select_from(TblMeldungUser)
-            )
-
-            assert post_submission_count > pre_submission_count, (
-                f"No new sighting record was created (pre={pre_submission_count}, post={post_submission_count})"
-            )
-            assert post_location_count > pre_location_count, (
-                f"No new location record was created (pre={pre_location_count}, post={post_location_count})"
-            )
-            assert post_users_count >= pre_users_count, (
-                f"User record may not have been created if using existing user (pre={pre_users_count}, post={post_users_count})"
-            )
-            assert post_relation_count > pre_relation_count, (
-                f"No new user-sighting relation was created (pre={pre_relation_count}, post={post_relation_count})"
-            )
-
-            # Find the most recent records for detailed validation
-            # Don't use order_by id.desc() as test fixtures may have high IDs like 99999
-            # Instead, find the sighting created after our pre-count
-            all_sightings = session.scalars(select(TblMeldungen)).all()
-            latest_sighting = None
-            for sighting in all_sightings:
-                # Find a sighting that wasn't in the pre-count set
-                # and has the expected description
-                if sighting.anm_melder == form_data.get("description"):
-                    latest_sighting = sighting
-                    break
-
-            if latest_sighting:
-                # Verify sighting record details
-                assert latest_sighting.dat_meld is not None, "Meldedatum should be set"
-                assert latest_sighting.dat_fund_von is not None, (
-                    "Funddatum should be set"
-                )
-
-                # Validate gender fields based on form selection
-                gender_mapping = {
-                    "Männlich": ("art_m", 1),
-                    "Weiblich": ("art_w", 1),
-                    "Nymphe": ("art_n", 1),
-                    "Oothek": ("art_o", 1),
-                }
-                gender_field, expected_value = gender_mapping.get(
-                    form_data["gender"], (None, None)
-                )
-                if gender_field:
-                    assert getattr(latest_sighting, gender_field) == expected_value, (
-                        f"Gender field {gender_field} should be {expected_value}"
-                    )
-
-                assert latest_sighting.anm_melder == form_data["description"], (
-                    "Description wasn't saved correctly"
-                )
-
-                # Check related location record
-                location = session.scalar(
-                    select(TblFundorte).where(
-                        TblFundorte.id == latest_sighting.fo_zuordnung
-                    )
-                )
-                if location:
-                    # Verify location record details
-                    assert location.ort == form_data["fund_city"], (
-                        f"City doesn't match: expected {form_data['fund_city']}, got {location.ort}"
-                    )
-                    assert location.land == form_data["fund_state"], (
-                        f"State doesn't match: expected {form_data['fund_state']}, got {location.land}"
-                    )
-                    assert location.strasse == form_data["fund_street"], (
-                        f"Street doesn't match: expected {form_data['fund_street']}, got {location.strasse}"
-                    )
-                    assert location.kreis == form_data["fund_district"], (
-                        f"District doesn't match: expected {form_data['fund_district']}, got {location.kreis}"
-                    )
-                    if form_data["fund_zip_code"]:
-                        assert str(location.plz) == form_data["fund_zip_code"], (
-                            f"ZIP code doesn't match: expected {form_data['fund_zip_code']}, got {location.plz}"
-                        )
-                    assert location.longitude == form_data["longitude"], (
-                        f"Longitude doesn't match: expected {form_data['longitude']}, got {location.longitude}"
-                    )
-                    assert location.latitude == form_data["latitude"], (
-                        f"Latitude doesn't match: expected {form_data['latitude']}, got {location.latitude}"
-                    )
-                    assert location.beschreibung == int(
-                        form_data["location_description"]
-                    ), "Location description doesn't match"
-                    assert "test_image.webp" in location.ablage, (
-                        f"Image path not correctly stored: {location.ablage}"
-                    )
-
-                    # Check MTB field was calculated
-                    if location.longitude and location.latitude:
-                        assert location.mtb is not None, (
-                            "MTB field should be calculated from coordinates"
-                        )
-
-                # Find and check user record
-                # Note: Users might be created with auto-generated IDs, so we need to find by other means
-                user_relation = session.scalar(
-                    select(TblMeldungUser).where(
-                        TblMeldungUser.id_meldung == latest_sighting.id
-                    )
-                )
-                if user_relation:
-                    user = session.scalar(
-                        select(TblUsers).where(TblUsers.id == user_relation.id_user)
-                    )
-                    if user:
-                        # Verify user record details - name format is typically "LastName F."
-                        expected_name_format = f"{form_data['report_last_name']} {form_data['report_first_name'][0].upper()}."
-                        assert user.user_name == expected_name_format, (
-                            f"User name doesn't match expected format: {expected_name_format}, got {user.user_name}"
-                        )
-
-                        # Check contact info if provided
-                        if form_data.get("contact"):
-                            assert user.user_kontakt == form_data["contact"], (
-                                f"User contact doesn't match: expected {form_data['contact']}, got {user.user_kontakt}"
-                            )
-
-        # If form validation had errors
-        elif response.status_code in [200, 400]:
-            # No file upload should happen on validation errors
-            mock_process_image.assert_not_called()
-        else:
-            pytest.fail(f"Unexpected status code: {response.status_code}")
+        report = session.scalars(
+            select(TblMeldungen).where(TblMeldungen.id.not_in(before))
+        ).one()
+        assert report.dat_meld == datetime.date.today()
+        assert report.dat_fund_von.isoformat() == report_form_data["sighting_date"]
+        assert report.anm_melder == report_form_data["description"]
+        assert (
+            report.tiere,
+            report.art_m,
+            report.art_w,
+            report.art_n,
+            report.art_o,
+        ) == (1, 1, 0, 0, 0)
+        location = report.fundort
+        assert location is not None
+        assert location.ort == report_form_data["fund_city"]
+        assert location.strasse == report_form_data["fund_street"]
+        assert location.plz == int(report_form_data["fund_zip_code"])
+        assert float(location.latitude) == float(report_form_data["latitude"])
+        assert float(location.longitude) == float(report_form_data["longitude"])
+        assert location.beschreibung == 1
+        with Image.open(tmp_path / location.ablage) as saved:
+            saved.load()
+            assert saved.format == "WEBP"
+            assert saved.size == (100, 100)
+        assert report.reporter_link is not None
+        user = report.reporter_link.reporter
+        assert user.user_name == "Reporter T."
+        assert user.user_kontakt == report_form_data["email"]
+        assert user.user_rolle == "1"
 
     @patch("app.routes.report._process_uploaded_image")
     def test_submission_outside_germany_is_allowed(
@@ -572,180 +428,29 @@ class TestReportSubmission:
         )
         assert location is None
 
-    def test_file_upload_validation(self, client, report_form_data):
-        """Test validation for file uploads including file type and size constraints.
-
-        This test verifies file-related validations including:
-        - Missing file validation
-        - File type validation
-        - File size validation
-        """
-        # Add required field
-        form_data = report_form_data.copy()
-        form_data["location_description"] = "1"
-
-        # 1. Test missing file error
-        response = client.post(
-            "/melden",
-            data=form_data,  # No picture field
-            content_type="multipart/form-data",
-            follow_redirects=True,
-        )
-
-        # Check for appropriate error message and status code
-        # Flask-WTF validation should return 200 with error message
-        expected_message = "Ein Foto ist erforderlich"
-        response_text = response.data.decode("utf-8")
-
-        if response.status_code == 200 and expected_message in response_text:
-            assert True, "Missing file validation works correctly"
-        else:
-            # Some implementations might handle this differently
-            assert response.status_code in [200, 400], (
-                f"Unexpected status code: {response.status_code}"
-            )
-
-        # 2. Test invalid file type
-        # Create text file instead of image
-        text_file = io.BytesIO(b"This is not an image file")
-        text_file.name = "test.txt"
-        text_file.seek(0)
-
-        response = client.post(
-            "/melden",
-            data={**form_data, "photo": text_file},
-            content_type="multipart/form-data",
-            follow_redirects=True,
-        )
-
-        # Check for appropriate error message and status code
-        expected_message = "Nur Bilddateien (JPG, PNG, WEBP, HEIC, HEIF) sind erlaubt"
-        response_text = response.data.decode("utf-8")
-
-        if response.status_code == 200 and expected_message in response_text:
-            assert True, "File type validation works correctly"
-        else:
-            # Some implementations might handle this differently
-            assert response.status_code in [200, 400], (
-                f"Unexpected status code: {response.status_code}"
-            )
-
-        # 3. Test that the form has file size validation
-        # The photo field in the form has a FileSize validator set to 12MB
-        # This is verified by the error message in the form definition
-        # We can test this by checking if the form configuration exists
-
-        # Create a large file (over 12MB)
-        large_file_size = 13 * 1024 * 1024  # 13MB
-        large_file = io.BytesIO(b"x" * large_file_size)
-        large_file.name = "large_image.jpg"
-        large_file.seek(0)
-
-        response = client.post(
-            "/melden",
-            data={**form_data, "photo": (large_file, "large_image.jpg")},
-            content_type="multipart/form-data",
-            follow_redirects=True,
-        )
-
-        # The form should reject files over 12MB
-        assert response.status_code in [200, 400], (
-            f"Expected form validation error, got {response.status_code}"
-        )
-
-        # Note: In production, the FileSize validator would catch this
-        # The test environment might handle large uploads differently
+    @pytest.mark.parametrize("upload", ["missing", "text", "oversized"])
+    def test_file_upload_validation(self, client, report_form_data, session, upload):
+        before = set(session.scalars(select(TblMeldungen.id)))
+        data = report_form_data.copy()
+        if upload == "text":
+            data["photo"] = (io.BytesIO(b"not an image"), "test.txt")
+        elif upload == "oversized":
+            data["photo"] = (io.BytesIO(b"x" * (13 * 1024 * 1024)), "large.jpg")
+        response = client.post("/melden", data=data, content_type="multipart/form-data")
+        assert response.status_code == 400
+        assert set(response.json["errors"]) == {"photo"}
+        assert set(session.scalars(select(TblMeldungen.id))) == before
 
     ############################
     # Security Feature Tests #
     ############################
 
-    def test_honeypot_spam_protection(self, client, report_form_data):
-        """Test the honeypot field for spam protection.
-
-        This test verifies that the honeypot anti-spam mechanism
-        correctly rejects form submissions where the hidden honeypot
-        field is filled (as a bot would do).
-        """
-        # Prepare form data with honeypot filled (simulating bot submission)
-        form_data = report_form_data.copy()
-        form_data["honeypot"] = "x"  # Bots would fill this field (max 1 char allowed)
-        form_data["location_description"] = "1"
-
-        # Ensure all required fields are valid so we test only the honeypot
-        # Add any other required fields to isolate the honeypot test
-        if "photo" not in form_data:
-            # Create valid form data with photo
-            test_image = create_test_image()
-
-            # Submit form with honeypot trap filled
-            response = client.post(
-                "/melden",
-                data={**form_data, "photo": test_image},
-                content_type="multipart/form-data",
-                follow_redirects=True,
-            )
-
-            # Honeypot validation happens at the application level in data.py after form validation
-            # When honeypot is filled, the application should return 403 Forbidden
-            # However, if the form validation fails first (which may happen due to test differences),
-            # we might get a 400 Bad Request instead
-            if "honeypot" in response.data.decode("utf-8"):
-                # If the response contains honeypot error, then we know the honeypot was checked
-                assert response.status_code == 403, (
-                    "Honeypot should trigger 403 Forbidden"
-                )
-            else:
-                # If we don't see honeypot in the response and get 400 Bad Request, we can't
-                # definitively test the honeypot itself, so we'll skip the assertion
-                assert response.status_code in [403, 400], (
-                    f"Expected 403 or 400, got {response.status_code}"
-                )
-
-    def test_rate_limiting(self, client, report_form_data):
-        """Test rate limiting mechanism for form submissions.
-
-        This test verifies that the application correctly
-        implements rate limiting using Flask-Limiter.
-
-        Note: Flask-Limiter is configured with "10 per hour" and "3 per minute"
-        for POST requests to the /melden route.
-        """
-        # Prepare valid form data with all required fields
-        form_data = report_form_data.copy()
-        form_data["location_description"] = "1"
-
-        # Make 3 requests (within the minute limit)
-        responses = []
-        for _ in range(3):
-            response = client.post(
-                "/melden",
-                data={**form_data, "photo": create_test_image()},
-                content_type="multipart/form-data",
-                follow_redirects=True,
-            )
-            responses.append(response.status_code)
-
-        # The 4th request should be rate limited
+    def test_honeypot_spam_protection(self, client, report_form_data, session):
+        before = set(session.scalars(select(TblMeldungen.id)))
         response = client.post(
             "/melden",
-            data={**form_data, "photo": create_test_image()},
+            data={**report_form_data, "honeypot": "x", "photo": create_test_image()},
             content_type="multipart/form-data",
-            follow_redirects=True,
         )
-
-        # In test environment, rate limiting might not work as expected
-        # due to test isolation or form validation errors
-        # Accept either rate limiting (429) or form errors (400/200)
-        assert response.status_code in [200, 400, 429], (
-            f"Expected valid response code, got {response.status_code}"
-        )
-
-        # If we got 429, that's good - rate limiting is working
-        if response.status_code == 429:
-            assert True, "Rate limiting is working correctly"
-        else:
-            # Otherwise, just verify the endpoint is responding
-            assert True, (
-                "Endpoint is responding (rate limiting may be disabled in tests)"
-            )
+        assert response.status_code == 403
+        assert set(session.scalars(select(TblMeldungen.id))) == before

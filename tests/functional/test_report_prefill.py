@@ -6,6 +6,7 @@ in the form while maintaining the ability to edit the data.
 """
 
 import pytest
+from bs4 import BeautifulSoup
 from app.database.models import TblUsers
 from app.tools.gen_user_id import get_new_id
 
@@ -73,9 +74,11 @@ class TestReportPrefill:
 
             # Check that fields are readonly
             # Looking for readonly attribute in the form fields
-            assert "readonly" in response_text.lower(), (
-                "Prefilled fields should be readonly"
-            )
+            fields = BeautifulSoup(response_text, "html.parser")
+            for name in ("report_first_name", "report_last_name", "email"):
+                field = fields.select_one(f'input[name="{name}"]')
+                assert field is not None
+                assert field.has_attr("readonly")
 
         finally:
             # Clean up
@@ -113,9 +116,11 @@ class TestReportPrefill:
 
             # Check that fields are readonly
             # Looking for readonly attribute in the form fields
-            assert "readonly" in response_text.lower(), (
-                "Prefilled fields should be readonly"
-            )
+            fields = BeautifulSoup(response_text, "html.parser")
+            for name in ("report_first_name", "report_last_name", "email"):
+                field = fields.select_one(f'input[name="{name}"]')
+                assert field is not None
+                assert field.has_attr("readonly")
 
         finally:
             # Clean up
@@ -147,12 +152,11 @@ class TestReportPrefill:
                 "First name should be prefilled with initial"
             )
 
-            email_field_empty = 'name="email"' in response_text and (
-                'value=""' in response_text or 'value="None"' not in response_text
+            field = BeautifulSoup(response_text, "html.parser").select_one(
+                'input[name="email"]'
             )
-            assert email_field_empty, (
-                "Email field should be empty when user has no email"
-            )
+            assert field is not None
+            assert field.get("value", "") == ""
 
         finally:
             # Clean up
@@ -176,10 +180,12 @@ class TestReportPrefill:
         assert 'name="report_last_name"' in response_text, "Form should render normally"
         assert 'name="email"' in response_text, "Form should render normally"
 
-        # Form should be empty (no prefilled values)
-        assert 'value="Weber"' not in response_text, (
-            "Form should not have prefilled values"
-        )
+        fields = BeautifulSoup(response_text, "html.parser")
+        for name in ("report_first_name", "report_last_name", "email"):
+            field = fields.select_one(f'input[name="{name}"]')
+            assert field is not None
+            assert field.get("value", "") == ""
+            assert not field.has_attr("readonly")
 
     def test_form_without_user_id(self, client):
         """Test that accessing /melden without user ID works normally."""
@@ -196,11 +202,12 @@ class TestReportPrefill:
         assert 'name="report_last_name"' in response_text, "Form should render normally"
         assert 'name="email"' in response_text, "Form should render normally"
 
-        # Form fields should not have readonly attribute (ignore CSS)
-        # Check that form fields don't have readonly attribute
-        assert "readonly=" not in response_text or 'readonly"' not in response_text, (
-            "Form fields should not have readonly attribute without user ID"
-        )
+        fields = BeautifulSoup(response_text, "html.parser")
+        for name in ("report_first_name", "report_last_name", "email"):
+            field = fields.select_one(f'input[name="{name}"]')
+            assert field is not None
+            assert field.get("value", "") == ""
+            assert not field.has_attr("readonly")
 
     def test_prefilled_fields_are_readonly(self, client, session, test_user_data):
         """Test that prefilled fields are readonly to prevent identity changes."""
@@ -219,10 +226,11 @@ class TestReportPrefill:
             response_text = response.data.decode("utf-8")
 
             # Check that prefilled fields are readonly
-            readonly_count = response_text.lower().count("readonly")
-            assert readonly_count >= 3, (
-                f"Expected at least 3 readonly fields (name, email), found {readonly_count}"
-            )
+            fields = BeautifulSoup(response_text, "html.parser")
+            for name in ("report_first_name", "report_last_name", "email"):
+                field = fields.select_one(f'input[name="{name}"]')
+                assert field is not None
+                assert field.has_attr("readonly")
 
             # Check that readonly styling is defined in CSS
             assert "input[readonly]" in response_text, (

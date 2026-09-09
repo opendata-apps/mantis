@@ -2,7 +2,7 @@ Deployment hinter Nginx
 =======================
 
 Die Anwendung ist für den Betrieb hinter einem Reverse Proxy vorbereitet.
-``ProxyFix`` ist in ``app/__init__.py`` bereits aktiviert:
+``ProxyFix`` ist in ``app/factory.py`` bereits aktiviert:
 
 .. code-block:: python
 
@@ -19,7 +19,7 @@ Produktionsstart erfolgt typischerweise mit Gunicorn:
 
 .. code-block:: bash
 
-   gunicorn run:app -c gunicorn_config.py
+   gunicorn run:app -c gunicorn.conf.py
 
 Minimale Nginx-Konfiguration
 ----------------------------

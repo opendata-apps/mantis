@@ -2,7 +2,7 @@
 
 import pytest
 from unittest.mock import patch
-from sqlalchemy import select, func
+from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.database.populate import (
@@ -12,22 +12,20 @@ from app.database.populate import (
 from app.database.models import TblFundortBeschreibung
 
 
+@pytest.mark.usefixtures("app_ctx")
 class TestPopulateFunctions:
     """Test suite for database population functions."""
 
     def test_populate_beschreibung_idempotent(self, session):
         """Test that populate_beschreibung doesn't duplicate existing data."""
-        initial_count = session.scalar(
-            select(func.count()).select_from(TblFundortBeschreibung)
+        descriptions = select(
+            TblFundortBeschreibung.id, TblFundortBeschreibung.beschreibung
         )
-        assert initial_count > 0
-
+        before = dict(session.execute(descriptions).all())
+        assert before[1] == "Im Haus"
+        assert before[99] == "Anderer Fundort"
         populate_beschreibung(session)
-
-        final_count = session.scalar(
-            select(func.count()).select_from(TblFundortBeschreibung)
-        )
-        assert final_count == initial_count
+        assert dict(session.execute(descriptions).all()) == before
 
     def test_populate_beschreibung_database_error(self, session):
         """Test handling of database errors during population."""

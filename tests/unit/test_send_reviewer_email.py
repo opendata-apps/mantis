@@ -70,9 +70,11 @@ class TestRendertextmsg:
         text = rendertextmsg(_make_mail_data(anm_bearbeiter=note))
         assert note in text
 
-    def test_contains_report_link_with_user_id(self):
+    def test_new_report_link_points_to_submission_form(self):
         text = rendertextmsg(_make_mail_data(user_id="deadbeef42"))
-        assert "report/deadbeef42" in text
+        lines = [line.strip() for line in text.splitlines()]
+        link = lines[lines.index("Ihr Link für neue Meldungen:") + 1]
+        assert link == "https://gottesanbeterin-gesucht.de/melden/deadbeef42"
 
     def test_contains_privacy_warning(self):
         text = rendertextmsg(_make_mail_data())

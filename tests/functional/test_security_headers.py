@@ -36,6 +36,12 @@ def test_x_xss_protection_is_explicitly_disabled(client):
     assert resp.headers.get("X-XSS-Protection") == "0"
 
 
+def test_responses_prevent_referrer_disclosure(client):
+    for path in ("/melden", "/missing/private-bearer"):
+        response = client.get(path)
+        assert response.headers.get("Referrer-Policy") == "strict-origin"
+
+
 def test_no_template_uses_eval_based_htmx_attributes():
     """Static guard: regress if a template re-introduces htmx eval features."""
     forbidden_substrings = (

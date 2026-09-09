@@ -2,8 +2,6 @@
 
 Guards the scoping rule stated at the query in app/routes/provider.py.
 
-Rows committed inside a test survive into the next one, so every case brings
-its own user id and image name rather than sharing fixtures.
 """
 
 import os
@@ -39,26 +37,16 @@ WEBP_BYTES = (
 
 @pytest.fixture
 def upload_folder(app):
-    """Upload root, plus a list of names to delete afterwards.
-
-    Only what a test appends is removed; images the form itself writes stay.
-    """
+    """Create this test's isolated upload root."""
     folder = app.config["UPLOAD_FOLDER"]
     os.makedirs(folder, exist_ok=True)
-    written = []
-    yield folder, written
-    for name in written:
-        path = os.path.join(folder, name)
-        if os.path.exists(path):
-            os.remove(path)
+    return folder
 
 
 def _seed_victim(session, upload_folder, *, usrid, image, contact=VICTIM_EMAIL):
     """A reporter with one report carrying exact coordinates and a photo."""
-    folder, written = upload_folder
-    with open(os.path.join(folder, image), "wb") as f:
+    with open(os.path.join(upload_folder, image), "wb") as f:
         f.write(WEBP_BYTES)
-    written.append(image)
 
     beschreibung = session.scalar(select(TblFundortBeschreibung).limit(1))
     victim = TblUsers(
@@ -167,7 +155,8 @@ class TestAddressIsNotACredential:
         _submit_as(client, VICTIM_EMAIL)
         stranger = _link_from_success(client)
 
-        main(apply_changes=True)
+        with client.application.app_context():
+            main(apply_changes=True)
         victim = session.scalar(
             select(TblUsers).where(TblUsers.user_id == "victim_legacy")
         )

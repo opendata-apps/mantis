@@ -103,17 +103,18 @@ def update_report_image_date(report_id, new_date):
         raise FileNotFoundError(f"Image file not found: {fundorte_record.ablage}")
 
     old_dir, old_filename = os.path.split(old_image_path)
-    # Extract location and user id from filename
+    # Legacy filenames use a reporter token; new files use an independent image ID.
     filename_parts = old_filename.rsplit("-", 2)
     if len(filename_parts) != 3:
         raise ValueError(f"Invalid filename format: {old_filename}")
 
     location = filename_parts[0]
-    usrid_with_ext = filename_parts[2]
-    usrid = usrid_with_ext.replace(".webp", "")
+    image_id = filename_parts[2].removesuffix(".webp")
 
     new_dir_path = ensure_upload_dir(base_dir, new_date_obj)
-    new_file_path = new_dir_path / build_upload_filename(location, usrid, new_date_obj)
+    new_file_path = new_dir_path / build_upload_filename(
+        location, image_id, new_date_obj
+    )
 
     # Skip if source and destination are the same
     if str(old_image_path) == str(new_file_path):

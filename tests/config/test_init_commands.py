@@ -1,86 +1,51 @@
-"""Tests for app/__init__.py CLI commands and error handlers."""
+"""Application factory behavior through requests and rendered templates."""
 
-from unittest.mock import patch, MagicMock
-from flask import Flask
-from app.factory import page_not_found, forbidden, too_many_requests
+from datetime import datetime
 
-
-def test_flask_app_with_testing_config():
-    """Test the Flask app creation with testing configuration."""
-    # Test an init parameter that we haven't hit yet
-    from app import create_app
-    from tests.test_config import Config as TestConfig
-
-    # Create app with explicit test config
-    app = create_app(TestConfig)
-
-    # Verify that the test config parameters are set
-    assert app.config.get("TESTING") is True
-
-    # Check that important application components are initialized
-    assert hasattr(app, "jinja_env"), "Jinja environment should be initialized"
-    assert hasattr(app, "url_map"), "URL map should be initialized"
-
-    # Verify routes are registered
-    rules = [rule.endpoint for rule in app.url_map.iter_rules()]
-    assert "static" in rules, "Static routes should be registered"
-
-    # Verify context processor
-    assert "now" in app.jinja_env.globals or any(
-        "now" in processor() for processor in app.template_context_processors[None]
-    ), "Context processor for 'now' should be registered"
+from flask import abort, render_template_string
+import pytest
 
 
-def test_error_handlers_register():
-    """Test that error handlers are properly registered and work."""
-    from app import create_app
-    from tests.test_config import Config as TestConfig
+@pytest.fixture
+def factory_app(app):
+    @app.route("/__error/<int:status>")
+    def error(status):
+        abort(status, description="Request refused")
 
-    app = create_app(TestConfig)
-
-    # Test 404 handler
-    with app.test_client() as client:
-        response = client.get("/nonexistent-page-12345")
-        assert response.status_code == 404  # Unknown routes return 404
-
-    # Test that error handlers are actually registered
-    assert 404 in app.error_handler_spec[None]
-    assert 403 in app.error_handler_spec[None]
-    assert 429 in app.error_handler_spec[None]
+    return app
 
 
-def test_error_handler_return_values(app):
-    """Test the return values of error handler functions."""
-    with app.test_request_context():
-        # Test each handler directly
-        response_404, status_404 = page_not_found(None)
-        assert isinstance(response_404, str)
-        assert status_404 == 404
-        assert "404" in response_404 or "nicht gefunden" in response_404.lower()
-
-        response_403, status_403 = forbidden(None)
-        assert isinstance(response_403, str)
-        assert status_403 == 403
-        assert "403" in response_403 or "verboten" in response_403.lower()
-
-        response_429, status_429 = too_many_requests(None)
-        assert isinstance(response_429, str)
-        assert status_429 == 429
-        assert "429" in response_429 or "zu viele" in response_429.lower()
+def test_flask_app_with_testing_config(factory_app, _db):
+    assert factory_app.testing
+    response = factory_app.test_client().get("/melden")
+    assert response.status_code == 200
+    assert response.mimetype == "text/html"
+    assert 'name="sighting_date"' in response.text
 
 
-def test_context_processor():
-    """Test that the context processor for inject_now is registered."""
-    # Create a mock app with a context_processor method that we can track
-    app = Flask("test_app")
-    app.context_processor = MagicMock()
+@pytest.mark.parametrize("status", [403, 404, 429])
+def test_error_handlers_answer_json_clients(factory_app, status):
+    response = factory_app.test_client().get(
+        f"/__error/{status}", headers={"Accept": "application/json"}
+    )
+    assert response.status_code == status
+    assert response.get_json() == {"error": "Request refused"}
 
-    # Create the app with our mock
-    from app import create_app
 
-    with patch("app.factory.Flask", return_value=app):
-        # Call create_app which should register the context processor
-        create_app()
+@pytest.mark.parametrize("status", [403, 404, 429])
+def test_error_handlers_answer_browsers(factory_app, status):
+    response = factory_app.test_client().get(
+        f"/__error/{status}", headers={"Accept": "text/html"}
+    )
+    assert response.status_code == status
+    assert response.mimetype == "text/html"
+    assert str(status) in response.text
 
-        # Verify context_processor was called at least once
-        assert app.context_processor.called
+
+def test_templates_receive_the_current_time(factory_app):
+    before = datetime.now()
+    with factory_app.test_request_context():
+        rendered = render_template_string("{{ now.isoformat() }}")
+    after = datetime.now()
+
+    assert before <= datetime.fromisoformat(rendered) <= after

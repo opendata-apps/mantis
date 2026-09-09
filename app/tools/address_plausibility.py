@@ -10,6 +10,8 @@ No external API calls — all lookups use the in-memory STRtree spatial index.
 
 from dataclasses import dataclass
 from enum import StrEnum
+import csv
+import io
 
 
 class Issue(StrEnum):
@@ -162,16 +164,18 @@ def format_report(mismatches, checked, skipped):
 
 def format_csv(mismatches):
     """Format validation results as CSV lines (including header)."""
-    lines = ["id,issue,stored_land,expected_land,stored_ort,expected_ort"]
+    output = io.StringIO(newline="")
+    output.write("id,issue,stored_land,expected_land,stored_ort,expected_ort\n")
+    writer = csv.writer(output, quoting=csv.QUOTE_NONNUMERIC, lineterminator="\n")
     for m in mismatches:
-        # Escape fields that might contain commas
         fields = [
-            str(m.fundort_id),
-            m.issue.value,
-            f'"{m.stored_land}"',
-            f'"{m.expected_land}"',
-            f'"{m.stored_ort}"',
-            f'"{m.expected_ort}"',
+            m.stored_land,
+            m.expected_land,
+            m.stored_ort,
+            m.expected_ort,
         ]
-        lines.append(",".join(fields))
-    return "\n".join(lines)
+        for index, value in enumerate(fields):
+            if value.lstrip().startswith(("=", "+", "-", "@", "＝", "＋", "－", "＠")):
+                fields[index] = "'" + value
+        writer.writerow([m.fundort_id, m.issue.value, *fields])
+    return output.getvalue().removesuffix("\n")

@@ -1,5 +1,6 @@
 import requests
 import re
+import argparse
 
 overpass_url = "https://overpass-api.de/api/interpreter"
 
@@ -60,9 +61,13 @@ def check_location(fundort):
 
 
 if __name__ == "__main__":
-    locations = [
-        (52.38948, 12.70295, "Schenkenberg", 1908),
-    ]
+    parser = argparse.ArgumentParser(description="Check a location with Overpass.")
+    parser.add_argument("latitude", type=float)
+    parser.add_argument("longitude", type=float)
+    parser.add_argument("place")
+    parser.add_argument("record_id", type=int)
+    args = parser.parse_args()
+    locations = [(args.latitude, args.longitude, args.place, args.record_id)]
     with open("ergebnis", "w") as fh:
         for fundort in locations:
             if fundort[2] != "Berlin":
