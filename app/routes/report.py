@@ -141,6 +141,17 @@ def _process_uploaded_image(photo_file, sighting_date, city_name, user_id):
     return str((upload_dir / filename).relative_to(upload_root))
 
 
+def _normalized_contact(email):
+    """The stored form of a contact address; falsy input passes through.
+
+    Lowercases the domain and applies NFC. Assumes the address already passed
+    MantisSightingForm validation.
+    """
+    if not email:
+        return email
+    return validate_email(email, check_deliverability=False).normalized
+
+
 def _resolve_reporter(usrid, email):
     """Find the reporter this submission belongs to, or None to create one.
 
@@ -151,33 +162,31 @@ def _resolve_reporter(usrid, email):
     if usrid:
         return db.session.scalar(select(TblUsers).where(TblUsers.user_id == usrid))
 
+    contact = _normalized_contact(email)
     if (
-        email
+        contact
         and current_user.is_authenticated
         and current_user.user_rolle == UserRole.REPORTER
-        and current_user.user_kontakt
-        == validate_email(email, check_deliverability=False).normalized
+        and current_user.user_kontakt == contact
     ):
         # Unwrap the proxy — this row goes on to be flushed and related.
         return current_user._get_current_object()
     return None
 
 
-def _create_user(first_name, last_name, email, role=1):
-    """Create a new user with standardized name format."""
+def _create_user(first_name, last_name, email, role=UserRole.REPORTER):
+    """Create a new user with standardized name format.
+
+    ``role`` is coerced to the varchar(1) string, so int callers still compare
+    equal to UserRole before the row round-trips through the database.
+    """
     user_id = get_new_id()
     name = f"{last_name.strip()} {first_name.strip()[0].upper()}."
     user = TblUsers()
     user.user_id = user_id
     user.user_name = name
-    user.user_rolle = role
-    # The normalized form is what belongs in the database — it lowercases the
-    # domain and applies NFC, so the same mailbox typed two ways is one row and
-    # matches on later lookups. The form validated the address already; both
-    # callers pass a field that went through MantisSightingForm.
-    user.user_kontakt = (
-        validate_email(email, check_deliverability=False).normalized if email else email
-    )
+    user.user_rolle = str(role)
+    user.user_kontakt = _normalized_contact(email)
     return user
 
 
