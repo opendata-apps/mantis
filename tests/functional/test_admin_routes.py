@@ -635,6 +635,46 @@ class TestAdminRoutes:
         assert len(response.data) > 0
         assert response.data[:2] == b"PK"
 
+    def test_export_xlsx_column_values_match_headers(self, client):
+        """Each column must carry the value its header promises.
+
+        The other export tests only check that a zip arrives, so a shifted
+        column index would pass them silently while corrupting every export.
+        """
+        from io import BytesIO
+
+        import openpyxl
+
+        with client.session_transaction() as sess:
+            sess["_user_id"] = "9999"
+
+        response = client.get("/admin/export/xlsx/all")
+        assert response.status_code == 200
+
+        sheet = openpyxl.load_workbook(BytesIO(response.data)).active
+        assert sheet is not None
+        rows = list(sheet.values)
+        headers = list(rows[0])
+
+        row = next(
+            r for r in rows[1:] if r[headers.index("ID")] == self.test_sighting.id
+        )
+        cells = dict(zip(headers, row, strict=True))
+
+        assert cells["Ort"] == "Test City"
+        assert cells["Land"] == "Test State"
+        assert cells["Kreis"] == "Test District"
+        assert cells["Straße"] == "Test Street"
+        assert cells["PLZ"] == 10178
+        assert cells["Amt"] == "Test Amt"
+        assert cells["MTB"] == "3644"
+        assert cells["Längengrad"] == "13.404954"
+        assert cells["Breitengrad"] == "52.520008"
+        assert cells["Männchen"] == 1
+        assert cells["Anmerkung Melder"] == "Test sighting"
+        # xlsxwriter stores "" as an empty cell, which reads back as None
+        assert cells["Bearbeiter"] is None  # not approved yet
+
     def test_export_xlsx_searched(self, client):
         """Test exporting searched data with the shared reviewer filter args."""
         with client.session_transaction() as sess:
