@@ -15,7 +15,6 @@ import time
 
 
 def get_coordinates_from_address(street, city, plz=None, housenumber=None):
-    # Nominatim API URL
     url = "https://nominatim.openstreetmap.org/search"
 
     # composit the address
@@ -33,7 +32,9 @@ def get_coordinates_from_address(street, city, plz=None, housenumber=None):
     }
     # Header with  User-Agent für Nominatim API (mandatory)
     # change URL to your setup
-    headers = {"User-Agent": "Mantis-Projekt/GeocodingScript (https://gottesanbeterin-gesucht.de)"}
+    headers = {
+        "User-Agent": "Mantis-Projekt/GeocodingScript (https://gottesanbeterin-gesucht.de)"
+    }
 
     # send request to  Nominatim API
     response = requests.get(url, params=params, headers=headers, timeout=30)
@@ -57,11 +58,8 @@ def calculate_distance(coord1, coord2):
 
 
 if __name__ == "__main__":
-    try:
-        from fundorte_data import adresses  # type: ignore
-    except ImportError:
-        print("fundorte_data module not found - skipping execution")
-        adresses = []
+    from fundorte_data import adresses  # type: ignore
+
     with open("results.txt", "w") as fh:
         for ort in adresses:
             time.sleep(1.0)

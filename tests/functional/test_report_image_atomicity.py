@@ -17,6 +17,9 @@ import app.routes.report as report_mod
 from app.routes.report import _process_uploaded_image
 
 
+pytestmark = pytest.mark.usefixtures("app_ctx")
+
+
 def _webp_bytes():
     buf = io.BytesIO()
     Image.new("RGB", (8, 8), "green").save(buf, format="WEBP")

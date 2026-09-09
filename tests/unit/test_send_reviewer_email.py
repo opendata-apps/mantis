@@ -31,7 +31,6 @@ def _make_mail_data(**overrides):
 
 
 class TestRendertextmsg:
-
     def test_contains_greeting(self):
         text = rendertextmsg(_make_mail_data())
         assert "Mantis-Freund" in text
@@ -47,7 +46,10 @@ class TestRendertextmsg:
 
     def test_contains_location_fields(self):
         md = _make_mail_data(
-            ort="Potsdam", strasse="Am Neuen Palais", land="Brandenburg", kreis="Potsdam"
+            ort="Potsdam",
+            strasse="Am Neuen Palais",
+            land="Brandenburg",
+            kreis="Potsdam",
         )
         text = rendertextmsg(md)
         assert "Potsdam" in text
@@ -68,9 +70,11 @@ class TestRendertextmsg:
         text = rendertextmsg(_make_mail_data(anm_bearbeiter=note))
         assert note in text
 
-    def test_contains_report_link_with_user_id(self):
+    def test_new_report_link_points_to_submission_form(self):
         text = rendertextmsg(_make_mail_data(user_id="deadbeef42"))
-        assert "report/deadbeef42" in text
+        lines = [line.strip() for line in text.splitlines()]
+        link = lines[lines.index("Ihr Link für neue Meldungen:") + 1]
+        assert link == "https://gottesanbeterin-gesucht.de/melden/deadbeef42"
 
     def test_contains_privacy_warning(self):
         text = rendertextmsg(_make_mail_data())
@@ -78,4 +82,6 @@ class TestRendertextmsg:
 
     def test_contains_determination_reference(self):
         text = rendertextmsg(_make_mail_data())
-        assert "bestimmung" in text
+        assert "https://gottesanbeterin-gesucht.de/bestimmung" in [
+            line.strip() for line in text.splitlines()
+        ]

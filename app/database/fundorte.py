@@ -11,10 +11,9 @@ from sqlalchemy import (
     String,
     func,
 )
-from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app import db
+from app.extensions import db
 
 if TYPE_CHECKING:
     from app.database.fundmeldungen import TblMeldungen
@@ -74,13 +73,6 @@ class TblFundorte(db.Model):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
-
-    # --- Coordinate/address confidence grade (geo_grade.py) ---
-    geo_grade: Mapped[str | None] = mapped_column(String(8))
-    geo_confidence: Mapped[float | None] = mapped_column(Double)
-    geo_matched_level: Mapped[str | None] = mapped_column(String(12))
-    geo_reasons: Mapped[list[str] | None] = mapped_column(JSONB)
-    geo_graded_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     # --- Relationships ---
     meldungen: Mapped[list["TblMeldungen"]] = relationship(

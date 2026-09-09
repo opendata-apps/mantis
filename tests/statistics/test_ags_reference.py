@@ -74,7 +74,7 @@ class TestBuildGesamtTemplate:
             assert entry[0] != ""  # state name filled
             assert entry[1] == ""  # district name empty
             assert entry[2] == ""  # amt name empty
-            assert entry[3] == 0   # count starts at zero
+            assert entry[3] == 0  # count starts at zero
             assert entry[4] == []  # sub-rows empty
 
     def test_district_entries_have_correct_structure(self):

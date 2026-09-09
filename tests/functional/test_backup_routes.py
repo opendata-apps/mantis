@@ -1,6 +1,7 @@
 from pathlib import Path
 from smtplib import SMTPException
 from unittest.mock import patch
+import zipfile
 
 
 def test_backup_route_requires_post(client):
@@ -81,3 +82,36 @@ def test_backup_download_serves_file_with_valid_token(app, client, tmp_path):
 
     assert response.status_code == 200
     assert response.data == b"zip"
+    assert response.cache_control.no_store
+    assert response.cache_control.private
+
+
+def test_missing_backup_images_do_not_log_reporter_credentials(
+    app, session, tmp_path, monkeypatch, caplog
+):
+    from datetime import date
+    from sqlalchemy import select
+
+    from app.database.models import TblMeldungen
+    from app.routes import backup
+
+    monkeypatch.setitem(app.config, "UPLOAD_FOLDER", str(tmp_path))
+    monkeypatch.setitem(app.config, "BACKUP_DIR", str(tmp_path / "backups"))
+    report = session.scalar(select(TblMeldungen).order_by(TblMeldungen.id))
+    assert report is not None
+    report.dat_fund_von = date(2025, 1, 19)
+    report.fundort.ablage = "2025/2025-01-19/private-reporter-token.webp"
+    session.commit()
+
+    def dump_database(output_path):
+        output_path.write_text("-- test database dump\n")
+
+    monkeypatch.setattr(backup, "_run_pg_dump", dump_database)
+    with app.app_context():
+        archive = backup.create_year_backup(2025)
+
+    with zipfile.ZipFile(archive) as saved:
+        assert len(saved.namelist()) == 1
+        assert saved.read(saved.namelist()[0]) == b"-- test database dump\n"
+    assert any(record.levelname == "WARNING" for record in caplog.records)
+    assert "private-reporter-token" not in caplog.text

@@ -20,12 +20,5 @@ echo "Starting application..."
 if [ "$FLASK_DEBUG" = "1" ]; then
     exec flask run --host=0.0.0.0 --port=5000
 else
-    exec gunicorn run:app \
-        --config gunicorn.conf.py \
-        --bind 0.0.0.0:5000 \
-        --workers 4 \
-        --threads 2 \
-        --worker-tmp-dir /dev/shm \
-        --access-logfile - \
-        --error-logfile -
+    exec gunicorn run:app --config gunicorn.conf.py
 fi

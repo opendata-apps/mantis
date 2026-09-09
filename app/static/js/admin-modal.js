@@ -1,7 +1,9 @@
 // Admin modal module — HTMX-first rewrite
 // JS only for: Leaflet map, marker placement, geocoding, clipboard, export
 
-import { inRange, parseCoordinate } from "./coordinates.js";
+import { parseCoordinateInput } from "./coordinate-input.js";
+
+const COORDINATE_RANGES = JSON.parse(document.body.dataset.coordRange);
 
 // ---------------------------------------------------------------------------
 // State (map only — no more currentSightingId or isEditModeActive)
@@ -98,8 +100,8 @@ function getMapDataFromDOM() {
 
 function initiateMap(data) {
   requestAnimationFrame(function () {
-    var lat = parseCoordinate(data.latitude);
-    var lng = parseCoordinate(data.longitude);
+    var lat = parseCoordinateInput(data.latitude, ...COORDINATE_RANGES.latitude);
+    var lng = parseCoordinateInput(data.longitude, ...COORDINATE_RANGES.longitude);
 
     if (!customIcon) initializeCustomIcon();
 
@@ -322,9 +324,9 @@ function onMapClick(e) {
 function resetMarker() {
   var mapEl = document.getElementById("map");
   if (!mapEl) return;
-  var originalLat = parseCoordinate(mapEl.getAttribute("data-lat"));
-  var originalLng = parseCoordinate(mapEl.getAttribute("data-lng"));
-  if (isNaN(originalLat) || isNaN(originalLng)) return;
+  var originalLat = parseCoordinateInput(mapEl.getAttribute("data-lat"), ...COORDINATE_RANGES.latitude);
+  var originalLng = parseCoordinateInput(mapEl.getAttribute("data-lng"), ...COORDINATE_RANGES.longitude);
+  if (originalLat === null || originalLng === null) return;
 
   var latLng = L.latLng(originalLat, originalLng);
   if (marker) {
@@ -344,9 +346,9 @@ function resetMarker() {
 // ---------------------------------------------------------------------------
 
 function validateAndUpdateCoordinate(input, type) {
-  var num = parseCoordinate(input.value);
+  var num = parseCoordinateInput(input.value, ...COORDINATE_RANGES[type]);
 
-  var isValid = num !== null && inRange(num, type);
+  var isValid = num !== null;
 
   if (isValid) {
     input.classList.remove("border-red-500");
@@ -354,8 +356,8 @@ function validateAndUpdateCoordinate(input, type) {
 
     var { lat: latInput, lng: lngInput } = getCoordInputs();
     if (latInput.value && lngInput.value) {
-      var lat = parseCoordinate(latInput.value);
-      var lng = parseCoordinate(lngInput.value);
+      var lat = parseCoordinateInput(latInput.value, ...COORDINATE_RANGES.latitude);
+      var lng = parseCoordinateInput(lngInput.value, ...COORDINATE_RANGES.longitude);
       if (lat !== null && lng !== null) {
         // Map/marker are initialized on htmx:afterSettle. A user who
         // edits a coord input before that event fires would otherwise

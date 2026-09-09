@@ -27,11 +27,23 @@ Bildablage und einem Vite-Build für statische Assets.
 Hauptkomponenten
 ----------------
 
-- ``app/__init__.py``: App-Factory, Extension-Setup, Blueprint-Registrierung,
-  Error-Handler, Security-Header, ProxyFix.
+- ``app/__init__.py``: nur Docstring und der Re-Export von ``create_app``. Dass
+  hier sonst nichts gebunden ist, macht ``from app import db`` unmöglich statt
+  bloss unerwünscht — ein Name ist nur dann als ``app.<name>`` erreichbar, wenn
+  er in diesem Modul gebunden wird. Aufbau wie in ``cookiecutter-flask``.
+- ``app/factory.py``: die App-Factory mit Blueprint-Registrierung,
+  Error-Handlern, Security-Headern und ProxyFix. ``Flask(__name__.split(".")[0])``
+  — der Name muss das Paket sein, nicht das Modul, sonst wandern Logger-Name und
+  Template-/Static-Wurzel auf ``app.factory``.
+- ``app/extensions.py``: die ungebundenen Extension-Instanzen (``db``,
+  ``login_manager``, ...). Das Modul importiert nichts aus ``app`` und ist damit
+  die unterste Schicht — deshalb kann ein Modul seine Callbacks beim Import
+  registrieren (siehe ``user_loader`` in ``app/auth.py``) statt über eine
+  Verdrahtungsfunktion in der Factory.
+- ``app/auth.py``: Capability-URL-Authentifizierung auf Basis von Flask-Login.
 - ``app/routes/``: HTTP-Schnittstelle nach Domänen getrennt
   (``main``, ``report``, ``data``, ``statistics``, ``provider``, ``admin``, ``regionen``).
-- ``app/database/``: SQLAlchemy-Modelle, Materialized-View-Logik und Seed/Populate-Code.
+- ``app/database/``: SQLAlchemy-Modelle, SQL-View und Seed/Populate-Code.
 - ``app/tools/``: Fachliche Hilfsfunktionen (Koordinaten, MTB, Gemeinde, E-Mail, Vite-Helper).
 - ``app/templates/`` und ``app/static/``: HTML-Templates, JS/CSS-Quellen, Build-Artefakte.
 - ``migrations/``: Alembic-Migrationen für Schema-, Trigger- und Indexänderungen.
@@ -56,7 +68,7 @@ Datenmodell (Kern)
 - ``melduser`` (``TblMeldungUser``): Verknüpfung Meldung zu Melder/Finder.
 - ``beschreibung`` (``TblFundortBeschreibung``): Katalog von Fundorttypen.
 - ``user_feedback`` (``TblUserFeedback``): Herkunft der Meldung pro User.
-- ``all_data_view`` (``TblAllData``): materialisierte Sicht für Admin/Superuser-Abfragen.
+- ``all_data_view`` (``TblAllData``): SQL-Sicht für Admin/Superuser-Abfragen.
 
 Statusmodell
 ------------
@@ -89,7 +101,7 @@ Review-Workflow
 1. Reviewer öffnet ``/reviewer``.
 2. Filter-/Suchparameter werden serverseitig angewendet.
 3. Statuswechsel, Metadatenänderungen und Exporte laufen über Admin-Endpunkte.
-4. Materialized View ``all_data_view`` wird bedarfsweise aktualisiert.
+4. ``all_data_view`` liest den aktuellen Stand der zugrunde liegenden Tabellen.
 
 Sicherheits- und Betriebsmechanismen
 ------------------------------------
@@ -112,6 +124,10 @@ Frontend-Bindung
 Erweiterungspunkte
 ------------------
 
+- Neue Extension: in ``app/extensions.py`` ungebunden anlegen, in ``create_app``
+  mit ``init_app(app)`` binden. Andere Module importieren aus ``app.extensions``
+  — ``from app import <extension>`` scheitert mit ``ImportError``, weil
+  ``app/__init__.py`` nichts davon bindet.
 - Neue Route: Blueprint ergänzen und in ``create_app`` registrieren.
 - Neues Datenfeld: Modell + Migration + betroffene Formulare/Templates.
 - Neue Review-Aktion: Admin-Endpunkt + HTMX-Partial + Status-/Rechteprüfung.

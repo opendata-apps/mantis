@@ -37,7 +37,7 @@ def _mock_nominatim_get(url, params=None, headers=None, **kwargs):
 
 
 @pytest.mark.parametrize(
-    "address_data,expected_min_distance",
+    "address_data,expected_distance",
     [
         (
             {
@@ -48,7 +48,7 @@ def _mock_nominatim_get(url, params=None, headers=None, **kwargs):
                 "housenumber": None,
                 "marker": ["51.464414", "13.540649"],
             },
-            10.0,
+            105.3,
         ),
         (
             {
@@ -59,7 +59,7 @@ def _mock_nominatim_get(url, params=None, headers=None, **kwargs):
                 "housenumber": "1",
                 "marker": ["52.516275", "13.388889"],
             },
-            0.0,  # Same location
+            0.0841,  # Roughly 84 metres
         ),
         (
             {
@@ -73,7 +73,7 @@ def _mock_nominatim_get(url, params=None, headers=None, **kwargs):
                     "13.404954",
                 ],
             },
-            20.0,  # Different city
+            27.2,  # Different city
         ),
     ],
 )
@@ -81,13 +81,13 @@ def _mock_nominatim_get(url, params=None, headers=None, **kwargs):
     "app.tools.check_distance.requests.get",
     side_effect=_mock_nominatim_get,
 )
-def test_distance_calculation(mock_get, address_data, expected_min_distance):
+def test_distance_calculation(mock_get, address_data, expected_distance):
     """Test the distance calculation between geocoded address and provided coordinates.
 
     Verifies that:
     1. get_coordinates_from_address correctly parses the mocked API response
     2. calculate_distance returns a sensible geodesic distance
-    3. The calculated distance exceeds the expected minimum
+    3. The result stays within 1% of the reference distance in kilometres
     """
     coord1 = get_coordinates_from_address(
         address_data["street"],
@@ -100,9 +100,8 @@ def test_distance_calculation(mock_get, address_data, expected_min_distance):
 
     assert coord1 is not None, "Geocoding returned None — check mock data"
     distance = calculate_distance(coord1, coord2)
-    assert distance > expected_min_distance, (
-        f"Distance {distance:.2f}km should be greater than {expected_min_distance}km"
-    )
+    # Independent spherical-distance reference, with room for the WGS84 ellipsoid.
+    assert distance == pytest.approx(expected_distance, rel=0.01)
 
 
 @patch(

@@ -5,7 +5,6 @@ from datetime import date
 
 from sqlalchemy import func, select
 
-from app import db
 from app.database.models import (
     ReportStatus,
     TblFundorte,
@@ -14,7 +13,7 @@ from app.database.models import (
 )
 
 
-def _approved_in_range_count(min_year):
+def _approved_in_range_count(session, min_year):
     stmt = (
         select(func.count())
         .select_from(TblMeldungen)
@@ -24,7 +23,7 @@ def _approved_in_range_count(min_year):
             TblMeldungen.statuses.contains([ReportStatus.APPR.value]),
         )
     )
-    return db.session.scalar(stmt)
+    return session.scalar(stmt)
 
 
 def test_map_renders_every_approved_report(client, session, app):
@@ -67,7 +66,7 @@ def test_map_renders_every_approved_report(client, session, app):
     session.add(sighting)
     session.commit()
 
-    expected = _approved_in_range_count(min_year)
+    expected = _approved_in_range_count(session, min_year)
     assert expected >= 1
 
     response = client.get("/auswertungen")

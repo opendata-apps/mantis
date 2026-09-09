@@ -4,59 +4,63 @@ Covers:
 - Protected routes reject POST without CSRF token (admin and statistics).
 """
 
+from bs4 import BeautifulSoup
+import pytest
 
-def test_admin_post_without_csrf_is_rejected(app, authenticated_client):
+from app.database.models import TblMeldungen
+
+
+@pytest.fixture
+def test_config(test_config):
+    class CSRFConfig(test_config):
+        WTF_CSRF_ENABLED = True
+
+    return CSRFConfig
+
+
+def test_admin_post_without_csrf_is_rejected(authenticated_client):
     """Admin POST endpoints should reject requests without a CSRF token."""
-    old = app.config.get("WTF_CSRF_ENABLED", False)
-    try:
-        app.config["WTF_CSRF_ENABLED"] = True
-
-        # Ensure authenticated reviewer session
-        authenticated_client.get("/reviewer/9999", follow_redirects=True)
-
-        # Missing CSRF header → 403
-        resp = authenticated_client.post("/toggle_approve_sighting/1")
-        assert resp.status_code == 403
-    finally:
-        app.config["WTF_CSRF_ENABLED"] = old
+    authenticated_client.get("/reviewer/9999", follow_redirects=True)
+    resp = authenticated_client.post("/toggle_approve_sighting/1")
+    assert resp.status_code == 403
 
 
-## Note: We avoid a direct token roundtrip test here because Flask-WTF caches
-## the request-scoped token in g, which can interact with previous requests
-## in the same app instance when tests share a session-scoped app. The two
-## tests in this file cover the contract we care about: protected routes deny
-## missing tokens, and explicitly exempt routes allow POST without tokens.
+def test_csrf_token_from_reviewer_page_allows_saved_approval(
+    authenticated_client, session
+):
+    report = session.get(TblMeldungen, 1)
+    assert report is not None
+    report.statuses = ["OPEN"]
+    session.commit()
+
+    page = authenticated_client.get("/reviewer", follow_redirects=True)
+    assert page.status_code == 200
+    token = BeautifulSoup(page.text, "html.parser").select_one(
+        'meta[name="csrf-token"]'
+    )
+    assert token is not None
+    response = authenticated_client.post(
+        "/toggle_approve_sighting/1",
+        headers={"X-CSRFToken": str(token["content"])},
+    )
+    assert response.status_code == 200
+    session.refresh(report)
+    assert report.is_approved
 
 
-def test_statistics_post_without_csrf_is_rejected(app, authenticated_client):
+def test_statistics_post_without_csrf_is_rejected(authenticated_client):
     """Statistics POST endpoints should reject requests without a CSRF token."""
-    old = app.config.get("WTF_CSRF_ENABLED", False)
-    try:
-        app.config["WTF_CSRF_ENABLED"] = True
-
-        # Ensure authenticated reviewer session
-        authenticated_client.get("/reviewer/9999", follow_redirects=True)
-
-        # Missing CSRF token → 403
-        resp = authenticated_client.post("/statistik", data={"stats": "start"})
-        assert resp.status_code == 403
-    finally:
-        app.config["WTF_CSRF_ENABLED"] = old
+    authenticated_client.get("/reviewer/9999", follow_redirects=True)
+    resp = authenticated_client.post("/statistik", data={"stats": "start"})
+    assert resp.status_code == 403
 
 
-def test_htmx_csrf_failure_returns_hx_redirect(app, authenticated_client):
+def test_htmx_csrf_failure_returns_hx_redirect(authenticated_client):
     """HTMX requests that fail CSRF should get HX-Redirect, not a full HTML page."""
-    old = app.config.get("WTF_CSRF_ENABLED", False)
-    try:
-        app.config["WTF_CSRF_ENABLED"] = True
-
-        authenticated_client.get("/reviewer/9999", follow_redirects=True)
-
-        resp = authenticated_client.post(
-            "/toggle_approve_sighting/1",
-            headers={"HX-Request": "true"},
-        )
-        assert resp.status_code == 403
-        assert "HX-Redirect" in resp.headers
-    finally:
-        app.config["WTF_CSRF_ENABLED"] = old
+    authenticated_client.get("/reviewer/9999", follow_redirects=True)
+    resp = authenticated_client.post(
+        "/toggle_approve_sighting/1",
+        headers={"HX-Request": "true"},
+    )
+    assert resp.status_code == 403
+    assert resp.headers["HX-Redirect"] == "/"

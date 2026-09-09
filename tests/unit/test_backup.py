@@ -6,7 +6,7 @@ import pytest
 from flask import Flask
 from werkzeug.exceptions import Forbidden
 
-from app import mail
+from app.extensions import mail
 from app.routes import backup as backup_routes
 from app.tools.send_backup_email import render_backup_email, send_backup_email
 

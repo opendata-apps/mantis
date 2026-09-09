@@ -59,5 +59,5 @@ class TblAllData(ViewBase):
     id_user: Mapped[int | None]
     id_finder: Mapped[int | None]
     user_id: Mapped[str | None] = mapped_column(String(40))
-    user_name: Mapped[str | None] = mapped_column(String(45))
-    user_kontakt: Mapped[str | None] = mapped_column(String(45))
+    user_name: Mapped[str | None] = mapped_column(String(100))
+    user_kontakt: Mapped[str | None] = mapped_column(String(254))

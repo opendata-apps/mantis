@@ -85,7 +85,6 @@ class TestParseUserName:
 # _format_date
 # ---------------------------------------------------------------------------
 class TestFormatDate:
-
     def test_valid_date(self):
         assert _format_date("2025-07-15") == "15.07.2025"
 
@@ -104,7 +103,6 @@ class TestFormatDate:
 # _format_coordinates
 # ---------------------------------------------------------------------------
 class TestFormatCoordinates:
-
     def test_valid_pair(self):
         assert _format_coordinates("52.520008", "13.404954") == "52.520008, 13.404954"
 
@@ -129,7 +127,6 @@ class TestFormatCoordinates:
 # _get_finder_name
 # ---------------------------------------------------------------------------
 class TestGetFinderName:
-
     def test_both_names(self):
         form = {"finder_first_name": "Max", "finder_last_name": "Müller"}
         assert _get_finder_name(form) == "Max Müller"
@@ -154,7 +151,6 @@ class TestGetFinderName:
 # _get_gender_display  (needs app context for import)
 # ---------------------------------------------------------------------------
 class TestGetGenderDisplay:
-
     def test_known_values(self, app):
         with app.app_context():
             assert _get_gender_display("Männlich") == "Männlich"
@@ -177,7 +173,6 @@ class TestGetGenderDisplay:
 # _get_location_description_display
 # ---------------------------------------------------------------------------
 class TestGetLocationDescriptionDisplay:
-
     def test_known_ids(self, app):
         with app.app_context():
             assert _get_location_description_display("1") == "Innenräume"
@@ -197,7 +192,6 @@ class TestGetLocationDescriptionDisplay:
 # _get_feedback_source_display
 # ---------------------------------------------------------------------------
 class TestGetFeedbackSourceDisplay:
-
     def test_known_values(self):
         assert _get_feedback_source_display("EVENT") == "Auf einer Veranstaltung"
         assert _get_feedback_source_display("PRESS") == "Presse"

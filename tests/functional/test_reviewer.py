@@ -7,6 +7,7 @@ Test data (from demodata/filldb.py):
 """
 
 import pytest
+from bs4 import BeautifulSoup
 
 
 # ---------------------------------------------------------------------------
@@ -17,7 +18,7 @@ import pytest
 def _login_session(client, user_id="9999"):
     """Set user_id in the Flask session for subsequent requests."""
     with client.session_transaction() as sess:
-        sess["user_id"] = user_id
+        sess["_user_id"] = user_id
 
 
 # ---------------------------------------------------------------------------
@@ -67,9 +68,7 @@ class TestReviewerAuth:
     def test_reviewer_non_reviewer_role_returns_403(self, client):
         """GET /reviewer/<usrid> with non-reviewer role should return 403."""
         # User with id starting with 'e40ada...' has user_rolle='2' (not a reviewer)
-        response = client.get(
-            "/reviewer/e40adafa23250fdd5024c9887544317a1101534d"
-        )
+        response = client.get("/reviewer/e40adafa23250fdd5024c9887544317a1101534d")
         assert response.status_code == 403
 
     def test_reviewer_session_with_non_reviewer_returns_403(self, client):
@@ -169,7 +168,9 @@ class TestDateTypeFilter:
             follow_redirects=True,
         )
         assert response.status_code == 200
-        assert b'value="meld"' in response.data
+        field = BeautifulSoup(response.data, "html.parser").select_one("#dateType")
+        assert field is not None
+        assert field["value"] == "meld"
 
     def test_date_type_defaults_to_fund(self, client):
         """Without explicit dateType, the default should be 'fund'."""
@@ -179,7 +180,9 @@ class TestDateTypeFilter:
             follow_redirects=True,
         )
         assert response.status_code == 200
-        assert b'value="fund"' in response.data
+        field = BeautifulSoup(response.data, "html.parser").select_one("#dateType")
+        assert field is not None
+        assert field["value"] == "fund"
 
     def test_date_filter_without_dates_shows_all(self, client):
         """When no date range is set, all reports should appear regardless of dateType."""

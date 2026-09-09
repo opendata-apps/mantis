@@ -1,15 +1,10 @@
 """Security header invariants.
 
-These tests pin down two CSP-relevant guarantees:
-
-1. The response carries a Content-Security-Policy that does NOT permit
-   `unsafe-eval`. htmx's eval-based attribute features
-   (`hx-on::*`, `hx-vals "js:"`, `hx-headers "js:"`, trigger filters)
-   are gated off via `htmx.config.allowEval = false`; if anyone
-   re-introduces them, this test plus the template scan below catches it.
-
-2. The deprecated `X-XSS-Protection` header is explicitly disabled
-   (OWASP recommendation — the legacy filter can introduce XSS itself).
+The response must carry a Content-Security-Policy that does NOT permit
+`unsafe-eval`. htmx's eval-based attribute features (`hx-on::*`,
+`hx-vals "js:"`, `hx-headers "js:"`, trigger filters) are gated off via
+`htmx.config.allowEval = false`; if anyone re-introduces them, this test plus
+the template scan below catches it.
 """
 
 from pathlib import Path
@@ -32,12 +27,19 @@ def test_csp_header_present_and_omits_unsafe_eval(client):
     assert "worker-src 'self' blob:" in csp
 
 
-def test_x_xss_protection_is_disabled(client):
+def test_x_xss_protection_is_explicitly_disabled(client):
+    """Absent is not the same as "0" — a legacy browser then uses its default.
+
+    OWASP Secure Headers asks for the explicit "0".
+    """
     resp = client.get("/")
-    assert resp.headers.get("X-XSS-Protection") == "0", (
-        "X-XSS-Protection is deprecated and can introduce XSS bugs; "
-        "set to '0' per OWASP Secure Headers."
-    )
+    assert resp.headers.get("X-XSS-Protection") == "0"
+
+
+def test_responses_prevent_referrer_disclosure(client):
+    for path in ("/melden", "/missing/private-bearer"):
+        response = client.get(path)
+        assert response.headers.get("Referrer-Policy") == "strict-origin"
 
 
 def test_no_template_uses_eval_based_htmx_attributes():

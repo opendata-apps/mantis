@@ -6,15 +6,14 @@ the CLI.
 """
 
 import re
-from decimal import Decimal
 
-# Accepted range: the part of Europe Mantis religiosa can plausibly turn up in,
-# derived from the EPSG:3035 (LAEA Europe) area of use and trimmed on all four
-# sides — Iceland, Svalbard, the mid-Atlantic and the Caucasus are out.
-LAT_RANGE = (30.0, 60.0)
-LON_RANGE = (-20.0, 30.0)
+# Accepted range: Europe per the EPSG:3035 (LAEA Europe) area of use, clipped
+# north to 60 and west to -20 — Iceland, Svalbard and the mid-Atlantic are far
+# outside the range of Mantis religiosa.
+LAT_RANGE = (24.6, 60.0)
+LON_RANGE = (-20.0, 44.83)
 
-RANGES = {"latitude": LAT_RANGE, "longitude": LON_RANGE}
+COORDINATE_RANGES = {"latitude": LAT_RANGE, "longitude": LON_RANGE}
 _LABELS = {"latitude": "Breitengrad", "longitude": "Längengrad"}
 
 SWAPPED_MESSAGE = "Breiten- und Längengrad scheinen vertauscht zu sein."
@@ -24,44 +23,34 @@ SWAPPED_MESSAGE = "Breiten- und Längengrad scheinen vertauscht zu sein."
 _COORDINATE_PATTERN = re.compile(r"^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$")
 
 
-def _format_bound(value):
-    """Render a bound German-style: 60.0 -> '60', 44.83 -> '44,83'."""
-    return f"{value:g}".replace(".", ",")
+def _de(bound):
+    """Render a bound German-style: 44.83 -> '44,83', 60.0 -> '60'."""
+    return f"{bound:g}".replace(".", ",")
+
+
+# Built from the bounds, so the numbers in the message cannot drift away from
+# the numbers that are actually enforced.
+RANGE_MESSAGES = {
+    kind: f"{_LABELS[kind]} muss zwischen {_de(low)} und {_de(high)} liegen."
+    for kind, (low, high) in COORDINATE_RANGES.items()
+}
+
+INVALID_MESSAGES = {
+    kind: f"{label} ist keine gültige Zahl." for kind, label in _LABELS.items()
+}
 
 
 def parse_coordinate(value):
     """Return the coordinate as a float, or None if it is not a plain number.
 
-    Format only — no range check. Read paths that just need to plot what is
-    stored should use this instead of the validators below.
+    Accepts the comma decimal that mobile keyboards emit, and rejects "nan" and
+    "inf" — float() returns those happily and they then slip past every range
+    comparison, because a comparison against NaN is always False.
     """
-    text = str(value).strip().replace(",", ".")  # comma decimals from legacy data
+    text = str(value).strip().replace(",", ".")
     if not _COORDINATE_PATTERN.fullmatch(text):
         return None
     return float(text)
-
-
-def normalize(number):
-    """Render a parsed coordinate as a plain decimal string.
-
-    str() switches to exponent form below 1e-4 ("1e-05"), which is reachable
-    for longitudes near the prime meridian and would be stored that way.
-    """
-    return format(Decimal(str(number)), "f")
-
-
-def invalid_number_message(coord_type):
-    """The message shown when a coordinate cannot be parsed as a number."""
-    return f"{_LABELS[coord_type]} ist keine gültige Zahl."
-
-
-def range_message(coord_type):
-    """The message shown when a coordinate falls outside the accepted range."""
-    low, high = RANGES[coord_type]
-    label = _LABELS[coord_type]
-    return (
-        f"{label} muss zwischen {_format_bound(low)} und {_format_bound(high)} liegen."
-    )
 
 
 def in_range(latitude, longitude):
@@ -72,38 +61,19 @@ def in_range(latitude, longitude):
     )
 
 
-def validate_and_normalize_coordinate(value, coord_type):
-    """
-    Validate one coordinate and normalize it to a plain decimal string.
-
-    Args:
-        value: The coordinate to check (string, float or None)
-        coord_type: Either 'latitude' or 'longitude'
-
-    Returns:
-        tuple: (normalized_value or None, error_message or None)
-
-    Examples:
-        >>> validate_and_normalize_coordinate('52.520000', 'latitude')
-        ('52.52', None)
-
-        >>> validate_and_normalize_coordinate('69.2', 'latitude')
-        (None, 'Breitengrad muss zwischen 30 und 60 liegen.')
-    """
-    label = _LABELS[coord_type]
-
+def validate_coordinate(value, coord_type):
+    """Return a parsed coordinate and its validation error, if any."""
     if value is None or not str(value).strip():
-        return None, f"{label} ist erforderlich."
+        return None, f"{_LABELS[coord_type]} ist erforderlich."
 
     number = parse_coordinate(value)
     if number is None:
-        return None, invalid_number_message(coord_type)
+        return None, INVALID_MESSAGES[coord_type]
 
-    low, high = RANGES[coord_type]
+    low, high = COORDINATE_RANGES[coord_type]
     if not (low <= number <= high):
-        return None, range_message(coord_type)
-
-    return normalize(number), None
+        return None, RANGE_MESSAGES[coord_type]
+    return number, None
 
 
 def coordinates_look_swapped(latitude, longitude):
@@ -111,8 +81,8 @@ def coordinates_look_swapped(latitude, longitude):
     Detect a transposed pair: outside the range as given, inside when swapped.
 
     Only an unambiguous swap is reported. Where both orders are in range (both
-    values inside the overlap of the two ranges) the pair is left alone, so a
-    genuine coordinate is never mistaken for a transposed one.
+    values inside 24.6..44.83, roughly Greece to the Caucasus) the pair is left
+    alone, so a genuine coordinate is never mistaken for a transposed one.
 
     Examples:
         >>> coordinates_look_swapped(13.4, 52.52)  # Berlin, transposed
@@ -120,8 +90,8 @@ def coordinates_look_swapped(latitude, longitude):
         >>> coordinates_look_swapped(52.52, 13.4)  # Berlin
         False
     """
-    lat = parse_coordinate(latitude)
-    lon = parse_coordinate(longitude)
+    lat = parse_coordinate(latitude) if latitude is not None else None
+    lon = parse_coordinate(longitude) if longitude is not None else None
     if lat is None or lon is None:
         return False
 
@@ -129,21 +99,9 @@ def coordinates_look_swapped(latitude, longitude):
 
 
 def validate_coordinate_pair(latitude, longitude):
-    """
-    Validate both coordinates together.
-
-    A transposed pair is reported as such instead of as two range errors,
-    which is the more useful message by far.
-
-    Returns:
-        tuple: (normalized_lat or None, normalized_lon or None, errors)
-    """
-    normalized_lat, lat_error = validate_and_normalize_coordinate(latitude, "latitude")
-    normalized_lon, lon_error = validate_and_normalize_coordinate(
-        longitude, "longitude"
-    )
-
+    """Validate a pair, reporting a transposition before individual range errors."""
+    lat, lat_error = validate_coordinate(latitude, "latitude")
+    lon, lon_error = validate_coordinate(longitude, "longitude")
     if coordinates_look_swapped(latitude, longitude):
-        return normalized_lat, normalized_lon, [SWAPPED_MESSAGE]
-
-    return normalized_lat, normalized_lon, [e for e in (lat_error, lon_error) if e]
+        return lat, lon, [SWAPPED_MESSAGE]
+    return lat, lon, [error for error in (lat_error, lon_error) if error]

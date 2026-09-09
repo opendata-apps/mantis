@@ -313,9 +313,9 @@ block content %}
 </style>
 <script>
   // First define all variables
-  let currentTable = "all_data_view";
+  const currentTable = "all_data_view";
   let columnTypes = {};
-  let nonEditableFields = [];
+  let editableFields = [];
   let currentPage = 1;
   let itemsPerPage = 50;
   let totalItems = 0;
@@ -404,9 +404,7 @@ block content %}
         if (!input) return;
         const newValue = input.value;
         updateCell(
-          currentTable,
           currentlyEditingCellData.column,
-          currentlyEditingCellData.row,
           newValue,
           currentlyEditingCell
         );
@@ -548,7 +546,7 @@ block content %}
       })
       .then((data) => {
         columnTypes = data.column_types;
-        nonEditableFields = data.non_editable_fields;
+        editableFields = data.editable_fields;
         totalItems = data.total_items;
 
         if (data.data.length === 0) {
@@ -617,7 +615,7 @@ block content %}
         row.forEach((cell, cellIndex) => {
           const columnName = columns[cellIndex];
           const cellType = columnTypes[columnName];
-          const isEditable = !nonEditableFields.includes(columnName);
+          const isEditable = editableFields.includes(columnName);
 
           let displayValue = cell;
           if (cellType === "date" && cell) {
@@ -647,7 +645,6 @@ block content %}
             : "bg-gray-50 text-gray-500";
 
           rowHtml += `<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 ${editableClass}"
-                    data-row="${tableBody.rows.length + rowIndex}"
                     data-column="${columnName}"
                     data-type="${cellType}"
                     data-id-value="${escapeHtml(idValue)}"
@@ -775,12 +772,10 @@ block content %}
   function startEdit(cell) {
     currentlyEditingCell = cell;
     const currentValue = cell.textContent.trim();
-    const row = cell.dataset.row;
     const column = cell.dataset.column;
     const type = cell.dataset.type;
 
     currentlyEditingCellData = {
-      row: row,
       column: column,
       type: type,
       originalValue: currentValue,
@@ -884,7 +879,7 @@ block content %}
     }
   }
 
-  function updateCell(table, column, row, newValue, cell) {
+  function updateCell(column, newValue, cell) {
     const idValue = currentlyEditingCellData.idValue;
     const type = currentlyEditingCellData.type;
 
@@ -911,7 +906,6 @@ block content %}
         "X-CSRFToken": document.querySelector('meta[name="csrf-token"]').content,
       },
       body: JSON.stringify({
-        table: table,
         column: column,
         meldungen_id: idValue,
         value: formattedValue,

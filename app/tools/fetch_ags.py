@@ -28,9 +28,7 @@ BERLIN_WHOLE_CITY_AGS = "11000000"
 REQUEST_TIMEOUT = 30  # seconds
 
 
-def _wfs_get_feature(
-    base_url, typename, *, srs="EPSG:4326", extra_params=None, timeout=REQUEST_TIMEOUT
-):
+def _wfs_get_feature(base_url, typename, *, srs="EPSG:4326", extra_params=None):
     """Fetch all features from a WFS endpoint as GeoJSON."""
     params = {
         "service": "wfs",
@@ -43,121 +41,9 @@ def _wfs_get_feature(
     if extra_params:
         params.update(extra_params)
 
-    resp = requests.get(base_url, params=params, timeout=timeout)
+    resp = requests.get(base_url, params=params, timeout=REQUEST_TIMEOUT)
     resp.raise_for_status()
     return resp.json()
-
-
-GN250_WFS_BASE = "https://sgx.geodatenzentrum.de/wfs_gn250_inspire"
-
-# GN250 NamedPlace type values (the href suffix) worth grading against.
-_GEONAME_SETTLEMENT_TYPES = {"populatedPlace"}
-
-# Server-side page size; the INSPIRE endpoint caps a single GetFeature response
-# and does not report numberMatched, so we page on startIndex until a short page.
-# 5k keeps each geo+json page small enough to generate within the read timeout.
-GN250_PAGE_SIZE = 5000
-# Large geo+json pages are slow to render server-side; the shared 30s is too tight.
-GN250_READ_TIMEOUT = 120
-GN250_MAX_RETRIES = 3
-
-
-def _geoname_text(name_prop):
-    """Extract the spelling text from an INSPIRE GeographicalName property.
-
-    The property nests as name.GeographicalName.spelling.SpellingOfName.text;
-    either of the inner objects may be a list (a place with several names).
-    """
-    if isinstance(name_prop, list):
-        name_prop = name_prop[0] if name_prop else None
-    if not isinstance(name_prop, dict):
-        return None
-    gn = name_prop.get("GeographicalName") or {}
-    spelling = gn.get("spelling")
-    if isinstance(spelling, list):
-        spelling = spelling[0] if spelling else None
-    son = (spelling or {}).get("SpellingOfName") or {}
-    text = son.get("text")
-    return text.strip() if isinstance(text, str) and text.strip() else None
-
-
-def parse_geonames_featurecollection(fc):
-    """Normalize a GN250 INSPIRE GeoJSON FeatureCollection to geo_names rows.
-
-    Keeps only populated places with a point geometry. The INSPIRE-harmonized
-    view exposes no administrative keys, so ags/kreis are always None.
-    """
-    rows = []
-    for feat in fc.get("features", []):
-        props = feat.get("properties") or {}
-        href = (props.get("type") or {}).get("href", "")
-        if href.rsplit("/", 1)[-1] not in _GEONAME_SETTLEMENT_TYPES:
-            continue
-        geom = feat.get("geometry") or {}
-        coords = geom.get("coordinates") if geom.get("type") == "Point" else None
-        if not coords or len(coords) < 2:
-            continue
-        name = _geoname_text(props.get("name"))
-        if not name:
-            continue
-        rows.append(
-            {
-                "name": name,
-                "longitude": float(coords[0]),
-                "latitude": float(coords[1]),
-                "ags": None,
-                "kreis": None,
-            }
-        )
-    return rows
-
-
-def _fetch_gn250_page(start):
-    """Fetch one GN250 page, retrying on transient network errors.
-
-    Re-raises the last error once retries are exhausted (no silent fallback).
-    """
-    last_err = None
-    for attempt in range(1, GN250_MAX_RETRIES + 1):
-        try:
-            return _wfs_get_feature(
-                GN250_WFS_BASE,
-                "gn:NamedPlace",
-                extra_params={
-                    "outputFormat": "application/geo+json",
-                    "count": GN250_PAGE_SIZE,
-                    "startIndex": start,
-                },
-                timeout=GN250_READ_TIMEOUT,
-            )
-        except requests.exceptions.RequestException as e:
-            last_err = e
-            logger.warning(
-                f"GN250 page at startIndex {start} failed "
-                f"(attempt {attempt}/{GN250_MAX_RETRIES}): {e}"
-            )
-    raise last_err
-
-
-def fetch_geonames():
-    """Fetch all GN250 populated places from the BKG INSPIRE WFS as GeoJSON.
-
-    Pages on startIndex until a short page; GN250 advertises
-    'application/geo+json' (it rejects 'application/json').
-    """
-    logger.info("Fetching GN250 named places from BKG WFS...")
-    rows = []
-    start = 0
-    while True:
-        data = _fetch_gn250_page(start)
-        feats = data.get("features", [])
-        rows.extend(parse_geonames_featurecollection(data))
-        logger.info(f"GN250 page at {start}: {len(feats)} features ({len(rows)} kept)")
-        if len(feats) < GN250_PAGE_SIZE:
-            break
-        start += GN250_PAGE_SIZE
-    logger.info(f"Fetched {len(rows)} GN250 populated places")
-    return rows
 
 
 def fetch_gemeinden():
@@ -296,5 +182,5 @@ def load_kreise_lookup(path):
     path = Path(path)
     if not path.exists():
         return {}
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         return json.load(f)

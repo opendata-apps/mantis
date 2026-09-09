@@ -1,5 +1,6 @@
 import requests
 import re
+import argparse
 
 overpass_url = "https://overpass-api.de/api/interpreter"
 
@@ -28,7 +29,9 @@ def check_location(fundort):
                   out body;
                 }}
             """
-            response = requests.get(overpass_url, params={"data": overpass_query}, timeout=30)
+            response = requests.get(
+                overpass_url, params={"data": overpass_query}, timeout=30
+            )
             data = response.json()
             for element in data["elements"]:
                 if "tags" in element and "name" in element["tags"]:
@@ -39,34 +42,32 @@ def check_location(fundort):
             # Extrahieren der Ortsnamen
 
             if ort in orte:
-                results.append((f"{dist}, {ort}, {fundort_id}, OK\n"))
+                results.append(f"{dist}, {ort}, {fundort_id}, OK\n")
                 weiter = False
-                print((f"{dist}, {ort}, {fundort_id}, OK\n"))
+                print(f"{dist}, {ort}, {fundort_id}, OK\n")
             elif dist < 5000:
                 dist += 200
             else:
                 dist += 5000
 
             if dist == 50000:
-                results.append((f"{dist}, {ort}, {fundort_id}, <-- Prüfen!\n"))
+                results.append(f"{dist}, {ort}, {fundort_id}, <-- Prüfen!\n")
                 weiter = False
     except Exception as e:
-        results.append((f" {dist},  {ort}, {fundort_id},  <-- Abbruch!\n"))
+        results.append(f" {dist},  {ort}, {fundort_id},  <-- Abbruch!\n")
         print(e)
 
     return results
 
 
 if __name__ == "__main__":
-    locations = [
-        (52.38948, 12.70295, "Schenkenberg", 1908),
-    ]
-    # locations = [
-    #    # (51.94966,14.06826,"Caminchen",854),
-    #    # (52.37982, 13.2579, "Teltow", 378),
-    #    (51.72459, 14.63499,"Forst (Lausitz)", 166)
-    # (52.00539,14.5071,"Schenkendöbern",716),
-    # ]
+    parser = argparse.ArgumentParser(description="Check a location with Overpass.")
+    parser.add_argument("latitude", type=float)
+    parser.add_argument("longitude", type=float)
+    parser.add_argument("place")
+    parser.add_argument("record_id", type=int)
+    args = parser.parse_args()
+    locations = [(args.latitude, args.longitude, args.place, args.record_id)]
     with open("ergebnis", "w") as fh:
         for fundort in locations:
             if fundort[2] != "Berlin":

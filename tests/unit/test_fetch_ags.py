@@ -205,7 +205,7 @@ def test_save_fallback_writes_valid_json(tmp_path):
     save_fallback(data, path)
 
     assert path.exists()
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         assert json.load(f) == data
 
 

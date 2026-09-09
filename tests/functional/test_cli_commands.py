@@ -7,12 +7,14 @@ occurs.
 """
 
 from unittest.mock import patch
+from pathlib import Path
+import json
 
 import pytest
 
 
 @pytest.fixture
-def cli_runner(app):
+def cli_runner(app, _db):
     return app.test_cli_runner()
 
 
@@ -86,7 +88,7 @@ class TestSeedCommand:
         assert "Base data seeded" in result.output
         assert "Done" in result.output
 
-        # Row counts unchanged → truly idempotent
+        # Seeding base data does not add reporters or sightings.
         assert session.scalar(select(func.count()).select_from(TblUsers)) == (
             before_users
         )
@@ -94,31 +96,47 @@ class TestSeedCommand:
             before_fundorte
         )
 
-    def test_seed_with_demo_copies_images(self, cli_runner, tmp_path, app):
-        """``seed --demo`` copies demo images into
-        ``UPLOAD_FOLDER/2025/2025-01-19``. We swap UPLOAD_FOLDER to a
-        tmp dir so the real datastore stays untouched, then verify the
-        actual files landed on disk."""
-        original_upload = app.config["UPLOAD_FOLDER"]
-        app.config["UPLOAD_FOLDER"] = str(tmp_path)
-        try:
-            result = cli_runner.invoke(args=["seed", "--demo"])
-        finally:
-            app.config["UPLOAD_FOLDER"] = original_upload
+        from app.database.models import TblAemterCoordinaten, TblFundortBeschreibung
+
+        descriptions = select(
+            TblFundortBeschreibung.id, TblFundortBeschreibung.beschreibung
+        ).order_by(TblFundortBeschreibung.id)
+        areas = select(
+            TblAemterCoordinaten.ags,
+            TblAemterCoordinaten.gen,
+            TblAemterCoordinaten.properties,
+        ).order_by(TblAemterCoordinaten.ags)
+        before_descriptions = session.execute(descriptions).all()
+        before_areas = session.execute(areas).all()
+        assert before_descriptions and before_areas
+        assert cli_runner.invoke(args=["seed"]).exit_code == 0
+        assert session.execute(descriptions).all() == before_descriptions
+        assert session.execute(areas).all() == before_areas
+
+    def test_seed_with_demo_copies_images(self, cli_runner, app, session):
+        """``seed --demo`` stores every referenced demo image in the upload root."""
+        upload_root = Path(app.config["UPLOAD_FOLDER"])
+        result = cli_runner.invoke(args=["seed", "--demo"])
 
         assert result.exit_code == 0
         assert "Demo data seeded" in result.output
 
-        target_dir = tmp_path / "2025" / "2025-01-19"
+        target_dir = upload_root / "2025" / "2025-01-19"
         assert target_dir.exists()
 
-        webps = list(target_dir.glob("*.webp"))
-        # The mapping in app/cli.py lists 20 target files — demand most
-        # of them land on disk (tolerate a missing source webp).
-        assert len(webps) >= 15, f"expected ~20 webps, got {len(webps)}"
-        # Every file must be non-empty — guards against a silent copy
-        # failure that would produce 0-byte files.
-        assert all(w.stat().st_size > 0 for w in webps)
+        from sqlalchemy import select
+        from app.database.models import TblFundorte, TblMeldungen
+
+        image_paths = session.scalars(
+            select(TblFundorte.ablage)
+            .join(TblMeldungen)
+            .where(TblMeldungen.id.between(1, 20))
+        ).all()
+        assert len(image_paths) == 20
+        assert all(
+            (upload_root / path).is_file() and (upload_root / path).stat().st_size > 0
+            for path in image_paths
+        )
 
     def test_seed_without_fallback_warns_but_completes(self, cli_runner, session):
         """If ``ags_gemeinden.json`` is missing, the command prints a
@@ -146,17 +164,78 @@ class TestSeedCommand:
         )
 
 
+class TestRecalculateMtbCommand:
+    """``flask recalculate-mtb`` re-derives stored sheet numbers."""
+
+    def _fundort(self, session):
+        from app.database.fundorte import TblFundorte
+        from sqlalchemy import select
+
+        return session.scalars(select(TblFundorte).order_by(TblFundorte.id)).first()
+
+    def test_dry_run_reports_without_writing(self, cli_runner, session):
+        fundort = self._fundort(session)
+        fundort.mtb = "0000"
+        session.commit()
+
+        def spatial(coord):
+            return {
+                "ags": "12062289",
+                "gen": "Lebusa",
+                "land": "Brandenburg",
+                "kreis": "Elbe-Elster",
+                "amt_string": "12062289 -- Lebusa",
+            }
+
+        with patch(
+            "app.tools.location_enrichment.get_amt_enriched", side_effect=spatial
+        ):
+            result = cli_runner.invoke(args=["recalculate-mtb"])
+
+        assert result.exit_code == 0, result.output
+        assert "Dry run" in result.output
+        session.refresh(fundort)
+        assert fundort.mtb == "0000", "a dry run must not touch the database"
+
+    def test_commit_writes_the_corrected_sheet(self, cli_runner, session):
+        fundort = self._fundort(session)
+        # Lebusa, Landkreis Elbe-Elster. Pinned so the expected sheet can be
+        # the number off the printed map rather than whatever get_mtb returns.
+        fundort.latitude = "51.789314"
+        fundort.longitude = "13.405689"
+        fundort.mtb = "0000"
+        session.commit()
+
+        def spatial(coord):
+            return {
+                "ags": "12062289",
+                "gen": "Lebusa",
+                "land": "Brandenburg",
+                "kreis": "Elbe-Elster",
+                "amt_string": "12062289 -- Lebusa",
+            }
+
+        with patch(
+            "app.tools.location_enrichment.get_amt_enriched", side_effect=spatial
+        ):
+            result = cli_runner.invoke(args=["recalculate-mtb", "--commit"])
+
+        assert result.exit_code == 0, result.output
+        assert "Committed." in result.output
+        session.refresh(fundort)
+        assert fundort.mtb == "4246"
+        assert fundort.amt == "12062289 -- Lebusa"
+
+
 class TestSeedAgsCommand:
     """Covers ``flask seed-ags`` by patching the WFS fetchers."""
 
-    def test_successful_sync(self, cli_runner, session):
-        """Happy path: fetchers return tiny synthetic datasets, command
-        syncs the aemter table without error.
+    def test_successful_sync(self, cli_runner, session, tmp_path, monkeypatch):
+        import app.cli
+        from sqlalchemy import select
+        from app.database.models import TblAemterCoordinaten
 
-        The write-to-disk side-effects (``save_fallback``,
-        ``save_kreise_lookup``) are stubbed out so we don't clobber the
-        real ``app/data/ags_*.json`` files that ship with the repo.
-        """
+        monkeypatch.setattr(app.cli, "__file__", str(tmp_path / "cli.py"))
         fake_gemeinden = {
             "type": "FeatureCollection",
             "numberReturned": 1,
@@ -186,19 +265,13 @@ class TestSeedAgsCommand:
             patch("app.tools.fetch_ags.fetch_gemeinden", return_value=fake_gemeinden),
             patch("app.tools.fetch_ags.fetch_kreise", return_value=fake_kreise),
             patch("app.tools.fetch_ags.fetch_berlin_bezirke", return_value=[]),
-            patch("app.tools.fetch_ags.save_fallback") as mock_save_fb,
-            patch("app.tools.fetch_ags.save_kreise_lookup") as mock_save_krs,
         ):
             result = cli_runner.invoke(args=["seed-ags"])
 
         assert result.exit_code == 0, result.output
         assert "Administrative area data is up to date" in result.output
 
-        mock_save_fb.assert_called_once()
-        mock_save_krs.assert_called_once()
-
-        # Merged payload has the normalized BKG feature shape
-        merged_arg = mock_save_fb.call_args.args[0]
+        merged_arg = json.loads((tmp_path / "data" / "ags_gemeinden.json").read_text())
         assert merged_arg["type"] == "FeatureCollection"
         assert len(merged_arg["features"]) == 1
         feat = merged_arg["features"][0]
@@ -206,28 +279,45 @@ class TestSeedAgsCommand:
         assert feat["properties"]["GEN"] == "Testort"
 
         # Kreise lookup maps 5-digit AGS → "Landkreis Testkreis"
-        kreise_arg = mock_save_krs.call_args.args[0]
+        kreise_arg = json.loads((tmp_path / "data" / "ags_kreise.json").read_text())
         assert kreise_arg == {"12054": "Landkreis Testkreis"}
 
-    def test_fetch_error_aborts_without_writing_disk(self, cli_runner):
-        """If the BKG WFS is unreachable the command must abort via
-        ``click.Abort`` (exit code 1) and must NOT write the fallback
-        files — otherwise the real ``app/data/ags_*.json`` shipped with
-        the repo could be clobbered with a half-baked payload."""
-        with (
-            patch(
-                "app.tools.fetch_ags.fetch_gemeinden",
-                side_effect=RuntimeError("BKG unreachable"),
-            ),
-            patch("app.tools.fetch_ags.save_fallback") as mock_save_fb,
-            patch("app.tools.fetch_ags.save_kreise_lookup") as mock_save_krs,
+        rows = session.scalars(select(TblAemterCoordinaten)).all()
+        assert [(row.ags, row.gen, row.properties) for row in rows] == [
+            (12054012, "Testort", {"type": "Point", "coordinates": [13.4, 52.5]})
+        ]
+
+    def test_fetch_error_preserves_saved_data(
+        self, cli_runner, session, tmp_path, monkeypatch
+    ):
+        import app.cli
+        from sqlalchemy import select
+        from app.database.models import TblAemterCoordinaten
+
+        monkeypatch.setattr(app.cli, "__file__", str(tmp_path / "cli.py"))
+        data_dir = tmp_path / "data"
+        data_dir.mkdir()
+        paths = [data_dir / "ags_gemeinden.json", data_dir / "ags_kreise.json"]
+        for path in paths:
+            path.write_text('{"existing": true}')
+        before = [
+            (row.ags, row.gen, row.properties)
+            for row in session.scalars(
+                select(TblAemterCoordinaten).order_by(TblAemterCoordinaten.ags)
+            )
+        ]
+        with patch(
+            "app.tools.fetch_ags.fetch_gemeinden",
+            side_effect=RuntimeError("BKG unreachable"),
         ):
             result = cli_runner.invoke(args=["seed-ags"])
-
         assert result.exit_code == 1
-        assert isinstance(result.exception, SystemExit)
-        assert "Error fetching AGS data: BKG unreachable" in result.output
-        assert "Aborted" in result.output
-        # No disk writes happened — the error short-circuited the function
-        mock_save_fb.assert_not_called()
-        mock_save_krs.assert_not_called()
+        assert "BKG unreachable" in result.output
+        assert [path.read_text() for path in paths] == ['{"existing": true}'] * 2
+        after = [
+            (row.ags, row.gen, row.properties)
+            for row in session.scalars(
+                select(TblAemterCoordinaten).order_by(TblAemterCoordinaten.ags)
+            )
+        ]
+        assert after == before
