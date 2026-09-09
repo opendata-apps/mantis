@@ -16,6 +16,54 @@ from app.routes.admin.blueprint import admin
 from app.routes.admin.filters import get_filtered_query, get_reviewer_filter_args
 
 
+def _export_date(value) -> str:
+    return value.strftime("%d.%m.%Y") if value else ""
+
+
+# One row per spreadsheet column: header, width, and how to read the value off a
+# Meldung. Header text and value used to live in two separate lists indexed by
+# hand, where inserting a column silently shifted every value after it.
+EXPORT_COLUMNS = (
+    ("ID", 8, lambda m: m.id),
+    ("Status", 12, lambda m: ReportStatus.get_display_names(m.statuses or [])),
+    ("Fund-Datum", 12, lambda m: _export_date(m.dat_fund_von)),
+    ("Melde-Datum", 12, lambda m: _export_date(m.dat_meld)),
+    ("Bearbeitungs-Datum", 18, lambda m: _export_date(m.dat_bear)),
+    ("Anzahl Tiere", 12, lambda m: m.tiere),
+    ("Männchen", 10, lambda m: m.art_m),
+    ("Weibchen", 10, lambda m: m.art_w),
+    ("Nymphen", 10, lambda m: m.art_n),
+    ("Ootheken", 10, lambda m: m.art_o),
+    ("Andere", 10, lambda m: m.art_f),
+    ("Fundort-Quelle", 14, lambda m: m.fo_quelle),
+    ("Anmerkung Melder", 30, lambda m: m.anm_melder),
+    ("Anmerkung Bearbeiter", 30, lambda m: m.anm_bearbeiter),
+    ("PLZ", 8, lambda m: m.fundort.plz),
+    ("Ort", 20, lambda m: m.fundort.ort),
+    ("Straße", 25, lambda m: m.fundort.strasse),
+    ("Kreis", 20, lambda m: m.fundort.kreis),
+    ("Land", 15, lambda m: m.fundort.land),
+    ("Amt", 25, lambda m: m.fundort.amt),
+    ("MTB", 8, lambda m: m.fundort.mtb),
+    ("Längengrad", 12, lambda m: m.fundort.longitude),
+    ("Breitengrad", 12, lambda m: m.fundort.latitude),
+    ("Beschreibung", 30, lambda m: m.fundort.location_type.beschreibung),
+    ("Melder Name", 20, lambda m: m.reporter_link.reporter.user_name),
+    ("Melder Kontakt", 25, lambda m: m.reporter_link.reporter.user_kontakt),
+    ("Bearbeiter", 20, lambda m: m.approver.user_name if m.approver else ""),
+)
+
+# Above this many rows, xlsxwriter runs in constant_memory mode against a temp
+# file. That mode cannot add a table, so the formatting below is skipped.
+LARGE_EXPORT_THRESHOLD = 5000
+
+EXPORT_FILENAMES = {
+    "all": ("Alle_Meldungen", "all"),
+    "accepted": ("Akzeptierte_Meldungen", "bearbeitet"),
+    "non_accepted": ("Nicht_akzeptierte_Meldungen", "offen"),
+}
+
+
 @admin.route("/admin/export/xlsx/<string:value>")
 @reviewer_required
 def export_data(value):
@@ -31,15 +79,10 @@ def export_data(value):
         filter_args = get_reviewer_filter_args()
 
         # Get filtered select statement based on export type
-        if value == "all":
-            filename = f"Alle_Meldungen_{current_time}.xlsx"
-            stmt = get_filtered_query(filter_status="all")
-        elif value == "accepted":
-            filename = f"Akzeptierte_Meldungen_{current_time}.xlsx"
-            stmt = get_filtered_query(filter_status="bearbeitet")
-        elif value == "non_accepted":
-            filename = f"Nicht_akzeptierte_Meldungen_{current_time}.xlsx"
-            stmt = get_filtered_query(filter_status="offen")
+        if value in EXPORT_FILENAMES:
+            stem, filter_status = EXPORT_FILENAMES[value]
+            filename = f"{stem}_{current_time}.xlsx"
+            stmt = get_filtered_query(filter_status=filter_status)
         elif value == "searched":
             filename = f"Suchergebnisse_{current_time}.xlsx"
             stmt = get_filtered_query(**filter_args)
@@ -51,42 +94,7 @@ def export_data(value):
         count_stmt = stmt.options().with_only_columns(func.count()).order_by(None)
         row_count = db.session.scalar(count_stmt) or 0
 
-        # Threshold for using memory-optimized mode (constant_memory)
-        # Below this, use standard mode with table formatting
-        LARGE_EXPORT_THRESHOLD = 5000
-
         # Approver is eagerly loaded via outerjoin in get_filtered_query().
-
-        # Column definitions with fixed widths (avoids needing full data scan)
-        columns = [
-            ("ID", 8),
-            ("Status", 12),
-            ("Fund-Datum", 12),
-            ("Melde-Datum", 12),
-            ("Bearbeitungs-Datum", 18),
-            ("Anzahl Tiere", 12),
-            ("Männchen", 10),
-            ("Weibchen", 10),
-            ("Nymphen", 10),
-            ("Ootheken", 10),
-            ("Andere", 10),
-            ("Fundort-Quelle", 14),
-            ("Anmerkung Melder", 30),
-            ("Anmerkung Bearbeiter", 30),
-            ("PLZ", 8),
-            ("Ort", 20),
-            ("Straße", 25),
-            ("Kreis", 20),
-            ("Land", 15),
-            ("Amt", 25),
-            ("MTB", 8),
-            ("Längengrad", 12),
-            ("Breitengrad", 12),
-            ("Beschreibung", 30),
-            ("Melder Name", 20),
-            ("Melder Kontakt", 25),
-            ("Bearbeiter", 20),
-        ]
 
         # Use temp file for large exports, BytesIO for small ones
         use_large_mode = row_count > LARGE_EXPORT_THRESHOLD
@@ -115,9 +123,9 @@ def export_data(value):
         )
 
         # Write headers and set column widths
-        for col_idx, (col_name, col_width) in enumerate(columns):
-            worksheet.write(0, col_idx, col_name, header_format)
-            worksheet.set_column(col_idx, col_idx, col_width)
+        for col_idx, (header, width, _) in enumerate(EXPORT_COLUMNS):
+            worksheet.write(0, col_idx, header, header_format)
+            worksheet.set_column(col_idx, col_idx, width)
 
         # Stream data using yield_per for memory efficiency.
         # contains_eager() on scalar (uselist=False) relationships is compatible
@@ -128,70 +136,18 @@ def export_data(value):
 
         row_idx = 1
         for meldung in result:
-            fundort = meldung.fundort
-            beschreibung = fundort.location_type
-            user = meldung.reporter_link.reporter
-
-            # Write row data directly (no intermediate dict/list)
-            worksheet.write(row_idx, 0, meldung.id)
-            worksheet.write(
-                row_idx, 1, ReportStatus.get_display_names(meldung.statuses or [])
-            )
-            worksheet.write(
-                row_idx,
-                2,
-                meldung.dat_fund_von.strftime("%d.%m.%Y")
-                if meldung.dat_fund_von
-                else "",
-            )
-            worksheet.write(
-                row_idx,
-                3,
-                meldung.dat_meld.strftime("%d.%m.%Y") if meldung.dat_meld else "",
-            )
-            worksheet.write(
-                row_idx,
-                4,
-                meldung.dat_bear.strftime("%d.%m.%Y") if meldung.dat_bear else "",
-            )
-            worksheet.write(row_idx, 5, meldung.tiere)
-            worksheet.write(row_idx, 6, meldung.art_m)
-            worksheet.write(row_idx, 7, meldung.art_w)
-            worksheet.write(row_idx, 8, meldung.art_n)
-            worksheet.write(row_idx, 9, meldung.art_o)
-            worksheet.write(row_idx, 10, meldung.art_f)
-            worksheet.write(row_idx, 11, meldung.fo_quelle)
-            worksheet.write(row_idx, 12, meldung.anm_melder)
-            worksheet.write(row_idx, 13, meldung.anm_bearbeiter)
-            worksheet.write(row_idx, 14, fundort.plz)
-            worksheet.write(row_idx, 15, fundort.ort)
-            worksheet.write(row_idx, 16, fundort.strasse)
-            worksheet.write(row_idx, 17, fundort.kreis)
-            worksheet.write(row_idx, 18, fundort.land)
-            worksheet.write(row_idx, 19, fundort.amt)
-            worksheet.write(row_idx, 20, fundort.mtb)
-            worksheet.write(row_idx, 21, fundort.longitude)
-            worksheet.write(row_idx, 22, fundort.latitude)
-            worksheet.write(row_idx, 23, beschreibung.beschreibung)
-            worksheet.write(row_idx, 24, user.user_name)
-            worksheet.write(row_idx, 25, user.user_kontakt)
-            # Approver (eagerly loaded via outerjoin)
-            worksheet.write(
-                row_idx,
-                26,
-                meldung.approver.user_name if meldung.approver else "",
-            )
-
+            for col_idx, (_, _, value_of) in enumerate(EXPORT_COLUMNS):
+                worksheet.write(row_idx, col_idx, value_of(meldung))
             row_idx += 1
 
         # Add table formatting only for small exports (constant_memory can't use tables)
         if not use_large_mode and row_idx > 1:
-            column_settings = [{"header": col[0]} for col in columns]
+            column_settings = [{"header": header} for header, _, _ in EXPORT_COLUMNS]
             worksheet.add_table(
                 0,
                 0,
                 row_idx - 1,
-                len(columns) - 1,
+                len(EXPORT_COLUMNS) - 1,
                 {"columns": column_settings, "style": "Table Style Medium 9"},
             )
 
