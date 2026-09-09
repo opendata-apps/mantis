@@ -44,8 +44,12 @@ from app.tools.coordinate_validation import (
 )
 from app.tools.send_reviewer_email import build_email_payload, send_email
 
+# Bounds of the PostgreSQL integer columns the count fields are stored in.
 INT32_MIN = -(2**31)
 INT32_MAX = 2**31 - 1
+
+# Flags that sit alongside a workflow state rather than replacing it.
+REVIEW_FLAGS = frozenset({ReportStatus.INFO.value, ReportStatus.UNKL.value})
 
 
 def _mark_sighting_updated(sighting: TblMeldungen) -> None:
@@ -53,15 +57,30 @@ def _mark_sighting_updated(sighting: TblMeldungen) -> None:
     sighting.bearb_id = current_user.user_id
 
 
-def _commit_json_or_error(log_context: str, user_error: str):
-    """Commit the current transaction or return a JSON 500 response."""
+def _commit_or_log(log_context: str) -> bool:
+    """Commit the current transaction. Rolls back and returns False on failure.
+
+    The caller decides what a failure looks like: the JSON endpoints answer
+    with an error body, the HTMX ones with a bare status.
+    """
     try:
         db.session.commit()
     except SQLAlchemyError as e:
         db.session.rollback()
         current_app.logger.error(f"{log_context}: {e}")
-        return jsonify({"error": user_error}), 500
-    return None
+        return False
+    return True
+
+
+def _set_statuses(sighting: TblMeldungen, statuses: list[str]) -> None:
+    """Set the canonical statuses array and keep ``deleted`` in step.
+
+    ``TblMeldungen.deleted`` is a deprecated mirror of the DEL status that
+    older queries still read. Assigning ``statuses`` directly anywhere else
+    would let the two drift apart.
+    """
+    sighting.statuses = statuses
+    sighting.deleted = sighting.is_deleted
 
 
 def _resolve_filter_status(default: str = "offen") -> str:
@@ -324,12 +343,8 @@ def change_mantis_meta_data(id):
         if fieldname in ["latitude", "longitude"]:
             recalculate_amt_mtb(sighting_obj)
 
-        error_response = _commit_json_or_error(
-            f"Database error updating report {id}",
-            "Database error",
-        )
-        if error_response:
-            return error_response
+        if not _commit_or_log(f"Database error updating report {id}"):
+            return jsonify({"error": "Database error"}), 500
 
         current_app.logger.info(
             f"Report {id} metadata updated: {fieldname} to {new_data} by user {sighting_meldung.bearb_id}"
@@ -369,12 +384,8 @@ def update_coordinates(id):
     recalculate_amt_mtb(fundort)
 
     _mark_sighting_updated(sighting)
-    error_response = _commit_json_or_error(
-        f"Error updating coordinates for report {id}",
-        "Failed to update coordinates",
-    )
-    if error_response:
-        return error_response
+    if not _commit_or_log(f"Error updating coordinates for report {id}"):
+        return jsonify({"error": "Failed to update coordinates"}), 500
 
     return jsonify(
         {"success": True, "amt": fundort.amt or "", "mtb": fundort.mtb or ""}
@@ -418,12 +429,8 @@ def update_address(id):
         fundort.land = land
 
     _mark_sighting_updated(sighting)
-    error_response = _commit_json_or_error(
-        f"Failed to update address for report {id}",
-        "Failed to update address",
-    )
-    if error_response:
-        return error_response
+    if not _commit_or_log(f"Failed to update address for report {id}"):
+        return jsonify({"error": "Failed to update address"}), 500
 
     return jsonify({"success": True}), 200
 
@@ -485,25 +492,19 @@ def toggle_approve_sighting(id):
     # Toggle between APPR and OPEN.
     # Un-approving preserves flags (re-opening keeps existing context).
     if sighting.is_approved:
-        flags = [s for s in (sighting.statuses or []) if s in ("INFO", "UNKL")]
-        sighting.statuses = [ReportStatus.OPEN.value] + flags
+        flags = [s for s in (sighting.statuses or []) if s in REVIEW_FLAGS]
+        _set_statuses(sighting, [ReportStatus.OPEN.value] + flags)
         sighting.dat_bear = None
     else:
         # Any active review flag blocks approval — open concerns must be
         # resolved explicitly, not silently dropped on accept.
         if sighting.is_unclear or sighting.needs_info:
             return "", 400
-        sighting.statuses = [ReportStatus.APPR.value]
+        _set_statuses(sighting, [ReportStatus.APPR.value])
         sighting.dat_bear = datetime.now()
-    # Sync deprecated boolean column with canonical statuses array
-    sighting.deleted = sighting.is_deleted
     _mark_sighting_updated(sighting)
 
-    try:
-        db.session.commit()
-    except SQLAlchemyError as e:
-        db.session.rollback()
-        current_app.logger.error(f"Failed to toggle approval for sighting {id}: {e}")
+    if not _commit_or_log(f"Failed to toggle approval for sighting {id}"):
         return "", 500
 
     current_app.logger.debug(
@@ -611,16 +612,10 @@ def toggle_flag(id):
     if not is_valid:
         return "", 400
 
-    sighting.statuses = statuses
-    # Sync deprecated boolean column with canonical statuses array
-    sighting.deleted = sighting.is_deleted
+    _set_statuses(sighting, statuses)
     _mark_sighting_updated(sighting)
 
-    try:
-        db.session.commit()
-    except SQLAlchemyError as e:
-        db.session.rollback()
-        current_app.logger.error(f"Failed to toggle flag for sighting {id}: {e}")
+    if not _commit_or_log(f"Failed to toggle flag for sighting {id}"):
         return "", 500
 
     filter_status = _resolve_filter_status()
@@ -652,15 +647,11 @@ def delete_sighting(id):
     if not sighting:
         return "", 404
 
-    # Set statuses to [DEL] only (DEL is exclusive)
-    sighting.statuses = [ReportStatus.DEL.value]
-    sighting.deleted = True
+    # DEL is exclusive, so it replaces every other status.
+    _set_statuses(sighting, [ReportStatus.DEL.value])
     _mark_sighting_updated(sighting)
-    try:
-        db.session.commit()
-    except SQLAlchemyError as e:
-        db.session.rollback()
-        current_app.logger.error(f"Failed to delete sighting {id}: {e}")
+
+    if not _commit_or_log(f"Failed to delete sighting {id}"):
         return "", 500
 
     filter_status = _resolve_filter_status()
@@ -675,15 +666,11 @@ def undelete_sighting(id):
     if not sighting:
         return "", 404
 
-    # Set statuses to [OPEN] and clear deleted flag
-    sighting.statuses = [ReportStatus.OPEN.value]
-    sighting.deleted = False
+    # Restoring returns the report to the review queue with no flags.
+    _set_statuses(sighting, [ReportStatus.OPEN.value])
     _mark_sighting_updated(sighting)
-    try:
-        db.session.commit()
-    except SQLAlchemyError as e:
-        db.session.rollback()
-        current_app.logger.error(f"Failed to undelete sighting {id}: {e}")
+
+    if not _commit_or_log(f"Failed to undelete sighting {id}"):
         return "", 500
 
     filter_status = _resolve_filter_status()
@@ -729,11 +716,7 @@ def change_mantis_count(id):
     setattr(sighting, field, new_count)
 
     _mark_sighting_updated(sighting)
-    error_response = _commit_json_or_error(
-        f"Failed to update mantis count for sighting {id}",
-        "Failed to update mantis count",
-    )
-    if error_response:
-        return error_response
+    if not _commit_or_log(f"Failed to update mantis count for sighting {id}"):
+        return jsonify({"error": "Failed to update mantis count"}), 500
 
     return jsonify({"success": True})
