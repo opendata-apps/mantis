@@ -27,7 +27,7 @@ from app.database.models import (
 )
 from app.extensions import db
 from app.routes.admin.blueprint import admin
-from app.routes.admin.common import _inspect_sqlalchemy, recalculate_amt_mtb
+from app.tools.location_enrichment import recalculate_amt_mtb
 from app.routes.backup import available_backup_years
 from app.tools.coordinate_validation import validate_and_normalize_coordinate
 from app.tools.report_images import build_upload_filename, ensure_upload_dir
@@ -197,7 +197,7 @@ def get_table_data(table_name):
                     )  # This ensures no results
             else:  # full_text search
                 ts_query = func.websearch_to_tsquery("german", search)
-                meldungen_tbl = _inspect_sqlalchemy(TblMeldungen).mapper.local_table
+                meldungen_tbl = TblMeldungen.__table__
                 stmt = stmt.join(
                     meldungen_tbl, table.c.meldungen_id == meldungen_tbl.c.id
                 ).where(meldungen_tbl.c.search_vector.op("@@")(ts_query))

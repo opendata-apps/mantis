@@ -29,3 +29,18 @@ def calculate_spatial_fields(latitude, longitude) -> dict[str, str]:
         fields["kreis"] = spatial["kreis"]
 
     return fields
+
+
+def recalculate_amt_mtb(fundort):
+    """Recalculate AMT, MTB, and fill land/kreis from spatial data."""
+    if not fundort:
+        return
+
+    spatial_fields = calculate_spatial_fields(fundort.latitude, fundort.longitude)
+    fundort.mtb = spatial_fields["mtb"]
+    fundort.amt = spatial_fields["amt"]
+    # AGS spatial data is authoritative for land/kreis.
+    if spatial_fields["land"]:
+        fundort.land = spatial_fields["land"]
+    if spatial_fields["kreis"]:
+        fundort.kreis = spatial_fields["kreis"]

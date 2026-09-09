@@ -31,7 +31,7 @@ from app.database.models import (
 )
 from app.extensions import db
 from app.routes.admin.blueprint import admin
-from app.routes.admin.common import recalculate_amt_mtb
+from app.tools.location_enrichment import recalculate_amt_mtb
 from app.routes.admin.filters import get_filtered_query, _get_reviewer_filter_args
 from app.tools.coordinate_validation import (
     validate_and_normalize_coordinate,
