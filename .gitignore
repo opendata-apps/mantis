@@ -183,3 +183,9 @@ app/static/node_modules
 assets/
 .claude/
 CLAUDE.md
+
+# Agent tooling: vendored skills, their lockfile, browser logs and plan notes
+.agents/
+skills-lock.json
+.playwright-cli/
+docs/superpowers/
