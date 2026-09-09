@@ -150,13 +150,8 @@ class Config:
         os.getenv("BACKUP_DOWNLOAD_MAX_AGE_SECONDS", str(7 * 24 * 60 * 60))
     )
 
-    # GitLab Service Desk. Mail to this address opens a *confidential* issue —
-    # visible to project members only, despite the repo being public. Used to
-    # collect photos the browser cannot read: the mail app reaches the gallery
-    # through a different path than the upload does, so it is the only channel
-    # that can retrieve those bytes. Handed out by the server after repeated
-    # failures rather than rendered into the page, because anyone holding the
-    # address can open issues.
+    # Public support intake for photos the browser cannot upload. GitLab creates
+    # confidential tickets; knowing this address does not grant access to them.
     PHOTO_SUPPORT_EMAIL = os.getenv(
         "PHOTO_SUPPORT_EMAIL",
         "contact-project+opendata-apps-mantis-41791538-issue-@incoming.gitlab.com",

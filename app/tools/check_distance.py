@@ -58,11 +58,8 @@ def calculate_distance(coord1, coord2):
 
 
 if __name__ == "__main__":
-    try:
-        from fundorte_data import adresses  # type: ignore
-    except ImportError:
-        print("fundorte_data module not found - skipping execution")
-        adresses = []
+    from fundorte_data import adresses  # type: ignore
+
     with open("results.txt", "w") as fh:
         for ort in adresses:
             time.sleep(1.0)

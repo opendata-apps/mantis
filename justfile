@@ -63,6 +63,7 @@ backup_dir := "/home/mantis/data/backups/postgres"
 prod-backup:
     #!/usr/bin/env bash
     set -euo pipefail
+    umask 077
     d=$(date +%F_%H-%M)
     dir="{{ backup_dir }}"
     mkdir -p "$dir"
@@ -71,7 +72,7 @@ prod-backup:
     {{ compose }} exec -T db pg_dumpall -U mantis_user --globals-only --no-role-passwords \
         > "$dir/globals_$d.sql"
     {{ compose }} exec -T db sh -c \
-        'cat > /tmp/verify.dump && pg_restore --list /tmp/verify.dump > /dev/null && rm -f /tmp/verify.dump' \
+        'umask 077; cat > /tmp/verify.dump && pg_restore --list /tmp/verify.dump > /dev/null && rm -f /tmp/verify.dump' \
         < "$part"
     mv "$part" "$dir/db_$d.dump"
     echo "✔ $dir/db_$d.dump ($(du -h "$dir/db_$d.dump" | cut -f1))"

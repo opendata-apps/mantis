@@ -23,6 +23,20 @@ from app.database.ags import (
 stats = Blueprint("statistics", __name__)
 
 
+def _total_animals():
+    """Use the recorded animal count, with classified counts for legacy NULLs."""
+    return func.sum(
+        func.coalesce(
+            TblMeldungen.tiere,
+            func.coalesce(TblMeldungen.art_m, 0)
+            + func.coalesce(TblMeldungen.art_w, 0)
+            + func.coalesce(TblMeldungen.art_o, 0)
+            + func.coalesce(TblMeldungen.art_n, 0)
+            + func.coalesce(TblMeldungen.art_f, 0),
+        )
+    ).label("gesamt")
+
+
 def _gender_sum_columns():
     """Return the common aggregation columns for gender/stage statistics.
 
@@ -35,13 +49,7 @@ def _gender_sum_columns():
         func.sum(func.coalesce(TblMeldungen.art_o, 0)).label("oothek"),
         func.sum(func.coalesce(TblMeldungen.art_n, 0)).label("nymphe"),
         func.sum(func.coalesce(TblMeldungen.art_f, 0)).label("andere"),
-        func.sum(
-            func.coalesce(TblMeldungen.art_m, 0)
-            + func.coalesce(TblMeldungen.art_w, 0)
-            + func.coalesce(TblMeldungen.art_o, 0)
-            + func.coalesce(TblMeldungen.art_n, 0)
-            + func.coalesce(TblMeldungen.art_f, 0)
-        ).label("gesamt"),
+        _total_animals(),
     ]
 
 
@@ -531,16 +539,7 @@ def stats_gesamt(marker):
     result_dict = build_gesamt_template()
 
     stmt = (
-        select(
-            TblFundorte.amt,
-            func.sum(
-                func.coalesce(TblMeldungen.art_m, 0)
-                + func.coalesce(TblMeldungen.art_w, 0)
-                + func.coalesce(TblMeldungen.art_o, 0)
-                + func.coalesce(TblMeldungen.art_n, 0)
-                + func.coalesce(TblMeldungen.art_f, 0)
-            ).label("gesamt"),
-        )
+        select(TblFundorte.amt, _total_animals())
         .join(TblMeldungen)
         .where(
             TblMeldungen.dat_meld >= date.fromisoformat(session["date_from"]),

@@ -16,7 +16,7 @@ def test_autocomplete_escapes_html_in_gen(client, session):
         properties={"test": True},
     )
     session.add(row)
-    session.flush()
+    session.commit()
 
     response = client.get("/statistik/ags?ags_input=99999999")
     html = response.data.decode()

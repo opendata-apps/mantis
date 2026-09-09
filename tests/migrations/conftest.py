@@ -1,21 +1,10 @@
-"""Fixtures for Alembic migration chain tests.
-
-Overrides the parent conftest's autouse ``session`` fixture so that
-migration tests manage their own database state via Alembic commands
-instead of the regular transactional-rollback strategy.
-"""
+"""Fixtures for migration tests that manage database state through Alembic."""
 
 import pytest
 import sqlalchemy as sa
 from alembic.config import Config
 
 from tests.test_config import Config as TestConfig
-
-
-@pytest.fixture(autouse=True)
-def session():
-    """Override parent's autouse session — migration tests manage DB state directly."""
-    yield
 
 
 @pytest.fixture

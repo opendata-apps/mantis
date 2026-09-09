@@ -18,7 +18,8 @@ from wtforms.validators import (
     ValidationError,
     InputRequired,
 )
-from datetime import date, timedelta
+from datetime import date
+from dateutil.relativedelta import relativedelta
 import re
 
 from app.tools.coordinate_validation import (
@@ -65,13 +66,16 @@ FEEDBACK_SOURCE_CHOICES = FeedbackSource.choices()
 
 
 # Custom validators
+def minimum_sighting_date() -> date:
+    return date.today() - relativedelta(years=5)
+
+
 def validate_past_date(form, field):
     if field.data:
         today = date.today()
         if field.data > today:
             raise ValidationError("Datum darf nicht in der Zukunft liegen.")
-        five_years_ago = today - timedelta(days=5 * 365)
-        if field.data < five_years_ago:
+        if field.data < minimum_sighting_date():
             raise ValidationError("Datum liegt zu weit zurück (max. 5 Jahre).")
 
 

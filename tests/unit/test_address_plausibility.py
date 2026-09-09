@@ -1,6 +1,10 @@
 """Unit tests for the coordinate-vs-address validation logic."""
 
 from types import SimpleNamespace
+import csv
+import io
+
+import pytest
 
 from app.tools.address_plausibility import (
     Issue,
@@ -191,3 +195,24 @@ class TestFormatCsv:
         assert len(lines) == 2
         assert "42" in lines[1]
         assert "LAND_MISMATCH" in lines[1]
+
+    def test_quotes_and_newlines_stay_in_one_cell(self):
+        from app.tools.address_plausibility import Mismatch
+
+        town = 'Ort, "am See"\nOrtsteil'
+        row = Mismatch(42, Issue.ORT_MISMATCH, "Berlin", "Berlin", town, "Berlin")
+        rows = list(csv.reader(io.StringIO(format_csv([row]))))
+
+        assert len(rows) == 2
+        assert len(rows[1]) == 6
+        assert rows[1][4] == town
+
+    @pytest.mark.parametrize("prefix", ["=", "+", "-", "@", "\t=", "\r=", "\n=", " ="])
+    def test_formula_like_addresses_are_exported_as_text(self, prefix):
+        from app.tools.address_plausibility import Mismatch
+
+        value = prefix + 'HYPERLINK("https://example.test","Ort")'
+        row = Mismatch(42, Issue.ORT_MISMATCH, value, value, value, value)
+        fields = list(csv.reader(io.StringIO(format_csv([row]))))[1]
+
+        assert fields[2:] == ["'" + value] * 4

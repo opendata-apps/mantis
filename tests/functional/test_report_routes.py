@@ -385,6 +385,24 @@ class TestPhotoFailure:
         assert "stage=decode" in caplog.text
         assert "size=5618106" in caplog.text
 
+    @pytest.mark.parametrize("payload", [["unexpected"], "unexpected", 42, True])
+    def test_rejects_non_object_json(self, client, payload):
+        assert client.post("/melden/foto-fehler", json=payload).status_code == 400
+
+    def test_rejects_large_diagnostic_body(self, client, caplog):
+        response = client.post("/melden/foto-fehler", json={"size": "x" * 8192})
+        assert response.status_code == 413
+        assert "Photo pipeline failed" not in caplog.text
+
+    def test_diagnostics_cannot_write_terminal_controls(self, client, caplog):
+        response = client.post(
+            "/melden/foto-fehler",
+            json={"error": "decode\x1b[2J"},
+            headers={"User-Agent": "Browser\x1b[2J"},
+        )
+        assert response.status_code == 204
+        assert "\x1b" not in caplog.text
+
     def test_logs_device_hints_and_picker_shape(self, client, caplog):
         """Chrome's Android UA is frozen at "Android 10; K" for every device, and
         which picker produced the file decides whether its bytes are readable —
@@ -520,9 +538,8 @@ class TestPhotoFailurePlatform:
     def test_escalates_after_repeated_failures(self, client, app):
         """A second failure hands back the support mailto.
 
-        The address is deliberately not in the page: anyone holding it can open
-        tickets, so the server only releases it once it has counted real
-        failures for this session.
+        The second reported failure offers email support. The counter is a
+        UX threshold; the server cannot verify these client-side failures.
         """
         payload = {"stage": "read", "error": "read: NotReadableError", "ext": "jpg"}
 

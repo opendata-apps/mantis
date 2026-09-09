@@ -95,15 +95,14 @@ class TestSitemapAndRobots:
         assert first.data == second.data
 
 
-def test_favicon_route_is_registered(app):
-    """The ``favicon`` view function is registered under ``/favicon.ico``
-    and maps to ``main.favicon``. We don't send an HTTP request because
-    the actual file is missing in fresh checkouts (built by Vite) — the
-    route contract is what matters here, not the 200/404 response.
-    """
-    adapter = app.url_map.bind("localhost")
-    endpoint, _args = adapter.match("/favicon.ico")
-    assert endpoint == "main.favicon"
+def test_favicon_serves_build_output(app, client, tmp_path, monkeypatch):
+    monkeypatch.setitem(app.config, "FAVICON_BUILD_DIR", str(tmp_path))
+    (tmp_path / "default").mkdir()
+    (tmp_path / "default" / "favicon.ico").write_bytes(b"icon bytes")
+    response = client.get("/favicon.ico")
+    assert response.status_code == 200
+    assert response.mimetype == "image/vnd.microsoft.icon"
+    assert response.data == b"icon bytes"
 
 
 class TestHealthEndpoint:

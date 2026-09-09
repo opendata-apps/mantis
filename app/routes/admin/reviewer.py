@@ -30,7 +30,7 @@ from app.database.models import (
     TblUsers,
     UserRole,
 )
-from app.extensions import db
+from app.extensions import db, limiter
 from app.routes.admin.blueprint import admin
 from app.tools.location_enrichment import recalculate_amt_mtb
 from app.routes.admin.filters import (
@@ -199,12 +199,13 @@ def _render_updated_sighting_by_id(report_id: int, filter_status: str):
     return _render_report_card_or_delete(rendered_sighting, filter_status)
 
 
-# SECURITY NOTE: the user_id in the URL is the credential — secrets.token_hex(20),
-# 160 bits. The risk is leakage through browser history, Referer, or server logs,
-# not guessing. See app/auth.py. The admin blueprint is rate-limit exempt, so
-# there is no throttle here either (app/factory.py, register_blueprints).
+# The URL grants a session. Only that entry point is limited; subsequent
+# reviewer navigation uses /reviewer without a token.
 @admin.route("/reviewer")
 @admin.route("/reviewer/<usrid>")
+@limiter.limit(
+    "10 per minute", exempt_when=lambda: not (request.view_args or {}).get("usrid")
+)
 def reviewer(usrid=None):
     "This function is used to display the reviewer page"
     if usrid:

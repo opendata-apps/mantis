@@ -114,7 +114,9 @@ def get_filtered_query(
     if filter_type in SPECIES_FILTERS:
         stmt = stmt.where(SPECIES_FILTERS[filter_type] >= 1)
     elif filter_type == "nicht_bestimmt":
-        stmt = stmt.where(*(column.is_(None) for column in SPECIES_FILTERS.values()))
+        stmt = stmt.where(
+            *(func.coalesce(column, 0) == 0 for column in SPECIES_FILTERS.values())
+        )
 
     # Apply search
     if search_query:

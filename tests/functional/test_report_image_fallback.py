@@ -8,6 +8,7 @@ WebView blank-canvas bug that produced reports 10595, 16651, 17355, 21953,
 """
 
 from datetime import date
+import io
 
 import pytest
 from PIL import Image
@@ -42,7 +43,7 @@ def _store(photo):
     return _process_uploaded_image(photo, date(2025, 6, 1), "Testdorf", "9999")
 
 
-def test_original_jpeg_is_stored_as_webp(upload_folder):
+def test_original_jpeg_is_stored_as_webp(app_ctx, upload_folder):
     rel = _store(make_test_image(size=(200, 100)))
 
     assert Image.open(upload_folder / rel).format == "WEBP"
@@ -53,7 +54,7 @@ def test_original_jpeg_is_stored_as_webp(upload_folder):
     [(None, (200, 100)), (6, (100, 200))],
     ids=["upright-untouched", "orientation-6-rotated"],
 )
-def test_exif_orientation_is_baked_in(upload_folder, orientation, expected):
+def test_exif_orientation_is_baked_in(app_ctx, upload_folder, orientation, expected):
     """Orientation 6 means "rotate 90° CW to display".
 
     The browser applies this when drawing to a canvas, so the converted path was
@@ -67,7 +68,7 @@ def test_exif_orientation_is_baked_in(upload_folder, orientation, expected):
     assert Image.open(upload_folder / rel).size == expected
 
 
-def test_heic_original_is_decoded_and_stored_as_webp(upload_folder):
+def test_heic_original_is_decoded_and_stored_as_webp(app_ctx, upload_folder):
     """The reason HEIC used to be a hard loss: Pillow could not open it.
 
     `create_app` registers pillow-heif, so a HEIC forwarded by the fallback now
@@ -82,7 +83,7 @@ def test_heic_original_is_decoded_and_stored_as_webp(upload_folder):
     assert stored.size == (400, 300)
 
 
-def test_oversized_original_is_capped(upload_folder):
+def test_oversized_original_is_capped(app_ctx, upload_folder):
     """A forwarded original has had no client-side downscale.
 
     Without a cap the archive would hold full-resolution frames from the
@@ -93,13 +94,13 @@ def test_oversized_original_is_capped(upload_folder):
     assert max(Image.open(upload_folder / rel).size) == MAX_STORED_DIMENSION
 
 
-def test_small_original_is_not_upscaled(upload_folder):
+def test_small_original_is_not_upscaled(app_ctx, upload_folder):
     rel = _store(make_test_image(size=(640, 480)))
 
     assert Image.open(upload_folder / rel).size == (640, 480)
 
 
-def test_blank_image_is_refused(upload_folder):
+def test_blank_image_is_refused(app_ctx, upload_folder):
     with pytest.raises(BlankImageError):
         _store(_webp(alpha=0))
 
@@ -108,7 +109,7 @@ def test_blank_image_is_refused(upload_folder):
     assert list(upload_folder.rglob("*.part")) == []
 
 
-def test_opaque_image_is_not_mistaken_for_blank(upload_folder):
+def test_opaque_image_is_not_mistaken_for_blank(app_ctx, upload_folder):
     """A dark photo is not a blank one — only the alpha channel decides."""
     rel = _store(_webp(alpha=255))
 
@@ -130,6 +131,9 @@ def test_submission_accepts_an_original_jpeg(client, upload_folder):
     assert resp.status_code == 200, resp.get_data(as_text=True)[:500]
     assert resp.get_json()["success"] is True
     assert len(list(upload_folder.rglob("*.webp"))) == 1
+    with client.session_transaction() as session:
+        reporter_token = session["_user_id"]
+    assert next(upload_folder.rglob("*.webp")).name.endswith(f"-{reporter_token}.webp")
 
 
 def test_submission_rejects_a_blank_photo_with_a_field_error(client, upload_folder):
@@ -144,3 +148,55 @@ def test_submission_rejects_a_blank_photo_with_a_field_error(client, upload_fold
     assert resp.status_code == 400, resp.get_data(as_text=True)[:500]
     assert "photo" in resp.get_json()["errors"]
     assert list(upload_folder.rglob("*.webp")) == []
+
+
+def test_malformed_original_is_a_photo_error(client, upload_folder, session):
+    from sqlalchemy import func, select
+
+    from app.database.models import TblMeldungen, TblUsers
+
+    before = (
+        session.scalar(select(func.count()).select_from(TblUsers)),
+        session.scalar(select(func.count()).select_from(TblMeldungen)),
+    )
+    response = client.post(
+        "/melden",
+        data=_submission((io.BytesIO(b"not an image"), "bad.webp")),
+        content_type="multipart/form-data",
+    )
+
+    assert response.status_code == 400
+    assert "photo" in response.get_json()["errors"]
+    assert list(upload_folder.rglob("*.webp")) == []
+    assert before == (
+        session.scalar(select(func.count()).select_from(TblUsers)),
+        session.scalar(select(func.count()).select_from(TblMeldungen)),
+    )
+
+
+def test_oversized_image_is_rejected_without_saving_a_report(
+    client, upload_folder, session
+):
+    from sqlalchemy import func, select
+
+    from app.database.models import TblMeldungen, TblUsers
+
+    before = (
+        session.scalar(select(func.count()).select_from(TblUsers)),
+        session.scalar(select(func.count()).select_from(TblMeldungen)),
+    )
+    photo = make_test_image(fmt="png", size=(5001, 5000), mode="L", color="gray")
+
+    response = client.post(
+        "/melden",
+        data=_submission((photo, "large.png")),
+        content_type="multipart/form-data",
+    )
+
+    assert response.status_code == 400
+    assert response.get_json()["errors"]["photo"]
+    assert list(upload_folder.rglob("*.webp")) == []
+    assert before == (
+        session.scalar(select(func.count()).select_from(TblUsers)),
+        session.scalar(select(func.count()).select_from(TblMeldungen)),
+    )

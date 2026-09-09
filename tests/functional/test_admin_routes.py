@@ -1,9 +1,11 @@
 """Tests for admin routes including reviewer interface and data management."""
 
 import pytest
+from bs4 import BeautifulSoup
+from io import BytesIO
+import openpyxl
 from datetime import datetime, timedelta
 import json
-from pathlib import Path
 from sqlalchemy import select, func
 
 from app.database.models import (
@@ -15,11 +17,22 @@ from app.database.models import (
 )
 
 
+def exported_ids(response):
+    workbook = openpyxl.load_workbook(BytesIO(response.data), read_only=True)
+    try:
+        rows = workbook["Daten"].values
+        headers = next(rows)
+        id_column = headers.index("ID")
+        return {row[id_column] for row in rows}
+    finally:
+        workbook.close()
+
+
 class TestAdminRoutes:
     """Test suite for admin and reviewer routes."""
 
     @pytest.fixture(autouse=True)
-    def setup_test_data(self, session):
+    def setup_test_data(self, app, session):
         """Set up test data for admin tests."""
         self.session = session
 
@@ -30,7 +43,6 @@ class TestAdminRoutes:
         )
 
         # Look up or create regular user (non-reviewer).
-        # Uses get-or-create to handle savepoint leaks from Flask request cycle.
         self.regular_user = session.scalar(
             select(TblUsers).where(TblUsers.user_id == "1111")
         )
@@ -94,18 +106,13 @@ class TestAdminRoutes:
         session.commit()
 
         # Ensure the materialized view reflects new rows used by admin APIs
-        try:
-            from app.extensions import db
-            import app.database.alldata as ad
+        from app.extensions import db
+        import app.database.alldata as ad
 
+        with app.app_context():
             ad.refresh_materialized_view(db)
-        except Exception:
-            # Tests that don't depend on the view can proceed; specific tests will fail if needed
-            pass
 
         yield
-
-        # Cleanup happens automatically with session rollback
 
     def test_reviewer_page_access_with_valid_reviewer(self, client):
         """Test that reviewers can access the reviewer page."""
@@ -144,13 +151,6 @@ class TestAdminRoutes:
             "/reviewer/9999?dateFrom=2024-01-01&dateTo=2024-12-31&statusInput=offen&sort_order=id_desc"
         )
         assert response.status_code == 200
-
-    def test_clear_filters_keeps_open_status_default(self):
-        """The filter reset button should reset to the reviewer default, not Alle."""
-        admin_js = Path("app/static/js/admin-modal.js").read_text()
-
-        assert 'if (statusInput) statusInput.value = "offen";' in admin_js
-        assert 'if (statusInput) statusInput.value = "all";' not in admin_js
 
     def test_reviewer_page_session_storage(self, client):
         """Test that user_id is stored in session when accessing reviewer page."""
@@ -598,16 +598,15 @@ class TestAdminRoutes:
             == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
 
-        # Verify we got data (Excel files start with PK for zip format)
-        assert len(response.data) > 0
-        assert response.data[:2] == b"PK"  # Excel files are zip archives
+        assert self.test_sighting.id in exported_ids(response)
 
     def test_export_xlsx_approved_only(self, client, session):
         """Test exporting only approved data."""
         with client.session_transaction() as sess:
             sess["_user_id"] = "9999"
 
-        # Approve the sighting
+        # The legacy reviewer/date columns alone do not approve a report.
+        self.test_sighting.statuses = ["APPR"]
         self.test_sighting.bearb_id = "9999"
         self.test_sighting.dat_bear = datetime.now().date()
         session.commit()
@@ -619,9 +618,13 @@ class TestAdminRoutes:
             == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
 
-        # Verify we got data
-        assert len(response.data) > 0
-        assert response.data[:2] == b"PK"
+        expected = set(
+            session.scalars(
+                select(TblMeldungen.id).where(TblMeldungen.statuses.contains(["APPR"]))
+            )
+        )
+        assert self.test_sighting.id in expected
+        assert exported_ids(response) == expected
 
     def test_export_xlsx_column_values_match_headers(self, client):
         """Each column must carry the value its header promises.
@@ -682,8 +685,7 @@ class TestAdminRoutes:
             response.content_type
             == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
-        assert len(response.data) > 0
-        assert response.data[:2] == b"PK"
+        assert exported_ids(response) == {self.test_sighting.id}
 
     def test_alldata_view_access(self, client):
         """Test accessing the alldata view."""
@@ -724,9 +726,9 @@ class TestAdminRoutes:
         assert response.status_code == 200
         data = json.loads(response.data)
 
-        assert data["total_items"] >= 1
-        assert len(data["data"]) >= 1
-        assert len(data["data"]) <= data["total_items"]
+        assert data["total_items"] == 1
+        id_column = data["columns"].index("meldungen_id")
+        assert [row[id_column] for row in data["data"]] == [self.test_sighting.id]
 
     def test_get_table_data_invalid_id_search_returns_zero_rows_and_count(self, client):
         """Invalid ID search input should produce an empty page with total_items=0."""
@@ -873,63 +875,57 @@ class TestAdminRoutes:
         data = json.loads(response.data)
         assert "Invalid ZIP" in data["error"]
 
-    def test_static_file_serving(self, client):
-        """Test serving static files through admin route."""
+    def test_static_file_serving(self, app, client, tmp_path, monkeypatch):
         with client.session_transaction() as sess:
             sess["_user_id"] = "9999"
-
-        # Test accessing a file (assuming test file exists)
-        response = client.get("/test_image.jpg")
-        # Should either return the file or 404 if it doesn't exist
-        assert response.status_code in [200, 404]
+        monkeypatch.setitem(app.config, "UPLOAD_FOLDER", str(tmp_path))
+        (tmp_path / "test_image.jpg").write_bytes(b"test photo bytes")
+        response = client.get("/admin/images/test_image.jpg")
+        assert response.status_code == 200
+        assert response.data == b"test photo bytes"
+        assert client.get("/admin/images/missing.jpg").status_code == 404
 
     def test_pagination_on_reviewer_page(self, client, session):
-        """Test pagination functionality on reviewer page."""
-        # Create multiple sightings for pagination
-        for i in range(25):
-            location = TblFundorte(
-                mtb="3644",
-                longitude="13.404954",
-                latitude="52.520008",
-                ort=f"Test City {i}",
-                land="Test State",
-                kreis="Test District",
-                strasse=f"Test Street {i}",
-                plz=10178,
-                amt="Test Amt",
-                ablage=f"test_image_{i}.jpg",
-                beschreibung=self.test_description.id,
-            )
-            session.add(location)
-            session.flush()
-
+        ids = []
+        for _ in range(25):
             sighting = TblMeldungen(
-                dat_fund_von=datetime.now().date() - timedelta(days=i),
+                dat_fund_von=datetime.now().date() - timedelta(days=1),
                 dat_meld=datetime.now().date(),
-                fo_zuordnung=location.id,
-                art_m=1,
-                art_w=0,
-                art_n=0,
-                art_o=0,
-                anm_melder=f"Test sighting {i}",
-                deleted=False,
-                bearb_id=None,
+                fundort=self.test_location,
+                anm_melder="Paginationkontrolle",
+                statuses=["OPEN"],
             )
             session.add(sighting)
-
+            session.flush()
+            session.add(
+                TblMeldungUser(id_meldung=sighting.id, id_user=self.reviewer_user.id)
+            )
+            ids.append(sighting.id)
         session.commit()
 
-        # Test first page - need to include required params
-        response = client.get(
-            "/reviewer/9999?page=1&per_page=10&statusInput=offen&sort_order=id_desc"
-        )
-        assert response.status_code == 200
-
-        # Test second page - need to include required params
-        response = client.get(
-            "/reviewer/9999?page=2&per_page=10&statusInput=offen&sort_order=id_desc"
-        )
-        assert response.status_code == 200
+        for page, expected in (
+            (1, sorted(ids, reverse=True)[:10]),
+            (2, sorted(ids, reverse=True)[10:20]),
+            (3, sorted(ids, reverse=True)[20:]),
+        ):
+            response = client.get(
+                "/reviewer/9999",
+                query_string={
+                    "page": page,
+                    "per_page": 10,
+                    "statusInput": "offen",
+                    "sort_order": "id_desc",
+                    "q": "Paginationkontrolle",
+                    "search_type": "full_text",
+                },
+            )
+            assert response.status_code == 200
+            cards = BeautifulSoup(response.data, "html.parser").select(
+                '[id^="report-card-"]'
+            )
+            assert [card["id"] for card in cards] == [
+                f"report-card-{id}" for id in expected
+            ]
 
     def test_error_handling_for_invalid_sighting_id(self, client, session):
         """Test error handling when sighting ID doesn't exist."""

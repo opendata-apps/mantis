@@ -1,26 +1,24 @@
 import { describe, expect, test } from 'bun:test';
 import { canvasIsBlank, extensionFor } from '../../app/static/js/image-checks.js';
 
-// A row of `n` pixels, every channel set to `value`.
-const row = (n, [r, g, b, a]) => {
-    const data = new Uint8ClampedArray(n * 4);
-    for (let i = 0; i < n; i += 1) data.set([r, g, b, a], i * 4);
-    return data;
-};
-
-// A canvas whose rows are supplied by `rowFor(y)`, recording every read.
-const fakeCtx = (rowFor) => {
-    const calls = [];
+// Canvas readback with arbitrary rectangular regions and a measurable byte budget.
+const fakeCtx = (pixelAt) => {
+    const reads = [];
     return {
-        calls,
+        reads,
         getImageData: (x, y, w, h) => {
-            calls.push([x, y, w, h]);
-            return { data: rowFor(y, w) };
+            const data = new Uint8ClampedArray(w * h * 4);
+            for (let row = 0; row < h; row += 1) {
+                for (let col = 0; col < w; col += 1) {
+                    data.set(pixelAt(x + col, y + row), (row * w + col) * 4);
+                }
+            }
+            reads.push({ x, y, w, h, bytes: data.byteLength });
+            return { data };
         },
     };
 };
-
-const uniform = (pixel) => fakeCtx((y, w) => row(w, pixel));
+const uniform = (pixel) => fakeCtx(() => pixel);
 
 describe('canvasIsBlank', () => {
     test('an untouched canvas is transparent black', () => {
@@ -28,7 +26,6 @@ describe('canvasIsBlank', () => {
     });
 
     test('the Cottbus signature (near-black but alpha 0) still counts as blank', () => {
-        // Report 21953: 4000x3000, 256 px of (1,1,1,0), rest (0,0,0,0).
         expect(canvasIsBlank(uniform([1, 1, 1, 0]), 64, 64)).toBe(true);
     });
 
@@ -36,55 +33,41 @@ describe('canvasIsBlank', () => {
         expect(canvasIsBlank(uniform([12, 34, 56, 255]), 64, 64)).toBe(false);
     });
 
-    test('one opaque pixel anywhere is enough to pass', () => {
-        const ctx = fakeCtx((y, w) => {
-            const data = row(w, [0, 0, 0, 0]);
-            if (y === 0) data[4 * 9 + 3] = 255;
-            return data;
-        });
+    test('an opaque pixel in the sampled top row is not blank', () => {
+        const ctx = fakeCtx((x, y) => [0, 0, 0, x === 9 && y === 0 ? 255 : 0]);
         expect(canvasIsBlank(ctx, 64, 64)).toBe(false);
     });
 
     test('a PNG with a transparent border is not blank', () => {
-        const ctx = fakeCtx((y, w) =>
-            row(w, y === 0 ? [0, 0, 0, 0] : [9, 9, 9, 255])
+        const ctx = fakeCtx((x, y) =>
+            x === 0 || y === 0 || x === 63 || y === 63 ? [0, 0, 0, 0] : [9, 9, 9, 255]
         );
         expect(canvasIsBlank(ctx, 64, 64)).toBe(false);
     });
 
     test('a getImageData failure is not treated as blank', () => {
-        // Tainted or oversized canvas: "could not tell" must let the photo
-        // through, because a false positive costs the sighting.
-        const ctx = {
-            getImageData: () => {
-                throw new Error('SecurityError');
-            },
-        };
+        const ctx = { getImageData: () => { throw new Error('SecurityError'); } };
         expect(canvasIsBlank(ctx, 64, 64)).toBe(false);
     });
 
-    test('reads full-width single-pixel rows within the canvas', () => {
+    test.each([[100, 40], [10, 3]])('readback stays inside a %sx%s canvas', (width, height) => {
         const ctx = uniform([0, 0, 0, 0]);
-        canvasIsBlank(ctx, 100, 40);
-        expect(ctx.calls.length).toBeGreaterThan(0);
-        for (const [x, y, w, h] of ctx.calls) {
-            expect([x, w, h]).toEqual([0, 100, 1]);
+        expect(canvasIsBlank(ctx, width, height)).toBe(true);
+        expect(ctx.reads.length).toBeGreaterThan(0);
+        for (const { x, y, w, h } of ctx.reads) {
+            expect(x).toBeGreaterThanOrEqual(0);
             expect(y).toBeGreaterThanOrEqual(0);
-            expect(y).toBeLessThan(40);
+            expect(w).toBeGreaterThan(0);
+            expect(h).toBeGreaterThan(0);
+            expect(x + w).toBeLessThanOrEqual(width);
+            expect(y + h).toBeLessThanOrEqual(height);
         }
     });
 
-    test('never samples more rows than the canvas has', () => {
+    test('a large canvas uses at most 128 KiB of readback', () => {
         const ctx = uniform([0, 0, 0, 0]);
-        canvasIsBlank(ctx, 10, 3);
-        expect(ctx.calls.length).toBe(3);
-    });
-
-    test('samples a bounded number of rows on a tall canvas', () => {
-        // The whole point of sampling: a 2048-row readback would allocate 16MB.
-        const ctx = uniform([0, 0, 0, 0]);
-        canvasIsBlank(ctx, 2048, 2048);
-        expect(ctx.calls.length).toBeLessThanOrEqual(16);
+        expect(canvasIsBlank(ctx, 2048, 2048)).toBe(true);
+        expect(ctx.reads.reduce((bytes, read) => bytes + read.bytes, 0)).toBeLessThanOrEqual(128 * 1024);
     });
 });
 

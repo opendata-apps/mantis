@@ -167,29 +167,19 @@ class TestIDConsistency:
 
         # Check the get_table_data endpoint which might expose internal IDs
         response = client.get("/admin/get_table_data/all_data_view?page=1&per_page=100")
-        if response.status_code == 200:
-            data = json.loads(response.data)
-
-            # Check that sensitive columns are excluded
-            if "columns" in data:
-                sensitive_columns = [
-                    "id_user",
-                    "id_finder",
-                    "fundorte_id",
-                    "beschreibung_id",
-                ]
-                for col in sensitive_columns:
-                    assert col not in data["columns"], (
-                        f"Sensitive column {col} should not be exposed"
-                    )
-
-            # Verify that only safe IDs are shown
-            # meldungen_id is the report ID (OK to show)
-            # user_id is the public user identifier string (OK to show)
-            allowed_id_columns = ["meldungen_id", "user_id"]
-            for col in data.get("columns", []):
-                if "id" in col.lower() and col not in allowed_id_columns:
-                    pytest.fail(f"Unexpected ID column exposed: {col}")
+        assert response.status_code == 200
+        data = response.get_json()
+        columns = data["columns"]
+        assert data["data"]
+        assert {"meldungen_id", "user_id"} <= set(columns)
+        assert not {"id_user", "id_finder", "fundorte_id", "beschreibung_id"} & set(
+            columns
+        )
+        assert {column for column in columns if "id" in column.lower()} == {
+            "meldungen_id",
+            "user_id",
+        }
+        assert all(len(row) == len(columns) for row in data["data"])
 
     def test_database_view_uses_consistent_naming(self, client):
         """Test that database view uses consistent ID naming."""
@@ -200,15 +190,9 @@ class TestIDConsistency:
 
         # Check for API endpoint
         response = client.get("/admin/get_table_data/all_data_view?page=1&per_page=10")
-        if response.status_code == 200:
-            data = json.loads(response.data)
-
-            # Check column names
-            if "columns" in data:
-                # The materialized view uses 'meldungen_id' internally
-                assert "meldungen_id" in data["columns"] or "id" in data["columns"], (
-                    "Database view should have consistent ID column naming"
-                )
+        assert response.status_code == 200
+        data = response.get_json()
+        assert "meldungen_id" in data["columns"]
 
     def test_id_display_format_consistency(self, client):
         """Test that IDs are displayed in consistent format (no prefixes, just numbers)."""
@@ -220,18 +204,10 @@ class TestIDConsistency:
 
         for url, view_name in views_to_check:
             response = client.get(url)
-            if response.status_code == 200:
-                response_text = response.data.decode("utf-8")
-
-                # Ensure the ID appears as a plain number
-                assert str(self.expected_report_id) in response_text, (
-                    f"Report ID should appear as plain number in {view_name} view"
-                )
-
-                # Ensure no weird prefixes like "ID-" or "Report#"
-                assert f"ID-{self.expected_report_id}" not in response_text, (
-                    f"ID should not have 'ID-' prefix in {view_name} view"
-                )
-                assert f"Report#{self.expected_report_id}" not in response_text, (
-                    f"ID should not have 'Report#' prefix in {view_name} view"
-                )
+            assert response.status_code == 200
+            response_text = response.data.decode("utf-8")
+            assert str(self.expected_report_id) in response_text, (
+                f"Report ID should appear as plain number in {view_name} view"
+            )
+            assert f"ID-{self.expected_report_id}" not in response_text
+            assert f"Report#{self.expected_report_id}" not in response_text

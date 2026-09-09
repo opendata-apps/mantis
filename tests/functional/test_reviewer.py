@@ -7,6 +7,7 @@ Test data (from demodata/filldb.py):
 """
 
 import pytest
+from bs4 import BeautifulSoup
 
 
 # ---------------------------------------------------------------------------
@@ -167,7 +168,9 @@ class TestDateTypeFilter:
             follow_redirects=True,
         )
         assert response.status_code == 200
-        assert b'value="meld"' in response.data
+        field = BeautifulSoup(response.data, "html.parser").select_one("#dateType")
+        assert field is not None
+        assert field["value"] == "meld"
 
     def test_date_type_defaults_to_fund(self, client):
         """Without explicit dateType, the default should be 'fund'."""
@@ -177,7 +180,9 @@ class TestDateTypeFilter:
             follow_redirects=True,
         )
         assert response.status_code == 200
-        assert b'value="fund"' in response.data
+        field = BeautifulSoup(response.data, "html.parser").select_one("#dateType")
+        assert field is not None
+        assert field["value"] == "fund"
 
     def test_date_filter_without_dates_shows_all(self, client):
         """When no date range is set, all reports should appear regardless of dateType."""

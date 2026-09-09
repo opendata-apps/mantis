@@ -21,7 +21,7 @@ class TestGemeindeOptimization:
     """Test the optimized gemeinde finder with real database."""
 
     @pytest.fixture(autouse=True)
-    def setup(self, session):
+    def setup(self, session, app_ctx):
         """Setup test data."""
         self.session = session
 

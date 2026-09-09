@@ -12,9 +12,6 @@ from well-known open source projects:
   ``compare_metadata`` detects model changes without a matching migration.
 - **No ORM imports lint** (Apache Airflow): migration scripts must not
   import ORM model classes because models evolve after migrations are written.
-- **Unsafe DDL lint** (GitLab Migration Style Guide / postgres.ai): detects
-  DDL patterns that acquire ACCESS EXCLUSIVE locks for extended periods and
-  cause production outages under concurrent load.
 - **Downgrade leaves no trace** (pytest-alembic experimental): verifies
   that upgrade→downgrade for each revision leaves the schema identical.
 """
@@ -147,158 +144,15 @@ class TestMigrationLint:
 
         pytest.fail(f"{migration_path.name}: missing downgrade() function.")
 
-    @pytest.mark.parametrize(
-        "migration_path",
-        sorted(MIGRATIONS_DIR.glob("*.py")),
-        ids=lambda p: p.stem[:12],
-    )
-    def test_no_bare_create_index(self, migration_path):
-        """Index creation must use CONCURRENTLY to avoid blocking writes.
-
-        ``CREATE INDEX`` without ``CONCURRENTLY`` acquires a ``SHARE`` lock
-        on the table, blocking all INSERT/UPDATE/DELETE for the duration of
-        the index build.  On large tables this causes production outages.
-
-        Refs: postgres.ai/blog, GitLab Migration Style Guide
-        """
-        source = migration_path.read_text()
-
-        # Match CREATE INDEX that is NOT followed by CONCURRENTLY.
-        # Ignore lines inside comments and the GIN index in raw SQL
-        # (op.execute with explicit CREATE INDEX ... USING gin is acceptable
-        # when done inside a migration transaction for newly-created columns
-        # with no existing data to lock against).
-        bare_indexes = []
-        for i, line in enumerate(source.splitlines(), 1):
-            stripped = line.strip()
-            # Skip comments and empty lines
-            if stripped.startswith(("#", "--")) or not stripped:
-                continue
-            # Detect op.create_index without postgresql_concurrently=True
-            if (
-                "op.create_index(" in stripped
-                and "postgresql_concurrently" not in stripped
-            ):
-                bare_indexes.append((i, stripped))
-
-        # This is a warning-level check: bare op.create_index is fine for
-        # indexes created alongside new tables (no existing rows to lock).
-        # We flag it so authors consciously decide.
-        # Uncomment the assertion below to make it a hard failure:
-        # assert not bare_indexes, (
-        #     f"{migration_path.name} uses op.create_index without "
-        #     f"postgresql_concurrently=True:\n" +
-        #     "\n".join(f"  L{n}: {l}" for n, l in bare_indexes)
-        # )
-
-    @pytest.mark.parametrize(
-        "migration_path",
-        sorted(MIGRATIONS_DIR.glob("*.py")),
-        ids=lambda p: p.stem[:12],
-    )
-    def test_no_unsafe_constraint_addition(self, migration_path):
-        """Adding constraints should use NOT VALID to avoid long table scans.
-
-        ``ALTER TABLE ADD CONSTRAINT ... FOREIGN KEY`` or ``UNIQUE`` without
-        ``NOT VALID`` forces PostgreSQL to scan the entire table under an
-        ``ACCESS EXCLUSIVE`` lock.  The safe pattern is:
-
-            1. ``ADD CONSTRAINT ... NOT VALID``  (instant, no scan)
-            2. ``VALIDATE CONSTRAINT ...``        (scans but doesn't block writes)
-
-        Refs: postgres.ai, dev.to/tim_derzhavets zero-downtime playbook
-        """
-        source = migration_path.read_text()
-
-        # Look for op.create_foreign_key or raw ALTER TABLE ... ADD CONSTRAINT
-        # without NOT VALID in the same statement/call.
-        issues = []
-        for i, line in enumerate(source.splitlines(), 1):
-            stripped = line.strip()
-            if stripped.startswith(("#", "--")):
-                continue
-            upper = stripped.upper()
-            # Raw SQL: ADD CONSTRAINT ... FOREIGN KEY without NOT VALID
-            if "ADD CONSTRAINT" in upper and "FOREIGN KEY" in upper:
-                if "NOT VALID" not in upper:
-                    issues.append((i, stripped))
-
-        # Like the index check, this is informational for now.
-        # Enable as hard failure once the team adopts the pattern:
-        # assert not issues, (
-        #     f"{migration_path.name} adds FK constraint without NOT VALID:\n" +
-        #     "\n".join(f"  L{n}: {l}" for n, l in issues)
-        # )
-
-    @pytest.mark.parametrize(
-        "migration_path",
-        sorted(MIGRATIONS_DIR.glob("*.py")),
-        ids=lambda p: p.stem[:12],
-    )
-    def test_no_not_null_on_existing_column(self, migration_path):
-        """Setting NOT NULL on an existing column requires a full table scan.
-
-        ``ALTER TABLE ... SET NOT NULL`` acquires ``ACCESS EXCLUSIVE`` and
-        scans every row to verify no NULLs exist.  The safe pattern is:
-
-            1. Add a CHECK constraint with ``NOT VALID``
-            2. ``VALIDATE CONSTRAINT`` (non-blocking scan)
-            3. Then ``SET NOT NULL`` (instant — Postgres skips the scan
-               when a valid CHECK exists since Postgres 12)
-
-        Refs: postgres.ai, GitLab Migration Style Guide
-        """
-        source = migration_path.read_text()
-
-        issues = []
-        for i, line in enumerate(source.splitlines(), 1):
-            stripped = line.strip()
-            if stripped.startswith(("#", "--")):
-                continue
-            # Detect SET NOT NULL in raw SQL (op.alter_column nullable=False
-            # generates this under the hood too, but is harder to lint).
-            if "SET NOT NULL" in stripped.upper():
-                issues.append((i, stripped))
-
-        # Informational for now:
-        # assert not issues, (
-        #     f"{migration_path.name} uses SET NOT NULL directly:\n" +
-        #     "\n".join(f"  L{n}: {l}" for n, l in issues)
-        # )
-
 
 # ---------------------------------------------------------------------------
 # Database chain tests — require a running PostgreSQL instance
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.usefixtures("app_ctx")
 class TestMigrationChain:
     """Migration chain integrity tests against a real database."""
-
-    @pytest.fixture(scope="class", autouse=True)
-    def _restore_db_state(self, app):
-        """After all chain tests complete, restore DB for subsequent test modules.
-
-        Migration chain tests repeatedly drop and recreate the schema. When
-        they finish we must leave the database in a fully migrated + seeded
-        state so that any later test modules that depend on the parent
-        conftest's session-scoped ``_db`` fixture still find valid data.
-        """
-        yield
-
-        # Restore: drop everything and rebuild from scratch
-        engine = sa.create_engine(TestConfig.URI)
-        with engine.connect() as conn:
-            conn.execute(sa.text("DROP SCHEMA public CASCADE"))
-            conn.execute(sa.text("CREATE SCHEMA public"))
-            conn.commit()
-        engine.dispose()
-
-        from tests.conftest import insert_initial_data_command
-        from tests.conftest import upgrade as run_migrations
-
-        run_migrations()
-        insert_initial_data_command()
 
     @pytest.mark.parametrize(
         "revision",

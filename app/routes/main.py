@@ -87,7 +87,7 @@ def index():
 
 
 @main.route("/health")
-@limiter.exempt
+@limiter.limit("30 per minute")
 def health():
     """Health check endpoint."""
     try:

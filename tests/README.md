@@ -24,37 +24,12 @@ uv run pytest
 Weitere Läufe:
 
 ```bash
-uv run pytest -m unit
+uv run pytest tests/unit
 uv run pytest tests/functional/test_report_submission.py -v
 uv run pytest --cov=app --cov-report=term-missing
+bun run test
 ```
 
-## Struktur
-
-```text
-tests/
-├── unit/         # kleine, fokussierte Unit-Tests
-├── functional/   # Route- und Workflow-Tests
-├── database/     # Datenbank- und Modelltests
-├── statistics/   # Statistik-/Aggregationslogik
-├── tools/        # Hilfsmodul-Tests
-├── conftest.py   # zentrale Fixtures und DB-Lifecycle
-└── pytest.ini    # Marker und pytest-Optionen
-```
-
-## Marker
-
-In `tests/pytest.ini`:
-
-- `unit`
-- `web`
-- `e2e`
-- `api`
-
-## Fixture-Lifecycle (Kurzfassung)
-
-- Session-Scope: Datenbank wird erstellt, Migrationen laufen, Basisdaten werden geladen.
-- Function-Scope: Jeder Test läuft in eigener Transaktion mit anschließendem Rollback.
-- Teardown: Datenbank wird automatisch gelöscht.
-
-Die Fixture-Implementierung liegt in `tests/conftest.py`.
+Die [Testkonventionen](../docs/develop/testing.rst) beschreiben App-, Datenbank-
+und Dateisystem-Isolation sowie die Referenzen zu Flask und Cookiecutter-Flask.
+Pytest-Optionen stehen in `pyproject.toml`.
