@@ -51,6 +51,16 @@ INT32_MAX = 2**31 - 1
 # Flags that sit alongside a workflow state rather than replacing it.
 REVIEW_FLAGS = frozenset({ReportStatus.INFO.value, ReportStatus.UNKL.value})
 
+# Fields the inline metadata editor may write, split by the table they sit on.
+REPORT_META_FIELDS = frozenset({"fo_quelle", "anm_bearbeiter"})
+LOCATION_META_FIELDS = frozenset(
+    {"amt", "mtb", "latitude", "longitude", "plz", "ort", "strasse", "kreis", "land"}
+)
+EDITABLE_META_FIELDS = REPORT_META_FIELDS | LOCATION_META_FIELDS
+COORDINATE_FIELDS = frozenset({"latitude", "longitude"})
+
+MODAL_TABS = frozenset({"general", "location"})
+
 
 def _mark_sighting_updated(sighting: TblMeldungen) -> None:
     """Record the reviewer responsible for the latest mutation."""
@@ -290,68 +300,44 @@ def change_mantis_meta_data(id):
 
     if not new_data or not fieldname:
         return jsonify({"error": "Missing data in request"}), 400
+    if fieldname not in EDITABLE_META_FIELDS:
+        return jsonify({"error": "Invalid field type"}), 400
 
-    sighting_meldung = db.session.get(TblMeldungen, id)
-    if not sighting_meldung:
+    sighting = db.session.get(TblMeldungen, id)
+    if not sighting:
         return jsonify({"error": "Report not found"}), 404
 
-    requires_fundort = fieldname not in ["fo_quelle", "anm_bearbeiter"]
-    if requires_fundort:
-        sighting_obj = sighting_meldung.fundort
-        if not sighting_obj:
-            return jsonify({"error": "Location not found"}), 404
-    else:
-        sighting_obj = sighting_meldung
+    target = sighting if fieldname in REPORT_META_FIELDS else sighting.fundort
+    if target is None:
+        return jsonify({"error": "Location not found"}), 404
 
-    _mark_sighting_updated(sighting_meldung)
-    update_fields = {
-        "fo_quelle": "fo_quelle",
-        "anm_bearbeiter": "anm_bearbeiter",
-        "amt": "amt",
-        "mtb": "mtb",
-        "latitude": "latitude",
-        "longitude": "longitude",
-        "plz": "plz",
-        "ort": "ort",
-        "strasse": "strasse",
-        "kreis": "kreis",
-        "land": "land",
-    }
-
-    field_to_update = update_fields.get(fieldname)
-    if field_to_update:
-        # Normalize coordinate values before storing
-        if fieldname in ["latitude", "longitude"]:
-            is_valid, normalized_value, error_msg = validate_and_normalize_coordinate(
-                new_data, fieldname
-            )
-            if not is_valid:
-                return jsonify({"error": error_msg}), 400
-            new_data = normalized_value
-
+    if fieldname in COORDINATE_FIELDS:
+        is_valid, normalized_value, error_msg = validate_and_normalize_coordinate(
+            new_data, fieldname
+        )
+        if not is_valid:
+            return jsonify({"error": error_msg}), 400
+        new_data = normalized_value
+    elif fieldname == "plz":
         # plz is an integer column; reject non-numeric input at the boundary
         # so the user sees a 400 instead of a generic DB error on commit.
-        if fieldname == "plz":
-            plz_raw = new_data.strip()
-            if not plz_raw.isdigit() or int(plz_raw) > 99999:
-                return jsonify({"error": "Invalid ZIP code"}), 400
-            new_data = int(plz_raw)
+        if not new_data.isdigit() or int(new_data) > 99999:
+            return jsonify({"error": "Invalid ZIP code"}), 400
+        new_data = int(new_data)
 
-        setattr(sighting_obj, field_to_update, new_data)
+    setattr(target, fieldname, new_data)
+    if fieldname in COORDINATE_FIELDS:
+        recalculate_amt_mtb(target)
+    _mark_sighting_updated(sighting)
 
-        # If coordinates were updated, recalculate AMT and MTB
-        if fieldname in ["latitude", "longitude"]:
-            recalculate_amt_mtb(sighting_obj)
+    if not _commit_or_log(f"Database error updating report {id}"):
+        return jsonify({"error": "Database error"}), 500
 
-        if not _commit_or_log(f"Database error updating report {id}"):
-            return jsonify({"error": "Database error"}), 500
-
-        current_app.logger.info(
-            f"Report {id} metadata updated: {fieldname} to {new_data} by user {sighting_meldung.bearb_id}"
-        )
-        return jsonify({"success": True})
-    else:
-        return jsonify({"error": "Invalid field type"}), 400
+    current_app.logger.info(
+        f"Report {id} metadata updated: {fieldname} to {new_data} "
+        f"by user {sighting.bearb_id}"
+    )
+    return jsonify({"success": True})
 
 
 @admin.route("/update_coordinates/<int:id>", methods=["POST"])
@@ -525,57 +511,43 @@ def toggle_approve_sighting(id):
     return response
 
 
-@admin.route("/modal/<int:id>", methods=["GET"])
-@reviewer_required
-def modal_open(id):
-    """Open reviewer modal content (default: general tab)."""
-    sighting, user = _load_sighting_for_render(id)
+def _render_modal(template: str, report_id: int, active_tab: str):
+    """Render modal content. Both entry points need the same context."""
+    sighting, user = _load_sighting_for_render(report_id)
     if not sighting or not user:
         abort(404, description="Report not found")
 
-    filter_status = _resolve_filter_status()
+    # An approved report is read-only unless the reviewer explicitly asked to
+    # edit it again (?edit=1).
     edit_mode = request.args.get("edit") == "1"
     is_approved = sighting.is_approved
-    editable = not is_approved or edit_mode
     return render_template(
-        "admin/partials/_modal_open.html",
+        template,
         sighting=sighting,
         feedback=user.feedback_source,
         user_report_count=_get_user_report_count(user),
         is_approved=is_approved,
-        editable=editable,
-        active_tab="general",
+        editable=not is_approved or edit_mode,
+        active_tab=active_tab,
         edit_mode=edit_mode,
-        filter_status=filter_status,
+        filter_status=_resolve_filter_status(),
     )
+
+
+@admin.route("/modal/<int:id>", methods=["GET"])
+@reviewer_required
+def modal_open(id):
+    """Open reviewer modal content (default: general tab)."""
+    return _render_modal("admin/partials/_modal_open.html", id, "general")
 
 
 @admin.route("/modal/<string:tab>/<int:id>", methods=["GET"])
 @reviewer_required
 def modal_tab(tab: str, id: int):
     """Switch modal tab content via HTMX with OOB tab/footer updates."""
-    if tab not in {"general", "location"}:
+    if tab not in MODAL_TABS:
         abort(404, description="Tab not found")
-
-    sighting, user = _load_sighting_for_render(id)
-    if not sighting or not user:
-        abort(404, description="Report not found")
-
-    filter_status = _resolve_filter_status()
-    edit_mode = request.args.get("edit") == "1"
-    is_approved = sighting.is_approved
-    editable = not is_approved or edit_mode
-    return render_template(
-        "admin/partials/_tab_response.html",
-        sighting=sighting,
-        feedback=user.feedback_source,
-        user_report_count=_get_user_report_count(user),
-        is_approved=is_approved,
-        editable=editable,
-        active_tab=tab,
-        edit_mode=edit_mode,
-        filter_status=filter_status,
-    )
+    return _render_modal("admin/partials/_tab_response.html", id, tab)
 
 
 @admin.route("/toggle_flag/<int:id>", methods=["POST"])
