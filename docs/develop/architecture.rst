@@ -36,9 +36,11 @@ Hauptkomponenten
   — der Name muss das Paket sein, nicht das Modul, sonst wandern Logger-Name und
   Template-/Static-Wurzel auf ``app.factory``.
 - ``app/extensions.py``: die ungebundenen Extension-Instanzen (``db``,
-  ``mail``, ...). Das Modul importiert nichts aus ``app`` und ist damit die
-  unterste Schicht — deshalb kann ein Modul, das die Factory importiert, diese
-  Instanzen lesen, ohne auf ein halb initialisiertes Paket zu treffen.
+  ``login_manager``, ...). Das Modul importiert nichts aus ``app`` und ist damit
+  die unterste Schicht — deshalb kann ein Modul seine Callbacks beim Import
+  registrieren (siehe ``user_loader`` in ``app/auth.py``) statt über eine
+  Verdrahtungsfunktion in der Factory.
+- ``app/auth.py``: Capability-URL-Authentifizierung auf Basis von Flask-Login.
 - ``app/routes/``: HTTP-Schnittstelle nach Domänen getrennt
   (``main``, ``report``, ``data``, ``statistics``, ``provider``, ``admin``, ``regionen``).
 - ``app/database/``: SQLAlchemy-Modelle, Materialized-View-Logik und Seed/Populate-Code.
