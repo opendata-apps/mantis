@@ -9,10 +9,10 @@ No external API calls — all lookups use the in-memory STRtree spatial index.
 """
 
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 
-class Issue(str, Enum):
+class Issue(StrEnum):
     """Types of coordinate-address mismatches."""
 
     LAND_MISMATCH = "LAND_MISMATCH"

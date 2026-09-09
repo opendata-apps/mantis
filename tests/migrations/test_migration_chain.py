@@ -174,7 +174,7 @@ class TestMigrationLint:
         for i, line in enumerate(source.splitlines(), 1):
             stripped = line.strip()
             # Skip comments and empty lines
-            if stripped.startswith("#") or stripped.startswith("--") or not stripped:
+            if stripped.startswith(("#", "--")) or not stripped:
                 continue
             # Detect op.create_index without postgresql_concurrently=True
             if "op.create_index(" in stripped and "postgresql_concurrently" not in stripped:
@@ -214,7 +214,7 @@ class TestMigrationLint:
         issues = []
         for i, line in enumerate(source.splitlines(), 1):
             stripped = line.strip()
-            if stripped.startswith("#") or stripped.startswith("--"):
+            if stripped.startswith(("#", "--")):
                 continue
             upper = stripped.upper()
             # Raw SQL: ADD CONSTRAINT ... FOREIGN KEY without NOT VALID
@@ -252,7 +252,7 @@ class TestMigrationLint:
         issues = []
         for i, line in enumerate(source.splitlines(), 1):
             stripped = line.strip()
-            if stripped.startswith("#") or stripped.startswith("--"):
+            if stripped.startswith(("#", "--")):
                 continue
             # Detect SET NOT NULL in raw SQL (op.alter_column nullable=False
             # generates this under the hood too, but is harder to lint).

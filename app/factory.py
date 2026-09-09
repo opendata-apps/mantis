@@ -142,16 +142,20 @@ def create_app(config_class=Config):
                 "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'",
                 "style-src 'self' 'unsafe-inline'",
                 "worker-src 'self' blob:",
-                "img-src 'self' data: blob: "
-                "https://i.creativecommons.org "
-                "https://tile.openstreetmap.org "
-                "https://*.tile.openstreetmap.org "
-                "https://server.arcgisonline.com",
-                "connect-src 'self' "
-                "https://nominatim.openstreetmap.org "
-                "https://tile.openstreetmap.org "
-                "https://*.tile.openstreetmap.org "
-                "https://server.arcgisonline.com",
+                (
+                    "img-src 'self' data: blob: "
+                    "https://i.creativecommons.org "
+                    "https://tile.openstreetmap.org "
+                    "https://*.tile.openstreetmap.org "
+                    "https://server.arcgisonline.com"
+                ),
+                (
+                    "connect-src 'self' "
+                    "https://nominatim.openstreetmap.org "
+                    "https://tile.openstreetmap.org "
+                    "https://*.tile.openstreetmap.org "
+                    "https://server.arcgisonline.com"
+                ),
                 "font-src 'self' data:",
                 "object-src 'none'",
                 "base-uri 'self'",

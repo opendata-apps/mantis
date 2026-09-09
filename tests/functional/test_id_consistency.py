@@ -192,7 +192,7 @@ class TestIDConsistency:
             allowed_id_columns = ["meldungen_id", "user_id"]
             for col in data.get("columns", []):
                 if "id" in col.lower() and col not in allowed_id_columns:
-                    assert False, f"Unexpected ID column exposed: {col}"
+                    raise AssertionError(f"Unexpected ID column exposed: {col}")
 
     def test_database_view_uses_consistent_naming(self, client):
         """Test that database view uses consistent ID naming."""

@@ -328,8 +328,10 @@ def melden(usrid=None):
                 return _validation_error_response(
                     {
                         "photo": [
-                            "Das Foto enthält kein sichtbares Bild. "
-                            "Bitte wählen Sie es erneut aus."
+                            (
+                                "Das Foto enthält kein sichtbares Bild. "
+                                "Bitte wählen Sie es erneut aus."
+                            )
                         ]
                     }
                 )
@@ -562,9 +564,11 @@ def _photo_report_mailto(ref, stage, data):
             f"Browser: {request.user_agent.string[:200]}",
             # The UA says "Android 10; K" whatever the phone is, so without the
             # client hint the support mail cannot name the device that failed.
-            f"Gerät: {_beacon_field(data.get('model') or 'unbekannt', 40)}"
-            f" ({_device_platform(data, request.user_agent.string)}"
-            f" {_beacon_field(data.get('osVersion') or '?', 20)})",
+            (
+                f"Gerät: {_beacon_field(data.get('model') or 'unbekannt', 40)}"
+                f" ({_device_platform(data, request.user_agent.string)}"
+                f" {_beacon_field(data.get('osVersion') or '?', 20)})"
+            ),
         ]
     )
     query = urlencode(

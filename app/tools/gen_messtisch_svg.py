@@ -34,7 +34,7 @@ def create_measure_sheet(
                 href=bg_image_url,
                 insert=bg_insert,
                 size=bg_size,
-                transform="rotate(3, {0}, {1})".format(bg_center[0], bg_center[1]),
+                transform=f"rotate(3, {bg_center[0]}, {bg_center[1]})",
             )
         )
 

@@ -5,7 +5,6 @@ from sqlalchemy import text, event
 from sqlalchemy.ext import compiler
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
-from typing import Optional
 from app.extensions import db
 
 meta = sa.MetaData()
@@ -67,15 +66,11 @@ class Create(sa.schema.DDLElement):
 
 @compiler.compiles(Create)
 def createGen(element, compiler, **kwargs):
-    return 'CREATE MATERIALIZED VIEW {schema}."{name}" AS {select}'.format(
-        name=element.name,
-        schema=element.schema,
-        select=compiler.sql_compiler.process(element.select, literal_binds=True),
-    )
+    return f'CREATE MATERIALIZED VIEW {element.schema}."{element.name}" AS {compiler.sql_compiler.process(element.select, literal_binds=True)}'
 
 
 def create_materialized_view(
-    engine: Optional[Engine] = None, session: Optional[Session] = None
+    engine: Engine | None = None, session: Session | None = None
 ) -> None:
     "create or recreate a materialized view for admin data"
     if not engine:

@@ -42,7 +42,7 @@ def seed_command(demo):
         os.path.dirname(__file__), "data", "ags_gemeinden.json"
     )
     if os.path.exists(fallback_path):
-        with open(fallback_path, "r", encoding="utf-8") as f:
+        with open(fallback_path, encoding="utf-8") as f:
             jsondata = f.read()
     else:
         click.echo(
@@ -161,7 +161,7 @@ def seed_ags_command():
 
     except Exception as e:
         click.echo(f"Error fetching AGS data: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 @click.command("validate-coordinates")

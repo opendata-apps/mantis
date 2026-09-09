@@ -129,7 +129,7 @@ def update_report_image_date(report_id, new_date):
             if os.path.exists(old_year_dir) and not os.listdir(old_year_dir):
                 os.rmdir(old_year_dir)
 
-    except IOError as e:
+    except OSError as e:
         raise OSError(f"Failed to move file: {e}") from e
 
     # Update the path in fundorte table

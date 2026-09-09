@@ -68,3 +68,19 @@ testpaths = ["tests"]
 pythonpath = ["."]
 addopts = "-x -l"
 filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.ruff.lint]
+# Pinned: ruff widens its implicit default between releases, so an upgrade would
+# add lint errors on its own.
+select = ["E4", "E7", "E9", "F"]
+extend-select = [
+    "B",   # bugbear
+    "C4",  # comprehensions
+    "ISC", # implicit str concat
+    "LOG", # logging misuse
+    "PIE",
+    "UP",  # pyupgrade
+]
+
+# Not selected. Violations today, so the next attempt starts from a number:
+#   G 42, DTZ 60, RUF 43, PTH 80, ARG 88, S 1250 (1234 are `assert` in tests)

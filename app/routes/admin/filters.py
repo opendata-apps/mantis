@@ -1,7 +1,6 @@
 """Request-argument parsing and the shared reviewer/export query."""
 
 from datetime import datetime
-from typing import Optional
 
 from flask import current_app, request
 from sqlalchemy import func, select
@@ -15,7 +14,7 @@ from app.database.models import (
 )
 
 
-def _parse_german_date(value: Optional[str]) -> Optional[datetime]:
+def _parse_german_date(value: str | None) -> datetime | None:
     """Parse a dd.mm.YYYY date string, returning None on empty/invalid input."""
     if not value:
         return None
@@ -42,13 +41,13 @@ def _get_reviewer_filter_args():
 
 
 def get_filtered_query(
-    filter_status: Optional[str] = None,
-    filter_type: Optional[str] = None,
-    search_query: Optional[str] = None,
-    search_type: Optional[str] = None,
-    date_from: Optional[str] = None,
-    date_to: Optional[str] = None,
-    date_type: Optional[str] = None,
+    filter_status: str | None = None,
+    filter_type: str | None = None,
+    search_query: str | None = None,
+    search_type: str | None = None,
+    date_from: str | None = None,
+    date_to: str | None = None,
+    date_type: str | None = None,
 ):
     """Get filtered select statement based on parameters.
 
