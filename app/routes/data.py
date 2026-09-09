@@ -10,7 +10,7 @@ from flask import (
 from datetime import date
 from sqlalchemy import select, func
 
-from app import db
+from app.extensions import db
 from app.database.models import (
     TblFundorte,
     TblMeldungen,

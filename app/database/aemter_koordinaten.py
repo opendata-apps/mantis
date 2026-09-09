@@ -3,7 +3,7 @@ Diese Tabelle wird genutzt, um aus den
 Koordinaten ein Amt zuzuordnen.
 """
 
-from app import db
+from app.extensions import db
 from sqlalchemy.dialects.postgresql import JSONB
 
 

@@ -1,7 +1,7 @@
 from functools import wraps
 from flask import abort, g, session
 from sqlalchemy import select
-from app import db
+from app.extensions import db
 from app.database.models import TblUsers, UserRole
 
 

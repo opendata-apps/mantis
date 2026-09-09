@@ -411,7 +411,7 @@ class TestMigrationChain:
         from alembic.autogenerate import compare_metadata
         from alembic.runtime.migration import MigrationContext
 
-        from app import db
+        from app.extensions import db
 
         upgrade(alembic_config, "head")
 

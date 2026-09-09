@@ -20,7 +20,7 @@ from email_validator import validate_email
 from werkzeug.datastructures import MultiDict
 from PIL import Image, ImageOps
 
-from app import db, limiter
+from app.extensions import db, limiter
 from sqlalchemy import select
 from app.database.models import (
     TblFundorte,

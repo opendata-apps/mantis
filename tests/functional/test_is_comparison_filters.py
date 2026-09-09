@@ -3,7 +3,7 @@
 import pytest
 from datetime import datetime
 from sqlalchemy import select, func
-from app import db
+from app.extensions import db
 from app.database.models import TblMeldungen, ReportStatus
 from app.routes.admin import get_filtered_query
 

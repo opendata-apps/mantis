@@ -97,7 +97,7 @@ class TestAdminRoutes:
 
         # Ensure the materialized view reflects new rows used by admin APIs
         try:
-            from app import db
+            from app.extensions import db
             import app.database.alldata as ad
 
             ad.refresh_materialized_view(db)

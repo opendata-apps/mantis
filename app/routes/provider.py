@@ -7,7 +7,7 @@ from flask import (
     abort,
     current_app,
 )
-from app import db
+from app.extensions import db
 from app.auth import login_required
 from sqlalchemy import select
 from sqlalchemy.orm import contains_eager

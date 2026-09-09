@@ -21,7 +21,7 @@ def create_all_data_view():
     """Create the materialized view."""
     import app.database.alldata as ad
 
-    from app import db
+    from app.extensions import db
 
     ad.create_materialized_view(engine=db.engine, session=db.session)
     click.echo("Materialized view created.")
@@ -35,7 +35,7 @@ def seed_command(demo):
     import app.database.alldata as ad
     from app.database.populate import populate_all
 
-    from app import db
+    from app.extensions import db
 
     # Load AGS data from fallback JSON file
     fallback_path = os.path.join(
@@ -79,7 +79,7 @@ def seed_ags_command():
     """
     from sqlalchemy import select
 
-    from app import db
+    from app.extensions import db
     from app.tools.fetch_ags import (
         fetch_gemeinden,
         fetch_kreise,
@@ -175,7 +175,7 @@ def validate_coordinates_command(csv_path):
     """
     from sqlalchemy import select, func
 
-    from app import db
+    from app.extensions import db
     from app.database.fundorte import TblFundorte
     from app.tools.gemeinde_finder import get_amt_enriched
     from app.tools.validate_coordinates import (
@@ -213,7 +213,7 @@ def normalize_coordinates_command():
     """
     from sqlalchemy import select, func
 
-    from app import db
+    from app.extensions import db
     from app.database.fundorte import TblFundorte
     from app.tools.coordinate_validation import validate_coordinate_pair
 

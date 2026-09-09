@@ -6,7 +6,7 @@ from sqlalchemy.ext import compiler
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 from typing import Optional
-from app import db
+from app.extensions import db
 
 meta = sa.MetaData()
 # Separate Base for the materialized view — intentionally decoupled from

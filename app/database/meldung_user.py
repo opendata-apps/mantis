@@ -1,7 +1,7 @@
 from sqlalchemy import Index
 from sqlalchemy.orm import relationship
 
-from app import db
+from app.extensions import db
 
 
 class TblMeldungUser(db.Model):

@@ -3,7 +3,7 @@ from io import BytesIO
 import os
 import tempfile
 import xlsxwriter
-from app import db
+from app.extensions import db
 import app.database.alldata as ad
 from app.database.models import (
     TblFundorte,
