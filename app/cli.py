@@ -13,6 +13,7 @@ def register_commands(app):
     app.cli.add_command(seed_ags_command)
     app.cli.add_command(normalize_coordinates_command)
     app.cli.add_command(validate_coordinates_command)
+    app.cli.add_command(recalculate_mtb_command)
 
 
 @click.command("create_all_data_view")
@@ -63,7 +64,6 @@ def seed_command(demo):
         _copy_demo_images()
         click.echo("Demo data seeded.")
 
-    # Refresh views
     ad.refresh_materialized_view(db)
     click.echo("Done.")
 
@@ -95,7 +95,6 @@ def seed_ags_command():
     kreise_path = os.path.join(data_dir, "ags_kreise.json")
 
     try:
-        # Fetch from WFS
         click.echo("Fetching Gemeinden from BKG WFS...")
         gemeinden = fetch_gemeinden()
 
@@ -110,11 +109,9 @@ def seed_ags_command():
         merged = merge_gemeinden_with_berlin(gemeinden, berlin)
         click.echo(f"Merged dataset: {len(merged['features'])} features")
 
-        # Build Kreise lookup
         kreise_lookup = build_kreise_lookup(kreise_data)
         click.echo(f"Built Kreise lookup: {len(kreise_lookup)} entries")
 
-        # Save fallback files
         save_fallback(merged, fallback_path)
         save_kreise_lookup(kreise_lookup, kreise_path)
         click.echo(f"Saved fallback to {fallback_path}")
@@ -124,7 +121,6 @@ def seed_ags_command():
         click.echo("Syncing aemter table...")
         from app.database.aemter_koordinaten import TblAemterCoordinaten
 
-        # Build set of AGS codes in the fresh dataset
         fresh_ags = set()
         for feat in merged["features"]:
             ags = int(feat["properties"]["AGS"])
@@ -261,6 +257,55 @@ def normalize_coordinates_command():
                 err=True,
             )
         raise SystemExit(1)
+
+
+@click.command("recalculate-mtb")
+@click.option("--commit", is_flag=True, help="Write the changes (default: dry run)")
+@with_appcontext
+def recalculate_mtb_command(commit):
+    """Re-derive mtb/amt/land/kreis for every Fundort from its coordinates.
+
+    Needed once after the TK25 row lines were corrected: the previous grid sat
+    2.4 km too far south, so roughly a fifth of the stored Messtischblätter name
+    the sheet immediately north of the true one. The same pass clears the sheet
+    numbers that were handed to coordinates outside Germany.
+    """
+    from sqlalchemy import select, func
+
+    from app.extensions import db
+    from app.database.fundorte import TblFundorte
+    from app.tools.location_enrichment import calculate_spatial_fields
+
+    total = db.session.scalar(select(func.count(TblFundorte.id))) or 0
+    click.echo(f"Scanning {total} Fundorte...")
+
+    changed = []
+    for fundort in db.session.scalars(
+        select(TblFundorte).order_by(TblFundorte.id)
+    ).all():
+        fields = calculate_spatial_fields(fundort.latitude, fundort.longitude)
+        if fields["mtb"] == (fundort.mtb or ""):
+            continue
+        changed.append((fundort.id, fundort.mtb, fields["mtb"], fundort.ort))
+        fundort.mtb = fields["mtb"]
+        fundort.amt = fields["amt"]
+        if fields["land"]:
+            fundort.land = fields["land"]
+        if fields["kreis"]:
+            fundort.kreis = fields["kreis"]
+
+    click.echo(f"{len(changed)} of {total} Fundorte get a different Messtischblatt.")
+    for fundort_id, old, new, ort in changed[:20]:
+        click.echo(f"- id={fundort_id} {ort}: {old or '—'} -> {new or '—'}")
+    if len(changed) > 20:
+        click.echo(f"... and {len(changed) - 20} more")
+
+    if commit:
+        db.session.commit()
+        click.echo("Committed.")
+    else:
+        db.session.rollback()
+        click.echo("Dry run — nothing written. Re-run with --commit to apply.")
 
 
 def _copy_demo_images():
