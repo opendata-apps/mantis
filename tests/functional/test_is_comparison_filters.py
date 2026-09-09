@@ -5,7 +5,7 @@ from datetime import datetime
 from sqlalchemy import select, func
 from app.extensions import db
 from app.database.models import TblMeldungen, ReportStatus
-from app.routes.admin import get_filtered_query
+from app.routes.admin.filters import get_filtered_query
 
 
 class TestIsComparisonFilters:

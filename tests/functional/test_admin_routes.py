@@ -771,7 +771,7 @@ class TestAdminRoutes:
             raise RuntimeError("refresh failed")
 
         monkeypatch.setattr(
-            "app.routes.admin.ad.refresh_materialized_view", fail_refresh
+            "app.routes.admin.database.ad.refresh_materialized_view", fail_refresh
         )
 
         response = client.post(

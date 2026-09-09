@@ -65,7 +65,7 @@ def mock_sighting(mock_sighting_factory):
 class TestAdminApproval:
     """Test class for admin approval functionality."""
 
-    @patch("app.routes.admin.send_email")
+    @patch("app.routes.admin.reviewer.send_email")
     def test_toggle_approve_sighting(
         self, mock_send_email, authenticated_admin_client, mock_sighting, session
     ):
