@@ -3,7 +3,7 @@
  */
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import 'leaflet-control-geocoder';
+import { geocoder } from 'leaflet-control-geocoder';
 import 'leaflet-control-geocoder/dist/Control.Geocoder.css';
 import { locate } from 'leaflet.locatecontrol';
 import 'leaflet.locatecontrol/dist/L.Control.Locate.min.css';
@@ -648,15 +648,13 @@ const ReportForm = {
         this.map.addLayer(osmLayer);
         L.control.layers({ 'Karte': osmLayer, 'Satellit': L.layerGroup([esriImagery, esriLabels]) }).addTo(this.map);
 
-        if (L.Control.Geocoder) {
-            L.Control.geocoder({ defaultMarkGeocode: false, placeholder: 'Adresse suchen...' })
-                .on('markgeocode', (e) => {
-                    // Auto-place marker when user searches for an address
-                    this.map.setView(e.geocode.center, 15);
-                    this.setMarker(e.geocode.center.lat, e.geocode.center.lng);
-                })
-                .addTo(this.map);
-        }
+        geocoder({ defaultMarkGeocode: false, placeholder: 'Adresse suchen...' })
+            .on('markgeocode', (e) => {
+                // Auto-place marker when user searches for an address
+                this.map.setView(e.geocode.center, 15);
+                this.setMarker(e.geocode.center.lat, e.geocode.center.lng);
+            })
+            .addTo(this.map);
 
         this.locateCtrl = locate({
             watch: true, setView: false, keepCurrentZoomLevel: true,
