@@ -2,11 +2,14 @@
 """One-off repair: lowercase the domain of stored reporter addresses.
 
 Every report writes a new users row, so a repeat reporter accumulates one row
-per report. provider.py matches reporter to reports by exact user_kontakt
-comparison, so two rows differing only in domain case split one reporter's
-history: reports drop out of "Meine Sichtungen" and their own photos answer 403.
-Newer rows are already normalised on write; this brings the older ones to the
-same form with the same validator.
+per report. Two rows differing only in domain case are the same mailbox but
+never compare equal, which splits what a reviewer sees as one person — the
+report count in the admin modal is the exact-match consumer left. Newer rows
+are already normalised on write; this brings the older ones to the same form
+with the same validator.
+
+Not an access repair: reading a report is granted by the melduser link, never
+by a matching contact string (see provider.py).
 
     python scripts/normalize_contact_domains.py            # report only
     python scripts/normalize_contact_domains.py --apply    # write
