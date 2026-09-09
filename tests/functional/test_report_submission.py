@@ -427,7 +427,9 @@ class TestReportSubmission:
             # No file upload should happen on validation errors
             mock_process_image.assert_not_called()
         else:
-            assert False, f"Unexpected status code: {response.status_code}"
+            raise AssertionError(
+                f"Unexpected status code: {response.status_code}"
+            )
 
     @patch("app.routes.report._process_uploaded_image")
     def test_submission_outside_germany_is_allowed(

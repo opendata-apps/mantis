@@ -19,7 +19,7 @@ def _load_region(slug: str) -> dict:
     filepath = os.path.join(CONTENT_DIR, f"{slug}.yaml")
     if not os.path.isfile(filepath):
         raise FileNotFoundError(f"No content file for region: {slug}")
-    with open(filepath, "r", encoding="utf-8") as f:
+    with open(filepath, encoding="utf-8") as f:
         data = yaml.safe_load(f)
     _region_cache[slug] = data
     return data

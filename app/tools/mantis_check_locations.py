@@ -39,19 +39,19 @@ def check_location(fundort):
             # Extrahieren der Ortsnamen
 
             if ort in orte:
-                results.append((f"{dist}, {ort}, {fundort_id}, OK\n"))
+                results.append(f"{dist}, {ort}, {fundort_id}, OK\n")
                 weiter = False
-                print((f"{dist}, {ort}, {fundort_id}, OK\n"))
+                print(f"{dist}, {ort}, {fundort_id}, OK\n")
             elif dist < 5000:
                 dist += 200
             else:
                 dist += 5000
 
             if dist == 50000:
-                results.append((f"{dist}, {ort}, {fundort_id}, <-- Prüfen!\n"))
+                results.append(f"{dist}, {ort}, {fundort_id}, <-- Prüfen!\n")
                 weiter = False
     except Exception as e:
-        results.append((f" {dist},  {ort}, {fundort_id},  <-- Abbruch!\n"))
+        results.append(f" {dist},  {ort}, {fundort_id},  <-- Abbruch!\n")
         print(e)
 
     return results

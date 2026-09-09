@@ -32,7 +32,7 @@ def _load_galerie():
         json_path = os.path.join(
             BASE_DIR, "..", "static", "images", "galerie", "galerie.json"
         )
-        with open(json_path, "r", encoding="utf-8") as file:
+        with open(json_path, encoding="utf-8") as file:
             _galerie_cache = json.load(file)
     return _galerie_cache
 
