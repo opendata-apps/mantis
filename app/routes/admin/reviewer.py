@@ -1,4 +1,4 @@
-"""Reviewer workflow: the report list and every action on a single report."""
+"""Reviewer workflow: report list, modal, approval, flags, inline edits."""
 
 from datetime import datetime
 
@@ -94,7 +94,7 @@ def _set_statuses(sighting: TblMeldungen, statuses: list[str]) -> None:
 
 
 def _resolve_filter_status(default: str = "offen") -> str:
-    """Resolve current filter status from request payload/args."""
+    """Resolve the filter the card was rendered under, from payload or args."""
     return normalize_filter_status(
         request.values.get("filter_status") or request.args.get("statusInput"),
         default,
@@ -223,40 +223,17 @@ def reviewer(usrid=None):
         user = current_user
         usrid = user.user_id
 
-    user_name = user.user_name
-    page = request.args.get("page", 1, type=int)
-    per_page = request.args.get("per_page", 21, type=int)
-    filter_args = get_reviewer_filter_args()
-    filter_status = filter_args["filter_status"]
-    filter_type = filter_args["filter_type"]
-    sort_order = request.args.get("sort_order", "id_desc")  # Changed default to desc
-    search_query = filter_args["search_query"]
-    search_type = filter_args["search_type"]
-    date_from = filter_args["date_from"]
-    date_to = filter_args["date_to"]
-    date_type = filter_args["date_type"]
-
+    # Redirect before doing any work: an unlabelled view would show the "offen"
+    # result set with the filter controls sitting at their blank defaults.
     if "statusInput" not in request.args and "sort_order" not in request.args:
         return redirect(
-            url_for(
-                "admin.reviewer",
-                statusInput="offen",
-                sort_order="id_desc",
-            )
+            url_for("admin.reviewer", statusInput="offen", sort_order="id_desc")
         )
 
-    # Get filtered select statement using our reusable function
-    stmt = get_filtered_query(
-        filter_status=filter_status,
-        filter_type=filter_type,
-        search_query=search_query,
-        search_type=search_type,
-        date_from=date_from,
-        date_to=date_to,
-        date_type=date_type,
-    )
+    filters = get_reviewer_filter_args()
+    sort_order = request.args.get("sort_order", "id_desc")
 
-    # Apply sort order
+    stmt = get_filtered_query(**filters)
     if sort_order == "id_asc":
         stmt = stmt.order_by(TblMeldungen.id.asc())
     elif sort_order == "id_desc":
@@ -264,8 +241,8 @@ def reviewer(usrid=None):
 
     paginated_sightings = db.paginate(
         stmt,
-        page=page,
-        per_page=per_page,
+        page=request.args.get("page", 1, type=int),
+        per_page=request.args.get("per_page", 21, type=int),
         max_per_page=100,
         error_out=False,
     )
@@ -275,13 +252,13 @@ def reviewer(usrid=None):
         user_id=usrid,
         paginated_sightings=paginated_sightings,
         reported_sightings=paginated_sightings.items,
-        user_name=user_name,
-        filters={"status": filter_status, "type": filter_type},
-        current_filter_status=filter_status,
+        user_name=user.user_name,
+        filters={"status": filters["filter_status"], "type": filters["filter_type"]},
+        current_filter_status=filters["filter_status"],
         current_sort_order=sort_order,
-        search_query=search_query,
-        search_type=search_type,
-        current_date_type=date_type,
+        search_query=filters["search_query"],
+        search_type=filters["search_type"],
+        current_date_type=filters["date_type"],
     )
 
 
