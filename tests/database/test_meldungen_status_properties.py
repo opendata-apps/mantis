@@ -7,7 +7,7 @@ is_open, is_unclear, needs_info) that the admin UI and query filters rely on.
 import pytest
 from datetime import date
 from sqlalchemy import select
-from app.database.models import TblMeldungen, ReportStatus
+from app.database.models import STATUS_FILTERS, TblMeldungen, ReportStatus
 
 
 @pytest.fixture
@@ -139,3 +139,52 @@ class TestPropertyCombinations:
         assert s.is_deleted is False
         assert s.is_unclear is False
         assert s.needs_info is False
+
+
+class TestHybridSqlMatchesPython:
+    """A hybrid is only useful if both halves agree.
+
+    These properties are used two ways: as a WHERE clause when the reviewer
+    list is queried, and as a plain attribute when a single card is
+    re-rendered over HTMX. If the SQL and the Python drifted apart, a report
+    would show up in the list and then vanish on its next refresh.
+    """
+
+    @pytest.fixture(autouse=True)
+    def _rows(self, make_sighting):
+        # One report per status combination the workflow allows.
+        for statuses in (
+            ["OPEN"],
+            ["OPEN", "INFO"],
+            ["OPEN", "UNKL"],
+            ["OPEN", "INFO", "UNKL"],
+            ["APPR"],
+            ["DEL"],
+        ):
+            make_sighting(statuses)
+
+    @pytest.mark.parametrize("filter_name,attribute", sorted(STATUS_FILTERS.items()))
+    def test_sql_selects_exactly_the_python_matches(
+        self, session, filter_name, attribute
+    ):
+        selected = set(
+            session.scalars(
+                select(TblMeldungen.id).where(getattr(TblMeldungen, attribute))
+            )
+        )
+        expected = {
+            row.id
+            for row in session.scalars(select(TblMeldungen))
+            if getattr(row, attribute)
+        }
+        assert selected == expected, f"{filter_name} disagrees between SQL and Python"
+
+    def test_pending_excludes_flagged_reports(self, session):
+        """ "offen" must mean OPEN without INFO or UNKL, in both halves."""
+        pending = session.scalars(
+            select(TblMeldungen).where(TblMeldungen.is_pending)
+        ).all()
+
+        assert pending, "expected at least one pending report"
+        for row in pending:
+            assert row.is_open and not row.needs_info and not row.is_unclear

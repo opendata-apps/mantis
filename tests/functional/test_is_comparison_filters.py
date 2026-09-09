@@ -5,7 +5,8 @@ from datetime import datetime
 from sqlalchemy import select, func
 from app.extensions import db
 from app.database.models import TblMeldungen, ReportStatus
-from app.routes.admin.filters import get_filtered_query
+from app.routes.admin.filters import get_filtered_query, normalize_filter_status
+from app.routes.admin.reviewer import _matches_filter_status
 
 
 class TestIsComparisonFilters:
@@ -111,7 +112,6 @@ class TestIsComparisonFilters:
 
         session.commit()
 
-        # Check it appears in open filter
         open_stmt = get_filtered_query(filter_status="offen")
         open_ids = [row[0].id for row in db.session.execute(open_stmt).all()]
         assert open_sighting.id in open_ids, (
@@ -238,3 +238,46 @@ class TestIsComparisonFilters:
                     assert sighting_id in result_ids, (
                         f"{name} sighting not in {filter_status} filter"
                     )
+
+
+class TestFilterStatusNormalisation:
+    """The list query and the per-card check must read a filter value alike.
+
+    They are reached by different routes — one takes ``statusInput`` off the
+    URL, the other ``filter_status`` out of an HTMX form body — so both go
+    through ``normalize_filter_status``. Before that, a value like "Offen"
+    filtered the list one way and decided card visibility another, and a
+    report would vanish from the list on its next refresh.
+    """
+
+    @pytest.mark.parametrize("given", ["Offen", "OFFEN", " offen "])
+    def test_query_ignores_casing_and_padding(self, given, session):
+        expected = set(
+            db.session.scalars(get_filtered_query(filter_status="offen")).all()
+        )
+        actual = set(
+            db.session.scalars(
+                get_filtered_query(filter_status=normalize_filter_status(given))
+            ).all()
+        )
+        assert actual == expected
+
+    @pytest.mark.parametrize("given", ["Geloescht", "GELOESCHT", " geloescht "])
+    def test_card_visibility_ignores_casing_and_padding(self, given, session):
+        """A deleted report tells the two paths apart.
+
+        An unrecognised filter value falls back to "show everything not
+        deleted", which happens to be the right answer for an open report —
+        so only a deleted one actually detects the mismatch.
+        """
+        deleted = db.session.scalars(
+            select(TblMeldungen).where(TblMeldungen.is_deleted)
+        ).first()
+        assert deleted is not None, "expected a deleted report in the seed data"
+
+        assert _matches_filter_status(deleted, given) is True
+        assert _matches_filter_status(deleted, "Offen") is False
+
+    def test_blank_value_falls_back_to_the_default(self):
+        assert normalize_filter_status(None) == "offen"
+        assert normalize_filter_status("") == "offen"

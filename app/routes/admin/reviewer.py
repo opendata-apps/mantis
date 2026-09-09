@@ -22,6 +22,7 @@ from flask_login import current_user
 
 from app.auth import log_in, reviewer_required
 from app.database.models import (
+    STATUS_FILTERS,
     ReportStatus,
     TblFundorte,
     TblMeldungen,
@@ -32,7 +33,11 @@ from app.database.models import (
 from app.extensions import db
 from app.routes.admin.blueprint import admin
 from app.tools.location_enrichment import recalculate_amt_mtb
-from app.routes.admin.filters import get_filtered_query, _get_reviewer_filter_args
+from app.routes.admin.filters import (
+    get_filtered_query,
+    get_reviewer_filter_args,
+    normalize_filter_status,
+)
 from app.tools.coordinate_validation import (
     validate_and_normalize_coordinate,
     validate_coordinate_pair,
@@ -61,10 +66,9 @@ def _commit_json_or_error(log_context: str, user_error: str):
 
 def _resolve_filter_status(default: str = "offen") -> str:
     """Resolve current filter status from request payload/args."""
-    return (
-        request.values.get("filter_status")
-        or request.args.get("statusInput")
-        or default
+    return normalize_filter_status(
+        request.values.get("filter_status") or request.args.get("statusInput"),
+        default,
     )
 
 
@@ -129,19 +133,12 @@ def _load_sighting_for_render(
 
 def _matches_filter_status(sighting: TblMeldungen, filter_status: str) -> bool:
     """Check whether sighting should stay visible in current filtered list."""
-    normalized = (filter_status or "").lower()
+    normalized = normalize_filter_status(filter_status, default="")
     if normalized == "all":
         return True
-    if normalized == "bearbeitet":
-        return sighting.is_approved
-    if normalized == "offen":
-        return sighting.is_open and not sighting.needs_info and not sighting.is_unclear
-    if normalized == "geloescht":
-        return sighting.is_deleted
-    if normalized == "informiert":
-        return sighting.needs_info
-    if normalized == "unklar":
-        return sighting.is_unclear
+    attribute = STATUS_FILTERS.get(normalized)
+    if attribute:
+        return getattr(sighting, attribute)
     # Reviewer default behavior: show non-deleted reports.
     return not sighting.is_deleted
 
@@ -200,7 +197,7 @@ def reviewer(usrid=None):
     user_name = user.user_name
     page = request.args.get("page", 1, type=int)
     per_page = request.args.get("per_page", 21, type=int)
-    filter_args = _get_reviewer_filter_args()
+    filter_args = get_reviewer_filter_args()
     filter_status = filter_args["filter_status"]
     filter_type = filter_args["filter_type"]
     sort_order = request.args.get("sort_order", "id_desc")  # Changed default to desc

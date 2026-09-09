@@ -7,7 +7,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import contains_eager, joinedload
 
 from app.database.models import (
-    ReportStatus,
+    STATUS_FILTERS,
     TblFundorte,
     TblMeldungen,
     TblMeldungUser,
@@ -24,10 +24,20 @@ def _parse_german_date(value: str | None) -> datetime | None:
         return None
 
 
-def _get_reviewer_filter_args():
+def normalize_filter_status(value: str | None, default: str = "offen") -> str:
+    """Normalise a status filter value.
+
+    The value arrives either as a URL argument or in an HTMX form body, and
+    both the SQL query and the per-card visibility check compare against it —
+    so they have to agree on casing.
+    """
+    return (value or default).strip().lower()
+
+
+def get_reviewer_filter_args():
     """Read the shared reviewer/export filter arguments from the request."""
     return {
-        "filter_status": request.args.get("statusInput", "offen"),
+        "filter_status": normalize_filter_status(request.args.get("statusInput")),
         "filter_type": request.args.get("typeInput"),
         "search_query": request.args.get("q"),
         "search_type": request.args.get("search_type", "full_text"),
@@ -76,31 +86,14 @@ def get_filtered_query(
         )
     )
 
-    # Apply filter conditions based on 'filter_status' using statuses array
-    # Array containment: statuses.contains(['VALUE']) checks if VALUE is in array
-    if filter_status == "bearbeitet":
-        stmt = stmt.where(TblMeldungen.statuses.contains([ReportStatus.APPR.value]))
-    elif filter_status == "offen":
-        stmt = stmt.where(
-            TblMeldungen.statuses.contains([ReportStatus.OPEN.value]),
-            ~TblMeldungen.statuses.contains([ReportStatus.INFO.value]),
-            ~TblMeldungen.statuses.contains([ReportStatus.UNKL.value]),
-        )
-    elif filter_status == "geloescht":
-        stmt = stmt.where(TblMeldungen.statuses.contains([ReportStatus.DEL.value]))
-    elif filter_status == "informiert":
-        stmt = stmt.where(TblMeldungen.statuses.contains([ReportStatus.INFO.value]))
-    elif filter_status == "unklar":
-        stmt = stmt.where(TblMeldungen.statuses.contains([ReportStatus.UNKL.value]))
-    elif filter_status == "all":
-        # No filter - show all statuses
-        pass
-    elif search_query:
-        # If there's a search query, don't apply any status filter
+    # The hybrids compile to array containment: statuses @> ARRAY['VALUE'].
+    if filter_status in STATUS_FILTERS:
+        stmt = stmt.where(getattr(TblMeldungen, STATUS_FILTERS[filter_status]))
+    elif filter_status == "all" or search_query:
+        # "all" asks for everything; a search query stands on its own.
         pass
     else:
-        # Default behavior: Exclude deleted items
-        stmt = stmt.where(~TblMeldungen.statuses.contains([ReportStatus.DEL.value]))
+        stmt = stmt.where(~TblMeldungen.is_deleted)
 
     # Apply type filter
     if filter_type:

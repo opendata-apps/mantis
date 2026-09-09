@@ -1,5 +1,6 @@
-from sqlalchemy import Index
+from sqlalchemy import Index, and_, not_
 from sqlalchemy.dialects.postgresql import ARRAY, TSVECTOR
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 
 from app.extensions import db
@@ -133,27 +134,77 @@ class TblMeldungen(db.Model):
         }
         return data
 
-    @property
+    @hybrid_property
     def is_deleted(self) -> bool:
         """Check if report is deleted."""
         return ReportStatus.DEL.value in (self.statuses or [])
 
-    @property
+    @is_deleted.expression
+    def is_deleted(cls):
+        return cls.statuses.contains([ReportStatus.DEL.value])
+
+    @hybrid_property
     def is_approved(self) -> bool:
         """Check if report is approved."""
         return ReportStatus.APPR.value in (self.statuses or [])
 
-    @property
+    @is_approved.expression
+    def is_approved(cls):
+        return cls.statuses.contains([ReportStatus.APPR.value])
+
+    @hybrid_property
     def is_open(self) -> bool:
         """Check if report is open/pending."""
         return ReportStatus.OPEN.value in (self.statuses or [])
 
-    @property
+    @is_open.expression
+    def is_open(cls):
+        return cls.statuses.contains([ReportStatus.OPEN.value])
+
+    @hybrid_property
     def is_unclear(self) -> bool:
         """Check if report is marked as unclear."""
         return ReportStatus.UNKL.value in (self.statuses or [])
 
-    @property
+    @is_unclear.expression
+    def is_unclear(cls):
+        return cls.statuses.contains([ReportStatus.UNKL.value])
+
+    @hybrid_property
     def needs_info(self) -> bool:
         """Check if reporter was contacted for more info."""
         return ReportStatus.INFO.value in (self.statuses or [])
+
+    @needs_info.expression
+    def needs_info(cls):
+        return cls.statuses.contains([ReportStatus.INFO.value])
+
+    @hybrid_property
+    def is_pending(self) -> bool:
+        """Open, with nothing outstanding — the reviewer's default queue."""
+        return self.is_open and not self.needs_info and not self.is_unclear
+
+    @is_pending.expression
+    def is_pending(cls):
+        # Built on the column rather than on the three hybrids above: a type
+        # checker reads those by their `-> bool` getters and cannot know that
+        # class-level access yields a SQL element instead.
+        return and_(
+            cls.statuses.contains([ReportStatus.OPEN.value]),
+            not_(cls.statuses.contains([ReportStatus.INFO.value])),
+            not_(cls.statuses.contains([ReportStatus.UNKL.value])),
+        )
+
+
+# The reviewer's filter vocabulary (the statusInput URL value) mapped onto the
+# predicates above. Because those are hybrids, the same name works as a WHERE
+# clause and as a check on a loaded row — so the list query and the HTMX card
+# refresh cannot drift into disagreeing about what "offen" means.
+# "all" is deliberately absent: it applies no restriction at all.
+STATUS_FILTERS = {
+    "bearbeitet": "is_approved",
+    "offen": "is_pending",
+    "geloescht": "is_deleted",
+    "informiert": "needs_info",
+    "unklar": "is_unclear",
+}

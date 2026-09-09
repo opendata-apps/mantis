@@ -13,7 +13,7 @@ from app.auth import reviewer_required
 from app.database.models import ReportStatus
 from app.extensions import db
 from app.routes.admin.blueprint import admin
-from app.routes.admin.filters import get_filtered_query, _get_reviewer_filter_args
+from app.routes.admin.filters import get_filtered_query, get_reviewer_filter_args
 
 
 @admin.route("/admin/export/xlsx/<string:value>")
@@ -28,7 +28,7 @@ def export_data(value):
     """
     try:
         current_time = datetime.now().strftime("%d.%m.%Y_%H%M")
-        filter_args = _get_reviewer_filter_args()
+        filter_args = get_reviewer_filter_args()
 
         # Get filtered select statement based on export type
         if value == "all":

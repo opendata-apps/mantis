@@ -14,7 +14,6 @@ from app.extensions import db
 from app.database.models import (
     TblFundorte,
     TblMeldungen,
-    ReportStatus,
 )
 from app.tools.coordinate_validation import validate_coordinate_pair
 
@@ -27,7 +26,7 @@ def _public_map_filters(min_map_date: date):
     """Return shared visibility rules for public map endpoints."""
     return (
         TblMeldungen.dat_fund_von >= min_map_date,
-        TblMeldungen.statuses.contains([ReportStatus.APPR.value]),
+        TblMeldungen.is_approved,
     )
 
 
