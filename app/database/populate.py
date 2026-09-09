@@ -3,7 +3,6 @@ from flask import current_app
 
 from app.database.fundortbeschreibung import TblFundortBeschreibung
 
-# Initial data for beschreibung table
 INITIAL_BESCHREIBUNG_DATA = [
     (1, "Im Haus"),
     (2, "Im Garten"),

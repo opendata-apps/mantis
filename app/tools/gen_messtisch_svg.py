@@ -115,9 +115,6 @@ def create_measure_sheet(
                 )
             )
 
-    # Speichern der SVG-Datei
-    # dwg.save()
-    # Ausgabe als Text
     return dwg.tostring()
 
 

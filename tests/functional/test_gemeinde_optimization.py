@@ -131,7 +131,6 @@ class TestGemeindeOptimization:
         session.add(bad_area)
         session.commit()
 
-        # Force cache reload
         reload_gemeinde_cache()
 
         # Should not crash when searching
@@ -177,7 +176,6 @@ class TestGemeindeOptimization:
         session.add(multi_area)
         session.commit()
 
-        # Force cache reload
         reload_gemeinde_cache()
 
         # Test points in both polygons

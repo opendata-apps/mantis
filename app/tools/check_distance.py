@@ -15,7 +15,6 @@ import time
 
 
 def get_coordinates_from_address(street, city, plz=None, housenumber=None):
-    # Nominatim API URL
     url = "https://nominatim.openstreetmap.org/search"
 
     # composit the address

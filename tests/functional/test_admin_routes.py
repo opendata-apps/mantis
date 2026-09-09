@@ -53,7 +53,6 @@ class TestAdminRoutes:
 
         assert self.test_description, "No beschreibung records found in database"
 
-        # Create test location
         self.test_location = TblFundorte(
             mtb="3644",
             longitude="13.404954",
@@ -70,7 +69,6 @@ class TestAdminRoutes:
         session.add(self.test_location)
         session.flush()
 
-        # Create test sighting
         self.test_sighting = TblMeldungen(
             dat_fund_von=datetime.now().date() - timedelta(days=7),
             dat_meld=datetime.now().date(),
@@ -114,7 +112,6 @@ class TestAdminRoutes:
         # Follow redirects to handle the automatic redirect to add default params
         response = client.get("/reviewer/9999", follow_redirects=True)
         assert response.status_code == 200
-        # Check for admin panel content
         assert b"Admin Panel" in response.data or b"admin" in response.data.lower()
         # Check that session was set
         with client.session_transaction() as sess:
@@ -160,7 +157,6 @@ class TestAdminRoutes:
         with client.session_transaction() as sess:
             assert "_user_id" not in sess
 
-        # Follow redirects
         response = client.get("/reviewer/9999", follow_redirects=True)
         assert response.status_code == 200
 
@@ -242,7 +238,6 @@ class TestAdminRoutes:
 
     def test_change_mantis_metadata_authenticated(self, client, session):
         """Test changing mantis metadata with authentication."""
-        # Set up session
         with client.session_transaction() as sess:
             sess["_user_id"] = "9999"
 
@@ -270,7 +265,6 @@ class TestAdminRoutes:
 
     def test_toggle_approve_sighting(self, client, session):
         """Test approving/unapproving sightings."""
-        # Set up session
         with client.session_transaction() as sess:
             sess["_user_id"] = "9999"
 
@@ -294,7 +288,6 @@ class TestAdminRoutes:
 
     def test_toggle_approve_sighting_without_email(self, client, session):
         """Test that approving works even when email sending is disabled."""
-        # Set up session
         with client.session_transaction() as sess:
             sess["_user_id"] = "9999"
 
@@ -314,7 +307,6 @@ class TestAdminRoutes:
 
     def test_delete_sighting(self, client, session):
         """Test soft deleting a sighting."""
-        # Set up session
         with client.session_transaction() as sess:
             sess["_user_id"] = "9999"
 
@@ -333,7 +325,6 @@ class TestAdminRoutes:
 
     def test_undelete_sighting(self, client, session):
         """Test undeleting a soft-deleted sighting."""
-        # Set up session
         with client.session_transaction() as sess:
             sess["_user_id"] = "9999"
 
@@ -357,7 +348,6 @@ class TestAdminRoutes:
 
     def test_change_mantis_count(self, client, session):
         """Test changing mantis count fields."""
-        # Set up session
         with client.session_transaction() as sess:
             sess["_user_id"] = "9999"
 
@@ -598,7 +588,6 @@ class TestAdminRoutes:
 
     def test_export_xlsx_all_data(self, client):
         """Test exporting all data as Excel file."""
-        # Set up session
         with client.session_transaction() as sess:
             sess["_user_id"] = "9999"
 
@@ -615,7 +604,6 @@ class TestAdminRoutes:
 
     def test_export_xlsx_approved_only(self, client, session):
         """Test exporting only approved data."""
-        # Set up session
         with client.session_transaction() as sess:
             sess["_user_id"] = "9999"
 
@@ -699,7 +687,6 @@ class TestAdminRoutes:
 
     def test_alldata_view_access(self, client):
         """Test accessing the alldata view."""
-        # Set up session
         with client.session_transaction() as sess:
             sess["_user_id"] = "9999"
 
@@ -709,11 +696,9 @@ class TestAdminRoutes:
 
     def test_get_table_data_api(self, client):
         """Test getting table data via API."""
-        # Set up session
         with client.session_transaction() as sess:
             sess["_user_id"] = "9999"
 
-        # Test getting all_data_view table data
         response = client.get("/admin/get_table_data/all_data_view?page=1&per_page=10")
         assert response.status_code == 200
         data = json.loads(response.data)
@@ -760,7 +745,6 @@ class TestAdminRoutes:
 
     def test_update_cell_valid_field(self, client, session):
         """Test updating a field exposed by the superuser table."""
-        # Set up session
         with client.session_transaction() as sess:
             sess["_user_id"] = "9999"
 
@@ -891,7 +875,6 @@ class TestAdminRoutes:
 
     def test_static_file_serving(self, client):
         """Test serving static files through admin route."""
-        # Set up session
         with client.session_transaction() as sess:
             sess["_user_id"] = "9999"
 
@@ -950,7 +933,6 @@ class TestAdminRoutes:
 
     def test_error_handling_for_invalid_sighting_id(self, client, session):
         """Test error handling when sighting ID doesn't exist."""
-        # Set up session
         with client.session_transaction() as sess:
             sess["_user_id"] = "9999"
 

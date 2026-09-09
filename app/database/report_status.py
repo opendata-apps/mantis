@@ -75,7 +75,6 @@ class ReportStatus(StrEnum):
         status_set = set(statuses)
         valid_values = set(cls.values())
 
-        # Check all values are valid
         invalid = status_set - valid_values
         if invalid:
             return False, f"Invalid status values: {invalid}"

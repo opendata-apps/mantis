@@ -63,12 +63,6 @@ if __name__ == "__main__":
     locations = [
         (52.38948, 12.70295, "Schenkenberg", 1908),
     ]
-    # locations = [
-    #    # (51.94966,14.06826,"Caminchen",854),
-    #    # (52.37982, 13.2579, "Teltow", 378),
-    #    (51.72459, 14.63499,"Forst (Lausitz)", 166)
-    # (52.00539,14.5071,"Schenkendöbern",716),
-    # ]
     with open("ergebnis", "w") as fh:
         for fundort in locations:
             if fundort[2] != "Berlin":

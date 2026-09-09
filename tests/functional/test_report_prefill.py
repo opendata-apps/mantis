@@ -37,7 +37,6 @@ class TestReportPrefill:
 
     def test_prefill_with_full_name(self, client, session, test_user_data):
         """Test prefilling when user has full first and last name."""
-        # Update test data to use the correct database format
         test_user_data["user_name"] = "Müller M."  # Database format: "Lastname F."
 
         # Create a test user in the database
@@ -100,7 +99,6 @@ class TestReportPrefill:
 
             response_text = response.data.decode("utf-8")
 
-            # The last name should be prefilled
             assert 'value="Schmidt"' in response_text, "Last name should be prefilled"
 
             # The first name should be prefilled with just the initial letter (K from "K.")
@@ -144,13 +142,11 @@ class TestReportPrefill:
 
             response_text = response.data.decode("utf-8")
 
-            # Names should be prefilled
             assert 'value="Weber"' in response_text, "Last name should be prefilled"
             assert 'value="A"' in response_text, (
                 "First name should be prefilled with initial"
             )
 
-            # Email field should be empty
             email_field_empty = 'name="email"' in response_text and (
                 'value=""' in response_text or 'value="None"' not in response_text
             )
@@ -208,7 +204,6 @@ class TestReportPrefill:
 
     def test_prefilled_fields_are_readonly(self, client, session, test_user_data):
         """Test that prefilled fields are readonly to prevent identity changes."""
-        # Update test data to use the correct database format
         test_user_data["user_name"] = "Müller M."  # Database format: "Lastname F."
 
         # Create a test user in the database
