@@ -1,5 +1,7 @@
 """Tests for native PostgreSQL full-text search via search_vector column."""
 
+from datetime import date
+
 from sqlalchemy import select, func
 from app.database.models import TblMeldungen
 
@@ -81,6 +83,32 @@ class TestSearchVector:
             select(TblMeldungen.id).where(TblMeldungen.search_vector.op("@@")(ts_query))
         ).all()
         assert results == []
+
+    def test_meldung_without_fundort_or_melder_is_searchable(
+        self, session, request_context
+    ):
+        """A meldung is findable even when its joined rows are missing.
+
+        Both are optional: ``fo_zuordnung`` is nullable, and the melduser link
+        is written after the meldung. The trigger used to read those rows with
+        ``SELECT ... INTO``, which assigns NULL when nothing matches, and a NULL
+        operand nulls the whole ``||`` chain — the report became unsearchable.
+        """
+        meldung = TblMeldungen(
+            dat_fund_von=date(2025, 8, 1),
+            fo_zuordnung=None,
+            anm_melder="Gottesanbeterin Xylophonstrasse",
+        )
+        session.add(meldung)
+        session.flush()
+
+        ts_query = func.websearch_to_tsquery("german", "Xylophonstrasse")
+        found = session.scalars(
+            select(TblMeldungen.id)
+            .where(TblMeldungen.id == meldung.id)
+            .where(TblMeldungen.search_vector.op("@@")(ts_query))
+        ).all()
+        assert found == [meldung.id]
 
     def test_search_websearch_syntax_negation(self, session, request_context):
         """websearch_to_tsquery supports -exclude syntax."""
