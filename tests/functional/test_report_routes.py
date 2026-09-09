@@ -9,6 +9,7 @@ Design principles:
 
 import datetime
 from unittest.mock import patch
+from urllib.parse import unquote
 
 import pytest
 from sqlalchemy import select, func
@@ -350,6 +351,15 @@ class TestMeldenGet:
         assert 'name="gender"' in html
         assert 'name="sighting_date"' in html
         assert 'name="report_first_name"' in html
+        assert 'data-latitude-min="24.6"' in html
+        assert 'data-latitude-max="60.0"' in html
+        assert 'data-longitude-min="-20.0"' in html
+        assert 'data-longitude-max="44.83"' in html
+        assert 'placeholder="z.B. 52,3906"' in html
+        coordinate_pattern = (
+            r'pattern="[+\-]?(?:[0-9]+(?:[.,][0-9]*)?|[.,][0-9]+)(?:[eE][+\-]?[0-9]+)?"'
+        )
+        assert html.count(coordinate_pattern) == 2
 
 
 # ============================================================================
@@ -374,6 +384,182 @@ class TestPhotoFailure:
         assert response.status_code == 204
         assert "stage=decode" in caplog.text
         assert "size=5618106" in caplog.text
+
+    @pytest.mark.parametrize("payload", [["unexpected"], "unexpected", 42, True])
+    def test_rejects_non_object_json(self, client, payload):
+        assert client.post("/melden/foto-fehler", json=payload).status_code == 400
+
+    def test_rejects_large_diagnostic_body(self, client, caplog):
+        response = client.post("/melden/foto-fehler", json={"size": "x" * 8192})
+        assert response.status_code == 413
+        assert "Photo pipeline failed" not in caplog.text
+
+    def test_diagnostics_cannot_write_terminal_controls(self, client, caplog):
+        response = client.post(
+            "/melden/foto-fehler",
+            json={"error": "decode\x1b[2J"},
+            headers={"User-Agent": "Browser\x1b[2J"},
+        )
+        assert response.status_code == 204
+        assert "\x1b" not in caplog.text
+
+    def test_logs_device_hints_and_picker_shape(self, client, caplog):
+        """Chrome's Android UA is frozen at "Android 10; K" for every device, and
+        which picker produced the file decides whether its bytes are readable —
+        so the hints and the name shape are the only usable diagnostics."""
+        client.post(
+            "/melden/foto-fehler",
+            json={
+                "stage": "read",
+                "size": 3124606,
+                "mtime": 1754380800000,
+                "name": "numeric",
+                "model": "SM-A715F",
+                "osVersion": "13.0.0",
+            },
+        )
+        assert "model=SM-A715F" in caplog.text
+        assert "osv=13.0.0" in caplog.text
+        assert "name=numeric" in caplog.text
+        assert "mtime=1754380800000" in caplog.text
+
+    def test_client_fields_cannot_forge_a_log_line(self, client, caplog):
+        """The beacon is unauthenticated, so a newline in its strings must not
+        split the line the project greps for photo failures, and the cap must
+        keep the injected text inside its own field."""
+        client.post(
+            "/melden/foto-fehler",
+            json={
+                "stage": "read",
+                "model": "SM-A715F\nPhoto pipeline failed: stage=forged",
+            },
+        )
+        message = next(
+            record.getMessage()
+            for record in caplog.records
+            if "Photo pipeline failed" in record.getMessage()
+        )
+        assert "\n" not in message
+        assert "model=SM-A715F Photo pipeline failed: stage=fo os=" in message
+
+    def test_escalation_mail_carries_the_device_and_picker(self, client):
+        """The mail becomes a GitLab ticket, and whoever triages it may not have
+        the prod log. The fields the UA cannot supply — the real device and
+        which picker produced the file — have to travel with the photo."""
+        payload = {
+            "stage": "read",
+            "name": "numeric",
+            "model": "SM-A715F",
+            "osVersion": "13.0.0",
+            "platform": "Android",
+        }
+        client.post("/melden/foto-fehler", json=payload)
+        mailto = client.post("/melden/foto-fehler", json=payload).get_json()["mailto"]
+
+        body = unquote(mailto)
+        assert "Gerät: SM-A715F (Android 13.0.0)" in body
+        assert "Auswahl: numeric" in body
+
+
+ANDROID_UA = (
+    "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/151.0.0.0 Mobile Safari/537.36"
+)
+IPHONE_UA = (
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 "
+    "(KHTML, like Gecko) Version/26.5.2 Mobile/15E148 Safari/604.1"
+)
+IPAD_UA = (
+    "Mozilla/5.0 (iPad; CPU OS 18_7 like Mac OS X) AppleWebKit/605.1.15 "
+    "(KHTML, like Gecko) Version/26.5.2 Mobile/15E148 Safari/604.1"
+)
+MAC_UA = (
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36"
+)
+
+
+class TestPhotoFailurePlatform:
+    """Which OS failed has to be reported, not assumed.
+
+    ``getHighEntropyValues()`` is Chromium-only, so Safari and Firefox send no
+    platform at all — and Safari on iOS is exactly where the HEIC timeouts come
+    from. The hint is preferred, the UA string is the fallback.
+    """
+
+    def _os_field(self, client, caplog, ua, payload=None):
+        client.post(
+            "/melden/foto-fehler",
+            json={"stage": "read", **(payload or {})},
+            headers={"User-Agent": ua},
+        )
+        message = next(
+            record.getMessage()
+            for record in caplog.records
+            if "Photo pipeline failed" in record.getMessage()
+        )
+        return message.split("os=")[1].split(" ")[0]
+
+    def test_client_hint_wins_over_the_ua_string(self, client, caplog):
+        """The hint carries the real version; the UA is frozen."""
+        assert (
+            self._os_field(client, caplog, ANDROID_UA, {"platform": "macOS"}) == "macOS"
+        )
+
+    def test_iphone_ua_is_ios_not_android(self, client, caplog):
+        """The bug this replaces: every reporter was labelled Android."""
+        assert self._os_field(client, caplog, IPHONE_UA) == "iOS"
+
+    def test_ipad_ua_is_ipados_not_macos(self, client, caplog):
+        """An iPad UA also contains "Macintosh", so order matters."""
+        assert self._os_field(client, caplog, IPAD_UA) == "iPadOS"
+
+    def test_android_ua_is_android_not_linux(self, client, caplog):
+        """An Android UA also contains "Linux", so order matters here too."""
+        assert self._os_field(client, caplog, ANDROID_UA) == "Android"
+
+    def test_desktop_ua_is_macos(self, client, caplog):
+        assert self._os_field(client, caplog, MAC_UA) == "macOS"
+
+    def test_unrecognised_ua_is_not_guessed(self, client, caplog):
+        assert self._os_field(client, caplog, "curl/8.4.0") == "unbekannt"
+
+    def test_iphone_escalation_mail_does_not_claim_android(self, client):
+        """The mail is the whole diagnostic for whoever triages the ticket."""
+        payload = {"stage": "heic", "osVersion": "18.7"}
+        headers = {"User-Agent": IPHONE_UA}
+        client.post("/melden/foto-fehler", json=payload, headers=headers)
+        second = client.post("/melden/foto-fehler", json=payload, headers=headers)
+
+        body = unquote(second.get_json()["mailto"])
+        assert "Gerät: unbekannt (iOS 18.7)" in body
+        assert "Android" not in body
+
+    def test_escalates_after_repeated_failures(self, client, app):
+        """A second failure hands back the support mailto.
+
+        The second reported failure offers email support. The counter is a
+        UX threshold; the server cannot verify these client-side failures.
+        """
+        payload = {"stage": "read", "error": "read: NotReadableError", "ext": "jpg"}
+
+        assert client.post("/melden/foto-fehler", json=payload).status_code == 204
+
+        second = client.post("/melden/foto-fehler", json=payload)
+        assert second.status_code == 200
+        mailto = second.get_json()["mailto"]
+        assert mailto.startswith(f"mailto:{app.config['PHOTO_SUPPORT_EMAIL']}?")
+        assert "Foto-Upload%20Fehler" in mailto
+
+    def test_escalation_reference_links_mail_to_log(self, client, caplog):
+        """The mail subject carries a handle that also appears in the log line,
+        so a photo that arrives by email can be matched to what broke."""
+        payload = {"stage": "read", "error": "read: NotReadableError"}
+        client.post("/melden/foto-fehler", json=payload)
+        second = client.post("/melden/foto-fehler", json=payload)
+
+        ref = second.get_json()["mailto"].split("Fehler%20")[1].split("&")[0]
+        assert f"ref={ref}" in caplog.text
 
     def test_accepts_empty_body(self, client):
         # A failing browser is exactly the context that may send nothing useful;
@@ -452,6 +638,41 @@ class TestMeldenPostSuccess:
         assert post_fundorte == pre_counts["fundorte"] + 1
         assert post_users == pre_counts["users"] + 1
         assert post_links == pre_counts["links"] + 1
+
+    @patch("app.routes.report._process_uploaded_image")
+    def test_long_email_and_surname_save(
+        self, mock_process_image, client, valid_form_data, session
+    ):
+        """A 120-char email and a 50-char surname must persist, not 500.
+
+        Regression: user_kontakt/user_name were varchar(45) while the form
+        accepts 120-char emails and 50-char names (user_name stores
+        "Nachname V." → up to 53 chars), so long values raised
+        StringDataRightTruncation and the report was silently lost.
+        """
+        mock_process_image.return_value = "2025/2025-01-01/test.webp"
+
+        long_email = "a" * 60 + "@example-langdomain-fuer-den-test.de"  # 96 chars
+        long_surname = "L" * 50  # -> user_name "LLL...L A." = 53 chars
+
+        response = client.post(
+            "/melden",
+            data={
+                **valid_form_data,
+                "report_last_name": long_surname,
+                "email": long_email,
+                "photo": _create_test_image(),
+            },
+            content_type="multipart/form-data",
+        )
+
+        assert response.status_code == 200
+        assert response.get_json()["success"] is True
+        saved = session.scalar(
+            select(TblUsers).where(TblUsers.user_kontakt == long_email)
+        )
+        assert saved is not None
+        assert saved.user_kontakt == long_email
 
     @patch("app.routes.report._process_uploaded_image")
     def test_gender_fields_in_db(

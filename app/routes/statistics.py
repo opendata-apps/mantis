@@ -5,13 +5,13 @@ from markupsafe import escape
 from sqlalchemy import func, select
 from sqlalchemy import cast, String
 from sqlalchemy import literal_column
-from app import db
+from app.extensions import db
 from app.database.models import TblAemterCoordinaten
 from app.auth import reviewer_required
 from app.tools.gen_messtisch_svg import create_measure_sheet
 from app.database.models import TblFundorte, TblMeldungen
-from app.database.models import TblUserFeedback, ReportStatus
-from datetime import date, datetime, timedelta
+from app.database.models import TblUserFeedback
+from datetime import date, timedelta
 from app.database.feedback_type import FeedbackSource
 from app.database.ags import (
     BUNDESLAENDER,
@@ -21,6 +21,20 @@ from app.database.ags import (
 )
 
 stats = Blueprint("statistics", __name__)
+
+
+def _total_animals():
+    """Use the recorded animal count, with classified counts for legacy NULLs."""
+    return func.sum(
+        func.coalesce(
+            TblMeldungen.tiere,
+            func.coalesce(TblMeldungen.art_m, 0)
+            + func.coalesce(TblMeldungen.art_w, 0)
+            + func.coalesce(TblMeldungen.art_o, 0)
+            + func.coalesce(TblMeldungen.art_n, 0)
+            + func.coalesce(TblMeldungen.art_f, 0),
+        )
+    ).label("gesamt")
 
 
 def _gender_sum_columns():
@@ -35,13 +49,7 @@ def _gender_sum_columns():
         func.sum(func.coalesce(TblMeldungen.art_o, 0)).label("oothek"),
         func.sum(func.coalesce(TblMeldungen.art_n, 0)).label("nymphe"),
         func.sum(func.coalesce(TblMeldungen.art_f, 0)).label("andere"),
-        func.sum(
-            func.coalesce(TblMeldungen.art_m, 0)
-            + func.coalesce(TblMeldungen.art_w, 0)
-            + func.coalesce(TblMeldungen.art_o, 0)
-            + func.coalesce(TblMeldungen.art_n, 0)
-            + func.coalesce(TblMeldungen.art_f, 0)
-        ).label("gesamt"),
+        _total_animals(),
     ]
 
 
@@ -94,16 +102,35 @@ def autocomplete_ags():
     )
 
 
+def _iso_date_or(value, fallback):
+    """Return an ISO date string, falling back on anything unparsable.
+
+    The result is stored in the session and read back by every statistics view,
+    so a value date.fromisoformat cannot read is not one bad response — it
+    raises again on every later request from that browser until the cookie is
+    replaced.
+    """
+    try:
+        return date.fromisoformat(str(value)[:10]).isoformat()
+    except (TypeError, ValueError):
+        return fallback
+
+
 def get_date_interval():
     "Calculate and format start and end date"
 
-    now = datetime.now().isoformat()
-    last_year = datetime.now() - timedelta(weeks=52)
-    last_year = last_year.isoformat()
-    start_date = request.form.get("dateFrom", session.get("date_from", last_year))
-    end_date = request.form.get("dateTo", session.get("date_to", now))
+    today = date.today()
 
-    return (start_date[:10], end_date[:10])
+    return (
+        _iso_date_or(
+            request.form.get("dateFrom", session.get("date_from")),
+            (today - timedelta(weeks=52)).isoformat(),
+        ),
+        _iso_date_or(
+            request.form.get("dateTo", session.get("date_to")),
+            today.isoformat(),
+        ),
+    )
 
 
 @stats.route("/statistik", methods=["POST", "GET"])
@@ -184,7 +211,7 @@ def stats_daily_average(marker="meldungen_zeiten"):
             timestamp_substr.isnot(None),
             TblMeldungen.dat_fund_von >= date_from,
             TblMeldungen.dat_fund_von <= date_to,
-            TblMeldungen.statuses.contains([ReportStatus.APPR.value]),
+            TblMeldungen.is_approved,
         )
         .where(TblFundorte.amt.like(f"{session['ags']}%"))
         .group_by(hour_expr)
@@ -243,7 +270,7 @@ def stats_mtb(marker):
         .where(
             TblMeldungen.dat_fund_von >= date.fromisoformat(session["date_from"]),
             TblMeldungen.dat_fund_von <= date.fromisoformat(session["date_to"]),
-            TblMeldungen.statuses.contains([ReportStatus.APPR.value]),
+            TblMeldungen.is_approved,
         )
         .where(TblFundorte.amt.like(f"{session['ags']}%"))
         .group_by(TblFundorte.mtb)
@@ -284,7 +311,7 @@ def stats_bardiagram_datum(dbfields, page, marker=None):
             .join(TblMeldungen.fundort)
             .where(
                 col.between(date_from, date_to),
-                TblMeldungen.statuses.contains([ReportStatus.APPR.value]),
+                TblMeldungen.is_approved,
                 TblFundorte.amt.like(f"{session['ags']}%"),
             )
             .group_by(col)
@@ -327,7 +354,7 @@ def stats_geschlecht(marker):
             TblMeldungen.dat_fund_von >= date.fromisoformat(session["date_from"]),
             TblMeldungen.dat_fund_von <= date.fromisoformat(session["date_to"]),
             TblFundorte.amt.like(f"{session['ags']}%"),
-            TblMeldungen.statuses.contains([ReportStatus.APPR.value]),
+            TblMeldungen.is_approved,
         )
     )
 
@@ -364,7 +391,7 @@ def stats_amt(marker):
         .where(
             TblMeldungen.dat_meld >= date.fromisoformat(session["date_from"]),
             TblMeldungen.dat_meld <= date.fromisoformat(session["date_to"]),
-            TblMeldungen.statuses.contains([ReportStatus.APPR.value]),
+            TblMeldungen.is_approved,
         )
         .where(TblFundorte.amt.like(f"{session['ags']}%"))
         .group_by(TblFundorte.amt)
@@ -418,7 +445,7 @@ def stats_laender(marker):
         .where(
             TblMeldungen.dat_meld >= date.fromisoformat(session["date_from"]),
             TblMeldungen.dat_meld <= date.fromisoformat(session["date_to"]),
-            TblMeldungen.statuses.contains([ReportStatus.APPR.value]),
+            TblMeldungen.is_approved,
         )
         .group_by(amt_group_expr)
     ).all()
@@ -477,7 +504,7 @@ def stats_bundesland(marker):
             TblMeldungen.dat_meld >= date.fromisoformat(session["date_from"]),
             TblMeldungen.dat_meld <= date.fromisoformat(session["date_to"]),
             state_prefix_expr == ags,
-            TblMeldungen.statuses.contains([ReportStatus.APPR.value]),
+            TblMeldungen.is_approved,
         )
         .group_by(amt_group_expr)
     ).all()
@@ -512,21 +539,12 @@ def stats_gesamt(marker):
     result_dict = build_gesamt_template()
 
     stmt = (
-        select(
-            TblFundorte.amt,
-            func.sum(
-                func.coalesce(TblMeldungen.art_m, 0)
-                + func.coalesce(TblMeldungen.art_w, 0)
-                + func.coalesce(TblMeldungen.art_o, 0)
-                + func.coalesce(TblMeldungen.art_n, 0)
-                + func.coalesce(TblMeldungen.art_f, 0)
-            ).label("gesamt"),
-        )
+        select(TblFundorte.amt, _total_animals())
         .join(TblMeldungen)
         .where(
             TblMeldungen.dat_meld >= date.fromisoformat(session["date_from"]),
             TblMeldungen.dat_meld <= date.fromisoformat(session["date_to"]),
-            TblMeldungen.statuses.contains([ReportStatus.APPR.value]),
+            TblMeldungen.is_approved,
         )
         .group_by(TblFundorte.amt)
     )

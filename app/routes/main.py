@@ -5,7 +5,6 @@ from flask import (
     Blueprint,
     Response,
     current_app,
-    g,
     jsonify,
     render_template,
     send_from_directory,
@@ -13,9 +12,9 @@ from flask import (
 
 from datetime import date
 from sqlalchemy import select, func, text
-from app import db, limiter
-from app.database.models import TblMeldungen, ReportStatus
-from app.auth import login_required
+from app.extensions import db, limiter
+from app.database.models import TblMeldungen
+from flask_login import current_user, login_required
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -32,7 +31,7 @@ def _load_galerie():
         json_path = os.path.join(
             BASE_DIR, "..", "static", "images", "galerie", "galerie.json"
         )
-        with open(json_path, "r", encoding="utf-8") as file:
+        with open(json_path, encoding="utf-8") as file:
             _galerie_cache = json.load(file)
     return _galerie_cache
 
@@ -62,7 +61,7 @@ def _get_post_count():
         .where(
             TblMeldungen.dat_fund_von >= date(current_app.config["MIN_MAP_YEAR"], 1, 1)
         )
-        .where(TblMeldungen.statuses.contains([ReportStatus.APPR.value]))
+        .where(TblMeldungen.is_approved)
     )
     value = db.session.execute(count_stmt).scalar()
     _post_count_cache["value"] = value
@@ -88,12 +87,14 @@ def index():
 
 
 @main.route("/health")
-@limiter.exempt
+@limiter.limit("30 per minute")
 def health():
     """Health check endpoint."""
     try:
         db.session.execute(text("SELECT 1"))
-        return jsonify({"status": "healthy"})
+        return jsonify(
+            {"status": "healthy", "version": os.environ.get("GIT_SHA", "unknown")}
+        )
     except Exception:
         return jsonify({"status": "unhealthy"}), 503
 
@@ -164,7 +165,7 @@ def galerie():
     "Galerie."
     return render_template(
         "galerie.html",
-        user_id=g.current_user.user_id,
+        user_id=current_user.user_id,
         bilder=_load_galerie(),
     )
 

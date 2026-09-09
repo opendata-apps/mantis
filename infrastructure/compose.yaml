@@ -1,0 +1,64 @@
+# Shared base for both stacks. Anything that differs between development and
+# production belongs in an override file, never here: an override can change a
+# value but cannot drop one without the !reset tag.
+#
+# The project name defaults to the development one on purpose. Compose takes the
+# last `name:` of the files it was given, so a bare `podman-compose up` in this
+# directory resolves to mantis_dev, and only compose.prod.yaml raises it to
+# infrastructure — the name the live containers and the mantis_data volume hang
+# off. Production has to be asked for; it is never what you get by accident.
+name: mantis_dev
+
+services:
+  db:
+    image: docker.io/library/postgres:16-alpine
+    env_file:
+      - ../.env
+    volumes:
+      - mantis_data:/var/lib/postgresql/data
+    networks:
+      - mantis_backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h localhost -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: ..
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - ../.env
+    environment:
+      - FLASK_DEBUG=0
+      - DATABASE_HOST=db
+      - UPLOAD_FOLDER=/mantis/app/datastore
+      - BACKUP_DIR=/mantis/backups
+    volumes:
+      - ../app/datastore:/mantis/app/datastore:z
+      - ../backups:/mantis/backups:z
+    networks:
+      - mantis_backend
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - python -c "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      # Sized for a cold start against an empty volume, where the entrypoint runs
+      # every migration and a full seed before gunicorn binds. This only delays
+      # when failures start counting; the deploy is gated by the curl retry loop
+      # in `just prod-deploy`.
+      start_period: 300s
+
+volumes:
+  mantis_data:
+
+networks:
+  # Don't pin an ipam subnet here: podman-compose 1.5.0 with netavark ignores it
+  # anyway, and a fixed subnet is what stops a second stack coming up alongside.
+  mantis_backend:
+    driver: bridge

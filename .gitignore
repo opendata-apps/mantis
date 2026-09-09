@@ -184,8 +184,8 @@ assets/
 .claude/
 CLAUDE.md
 
-# playwright-cli session logs and snapshots
+# Agent tooling: vendored skills, their lockfile, browser logs and plan notes
+.agents/
+skills-lock.json
 .playwright-cli/
-
-# local planning/spec scratch, not part of the published docs
 docs/superpowers/

@@ -2,8 +2,13 @@
 
 from unittest.mock import MagicMock, patch
 
-from flask import Flask, g
-from app.auth import login_required, reviewer_required
+from flask import Flask
+from flask_login import current_user, login_required
+
+# Imported for its side effect as well: app.auth registers the user_loader and
+# the unauthorized handler on login_manager at import time.
+from app.auth import reviewer_required
+from app.extensions import login_manager
 
 
 def _make_mock_user(user_id="9999", user_rolle="9"):
@@ -14,6 +19,14 @@ def _make_mock_user(user_id="9999", user_rolle="9"):
     return user
 
 
+def _make_app():
+    """A bare app with the login manager bound, as create_app does."""
+    test_app = Flask(__name__)
+    test_app.config["SECRET_KEY"] = "test-secret-key"
+    login_manager.init_app(test_app)
+    return test_app
+
+
 class TestLoginRequired:
     """Test the login_required decorator functionality."""
 
@@ -22,8 +35,7 @@ class TestLoginRequired:
         """Test that authenticated users can access protected routes."""
         mock_db.session.scalar.return_value = _make_mock_user()
 
-        test_app = Flask(__name__)
-        test_app.config["SECRET_KEY"] = "test-secret-key"
+        test_app = _make_app()
 
         @test_app.route("/test-protected")
         @login_required
@@ -32,7 +44,7 @@ class TestLoginRequired:
 
         with test_app.test_client() as client:
             with client.session_transaction() as sess:
-                sess["user_id"] = "9999"
+                sess["_user_id"] = "9999"
 
             response = client.get("/test-protected")
             assert response.status_code == 200
@@ -40,8 +52,7 @@ class TestLoginRequired:
 
     def test_unauthenticated_user_gets_403(self):
         """Test that unauthenticated users get 403."""
-        test_app = Flask(__name__)
-        test_app.config["SECRET_KEY"] = "test-secret-key"
+        test_app = _make_app()
 
         @test_app.route("/test-protected-403")
         @login_required
@@ -71,8 +82,7 @@ class TestLoginRequired:
         """Test that the decorator passes through function arguments correctly."""
         mock_db.session.scalar.return_value = _make_mock_user()
 
-        test_app = Flask(__name__)
-        test_app.config["SECRET_KEY"] = "test-secret-key"
+        test_app = _make_app()
 
         @test_app.route("/test-args/<arg1>/<arg2>")
         @login_required
@@ -81,7 +91,7 @@ class TestLoginRequired:
 
         with test_app.test_client() as client:
             with client.session_transaction() as sess:
-                sess["user_id"] = "9999"
+                sess["_user_id"] = "9999"
 
             response = client.get("/test-args/hello/world")
             assert response.status_code == 200
@@ -92,8 +102,7 @@ class TestLoginRequired:
         """Test that the decorator handles keyword arguments."""
         mock_db.session.scalar.return_value = _make_mock_user()
 
-        test_app = Flask(__name__)
-        test_app.config["SECRET_KEY"] = "test-secret-key"
+        test_app = _make_app()
 
         @test_app.route("/test-kwargs")
         @login_required
@@ -105,7 +114,7 @@ class TestLoginRequired:
 
         with test_app.test_client() as client:
             with client.session_transaction() as sess:
-                sess["user_id"] = "9999"
+                sess["_user_id"] = "9999"
 
             response = client.get("/test-kwargs?name=TestUser")
             assert response.status_code == 200
@@ -116,8 +125,7 @@ class TestLoginRequired:
         """Test that login_required works with other decorators."""
         mock_db.session.scalar.return_value = _make_mock_user()
 
-        test_app = Flask(__name__)
-        test_app.config["SECRET_KEY"] = "test-secret-key"
+        test_app = _make_app()
 
         def another_decorator(f):
             from functools import wraps
@@ -137,7 +145,7 @@ class TestLoginRequired:
 
         with test_app.test_client() as client:
             with client.session_transaction() as sess:
-                sess["user_id"] = "9999"
+                sess["_user_id"] = "9999"
 
             response = client.get("/test-multi-decorator")
             assert response.status_code == 200
@@ -148,8 +156,7 @@ class TestLoginRequired:
         """Test that clearing session prevents access to protected routes."""
         mock_db.session.scalar.return_value = _make_mock_user()
 
-        test_app = Flask(__name__)
-        test_app.config["SECRET_KEY"] = "test-secret-key"
+        test_app = _make_app()
 
         @test_app.route("/test-logout")
         @login_required
@@ -158,7 +165,7 @@ class TestLoginRequired:
 
         with test_app.test_client() as client:
             with client.session_transaction() as sess:
-                sess["user_id"] = "9999"
+                sess["_user_id"] = "9999"
 
             response = client.get("/test-logout")
             assert response.status_code == 200
@@ -174,8 +181,7 @@ class TestLoginRequired:
         """Test that a session referencing a deleted user gets 403."""
         mock_db.session.scalar.return_value = None
 
-        test_app = Flask(__name__)
-        test_app.config["SECRET_KEY"] = "test-secret-key"
+        test_app = _make_app()
 
         @test_app.route("/test-deleted-user")
         @login_required
@@ -184,7 +190,7 @@ class TestLoginRequired:
 
         with test_app.test_client() as client:
             with client.session_transaction() as sess:
-                sess["user_id"] = "deleted-user-id"
+                sess["_user_id"] = "deleted-user-id"
 
             response = client.get("/test-deleted-user")
             assert response.status_code == 403
@@ -194,8 +200,7 @@ class TestLoginRequired:
         """Stale session should be purged so subsequent requests don't hit DB."""
         mock_db.session.scalar.return_value = None
 
-        test_app = Flask(__name__)
-        test_app.config["SECRET_KEY"] = "test-secret-key"
+        test_app = _make_app()
 
         @test_app.route("/test-stale-session")
         @login_required
@@ -204,31 +209,30 @@ class TestLoginRequired:
 
         with test_app.test_client() as client:
             with client.session_transaction() as sess:
-                sess["user_id"] = "deleted-user-id"
+                sess["_user_id"] = "deleted-user-id"
 
             client.get("/test-stale-session")
 
             # Session should have been cleared by the decorator
             with client.session_transaction() as sess:
-                assert "user_id" not in sess
+                assert "_user_id" not in sess
 
     @patch("app.auth.db")
-    def test_sets_g_current_user(self, mock_db):
-        """Decorator must populate g.current_user for downstream route code."""
+    def test_exposes_current_user(self, mock_db):
+        """Decorator must make the user available to downstream route code."""
         mock_user = _make_mock_user()
         mock_db.session.scalar.return_value = mock_user
 
-        test_app = Flask(__name__)
-        test_app.config["SECRET_KEY"] = "test-secret-key"
+        test_app = _make_app()
 
         @test_app.route("/test-g-user")
         @login_required
         def check_g_user():
-            return g.current_user.user_id
+            return current_user.user_id
 
         with test_app.test_client() as client:
             with client.session_transaction() as sess:
-                sess["user_id"] = "9999"
+                sess["_user_id"] = "9999"
 
             response = client.get("/test-g-user")
             assert response.status_code == 200
@@ -243,8 +247,7 @@ class TestReviewerRequired:
         """Test that a user with role '9' can access reviewer routes."""
         mock_db.session.scalar.return_value = _make_mock_user(user_rolle="9")
 
-        test_app = Flask(__name__)
-        test_app.config["SECRET_KEY"] = "test-secret-key"
+        test_app = _make_app()
 
         @test_app.route("/test-reviewer")
         @reviewer_required
@@ -253,7 +256,7 @@ class TestReviewerRequired:
 
         with test_app.test_client() as client:
             with client.session_transaction() as sess:
-                sess["user_id"] = "9999"
+                sess["_user_id"] = "9999"
 
             response = client.get("/test-reviewer")
             assert response.status_code == 200
@@ -264,8 +267,7 @@ class TestReviewerRequired:
         """Test that a user with role != '9' is rejected."""
         mock_db.session.scalar.return_value = _make_mock_user(user_rolle="1")
 
-        test_app = Flask(__name__)
-        test_app.config["SECRET_KEY"] = "test-secret-key"
+        test_app = _make_app()
 
         @test_app.route("/test-non-reviewer")
         @reviewer_required
@@ -274,15 +276,14 @@ class TestReviewerRequired:
 
         with test_app.test_client() as client:
             with client.session_transaction() as sess:
-                sess["user_id"] = "9999"
+                sess["_user_id"] = "9999"
 
             response = client.get("/test-non-reviewer")
             assert response.status_code == 403
 
     def test_unauthenticated_gets_403(self):
         """Test that unauthenticated users get 403 on reviewer routes."""
-        test_app = Flask(__name__)
-        test_app.config["SECRET_KEY"] = "test-secret-key"
+        test_app = _make_app()
 
         @test_app.route("/test-reviewer-noauth")
         @reviewer_required
@@ -298,8 +299,7 @@ class TestReviewerRequired:
         """Test that a deleted user is rejected with 403 on reviewer routes."""
         mock_db.session.scalar.return_value = None
 
-        test_app = Flask(__name__)
-        test_app.config["SECRET_KEY"] = "test-secret-key"
+        test_app = _make_app()
 
         @test_app.route("/test-reviewer-deleted")
         @reviewer_required
@@ -308,28 +308,27 @@ class TestReviewerRequired:
 
         with test_app.test_client() as client:
             with client.session_transaction() as sess:
-                sess["user_id"] = "deleted-user"
+                sess["_user_id"] = "deleted-user"
 
             response = client.get("/test-reviewer-deleted")
             assert response.status_code == 403
 
     @patch("app.auth.db")
-    def test_sets_g_current_user(self, mock_db):
-        """Reviewer decorator must also populate g.current_user."""
+    def test_exposes_current_user(self, mock_db):
+        """Reviewer decorator must also expose the user."""
         mock_user = _make_mock_user(user_rolle="9")
         mock_db.session.scalar.return_value = mock_user
 
-        test_app = Flask(__name__)
-        test_app.config["SECRET_KEY"] = "test-secret-key"
+        test_app = _make_app()
 
         @test_app.route("/test-reviewer-g")
         @reviewer_required
         def check_g_user():
-            return g.current_user.user_id
+            return current_user.user_id
 
         with test_app.test_client() as client:
             with client.session_transaction() as sess:
-                sess["user_id"] = "9999"
+                sess["_user_id"] = "9999"
 
             response = client.get("/test-reviewer-g")
             assert response.status_code == 200

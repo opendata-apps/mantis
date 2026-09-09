@@ -11,14 +11,14 @@ from enum import StrEnum
 class FeedbackSource(StrEnum):
     """How the user heard about the Mantis project."""
 
-    EVENT = "EVENT"       # Auf einer Veranstaltung
-    FLYER = "FLYER"       # Flyer/Folder des Projektes
-    PRESS = "PRESS"       # Presse
-    TV = "TV"             # Fernsehbeitrag
-    INTERNET = "INTERNET" # Internetrecherche
-    SOCIAL = "SOCIAL"     # Social Media
-    FRIENDS = "FRIENDS"   # Freunde, Bekannte, Kollegen
-    OTHER = "OTHER"       # Andere
+    EVENT = "EVENT"  # Auf einer Veranstaltung
+    FLYER = "FLYER"  # Flyer/Folder des Projektes
+    PRESS = "PRESS"  # Presse
+    TV = "TV"  # Fernsehbeitrag
+    INTERNET = "INTERNET"  # Internetrecherche
+    SOCIAL = "SOCIAL"  # Social Media
+    FRIENDS = "FRIENDS"  # Freunde, Bekannte, Kollegen
+    OTHER = "OTHER"  # Andere
 
     @classmethod
     def get_display_name(cls, value: str) -> str:

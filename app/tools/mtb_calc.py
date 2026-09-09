@@ -1,100 +1,141 @@
+"""Messtischblatt (TK25) sheet number for a WGS84 coordinate.
+
+The Blattschnitt of the Topographische Karte 1:25.000 follows the numbering of
+the Preußische Landesaufnahme: a four-digit number whose first two digits are
+the row counted north to south and whose last two are the column counted west
+to east. Each sheet covers 6' of latitude and 10' of longitude.
+
+The two tables below hold those lines, and one sheet is the band between two
+neighbouring lines — the north-west corner of the grid:
+
+                      LON_EDGES[0]   LON_EDGES[1]   LON_EDGES[2]
+                        5.832760       5.999402       6.166043
+                            │              │              │
+    LAT_EDGES[79] ──────────┼──────────────┼──────────────┼────  55.098275
+                            │     0901     │     0902     │
+    LAT_EDGES[78] ──────────┼──────────────┼──────────────┼────  54.998287
+                            │     1001     │     1002     │
+    LAT_EDGES[77] ──────────┼──────────────┼──────────────┼────  54.898298
+                            │     1101     │     1102     │
+                            │              │              │
+
+LAT_EDGES runs south to north, so the row number counts *down* as the index
+counts up: the band above LAT_EDGES[i] is row LAST_ROW - i, and the band east
+of LON_EDGES[j] is column FIRST_COL + j. That inversion is the one place this
+module is easy to get wrong. It bottoms out at LAT_EDGES[0] = 47.199179 (the
+south edge of row 87) and LON_EDGES[56] = 15.164693 (the east edge of column
+56); rows run 9..87 and columns 1..56.
+
+The lines are defined on the **Potsdam datum** (Bessel ellipsoid), not on
+WGS84:
+
+    row r  north edge at  56.0° - 0.1°·r      [Potsdam]
+    col c  west edge at   17/3° + (1/6)°·c    [Potsdam]
+
+Feeding WGS84 degrees straight into those numbers puts every line 100-190 m
+off, which is why the tables below hold the official lines transformed to
+WGS84 once by scripts/gen_mtb_grid.py, rather than a closed form evaluated at
+runtime.
+
+One number per line cannot be exact: the datum shift varies across the country,
+so a line's true WGS84 position moves 2-12 m along its own length, and the
+tables hold its value mid-country. Checked against the official Brandenburg
+Blattschnitt — the region nearly every report comes from — that puts 8 of 20000
+coordinates on the wrong sheet, none of them further than 3.5 m from a sheet
+boundary. Nationwide it is 13 of 30000. Sheets are 11 km across, and a pin
+dropped on a map is not accurate to 3 m, so the grid is not the weak link in a
+Fundort's position.
+
+Until 2026-09 this module used a closed form whose latitude origin placed
+every row line 2.4 km too far south — a fifth of a row height — so it named
+the sheet immediately north of the true one for 22% of all German coordinates.
+Potsdam's centre, for one, is on 3644 Potsdam (Süd) and was reported as 3544.
+
+The lattice is rectangular but Germany is not: a coordinate inside the tables'
+span can still fall on a cell that was never published as a sheet — Praha and
+Zürich both do. Whether a coordinate is German is a question for the AGS
+polygons in gemeinde_finder; ask them before storing what this module returns.
+
+Sources and cross-checks:
+  - Numbering and sheet size: BKG, "Blattschnitt der Topographischen Karte
+    1:25 000 (TK25)":
+    https://gdz.bkg.bund.de/index.php/default/blattschnitt-der-topographischen-karte-1-25-000-tk25-b25.html
+  - The lattice, independently: the AdV's BeTA2007 datum grid is itself laid
+    out on it — 10' x 6' from 5°30'/47°00' to 15°40'/55°18', which its
+    documentation describes as "die fiktiven TK25-Blätter von 07(-01) bis
+    8959". https://crs.bkg.bund.de/crs/descrtrans/BeTA/BETA2007dokumentationV15.pdf
+  - Official sheet boundaries, used to check the tables. Brandenburg first,
+    since that is where the reports are — LGB, 299 sheets, ETRS89/UTM33:
+    https://isk.geobasis-bb.de/ows/blattschnitte_wfs?request=GetCapabilities&service=WFS
+    and Baden-Württemberg as a second, distant region — LUBW, 672 sheets:
+    https://rips-gdi.lubw.baden-wuerttemberg.de/arcgis/services/wfs/Blattschnitt_TK25/MapServer/WFSServer
+  - Community grid covering all of Germany: TK25-Raster (2023-02),
+    https://www.orchids.de/geozeugs/koordinatenermittler2/
+  - Look a number up by hand: https://moses-mendelssohn-institut.de/TK25
+    and http://gk.historic.place/tools/selectbbox.htm
 """
 
-x-------o  o-------o o-------o o-------o o-------o o-------o
-|       |  |       | |       | |       | |       | |       |
-| 0502  |  |  ...  | | 0519  | | 0520  | | 0521  | | ...   |
-|       |  |       | |       | |       | |       | |       |
-o-------o  o-------o o-------o o-------o o-------o o-------o
+from bisect import bisect_right
 
-o-------o                          ^
-|       |                          |
-| ...   |                          |
-|       |                          o--- nördlichste
-o-------o                               Meßtischblätter
+FIRST_ROW = 9
+LAST_ROW = 87
+FIRST_COL = 1
+LAST_COL = 56
 
-o-------o   x = Nullpunkt  55.49839, 6.0
-|       |
-| 4101  |  <-- Meßtischblatte am weitesten im Westen
-|       |
-o-------o
+# @generated by scripts/gen_mtb_grid.py -- DO NOT EDIT the two tables below.
+#   regenerate:  uv run --with pyproj python -m scripts.gen_mtb_grid
+#   verify:      uv run --with pyproj python -m scripts.gen_mtb_grid --check
+#
+# Latitudes of the row lines, south to north: LAT_EDGES[i] and LAT_EDGES[i + 1]
+# bound row LAST_ROW - i.
+# fmt: off
+LAT_EDGES = (
+    47.199179, 47.299167, 47.399156, 47.499144, 47.599133, 47.699122, 47.799110, 47.899099,
+    47.999088, 48.099076, 48.199065, 48.299053, 48.399042, 48.499031, 48.599019, 48.699008,
+    48.798996, 48.898985, 48.998973, 49.098962, 49.198951, 49.298939, 49.398928, 49.498916,
+    49.598905, 49.698894, 49.798882, 49.898871, 49.998859, 50.098848, 50.198836, 50.298825,
+    50.398814, 50.498802, 50.598791, 50.698779, 50.798768, 50.898756, 50.998745, 51.098733,
+    51.198722, 51.298711, 51.398699, 51.498688, 51.598676, 51.698665, 51.798653, 51.898642,
+    51.998630, 52.098619, 52.198608, 52.298596, 52.398585, 52.498573, 52.598562, 52.698550,
+    52.798539, 52.898527, 52.998516, 53.098504, 53.198493, 53.298481, 53.398470, 53.498459,
+    53.598447, 53.698436, 53.798424, 53.898413, 53.998401, 54.098390, 54.198378, 54.298367,
+    54.398355, 54.498344, 54.598332, 54.698321, 54.798310, 54.898298, 54.998287, 55.098275,
+)
 
-o-------o
-|       |
-| ...   |
-|       |
-o-------o
 
- Ausgehend vom O-Punkt (virutelle Karte mit der Bezeichnung 0502
- weil für Zeile 0519, 0520, 0521 die nördlichsten MTB existieren.
- Für die Berechnung müssen die Opensteetmap-Koordinaten in Bogen-
- maß umgerechent werden. Aus dem Kartenmaß für die Höhe (6 Grad)
- und der Breite (10 Grad) kann dann die Kartennummer errechnet
- werden.
-
- Die Grenzen, ob eine Karte mit der errechneten Nummer existiert
- oder es eine virtuelle MTB-Nummer ist, wird nicht geprüft.
-
- Ob die errechnite Nummer korrekt ist, kann auf der folgenden
- Websiten nachgeprüft werden:
-
- - http://gk.historic.place/tools/selectbbox.htm
- - https://moses-mendelssohn-institut.de/TK25
-"""
+# Longitudes of the column lines, west to east: LON_EDGES[j] and LON_EDGES[j + 1]
+# bound column FIRST_COL + j.
+LON_EDGES = (
+    5.832760, 5.999402, 6.166043, 6.332685, 6.499327, 6.665968, 6.832610, 6.999251,
+    7.165893, 7.332534, 7.499176, 7.665817, 7.832459, 7.999101, 8.165742, 8.332384,
+    8.499025, 8.665667, 8.832309, 8.998950, 9.165592, 9.332233, 9.498875, 9.665517,
+    9.832158, 9.998800, 10.165441, 10.332083, 10.498725, 10.665366, 10.832008, 10.998649,
+    11.165291, 11.331933, 11.498574, 11.665216, 11.831858, 11.998499, 12.165141, 12.331783,
+    12.498425, 12.665066, 12.831708, 12.998350, 13.164991, 13.331633, 13.498275, 13.664917,
+    13.831558, 13.998200, 14.164842, 14.331484, 14.498126, 14.664767, 14.831409, 14.998051,
+    15.164693,
+)
+# fmt: on
 
 
 def get_mtb(zielbreite, ziellaenge):
-    """Berechnung der Messtischblattnummer.
+    """Return the TK25 sheet number for a WGS84 coordinate, or None.
 
-    Uses full decimal-degree precision to avoid off-by-one errors
-    at tile boundaries. Each TK25 sheet covers 6' latitude (row)
-    and 10' longitude (column).
+    None means the coordinate lies outside the sheet index altogether. A
+    coordinate that falls exactly on a grid line belongs to the sheet north and
+    east of it.
+
+    >>> get_mtb(52.520008, 13.404954)   # Berlin Mitte -> 3446 Berlin (Nord)
+    '3446'
+    >>> get_mtb(48.208176, 16.373819)   # Wien, east of the last column
     """
-    startbreite = 55.87688  # Grid origin latitude (north edge of row 1)
-    startlaenge = 6.0  # Grid origin longitude (west edge of column 2)
+    # bisect returns the number of lines the coordinate has passed. South of
+    # the first line that is 0, which counts down to row 88 — outside the
+    # index, and rejected below along with everything else off the grid.
+    row = LAST_ROW - (bisect_right(LAT_EDGES, zielbreite) - 1)
+    col = FIRST_COL + (bisect_right(LON_EDGES, ziellaenge) - 1)
 
-    row = int(1 + ((startbreite - zielbreite) * 60) / 6)
-    col = int(2 + ((ziellaenge - startlaenge) * 60) / 10)
+    if not (FIRST_ROW <= row <= LAST_ROW and FIRST_COL <= col <= LAST_COL):
+        return None
 
     return f"{row:02d}{col:02d}"
-
-
-def point_in_rect(point):
-    """Check if a (lat, lon) point is within the Germany bounding box.
-
-    Western bound is 5.83 (not 6.0) to include the Selfkant exclave (NRW),
-    home of TK25 sheet 4901 at ~5°55' E.
-    """
-    lat, lon = point
-    return 47.0 < lat < 56.0 and 5.83 < lon < 24.0
-
-
-if __name__ == "__main__":
-    koordinaten = [
-        (47.391911055382316, 8.521261525400504, "Zürich"),
-        (46.06344, 13.22602, "Udine"),
-        (52.07820, 5.12657, "Utrecht"),
-        (52.43257, 9.74487, "Langenhagen"),
-        (49.20753, 6.84002, "Regionalverband Saarbrücken | Großro"),
-        (51.3324, 12.07906, "Leuna"),  # 4638
-        (50.71869, 7.11366, "Kessenich | Bonn"),  # 5208
-        (52.05791, 13.18969, "Kolzenburg"),  # 3945
-        (52.04057, 13.49549, "Baruth"),  # 3946
-        (51.36304, 11.11348, "Kyffhäuserkreis | Bad Frankenhausen"),
-        (51.57738, 13.99804, "Großräschen"),  # 4349
-        (52.95927, 9.9396, "Visselhövede"),
-        (52.37225, 12.96936, "Werder"),  # 3643
-        (52.3874, 13.40296, "Lichtenrade"),  # 3546
-        (52.83862, 13.81361, "Eberswalde"),  # 3148
-        (53.116606, 20.36675, "Mława"),
-        (54.144753, 19.410705, "Elbing"),  # 1882
-        (55.710785, 21.131742, "Klaipeda, Litauen"),  # 0292
-        (55.131794, 23.350251, "Girkai, Litauen"),  # falsch berechnet
-    ]
-
-    for row in koordinaten:
-        zielbreite, ziellaenge, ort = row
-        print(
-            get_mtb(zielbreite, ziellaenge),
-            ort,
-            point_in_rect((zielbreite, ziellaenge)),
-        )

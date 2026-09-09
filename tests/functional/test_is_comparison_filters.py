@@ -3,9 +3,9 @@
 import pytest
 from datetime import datetime
 from sqlalchemy import select, func
-from app import db
 from app.database.models import TblMeldungen, ReportStatus
-from app.routes.admin import get_filtered_query
+from app.routes.admin.filters import get_filtered_query, normalize_filter_status
+from app.routes.admin.reviewer import _matches_filter_status
 
 
 class TestIsComparisonFilters:
@@ -14,7 +14,7 @@ class TestIsComparisonFilters:
     def test_open_filter_query(self, session):
         """Test the open filter shows only OPEN status items."""
         stmt = get_filtered_query(filter_status="offen")
-        results = db.session.execute(stmt).all()
+        results = session.execute(stmt).all()
 
         for row in results:
             meldung = row[0]  # First element is TblMeldungen
@@ -25,7 +25,7 @@ class TestIsComparisonFilters:
     def test_approved_filter_query(self, session):
         """Test the approved filter only shows APPR status items."""
         stmt = get_filtered_query(filter_status="bearbeitet")
-        results = db.session.execute(stmt).all()
+        results = session.execute(stmt).all()
 
         for row in results:
             meldung = row[0]
@@ -36,7 +36,7 @@ class TestIsComparisonFilters:
     def test_deleted_filter_query(self, session):
         """Test the deleted filter only shows DEL status items."""
         stmt = get_filtered_query(filter_status="geloescht")
-        results = db.session.execute(stmt).all()
+        results = session.execute(stmt).all()
 
         for row in results:
             meldung = row[0]
@@ -47,20 +47,20 @@ class TestIsComparisonFilters:
     def test_all_filter_query(self, session):
         """Test the all filter shows everything."""
         stmt = get_filtered_query(filter_status="all")
-        all_results = db.session.execute(stmt).all()
+        all_results = session.execute(stmt).all()
 
         # Get counts of each type using count queries
         open_stmt = get_filtered_query(filter_status="offen")
         approved_stmt = get_filtered_query(filter_status="bearbeitet")
         deleted_stmt = get_filtered_query(filter_status="geloescht")
 
-        open_count = db.session.execute(
+        open_count = session.execute(
             select(func.count()).select_from(open_stmt.subquery())
         ).scalar()
-        approved_count = db.session.execute(
+        approved_count = session.execute(
             select(func.count()).select_from(approved_stmt.subquery())
         ).scalar()
-        deleted_count = db.session.execute(
+        deleted_count = session.execute(
             select(func.count()).select_from(deleted_stmt.subquery())
         ).scalar()
         all_count = len(all_results)
@@ -88,7 +88,7 @@ class TestIsComparisonFilters:
 
         # Create a sighting with OPEN status
         open_sighting = TblMeldungen(
-            dat_fund_von=datetime.now().date(),
+            dat_fund_von=datetime(2020, 1, 1).date(),
             dat_meld=datetime.now().date(),
             fo_zuordnung=existing.fo_zuordnung,
             statuses=[ReportStatus.OPEN.value],
@@ -110,16 +110,15 @@ class TestIsComparisonFilters:
 
         session.commit()
 
-        # Check it appears in open filter
         open_stmt = get_filtered_query(filter_status="offen")
-        open_ids = [row[0].id for row in db.session.execute(open_stmt).all()]
+        open_ids = [row[0].id for row in session.execute(open_stmt).all()]
         assert open_sighting.id in open_ids, (
             f"OPEN status sighting (id={open_sighting.id}) not shown in open filter"
         )
 
         # Check it doesn't appear in deleted filter
         deleted_stmt = get_filtered_query(filter_status="geloescht")
-        deleted_ids = [row[0].id for row in db.session.execute(deleted_stmt).all()]
+        deleted_ids = [row[0].id for row in session.execute(deleted_stmt).all()]
         assert open_sighting.id not in deleted_ids, (
             "OPEN status sighting shown in deleted filter"
         )
@@ -127,7 +126,7 @@ class TestIsComparisonFilters:
     def test_unspecified_gender_filter(self, session):
         """Test the nicht_bestimmt filter for unspecified gender."""
         stmt = get_filtered_query(filter_type="nicht_bestimmt")
-        results = db.session.execute(stmt).all()
+        results = session.execute(stmt).all()
 
         for row in results:
             meldung = row[0]
@@ -138,11 +137,27 @@ class TestIsComparisonFilters:
             assert not meldung.art_o, f"Sighting {meldung.id} has art_o={meldung.art_o}"
             assert not meldung.art_f, f"Sighting {meldung.id} has art_f={meldung.art_f}"
 
+    @pytest.mark.parametrize(
+        "counts", [(0, 0, 0, 0, 0), (None,) * 5, (None, 0, None, 0, 0)]
+    )
+    def test_unspecified_filter_includes_saved_unclassified_report(
+        self, session, counts
+    ):
+        report = session.scalar(select(TblMeldungen).order_by(TblMeldungen.id))
+        assert report is not None
+        report.art_m, report.art_w, report.art_n, report.art_o, report.art_f = counts
+        session.flush()
+
+        reports = session.scalars(
+            get_filtered_query(filter_status="all", filter_type="nicht_bestimmt")
+        ).all()
+        assert report in reports
+
     def test_combined_status_and_type_filters(self, session):
         """Test combining status and type filters."""
         # Test open + male
         stmt = get_filtered_query(filter_status="offen", filter_type="maennlich")
-        results = db.session.execute(stmt).all()
+        results = session.execute(stmt).all()
 
         for row in results:
             meldung = row[0]
@@ -153,7 +168,7 @@ class TestIsComparisonFilters:
         """Test default behavior when no filter specified."""
         # Default should exclude deleted items
         stmt = get_filtered_query()
-        results = db.session.execute(stmt).all()
+        results = session.execute(stmt).all()
 
         for row in results:
             meldung = row[0]
@@ -188,7 +203,7 @@ class TestIsComparisonFilters:
         created_sightings = {}
         for status_vals, name in test_cases:
             sighting = TblMeldungen(
-                dat_fund_von=datetime.now().date(),
+                dat_fund_von=datetime(2020, 1, 1).date(),
                 dat_meld=datetime.now().date(),
                 fo_zuordnung=existing.fo_zuordnung,
                 statuses=status_vals,
@@ -225,12 +240,51 @@ class TestIsComparisonFilters:
 
         for filter_status, expected_names in filters_expected.items():
             stmt = get_filtered_query(filter_status=filter_status)
-            results = db.session.execute(stmt).all()
+            results = session.execute(stmt).all()
 
             result_ids = [row[0].id for row in results]
 
-            for name, sighting_id in created_sightings.items():
-                if name in expected_names:
-                    assert sighting_id in result_ids, (
-                        f"{name} sighting not in {filter_status} filter"
-                    )
+            assert set(result_ids) & set(created_sightings.values()) == {
+                created_sightings[name] for name in expected_names
+            }
+
+
+class TestFilterStatusNormalisation:
+    """The list query and the per-card check must read a filter value alike.
+
+    They are reached by different routes — one takes ``statusInput`` off the
+    URL, the other ``filter_status`` out of an HTMX form body — so both go
+    through ``normalize_filter_status``. Before that, a value like "Offen"
+    filtered the list one way and decided card visibility another, and a
+    report would vanish from the list on its next refresh.
+    """
+
+    @pytest.mark.parametrize("given", ["Offen", "OFFEN", " offen "])
+    def test_query_ignores_casing_and_padding(self, given, session):
+        expected = set(session.scalars(get_filtered_query(filter_status="offen")).all())
+        actual = set(
+            session.scalars(
+                get_filtered_query(filter_status=normalize_filter_status(given))
+            ).all()
+        )
+        assert actual == expected
+
+    @pytest.mark.parametrize("given", ["Geloescht", "GELOESCHT", " geloescht "])
+    def test_card_visibility_ignores_casing_and_padding(self, given, session):
+        """A deleted report tells the two paths apart.
+
+        An unrecognised filter value falls back to "show everything not
+        deleted", which happens to be the right answer for an open report —
+        so only a deleted one actually detects the mismatch.
+        """
+        deleted = session.scalars(
+            select(TblMeldungen).where(TblMeldungen.is_deleted)
+        ).first()
+        assert deleted is not None, "expected a deleted report in the seed data"
+
+        assert _matches_filter_status(deleted, given) is True
+        assert _matches_filter_status(deleted, "Offen") is False
+
+    def test_blank_value_falls_back_to_the_default(self):
+        assert normalize_filter_status(None) == "offen"
+        assert normalize_filter_status("") == "offen"

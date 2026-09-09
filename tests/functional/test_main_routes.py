@@ -19,7 +19,7 @@ class TestMainRouteQueryHandling:
 
     def test_galerie_ignores_invalid_current_index_param(self, client):
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         response = client.get("/galerie?current_index=abc")
         assert response.status_code == 200

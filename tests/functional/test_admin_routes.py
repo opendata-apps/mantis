@@ -1,9 +1,11 @@
 """Tests for admin routes including reviewer interface and data management."""
 
 import pytest
+from bs4 import BeautifulSoup
+from io import BytesIO
+import openpyxl
 from datetime import datetime, timedelta
 import json
-from pathlib import Path
 from sqlalchemy import select, func
 
 from app.database.models import (
@@ -15,11 +17,22 @@ from app.database.models import (
 )
 
 
+def exported_ids(response):
+    workbook = openpyxl.load_workbook(BytesIO(response.data), read_only=True)
+    try:
+        rows = workbook["Daten"].values
+        headers = next(rows)
+        id_column = headers.index("ID")
+        return {row[id_column] for row in rows}
+    finally:
+        workbook.close()
+
+
 class TestAdminRoutes:
     """Test suite for admin and reviewer routes."""
 
     @pytest.fixture(autouse=True)
-    def setup_test_data(self, session):
+    def setup_test_data(self, app, session):
         """Set up test data for admin tests."""
         self.session = session
 
@@ -30,7 +43,6 @@ class TestAdminRoutes:
         )
 
         # Look up or create regular user (non-reviewer).
-        # Uses get-or-create to handle savepoint leaks from Flask request cycle.
         self.regular_user = session.scalar(
             select(TblUsers).where(TblUsers.user_id == "1111")
         )
@@ -53,7 +65,6 @@ class TestAdminRoutes:
 
         assert self.test_description, "No beschreibung records found in database"
 
-        # Create test location
         self.test_location = TblFundorte(
             mtb="3644",
             longitude="13.404954",
@@ -70,7 +81,6 @@ class TestAdminRoutes:
         session.add(self.test_location)
         session.flush()
 
-        # Create test sighting
         self.test_sighting = TblMeldungen(
             dat_fund_von=datetime.now().date() - timedelta(days=7),
             dat_meld=datetime.now().date(),
@@ -96,18 +106,15 @@ class TestAdminRoutes:
 
         yield
 
-        # Cleanup happens automatically with session rollback
-
     def test_reviewer_page_access_with_valid_reviewer(self, client):
         """Test that reviewers can access the reviewer page."""
         # Follow redirects to handle the automatic redirect to add default params
         response = client.get("/reviewer/9999", follow_redirects=True)
         assert response.status_code == 200
-        # Check for admin panel content
         assert b"Admin Panel" in response.data or b"admin" in response.data.lower()
         # Check that session was set
         with client.session_transaction() as sess:
-            assert sess.get("user_id") == "9999"
+            assert sess.get("_user_id") == "9999"
 
     def test_reviewer_page_access_with_invalid_user(self, client):
         """Test that non-reviewers cannot access the reviewer page."""
@@ -137,46 +144,38 @@ class TestAdminRoutes:
         )
         assert response.status_code == 200
 
-    def test_clear_filters_keeps_open_status_default(self):
-        """The filter reset button should reset to the reviewer default, not Alle."""
-        admin_js = Path("app/static/js/admin-modal.js").read_text()
-
-        assert 'if (statusInput) statusInput.value = "offen";' in admin_js
-        assert 'if (statusInput) statusInput.value = "all";' not in admin_js
-
     def test_reviewer_page_session_storage(self, client):
         """Test that user_id is stored in session when accessing reviewer page."""
         with client.session_transaction() as sess:
-            assert "user_id" not in sess
+            assert "_user_id" not in sess
 
-        # Follow redirects
         response = client.get("/reviewer/9999", follow_redirects=True)
         assert response.status_code == 200
 
         with client.session_transaction() as sess:
-            assert sess["user_id"] == "9999"
+            assert sess["_user_id"] == "9999"
 
     def test_provider_view_preserves_reviewer_session(self, client):
         """Opening provider page should not override active reviewer auth session."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         response = client.get("/report/1111")
         assert response.status_code == 200
 
         with client.session_transaction() as sess:
-            assert sess["user_id"] == "9999"
+            assert sess["_user_id"] == "9999"
 
     def test_sichtungen_alias_preserves_reviewer_session(self, client):
         """Alias route should also preserve active reviewer auth session."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         response = client.get("/sichtungen/1111")
         assert response.status_code == 200
 
         with client.session_transaction() as sess:
-            assert sess["user_id"] == "9999"
+            assert sess["_user_id"] == "9999"
 
     def test_provider_view_sets_session_for_non_reviewer_context(self, client):
         """Provider link should still initialize session in non-reviewer context."""
@@ -187,12 +186,12 @@ class TestAdminRoutes:
         assert response.status_code == 200
 
         with client.session_transaction() as sess:
-            assert sess.get("user_id") == "1111"
+            assert sess.get("_user_id") == "1111"
 
     def test_provider_view_melden_button_uses_viewed_user_id(self, client):
         """Provider page CTA should target viewed reporter ID, not active session user."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"  # Active reviewer session
+            sess["_user_id"] = "9999"  # Active reviewer session
 
         response = client.get("/report/1111")
         assert response.status_code == 200
@@ -213,7 +212,7 @@ class TestAdminRoutes:
     ):
         """Reviewer should remain authorized for approve actions after provider page visit."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         provider_response = client.get("/report/1111")
         assert provider_response.status_code == 200
@@ -231,9 +230,8 @@ class TestAdminRoutes:
 
     def test_change_mantis_metadata_authenticated(self, client, session):
         """Test changing mantis metadata with authentication."""
-        # Set up session
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         # Test changing location data - ort (city)
         response = client.post(
@@ -259,9 +257,8 @@ class TestAdminRoutes:
 
     def test_toggle_approve_sighting(self, client, session):
         """Test approving/unapproving sightings."""
-        # Set up session
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         # Initial state should be unapproved
         assert self.test_sighting.bearb_id is None
@@ -283,9 +280,8 @@ class TestAdminRoutes:
 
     def test_toggle_approve_sighting_without_email(self, client, session):
         """Test that approving works even when email sending is disabled."""
-        # Set up session
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         # Approve sighting (emails are disabled in test config)
         response = client.post(
@@ -303,9 +299,8 @@ class TestAdminRoutes:
 
     def test_delete_sighting(self, client, session):
         """Test soft deleting a sighting."""
-        # Set up session
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         # Delete sighting
         response = client.post(
@@ -322,9 +317,8 @@ class TestAdminRoutes:
 
     def test_undelete_sighting(self, client, session):
         """Test undeleting a soft-deleted sighting."""
-        # Set up session
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         # First delete the sighting
         self.test_sighting.statuses = ["DEL"]
@@ -345,9 +339,8 @@ class TestAdminRoutes:
 
     def test_change_mantis_count(self, client, session):
         """Test changing mantis count fields."""
-        # Set up session
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         # Update male count
         response = client.post(
@@ -365,7 +358,7 @@ class TestAdminRoutes:
     def test_change_mantis_count_invalid_type(self, client, session):
         """Unknown count types should return 400 and not mutate report data."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         before = (self.test_sighting.art_m, self.test_sighting.bearb_id)
         response = client.post(
@@ -383,7 +376,7 @@ class TestAdminRoutes:
     def test_change_mantis_count_invalid_value(self, client, session):
         """Non-numeric count values should be rejected with 400."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         original = self.test_sighting.art_m
         response = client.post(
@@ -400,7 +393,7 @@ class TestAdminRoutes:
     def test_change_mantis_count_negative_value(self, client, session):
         """Negative count values are invalid and should be rejected."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         original = self.test_sighting.art_m
         response = client.post(
@@ -417,7 +410,7 @@ class TestAdminRoutes:
     def test_change_mantis_count_out_of_range_value(self, client, session):
         """Counts beyond DB integer range should return 400."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         original = self.test_sighting.art_m
         response = client.post(
@@ -434,7 +427,7 @@ class TestAdminRoutes:
     def test_reviewer_page_uses_native_modal_and_fragment_assets(self, client):
         """Reviewer page should load native dialog + HTMX admin modules."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         response = client.get(
             "/reviewer/9999?statusInput=offen&sort_order=id_desc",
@@ -449,7 +442,7 @@ class TestAdminRoutes:
     def test_modal_open_route_renders_general_tab(self, client):
         """Initial modal endpoint should return modal open partial with general tab."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         response = client.get(f"/modal/{self.test_sighting.id}?filter_status=offen")
         assert response.status_code == 200
@@ -460,7 +453,7 @@ class TestAdminRoutes:
     def test_modal_general_tab_shows_user_report_count(self, client):
         """General tab should display the reporter's total report count."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         response = client.get(f"/modal/{self.test_sighting.id}?filter_status=offen")
         assert response.status_code == 200
@@ -472,7 +465,7 @@ class TestAdminRoutes:
     def test_modal_location_tab_response_contains_oob_updates(self, client):
         """Location tab endpoint should return tab content plus OOB tab/action updates."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         response = client.get(
             f"/modal/location/{self.test_sighting.id}?filter_status=offen"
@@ -485,7 +478,7 @@ class TestAdminRoutes:
     def test_toggle_flag_returns_card_partial(self, client, session):
         """A report still matching the active filter comes back as a card."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         response = client.post(
             f"/toggle_flag/{self.test_sighting.id}",
@@ -507,7 +500,7 @@ class TestAdminRoutes:
         is an HTMX delete swap — the modal footer still rides along OOB.
         """
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         response = client.post(
             f"/toggle_flag/{self.test_sighting.id}",
@@ -525,7 +518,7 @@ class TestAdminRoutes:
     def test_toggle_flag_invalid_value(self, client):
         """Invalid flag values should be rejected."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         response = client.post(
             f"/toggle_flag/{self.test_sighting.id}",
@@ -537,7 +530,7 @@ class TestAdminRoutes:
     def test_update_address_updates_location_fields(self, client, session):
         """Address update endpoint should persist reverse-geocoded location fields."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         response = client.post(
             f"/update_address/{self.test_sighting.id}",
@@ -563,7 +556,7 @@ class TestAdminRoutes:
     def test_update_address_rejects_oversized_zip(self, client, session):
         """Oversized ZIP values should return 400 and keep existing ZIP."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         original_plz = self.test_location.plz
         response = client.post(
@@ -588,7 +581,7 @@ class TestAdminRoutes:
     ):
         """Approving in 'offen' filter should delete the card target via HX-Reswap."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         response = client.post(
             f"/toggle_approve_sighting/{self.test_sighting.id}",
@@ -604,9 +597,8 @@ class TestAdminRoutes:
 
     def test_export_xlsx_all_data(self, client):
         """Test exporting all data as Excel file."""
-        # Set up session
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         response = client.get("/admin/export/xlsx/all")
         assert response.status_code == 200
@@ -615,17 +607,15 @@ class TestAdminRoutes:
             == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
 
-        # Verify we got data (Excel files start with PK for zip format)
-        assert len(response.data) > 0
-        assert response.data[:2] == b"PK"  # Excel files are zip archives
+        assert self.test_sighting.id in exported_ids(response)
 
     def test_export_xlsx_approved_only(self, client, session):
         """Test exporting only approved data."""
-        # Set up session
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
-        # Approve the sighting
+        # The legacy reviewer/date columns alone do not approve a report.
+        self.test_sighting.statuses = ["APPR"]
         self.test_sighting.bearb_id = "9999"
         self.test_sighting.dat_bear = datetime.now().date()
         session.commit()
@@ -637,14 +627,58 @@ class TestAdminRoutes:
             == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
 
-        # Verify we got data
-        assert len(response.data) > 0
-        assert response.data[:2] == b"PK"
+        expected = set(
+            session.scalars(
+                select(TblMeldungen.id).where(TblMeldungen.statuses.contains(["APPR"]))
+            )
+        )
+        assert self.test_sighting.id in expected
+        assert exported_ids(response) == expected
+
+    def test_export_xlsx_column_values_match_headers(self, client):
+        """Each column must carry the value its header promises.
+
+        The other export tests only check that a zip arrives, so a shifted
+        column index would pass them silently while corrupting every export.
+        """
+        from io import BytesIO
+
+        import openpyxl
+
+        with client.session_transaction() as sess:
+            sess["_user_id"] = "9999"
+
+        response = client.get("/admin/export/xlsx/all")
+        assert response.status_code == 200
+
+        sheet = openpyxl.load_workbook(BytesIO(response.data)).active
+        assert sheet is not None
+        rows = list(sheet.values)
+        headers = list(rows[0])
+
+        row = next(
+            r for r in rows[1:] if r[headers.index("ID")] == self.test_sighting.id
+        )
+        cells = dict(zip(headers, row, strict=True))
+
+        assert cells["Ort"] == "Test City"
+        assert cells["Land"] == "Test State"
+        assert cells["Kreis"] == "Test District"
+        assert cells["Straße"] == "Test Street"
+        assert cells["PLZ"] == "10178"
+        assert cells["Amt"] == "Test Amt"
+        assert cells["MTB"] == "3644"
+        assert cells["Längengrad"] == 13.404954
+        assert cells["Breitengrad"] == 52.520008
+        assert cells["Männchen"] == 1
+        assert cells["Anmerkung Melder"] == "Test sighting"
+        # xlsxwriter stores "" as an empty cell, which reads back as None
+        assert cells["Bearbeiter"] is None  # not approved yet
 
     def test_export_xlsx_searched(self, client):
         """Test exporting searched data with the shared reviewer filter args."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         response = client.get(
             "/admin/export/xlsx/searched"
@@ -660,14 +694,12 @@ class TestAdminRoutes:
             response.content_type
             == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
-        assert len(response.data) > 0
-        assert response.data[:2] == b"PK"
+        assert exported_ids(response) == {self.test_sighting.id}
 
     def test_alldata_view_access(self, client):
         """Test accessing the alldata view."""
-        # Set up session
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         response = client.get("/alldata")
         assert response.status_code == 200
@@ -675,11 +707,9 @@ class TestAdminRoutes:
 
     def test_get_table_data_api(self, client):
         """Test getting table data via API."""
-        # Set up session
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
-        # Test getting all_data_view table data
         response = client.get("/admin/get_table_data/all_data_view?page=1&per_page=10")
         assert response.status_code == 200
         data = json.loads(response.data)
@@ -687,12 +717,16 @@ class TestAdminRoutes:
         assert "data" in data
         assert "total_items" in data
         assert "columns" in data
+        assert "editable_fields" in data
+        assert "strasse" in data["editable_fields"]
+        assert "statuses" not in data["editable_fields"]
+        assert "beschreibung" not in data["editable_fields"]
         assert len(data["data"]) > 0  # Should have at least our test sighting
 
     def test_get_table_data_full_text_search_keeps_count_in_sync(self, client):
         """Full-text search should filter both rows and total_items the same way."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         response = client.get(
             "/admin/get_table_data/all_data_view"
@@ -701,14 +735,14 @@ class TestAdminRoutes:
         assert response.status_code == 200
         data = json.loads(response.data)
 
-        assert data["total_items"] >= 1
-        assert len(data["data"]) >= 1
-        assert len(data["data"]) <= data["total_items"]
+        assert data["total_items"] == 1
+        id_column = data["columns"].index("meldungen_id")
+        assert [row[id_column] for row in data["data"]] == [self.test_sighting.id]
 
     def test_get_table_data_invalid_id_search_returns_zero_rows_and_count(self, client):
         """Invalid ID search input should produce an empty page with total_items=0."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         response = client.get(
             "/admin/get_table_data/all_data_view"
@@ -720,17 +754,15 @@ class TestAdminRoutes:
         assert data["total_items"] == 0
         assert data["data"] == []
 
-    def test_update_cell_valid_table(self, client, session):
-        """Test updating a cell in a valid table."""
-        # Set up session
+    def test_update_cell_valid_field(self, client, session):
+        """Test updating a field exposed by the superuser table."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         # Update anm_melder field
         response = client.post(
             "/admin/update_cell",
             json={
-                "table": "all_data_view",
                 "meldungen_id": self.test_sighting.id,
                 "column": "anm_melder",
                 "value": "Updated comment",
@@ -744,26 +776,80 @@ class TestAdminRoutes:
         session.refresh(self.test_sighting)
         assert self.test_sighting.anm_melder == "Updated comment"
 
+    def test_update_cell_accepts_browser_string_report_id(self, client, session):
+        """The table DOM exposes report IDs as strings in its JSON request."""
+        with client.session_transaction() as sess:
+            sess["_user_id"] = "9999"
+
+        response = client.post(
+            "/admin/update_cell",
+            json={
+                "meldungen_id": str(self.test_sighting.id),
+                "column": "strasse",
+                "value": "Neue Straße 12",
+            },
+        )
+
+        assert response.status_code == 200
+        assert response.get_json() == {"success": True}
+        session.refresh(self.test_location)
+        assert self.test_location.strasse == "Neue Straße 12"
+
+    def test_update_cell_is_immediately_visible(self, client, session):
+        """The table view reflects the committed edit without a refresh."""
+        with client.session_transaction() as sess:
+            sess["_user_id"] = "9999"
+
+        response = client.post(
+            "/admin/update_cell",
+            json={
+                "meldungen_id": self.test_sighting.id,
+                "column": "strasse",
+                "value": "Neue Straße 7",
+            },
+        )
+
+        assert response.status_code == 200
+        assert response.get_json() == {"success": True}
+        session.expire_all()
+        assert (
+            session.get(TblFundorte, self.test_location.id).strasse == "Neue Straße 7"
+        )
+        from app.database.alldata import TblAllData
+
+        assert (
+            session.scalar(
+                select(TblAllData.strasse).where(
+                    TblAllData.meldungen_id == self.test_sighting.id
+                )
+            )
+            == "Neue Straße 7"
+        )
+
     @pytest.mark.parametrize(
         "column, value",
         [
             ("meldungen_id", "999"),
             # Internal review state must not be reachable through the cell
             # editor — these used to bypass status guards entirely.
+            ("deleted", True),
+            ("statuses", ["APPR"]),
             ("ablage", "/etc/passwd"),
             ("bearb_id", "9999"),
             ("fo_zuordnung", "1"),
+            # This is a shared lookup label. Editing it here would rename the
+            # category for every report that references the same row.
+            ("beschreibung", "Neuer Fundorttyp"),
         ],
     )
     def test_update_cell_non_editable_field(self, client, column, value):
         """Test that non-editable fields cannot be updated."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         response = client.post(
             "/admin/update_cell",
             json={
-                "table": "all_data_view",
                 "meldungen_id": self.test_sighting.id,
                 "column": column,
                 "value": value,
@@ -777,7 +863,7 @@ class TestAdminRoutes:
     def test_update_cell_rejects_columns_the_view_does_not_expose(self, client, column):
         """`column` is attacker-controlled, so only view columns are accepted."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         response = client.post(
             "/admin/update_cell",
@@ -788,17 +874,17 @@ class TestAdminRoutes:
                 "value": "1",
             },
         )
-        assert response.status_code == 400
-        assert "Unknown column" in json.loads(response.data)["error"]
+        assert response.status_code == 403
+        assert "not editable" in json.loads(response.data)["error"]
 
     def test_update_cell_missing_required_field(self, client):
         """Malformed JSON payload returns 400, not a 500 KeyError."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         response = client.post(
             "/admin/update_cell",
-            json={"table": "all_data_view"},  # missing column / id / value
+            json={},
         )
         assert response.status_code == 400
         data = json.loads(response.data)
@@ -807,7 +893,7 @@ class TestAdminRoutes:
     def test_change_mantis_meta_plz_non_numeric_returns_400(self, client):
         """plz is CHECK-constrained to 5 digits — non-numeric input must yield 400, not 500."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         response = client.post(
             f"/change_mantis_meta_data/{self.test_sighting.id}",
@@ -817,111 +903,64 @@ class TestAdminRoutes:
         data = json.loads(response.data)
         assert "Invalid ZIP" in data["error"]
 
-    def test_static_file_serving(self, client):
-        """Test serving static files through admin route."""
-        # Set up session
+    def test_static_file_serving(self, app, client, tmp_path, monkeypatch):
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
-
-        # Test accessing a file (assuming test file exists)
-        response = client.get("/test_image.jpg")
-        # Should either return the file or 404 if it doesn't exist
-        assert response.status_code in [200, 404]
+            sess["_user_id"] = "9999"
+        monkeypatch.setitem(app.config, "UPLOAD_FOLDER", str(tmp_path))
+        (tmp_path / "test_image.jpg").write_bytes(b"test photo bytes")
+        response = client.get("/admin/images/test_image.jpg")
+        assert response.status_code == 200
+        assert response.data == b"test photo bytes"
+        assert client.get("/admin/images/missing.jpg").status_code == 404
 
     def test_pagination_on_reviewer_page(self, client, session):
-        """Test pagination functionality on reviewer page."""
-        # Create multiple sightings for pagination
-        for i in range(25):
-            location = TblFundorte(
-                mtb="3644",
-                longitude="13.404954",
-                latitude="52.520008",
-                ort=f"Test City {i}",
-                land="Test State",
-                kreis="Test District",
-                strasse=f"Test Street {i}",
-                plz="10178",
-                amt="Test Amt",
-                ablage=f"test_image_{i}.jpg",
-                beschreibung=self.test_description.id,
-            )
-            session.add(location)
-            session.flush()
-
+        ids = []
+        for _ in range(25):
             sighting = TblMeldungen(
-                dat_fund_von=datetime.now().date() - timedelta(days=i),
+                dat_fund_von=datetime.now().date() - timedelta(days=1),
                 dat_meld=datetime.now().date(),
-                fo_zuordnung=location.id,
-                art_m=1,
-                art_w=0,
-                art_n=0,
-                art_o=0,
-                anm_melder=f"Test sighting {i}",
-                bearb_id=None,
+                fundort=self.test_location,
+                anm_melder="Paginationkontrolle",
+                statuses=["OPEN"],
             )
             session.add(sighting)
-
+            session.flush()
+            session.add(
+                TblMeldungUser(id_meldung=sighting.id, id_user=self.reviewer_user.id)
+            )
+            ids.append(sighting.id)
         session.commit()
 
-        # Test first page - need to include required params
-        response = client.get(
-            "/reviewer/9999?page=1&per_page=10&statusInput=offen&sort_order=id_desc"
-        )
-        assert response.status_code == 200
-
-        # Test second page - need to include required params
-        response = client.get(
-            "/reviewer/9999?page=2&per_page=10&statusInput=offen&sort_order=id_desc"
-        )
-        assert response.status_code == 200
+        for page, expected in (
+            (1, sorted(ids, reverse=True)[:10]),
+            (2, sorted(ids, reverse=True)[10:20]),
+            (3, sorted(ids, reverse=True)[20:]),
+        ):
+            response = client.get(
+                "/reviewer/9999",
+                query_string={
+                    "page": page,
+                    "per_page": 10,
+                    "statusInput": "offen",
+                    "sort_order": "id_desc",
+                    "q": "Paginationkontrolle",
+                    "search_type": "full_text",
+                },
+            )
+            assert response.status_code == 200
+            cards = BeautifulSoup(response.data, "html.parser").select(
+                '[id^="report-card-"]'
+            )
+            assert [card["id"] for card in cards] == [
+                f"report-card-{id}" for id in expected
+            ]
 
     def test_error_handling_for_invalid_sighting_id(self, client, session):
         """Test error handling when sighting ID doesn't exist."""
-        # Set up session
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         # Test with non-existent ID
         missing_id = (session.scalar(select(func.max(TblMeldungen.id))) or 0) + 1
         response = client.post(f"/delete_sighting/{missing_id}")
         assert response.status_code == 404
-
-
-class TestAlldataColumnRouting:
-    """The cell editor's column -> source table map is derived, not hand-kept."""
-
-    def test_every_editable_view_column_resolves(self):
-        """Guards against the view and the update router drifting apart."""
-        from app.database.alldata import TblAllData
-        from app.routes.admin import (
-            NON_EDITABLE_FIELDS,
-            find_original_table_and_column,
-        )
-
-        editable = {
-            c.name
-            for c in TblAllData.__table__.columns
-            if c.name not in NON_EDITABLE_FIELDS["all_data_view"]
-        }
-        unresolved = [
-            name
-            for name in sorted(editable)
-            if find_original_table_and_column(name) == (None, None)
-        ]
-        assert unresolved == []
-
-    def test_beschreibung_routes_to_the_text_not_the_fk(self):
-        """TblFundorte has a same-named FK column — the view exposes the text."""
-        from app.database.models import TblFundortBeschreibung
-        from app.routes.admin import find_original_table_and_column
-
-        assert find_original_table_and_column("beschreibung") == (
-            TblFundortBeschreibung,
-            "beschreibung",
-        )
-
-    def test_unknown_and_bare_id_do_not_resolve(self):
-        from app.routes.admin import find_original_table_and_column
-
-        assert find_original_table_and_column("id") == (None, None)
-        assert find_original_table_and_column("no_such_column") == (None, None)

@@ -101,12 +101,16 @@
               Tippen Sie auf die Karte, um den genauen Fundort zu markieren.
             </p>
             <div class="mb-4 form-group">
-              {{ render_form_field(form.sighting_date, attrs={'id': 'sighting_date', 'max': now().strftime('%Y-%m-%d'), 'min': (now() - timedelta(days=5*365)).strftime('%Y-%m-%d')}) }}
+              {{ render_form_field(form.sighting_date, attrs={'id': 'sighting_date', 'max': now().strftime('%Y-%m-%d'), 'min': minimum_sighting_date.isoformat()}) }}
             </div>
             <div class="flex flex-col mb-4 lg:flex-row lg:space-x-6">
               <!-- Map column -->
               <div class="mb-4 w-full lg:w-3/5 xl:w-2/3 lg:mb-0">
                 <div id="map"
+                     data-latitude-min="{{ coordinate_ranges.latitude[0] }}"
+                     data-latitude-max="{{ coordinate_ranges.latitude[1] }}"
+                     data-longitude-min="{{ coordinate_ranges.longitude[0] }}"
+                     data-longitude-max="{{ coordinate_ranges.longitude[1] }}"
                      class="w-full h-64 border border-gray-300 rounded-md shadow-xs sm:h-80 md:h-96 lg:h-112 xl:h-128 2xl:h-144 data-invalid:border-2! data-invalid:border-red-500!">
                 </div>
                 {# Inline error container for coordinates - supports HTMX OOB swaps #}
@@ -130,7 +134,8 @@
                       <input type="text"
                              id="manual-latitude"
                              inputmode="decimal"
-                             placeholder="z.B. 52.3906"
+                             pattern="[+\-]?(?:[0-9]+(?:[.,][0-9]*)?|[.,][0-9]+)(?:[eE][+\-]?[0-9]+)?"
+                             placeholder="z.B. 52,3906"
                              autocomplete="off"
                              class="{{ report_field_class('coordinate', 'tabular-nums') }}">
                     </div>
@@ -140,7 +145,8 @@
                       <input type="text"
                              id="manual-longitude"
                              inputmode="decimal"
-                             placeholder="z.B. 13.0645"
+                             pattern="[+\-]?(?:[0-9]+(?:[.,][0-9]*)?|[.,][0-9]+)(?:[eE][+\-]?[0-9]+)?"
+                             placeholder="z.B. 13,0645"
                              autocomplete="off"
                              class="{{ report_field_class('coordinate', 'tabular-nums') }}">
                     </div>

@@ -28,54 +28,47 @@ Testläufe
 .. code-block:: bash
 
    uv run pytest
-   uv run pytest -m unit
+   uv run pytest tests/unit
    uv run pytest --cov=app --cov-report=term-missing
-
-Marker und Scope
-----------------
-
-In ``tests/pytest.ini`` sind folgende Marker definiert:
-
-- ``unit``
-- ``web``
-- ``e2e``
-- ``api``
-
-Tests befinden sich in:
-
-- ``tests/unit``
-- ``tests/functional``
-- ``tests/database``
-- ``tests/statistics``
-- ``tests/tools``
+   bun run test
 
 Fixture-Lebenszyklus
 --------------------
 
-Session-Scope:
+- ``app`` erstellt pro Test eine Flask-App über die Produktionsfactory.
+  ``test_config`` erbt die Produktionskonfiguration über ``tests.test_config.Config``.
+  Tests mit abweichender Konfiguration überschreiben diese Fixture vor App-Erstellung.
+- ``client`` und ``authenticated_client`` verwenden den normalen Request-Lifecycle.
+  Direkte Helpertests aktivieren ``app_ctx`` oder ``request_context`` nur bei Bedarf.
+- ``_db`` setzt vor jedem Datenbanktest das Schema zurück, führt Alembic aus
+  und lädt Basisdaten, Demo-Meldungen und Materialized View.
+- ``session`` verwendet eine eigene Datenbankverbindung. Testdaten für HTTP-
+  oder CLI-Aufrufe benötigen ``commit()``. Ein ``flush()`` ist nur innerhalb
+  derselben Transaktion sichtbar. Die Anwendung verwendet unverändert ``db.session``.
+- Uploads und Backups liegen pro Test unter ``tmp_path``. Unveränderte Favicons
+  werden einmal je Testlauf in einem gemeinsamen temporären Verzeichnis erzeugt.
+- Migrationstests verwalten ihren Schemaaufbau selbst. Die Datenbank wird
+  nach Testende gelöscht. Datenbanktests laufen seriell gegen ``mantis_tester``.
 
-1. ``mantis_tester`` wird automatisch erstellt (``sqlalchemy-utils``).
-2. App wird mit ``app.test_config.Config`` erstellt.
-3. Alembic-Migrationen laufen gegen ``mantis_tester``.
-4. Basisdaten, Demo-Meldungen und Materialized View werden aufgebaut.
+Verifikation und Referenzen
+----------------------------
 
-Function-Scope:
+``tests/config/test_application_context.py`` prüft Kontextabbau,
+Konfigurationsisolation und temporäre Schreibverzeichnisse.
+``tests/config/test_testing_config.py`` vergleicht die geladene App-Konfiguration
+mit den Produktionsvorgaben und prüft Cookie-Flags am echten Login.
+``tests/config/test_database_isolation.py`` prüft reale Commits, Rollbacks
+und den Reset zwischen Tests. Verhalten wird über Antworten und gespeicherte
+Ergebnisse geprüft. Netzwerkzugriffe werden an der externen Schnittstelle ersetzt.
 
-1. Pro Test wird eine eigene DB-Transaktion gestartet.
-2. Nach dem Test erfolgt Rollback.
-3. Tests bleiben isoliert, auch bei Schreiboperationen.
+Die App-Factory und App pro Test folgen den
+`Flask-Testfixtures <https://flask.palletsprojects.com/en/stable/testing/#fixtures>`_
+und `Cookiecutter-Flask <https://github.com/cookiecutter-flask/cookiecutter-flask/blob/e5666c23a633b5b6fcb0dc2cfda2441d7f885727/%7B%7Bcookiecutter.app_name%7D%7D/tests/conftest.py>`_.
+Cookiecutters globaler Request-Kontext wird nicht übernommen.
+Für Kontextgrenzen gilt die aktuelle
+`Flask-SQLAlchemy-Dokumentation <https://flask-sqlalchemy.palletsprojects.com/en/stable/contexts/#tests>`_.
+PostgreSQL und Alembic bleiben notwendig, weil die Tests auch Trigger,
+Volltextsuche und Materialized Views prüfen.
 
-Wichtige Fixtures
------------------
-
-- ``app``: Flask-App mit Testkonfiguration
-- ``client``: Flask-Testclient
-- ``session``: transaktionale DB-Session pro Testfunktion
-- ``session_with_user`` / ``authenticated_client``: Session mit gesetztem ``user_id``
-
-Hinweise
---------
-
-- Standardoptionen sind ``-x -l`` (Abbruch beim ersten Fehler, lokaler Kontext).
-- Tests laufen gegen ``mantis_tester``, nicht gegen ``mantis_tracker``.
-- Die Datenbank wird nach Testende automatisch gelöscht (``DROP DATABASE``).
+Pytest-Optionen stehen in ``pyproject.toml``. Die Standardoptionen ``-x -l``
+brechen beim ersten Fehler ab und zeigen lokale Variablen.

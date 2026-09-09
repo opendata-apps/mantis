@@ -23,10 +23,13 @@ class TestTblUsersSerialization:
         assert user is not None
 
         data = user.to_dict()
-        assert data["user_id"] == "9999"
-        assert {"id", "user_id", "user_name", "user_kontakt", "user_rolle"} <= set(
-            data.keys()
-        )
+        assert data == {
+            "id": user.id,
+            "user_id": "9999",
+            "user_name": user.user_name,
+            "user_kontakt": user.user_kontakt,
+            "user_rolle": "9",
+        }
 
     def test_to_dict_skips_feedback_when_absent(self, session):
         """A user with no feedback row must not include a feedback_source

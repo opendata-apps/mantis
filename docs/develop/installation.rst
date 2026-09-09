@@ -63,8 +63,9 @@ Start/Stopp:
 
 .. code-block:: bash
 
-   just up --build
-   just down
+   cd infrastructure
+   podman-compose up --build
+   podman-compose down
 
 Dokumentation lokal bauen
 -------------------------

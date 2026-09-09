@@ -1,8 +1,9 @@
 import io
 import json
-from datetime import datetime, timedelta
+import secrets
+from datetime import datetime
 from pathlib import Path
-from typing import cast
+from urllib.parse import quote, urlencode
 
 from flask import (
     Blueprint,
@@ -15,10 +16,14 @@ from flask import (
     session,
     current_app,
 )
+from email_validator import validate_email
 from werkzeug.datastructures import MultiDict
-from PIL import Image
+from PIL import Image, ImageOps
 
-from app import db, limiter
+from flask_login import current_user
+
+from app.extensions import db, limiter
+from app.auth import log_in
 from sqlalchemy import select
 from app.database.models import (
     TblFundorte,
@@ -29,13 +34,16 @@ from app.database.models import (
     UserRole,
 )
 from app.database.feedback_type import FeedbackSource
-from app.forms import MantisSightingForm
-from app.tools.coordinate_validation import in_range, parse_coordinate
+from app.forms import MantisSightingForm, minimum_sighting_date
 from app.tools.gen_user_id import get_new_id
-from app.tools.mtb_calc import point_in_rect
 from app.tools.gemeinde_finder import get_amt_enriched
 from app.tools.location_enrichment import calculate_spatial_fields
 from app.tools.report_images import build_upload_filename, ensure_upload_dir
+from app.tools.coordinate_validation import (
+    COORDINATE_RANGES,
+    in_range,
+    parse_coordinate,
+)
 
 # Blueprints
 report = Blueprint("report", __name__)
@@ -60,55 +68,152 @@ def _set_gender_fields(selected_gender_value):
     return genders
 
 
-def _process_uploaded_image(photo_file, sighting_date, city_name, user_id):
-    """Process and store the uploaded image atomically.
+# Matches the client's own downscale target, so a photo is archived at the same
+# size whether the browser converted it or the server did.
+MAX_STORED_DIMENSION = 2048
+MAX_UPLOAD_PIXELS = 25_000_000
 
-    Bytes are written to a temporary ``.part`` sibling and only renamed into
-    place once fully written (``Path.replace`` is ``os.replace`` — atomic on
-    the same filesystem). A failure mid-processing therefore never leaves a
-    partial/0-byte file at the final path; the temp file is removed instead.
-    Client-optimized WebP is trusted to avoid double compression.
+
+class InvalidImageError(ValueError):
+    """The upload cannot be processed as a report photo."""
+
+
+class BlankImageError(InvalidImageError):
+    """The uploaded frame has no visible pixels."""
+
+
+def _validation_error_response(errors):
+    """Field-level rejection in the shape `showServerErrors` expects."""
+    return jsonify(
+        {"success": False, "error": "Ungültige Formulardaten.", "errors": errors}
+    ), 400
+
+
+def _has_no_visible_pixels(img):
+    """True when every pixel is fully transparent.
+
+    An Android WebView can drop ``drawImage`` without raising, and the canvas is
+    then encoded at full size still holding its initial value — transparent
+    black. Such a frame is worthless to a reviewer but looks like a valid image
+    file, so it has to be caught by content rather than by byte size (report
+    21953 was 22KB, twice the client-side size threshold).
     """
+    if not img.has_transparency_data:
+        return False
+    # RGBA/LA already carry alpha as a band; only palette transparency needs a
+    # convert to read it.
+    alpha = (
+        img.getchannel("A")
+        if img.mode in ("RGBA", "LA")
+        else img.convert("RGBA").getchannel("A")
+    )
+    return alpha.getextrema() == (0, 0)
+
+
+def _process_uploaded_image(photo_file, sighting_date, city_name, user_id):
+    """Process uploaded image - trust client-optimized WebP files to avoid double compression."""
     upload_root = Path(current_app.config["UPLOAD_FOLDER"])
     upload_dir = ensure_upload_dir(upload_root, sighting_date)
     filename = build_upload_filename(city_name, user_id, datetime.now())
     full_path = upload_dir / filename
-    tmp_path = full_path.with_name(full_path.name + ".part")
 
     image_bytes = photo_file.read()
     photo_file.seek(0)
 
     try:
         with Image.open(io.BytesIO(image_bytes)) as img:
+            if img.width * img.height > MAX_UPLOAD_PIXELS:
+                raise InvalidImageError(
+                    "Das Foto darf höchstens 25 Megapixel haben. "
+                    "Bitte verkleinern Sie es und wählen Sie es erneut aus."
+                )
+            img.load()
+            if _has_no_visible_pixels(img):
+                raise BlankImageError("uploaded frame has no visible pixels")
+
             file_size_mb = len(image_bytes) / (1024 * 1024)
 
             if img.format == "WEBP" and file_size_mb <= 8.0:
-                # Trust client-optimized WebP
+                # Preserve client-optimized WebP without recompressing it.
                 image_bytes_to_save = image_bytes
             else:
-                # Re-compress if needed
+                # A browser bakes EXIF orientation into the canvas, but an original
+                # uploaded by the conversion fallback arrives untouched and the WebP
+                # re-encode drops the tag — so rotate here or a portrait photo is
+                # archived sideways with nothing left to fix it.
                 output_buffer = io.BytesIO()
+                ImageOps.exif_transpose(img, in_place=True)
+                # The client caps its own output at 2048; an original forwarded by
+                # the conversion fallback has had no such cap, and a 12MP frame
+                # re-encodes to ~0.9MB against the ~0.16MB the converted path
+                # produces. Cap here so the archive is uniform either way.
+                img.thumbnail((MAX_STORED_DIMENSION, MAX_STORED_DIMENSION))
                 img.save(output_buffer, format="WEBP", quality=60)
                 image_bytes_to_save = output_buffer.getvalue()
+    except InvalidImageError:
+        raise
+    except (OSError, ValueError, Image.DecompressionBombError) as error:
+        raise InvalidImageError(
+            "Das Foto konnte nicht gelesen werden. Bitte wählen Sie ein anderes Foto."
+        ) from error
 
+    tmp_path = full_path.with_name(full_path.name + ".part")
+    try:
         tmp_path.write_bytes(image_bytes_to_save)
-        tmp_path.replace(full_path)  # atomic publish (same directory/filesystem)
+        tmp_path.replace(full_path)
     except Exception:
         tmp_path.unlink(missing_ok=True)
         raise
 
-    return str(full_path.relative_to(upload_root))
+    return str((upload_dir / filename).relative_to(upload_root))
+
+
+def _normalized_contact(email):
+    """The stored form of a contact address; falsy input passes through.
+
+    Lowercases the domain and applies NFC. Assumes the address already passed
+    MantisSightingForm validation.
+    """
+    if not email:
+        return email
+    return validate_email(email, check_deliverability=False).normalized
+
+
+def _resolve_reporter(usrid, email):
+    """Find the reporter this submission belongs to, or None to create one.
+
+    A link in the URL wins outright. Otherwise the remember cookie may hold the
+    link this browser last reported with; the address only breaks the tie on top
+    of it, never grants on its own.
+    """
+    if usrid:
+        return db.session.scalar(select(TblUsers).where(TblUsers.user_id == usrid))
+
+    contact = _normalized_contact(email)
+    if (
+        contact
+        and current_user.is_authenticated
+        and current_user.user_rolle == UserRole.REPORTER
+        and current_user.user_kontakt == contact
+    ):
+        # Unwrap the proxy — this row goes on to be flushed and related.
+        return current_user._get_current_object()
+    return None
 
 
 def _create_user(first_name, last_name, email, role=UserRole.REPORTER):
-    """Create a new user with standardized name format."""
+    """Create a new user with standardized name format.
+
+    ``role`` is coerced to the varchar(1) string, so int callers still compare
+    equal to UserRole before the row round-trips through the database.
+    """
     user_id = get_new_id()
     name = f"{last_name.strip()} {first_name.strip()[0].upper()}."
     user = TblUsers()
     user.user_id = user_id
     user.user_name = name
-    user.user_rolle = role
-    user.user_kontakt = email
+    user.user_rolle = str(role)
+    user.user_kontakt = _normalized_contact(email)
     return user
 
 
@@ -154,20 +259,15 @@ def melden(usrid=None):
             user_prefilled_data = True
 
     if request.method == "POST":
-        # Checked before validation: a filled trap must never reach form.errors,
-        # which is returned to the client and would name the field and reveal
-        # that it is watched.
         if request.form.get("honeypot", "").strip():
             abort(403)
 
         if form.validate_on_submit():
-            db_image_path: str | None = None
+            # Bound before the try so the failure path can name the photo even
+            # when the save dies before the upload is processed.
+            db_image_path = None
             try:
-                reporter = (
-                    db.session.scalar(select(TblUsers).where(TblUsers.user_id == usrid))
-                    if usrid
-                    else None
-                )
+                reporter = _resolve_reporter(usrid, form.email.data)
                 if not reporter:
                     reporter = _create_user(
                         form.report_first_name.data,
@@ -196,30 +296,28 @@ def melden(usrid=None):
                     user_feedback.source_detail = form.feedback_detail.data
                     db.session.add(user_feedback)
 
-                # Photo is FileRequired — fundorte.ablage is NOT NULL
-                if not form.photo.data:
-                    raise RuntimeError(
-                        "Expected photo after successful form validation"
+                if form.photo.data:
+                    db_image_path = _process_uploaded_image(
+                        form.photo.data,
+                        form.sighting_date.data,
+                        form.fund_city.data,
+                        reporter.user_id,
                     )
-                db_image_path = _process_uploaded_image(
-                    form.photo.data,
-                    form.sighting_date.data,
-                    form.fund_city.data,
-                    reporter.user_id,
-                )
 
                 lat, lon = form.latitude.data, form.longitude.data
                 sighting_date = form.sighting_date.data
                 if lat is None or lon is None or sighting_date is None:
                     raise RuntimeError(
-                        "Expected coordinates and date after successful form validation"
+                        "Missing coordinates or date after form validation"
                     )
                 spatial_fields = calculate_spatial_fields(lat, lon)
 
-                # SelectField coerces to str and DataRequired rejects the empty
-                # choice, so validation guarantees one of the numeric keys —
-                # an invariant WTForms' Optional-typed `data` cannot express.
-                location_description = int(cast(str, form.location_description.data))
+                location_description_data = form.location_description.data
+                if not isinstance(location_description_data, str):
+                    raise RuntimeError(
+                        "Expected location description after successful form validation"
+                    )
+                location_description = int(location_description_data)
 
                 fundort = TblFundorte()
                 fundort.plz = form.fund_zip_code.data or None
@@ -234,18 +332,7 @@ def melden(usrid=None):
                 fundort.mtb = spatial_fields["mtb"]
                 fundort.amt = spatial_fields["amt"]
                 fundort.beschreibung = location_description
-                fundort.ablage = db_image_path
-
-                try:
-                    from app.tools.geo_grade_service import grade_fundort_fields
-
-                    for k, v in grade_fundort_fields(
-                        lat, lon, fundort.land, fundort.kreis, fundort.ort
-                    ).items():
-                        setattr(fundort, k, v)
-                except Exception as grade_err:  # enrichment, never blocks submission
-                    current_app.logger.warning(f"Grade skipped: {grade_err}")
-
+                fundort.ablage = db_image_path or ""
                 db.session.add(fundort)
                 db.session.flush()
 
@@ -270,6 +357,8 @@ def melden(usrid=None):
                 db.session.add(user_link)
                 db.session.commit()
 
+                log_in(reporter)
+
                 # Set session data for success page
                 session["report_submission_successful"] = True
                 session["last_submission_reporter_id"] = reporter.user_id
@@ -283,16 +372,44 @@ def melden(usrid=None):
                     }
                 ), 200
 
-            except Exception as e:
+            except BlankImageError:
+                # The check runs before anything is written, so only the
+                # transaction needs unwinding. Reported as a field error so the
+                # reporter re-picks the photo and keeps the rest of the form.
                 db.session.rollback()
-                # The DB transaction is reverted, but the image write is not
-                # transactional — remove it so a failed submission can't leave
-                # an orphaned file with no fundorte row.
+                # Same shape as the client beacon, so one grep over
+                # "Photo pipeline failed" finds every instance of this bug.
+                current_app.logger.warning(
+                    "Photo pipeline failed: stage=%s error=%s size=%s type=%s ext=%s ua=%s",
+                    "blank-canvas",
+                    "rejected at upload",
+                    None,
+                    None,
+                    None,
+                    _beacon_field(request.user_agent.string, 200),
+                )
+                return _validation_error_response(
+                    {
+                        "photo": [
+                            (
+                                "Das Foto enthält kein sichtbares Bild. "
+                                "Bitte wählen Sie es erneut aus."
+                            )
+                        ]
+                    }
+                )
+
+            except InvalidImageError as error:
+                db.session.rollback()
+                return _validation_error_response({"photo": [str(error)]})
+
+            except Exception:
+                db.session.rollback()
                 if db_image_path:
                     (Path(current_app.config["UPLOAD_FOLDER"]) / db_image_path).unlink(
                         missing_ok=True
                     )
-                current_app.logger.error(f"Failed to save report: {str(e)}")
+                current_app.logger.exception("Failed to save report")
                 return (
                     jsonify(
                         {
@@ -303,25 +420,17 @@ def melden(usrid=None):
                     500,
                 )
         else:
-            return (
-                jsonify(
-                    {
-                        "success": False,
-                        "error": "Ungültige Formulardaten.",
-                        "errors": form.errors,
-                    }
-                ),
-                400,
-            )
+            return _validation_error_response(form.errors)
 
     response = make_response(
         render_template(
             "report/report_form.html",
             form=form,
             now=datetime.now,
-            timedelta=timedelta,
+            minimum_sighting_date=minimum_sighting_date(),
             user_prefilled=user_prefilled_data,
             user_has_feedback=user_has_feedback,
+            coordinate_ranges=COORDINATE_RANGES,
         )
     )
     if user_prefilled_data:
@@ -434,9 +543,6 @@ def ags_lookup():
     if not in_range(lat, lon):
         return jsonify({}), 400
 
-    if not point_in_rect((lat, lon)):
-        return jsonify({})
-
     spatial = get_amt_enriched((lon, lat))
     if not spatial:
         return jsonify({})
@@ -449,6 +555,94 @@ def ags_lookup():
     )
 
 
+def _beacon_field(value, limit):
+    """Everything in the beacon is client-supplied and lands in a log line, so
+    collapse whitespace — a newline in there would forge a second entry."""
+    if not isinstance(value, (str, int, float)):
+        return ""
+    printable = "".join(char if char.isprintable() else " " for char in str(value))
+    return " ".join(printable.split())[:limit]
+
+
+# Checked in order, so the more specific token wins: an iPad UA also contains
+# "Macintosh", and Android UAs contain "Linux".
+_UA_PLATFORMS = (
+    ("Android", "Android"),
+    ("iPhone", "iOS"),
+    ("iPad", "iPadOS"),
+    ("Macintosh", "macOS"),
+    ("Windows", "Windows"),
+    ("Linux", "Linux"),
+)
+
+
+def _device_platform(data, user_agent):
+    """Name the operating system behind a failed upload.
+
+    getHighEntropyValues() is Chromium-only — Safari and Firefox expose no
+    userAgentData at all, which is precisely the iOS population the HEIC
+    timeouts come from. So the client hint is preferred and the UA string is
+    the fallback, the same order Sentry's relay and BugSnag use. Previously
+    this line was hardcoded to "Android", which mislabelled every non-Android
+    reporter in the one mail meant to diagnose their device.
+    """
+    hinted = _beacon_field(data.get("platform") or "", 20)
+    if hinted:
+        return hinted
+    for needle, name in _UA_PLATFORMS:
+        if needle in user_agent:
+            return name
+    return "unbekannt"
+
+
+def _photo_report_mailto(ref, stage, data):
+    """Compose the whole mailto server-side.
+
+    The diagnostics are already here, and building the link on the server keeps
+    the Service Desk address out of the page source. Mail to it opens a
+    confidential issue, so the photo and the device details stay internal.
+    """
+    body = "\n".join(
+        [
+            "Bitte hängen Sie das Foto an diese E-Mail an, das nicht",
+            "hochgeladen werden konnte. Ohne die Originaldatei können wir",
+            "den Fehler nicht nachstellen.",
+            "",
+            "Womit haben Sie das Foto aufgenommen bzw. woher stammt es",
+            "(z. B. Kamera-App, Google Fotos, WhatsApp)?",
+            "",
+            # The picker shape below is a machine guess at the same thing. Asking
+            # outright is what confirms it, and it is the one question whose
+            # answer the browser cannot supply.
+            "War das Foto auf dem Handy gespeichert, oder lag es nur in der",
+            "Cloud und musste erst geladen werden?",
+            "",
+            "",
+            "--- Technische Angaben, bitte unverändert lassen ---",
+            f"Referenz: {ref}",
+            f"Schritt: {stage}",
+            f"Dateityp: {_beacon_field(data.get('type') or data.get('ext') or 'unbekannt', 40)}",
+            f"Dateigröße: {_beacon_field(data.get('size'), 20)}",
+            # Which picker produced the file, inferred from the name shape: the
+            # Android photo picker synthesises a numeric name, DocumentsUI passes
+            # the gallery's own. That decides whether the bytes stay readable.
+            f"Auswahl: {_beacon_field(data.get('name') or 'unbekannt', 10)}",
+            f"Browser: {request.user_agent.string[:200]}",
+            # The UA says "Android 10; K" whatever the phone is, so without the
+            # client hint the support mail cannot name the device that failed.
+            (
+                f"Gerät: {_beacon_field(data.get('model') or 'unbekannt', 40)}"
+                f" ({_device_platform(data, request.user_agent.string)}"
+                f" {_beacon_field(data.get('osVersion') or '?', 20)})"
+            ),
+        ]
+    )
+    query = urlencode(
+        {"subject": f"Foto-Upload Fehler {ref}", "body": body}, quote_via=quote
+    )
+    return f"mailto:{current_app.config['PHOTO_SUPPORT_EMAIL']}?{query}"
+
+
 @report.route("/melden/foto-fehler", methods=["POST"])
 @limiter.limit("10 per minute")
 def photo_failure():
@@ -457,17 +651,44 @@ def photo_failure():
     The conversion runs entirely client-side, so without this the failure is
     invisible here: the report is simply never submitted and the Melder gives up.
     """
-    data = request.get_json(silent=True) or {}
+    request.max_content_length = 8 * 1024
+    data = request.get_json(silent=True)
+    if data is None:
+        data = {}
+    if not isinstance(data, dict):
+        abort(400)
+    stage = _beacon_field(data.get("stage"), 40)
+
+    # Offer email support after repeated failures. This is a UX threshold,
+    # not proof of a real browser failure or permission to create tickets.
+    failures = session.get("photo_failures", 0) + 1
+    session["photo_failures"] = failures
+
+    # Short handle shared by the log line and the mail subject, so a report that
+    # arrives by email can be matched to what actually broke.
+    ref = secrets.token_hex(3).upper()
     current_app.logger.warning(
-        "Photo pipeline failed: stage=%s error=%s size=%s type=%s ext=%s ua=%s",
-        str(data.get("stage"))[:40],
-        str(data.get("error"))[:200],
-        data.get("size"),
-        str(data.get("type"))[:40],
-        str(data.get("ext"))[:10],
-        request.user_agent.string[:200],
+        "Photo pipeline failed: ref=%s n=%s stage=%s error=%s size=%s mtime=%s"
+        " type=%s ext=%s name=%s model=%s os=%s osv=%s ua=%s",
+        ref,
+        failures,
+        stage,
+        _beacon_field(data.get("error"), 200),
+        _beacon_field(data.get("size"), 20),
+        _beacon_field(data.get("mtime"), 20),
+        _beacon_field(data.get("type"), 40),
+        _beacon_field(data.get("ext"), 10),
+        _beacon_field(data.get("name"), 10),
+        _beacon_field(data.get("model"), 40),
+        _device_platform(data, request.user_agent.string),
+        _beacon_field(data.get("osVersion"), 20),
+        _beacon_field(request.user_agent.string, 200),
     )
-    return "", 204
+
+    if failures < current_app.config["PHOTO_ESCALATE_AFTER"]:
+        return "", 204
+
+    return jsonify({"mailto": _photo_report_mailto(ref, stage, data)}), 200
 
 
 @report.route("/melden/validate-step", methods=["POST"])
@@ -494,7 +715,6 @@ def validate_step_partial():
         )
     step_fields = get_step_fields(step)
 
-    # Build form data from request
     form_data = MultiDict(request.form)
     if "identical_finder_reporter" in request.form:
         form_data["identical_finder_reporter"] = (
@@ -508,7 +728,6 @@ def validate_step_partial():
     is_valid = True
     errors = {}
 
-    # Validate step-specific fields
     for field_name in step_fields:
         field = getattr(form, field_name, None)
         if field and not field.validate(form):
@@ -555,7 +774,6 @@ def toggle_finder():
     is_identical = _is_checkbox_true(request.form.get("identical_finder_reporter"))
 
     if is_identical:
-        # Return hidden/empty finder fields
         return render_template("report/partials/_finder_fields.html", show=False)
     else:
         # Return visible finder fields

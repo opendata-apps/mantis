@@ -54,7 +54,6 @@ class TestProviderImageAccess:
             select(TblUsers).where(TblUsers.user_id == "9999")
         )
 
-        # Reporter A
         self.reporter_a = session.scalar(
             select(TblUsers).where(TblUsers.user_id == "img_user_a")
         )
@@ -153,14 +152,6 @@ class TestProviderImageAccess:
         )
 
         session.commit()
-
-        yield
-
-        # Clean up test image files
-        for img in (self.IMAGE_FILE, self.OTHER_IMAGE_FILE):
-            path = os.path.join(self.upload_folder, img)
-            if os.path.exists(path):
-                os.remove(path)
 
     def test_unauthenticated_access_returns_403(self, client):
         """No session → 403."""

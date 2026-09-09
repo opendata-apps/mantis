@@ -1,17 +1,19 @@
+from flask_login import UserMixin
 from datetime import datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import CheckConstraint, DateTime, Identity, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app import db
 
 if TYPE_CHECKING:
     from app.database.meldung_user import TblMeldungUser
     from app.database.user_feedback import TblUserFeedback
 
+from app.extensions import db
 
-class TblUsers(db.Model):
+
+class TblUsers(UserMixin, db.Model):
     """User model for storing reporter and reviewer information.
 
     Constraints:
@@ -32,10 +34,10 @@ class TblUsers(db.Model):
     # Enables uselist=False relationships (e.g. meldungen.approver) and serves
     # as FK target for meldungen.bearb_id.
     user_id: Mapped[str] = mapped_column(String(40), unique=True)
-    user_name: Mapped[str] = mapped_column(String(45))
+    user_name: Mapped[str] = mapped_column(String(100))
     user_rolle: Mapped[str] = mapped_column(String(1))
     # Note: user_kontakt is NOT indexed - only used with %text% ILIKE which cannot use B-tree
-    user_kontakt: Mapped[str | None] = mapped_column(String(45))
+    user_kontakt: Mapped[str | None] = mapped_column(String(254))
 
     # Audit timestamps: when the row was inserted / last modified via the
     # ORM (bearb_id records who; raw SQL bypasses onupdate).
@@ -63,6 +65,13 @@ class TblUsers(db.Model):
         back_populates="finder",
         lazy="select",
     )
+
+    def get_id(self):
+        """The capability token, not the primary key.
+
+        Overrides UserMixin, which would return the guessable ``self.id``.
+        """
+        return self.user_id
 
     def __repr__(self):
         return f"<User {self.id} ({self.user_name})>"

@@ -1,8 +1,12 @@
 """Unit tests for the coordinate-vs-address validation logic."""
 
 from types import SimpleNamespace
+import csv
+import io
 
-from app.tools.validate_coordinates import (
+import pytest
+
+from app.tools.address_plausibility import (
     Issue,
     names_match,
     validate_fundorte,
@@ -166,7 +170,7 @@ class TestFormatReport:
         assert "Checked: 100" in report
 
     def test_with_mismatches(self):
-        from app.tools.validate_coordinates import Mismatch
+        from app.tools.address_plausibility import Mismatch
 
         m = Mismatch(42, Issue.LAND_MISMATCH, "Bayern", "Berlin", "München", "Berlin")
         report = format_report([m], checked=100, skipped=0)
@@ -183,7 +187,7 @@ class TestFormatCsv:
         assert csv.startswith("id,issue,stored_land,expected_land")
 
     def test_csv_row(self):
-        from app.tools.validate_coordinates import Mismatch
+        from app.tools.address_plausibility import Mismatch
 
         m = Mismatch(42, Issue.LAND_MISMATCH, "Bayern", "Berlin", "München", "Berlin")
         csv = format_csv([m])
@@ -192,29 +196,23 @@ class TestFormatCsv:
         assert "42" in lines[1]
         assert "LAND_MISMATCH" in lines[1]
 
-    def test_csv_survives_quotes_commas_and_newlines(self):
-        """Ort/Land are reviewer-editable free text and must round-trip intact."""
-        import csv as csv_module
-        import io
+    def test_quotes_and_newlines_stay_in_one_cell(self):
+        from app.tools.address_plausibility import Mismatch
 
-        from app.tools.validate_coordinates import Mismatch
-
-        m = Mismatch(
-            42,
-            Issue.ORT_MISMATCH,
-            'Land "X"',
-            "Berlin",
-            "Sankt Peter, Ording",
-            "Neustadt\nan der Aisch",
-        )
-        rows = list(csv_module.reader(io.StringIO(format_csv([m]))))
+        town = 'Ort, "am See"\nOrtsteil'
+        row = Mismatch(42, Issue.ORT_MISMATCH, "Berlin", "Berlin", town, "Berlin")
+        rows = list(csv.reader(io.StringIO(format_csv([row]))))
 
         assert len(rows) == 2
-        assert rows[1] == [
-            "42",
-            "ORT_MISMATCH",
-            'Land "X"',
-            "Berlin",
-            "Sankt Peter, Ording",
-            "Neustadt\nan der Aisch",
-        ]
+        assert len(rows[1]) == 6
+        assert rows[1][4] == town
+
+    @pytest.mark.parametrize("prefix", ["=", "+", "-", "@", "\t=", "\r=", "\n=", " ="])
+    def test_formula_like_addresses_are_exported_as_text(self, prefix):
+        from app.tools.address_plausibility import Mismatch
+
+        value = prefix + 'HYPERLINK("https://example.test","Ort")'
+        row = Mismatch(42, Issue.ORT_MISMATCH, value, value, value, value)
+        fields = list(csv.reader(io.StringIO(format_csv([row]))))[1]
+
+        assert fields[2:] == ["'" + value] * 4

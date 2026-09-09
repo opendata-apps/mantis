@@ -1,13 +1,17 @@
 """Unit tests for coordinate validation module."""
 
+import pytest
+from werkzeug.datastructures import MultiDict
+
+from app.forms import MantisSightingForm
 from app.tools.coordinate_validation import (
     coordinates_look_swapped,
-    validate_and_normalize_coordinate,
+    validate_coordinate,
     validate_coordinate_pair,
 )
 
-LAT_RANGE_ERROR = "Breitengrad muss zwischen 30 und 60 liegen."
-LON_RANGE_ERROR = "Längengrad muss zwischen -20 und 30 liegen."
+LAT_RANGE_ERROR = "Breitengrad muss zwischen 24,6 und 60 liegen."
+LON_RANGE_ERROR = "Längengrad muss zwischen -20 und 44,83 liegen."
 
 
 class TestCoordinateValidation:
@@ -27,9 +31,9 @@ class TestCoordinateValidation:
         ]
 
         for input_val, expected in test_cases:
-            normalized, error = validate_and_normalize_coordinate(input_val, "latitude")
+            normalized, error = validate_coordinate(input_val, "latitude")
             assert error is None, f"Expected {input_val} to be valid"
-            assert normalized == expected, (
+            assert normalized == float(expected), (
                 f"Expected {input_val} to normalize to {expected}, got {normalized}"
             )
             assert error is None
@@ -53,7 +57,7 @@ class TestCoordinateValidation:
         ]
 
         for input_val, expected_error in test_cases:
-            normalized, error = validate_and_normalize_coordinate(input_val, "latitude")
+            normalized, error = validate_coordinate(input_val, "latitude")
             assert normalized is None
             assert error == expected_error
 
@@ -72,11 +76,11 @@ class TestCoordinateValidation:
         ]
 
         for input_val, expected in test_cases:
-            normalized, error = validate_and_normalize_coordinate(
+            normalized, error = validate_coordinate(
                 input_val, "longitude"
             )
             assert error is None, f"Expected {input_val} to be valid"
-            assert normalized == expected, (
+            assert normalized == float(expected), (
                 f"Expected {input_val} to normalize to {expected}, got {normalized}"
             )
             assert error is None
@@ -85,7 +89,7 @@ class TestCoordinateValidation:
         """Test validation of invalid longitude values."""
         test_cases = [
             ("-23.552937", LON_RANGE_ERROR),  # West of the accepted range
-            ("32.86", LON_RANGE_ERROR),  # East of the accepted range (Ankara)
+            ("45", LON_RANGE_ERROR),  # East of the accepted range
             ("74.006", LON_RANGE_ERROR),
             ("181", LON_RANGE_ERROR),
             ("-181", LON_RANGE_ERROR),
@@ -96,7 +100,7 @@ class TestCoordinateValidation:
         ]
 
         for input_val, expected_error in test_cases:
-            normalized, error = validate_and_normalize_coordinate(
+            normalized, error = validate_coordinate(
                 input_val, "longitude"
             )
             assert normalized is None
@@ -106,14 +110,14 @@ class TestCoordinateValidation:
         """Test validation of coordinate pairs."""
         # Valid pair
         lat, lon, errors = validate_coordinate_pair("52.52", "13.40")
-        assert lat == "52.52"
-        assert lon == "13.4"
+        assert lat == 52.52
+        assert lon == 13.4
         assert errors == []
 
         # Out-of-range latitude (the Greenland Sea pin)
         lat, lon, errors = validate_coordinate_pair("69.224997", "13.0")
         assert lat is None
-        assert lon == "13.0"
+        assert lon == 13.0
         assert errors == [LAT_RANGE_ERROR]
 
         # Both invalid
@@ -173,3 +177,51 @@ class TestSwappedCoordinates:
         """Unparseable values are left to the per-field format check."""
         assert coordinates_look_swapped("abc", "13.4") is False
         assert coordinates_look_swapped(None, None) is False
+
+
+@pytest.mark.usefixtures("request_context")
+class TestCoordinateFormFields:
+    """The report form must apply the same coordinate rules as the helpers.
+
+    These went untested for a long time because the unit tests above only
+    covered the string helper, which the form never reached: WTForms' FloatField
+    coerces with float() before any validator runs.
+    """
+
+    @staticmethod
+    def _errors(latitude, longitude):
+        form = MantisSightingForm(
+            formdata=MultiDict({"latitude": latitude, "longitude": longitude}),
+            meta={"csrf": False},
+        )
+        form.latitude.validate(form)
+        form.longitude.validate(form)
+        return form.latitude.errors + form.longitude.errors
+
+    def test_comma_decimals_accepted(self):
+        """Mobile keyboards emit a comma; float() would reject it in English."""
+        assert self._errors("52,52", "13,40") == []
+
+    def test_out_of_range_rejected(self):
+        assert self._errors("69.224997", "13.0") == [LAT_RANGE_ERROR]
+        assert self._errors("52.52", "74.006") == [LON_RANGE_ERROR]
+
+    def test_nan_and_inf_rejected(self):
+        """float() accepts both, and every range comparison against NaN is False."""
+        for value in ("nan", "inf", "-inf"):
+            assert self._errors(value, "13.4") == [
+                "Breitengrad ist keine gültige Zahl."
+            ]
+
+    def test_unparsable_reports_one_german_error(self):
+        """NumberRange counts None as out of range, so the chain has to stop."""
+        assert self._errors("abc", "13.4") == ["Breitengrad ist keine gültige Zahl."]
+
+    def test_transposed_pair_gets_the_swap_hint(self):
+        assert (
+            self._errors("13.40", "52.52")
+            == ["Breiten- und Längengrad scheinen vertauscht zu sein."] * 2
+        )
+
+    def test_valid_pair_passes(self):
+        assert self._errors("52.52", "13.40") == []

@@ -1,6 +1,9 @@
 import os
 from dotenv import load_dotenv
 from datetime import timedelta
+from email.utils import parseaddr
+
+from sqlalchemy import URL
 
 # Load .env file from project root
 load_dotenv()
@@ -48,6 +51,24 @@ def _env_or_default(name: str, default: str) -> str:
     return default if value is None or value == "" else value
 
 
+def _resolve_mail_sender(name: str, address: str) -> tuple[str, str]:
+    """Resolve the From address, rejecting anything smtplib cannot parse.
+
+    An unparseable address does not raise anywhere in Flask-Mail: the From
+    header degrades to a bare display name and smtplib falls back to the null
+    sender `MAIL FROM:<>`, so every mail leaves as an unattributable bounce and
+    is filtered by the recipient. Failing at startup is the only loud moment.
+    """
+    parsed = parseaddr(address)[1]
+    if "@" not in parsed:
+        raise ValueError(
+            f"MAIL_DEFAULT_SENDER must be a plain email address, got: '{address}'. "
+            f"Use MAIL_DEFAULT_SENDER=post@example.com and set the display name "
+            f"in MAIL_DEFAULT_SENDER_NAME."
+        )
+    return (name, parsed)
+
+
 class Config:
     # Database Configuration (constructed from components, like Superset/Paperless-ngx)
     # Container deployments override DATABASE_HOST=db via docker-compose environment.
@@ -57,16 +78,31 @@ class Config:
     DATABASE_PASSWORD = os.getenv("POSTGRES_PASSWORD", "mantis")
     DATABASE_DB = os.getenv("POSTGRES_DB", "mantis_tracker")
 
-    SQLALCHEMY_DATABASE_URI = (
-        f"postgresql+psycopg://{DATABASE_USER}:{DATABASE_PASSWORD}"
-        f"@{DATABASE_HOST}:{DATABASE_PORT}/{DATABASE_DB}"
-    )
+    # URL.create escapes the credentials; interpolating them into a string
+    # misparses a password containing @ / : # or %. Rendered back to a string
+    # because alembic's set_main_option and sqlalchemy_utils both want one —
+    # with hide_password=False, since str(URL) would emit "***".
+    SQLALCHEMY_DATABASE_URI = URL.create(
+        "postgresql+psycopg",
+        username=DATABASE_USER,
+        password=DATABASE_PASSWORD,
+        host=DATABASE_HOST,
+        port=int(DATABASE_PORT),
+        database=DATABASE_DB,
+    ).render_as_string(hide_password=False)
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # Connection Pooling Configuration
+    #
+    # SQLAlchemy's own defaults. Every gunicorn worker builds its own engine, so
+    # the ceiling the server sees is (pool_size + max_overflow) × workers, and it
+    # has to stay under the server's max_connections — otherwise a connection
+    # leak does not degrade this app, it locks everyone out of the database,
+    # including psql and the backup. Raise workers and this sum with the same
+    # hand.
     SQLALCHEMY_ENGINE_OPTIONS = {
-        "pool_size": int(os.getenv("DB_POOL_SIZE", 10)),
-        "max_overflow": int(os.getenv("DB_MAX_OVERFLOW", 20)),
+        "pool_size": int(os.getenv("DB_POOL_SIZE", 5)),
+        "max_overflow": int(os.getenv("DB_MAX_OVERFLOW", 10)),
         "pool_recycle": int(os.getenv("DB_POOL_RECYCLE", 3600)),
         "pool_pre_ping": True,
     }
@@ -104,7 +140,7 @@ class Config:
     )
     MAIL_USERNAME = os.getenv("MAIL_USERNAME", "")
     MAIL_PASSWORD = os.getenv("MAIL_PASSWORD", "")
-    MAIL_DEFAULT_SENDER = (
+    MAIL_DEFAULT_SENDER = _resolve_mail_sender(
         _env_or_default("MAIL_DEFAULT_SENDER_NAME", "Mantis-Projekt"),
         _env_or_default("MAIL_DEFAULT_SENDER", "mantis@projekt.de"),
     )
@@ -113,6 +149,16 @@ class Config:
     BACKUP_DOWNLOAD_MAX_AGE_SECONDS = int(
         os.getenv("BACKUP_DOWNLOAD_MAX_AGE_SECONDS", str(7 * 24 * 60 * 60))
     )
+
+    # Public support intake for photos the browser cannot upload. GitLab creates
+    # confidential tickets; knowing this address does not grant access to them.
+    PHOTO_SUPPORT_EMAIL = os.getenv(
+        "PHOTO_SUPPORT_EMAIL",
+        "contact-project+opendata-apps-mantis-41791538-issue-@incoming.gitlab.com",
+    )
+    # Two, not one: most reporters retry once on their own (67 logged failures
+    # across 39 distinct files), so the first failure is not yet a dead end.
+    PHOTO_ESCALATE_AFTER = int(os.getenv("PHOTO_ESCALATE_AFTER", "2"))
 
     # Upload Configuration - always absolute path (Flask best practice)
     UPLOAD_FOLDER = _resolve_upload_folder()
@@ -128,6 +174,15 @@ class Config:
     )
     SESSION_COOKIE_HTTPONLY = True  # Always True for security
     SESSION_COOKIE_SAMESITE = "Lax"  # Always Lax for CSRF protection
+
+    # Reporters only — see app.auth.log_in.
+    REMEMBER_COOKIE_NAME = "mantis_reporter"
+    REMEMBER_COOKIE_DURATION = timedelta(days=365)
+    # Copies the value, not a link — a subclass overriding SESSION_COOKIE_SECURE
+    # alone leaves this one as it was. Override both (tests/test_config.py does).
+    REMEMBER_COOKIE_SECURE = SESSION_COOKIE_SECURE
+    REMEMBER_COOKIE_HTTPONLY = True
+    REMEMBER_COOKIE_SAMESITE = "Lax"
 
     # DoS Prevention (Static Security Settings)
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size

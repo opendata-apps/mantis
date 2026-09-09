@@ -5,17 +5,13 @@ import click
 from flask import current_app
 from flask.cli import with_appcontext
 
-from app.tools.fetch_ags import fetch_geonames
-from app.tools.normalize_text import normalize_place_name
-
 
 def register_commands(app):
     """Register all CLI commands with the Flask app."""
     app.cli.add_command(seed_command)
     app.cli.add_command(seed_ags_command)
-    app.cli.add_command(seed_gn250_command)
-    app.cli.add_command(grade_fundorte_command)
     app.cli.add_command(validate_coordinates_command)
+    app.cli.add_command(recalculate_mtb_command)
 
 
 @click.command("seed")
@@ -25,14 +21,14 @@ def seed_command(demo):
     """Seed database with base data. Use --demo to include sample reports."""
     from app.database.populate import populate_all
 
-    from app import db
+    from app.extensions import db
 
     # Load AGS data from fallback JSON file
     fallback_path = os.path.join(
         os.path.dirname(__file__), "data", "ags_gemeinden.json"
     )
     if os.path.exists(fallback_path):
-        with open(fallback_path, "r", encoding="utf-8") as f:
+        with open(fallback_path, encoding="utf-8") as f:
             jsondata = f.read()
     else:
         click.echo(
@@ -67,7 +63,7 @@ def seed_ags_command():
     """
     from sqlalchemy import select
 
-    from app import db
+    from app.extensions import db
     from app.tools.fetch_ags import (
         fetch_gemeinden,
         fetch_kreise,
@@ -83,7 +79,6 @@ def seed_ags_command():
     kreise_path = os.path.join(data_dir, "ags_kreise.json")
 
     try:
-        # Fetch from WFS
         click.echo("Fetching Gemeinden from BKG WFS...")
         gemeinden = fetch_gemeinden()
 
@@ -98,11 +93,9 @@ def seed_ags_command():
         merged = merge_gemeinden_with_berlin(gemeinden, berlin)
         click.echo(f"Merged dataset: {len(merged['features'])} features")
 
-        # Build Kreise lookup
         kreise_lookup = build_kreise_lookup(kreise_data)
         click.echo(f"Built Kreise lookup: {len(kreise_lookup)} entries")
 
-        # Save fallback files
         save_fallback(merged, fallback_path)
         save_kreise_lookup(kreise_lookup, kreise_path)
         click.echo(f"Saved fallback to {fallback_path}")
@@ -112,7 +105,6 @@ def seed_ags_command():
         click.echo("Syncing aemter table...")
         from app.database.aemter_koordinaten import TblAemterCoordinaten
 
-        # Build set of AGS codes in the fresh dataset
         fresh_ags = set()
         for feat in merged["features"]:
             ags = int(feat["properties"]["AGS"])
@@ -149,69 +141,7 @@ def seed_ags_command():
 
     except Exception as e:
         click.echo(f"Error fetching AGS data: {e}", err=True)
-        raise click.Abort()
-
-
-@click.command("seed-gn250")
-@with_appcontext
-def seed_gn250_command():
-    """Fetch BKG GN250 populated places into the geo_names table."""
-    from sqlalchemy import delete, insert
-
-    from app import db
-    from app.database.geo_names import TblGeoNames
-
-    try:
-        rows = fetch_geonames()
-    except Exception as e:
-        click.echo(f"Error fetching GN250 data: {e}", err=True)
-        raise click.Abort()
-
-    db.session.execute(delete(TblGeoNames))
-    if rows:
-        db.session.execute(
-            insert(TblGeoNames),
-            [
-                {
-                    "name": r["name"],
-                    "name_norm": normalize_place_name(r["name"]),
-                    "ags": r["ags"],
-                    "kreis": r["kreis"],
-                    "longitude": r["longitude"],
-                    "latitude": r["latitude"],
-                }
-                for r in rows
-            ],
-        )
-    db.session.commit()
-    click.echo(f"Seeded {len(rows)} GN250 populated places.")
-
-
-@click.command("grade-fundorte")
-@click.option("--only-ungraded", is_flag=True, help="Skip rows already graded.")
-@with_appcontext
-def grade_fundorte_command(only_ungraded):
-    """(Re)grade stored Fundorte coordinate/address agreement."""
-    from sqlalchemy import select
-
-    from app import db
-    from app.database.fundorte import TblFundorte
-    from app.tools.geo_grade_service import grade_fundort_fields
-
-    stmt = select(TblFundorte)
-    if only_ungraded:
-        stmt = stmt.where(TblFundorte.geo_grade.is_(None))
-
-    n = 0
-    for fo in db.session.scalars(stmt.execution_options(yield_per=500)):
-        cols = grade_fundort_fields(
-            fo.latitude, fo.longitude, fo.land, fo.kreis, fo.ort
-        )
-        for k, v in cols.items():
-            setattr(fo, k, v)
-        n += 1
-    db.session.commit()
-    click.echo(f"Graded {n} Fundorte.")
+        raise click.Abort() from e
 
 
 @click.command("validate-coordinates")
@@ -225,10 +155,10 @@ def validate_coordinates_command(csv_path):
     """
     from sqlalchemy import select, func
 
-    from app import db
+    from app.extensions import db
     from app.database.fundorte import TblFundorte
     from app.tools.gemeinde_finder import get_amt_enriched
-    from app.tools.validate_coordinates import (
+    from app.tools.address_plausibility import (
         validate_fundorte,
         format_report,
         format_csv,
@@ -251,6 +181,55 @@ def validate_coordinates_command(csv_path):
 
     if mismatches:
         raise SystemExit(1)
+
+
+@click.command("recalculate-mtb")
+@click.option("--commit", is_flag=True, help="Write the changes (default: dry run)")
+@with_appcontext
+def recalculate_mtb_command(commit):
+    """Re-derive mtb/amt/land/kreis for every Fundort from its coordinates.
+
+    Needed once after the TK25 row lines were corrected: the previous grid sat
+    2.4 km too far south, so roughly a fifth of the stored Messtischblätter name
+    the sheet immediately north of the true one. The same pass clears the sheet
+    numbers that were handed to coordinates outside Germany.
+    """
+    from sqlalchemy import select, func
+
+    from app.extensions import db
+    from app.database.fundorte import TblFundorte
+    from app.tools.location_enrichment import calculate_spatial_fields
+
+    total = db.session.scalar(select(func.count(TblFundorte.id))) or 0
+    click.echo(f"Scanning {total} Fundorte...")
+
+    changed = []
+    for fundort in db.session.scalars(
+        select(TblFundorte).order_by(TblFundorte.id)
+    ).all():
+        fields = calculate_spatial_fields(fundort.latitude, fundort.longitude)
+        if fields["mtb"] == (fundort.mtb or ""):
+            continue
+        changed.append((fundort.id, fundort.mtb, fields["mtb"], fundort.ort))
+        fundort.mtb = fields["mtb"]
+        fundort.amt = fields["amt"]
+        if fields["land"]:
+            fundort.land = fields["land"]
+        if fields["kreis"]:
+            fundort.kreis = fields["kreis"]
+
+    click.echo(f"{len(changed)} of {total} Fundorte get a different Messtischblatt.")
+    for fundort_id, old, new, ort in changed[:20]:
+        click.echo(f"- id={fundort_id} {ort}: {old or '—'} -> {new or '—'}")
+    if len(changed) > 20:
+        click.echo(f"... and {len(changed) - 20} more")
+
+    if commit:
+        db.session.commit()
+        click.echo("Committed.")
+    else:
+        db.session.rollback()
+        click.echo("Dry run — nothing written. Re-run with --commit to apply.")
 
 
 def _copy_demo_images():

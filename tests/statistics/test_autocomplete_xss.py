@@ -9,14 +9,14 @@ from app.database.models import TblAemterCoordinaten
 
 def test_autocomplete_escapes_html_in_gen(client, session):
     """Values containing HTML chars must be escaped in the response."""
-    xss_gen = '<img src=x onerror=alert(1)>'
+    xss_gen = "<img src=x onerror=alert(1)>"
     row = TblAemterCoordinaten(
         ags=99999999,
         gen=xss_gen,
         properties={"test": True},
     )
     session.add(row)
-    session.flush()
+    session.commit()
 
     response = client.get("/statistik/ags?ags_input=99999999")
     html = response.data.decode()

@@ -1,9 +1,10 @@
 import logging
 
+from email_validator import validate_email
 from flask import current_app
 from flask_mail import Message
 
-from app import mail
+from app.extensions import mail
 
 
 logger = logging.getLogger(__name__)
@@ -48,7 +49,8 @@ def rendertextmsg(md):
 
     Folgendes Geschlecht bzw. Entwicklungsstadium wurden festgestellt:
 
-    (siehe auch:  https://gottesanbeterin-gesucht.de/bestimmung)
+    Siehe auch:
+    https://gottesanbeterin-gesucht.de/bestimmung
 
     {"Männchen:":<10} {str(md["art_m"]) + " ":10}
     {"Weibchen:":<10} {str(md["art_w"]) + " ":<10}
@@ -57,13 +59,40 @@ def rendertextmsg(md):
     {md["anm_bearbeiter"]}
 
     Ihr Link für neue Meldungen:
-    https://gottesanbeterin-gesucht.de/report/{md["user_id"]}
+    https://gottesanbeterin-gesucht.de/melden/{md["user_id"]}
 
     WICHTIGER HINWEIS:
 
     - Behandeln Sie den Link wie ein Passwort!
     - Publizieren Sie den Link nicht in Foren, Messengern, ...
     """
+
+
+def build_email_payload(meldung) -> dict:
+    """Collect what ``rendertextmsg`` needs from a loaded report.
+
+    Each value is read from the table it belongs to. The caller must pass a
+    report whose ``fundort`` and ``reporter_link`` relationships are loaded.
+    """
+    fundort = meldung.fundort
+    reporter = meldung.reporter_link.reporter
+    return {
+        "user_id": reporter.user_id,
+        "user_kontakt": reporter.user_kontakt,
+        "anm_bearbeiter": meldung.anm_bearbeiter,
+        "dat_fund_von": meldung.dat_fund_von,
+        "latitude": fundort.latitude,
+        "longitude": fundort.longitude,
+        "plz": fundort.plz,
+        "ort": fundort.ort,
+        "strasse": fundort.strasse,
+        "land": fundort.land,
+        "kreis": fundort.kreis,
+        "art_m": meldung.art_m,
+        "art_w": meldung.art_w,
+        "art_n": meldung.art_n,
+        "art_o": meldung.art_o,
+    }
 
 
 def send_email(data):
@@ -76,9 +105,22 @@ def send_email(data):
     string_from_date = md["dat_fund_von"].strftime("%d.%m.%Y")
     md["datum"] = string_from_date
 
+    # Flask-Mail submits through smtplib.sendmail, which puts the envelope on
+    # the wire as ASCII and has no SMTPUTF8 path. An internationalised domain
+    # therefore has to be converted to punycode here, immediately before
+    # submission — the database keeps the address in the form the reporter
+    # knows. allow_smtputf8=False makes an umlaut before the @ raise here rather
+    # than yield ascii_email=None, which Message takes and fails on much later.
+    validated = validate_email(
+        data["user_kontakt"], check_deliverability=False, allow_smtputf8=False
+    )
+    # None only for addresses needing SMTPUTF8, which the call above rejects.
+    assert validated.ascii_email is not None
+    recipient = validated.ascii_email
+
     msg = Message(
         subject="[Gottesanbeterin-Gesucht] Meldung überprüft",
-        recipients=[data["user_kontakt"]],
+        recipients=[recipient],
         body=(rendertextmsg(md)),
     )
 

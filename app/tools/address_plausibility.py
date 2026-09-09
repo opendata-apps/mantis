@@ -11,10 +11,10 @@ No external API calls — all lookups use the in-memory STRtree spatial index.
 import csv
 import io
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 
-class Issue(str, Enum):
+class Issue(StrEnum):
     """Types of coordinate-address mismatches."""
 
     LAND_MISMATCH = "LAND_MISMATCH"
@@ -163,25 +163,19 @@ def format_report(mismatches, checked, skipped):
 
 
 def format_csv(mismatches):
-    """Format validation results as CSV lines (including header).
-
-    Ort and Land are reviewer-editable free text, so they can contain the
-    quotes, commas and newlines that csv.writer knows how to escape.
-    """
-    buffer = io.StringIO()
-    writer = csv.writer(buffer, lineterminator="\n")
-    writer.writerow(
-        ["id", "issue", "stored_land", "expected_land", "stored_ort", "expected_ort"]
-    )
+    """Format validation results as CSV lines (including header)."""
+    output = io.StringIO(newline="")
+    output.write("id,issue,stored_land,expected_land,stored_ort,expected_ort\n")
+    writer = csv.writer(output, quoting=csv.QUOTE_NONNUMERIC, lineterminator="\n")
     for m in mismatches:
-        writer.writerow(
-            [
-                m.fundort_id,
-                m.issue.value,
-                m.stored_land,
-                m.expected_land,
-                m.stored_ort,
-                m.expected_ort,
-            ]
-        )
-    return buffer.getvalue().rstrip("\n")
+        fields = [
+            m.stored_land,
+            m.expected_land,
+            m.stored_ort,
+            m.expected_ort,
+        ]
+        for index, value in enumerate(fields):
+            if value.lstrip().startswith(("=", "+", "-", "@", "＝", "＋", "－", "＠")):
+                fields[index] = "'" + value
+        writer.writerow([m.fundort_id, m.issue.value, *fields])
+    return output.getvalue().removesuffix("\n")

@@ -18,7 +18,7 @@ from flask import (
 from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
 from sqlalchemy import func, select
 
-from app import db
+from app.extensions import db
 from app.auth import reviewer_required
 from app.database.models import TblFundorte, TblMeldungen
 from app.tools.send_backup_email import send_backup_email
@@ -79,7 +79,7 @@ def _resolve_upload_path(relative_path: str) -> Path | None:
     upload_root = Path(current_app.config["UPLOAD_FOLDER"]).resolve()
     image_path = (upload_root / relative_path).resolve()
     if not image_path.is_relative_to(upload_root):
-        raise ValueError(f"Unsafe upload path in database: {relative_path!r}")
+        raise ValueError("Unsafe upload path in database")
     if not image_path.is_file():
         return None
     return image_path
@@ -96,24 +96,19 @@ def _image_paths_for_year(year: int) -> list[Path]:
     )
 
     paths: list[Path] = []
-    missing: list[str] = []
+    missing = 0
     for ablage in db.session.scalars(stmt):
         resolved = _resolve_upload_path(ablage)
         if resolved is None:
-            missing.append(ablage)
+            missing += 1
         else:
             paths.append(resolved)
 
     if missing:
-        sample = ", ".join(missing[:3])
-        suffix = f" (+{len(missing) - 3} more)" if len(missing) > 3 else ""
         current_app.logger.warning(
-            "Backup year %d: %d image(s) referenced in DB but missing on "
-            "disk; skipped — %s%s",
+            "Backup year %d: %d image(s) referenced in DB but missing on disk; skipped",
             year,
-            len(missing),
-            sample,
-            suffix,
+            missing,
         )
     return paths
 
@@ -246,9 +241,12 @@ def trigger_year_backup(year: int):
 @backup.get("/download/<path:filename>")
 def download_backup(filename: str):
     _validate_download_token(filename, request.args.get("token"))
-    return send_from_directory(
+    response = send_from_directory(
         _backup_dir(),
         filename,
         as_attachment=True,
         download_name=Path(filename).name,
     )
+    response.cache_control.private = True
+    response.cache_control.no_store = True
+    return response

@@ -1,7 +1,7 @@
 from flask import current_app
 from flask_mail import Message
 
-from app import mail
+from app.extensions import mail
 
 
 def render_backup_email(download_url: str, expires_in_days: int) -> str:

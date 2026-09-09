@@ -8,7 +8,10 @@ from unittest.mock import patch, MagicMock
 from sqlalchemy import select, func
 from app.database.fundmeldungen import TblMeldungen
 from app.database.fundorte import TblFundorte
-from app.routes.admin import update_report_image_date
+from app.routes.admin.database import update_report_image_date
+from app.extensions import db
+
+pytestmark = pytest.mark.usefixtures("app_ctx")
 
 
 @pytest.fixture
@@ -57,8 +60,7 @@ def test_update_report_image_date_success(
 ):
     """Test successful image move when date changes"""
     with tempfile.TemporaryDirectory() as temp_dir:
-        with patch("app.routes.admin.current_app") as mock_app:
-            # Mock the app config
+        with patch("app.routes.admin.database.current_app") as mock_app:
             mock_app.config = {"UPLOAD_FOLDER": temp_dir}
             mock_app.logger = MagicMock()
 
@@ -68,11 +70,10 @@ def test_update_report_image_date_success(
             original_file = original_dir / "TestCity-20240715120000-testuser123.webp"
             original_file.write_text("test image content")
 
-            # Update to new date
             new_date = date(2024, 8, 20)
             result = update_report_image_date(mock_meldung_with_image.id, new_date)
+            db.session.commit()
 
-            # Verify success
             assert result["status"] == "success"
 
             # The image follows its report into the new date folder keeping the
@@ -132,7 +133,7 @@ def test_update_report_image_date_no_image(app, session):
     session.add(meldung)
     session.commit()
 
-    with patch("app.routes.admin.current_app") as mock_app:
+    with patch("app.routes.admin.database.current_app") as mock_app:
         mock_app.config = {"UPLOAD_FOLDER": "/tmp"}
 
         result = update_report_image_date(meldung.id, date(2024, 8, 20))
@@ -175,7 +176,7 @@ def test_update_report_image_date_file_not_found(app, session):
     session.commit()
 
     with tempfile.TemporaryDirectory() as temp_dir:
-        with patch("app.routes.admin.current_app") as mock_app:
+        with patch("app.routes.admin.database.current_app") as mock_app:
             mock_app.config = {"UPLOAD_FOLDER": temp_dir}
 
             # Don't create the file, just try to update
@@ -218,7 +219,7 @@ def test_update_report_image_date_same_date(app, session):
     session.commit()
 
     with tempfile.TemporaryDirectory() as temp_dir:
-        with patch("app.routes.admin.current_app") as mock_app:
+        with patch("app.routes.admin.database.current_app") as mock_app:
             mock_app.config = {"UPLOAD_FOLDER": temp_dir}
 
             # Create the file
@@ -284,13 +285,15 @@ def test_update_report_image_date_refuses_to_overwrite(app, session):
     session.commit()
 
     with tempfile.TemporaryDirectory() as temp_dir:
-        with patch("app.routes.admin.current_app") as mock_app:
+        with patch("app.routes.admin.database.current_app") as mock_app:
             mock_app.config = {"UPLOAD_FOLDER": temp_dir}
             mock_app.logger = MagicMock()
 
             source_dir = Path(temp_dir) / "2024" / "2024-07-15"
             source_dir.mkdir(parents=True, exist_ok=True)
-            for record, content in zip(fundorte, ("image one", "image two")):
+            for record, content in zip(
+                fundorte, ("image one", "image two"), strict=True
+            ):
                 (Path(temp_dir) / record.ablage).write_text(content)
 
             new_date = date(2024, 8, 20)
@@ -306,6 +309,7 @@ def test_update_report_image_date_refuses_to_overwrite(app, session):
             assert moved == ["image one", "image two"]
 
             # And the paths recorded in the DB still point at distinct files
+            db.session.commit()
             session.refresh(fundorte[0])
             session.refresh(fundorte[1])
             assert fundorte[0].ablage != fundorte[1].ablage
@@ -313,7 +317,7 @@ def test_update_report_image_date_refuses_to_overwrite(app, session):
 
 def test_update_report_record_not_found(app, session):
     """Test handling when report doesn't exist"""
-    with patch("app.routes.admin.current_app") as mock_app:
+    with patch("app.routes.admin.database.current_app") as mock_app:
         mock_app.config = {"UPLOAD_FOLDER": "/tmp"}
 
         missing_id = (session.scalar(select(func.max(TblMeldungen.id))) or 0) + 1

@@ -2,12 +2,14 @@ import pytest
 from alembic import command
 from alembic.config import Config
 from sqlalchemy import text
+from sqlalchemy.orm import Session
 from sqlalchemy_utils import create_database, database_exists, drop_database
 
+from tests.helpers import set_client_user
 from tests.test_config import Config as TestConfig
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="session")
 def _test_database():
     """Create the test database if it doesn't exist, drop it on teardown.
 
@@ -22,8 +24,18 @@ def _test_database():
     drop_database(TestConfig.URI)
 
 
-@pytest.fixture(scope="session")
-def app(_test_database):
+@pytest.fixture
+def test_config(tmp_path, tmp_path_factory):
+    class Config(TestConfig):
+        UPLOAD_FOLDER = str(tmp_path / "uploads")
+        BACKUP_DIR = str(tmp_path / "backups")
+        FAVICON_BUILD_DIR = str(tmp_path_factory.getbasetemp() / "favicons")
+
+    return Config
+
+
+@pytest.fixture
+def app(_test_database, test_config):
     """Create and configure a Flask app for testing.
 
     Depends on _test_database to ensure the DB exists before
@@ -31,15 +43,26 @@ def app(_test_database):
     """
     from app import create_app
 
-    app = create_app(TestConfig)
+    app = create_app(test_config)
+
+    yield app
     with app.app_context():
-        yield app
+        from app.extensions import db
+
+        db.engine.dispose()
 
 
 @pytest.fixture
-def client(app):
+def client(app, _db):
     """Create a test client for the Flask application."""
     return app.test_client()
+
+
+@pytest.fixture
+def app_ctx(app):
+    """Provide a context for direct calls to application helpers."""
+    with app.app_context():
+        yield
 
 
 @pytest.fixture
@@ -60,7 +83,8 @@ def session_with_user(request_context):
     """
     from flask import session
 
-    session["user_id"] = "9999"
+    session["_user_id"] = "9999"
+    session["_fresh"] = True
     yield session
 
 
@@ -71,9 +95,7 @@ def authenticated_client(client):
     Uses ``client.session_transaction()`` — the correct way to populate
     the cookie-backed session used by the Flask test client.
     """
-    with client.session_transaction() as sess:
-        sess["user_id"] = "9999"
-    return client
+    return set_client_user(client, "9999")
 
 
 def _reset_schema():
@@ -82,7 +104,7 @@ def _reset_schema():
     Uses DROP SCHEMA public CASCADE to remove all tables, views,
     functions, triggers, types, and sequences at once.
     """
-    from app import db
+    from app.extensions import db
 
     db.session.execute(text("DROP SCHEMA public CASCADE"))
     db.session.execute(text("CREATE SCHEMA public"))
@@ -91,7 +113,7 @@ def _reset_schema():
 
 def _seed_test_data():
     """Populate test database with initial + demo data."""
-    from app import db
+    from app.extensions import db
     from app.demodata.filldb import insert_data_reports
     from app.database.populate import populate_all
     from tests.database.jsondata import data as jsondata
@@ -118,50 +140,28 @@ def _run_migrations():
     command.upgrade(alembic_cfg, "heads")
 
 
-# Public aliases used by tests/migrations/test_migration_chain.py
-insert_initial_data_command = _seed_test_data
-upgrade = _run_migrations
-
-
-@pytest.fixture(scope="session")
+@pytest.fixture
 def _db(app):
-    """Set up the database for the test session.
+    """Rebuild the database before each test that uses it.
 
     Resets schema, runs Alembic migrations (which create tables,
     triggers, and functions), then populates with test data.
     """
-    from app import db
+    from app.extensions import db
 
-    _reset_schema()
-    _run_migrations()
-    _seed_test_data()
+    with app.app_context():
+        _reset_schema()
+        _run_migrations()
+        _seed_test_data()
 
-    yield db
-
-    # Dispose all connections so _test_database teardown can DROP DATABASE
-    db.session.remove()
-    db.engine.dispose()
+    return db
 
 
-@pytest.fixture(scope="function", autouse=True)
-def session(_db):
-    """Creates a new database session for each test.
+@pytest.fixture
+def session(_db, app):
+    """Use a separate session for test setup and saved-result assertions."""
+    with app.app_context():
+        engine = _db.engine
 
-    This fixture creates a transaction for each test and rolls it back
-    after the test completes, ensuring test isolation.
-    """
-    connection = _db.engine.connect()
-    transaction = connection.begin()
-    options = dict(
-        bind=connection,
-        binds={},
-        join_transaction_mode="create_savepoint",
-    )
-    session = _db._make_scoped_session(options=options)
-    _db.session = session
-
-    yield session  # Provide the session for the test
-
-    session.remove()
-    transaction.rollback()
-    connection.close()
+    with Session(engine) as session:
+        yield session
