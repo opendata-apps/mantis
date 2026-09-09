@@ -3,6 +3,8 @@ from dotenv import load_dotenv
 from datetime import timedelta
 from email.utils import parseaddr
 
+from sqlalchemy import URL
+
 # Load .env file from project root
 load_dotenv()
 
@@ -76,10 +78,18 @@ class Config:
     DATABASE_PASSWORD = os.getenv("POSTGRES_PASSWORD", "mantis")
     DATABASE_DB = os.getenv("POSTGRES_DB", "mantis_tracker")
 
-    SQLALCHEMY_DATABASE_URI = (
-        f"postgresql+psycopg://{DATABASE_USER}:{DATABASE_PASSWORD}"
-        f"@{DATABASE_HOST}:{DATABASE_PORT}/{DATABASE_DB}"
-    )
+    # URL.create escapes the credentials; interpolating them into a string
+    # misparses a password containing @ / : # or %. Rendered back to a string
+    # because alembic's set_main_option and sqlalchemy_utils both want one —
+    # with hide_password=False, since str(URL) would emit "***".
+    SQLALCHEMY_DATABASE_URI = URL.create(
+        "postgresql+psycopg",
+        username=DATABASE_USER,
+        password=DATABASE_PASSWORD,
+        host=DATABASE_HOST,
+        port=int(DATABASE_PORT),
+        database=DATABASE_DB,
+    ).render_as_string(hide_password=False)
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # Connection Pooling Configuration
