@@ -224,7 +224,6 @@ class TestReportSubmission:
             anm_melder="Spotted on a plant",
         )
 
-        # Add the sighting to the session
         session.add(invalid_sighting)
 
         # The dat_fund_von column is marked as nullable=False
@@ -427,7 +426,7 @@ class TestReportSubmission:
             # No file upload should happen on validation errors
             mock_process_image.assert_not_called()
         else:
-            raise AssertionError(f"Unexpected status code: {response.status_code}")
+            pytest.fail(f"Unexpected status code: {response.status_code}")
 
     @patch("app.routes.report._process_uploaded_image")
     def test_submission_outside_germany_is_allowed(

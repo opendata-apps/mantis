@@ -47,7 +47,6 @@ class TestIDConsistency:
             )
             session.add(self.reviewer)
 
-        # Create test location
         self.location = TblFundorte(
             mtb="3644",
             longitude="13.404954",
@@ -97,7 +96,6 @@ class TestIDConsistency:
 
         reports_json = extract_reports_json(response.data)
 
-        # Find our test report
         our_report = None
         for report in reports_json:
             if report["report_id"] == self.expected_report_id:
@@ -159,7 +157,6 @@ class TestIDConsistency:
         response = client.get(f"/report/{self.test_user.user_id}")
         soup = BeautifulSoup(response.data, "html.parser")
 
-        # Look for "Melde-ID" text
         melde_id_text = soup.find(string=lambda text: text and "Melde-ID" in text)
         assert melde_id_text is not None, "Provider view should show 'Melde-ID'"
 
@@ -192,7 +189,7 @@ class TestIDConsistency:
             allowed_id_columns = ["meldungen_id", "user_id"]
             for col in data.get("columns", []):
                 if "id" in col.lower() and col not in allowed_id_columns:
-                    raise AssertionError(f"Unexpected ID column exposed: {col}")
+                    pytest.fail(f"Unexpected ID column exposed: {col}")
 
     def test_database_view_uses_consistent_naming(self, client):
         """Test that database view uses consistent ID naming."""

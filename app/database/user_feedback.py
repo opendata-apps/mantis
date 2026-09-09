@@ -11,7 +11,6 @@ class TblUserFeedback(db.Model):
     feedback_source = db.Column(db.String(20), nullable=False)
     source_detail = db.Column(db.String(255), nullable=True)
 
-    # Relationship back to the user
     user = db.relationship("TblUsers", back_populates="feedback_source")
 
     @property

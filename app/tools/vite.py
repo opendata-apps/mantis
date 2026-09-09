@@ -121,7 +121,6 @@ def vite_css(entry: str) -> list:
     if not manifest or entry not in manifest:
         return []
 
-    # Collect CSS from entry and all its imports recursively
     css_files = _collect_css_recursive(manifest, entry)
 
     return [

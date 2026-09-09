@@ -44,7 +44,6 @@ def show_map():
     )
     years = [int(row[0]) for row in db.session.execute(years_stmt).all()]
 
-    # Validate selected_year exists in available years
     if selected_year is not None and selected_year not in years:
         selected_year = None
 

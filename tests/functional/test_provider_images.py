@@ -54,7 +54,6 @@ class TestProviderImageAccess:
             select(TblUsers).where(TblUsers.user_id == "9999")
         )
 
-        # Reporter A
         self.reporter_a = session.scalar(
             select(TblUsers).where(TblUsers.user_id == "img_user_a")
         )

@@ -674,7 +674,6 @@ def validate_step_partial():
         )
     step_fields = get_step_fields(step)
 
-    # Build form data from request
     form_data = MultiDict(request.form)
     if "identical_finder_reporter" in request.form:
         form_data["identical_finder_reporter"] = (
@@ -688,7 +687,6 @@ def validate_step_partial():
     is_valid = True
     errors = {}
 
-    # Validate step-specific fields
     for field_name in step_fields:
         field = getattr(form, field_name, None)
         if field and not field.validate(form):
@@ -735,7 +733,6 @@ def toggle_finder():
     is_identical = _is_checkbox_true(request.form.get("identical_finder_reporter"))
 
     if is_identical:
-        # Return hidden/empty finder fields
         return render_template("report/partials/_finder_fields.html", show=False)
     else:
         # Return visible finder fields

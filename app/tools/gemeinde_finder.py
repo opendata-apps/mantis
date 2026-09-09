@@ -75,7 +75,6 @@ class GemeindeFinder:
                 geometries = []
                 metadata = []
 
-                # Load Kreise lookup for enrichment
                 self._load_kreise()
 
                 # Cast JSONB to text and parse with GEOS' C parser: skipping

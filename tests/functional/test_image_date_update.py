@@ -59,7 +59,6 @@ def test_update_report_image_date_success(
     """Test successful image move when date changes"""
     with tempfile.TemporaryDirectory() as temp_dir:
         with patch("app.routes.admin.database.current_app") as mock_app:
-            # Mock the app config
             mock_app.config = {"UPLOAD_FOLDER": temp_dir}
             mock_app.logger = MagicMock()
 
@@ -69,11 +68,9 @@ def test_update_report_image_date_success(
             original_file = original_dir / "TestCity-20240715120000-testuser123.webp"
             original_file.write_text("test image content")
 
-            # Update to new date
             new_date = date(2024, 8, 20)
             result = update_report_image_date(mock_meldung_with_image.id, new_date)
 
-            # Verify success
             assert result["status"] == "success"
 
             # Check file was moved

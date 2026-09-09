@@ -149,7 +149,6 @@ class TestCustomRanges:
     def test_custom_box_size_scales_output(self):
         svg_small = create_measure_sheet(box_size=25, dataset=[])
         svg_large = create_measure_sheet(box_size=100, dataset=[])
-        # Pull width from the SVG root
         w_small = int(re.search(r'width="(\d+)px"', svg_small).group(1))
         w_large = int(re.search(r'width="(\d+)px"', svg_large).group(1))
         assert w_large == w_small * 4

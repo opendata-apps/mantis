@@ -13,7 +13,6 @@ class TestMapDataFilters:
     @pytest.fixture(autouse=True)
     def setup_test_data(self, session):
         """Create test data with various states."""
-        # Create test location
         self.location = TblFundorte(
             mtb="3644",
             longitude="13.404954",
@@ -87,7 +86,6 @@ class TestMapDataFilters:
 
         reports_json = extract_reports_json(response.data)
 
-        # Extract report IDs from the JSON
         report_ids = [report["report_id"] for report in reports_json]
 
         # Check that approved sightings are included
