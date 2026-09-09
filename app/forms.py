@@ -1,8 +1,8 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed, FileRequired, FileSize
 from wtforms import (
-    StringField,
     FloatField,
+    StringField,
     TextAreaField,
     DateField,
     SelectField,
@@ -11,16 +11,25 @@ from wtforms import (
 from wtforms.validators import (
     DataRequired,
     Email,
+    NumberRange,
     Optional,
     Length,
+    StopValidation,
     ValidationError,
     InputRequired,
 )
 from datetime import date, timedelta
 import re
 
-
-from app.validators import CoordinateValidator, SwappedCoordinateValidator
+from app.tools.coordinate_validation import (
+    INVALID_MESSAGES,
+    LAT_RANGE,
+    LON_RANGE,
+    RANGE_MESSAGES,
+    SWAPPED_MESSAGE,
+    coordinates_look_swapped,
+    parse_coordinate,
+)
 
 
 # Define constants for choices
@@ -69,6 +78,52 @@ def validate_past_date(form, field):
 def validate_zip_code(form, field):
     if field.data and not re.match(r"^\d{5}$", field.data):
         raise ValidationError("Postleitzahl muss genau 5 Ziffern haben.")
+
+
+class CoordinateField(FloatField):
+    """FloatField that parses coordinates the way the rest of the app does.
+
+    Plain FloatField coerces with float(), which rejects the comma decimal
+    mobile keyboards emit ("52,52") with the untranslated "Not a valid float
+    value." and then stacks the NumberRange error on top of it. The JS
+    normalises the comma before submit, but a form that arrives without it must
+    not fall back to two English errors. NaN and inf are already caught by
+    NumberRange (it checks math.isnan and compares against the bounds), so this
+    field only owns the parsing and the German message.
+    """
+
+    def __init__(self, label=None, validators=None, coord_type="latitude", **kwargs):
+        super().__init__(label, validators, **kwargs)
+        self.coord_type = coord_type
+
+    def process_formdata(self, valuelist):
+        if not valuelist:
+            return
+
+        self.data = parse_coordinate(valuelist[0])
+        if self.data is None:
+            raise ValueError(INVALID_MESSAGES[self.coord_type])
+
+
+def validate_not_swapped(form, field):
+    """Reject a transposed latitude/longitude pair.
+
+    Hangs on both coordinate fields and reads the other one off the form. Place
+    it before NumberRange: it stops the chain so the reporter gets the "swapped"
+    hint instead of two range errors that don't explain anything.
+    """
+    if field.data is None:
+        # The float conversion already failed and recorded its own error. Stop
+        # the chain: NumberRange counts None as out of range and would stack
+        # "muss zwischen ... liegen" on top of "not a valid float value".
+        raise StopValidation()
+
+    other = form.longitude if field is form.latitude else form.latitude
+    if other.data is None:
+        return  # nothing to compare against yet
+
+    if coordinates_look_swapped(form.latitude.data, form.longitude.data):
+        raise StopValidation(SWAPPED_MESSAGE)
 
 
 def _strip(value):
@@ -194,21 +249,31 @@ class MantisSightingForm(StrippedForm):
     )
 
     # Location Information
-    latitude = FloatField(
+    latitude = CoordinateField(
         "Breitengrad *",
+        coord_type="latitude",
         validators=[
             InputRequired(message="Breitengrad ist erforderlich (Karte nutzen)."),
-            SwappedCoordinateValidator(),
-            CoordinateValidator("latitude"),
+            validate_not_swapped,
+            NumberRange(
+                min=LAT_RANGE[0],
+                max=LAT_RANGE[1],
+                message=RANGE_MESSAGES["latitude"],
+            ),
         ],
         render_kw={"readonly": True, "aria-label": "Breitengrad (von Karte gesetzt)"},
     )
-    longitude = FloatField(
+    longitude = CoordinateField(
         "Längengrad *",
+        coord_type="longitude",
         validators=[
             InputRequired(message="Längengrad ist erforderlich (Karte nutzen)."),
-            SwappedCoordinateValidator(),
-            CoordinateValidator("longitude"),
+            validate_not_swapped,
+            NumberRange(
+                min=LON_RANGE[0],
+                max=LON_RANGE[1],
+                message=RANGE_MESSAGES["longitude"],
+            ),
         ],
         render_kw={"readonly": True, "aria-label": "Längengrad (von Karte gesetzt)"},
     )
@@ -276,7 +341,6 @@ class MantisSightingForm(StrippedForm):
         render_kw={"placeholder": "Weitere Details (max. 500 Zeichen)", "rows": 3},
     )
 
-    # Photo Upload
     photo = FileField(
         "Foto (max. 12MB) *",
         validators=[
