@@ -1,57 +1,48 @@
+"""Passwordless auth: an unguessable URL is the credential.
+
+`/sichtungen/<usrid>` and `/reviewer/<usrid>` grant whoever holds them
+(https://www.w3.org/TR/capability-urls/). `TblUsers.get_id` returns that same
+token, so the cookies expose nothing the URL does not.
+"""
+
 from functools import wraps
-from flask import abort, g, session
+
+from flask import abort, session
+from flask_login import current_user, login_required, login_user
 from sqlalchemy import select
-from app.extensions import db
+
 from app.database.models import TblUsers, UserRole
+from app.extensions import db, login_manager
 
 
-def load_session_user(*, require_reviewer: bool = False) -> TblUsers:
-    """Load the current user from session, or abort(403).
-
-    Verifies the session contains a user_id that maps to an existing user.
-    Stores the looked-up user on ``g.current_user`` for downstream access.
-    Clears the session on stale user_id to avoid repeated DB misses.
-
-    Args:
-        require_reviewer: When true, enforce reviewer role '9'.
-
-    Returns:
-        The TblUsers instance for the current session user.
-    """
-    user_id = session.get("user_id")
-    if not user_id:
-        abort(403)
-    user = db.session.scalar(select(TblUsers).where(TblUsers.user_id == user_id))
-    if not user:
-        session.clear()
-        abort(403)
-    if require_reviewer and user.user_rolle != UserRole.REVIEWER:
-        abort(403)
-    g.current_user = user
-    return user
+# Registered at import time; the route blueprints are what pull this module in.
+@login_manager.user_loader
+def load_user(user_id):
+    return db.session.scalar(select(TblUsers).where(TblUsers.user_id == user_id))
 
 
-def login_required(f):
-    """Require an authenticated user whose account still exists in the DB."""
+@login_manager.unauthorized_handler
+def unauthorized():
+    # Drop the unresolvable id, or it gets looked up again on every request.
+    session.pop("_user_id", None)
+    # No login form exists, and reviewer endpoints must not leak auth state.
+    abort(403)
 
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        load_session_user()
-        return f(*args, **kwargs)
 
-    return decorated_function
+def log_in(user):
+    """Log a user in. Reporters are remembered; without that a repeat
+    submission mints a second identity and splits their history."""
+    login_user(user, remember=user.user_rolle == UserRole.REPORTER)
 
 
 def reviewer_required(f):
-    """Require a valid reviewer session with role '9'.
-
-    Reviewer endpoints intentionally return 403 for missing/stale sessions to
-    avoid revealing authentication state.
-    """
+    """Require a valid reviewer session with role '9'."""
 
     @wraps(f)
+    @login_required
     def decorated_function(*args, **kwargs):
-        load_session_user(require_reviewer=True)
+        if current_user.user_rolle != UserRole.REVIEWER:
+            abort(403)
         return f(*args, **kwargs)
 
     return decorated_function

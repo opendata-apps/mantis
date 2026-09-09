@@ -1,14 +1,14 @@
 from flask import (
-    g,
-    session,
     render_template,
     Blueprint,
     send_from_directory,
     abort,
     current_app,
 )
+from flask_login import current_user, login_required
+
 from app.extensions import db
-from app.auth import login_required
+from app.auth import log_in
 from sqlalchemy import select
 from sqlalchemy.orm import contains_eager
 from app.database.models import (
@@ -37,10 +37,8 @@ def melder_index(usrid):
     # Only set session when visitor has no active session or is visiting
     # their own page. This prevents session hijacking when Reporter A
     # clicks Reporter B's link, and preserves reviewer sessions.
-    current_user_id = session.get("user_id")
-    if not current_user_id or current_user_id == usrid:
-        session["user_id"] = usrid
-        session.permanent = True
+    if not current_user.is_authenticated or current_user.user_id == usrid:
+        log_in(user)
 
     image_path = current_app.config["UPLOAD_FOLDER"]
 
@@ -85,10 +83,8 @@ def melder_index(usrid):
 @login_required
 def report_img(filename):
     """Serve report images — only to the owning reporter or reviewers."""
-    user = g.current_user
-
     # Reviewers can see all images
-    if user.user_rolle == "9":
+    if current_user.user_rolle == UserRole.REVIEWER:
         return send_from_directory(
             current_app.config["UPLOAD_FOLDER"], filename, mimetype="image/webp"
         )
@@ -101,12 +97,14 @@ def report_img(filename):
         .join(TblUsers, TblUsers.id == TblMeldungUser.id_user)
         .where(TblFundorte.ablage == filename)
     )
-    if user.user_kontakt:
+    if current_user.user_kontakt:
         ownership_query = ownership_query.where(
-            TblUsers.user_kontakt == user.user_kontakt
+            TblUsers.user_kontakt == current_user.user_kontakt
         )
     else:
-        ownership_query = ownership_query.where(TblUsers.user_id == user.user_id)
+        ownership_query = ownership_query.where(
+            TblUsers.user_id == current_user.user_id
+        )
 
     if not db.session.scalar(ownership_query):
         abort(403)

@@ -10,6 +10,7 @@ import os
 from flask_favicon import FlaskFavicon
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from flask_login import LoginManager
 from flask_mail import Mail
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
@@ -31,3 +32,6 @@ limiter = Limiter(
 )
 mail = Mail()
 flask_favicon = FlaskFavicon()
+# Leave session_protection at "basic": "strong" drops the session when the
+# client address changes, logging reporters out mid-form on mobile/wifi switch.
+login_manager = LoginManager()

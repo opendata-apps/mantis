@@ -8,7 +8,7 @@ def test_view_alldata_search(client):
     returns data successfully for authenticated users.
     """
     with client.session_transaction() as sess:
-        sess["user_id"] = "9999"  # Simulierter eingeloggter Benutzer
+        sess["_user_id"] = "9999"  # Simulierter eingeloggter Benutzer
         # Don't set last_updated_all_data_view - let the route handle it
 
     # Senden einer POST-Anfrage an die Seite mit den Formulardaten

@@ -27,6 +27,7 @@ def test_overrides_are_deliberate():
         "DATABASE_DB",
         "MIN_MAP_YEAR",
         "PHOTO_SUPPORT_EMAIL",
+        "REMEMBER_COOKIE_SECURE",
         "REVIEWERMAIL",
         "SECRET_KEY",
         "SESSION_COOKIE_SECURE",

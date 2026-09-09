@@ -20,7 +20,10 @@ from email_validator import validate_email
 from werkzeug.datastructures import MultiDict
 from PIL import Image, ImageOps
 
+from flask_login import current_user
+
 from app.extensions import db, limiter
+from app.auth import log_in
 from sqlalchemy import select
 from app.database.models import (
     TblFundorte,
@@ -28,6 +31,7 @@ from app.database.models import (
     TblMeldungUser,
     TblUsers,
     TblUserFeedback,
+    UserRole,
 )
 from app.database.feedback_type import FeedbackSource
 from app.forms import MantisSightingForm
@@ -138,6 +142,28 @@ def _process_uploaded_image(photo_file, sighting_date, city_name, user_id):
     return str((upload_dir / filename).relative_to(upload_root))
 
 
+def _resolve_reporter(usrid, email):
+    """Find the reporter this submission belongs to, or None to create one.
+
+    A link in the URL wins outright. Otherwise the remember cookie may hold the
+    link this browser last reported with; the address only breaks the tie on top
+    of it, never grants on its own.
+    """
+    if usrid:
+        return db.session.scalar(select(TblUsers).where(TblUsers.user_id == usrid))
+
+    if (
+        email
+        and current_user.is_authenticated
+        and current_user.user_rolle == UserRole.REPORTER
+        and current_user.user_kontakt
+        == validate_email(email, check_deliverability=False).normalized
+    ):
+        # Unwrap the proxy — this row goes on to be flushed and related.
+        return current_user._get_current_object()
+    return None
+
+
 def _create_user(first_name, last_name, email, role=1):
     """Create a new user with standardized name format."""
     user_id = get_new_id()
@@ -207,11 +233,7 @@ def melden(usrid=None):
             # when the save dies before the upload is processed.
             db_image_path = None
             try:
-                reporter = (
-                    db.session.scalar(select(TblUsers).where(TblUsers.user_id == usrid))
-                    if usrid
-                    else None
-                )
+                reporter = _resolve_reporter(usrid, form.email.data)
                 if not reporter:
                     reporter = _create_user(
                         form.report_first_name.data,
@@ -295,6 +317,8 @@ def melden(usrid=None):
                 user_link.id_finder = finder_instance.id if finder_instance else None
                 db.session.add(user_link)
                 db.session.commit()
+
+                log_in(reporter)
 
                 # Set session data for success page
                 session["report_submission_successful"] = True
