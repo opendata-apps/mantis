@@ -27,49 +27,35 @@ provider = Blueprint("provider", __name__)
 @provider.route("/sichtungen/<usrid>")
 def melder_index(usrid):
     "Index page for the provider. The users reports are displayed here."
-    # First find the user making the request with role 1 or 9
     user = db.session.scalar(select(TblUsers).where(TblUsers.user_id == usrid))
 
-    # If the user doesn't exist or the role isn't 1 or 9, return 404
     if not user or user.user_rolle not in (UserRole.REPORTER, UserRole.REVIEWER):
         abort(404)
 
-    # Only set session when visitor has no active session or is visiting
-    # their own page. This prevents session hijacking when Reporter A
-    # clicks Reporter B's link, and preserves reviewer sessions.
+    # Only when the visitor holds no other identity: Reporter A following
+    # Reporter B's link must not take it over, nor a reviewer lose their session.
     if not current_user.is_authenticated or current_user.user_id == usrid:
         log_in(user)
 
     image_path = current_app.config["UPLOAD_FOLDER"]
 
-    # Get the user's email if provided
-    user_email = user.user_kontakt if user.user_kontakt else None
-
-    # Relationship-based query with eager loading
-    base_stmt = (
+    # Scope by the melduser link, never by user_kontakt — as this did until
+    # 2026-09. The email field is unverified, so anyone knowing an address could
+    # file one sighting under it and read that owner's coordinates and photos.
+    stmt = (
         select(TblMeldungen)
         .join(TblMeldungen.reporter_link)
-        .join(TblMeldungUser.reporter)
         .join(TblMeldungen.fundort)
         .join(TblFundorte.location_type)
         .options(
             contains_eager(TblMeldungen.fundort).contains_eager(
                 TblFundorte.location_type
-            ),
-            contains_eager(TblMeldungen.reporter_link).contains_eager(
-                TblMeldungUser.reporter
-            ),
+            )
         )
+        .where(TblMeldungUser.id_user == user.id)
     )
 
-    # Apply email filter only if user has an email
-    if user_email:
-        stmt = base_stmt.where(TblUsers.user_kontakt == user_email)
-    else:
-        stmt = base_stmt.where(TblUsers.user_id == usrid)
-
-    # .unique() deduplicates if melduser has multiple rows per meldung
-    sichtungen = db.session.scalars(stmt).unique().all()
+    sichtungen = db.session.scalars(stmt).all()
 
     return render_template(
         "provider/melder.html",
@@ -83,30 +69,22 @@ def melder_index(usrid):
 @login_required
 def report_img(filename):
     """Serve report images — only to the owning reporter or reviewers."""
-    # Reviewers can see all images
     if current_user.user_rolle == UserRole.REVIEWER:
         return send_from_directory(
             current_app.config["UPLOAD_FOLDER"], filename, mimetype="image/webp"
         )
 
-    # Verify reporter owns this image (mirrors melder_index email-grouping logic)
-    ownership_query = (
+    # Same ownership rule as melder_index.
+    owns_image = db.session.scalar(
         select(TblFundorte.id)
         .join(TblMeldungen, TblMeldungen.fo_zuordnung == TblFundorte.id)
         .join(TblMeldungUser, TblMeldungUser.id_meldung == TblMeldungen.id)
-        .join(TblUsers, TblUsers.id == TblMeldungUser.id_user)
-        .where(TblFundorte.ablage == filename)
+        .where(
+            TblFundorte.ablage == filename,
+            TblMeldungUser.id_user == current_user.id,
+        )
     )
-    if current_user.user_kontakt:
-        ownership_query = ownership_query.where(
-            TblUsers.user_kontakt == current_user.user_kontakt
-        )
-    else:
-        ownership_query = ownership_query.where(
-            TblUsers.user_id == current_user.user_id
-        )
-
-    if not db.session.scalar(ownership_query):
+    if not owns_image:
         abort(403)
 
     return send_from_directory(
