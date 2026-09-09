@@ -3,9 +3,10 @@
 from datetime import datetime
 
 from flask import current_app, request
-from sqlalchemy import func, select
+from sqlalchemy import false, func, select
 from sqlalchemy.orm import contains_eager, joinedload
 
+from app.tools.fts import prefix_tsquery
 from app.database.models import (
     STATUS_FILTERS,
     TblFundorte,
@@ -127,14 +128,19 @@ def get_filtered_query(
                     search_type = "full_text"
 
             if search_type == "full_text":
-                ts_query = func.websearch_to_tsquery("german", search_query)
-                stmt = stmt.where(TblMeldungen.search_vector.op("@@")(ts_query))
-                stmt = stmt.order_by(
-                    func.ts_rank_cd(TblMeldungen.search_vector, ts_query).desc()
-                )
+                tsquery_text = prefix_tsquery(search_query)
+                if tsquery_text is None:
+                    # Nothing searchable in the input, so nothing matches.
+                    stmt = stmt.where(false())
+                else:
+                    ts_query = func.to_tsquery("german", tsquery_text)
+                    stmt = stmt.where(TblMeldungen.search_vector.op("@@")(ts_query))
+                    stmt = stmt.order_by(
+                        func.ts_rank_cd(TblMeldungen.search_vector, ts_query).desc()
+                    )
         except Exception as e:
             current_app.logger.error(f"Search error: {e}")
-            stmt = stmt.where(TblMeldungen.id == -1)
+            stmt = stmt.where(false())
 
     # Apply date filters
     # Choose which date column to filter on based on date_type
@@ -147,7 +153,7 @@ def get_filtered_query(
 
     if (date_from and parsed_from is None) or (date_to and parsed_to is None):
         current_app.logger.error(f"Date parsing error: {date_from!r} / {date_to!r}")
-        stmt = stmt.where(TblMeldungen.id == -1)
+        stmt = stmt.where(false())
     elif parsed_from and parsed_to:
         stmt = stmt.where(date_column.between(parsed_from, parsed_to))
     elif parsed_from:

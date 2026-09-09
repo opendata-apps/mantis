@@ -12,7 +12,7 @@ from flask import (
     request,
     session,
 )
-from sqlalchemy import func, select, update
+from sqlalchemy import false, func, select, update
 from sqlalchemy.exc import SQLAlchemyError
 
 import app.database.alldata as ad
@@ -30,6 +30,7 @@ from app.routes.admin.blueprint import admin
 from app.tools.location_enrichment import recalculate_amt_mtb
 from app.routes.backup import available_backup_years
 from app.tools.coordinate_validation import validate_and_normalize_coordinate
+from app.tools.fts import prefix_tsquery
 from app.tools.report_images import build_upload_filename, ensure_upload_dir
 
 
@@ -191,16 +192,17 @@ def get_table_data(table_name):
                     search_id = int(search)
                     stmt = stmt.where(table.c.meldungen_id == search_id)
                 except ValueError:
-                    # If conversion fails, return no results
-                    stmt = stmt.where(
-                        table.c.meldungen_id == -1
-                    )  # This ensures no results
+                    stmt = stmt.where(false())
             else:  # full_text search
-                ts_query = func.websearch_to_tsquery("german", search)
-                meldungen_tbl = TblMeldungen.__table__
-                stmt = stmt.join(
-                    meldungen_tbl, table.c.meldungen_id == meldungen_tbl.c.id
-                ).where(meldungen_tbl.c.search_vector.op("@@")(ts_query))
+                tsquery_text = prefix_tsquery(search)
+                if tsquery_text is None:
+                    stmt = stmt.where(false())
+                else:
+                    ts_query = func.to_tsquery("german", tsquery_text)
+                    meldungen_tbl = TblMeldungen.__table__
+                    stmt = stmt.join(
+                        meldungen_tbl, table.c.meldungen_id == meldungen_tbl.c.id
+                    ).where(meldungen_tbl.c.search_vector.op("@@")(ts_query))
 
         total_items = db.session.scalar(
             select(func.count()).select_from(stmt.order_by(None).subquery())
