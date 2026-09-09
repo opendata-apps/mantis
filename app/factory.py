@@ -17,80 +17,97 @@ with (Path(__file__).resolve().parent.parent / "pyproject.toml").open(
     __version__ = tomllib.load(_pyproject)["project"]["version"]
 
 
-def create_app(config_class=Config):
+def create_app(config_class=Config) -> Flask:
     # Must be the bare package, not "app.factory" (cookiecutter-flask does the
     # same). Flask names its logger after the import name, and app/tools/* log
     # through logging.getLogger(__name__); only an "app" logger is an ancestor
-    # of those, so only it passes down the level set below and Flask's handler.
-    # Under "app.factory" they fall back to root/WARNING and drop out of the
-    # logs. Template and static roots are unaffected either way — factory.py
-    # already sits in app/.
+    # of those, so only it passes down the level set in configure_logger and
+    # Flask's handler. Under "app.factory" they fall back to root/WARNING and
+    # drop out of the logs. Template and static roots are unaffected either
+    # way — factory.py already sits in app/.
     app = Flask(__name__.split(".")[0])
     app.config.from_object(config_class)
 
-    # Logging first — so all init_app calls can log properly.
-    #
-    # No file handler: RotatingFileHandler is documented as single-process, and
-    # every gunicorn worker builds its own, so a rollover renames the file out
-    # from under the others and lines are lost. Flask's own handler writes to
-    # stderr, which the container hands to journald — the log we actually read.
+    # Logging first, so every step below can log. The rest is grouped the way
+    # cookiecutter-flask groups it; the order of these calls is the wiring
+    # order, so read them top to bottom.
+    configure_logger(app)
+    register_heif_opener()
+    register_extensions(app)
+    register_template_globals(app)
+
+    from app.cli import register_commands
+
+    register_commands(app)
+
+    register_shellcontext(app)
+    configure_middlewares(app)
+    register_blueprints(app)
+    register_errorhandlers(app)
+
+    return app
+
+
+def configure_logger(app: Flask) -> None:
+    """No file handler: RotatingFileHandler is documented as single-process, and
+    every gunicorn worker builds its own, so a rollover renames the file out
+    from under the others and lines are lost. Flask's own handler writes to
+    stderr, which the container hands to journald — the log we actually read.
+    """
     if not app.debug:
         app.logger.setLevel(os.environ.get("FLASK_LOG_LEVEL", "INFO").upper())
         app.logger.info("Mantis tracker startup")
 
-    # HEIC/HEIF decoding for iPhone uploads. Registers a plugin into Pillow's
-    # own opener table, so `Image.open` handles HEIC and the existing WebP
-    # re-encode path needs no change. Verified rather than assumed: registration
-    # silently no-ops against an incompatible Pillow (pillow-heif #340), which
-    # would turn every HEIC upload into a 500 at runtime instead of here.
+
+def register_heif_opener() -> None:
+    """HEIC/HEIF decoding for iPhone uploads.
+
+    Registers a plugin into Pillow's own opener table, so `Image.open` handles
+    HEIC and the existing WebP re-encode path needs no change. Verified rather
+    than assumed: registration silently no-ops against an incompatible Pillow,
+    which would turn every HEIC upload into a 500 at runtime instead of here.
+    https://github.com/bigcat88/pillow_heif/issues/340
+    """
     pillow_heif.register_heif_opener()
     if "HEIF" not in Image.OPEN:
         raise RuntimeError(
             "pillow-heif did not register a HEIF opener; HEIC uploads would fail"
         )
 
-    # Extensions
+
+def register_extensions(app: Flask) -> None:
     csrf.init_app(app)
     db.init_app(app)
     mail.init_app(app)
     limiter.init_app(app)
     flask_favicon.init_app(app)
 
-    # Register favicons
     flask_favicon.register_favicon("app/static/images/logo.png", "default")
-    # You can register additional favicons for different sections
-    # For example, a special one for admin pages:
-    # flask_favicon.register_favicon('app/static/images/admin-logo.png', 'admin')
 
     migrate.init_app(app, db)
 
-    # Initialize Vite asset helper
     from app.tools import vite
 
     vite.init_app(app)
 
-    # Heroicons Jinja globals — usage: {{ heroicon_outline("map-pin", class="w-4 h-4") }}
-    from heroicons.jinja import (
-        heroicon_micro,
-        heroicon_mini,
-        heroicon_outline,
-        heroicon_solid,
-    )
+
+def register_template_globals(app: Flask) -> None:
+    # Heroicons — usage: {{ heroicon_outline("map-pin", class="w-4 h-4") }}
+    from heroicons.jinja import heroicon_mini, heroicon_outline
 
     app.jinja_env.globals.update(
         {
-            "heroicon_micro": heroicon_micro,
             "heroicon_mini": heroicon_mini,
             "heroicon_outline": heroicon_outline,
-            "heroicon_solid": heroicon_solid,
         }
     )
 
-    # Register CLI commands
-    from app.cli import register_commands
+    @app.context_processor
+    def inject_now():
+        return {"now": datetime.now(), "version": __version__}
 
-    register_commands(app)
 
+def register_shellcontext(app: Flask) -> None:
     @app.shell_context_processor
     def make_shell_context():
         from app.database.models import TblFundorte, TblMeldungen, TblUsers
@@ -102,24 +119,24 @@ def create_app(config_class=Config):
             "TblFundorte": TblFundorte,
         }
 
+
+def configure_middlewares(app: Flask) -> None:
+    """Order matters here: Flask runs after_request handlers in reverse
+    registration order, so add_security_headers below runs last and has the
+    final say on the headers.
+    """
     # Only apply ProxyFix when behind a reverse proxy (e.g. Nginx).
     # Applying unconditionally lets clients forge X-Forwarded-For headers.
     # https://flask.palletsprojects.com/en/stable/deploying/proxy_fix/
     if not app.debug:
         app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
-    @app.context_processor
-    def inject_now():
-        return {"now": datetime.now(), "version": __version__}
-
-    # Security headers middleware
     @app.after_request
     def add_security_headers(response):
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "SAMEORIGIN"
-        # X-XSS-Protection is deprecated and can introduce XSS bugs of its
-        # own (OWASP Secure Headers, MDN). `0` disables the legacy filter;
-        # CSP below is the actual XSS defense.
+        # Explicitly off, not absent: OWASP Secure Headers asks for "0" so a
+        # legacy browser cannot fall back to its own buggy XSS auditor.
         response.headers["X-XSS-Protection"] = "0"
         if app.config.get("PREFERRED_URL_SCHEME") == "https":
             response.headers["Strict-Transport-Security"] = (
@@ -129,8 +146,8 @@ def create_app(config_class=Config):
         # 'unsafe-eval' — htmx's eval-based features are gated off via
         # `htmx.config.allowEval = false` in every JS entrypoint.
         # 'unsafe-inline' is still required for the remaining inline
-        # `onclick=` handlers and `<script>` blocks; migrating those to
-        # delegated listeners is tracked as separate work.
+        # `onclick=` handlers and `<script>` blocks.
+        # TODO: move those to delegated listeners so 'unsafe-inline' can go.
         # 'wasm-unsafe-eval' is what lets the report form's HEIC decoder
         # (heic2any = libheif compiled to wasm) compile at all; without it
         # every HEIC upload hangs. It permits WebAssembly only — not JS eval.
@@ -177,7 +194,8 @@ def create_app(config_class=Config):
             response.headers["HX-Redirect"] = "/"
         return response
 
-    # Import the routes
+
+def register_blueprints(app: Flask) -> None:
     from app.routes.admin import admin
     from app.routes.backup import backup
     from app.routes.data import data
@@ -195,22 +213,24 @@ def create_app(config_class=Config):
     app.register_blueprint(provider)
     app.register_blueprint(regionen)
     app.register_blueprint(report)
+
+    # Reviewers work through admin in bursts; the default limits are aimed at
+    # anonymous reporters.
+    limiter.exempt(admin)
+
+
+def register_errorhandlers(app: Flask) -> None:
+    from flask_wtf.csrf import CSRFError
+
     app.register_error_handler(404, page_not_found)
     app.register_error_handler(403, forbidden)
     app.register_error_handler(429, too_many_requests)
     app.register_error_handler(500, internal_server_error)
 
-    # Exempt admin blueprint from rate limiting
-    limiter.exempt(admin)
-    # CSRF error handler
-    from flask_wtf.csrf import CSRFError
-
     @app.errorhandler(CSRFError)
     def handle_csrf_error(e):
         app.logger.warning(f"CSRF error: {e!s}")
         return render_template("error/403.html"), 403
-
-    return app
 
 
 def wants_json_response():
