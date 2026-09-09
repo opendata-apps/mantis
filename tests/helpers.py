@@ -7,9 +7,10 @@ from PIL import Image
 
 
 def set_client_user(client, user_id: str):
-    """Set the authenticated user ID in a Flask test client session."""
+    """Log a user into a Flask test client session, bypassing any route."""
     with client.session_transaction() as sess:
-        sess["user_id"] = user_id
+        sess["_user_id"] = user_id
+        sess["_fresh"] = True
     return client
 
 

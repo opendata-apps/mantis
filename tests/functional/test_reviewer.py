@@ -17,7 +17,7 @@ import pytest
 def _login_session(client, user_id="9999"):
     """Set user_id in the Flask session for subsequent requests."""
     with client.session_transaction() as sess:
-        sess["user_id"] = user_id
+        sess["_user_id"] = user_id
 
 
 # ---------------------------------------------------------------------------

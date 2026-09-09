@@ -9,7 +9,15 @@ from PIL import Image
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from .config import Config
-from .extensions import csrf, db, flask_favicon, limiter, mail, migrate
+from .extensions import (
+    csrf,
+    db,
+    flask_favicon,
+    limiter,
+    login_manager,
+    mail,
+    migrate,
+)
 
 with (Path(__file__).resolve().parent.parent / "pyproject.toml").open(
     "rb"
@@ -76,11 +84,13 @@ def register_heif_opener() -> None:
 
 
 def register_extensions(app: Flask) -> None:
+    # login_manager's callbacks live in app.auth; the blueprints import it.
     csrf.init_app(app)
     db.init_app(app)
     mail.init_app(app)
     limiter.init_app(app)
     flask_favicon.init_app(app)
+    login_manager.init_app(app)
 
     flask_favicon.register_favicon("app/static/images/logo.png", "default")
 

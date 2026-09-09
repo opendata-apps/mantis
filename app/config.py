@@ -170,6 +170,15 @@ class Config:
     SESSION_COOKIE_HTTPONLY = True  # Always True for security
     SESSION_COOKIE_SAMESITE = "Lax"  # Always Lax for CSRF protection
 
+    # Reporters only — see app.auth.log_in.
+    REMEMBER_COOKIE_NAME = "mantis_reporter"
+    REMEMBER_COOKIE_DURATION = timedelta(days=365)
+    # Copies the value, not a link — a subclass overriding SESSION_COOKIE_SECURE
+    # alone leaves this one as it was. Override both (tests/test_config.py does).
+    REMEMBER_COOKIE_SECURE = SESSION_COOKIE_SECURE
+    REMEMBER_COOKIE_HTTPONLY = True
+    REMEMBER_COOKIE_SAMESITE = "Lax"
+
     # DoS Prevention (Static Security Settings)
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
     MAX_FORM_MEMORY_SIZE = 500 * 1024  # 500KB max form data

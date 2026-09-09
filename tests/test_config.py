@@ -34,8 +34,9 @@ class Config(AppConfig):
     REVIEWERMAIL = False  # gates the determination-mail branch in admin/reviewer.py
     MIN_MAP_YEAR = 2025
 
-    # The test client speaks http.
+    # The test client speaks http. Both needed — see app/config.py.
     SESSION_COOKIE_SECURE = False
+    REMEMBER_COOKIE_SECURE = False
 
     # --- Neutralised: must never reach a real inbox or tracker ---
     BACKUPMAIL = "backup@example.com"

@@ -7,7 +7,6 @@ import shutil
 
 from flask import (
     current_app,
-    g,
     jsonify,
     render_template,
     request,
@@ -17,6 +16,8 @@ from sqlalchemy import func, select, update
 from sqlalchemy.exc import SQLAlchemyError
 
 import app.database.alldata as ad
+from flask_login import current_user
+
 from app.auth import reviewer_required
 from app.database.models import (
     TblAllData,
@@ -149,7 +150,7 @@ def database_view():
     _maybe_refresh_alldata_view()
     return render_template(
         "admin/database.html",
-        user_id=g.current_user.user_id,
+        user_id=current_user.user_id,
         backup_years=available_backup_years(),
     )
 

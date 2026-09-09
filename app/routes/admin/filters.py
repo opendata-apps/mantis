@@ -37,9 +37,6 @@ def _get_reviewer_filter_args():
     }
 
 
-# SECURITY NOTE: URL-based auth tokens (user_id) are secrets.token_hex(20) — 160-bit random.
-
-
 def get_filtered_query(
     filter_status: str | None = None,
     filter_type: str | None = None,

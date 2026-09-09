@@ -1,8 +1,10 @@
-from app.extensions import db
+from flask_login import UserMixin
 from sqlalchemy.orm import relationship
 
+from app.extensions import db
 
-class TblUsers(db.Model):
+
+class TblUsers(UserMixin, db.Model):
     """User model for storing reporter and reviewer information.
 
     Constraints:
@@ -44,6 +46,13 @@ class TblUsers(db.Model):
         back_populates="finder",
         lazy="select",
     )
+
+    def get_id(self):
+        """The capability token, not the primary key.
+
+        Overrides UserMixin, which would return the guessable ``self.id``.
+        """
+        return self.user_id
 
     def __repr__(self):
         return f"<User {self.id} ({self.user_name})>"

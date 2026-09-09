@@ -1,9 +1,11 @@
 import pytest
 from alembic import command
 from alembic.config import Config
+from flask import g
 from sqlalchemy import text
 from sqlalchemy_utils import create_database, database_exists, drop_database
 
+from tests.helpers import set_client_user
 from tests.test_config import Config as TestConfig
 
 
@@ -32,6 +34,15 @@ def app(_test_database):
     from app import create_app
 
     app = create_app(TestConfig)
+
+    # The app context below must stay open: db.session is scoped by app-context
+    # id and test bodies query it outside any request (per-test contexts: 121
+    # errors). Cost is that requests then share `g`, so Flask-Login's cached
+    # user has to be cleared per request.
+    @app.before_request
+    def _clear_cached_user():
+        g.pop("_login_user", None)
+
     with app.app_context():
         yield app
 
@@ -60,7 +71,8 @@ def session_with_user(request_context):
     """
     from flask import session
 
-    session["user_id"] = "9999"
+    session["_user_id"] = "9999"
+    session["_fresh"] = True
     yield session
 
 
@@ -71,9 +83,7 @@ def authenticated_client(client):
     Uses ``client.session_transaction()`` — the correct way to populate
     the cookie-backed session used by the Flask test client.
     """
-    with client.session_transaction() as sess:
-        sess["user_id"] = "9999"
-    return client
+    return set_client_user(client, "9999")
 
 
 def _reset_schema():

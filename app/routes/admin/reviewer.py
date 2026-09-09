@@ -12,14 +12,15 @@ from flask import (
     render_template,
     request,
     send_from_directory,
-    session,
     url_for,
 )
 from sqlalchemy import func, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import contains_eager, joinedload
 
-from app.auth import load_session_user, reviewer_required
+from flask_login import current_user
+
+from app.auth import log_in, reviewer_required
 from app.database.models import (
     ReportStatus,
     TblFundorte,
@@ -44,7 +45,7 @@ INT32_MAX = 2**31 - 1
 
 def _mark_sighting_updated(sighting: TblMeldungen) -> None:
     """Record the reviewer responsible for the latest mutation."""
-    sighting.bearb_id = g.current_user.user_id
+    sighting.bearb_id = current_user.user_id
 
 
 def _commit_json_or_error(log_context: str, user_error: str):
@@ -172,9 +173,10 @@ def _render_updated_sighting_by_id(report_id: int, filter_status: str):
     return _render_report_card_or_delete(rendered_sighting, filter_status)
 
 
-# Primary risk is token leakage via browser history, HTTP Referer, or server logs.
-# The admin blueprint is rate-limit exempt (see __init__.py:165).
-# Future improvement: migrate to session-only auth with login form.
+# SECURITY NOTE: the user_id in the URL is the credential — secrets.token_hex(20),
+# 160 bits. The risk is leakage through browser history, Referer, or server logs,
+# not guessing. See app/auth.py. The admin blueprint is rate-limit exempt, so
+# there is no throttle here either (app/factory.py, register_blueprints).
 @admin.route("/reviewer")
 @admin.route("/reviewer/<usrid>")
 def reviewer(usrid=None):
@@ -184,14 +186,17 @@ def reviewer(usrid=None):
         user = db.session.scalar(select(TblUsers).where(TblUsers.user_id == usrid))
         if not user or user.user_rolle != UserRole.REVIEWER:
             abort(403)
-        session["user_id"] = usrid
-        session.permanent = True
+        log_in(user)
     else:
         # Session-based auth (consistent with @reviewer_required)
-        user = load_session_user(require_reviewer=True)
+        if (
+            not current_user.is_authenticated
+            or current_user.user_rolle != UserRole.REVIEWER
+        ):
+            abort(403)
+        user = current_user
         usrid = user.user_id
 
-    g.current_user = user
     user_name = user.user_name
     page = request.args.get("page", 1, type=int)
     per_page = request.args.get("per_page", 21, type=int)

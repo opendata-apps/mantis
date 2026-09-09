@@ -118,7 +118,7 @@ class TestAdminRoutes:
         assert b"Admin Panel" in response.data or b"admin" in response.data.lower()
         # Check that session was set
         with client.session_transaction() as sess:
-            assert sess.get("user_id") == "9999"
+            assert sess.get("_user_id") == "9999"
 
     def test_reviewer_page_access_with_invalid_user(self, client):
         """Test that non-reviewers cannot access the reviewer page."""
@@ -158,36 +158,36 @@ class TestAdminRoutes:
     def test_reviewer_page_session_storage(self, client):
         """Test that user_id is stored in session when accessing reviewer page."""
         with client.session_transaction() as sess:
-            assert "user_id" not in sess
+            assert "_user_id" not in sess
 
         # Follow redirects
         response = client.get("/reviewer/9999", follow_redirects=True)
         assert response.status_code == 200
 
         with client.session_transaction() as sess:
-            assert sess["user_id"] == "9999"
+            assert sess["_user_id"] == "9999"
 
     def test_provider_view_preserves_reviewer_session(self, client):
         """Opening provider page should not override active reviewer auth session."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         response = client.get("/report/1111")
         assert response.status_code == 200
 
         with client.session_transaction() as sess:
-            assert sess["user_id"] == "9999"
+            assert sess["_user_id"] == "9999"
 
     def test_sichtungen_alias_preserves_reviewer_session(self, client):
         """Alias route should also preserve active reviewer auth session."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         response = client.get("/sichtungen/1111")
         assert response.status_code == 200
 
         with client.session_transaction() as sess:
-            assert sess["user_id"] == "9999"
+            assert sess["_user_id"] == "9999"
 
     def test_provider_view_sets_session_for_non_reviewer_context(self, client):
         """Provider link should still initialize session in non-reviewer context."""
@@ -198,12 +198,12 @@ class TestAdminRoutes:
         assert response.status_code == 200
 
         with client.session_transaction() as sess:
-            assert sess.get("user_id") == "1111"
+            assert sess.get("_user_id") == "1111"
 
     def test_provider_view_melden_button_uses_viewed_user_id(self, client):
         """Provider page CTA should target viewed reporter ID, not active session user."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"  # Active reviewer session
+            sess["_user_id"] = "9999"  # Active reviewer session
 
         response = client.get("/report/1111")
         assert response.status_code == 200
@@ -224,7 +224,7 @@ class TestAdminRoutes:
     ):
         """Reviewer should remain authorized for approve actions after provider page visit."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         provider_response = client.get("/report/1111")
         assert provider_response.status_code == 200
@@ -244,7 +244,7 @@ class TestAdminRoutes:
         """Test changing mantis metadata with authentication."""
         # Set up session
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         # Test changing location data - ort (city)
         response = client.post(
@@ -272,7 +272,7 @@ class TestAdminRoutes:
         """Test approving/unapproving sightings."""
         # Set up session
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         # Initial state should be unapproved
         assert self.test_sighting.bearb_id is None
@@ -296,7 +296,7 @@ class TestAdminRoutes:
         """Test that approving works even when email sending is disabled."""
         # Set up session
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         # Approve sighting (emails are disabled in test config)
         response = client.post(
@@ -316,7 +316,7 @@ class TestAdminRoutes:
         """Test soft deleting a sighting."""
         # Set up session
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         # Delete sighting
         response = client.post(
@@ -335,7 +335,7 @@ class TestAdminRoutes:
         """Test undeleting a soft-deleted sighting."""
         # Set up session
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         # First delete the sighting
         self.test_sighting.statuses = ["DEL"]
@@ -359,7 +359,7 @@ class TestAdminRoutes:
         """Test changing mantis count fields."""
         # Set up session
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         # Update male count
         response = client.post(
@@ -377,7 +377,7 @@ class TestAdminRoutes:
     def test_change_mantis_count_invalid_type(self, client, session):
         """Unknown count types should return 400 and not mutate report data."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         before = (self.test_sighting.art_m, self.test_sighting.bearb_id)
         response = client.post(
@@ -395,7 +395,7 @@ class TestAdminRoutes:
     def test_change_mantis_count_invalid_value(self, client, session):
         """Non-numeric count values should be rejected with 400."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         original = self.test_sighting.art_m
         response = client.post(
@@ -412,7 +412,7 @@ class TestAdminRoutes:
     def test_change_mantis_count_negative_value(self, client, session):
         """Negative count values are invalid and should be rejected."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         original = self.test_sighting.art_m
         response = client.post(
@@ -429,7 +429,7 @@ class TestAdminRoutes:
     def test_change_mantis_count_out_of_range_value(self, client, session):
         """Counts beyond DB integer range should return 400."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         original = self.test_sighting.art_m
         response = client.post(
@@ -446,7 +446,7 @@ class TestAdminRoutes:
     def test_reviewer_page_uses_native_modal_and_fragment_assets(self, client):
         """Reviewer page should load native dialog + HTMX admin modules."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         response = client.get(
             "/reviewer/9999?statusInput=offen&sort_order=id_desc",
@@ -461,7 +461,7 @@ class TestAdminRoutes:
     def test_modal_open_route_renders_general_tab(self, client):
         """Initial modal endpoint should return modal open partial with general tab."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         response = client.get(f"/modal/{self.test_sighting.id}?filter_status=offen")
         assert response.status_code == 200
@@ -472,7 +472,7 @@ class TestAdminRoutes:
     def test_modal_general_tab_shows_user_report_count(self, client):
         """General tab should display the reporter's total report count."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         response = client.get(f"/modal/{self.test_sighting.id}?filter_status=offen")
         assert response.status_code == 200
@@ -484,7 +484,7 @@ class TestAdminRoutes:
     def test_modal_location_tab_response_contains_oob_updates(self, client):
         """Location tab endpoint should return tab content plus OOB tab/action updates."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         response = client.get(
             f"/modal/location/{self.test_sighting.id}?filter_status=offen"
@@ -503,7 +503,7 @@ class TestAdminRoutes:
         (empty body) instead of a card — a different path, covered elsewhere.
         """
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         response = client.post(
             f"/toggle_flag/{self.test_sighting.id}",
@@ -519,7 +519,7 @@ class TestAdminRoutes:
     def test_toggle_flag_invalid_value(self, client):
         """Invalid flag values should be rejected."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         response = client.post(
             f"/toggle_flag/{self.test_sighting.id}",
@@ -531,7 +531,7 @@ class TestAdminRoutes:
     def test_update_address_updates_location_fields(self, client, session):
         """Address update endpoint should persist reverse-geocoded location fields."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         response = client.post(
             f"/update_address/{self.test_sighting.id}",
@@ -557,7 +557,7 @@ class TestAdminRoutes:
     def test_update_address_rejects_oversized_zip(self, client, session):
         """Oversized ZIP values should return 400 and keep existing ZIP."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         original_plz = self.test_location.plz
         response = client.post(
@@ -582,7 +582,7 @@ class TestAdminRoutes:
     ):
         """Approving in 'offen' filter should delete the card target via HX-Reswap."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         response = client.post(
             f"/toggle_approve_sighting/{self.test_sighting.id}",
@@ -600,7 +600,7 @@ class TestAdminRoutes:
         """Test exporting all data as Excel file."""
         # Set up session
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         response = client.get("/admin/export/xlsx/all")
         assert response.status_code == 200
@@ -617,7 +617,7 @@ class TestAdminRoutes:
         """Test exporting only approved data."""
         # Set up session
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         # Approve the sighting
         self.test_sighting.bearb_id = "9999"
@@ -638,7 +638,7 @@ class TestAdminRoutes:
     def test_export_xlsx_searched(self, client):
         """Test exporting searched data with the shared reviewer filter args."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         response = client.get(
             "/admin/export/xlsx/searched"
@@ -661,7 +661,7 @@ class TestAdminRoutes:
         """Test accessing the alldata view."""
         # Set up session
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         response = client.get("/alldata")
         assert response.status_code == 200
@@ -671,7 +671,7 @@ class TestAdminRoutes:
         """Test getting table data via API."""
         # Set up session
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         # Test getting all_data_view table data
         response = client.get("/admin/get_table_data/all_data_view?page=1&per_page=10")
@@ -690,7 +690,7 @@ class TestAdminRoutes:
     def test_get_table_data_full_text_search_keeps_count_in_sync(self, client):
         """Full-text search should filter both rows and total_items the same way."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         response = client.get(
             "/admin/get_table_data/all_data_view"
@@ -706,7 +706,7 @@ class TestAdminRoutes:
     def test_get_table_data_invalid_id_search_returns_zero_rows_and_count(self, client):
         """Invalid ID search input should produce an empty page with total_items=0."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         response = client.get(
             "/admin/get_table_data/all_data_view"
@@ -722,7 +722,7 @@ class TestAdminRoutes:
         """Test updating a field exposed by the superuser table."""
         # Set up session
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         # Update anm_melder field
         response = client.post(
@@ -744,7 +744,7 @@ class TestAdminRoutes:
     def test_update_cell_accepts_browser_string_report_id(self, client, session):
         """The table DOM exposes report IDs as strings in its JSON request."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         response = client.post(
             "/admin/update_cell",
@@ -765,7 +765,7 @@ class TestAdminRoutes:
     ):
         """A failed projection refresh must not report a committed edit as failed."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         def fail_refresh(_db):
             raise RuntimeError("refresh failed")
@@ -809,7 +809,7 @@ class TestAdminRoutes:
     def test_update_cell_non_editable_field(self, client, column, value):
         """Test that non-editable fields cannot be updated."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         response = client.post(
             "/admin/update_cell",
@@ -826,7 +826,7 @@ class TestAdminRoutes:
     def test_update_cell_missing_required_field(self, client):
         """Malformed JSON payload returns 400, not a 500 KeyError."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         response = client.post(
             "/admin/update_cell",
@@ -839,7 +839,7 @@ class TestAdminRoutes:
     def test_change_mantis_meta_plz_non_numeric_returns_400(self, client):
         """plz is an integer column — non-numeric input must yield 400, not 500."""
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         response = client.post(
             f"/change_mantis_meta_data/{self.test_sighting.id}",
@@ -853,7 +853,7 @@ class TestAdminRoutes:
         """Test serving static files through admin route."""
         # Set up session
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         # Test accessing a file (assuming test file exists)
         response = client.get("/test_image.jpg")
@@ -912,7 +912,7 @@ class TestAdminRoutes:
         """Test error handling when sighting ID doesn't exist."""
         # Set up session
         with client.session_transaction() as sess:
-            sess["user_id"] = "9999"
+            sess["_user_id"] = "9999"
 
         # Test with non-existent ID
         missing_id = (session.scalar(select(func.max(TblMeldungen.id))) or 0) + 1

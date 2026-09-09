@@ -5,7 +5,6 @@ from flask import (
     Blueprint,
     Response,
     current_app,
-    g,
     jsonify,
     render_template,
     send_from_directory,
@@ -15,7 +14,7 @@ from datetime import date
 from sqlalchemy import select, func, text
 from app.extensions import db, limiter
 from app.database.models import TblMeldungen, ReportStatus
-from app.auth import login_required
+from flask_login import current_user, login_required
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -166,7 +165,7 @@ def galerie():
     "Galerie."
     return render_template(
         "galerie.html",
-        user_id=g.current_user.user_id,
+        user_id=current_user.user_id,
         bilder=_load_galerie(),
     )
 
