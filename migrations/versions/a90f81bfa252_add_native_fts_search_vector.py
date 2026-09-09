@@ -5,14 +5,15 @@ Revises: a7b8c9d0e1f2
 Create Date: 2026-02-17 14:18:18.232204
 
 """
+
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import TSVECTOR
 
 
 # revision identifiers, used by Alembic.
-revision = 'a90f81bfa252'
-down_revision = 'a7b8c9d0e1f2'
+revision = "a90f81bfa252"
+down_revision = "a7b8c9d0e1f2"
 branch_labels = None
 depends_on = None
 
@@ -296,7 +297,9 @@ def downgrade():
     # Drop triggers
     op.execute("DROP TRIGGER IF EXISTS meldungen_search_vector_update ON meldungen")
     op.execute("DROP TRIGGER IF EXISTS fundorte_search_vector_update ON fundorte")
-    op.execute("DROP TRIGGER IF EXISTS beschreibung_search_vector_update ON beschreibung")
+    op.execute(
+        "DROP TRIGGER IF EXISTS beschreibung_search_vector_update ON beschreibung"
+    )
     op.execute("DROP TRIGGER IF EXISTS melduser_search_vector_update ON melduser")
     op.execute("DROP TRIGGER IF EXISTS users_search_vector_update ON users")
 

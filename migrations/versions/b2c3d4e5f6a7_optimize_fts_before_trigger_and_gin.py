@@ -10,12 +10,13 @@ Revises: a90f81bfa252
 Create Date: 2026-02-17 14:51:00.000000
 
 """
+
 from alembic import op
 
 
 # revision identifiers, used by Alembic.
-revision = 'b2c3d4e5f6a7'
-down_revision = 'a90f81bfa252'
+revision = "b2c3d4e5f6a7"
+down_revision = "a90f81bfa252"
 branch_labels = None
 depends_on = None
 

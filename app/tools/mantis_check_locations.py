@@ -28,7 +28,9 @@ def check_location(fundort):
                   out body;
                 }}
             """
-            response = requests.get(overpass_url, params={"data": overpass_query}, timeout=30)
+            response = requests.get(
+                overpass_url, params={"data": overpass_query}, timeout=30
+            )
             data = response.json()
             for element in data["elements"]:
                 if "tags" in element and "name" in element["tags"]:

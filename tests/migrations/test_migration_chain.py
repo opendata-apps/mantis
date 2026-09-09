@@ -110,9 +110,7 @@ class TestMigrationLint:
             if isinstance(node, ast.ImportFrom) and node.module:
                 if any(node.module.startswith(p) for p in forbidden_prefixes):
                     names = [alias.name for alias in node.names]
-                    bad_imports.append(
-                        f"from {node.module} import {', '.join(names)}"
-                    )
+                    bad_imports.append(f"from {node.module} import {', '.join(names)}")
             elif isinstance(node, ast.Import):
                 for alias in node.names:
                     if any(alias.name.startswith(p) for p in forbidden_prefixes):
@@ -177,7 +175,10 @@ class TestMigrationLint:
             if stripped.startswith(("#", "--")) or not stripped:
                 continue
             # Detect op.create_index without postgresql_concurrently=True
-            if "op.create_index(" in stripped and "postgresql_concurrently" not in stripped:
+            if (
+                "op.create_index(" in stripped
+                and "postgresql_concurrently" not in stripped
+            ):
                 bare_indexes.append((i, stripped))
 
         # This is a warning-level check: bare op.create_index is fine for
@@ -359,10 +360,7 @@ class TestMigrationChain:
         engine = sa.create_engine(TestConfig.URI)
         with engine.connect() as conn:
             result = conn.execute(
-                sa.text(
-                    "SELECT tablename FROM pg_tables "
-                    "WHERE schemaname = 'public'"
-                )
+                sa.text("SELECT tablename FROM pg_tables WHERE schemaname = 'public'")
             )
             remaining_tables = {row[0] for row in result}
         engine.dispose()

@@ -22,9 +22,7 @@ class TblMeldungUser(db.Model):
     # Composite index for the typical join pattern
     # Per PostgreSQL docs: column order should match query join order
     # Queries join: meldungen.id -> melduser.id_meldung -> melduser.id_user -> users.id
-    __table_args__ = (
-        Index("ix_melduser_id_meldung_id_user", "id_meldung", "id_user"),
-    )
+    __table_args__ = (Index("ix_melduser_id_meldung_id_user", "id_meldung", "id_user"),)
 
     id = db.Column(db.Integer, primary_key=True)
     # FK to meldungen - used in every JOIN operation.
