@@ -17,7 +17,8 @@ import sys
 from email_validator import EmailNotValidError, validate_email
 from sqlalchemy import select
 
-from app import create_app, db
+from app import create_app
+from app.extensions import db
 from app.database.users import TblUsers
 
 

@@ -82,7 +82,7 @@ def _reset_schema():
     Uses DROP SCHEMA public CASCADE to remove all tables, views,
     functions, triggers, types, and sequences at once.
     """
-    from app import db
+    from app.extensions import db
 
     db.session.execute(text("DROP SCHEMA public CASCADE"))
     db.session.execute(text("CREATE SCHEMA public"))
@@ -91,7 +91,7 @@ def _reset_schema():
 
 def _seed_test_data():
     """Populate test database with initial + demo data."""
-    from app import db
+    from app.extensions import db
     import app.database.alldata as ad
     from app.demodata.filldb import insert_data_reports
     from app.database.populate import populate_all
@@ -132,7 +132,7 @@ def _db(app):
     Resets schema, runs Alembic migrations (which create tables,
     triggers, and functions), then populates with test data.
     """
-    from app import db
+    from app.extensions import db
 
     _reset_schema()
     _run_migrations()

@@ -27,8 +27,18 @@ Bildablage und einem Vite-Build für statische Assets.
 Hauptkomponenten
 ----------------
 
-- ``app/__init__.py``: App-Factory, Extension-Setup, Blueprint-Registrierung,
-  Error-Handler, Security-Header, ProxyFix.
+- ``app/__init__.py``: nur Docstring und der Re-Export von ``create_app``. Dass
+  hier sonst nichts gebunden ist, macht ``from app import db`` unmöglich statt
+  bloss unerwünscht — ein Name ist nur dann als ``app.<name>`` erreichbar, wenn
+  er in diesem Modul gebunden wird. Aufbau wie in ``cookiecutter-flask``.
+- ``app/factory.py``: die App-Factory mit Blueprint-Registrierung,
+  Error-Handlern, Security-Headern und ProxyFix. ``Flask(__name__.split(".")[0])``
+  — der Name muss das Paket sein, nicht das Modul, sonst wandern Logger-Name und
+  Template-/Static-Wurzel auf ``app.factory``.
+- ``app/extensions.py``: die ungebundenen Extension-Instanzen (``db``,
+  ``mail``, ...). Das Modul importiert nichts aus ``app`` und ist damit die
+  unterste Schicht — deshalb kann ein Modul, das die Factory importiert, diese
+  Instanzen lesen, ohne auf ein halb initialisiertes Paket zu treffen.
 - ``app/routes/``: HTTP-Schnittstelle nach Domänen getrennt
   (``main``, ``report``, ``data``, ``statistics``, ``provider``, ``admin``, ``regionen``).
 - ``app/database/``: SQLAlchemy-Modelle, Materialized-View-Logik und Seed/Populate-Code.
@@ -112,6 +122,10 @@ Frontend-Bindung
 Erweiterungspunkte
 ------------------
 
+- Neue Extension: in ``app/extensions.py`` ungebunden anlegen, in ``create_app``
+  mit ``init_app(app)`` binden. Andere Module importieren aus ``app.extensions``
+  — ``from app import <extension>`` scheitert mit ``ImportError``, weil
+  ``app/__init__.py`` nichts davon bindet.
 - Neue Route: Blueprint ergänzen und in ``create_app`` registrieren.
 - Neues Datenfeld: Modell + Migration + betroffene Formulare/Templates.
 - Neue Review-Aktion: Admin-Endpunkt + HTMX-Partial + Status-/Rechteprüfung.

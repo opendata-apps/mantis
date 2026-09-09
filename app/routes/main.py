@@ -13,7 +13,7 @@ from flask import (
 
 from datetime import date
 from sqlalchemy import select, func, text
-from app import db, limiter
+from app.extensions import db, limiter
 from app.database.models import TblMeldungen, ReportStatus
 from app.auth import login_required
 

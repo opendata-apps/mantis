@@ -22,7 +22,7 @@ from shapely.strtree import STRtree
 from sqlalchemy import Text, select
 from flask import current_app
 
-from app import db
+from app.extensions import db
 from app.database.aemter_koordinaten import TblAemterCoordinaten
 from app.database.ags import BUNDESLAENDER
 

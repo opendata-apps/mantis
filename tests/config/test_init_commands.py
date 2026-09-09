@@ -2,7 +2,7 @@
 
 from unittest.mock import patch, MagicMock
 from flask import Flask
-from app import page_not_found, forbidden, too_many_requests
+from app.factory import page_not_found, forbidden, too_many_requests
 
 
 def test_flask_app_with_testing_config():
@@ -78,7 +78,7 @@ def test_context_processor():
     # Create the app with our mock
     from app import create_app
 
-    with patch("app.Flask", return_value=app):
+    with patch("app.factory.Flask", return_value=app):
         # Call create_app which should register the context processor
         create_app()
 

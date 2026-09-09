@@ -4,7 +4,7 @@ from email_validator import validate_email
 from flask import current_app
 from flask_mail import Message
 
-from app import mail
+from app.extensions import mail
 
 
 logger = logging.getLogger(__name__)

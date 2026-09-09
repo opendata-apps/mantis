@@ -2,7 +2,7 @@ from sqlalchemy import Index
 from sqlalchemy.dialects.postgresql import ARRAY, TSVECTOR
 from sqlalchemy.orm import relationship
 
-from app import db
+from app.extensions import db
 from app.database.report_status import ReportStatus
 
 

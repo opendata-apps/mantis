@@ -5,7 +5,7 @@ from markupsafe import escape
 from sqlalchemy import func, select
 from sqlalchemy import cast, String
 from sqlalchemy import literal_column
-from app import db
+from app.extensions import db
 from app.database.models import TblAemterCoordinaten
 from app.auth import reviewer_required
 from app.tools.gen_messtisch_svg import create_measure_sheet
