@@ -1,4 +1,8 @@
-"""Request-argument parsing and the shared reviewer/export query."""
+"""The report filter shared by the reviewer list and the Excel export.
+
+Both read the same query arguments off the request and have to select the
+same set of reports, so the argument names and the query live together.
+"""
 
 from datetime import datetime
 
