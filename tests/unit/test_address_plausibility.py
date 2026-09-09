@@ -2,7 +2,7 @@
 
 from types import SimpleNamespace
 
-from app.tools.validate_coordinates import (
+from app.tools.address_plausibility import (
     Issue,
     names_match,
     validate_fundorte,
@@ -166,7 +166,7 @@ class TestFormatReport:
         assert "Checked: 100" in report
 
     def test_with_mismatches(self):
-        from app.tools.validate_coordinates import Mismatch
+        from app.tools.address_plausibility import Mismatch
 
         m = Mismatch(42, Issue.LAND_MISMATCH, "Bayern", "Berlin", "München", "Berlin")
         report = format_report([m], checked=100, skipped=0)
@@ -183,7 +183,7 @@ class TestFormatCsv:
         assert csv.startswith("id,issue,stored_land,expected_land")
 
     def test_csv_row(self):
-        from app.tools.validate_coordinates import Mismatch
+        from app.tools.address_plausibility import Mismatch
 
         m = Mismatch(42, Issue.LAND_MISMATCH, "Bayern", "Berlin", "München", "Berlin")
         csv = format_csv([m])
