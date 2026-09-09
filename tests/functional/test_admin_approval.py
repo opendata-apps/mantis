@@ -79,14 +79,12 @@ class TestAdminApproval:
                 headers={"HX-Request": "true"},
             )
 
-            # Check the response
             assert response.status_code == 200
             assert (
                 response.headers.get("HX-Reswap") == "delete"
                 or b'id="report-card-' in response.data
             )
 
-            # Refresh the sighting from the database
             session.refresh(mock_sighting)
 
             # Check that the sighting is now approved
@@ -100,20 +98,17 @@ class TestAdminApproval:
                 headers={"HX-Request": "true"},
             )
 
-            # Check the response
             assert response.status_code == 200
             assert (
                 response.headers.get("HX-Reswap") == "delete"
                 or b'id="report-card-' in response.data
             )
 
-            # Refresh the sighting from the database
             session.refresh(mock_sighting)
 
             # Check that the sighting is now unapproved
             assert mock_sighting.dat_bear is None
 
-            # Verify send_email was not called
             mock_send_email.assert_not_called()
 
     @pytest.mark.parametrize(
@@ -151,5 +146,100 @@ class TestAdminApproval:
         # Attempt to approve a sighting with an ID that doesn't exist
         response = authenticated_admin_client.post("/toggle_approve_sighting/99999999")
 
-        # Check the response
         assert response.status_code == 404
+
+
+@pytest.fixture
+def reported_sighting(session):
+    """A report with the reporter link and contact the approval mail needs."""
+    from app.database.models import (
+        TblFundorte,
+        TblFundortBeschreibung,
+        TblMeldungUser,
+        TblUsers,
+    )
+    from sqlalchemy import select
+
+    reporter = TblUsers(
+        user_id="mailtest-reporter",
+        user_name="Mail Melder",
+        user_kontakt="melder@example.com",
+        user_rolle="1",
+    )
+    session.add(reporter)
+
+    beschreibung = session.scalar(select(TblFundortBeschreibung))
+    fundort = TblFundorte(
+        mtb="3644",
+        longitude="13.404954",
+        latitude="52.520008",
+        ort="Berlin",
+        land="Berlin",
+        kreis="Mitte",
+        strasse="Alexanderplatz",
+        plz=10178,
+        amt="Amt Berlin",
+        ablage="mailtest.jpg",
+        beschreibung=beschreibung.id,
+    )
+    session.add(fundort)
+    session.flush()
+
+    sighting = TblMeldungen(
+        dat_fund_von=datetime(2025, 7, 14).date(),
+        dat_meld=datetime.now().date(),
+        fo_zuordnung=fundort.id,
+        statuses=["OPEN"],
+        deleted=False,
+        tiere=1,
+        art_m=1,
+        art_w=0,
+        art_n=0,
+        art_o=0,
+        anm_bearbeiter="Klar ein Weibchen.",
+    )
+    session.add(sighting)
+    session.flush()
+
+    session.add(TblMeldungUser(id_meldung=sighting.id, id_user=reporter.id))
+    session.commit()
+    return sighting
+
+
+@pytest.mark.usefixtures("request_context")
+class TestApprovalMailPayload:
+    """The approval route must hand the mail helper a payload it can render.
+
+    The other mail tests feed ``send_email`` a hand-written dict, so nothing
+    checked that the route actually assembles one. This drives the real chain:
+    route -> payload -> rendertextmsg -> Message.
+    """
+
+    def test_approval_sends_renderable_mail(
+        self, authenticated_admin_client, reported_sighting
+    ):
+        # Patch the live config, not the Config class: app.config is already
+        # populated by the time the app exists, so rebinding the class
+        # attribute would not reach the running application.
+        app_config = authenticated_admin_client.application.config
+        with patch.dict(app_config, {"REVIEWERMAIL": True}):
+            with patch("app.tools.send_reviewer_email.mail.send") as mock_send:
+                response = authenticated_admin_client.post(
+                    f"/toggle_approve_sighting/{reported_sighting.id}",
+                    data={"filter_status": "all"},
+                    headers={"HX-Request": "true"},
+                )
+
+        assert response.status_code == 200
+        mock_send.assert_called_once()
+
+        message = mock_send.call_args.args[0]
+        assert message.recipients == ["melder@example.com"]
+        # Values must come from the right table, not from whichever one the
+        # payload builder happened to write last.
+        assert "13.404954" in message.body
+        assert "52.520008" in message.body
+        assert "Alexanderplatz" in message.body
+        assert "14.07.2025" in message.body
+        assert "Klar ein Weibchen." in message.body
+        assert "/report/mailtest-reporter" in message.body
