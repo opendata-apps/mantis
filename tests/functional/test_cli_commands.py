@@ -167,6 +167,69 @@ class TestSeedCommand:
         )
 
 
+class TestRecalculateMtbCommand:
+    """``flask recalculate-mtb`` re-derives stored sheet numbers."""
+
+    def _fundort(self, session):
+        from app.database.fundorte import TblFundorte
+        from sqlalchemy import select
+
+        return session.scalars(select(TblFundorte).order_by(TblFundorte.id)).first()
+
+    def test_dry_run_reports_without_writing(self, cli_runner, session):
+        fundort = self._fundort(session)
+        fundort.mtb = "0000"
+        session.commit()
+
+        def spatial(coord):
+            return {
+                "ags": "12062289",
+                "gen": "Lebusa",
+                "land": "Brandenburg",
+                "kreis": "Elbe-Elster",
+                "amt_string": "12062289 -- Lebusa",
+            }
+
+        with patch(
+            "app.tools.location_enrichment.get_amt_enriched", side_effect=spatial
+        ):
+            result = cli_runner.invoke(args=["recalculate-mtb"])
+
+        assert result.exit_code == 0, result.output
+        assert "Dry run" in result.output
+        session.refresh(fundort)
+        assert fundort.mtb == "0000", "a dry run must not touch the database"
+
+    def test_commit_writes_the_corrected_sheet(self, cli_runner, session):
+        fundort = self._fundort(session)
+        # Lebusa, Landkreis Elbe-Elster. Pinned so the expected sheet can be
+        # the number off the printed map rather than whatever get_mtb returns.
+        fundort.latitude = "51.789314"
+        fundort.longitude = "13.405689"
+        fundort.mtb = "0000"
+        session.commit()
+
+        def spatial(coord):
+            return {
+                "ags": "12062289",
+                "gen": "Lebusa",
+                "land": "Brandenburg",
+                "kreis": "Elbe-Elster",
+                "amt_string": "12062289 -- Lebusa",
+            }
+
+        with patch(
+            "app.tools.location_enrichment.get_amt_enriched", side_effect=spatial
+        ):
+            result = cli_runner.invoke(args=["recalculate-mtb", "--commit"])
+
+        assert result.exit_code == 0, result.output
+        assert "Committed." in result.output
+        session.refresh(fundort)
+        assert fundort.mtb == "4246"
+        assert fundort.amt == "12062289 -- Lebusa"
+
+
 class TestSeedAgsCommand:
     """Covers ``flask seed-ags`` by patching the WFS fetchers."""
 
