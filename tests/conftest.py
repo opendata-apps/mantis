@@ -3,6 +3,7 @@ from alembic import command
 from alembic.config import Config
 from flask import g
 from sqlalchemy import text
+from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy_utils import create_database, database_exists, drop_database
 
 from tests.helpers import set_client_user
@@ -35,16 +36,18 @@ def app(_test_database):
 
     app = create_app(TestConfig)
 
-    # The app context below must stay open: db.session is scoped by app-context
-    # id and test bodies query it outside any request (per-test contexts: 121
-    # errors). Cost is that requests then share `g`, so Flask-Login's cached
-    # user has to be cleared per request.
+    # Tests query outside requests, so the shared app context stays open.
+    # Clear Flask-Login's cached user before each request in that context.
     @app.before_request
     def _clear_cached_user():
         g.pop("_login_user", None)
 
     with app.app_context():
         yield app
+        from app.extensions import db
+
+        db.session.remove()
+        db.engine.dispose()
 
 
 @pytest.fixture
@@ -150,30 +153,22 @@ def _db(app):
 
     yield db
 
-    # Dispose all connections so _test_database teardown can DROP DATABASE
-    db.session.remove()
-    db.engine.dispose()
-
 
 @pytest.fixture(scope="function", autouse=True)
 def session(_db):
-    """Creates a new database session for each test.
+    """Isolate each test, including application commits and rollbacks."""
+    # Closing the connection rolls back the outer transaction.
+    with _db.engine.connect() as connection:
+        connection.begin()
+        original_session = _db.session
+        session = scoped_session(
+            sessionmaker(bind=connection, join_transaction_mode="create_savepoint"),
+            scopefunc=original_session.registry.scopefunc,
+        )
+        _db.session = session
 
-    This fixture creates a transaction for each test and rolls it back
-    after the test completes, ensuring test isolation.
-    """
-    connection = _db.engine.connect()
-    transaction = connection.begin()
-    options = {
-        "bind": connection,
-        "binds": {},
-        "join_transaction_mode": "create_savepoint",
-    }
-    session = _db._make_scoped_session(options=options)
-    _db.session = session
-
-    yield session  # Provide the session for the test
-
-    session.remove()
-    transaction.rollback()
-    connection.close()
+        try:
+            yield session
+        finally:
+            _db.session = original_session
+            session.remove()
