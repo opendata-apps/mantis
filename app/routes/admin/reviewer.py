@@ -31,13 +31,13 @@ from app.database.models import (
 )
 from app.extensions import db
 from app.routes.admin.blueprint import admin
-from app.routes.admin.common import _inspect_sqlalchemy, recalculate_amt_mtb
+from app.routes.admin.common import recalculate_amt_mtb
 from app.routes.admin.filters import get_filtered_query, _get_reviewer_filter_args
 from app.tools.coordinate_validation import (
     validate_and_normalize_coordinate,
     validate_coordinate_pair,
 )
-from app.tools.send_reviewer_email import send_email
+from app.tools.send_reviewer_email import build_email_payload, send_email
 
 INT32_MIN = -(2**31)
 INT32_MAX = 2**31 - 1
@@ -440,6 +440,36 @@ def report_img(filename):
     )
 
 
+def _notify_reporter_of_approval(report_id: int) -> None:
+    """Tell the reporter their sighting was accepted.
+
+    Never raises: a failed notification must not undo an approval that is
+    already committed.
+    """
+    # _load_sighting() populates the fundort/reporter relationships the payload
+    # reads; without it every attribute below would emit its own query.
+    meldung = _load_sighting(report_id)
+    if not meldung:
+        current_app.logger.error(
+            f"Sighting {report_id} not found while building email payload."
+        )
+        return
+
+    payload = build_email_payload(meldung)
+    if not payload["user_kontakt"]:
+        # Contact is optional on the report form, so a blank one is routine,
+        # not an error — at ERROR it drowns out real SMTP faults.
+        current_app.logger.warning(
+            f"Email not sent for sighting {report_id}. No email address found."
+        )
+        return
+
+    try:
+        send_email(payload)
+    except Exception as e:
+        current_app.logger.error(f"Email not sent for sighting {report_id}. Error: {e}")
+
+
 @admin.route("/toggle_approve_sighting/<int:id>", methods=["POST"])
 @reviewer_required
 def toggle_approve_sighting(id):
@@ -483,42 +513,8 @@ def toggle_approve_sighting(id):
         f"Sighting {id} statuses toggled to {sighting.statuses}. dat_bear set to {sighting.dat_bear}"
     )
 
-    # Send reviewer email only when report just became approved.
-    # _load_sighting() populates relationships needed for the email payload.
     if current_app.config.get("REVIEWERMAIL", False) and sighting.is_approved:
-        meldung = _load_sighting(id)
-        if meldung:
-            fundort = meldung.fundort
-            user = meldung.reporter_link.reporter
-            dbdata = {}
-            for model in (
-                meldung,
-                fundort,
-                fundort.location_type,
-                meldung.reporter_link,
-                user,
-            ):
-                inspected_model = _inspect_sqlalchemy(model)
-                for c in inspected_model.mapper.columns:
-                    dbdata[c.name] = getattr(model, c.name)
-
-            if dbdata.get("user_kontakt"):
-                try:
-                    send_email(dbdata)
-                except Exception as e:
-                    current_app.logger.error(
-                        f"Email not sent for sighting {id}. Error: {e}"
-                    )
-            else:
-                # Contact is optional on the report form, so a blank one is
-                # routine, not an error — at ERROR it drowns out real SMTP faults.
-                current_app.logger.warning(
-                    f"Email not sent for sighting {id}. No email address found."
-                )
-        else:
-            current_app.logger.error(
-                f"Sighting {id} not found while building email payload."
-            )
+        _notify_reporter_of_approval(id)
 
     filter_status = _resolve_filter_status()
     response = make_response(_render_updated_sighting_by_id(id, filter_status))

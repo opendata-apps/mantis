@@ -68,6 +68,33 @@ def rendertextmsg(md):
     """
 
 
+def build_email_payload(meldung) -> dict:
+    """Collect what ``rendertextmsg`` needs from a loaded report.
+
+    Each value is read from the table it belongs to. The caller must pass a
+    report whose ``fundort`` and ``reporter_link`` relationships are loaded.
+    """
+    fundort = meldung.fundort
+    reporter = meldung.reporter_link.reporter
+    return {
+        "user_id": reporter.user_id,
+        "user_kontakt": reporter.user_kontakt,
+        "anm_bearbeiter": meldung.anm_bearbeiter,
+        "dat_fund_von": meldung.dat_fund_von,
+        "latitude": fundort.latitude,
+        "longitude": fundort.longitude,
+        "plz": fundort.plz,
+        "ort": fundort.ort,
+        "strasse": fundort.strasse,
+        "land": fundort.land,
+        "kreis": fundort.kreis,
+        "art_m": meldung.art_m,
+        "art_w": meldung.art_w,
+        "art_n": meldung.art_n,
+        "art_o": meldung.art_o,
+    }
+
+
 def send_email(data):
     md = dict(data)
     if not md["anm_bearbeiter"]:
