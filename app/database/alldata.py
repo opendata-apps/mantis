@@ -1,13 +1,10 @@
 import sqlalchemy as sa
-import sqlalchemy.schema
 import sqlalchemy.orm as orm
-from sqlalchemy import text, event
-from sqlalchemy.ext import compiler
+from sqlalchemy import text
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 from app.extensions import db
 
-meta = sa.MetaData()
 # Separate Base for the materialized view — intentionally decoupled from
 # db.Model so Alembic does not try to manage this view as a regular table.
 Base = orm.declarative_base()
@@ -53,20 +50,6 @@ class TblAllData(Base):
     user_id = db.Column(db.String(40))
     user_name = db.Column(db.String(45))
     user_kontakt = db.Column(db.String(45))
-
-
-class Create(sa.schema.DDLElement):
-    def __init__(self, name, select, schema="public"):
-        self.name = name
-        self.schema = schema
-        self.select = select
-
-        event.listen(meta, "after_create", self)
-
-
-@compiler.compiles(Create)
-def createGen(element, compiler, **kwargs):
-    return f'CREATE MATERIALIZED VIEW {element.schema}."{element.name}" AS {compiler.sql_compiler.process(element.select, literal_binds=True)}'
 
 
 def create_materialized_view(
@@ -191,9 +174,17 @@ def create_materialized_view(
         .outerjoin(users, melduser.c.id_user == users.c.id)
     )
 
-    # Create View
-    Create(name="all_data_view", select=view_query)
-    meta.create_all(bind=engine, checkfirst=True)
+    # Rendered here rather than through a DDLElement + after_create listener:
+    # the listener variant registers itself on a module-level MetaData on every
+    # call, so a second call in the same process fired both listeners and failed
+    # with "relation already exists". exec_driver_sql because the compiled
+    # SELECT is finished SQL that must not be re-parsed for bind parameters.
+    view_sql = view_query.compile(
+        dialect=engine.dialect, compile_kwargs={"literal_binds": True}
+    )
+    session.connection().exec_driver_sql(
+        f'CREATE MATERIALIZED VIEW public."all_data_view" AS {view_sql}'
+    )
     session.commit()
     session.close()
 

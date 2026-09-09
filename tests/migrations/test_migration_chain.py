@@ -298,16 +298,6 @@ class TestMigrationChain:
         from tests.conftest import upgrade as run_migrations
 
         run_migrations()
-
-        # The alldata module accumulates DDL event listeners on a module-level
-        # MetaData each time create_materialized_view() is called.  The parent
-        # conftest's _db fixture already called it once during session setup,
-        # so a second call (here) would fire both the old and new listeners,
-        # raising "relation already exists".  Reset the MetaData to clear the
-        # stale listeners before re-seeding.
-        import app.database.alldata as ad
-
-        ad.meta = sa.MetaData()
         insert_initial_data_command()
 
     @pytest.mark.parametrize(
