@@ -1,0 +1,169 @@
+"""Request-argument parsing and the shared reviewer/export query."""
+
+from datetime import datetime
+from typing import Optional
+
+from flask import current_app, request
+from sqlalchemy import func, select
+from sqlalchemy.orm import contains_eager, joinedload
+
+from app.database.models import (
+    ReportStatus,
+    TblFundorte,
+    TblMeldungen,
+    TblMeldungUser,
+)
+
+
+def _parse_german_date(value: Optional[str]) -> Optional[datetime]:
+    """Parse a dd.mm.YYYY date string, returning None on empty/invalid input."""
+    if not value:
+        return None
+    try:
+        return datetime.strptime(value, "%d.%m.%Y")
+    except ValueError:
+        return None
+
+
+def _get_reviewer_filter_args():
+    """Read the shared reviewer/export filter arguments from the request."""
+    return {
+        "filter_status": request.args.get("statusInput", "offen"),
+        "filter_type": request.args.get("typeInput"),
+        "search_query": request.args.get("q"),
+        "search_type": request.args.get("search_type", "full_text"),
+        "date_from": request.args.get("dateFrom"),
+        "date_to": request.args.get("dateTo"),
+        "date_type": request.args.get("dateType", "fund"),
+    }
+
+
+# SECURITY NOTE: URL-based auth tokens (user_id) are secrets.token_hex(20) — 160-bit random.
+
+
+def get_filtered_query(
+    filter_status: Optional[str] = None,
+    filter_type: Optional[str] = None,
+    search_query: Optional[str] = None,
+    search_type: Optional[str] = None,
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
+    date_type: Optional[str] = None,
+):
+    """Get filtered select statement based on parameters.
+
+    Returns a single-entity select(TblMeldungen) with relationship-based JOINs
+    and contains_eager() options. Compatible with db.paginate() and
+    db.session.scalars().
+    """
+    # INNER JOINs to melduser/users intentionally exclude meldungen without a
+    # reporter link (application invariant: every report has exactly one melduser).
+    # contains_eager() populates relationships from these existing JOINs.
+    # db.paginate() calls .unique() internally, so duplicate rows from the
+    # melduser JOIN (if any) are deduplicated before pagination.
+    stmt = (
+        select(TblMeldungen)
+        .join(TblMeldungen.fundort)
+        .join(TblFundorte.location_type)
+        .join(TblMeldungen.reporter_link)
+        .join(TblMeldungUser.reporter)
+        .options(
+            contains_eager(TblMeldungen.fundort).contains_eager(
+                TblFundorte.location_type
+            ),
+            contains_eager(TblMeldungen.reporter_link).contains_eager(
+                TblMeldungUser.reporter
+            ),
+            # joinedload auto-aliases the users table to avoid conflict
+            # with the reporter JOIN that already references users.
+            joinedload(TblMeldungen.approver),
+        )
+    )
+
+    # Apply filter conditions based on 'filter_status' using statuses array
+    # Array containment: statuses.contains(['VALUE']) checks if VALUE is in array
+    if filter_status == "bearbeitet":
+        stmt = stmt.where(TblMeldungen.statuses.contains([ReportStatus.APPR.value]))
+    elif filter_status == "offen":
+        stmt = stmt.where(
+            TblMeldungen.statuses.contains([ReportStatus.OPEN.value]),
+            ~TblMeldungen.statuses.contains([ReportStatus.INFO.value]),
+            ~TblMeldungen.statuses.contains([ReportStatus.UNKL.value]),
+        )
+    elif filter_status == "geloescht":
+        stmt = stmt.where(TblMeldungen.statuses.contains([ReportStatus.DEL.value]))
+    elif filter_status == "informiert":
+        stmt = stmt.where(TblMeldungen.statuses.contains([ReportStatus.INFO.value]))
+    elif filter_status == "unklar":
+        stmt = stmt.where(TblMeldungen.statuses.contains([ReportStatus.UNKL.value]))
+    elif filter_status == "all":
+        # No filter - show all statuses
+        pass
+    elif search_query:
+        # If there's a search query, don't apply any status filter
+        pass
+    else:
+        # Default behavior: Exclude deleted items
+        stmt = stmt.where(~TblMeldungen.statuses.contains([ReportStatus.DEL.value]))
+
+    # Apply type filter
+    if filter_type:
+        if filter_type == "maennlich":
+            stmt = stmt.where(TblMeldungen.art_m >= 1)
+        elif filter_type == "weiblich":
+            stmt = stmt.where(TblMeldungen.art_w >= 1)
+        elif filter_type == "oothek":
+            stmt = stmt.where(TblMeldungen.art_o >= 1)
+        elif filter_type == "Nymphe":
+            stmt = stmt.where(TblMeldungen.art_n >= 1)
+        elif filter_type == "andere":
+            stmt = stmt.where(TblMeldungen.art_f >= 1)
+        elif filter_type == "nicht_bestimmt":
+            stmt = stmt.where(
+                TblMeldungen.art_m.is_(None),
+                TblMeldungen.art_w.is_(None),
+                TblMeldungen.art_o.is_(None),
+                TblMeldungen.art_n.is_(None),
+                TblMeldungen.art_f.is_(None),
+            )
+
+    # Apply search
+    if search_query:
+        try:
+            if search_type == "id":
+                try:
+                    search_id = int(search_query)
+                    stmt = stmt.where(TblMeldungen.id == search_id)
+                except ValueError:
+                    search_type = "full_text"
+
+            if search_type == "full_text":
+                ts_query = func.websearch_to_tsquery("german", search_query)
+                stmt = stmt.where(TblMeldungen.search_vector.op("@@")(ts_query))
+                stmt = stmt.order_by(
+                    func.ts_rank_cd(TblMeldungen.search_vector, ts_query).desc()
+                )
+        except Exception as e:
+            current_app.logger.error(f"Search error: {e}")
+            stmt = stmt.where(TblMeldungen.id == -1)
+
+    # Apply date filters
+    # Choose which date column to filter on based on date_type
+    date_column = (
+        TblMeldungen.dat_meld if date_type == "meld" else TblMeldungen.dat_fund_von
+    )
+
+    parsed_from = _parse_german_date(date_from)
+    parsed_to = _parse_german_date(date_to)
+
+    if (date_from and parsed_from is None) or (date_to and parsed_to is None):
+        current_app.logger.error(f"Date parsing error: {date_from!r} / {date_to!r}")
+        stmt = stmt.where(TblMeldungen.id == -1)
+    elif parsed_from and parsed_to:
+        stmt = stmt.where(date_column.between(parsed_from, parsed_to))
+    elif parsed_from:
+        stmt = stmt.where(date_column >= parsed_from)
+    elif parsed_to:
+        stmt = stmt.where(date_column <= parsed_to)
+
+    return stmt
