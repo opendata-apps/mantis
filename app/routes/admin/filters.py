@@ -25,6 +25,17 @@ def _parse_german_date(value: str | None) -> datetime | None:
         return None
 
 
+# Which count column a species filter looks at. Note "Nymphe" is capitalised
+# where the others are not — that is the value the form actually submits.
+SPECIES_FILTERS = {
+    "maennlich": TblMeldungen.art_m,
+    "weiblich": TblMeldungen.art_w,
+    "oothek": TblMeldungen.art_o,
+    "Nymphe": TblMeldungen.art_n,
+    "andere": TblMeldungen.art_f,
+}
+
+
 def normalize_filter_status(value: str | None, default: str = "offen") -> str:
     """Normalise a status filter value.
 
@@ -96,26 +107,10 @@ def get_filtered_query(
     else:
         stmt = stmt.where(~TblMeldungen.is_deleted)
 
-    # Apply type filter
-    if filter_type:
-        if filter_type == "maennlich":
-            stmt = stmt.where(TblMeldungen.art_m >= 1)
-        elif filter_type == "weiblich":
-            stmt = stmt.where(TblMeldungen.art_w >= 1)
-        elif filter_type == "oothek":
-            stmt = stmt.where(TblMeldungen.art_o >= 1)
-        elif filter_type == "Nymphe":
-            stmt = stmt.where(TblMeldungen.art_n >= 1)
-        elif filter_type == "andere":
-            stmt = stmt.where(TblMeldungen.art_f >= 1)
-        elif filter_type == "nicht_bestimmt":
-            stmt = stmt.where(
-                TblMeldungen.art_m.is_(None),
-                TblMeldungen.art_w.is_(None),
-                TblMeldungen.art_o.is_(None),
-                TblMeldungen.art_n.is_(None),
-                TblMeldungen.art_f.is_(None),
-            )
+    if filter_type in SPECIES_FILTERS:
+        stmt = stmt.where(SPECIES_FILTERS[filter_type] >= 1)
+    elif filter_type == "nicht_bestimmt":
+        stmt = stmt.where(*(column.is_(None) for column in SPECIES_FILTERS.values()))
 
     # Apply search
     if search_query:
