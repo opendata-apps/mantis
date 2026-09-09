@@ -6,7 +6,6 @@ from pathlib import Path
 import pillow_heif
 from flask import Flask, jsonify, render_template, request
 from PIL import Image
-from werkzeug.exceptions import HTTPException
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from .config import Config
@@ -207,19 +206,6 @@ def create_app(config_class=Config):
         app.logger.warning(f"CSRF error: {e!s}")
         return render_template("error/403.html"), 403
 
-    # Global exception handler
-    @app.errorhandler(Exception)
-    def handle_exception(e):
-        # Pass through HTTP errors with their correct status codes
-        if isinstance(e, HTTPException):
-            return e
-
-        app.logger.exception(f"Unhandled exception: {e!s}")
-
-        if app.debug:
-            raise e
-        return render_template("error/500.html"), 500
-
     return app
 
 
@@ -264,9 +250,10 @@ def too_many_requests(e):
 
 
 def internal_server_error(e):
-    from flask import current_app
-
-    current_app.logger.error(f"Internal server error: {request.url} - Error: {e!s}")
+    # Unlike the handlers above this one does not log: Flask's own log_exception
+    # already wrote the traceback before calling us, and the single explicit
+    # abort(500) logs at its call site. `e` is the InternalServerError wrapper —
+    # the cause is e.original_exception.
     if wants_json_response():
         return jsonify({"error": "Internal server error"}), 500
     return render_template("error/500.html"), 500
