@@ -1,4 +1,4 @@
-from .fundmeldungen import TblMeldungen
+from .fundmeldungen import STATUS_FILTERS, TblMeldungen
 from .fundortbeschreibung import TblFundortBeschreibung
 from .fundorte import TblFundorte
 from .meldung_user import TblMeldungUser
@@ -11,6 +11,7 @@ from .report_status import ReportStatus
 from .user_role import UserRole
 
 __all__ = [
+    "STATUS_FILTERS",
     "TblMeldungen",
     "TblFundortBeschreibung",
     "TblFundorte",

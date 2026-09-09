@@ -13,7 +13,7 @@ from flask import (
 from datetime import date
 from sqlalchemy import select, func, text
 from app.extensions import db, limiter
-from app.database.models import TblMeldungen, ReportStatus
+from app.database.models import TblMeldungen
 from flask_login import current_user, login_required
 
 
@@ -61,7 +61,7 @@ def _get_post_count():
         .where(
             TblMeldungen.dat_fund_von >= date(current_app.config["MIN_MAP_YEAR"], 1, 1)
         )
-        .where(TblMeldungen.statuses.contains([ReportStatus.APPR.value]))
+        .where(TblMeldungen.is_approved)
     )
     value = db.session.execute(count_stmt).scalar()
     _post_count_cache["value"] = value

@@ -10,7 +10,7 @@ from app.database.models import TblAemterCoordinaten
 from app.auth import reviewer_required
 from app.tools.gen_messtisch_svg import create_measure_sheet
 from app.database.models import TblFundorte, TblMeldungen
-from app.database.models import TblUserFeedback, ReportStatus
+from app.database.models import TblUserFeedback
 from datetime import date, timedelta
 from app.database.feedback_type import FeedbackSource
 from app.database.ags import (
@@ -203,7 +203,7 @@ def stats_daily_average(marker="meldungen_zeiten"):
             timestamp_substr.isnot(None),
             TblMeldungen.dat_fund_von >= date_from,
             TblMeldungen.dat_fund_von <= date_to,
-            TblMeldungen.statuses.contains([ReportStatus.APPR.value]),
+            TblMeldungen.is_approved,
         )
         .where(TblFundorte.amt.like(f"{session['ags']}%"))
         .group_by(hour_expr)
@@ -262,7 +262,7 @@ def stats_mtb(marker):
         .where(
             TblMeldungen.dat_fund_von >= date.fromisoformat(session["date_from"]),
             TblMeldungen.dat_fund_von <= date.fromisoformat(session["date_to"]),
-            TblMeldungen.statuses.contains([ReportStatus.APPR.value]),
+            TblMeldungen.is_approved,
         )
         .where(TblFundorte.amt.like(f"{session['ags']}%"))
         .group_by(TblFundorte.mtb)
@@ -303,7 +303,7 @@ def stats_bardiagram_datum(dbfields, page, marker=None):
             .join(TblMeldungen.fundort)
             .where(
                 col.between(date_from, date_to),
-                TblMeldungen.statuses.contains([ReportStatus.APPR.value]),
+                TblMeldungen.is_approved,
                 TblFundorte.amt.like(f"{session['ags']}%"),
             )
             .group_by(col)
@@ -346,7 +346,7 @@ def stats_geschlecht(marker):
             TblMeldungen.dat_fund_von >= date.fromisoformat(session["date_from"]),
             TblMeldungen.dat_fund_von <= date.fromisoformat(session["date_to"]),
             TblFundorte.amt.like(f"{session['ags']}%"),
-            TblMeldungen.statuses.contains([ReportStatus.APPR.value]),
+            TblMeldungen.is_approved,
         )
     )
 
@@ -383,7 +383,7 @@ def stats_amt(marker):
         .where(
             TblMeldungen.dat_meld >= date.fromisoformat(session["date_from"]),
             TblMeldungen.dat_meld <= date.fromisoformat(session["date_to"]),
-            TblMeldungen.statuses.contains([ReportStatus.APPR.value]),
+            TblMeldungen.is_approved,
         )
         .where(TblFundorte.amt.like(f"{session['ags']}%"))
         .group_by(TblFundorte.amt)
@@ -437,7 +437,7 @@ def stats_laender(marker):
         .where(
             TblMeldungen.dat_meld >= date.fromisoformat(session["date_from"]),
             TblMeldungen.dat_meld <= date.fromisoformat(session["date_to"]),
-            TblMeldungen.statuses.contains([ReportStatus.APPR.value]),
+            TblMeldungen.is_approved,
         )
         .group_by(amt_group_expr)
     ).all()
@@ -496,7 +496,7 @@ def stats_bundesland(marker):
             TblMeldungen.dat_meld >= date.fromisoformat(session["date_from"]),
             TblMeldungen.dat_meld <= date.fromisoformat(session["date_to"]),
             state_prefix_expr == ags,
-            TblMeldungen.statuses.contains([ReportStatus.APPR.value]),
+            TblMeldungen.is_approved,
         )
         .group_by(amt_group_expr)
     ).all()
@@ -545,7 +545,7 @@ def stats_gesamt(marker):
         .where(
             TblMeldungen.dat_meld >= date.fromisoformat(session["date_from"]),
             TblMeldungen.dat_meld <= date.fromisoformat(session["date_to"]),
-            TblMeldungen.statuses.contains([ReportStatus.APPR.value]),
+            TblMeldungen.is_approved,
         )
         .group_by(TblFundorte.amt)
     )
