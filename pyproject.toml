@@ -69,7 +69,12 @@ docs = [
 testpaths = ["tests"]
 pythonpath = ["."]
 addopts = "-x -l"
-filterwarnings = ["ignore::DeprecationWarning"]
+filterwarnings = [
+    "error::DeprecationWarning",
+    # flask-login 0.6.3 (last release, 2023-10-30) calls datetime.utcnow(), which
+    # 3.12 deprecated. Fixed upstream, unreleased. Drop this on the next release.
+    "ignore:datetime.datetime.utcnow:DeprecationWarning:flask_login.login_manager",
+]
 
 [tool.ruff.lint]
 # Pinned: ruff widens its implicit default between releases, so an upgrade would
