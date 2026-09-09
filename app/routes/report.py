@@ -36,7 +36,6 @@ from app.database.models import (
 from app.database.feedback_type import FeedbackSource
 from app.forms import MantisSightingForm
 from app.tools.gen_user_id import get_new_id
-from app.tools.mtb_calc import point_in_rect
 from app.tools.gemeinde_finder import get_amt_enriched
 from app.tools.location_enrichment import calculate_spatial_fields
 from app.tools.report_images import build_upload_filename, ensure_upload_dir
@@ -500,9 +499,6 @@ def ags_lookup():
 
     if not in_range(lat, lon):
         return jsonify({}), 400
-
-    if not point_in_rect((lat, lon)):
-        return jsonify({})
 
     spatial = get_amt_enriched((lon, lat))
     if not spatial:
