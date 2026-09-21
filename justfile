@@ -78,13 +78,21 @@ prod-backup:
     find "$dir" -name 'db_*.dump' -mtime +14 -delete
     find "$dir" -name 'globals_*.sql' -mtime +14 -delete
 
+# Runs against the live database while the current container keeps serving.
+# prod-deploy applies the same migrations after the swap has removed it.
+
+# Apply pending migrations without swapping the container
+[group('prod')]
+@prod-migrate:
+    # entrypoint.sh upgrades before it execs the command, so the upgrade shows
+    # up twice. The second run is a no-op.
+    {{ compose }} run --rm -T --no-deps web flask db upgrade
+
 # Migrations are run by entrypoint.sh on container start (`flask db upgrade`),
 # so a schema-changing commit will be applied automatically when the new
 # container boots. Trade-off: a broken migration causes startup to fail and
-# `restart: unless-stopped` will loop until you `just prod-rollback`. We
-# don't pre-flight migrations because entrypoint.sh has no `exec "$@"` —
-# `compose run --rm web flask db upgrade` would be ignored and run the full
-# entrypoint (incl. gunicorn), deadlocking the deploy.
+# `restart: unless-stopped` will loop until you `just prod-rollback`. To find
+# that out before the swap, run `just prod-migrate` first.
 # Tags :previous before the build so `just prod-rollback` is a one-liner.
 # `--no-deps` keeps the DB container and its volume out of the swap.
 # The health response carries the commit the container was started with, so one
