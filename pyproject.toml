@@ -1,7 +1,7 @@
 [project]
 name = "mantis"
 version = "1.2.1"
-description = "An interactive web application to track Mantis Religiosa sightings in Brandenburg."
+description = "An interactive web application to track Mantis religiosa sightings in Germany."
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
