@@ -86,7 +86,8 @@ class Config:
     # Database Configuration (constructed from components, like Superset/Paperless-ngx)
     # Container deployments override DATABASE_HOST=db via docker-compose environment.
     DATABASE_HOST = os.getenv("DATABASE_HOST", "localhost")
-    DATABASE_PORT = os.getenv("DATABASE_PORT", "5432")
+    # Stays a string: _run_pg_dump passes it straight into a command list.
+    DATABASE_PORT = _env_or_default("DATABASE_PORT", "5432")
     DATABASE_USER = os.getenv("POSTGRES_USER", "mantis_user")
     DATABASE_PASSWORD = os.getenv("POSTGRES_PASSWORD", "mantis")
     DATABASE_DB = os.getenv("POSTGRES_DB", "mantis_tracker")
