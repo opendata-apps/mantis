@@ -44,7 +44,16 @@ def test_entrypoint_serves_health_after_migration_and_seed(_db, tmp_path):
     log_path = tmp_path / "startup.log"
     with log_path.open("w") as log:
         process = subprocess.Popen(
-            ["bash", "entrypoint.sh"],
+            # The Dockerfile's CMD, spelled out — ENTRYPOINT plus CMD is what
+            # the container runs.
+            [
+                "bash",
+                "entrypoint.sh",
+                "gunicorn",
+                "run:app",
+                "--config",
+                "gunicorn.conf.py",
+            ],
             cwd=Path(__file__).resolve().parents[2],
             env=env,
             stdout=log,
