@@ -46,7 +46,7 @@ Qualitätssicherung
 .. code-block:: bash
 
    uv run ruff check .
-   uv run pyright
+   uv run ty check
    uv run pytest
    uv run pytest -m unit
    uv run pytest --cov=app --cov-report=term-missing
