@@ -21,7 +21,7 @@ Projekt initialisieren
 .. code-block:: bash
 
    cp .env.example .env
-   uv sync --extra dev
+   uv sync
    bun install
 
 Lokale Datenbanken anlegen
@@ -72,7 +72,7 @@ Dokumentation lokal bauen
 
 .. code-block:: bash
 
-   uv sync --extra docs
+   uv sync --group docs
    make -C docs html
 
 Weiterführende Seiten

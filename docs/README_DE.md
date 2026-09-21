@@ -11,6 +11,6 @@ Einstiegsseite für die Dokumentation.
 ## Dokumentation lokal bauen
 
 ```bash
-uv sync --extra docs
+uv sync --group docs
 make -C docs html
 ```

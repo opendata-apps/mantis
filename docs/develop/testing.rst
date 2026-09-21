@@ -13,7 +13,7 @@ Voraussetzungen
 
 - laufender PostgreSQL-Server
 - Benutzer ``mantis_user`` mit ``CREATEDB``-Berechtigung
-- Entwicklungsabhängigkeiten: ``uv sync --extra dev``
+- Entwicklungsabhängigkeiten: ``uv sync``
 
 Die Test-Datenbank ``mantis_tester`` wird automatisch erstellt und nach
 Testende gelöscht. Einmalig muss ``CREATEDB`` vergeben werden:

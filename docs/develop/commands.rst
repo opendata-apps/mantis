@@ -8,8 +8,8 @@ Python- und Node-Abhängigkeiten
 
 .. code-block:: bash
 
-   uv sync --extra dev
-   uv sync --extra docs
+   uv sync
+   uv sync --group docs
    bun install
 
 Lokaler Start (ohne Container)

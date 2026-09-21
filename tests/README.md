@@ -6,7 +6,7 @@ Diese Test-Suite nutzt Pytest mit echter PostgreSQL-Datenbank.
 
 - laufender PostgreSQL-Server
 - Benutzer `mantis_user` mit `CREATEDB`-Berechtigung
-- Abhängigkeiten installiert mit `uv sync --extra dev`
+- Abhängigkeiten installiert mit `uv sync`
 
 Die Test-Datenbank `mantis_tester` wird automatisch erstellt und nach Testende gelöscht.
 Einmalig muss `CREATEDB` vergeben werden:

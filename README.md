@@ -62,7 +62,7 @@ Prerequisites:
 
 ```bash
 cp .env.example .env
-uv sync --extra dev
+uv sync
 bun install
 ```
 
@@ -132,7 +132,7 @@ Tests use a separate PostgreSQL database: `mantis_tester`.
 Build docs:
 
 ```bash
-uv sync --extra docs
+uv sync --group docs
 make -C docs html
 ```
 
