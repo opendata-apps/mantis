@@ -66,6 +66,12 @@ docs = [
     "sphinxcontrib-serializinghtml>=2.0.0",
 ]
 
+[tool.uv]
+# Flat layout, no entry points, never published. uv infers this today from the
+# absent build-system; saying it keeps a later one from installing the app into
+# its own environment.
+package = false
+
 [tool.pytest.ini_options]
 # app/tools holds no tests; it is collected for the doctests in three modules.
 testpaths = ["tests", "app/tools"]
