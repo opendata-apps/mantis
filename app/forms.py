@@ -22,6 +22,7 @@ from datetime import date
 from dateutil.relativedelta import relativedelta
 import re
 
+from app.tools.address_plausibility import contradicts_german_land
 from app.tools.coordinate_validation import (
     INVALID_MESSAGES,
     LAT_RANGE,
@@ -29,6 +30,7 @@ from app.tools.coordinate_validation import (
     RANGE_MESSAGES,
     SWAPPED_MESSAGE,
     coordinates_look_swapped,
+    in_range,
     parse_coordinate,
 )
 
@@ -128,6 +130,25 @@ def validate_not_swapped(form, field):
 
     if coordinates_look_swapped(form.latitude.data, form.longitude.data):
         raise StopValidation(SWAPPED_MESSAGE)
+
+
+def validate_land_matches_point(form, field):
+    """Reject a pin far outside Germany while the form claims a Bundesland.
+
+    Belongs on latitude only; both axes report into one error slot.
+    """
+    latitude, longitude = form.latitude.data, form.longitude.data
+    if latitude is None or longitude is None or not in_range(latitude, longitude):
+        return  # the parse and range validators already reported these
+
+    if not contradicts_german_land(latitude, longitude, form.fund_state.data):
+        return
+
+    raise ValidationError(
+        "Der markierte Punkt liegt nicht in Deutschland, als Bundesland ist "
+        f"aber „{form.fund_state.data}“ angegeben. Bitte den Fundort auf der "
+        "Karte markieren oder das Bundesland korrigieren."
+    )
 
 
 def _strip(value):
@@ -264,6 +285,7 @@ class MantisSightingForm(StrippedForm):
                 max=LAT_RANGE[1],
                 message=RANGE_MESSAGES["latitude"],
             ),
+            validate_land_matches_point,
         ],
         render_kw={"readonly": True, "aria-label": "Breitengrad (von Karte gesetzt)"},
     )

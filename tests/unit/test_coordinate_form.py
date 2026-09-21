@@ -7,11 +7,17 @@ from app.forms import MantisSightingForm
 SWAPPED = "Breiten- und Längengrad scheinen vertauscht zu sein."
 
 
-def _validated(app, latitude, longitude):
+def _validated(app, latitude, longitude, fund_state=""):
     """Validate a form carrying only the two coordinate fields."""
     with app.test_request_context():
         form = MantisSightingForm(
-            formdata=MultiDict({"latitude": latitude, "longitude": longitude})
+            formdata=MultiDict(
+                {
+                    "latitude": latitude,
+                    "longitude": longitude,
+                    "fund_state": fund_state,
+                }
+            )
         )
         form.validate()
         return form
@@ -54,10 +60,42 @@ class TestCoordinateFormValidation:
         form = _validated(app, "69.224997", "-23.552937")
 
         assert form.latitude.errors == ["Breitengrad muss zwischen 24,6 und 60 liegen."]
-        assert form.longitude.errors == ["Längengrad muss zwischen -20 und 44,83 liegen."]
+        assert form.longitude.errors == [
+            "Längengrad muss zwischen -20 und 44,83 liegen."
+        ]
 
     def test_valid_pair_has_no_errors(self, app):
         form = _validated(app, "52.520008", "13.404954")
 
         assert form.latitude.errors == []
         assert form.longitude.errors == []
+
+
+class TestLandAgainstPoint:
+    """The Bundesland claim has to survive a look at the map pin."""
+
+    def test_bundesland_with_point_abroad_is_rejected(self, app):
+        """Kieselbronn typed by hand, pin in the Egyptian desert."""
+        form = _validated(app, "24.9", "24.9", fund_state="Baden-Württemberg")
+
+        assert len(form.latitude.errors) == 1
+        assert "nicht in Deutschland" in form.latitude.errors[0]
+        assert "Baden-Württemberg" in form.latitude.errors[0]
+
+    def test_sighting_abroad_is_left_alone(self, app):
+        """Lago di Garda with an Italian Land — the common holiday report."""
+        form = _validated(app, "45.529034", "10.555665", fund_state="Lombardei")
+
+        assert form.latitude.errors == []
+
+    def test_border_pin_stays_valid(self, app):
+        """Guben sits where VG250 coverage frays; the box has slack for it."""
+        form = _validated(app, "51.949", "14.716", fund_state="Brandenburg")
+
+        assert form.latitude.errors == []
+
+    def test_out_of_range_pair_keeps_one_message(self, app):
+        """The range validator owns this pair — no second sentence stacked on."""
+        form = _validated(app, "69.224997", "13.404954", fund_state="Bayern")
+
+        assert form.latitude.errors == ["Breitengrad muss zwischen 24,6 und 60 liegen."]

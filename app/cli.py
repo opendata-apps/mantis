@@ -145,42 +145,36 @@ def seed_ags_command():
 
 
 @click.command("validate-coordinates")
-@click.option("--csv", "csv_path", default=None, help="Write mismatches to a CSV file")
 @with_appcontext
-def validate_coordinates_command(csv_path):
-    """Check that stored address fields match the coordinates on the map.
+def validate_coordinates_command():
+    """List Fundorte whose Bundesland contradicts their coordinates.
 
-    Compares each Fundort's 'land' and 'ort' against what the GemeindeFinder
-    resolves from its coordinates.  Reports mismatches without modifying any data.
+    Reads only; exits 1 when there is anything to look at. Applies the same
+    rule the report form applies to a submission.
     """
-    from sqlalchemy import select, func
+    from sqlalchemy import select
 
     from app.extensions import db
     from app.database.fundorte import TblFundorte
-    from app.tools.gemeinde_finder import get_amt_enriched
-    from app.tools.address_plausibility import (
-        validate_fundorte,
-        format_report,
-        format_csv,
-    )
-
-    count = db.session.scalar(select(func.count(TblFundorte.id)))
-    click.echo(f"Loading {count} Fundorte...")
+    from app.tools.address_plausibility import contradicts_german_land
 
     fundorte = db.session.scalars(select(TblFundorte)).all()
+    contradictory = [
+        f for f in fundorte if contradicts_german_land(f.latitude, f.longitude, f.land)
+    ]
 
-    click.echo("Validating coordinates against address fields...")
-    mismatches, checked, skipped = validate_fundorte(fundorte, get_amt_enriched)
+    click.echo(f"Checked {len(fundorte)} Fundorte.")
+    if not contradictory:
+        click.echo("No contradictions found.")
+        return
 
-    click.echo(format_report(mismatches, checked, skipped))
-
-    if csv_path and mismatches:
-        with open(csv_path, "w", encoding="utf-8", newline="") as f:
-            f.write(format_csv(mismatches))
-        click.echo(f"\nCSV written to {csv_path}")
-
-    if mismatches:
-        raise SystemExit(1)
+    for f in contradictory:
+        click.echo(
+            f"{f.id:>6}  {f.land:<22} {f.ort:<28}"
+            f" {f.latitude:>10.5f} {f.longitude:>10.5f}"
+        )
+    click.echo(f"\n{len(contradictory)} contradict their coordinates.")
+    raise SystemExit(1)
 
 
 @click.command("recalculate-mtb")
