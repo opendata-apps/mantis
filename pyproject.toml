@@ -58,6 +58,12 @@ docs = [
 # its own environment.
 package = false
 
+[tool.ty.rules]
+# Flask-SQLAlchemy builds its own base at runtime (FlaskSQLAlchemyBase, mixing
+# in BindMixin and NameMixin), so db.Model is not a class ty can resolve. Every
+# model triggers this and no spelling in our code avoids it.
+unsupported-base = "ignore"
+
 [tool.pytest.ini_options]
 # app/tools holds no tests; it is collected for the doctests in three modules.
 testpaths = ["tests", "app/tools"]
