@@ -67,11 +67,12 @@ docs = [
 ]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+# app/tools holds no tests; it is collected for the doctests in three modules.
+testpaths = ["tests", "app/tools"]
 pythonpath = ["."]
 # No -x: a fault in the shared database fixture errors every test that follows
 # it, and the first of those errors says nothing about the cause.
-addopts = "-l"
+addopts = "-l --doctest-modules"
 filterwarnings = [
     "error::DeprecationWarning",
     # flask-login 0.6.3 (last release, 2023-10-30) calls datetime.utcnow(), which
