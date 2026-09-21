@@ -69,7 +69,9 @@ docs = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
-addopts = "-x -l"
+# No -x: a fault in the shared database fixture errors every test that follows
+# it, and the first of those errors says nothing about the cause.
+addopts = "-l"
 filterwarnings = [
     "error::DeprecationWarning",
     # flask-login 0.6.3 (last release, 2023-10-30) calls datetime.utcnow(), which
