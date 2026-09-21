@@ -49,6 +49,19 @@ def _env_or_default(name: str, default: str) -> str:
     return default if value is None or value == "" else value
 
 
+def _env_int(name: str, default: int) -> int:
+    """Read a whole-number setting, treating an empty value as unset.
+
+    os.getenv's default only applies when the key is absent. A key left blank in
+    .env reaches int() as "", which raises at import time.
+    """
+    value = _env_or_default(name, str(default))
+    try:
+        return int(value)
+    except ValueError:
+        raise ValueError(f"{name} must be a whole number, got: '{value}'.") from None
+
+
 def _resolve_mail_sender(name: str, address: str) -> tuple[str, str]:
     """Resolve the From address, rejecting anything smtplib cannot parse.
 
@@ -91,9 +104,9 @@ class Config:
     # including psql and the backup. Raise workers and this sum with the same
     # hand.
     SQLALCHEMY_ENGINE_OPTIONS = {
-        "pool_size": int(os.getenv("DB_POOL_SIZE", 5)),
-        "max_overflow": int(os.getenv("DB_MAX_OVERFLOW", 10)),
-        "pool_recycle": int(os.getenv("DB_POOL_RECYCLE", 3600)),
+        "pool_size": _env_int("DB_POOL_SIZE", 5),
+        "max_overflow": _env_int("DB_MAX_OVERFLOW", 10),
+        "pool_recycle": _env_int("DB_POOL_RECYCLE", 3600),
         "pool_pre_ping": True,
     }
 
@@ -117,7 +130,7 @@ class Config:
 
     # Email Configuration
     MAIL_SERVER = _env_or_default("MAIL_SERVER", "mail.mantis-projekt.de")
-    MAIL_PORT = int(_env_or_default("MAIL_PORT", "25"))
+    MAIL_PORT = _env_int("MAIL_PORT", 25)
     MAIL_USE_TLS = _env_or_default("MAIL_USE_TLS", "True").lower() in (
         "true",
         "1",
@@ -136,8 +149,8 @@ class Config:
     )
     REVIEWERMAIL = os.getenv("REVIEWERMAIL", "False").lower() in ("true", "1", "yes")
     BACKUPMAIL = os.getenv("BACKUPMAIL", "").strip()
-    BACKUP_DOWNLOAD_MAX_AGE_SECONDS = int(
-        os.getenv("BACKUP_DOWNLOAD_MAX_AGE_SECONDS", str(7 * 24 * 60 * 60))
+    BACKUP_DOWNLOAD_MAX_AGE_SECONDS = _env_int(
+        "BACKUP_DOWNLOAD_MAX_AGE_SECONDS", 7 * 24 * 60 * 60
     )
 
     # GitLab Service Desk. Mail to this address opens a *confidential* issue —
@@ -153,7 +166,7 @@ class Config:
     )
     # Two, not one: most reporters retry once on their own (67 logged failures
     # across 39 distinct files), so the first failure is not yet a dead end.
-    PHOTO_ESCALATE_AFTER = int(os.getenv("PHOTO_ESCALATE_AFTER", "2"))
+    PHOTO_ESCALATE_AFTER = _env_int("PHOTO_ESCALATE_AFTER", 2)
 
     # Upload Configuration - always absolute path (Flask best practice)
     UPLOAD_FOLDER = _resolve_upload_folder()
@@ -177,4 +190,4 @@ class Config:
 
     # Application Settings
     FAVICON_BUILD_DIR = os.path.join(_config_dir, "static", "favicon")
-    CELEBRATION_THRESHOLD = int(os.getenv("CELEBRATION_THRESHOLD", "10000"))
+    CELEBRATION_THRESHOLD = _env_int("CELEBRATION_THRESHOLD", 10000)
