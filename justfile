@@ -100,7 +100,15 @@ prod-deploy: prod-backup
     podman tag localhost/infrastructure_web:latest localhost/infrastructure_web:previous || true
     {{ compose }} build --pull web
     GIT_SHA=$sha {{ compose }} up -d --force-recreate --no-deps web
-    running=$(curl -fsS --retry 30 --retry-delay 2 --retry-all-errors http://localhost:5000/health \
+    # Split from the version check below: one pipe for both aborts under
+    # pipefail before the log runs.
+    # 25 retries, not 30: /health is rate limited to 30/min and -f retries a 429.
+    if ! health=$(curl -fsS --retry 25 --retry-delay 2 --retry-all-errors http://localhost:5000/health); then
+        echo "✗ /health never answered — the container is not serving. Last 40 lines:"
+        {{ compose }} logs --tail 40 web 2>&1
+        exit 1
+    fi
+    running=$(printf '%s' "$health" \
         | python3 -c 'import json, sys; print(json.load(sys.stdin)["version"])')
     if [ "$running" != "$sha" ]; then
         echo "✗ running $running, expected $sha — roll back with: just prod-rollback"
