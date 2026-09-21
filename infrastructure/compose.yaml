@@ -48,11 +48,10 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      # Sized for a cold start against an empty volume, where the entrypoint runs
-      # every migration and a full seed before gunicorn binds. This only delays
-      # when failures start counting; the deploy is gated by the curl retry loop
-      # in `just prod-deploy`.
-      start_period: 300s
+      # Covers a cold start against an empty volume, where the entrypoint runs
+      # every migration and a full seed before gunicorn binds. A warm start
+      # takes ~10s. Inside this window a crash loop still counts as "starting".
+      start_period: 60s
 
 volumes:
   mantis_data:
