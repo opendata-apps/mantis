@@ -56,3 +56,5 @@ ENV FLASK_APP=run.py
 EXPOSE 5000
 
 ENTRYPOINT ["./entrypoint.sh"]
+# Development replaces this with the Werkzeug server in compose.override.yaml.
+CMD ["gunicorn", "run:app", "--config", "gunicorn.conf.py"]

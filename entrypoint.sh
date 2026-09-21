@@ -11,11 +11,7 @@ else
     flask seed
 fi
 
-echo "Starting application..."
+echo "Starting: $*"
 
-# Gunicorn in production, Flask dev server in development
-if [ "$FLASK_DEBUG" = "1" ]; then
-    exec flask run --host=0.0.0.0 --port=5000
-else
-    exec gunicorn run:app --config gunicorn.conf.py
-fi
+# The image's CMD, or a command passed in its place.
+exec "$@"

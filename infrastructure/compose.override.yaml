@@ -4,8 +4,10 @@
 
 services:
   web:
-    # entrypoint.sh runs `flask run` when this is 1, which serves the Werkzeug
-    # debugger — set 0 for any stack reachable beyond localhost.
+    # Replaces the image's gunicorn CMD. Serves the Werkzeug debugger, so this
+    # stack binds loopback only.
+    command: ["flask", "run", "--host=0.0.0.0", "--port=5000"]
+    # Read by entrypoint.sh, which seeds demo reports when it is 1.
     environment:
       - FLASK_DEBUG=${FLASK_DEBUG:-1}
     # Source mounted over the image so Flask reloads without a rebuild.
