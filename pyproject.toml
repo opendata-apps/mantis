@@ -89,14 +89,14 @@ extend-select = [
     "C4",  # comprehensions
     "ISC", # implicit str concat
     "LOG", # logging misuse
-    "PIE",
+    "PIE", # flake8-pie
     "PT",  # flake8-pytest-style
     "UP",  # pyupgrade
 ]
+# Candidates, each with violations today: G, DTZ, RUF, PTH, ARG, S. Read the
+# current count with `ruff check --select <rule> --statistics .` — most of S is
+# `assert` in tests.
 
 [tool.ruff.lint.flake8-pytest-style]
 # Ruff defaults to the tuple form; pytest's own documentation writes "a,b".
 parametrize-names-type = "csv"
-
-# Not selected. Violations today, so the next attempt starts from a number:
-#   G 42, DTZ 60, RUF 43, PTH 80, ARG 88, S 1250 (1234 are `assert` in tests)
