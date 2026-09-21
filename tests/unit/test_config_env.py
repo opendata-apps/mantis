@@ -3,7 +3,7 @@ import smtplib
 import pytest
 from flask_mail import sanitize_address
 
-from app.config import _env_or_default, _resolve_mail_sender
+from app.config import _env_int, _env_or_default, _resolve_mail_sender
 
 
 def test_env_or_default_uses_default_for_missing_value(monkeypatch):
@@ -28,6 +28,30 @@ def test_env_or_default_keeps_configured_value(monkeypatch):
     assert _env_or_default("MAIL_SERVER", "mail.mantis-projekt.de") == (
         "smtp.example.test"
     )
+
+
+def test_env_int_uses_default_for_empty_value(monkeypatch):
+    """The 2026-09-21 outage: CELEBRATION_THRESHOLD blanked in .env, not removed.
+
+    Config is read at import, so int("") raised before the app existed and
+    restart: unless-stopped looped the container.
+    """
+    monkeypatch.setenv("CELEBRATION_THRESHOLD", "")
+
+    assert _env_int("CELEBRATION_THRESHOLD", 10000) == 10000
+
+
+def test_env_int_keeps_configured_value(monkeypatch):
+    monkeypatch.setenv("CELEBRATION_THRESHOLD", "44444")
+
+    assert _env_int("CELEBRATION_THRESHOLD", 10000) == 44444
+
+
+def test_env_int_names_the_key_it_could_not_read(monkeypatch):
+    monkeypatch.setenv("CELEBRATION_THRESHOLD", "viele")
+
+    with pytest.raises(ValueError, match="CELEBRATION_THRESHOLD"):
+        _env_int("CELEBRATION_THRESHOLD", 10000)
 
 
 # The value that shipped in the production .env: a Python tuple literal, which
