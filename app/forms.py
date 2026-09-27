@@ -190,7 +190,7 @@ class MantisSightingForm(StrippedForm):
         render_kw={"placeholder": "Ihr Nachname", "autocomplete": "family-name"},
     )
     email = StringField(
-        "E-Mail",
+        "E-Mail (nur wenn Feedback gewünscht)",
         validators=[
             Optional(),
             Email(
