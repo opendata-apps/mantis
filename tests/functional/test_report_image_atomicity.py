@@ -15,6 +15,7 @@ from PIL import Image
 
 import app.routes.report as report_mod
 from app.routes.report import _process_uploaded_image
+from tests.helpers import build_valid_report_form_data
 
 
 pytestmark = pytest.mark.usefixtures("app_ctx")
@@ -89,3 +90,31 @@ def test_failed_submission_does_not_orphan_image(app, client, tmp_path, monkeypa
     # The image that was written during the failed request must be gone.
     assert list(tmp_path.rglob("*.webp")) == []
     assert list(tmp_path.rglob("*.part")) == []
+
+
+def test_a_failure_after_the_commit_keeps_the_saved_reports_photo(
+    app, client, tmp_path, monkeypatch, session
+):
+    from flask_login import user_logged_in
+    from sqlalchemy import select
+
+    from app.database.models import TblFundorte
+
+    monkeypatch.setitem(app.config, "UPLOAD_FOLDER", str(tmp_path))
+    monkeypatch.setitem(app.config, "PROPAGATE_EXCEPTIONS", False)
+
+    # The report is committed; logging the reporter in fails afterwards.
+    def refuse_login(sender, user):
+        raise RuntimeError("simulated login failure")
+
+    data = build_valid_report_form_data(
+        fund_city="Nachher", photo=(io.BytesIO(_webp_bytes()), "sighting.webp")
+    )
+    with user_logged_in.connected_to(refuse_login, app):
+        client.post("/melden", data=data, content_type="multipart/form-data")
+
+    ablage = session.scalar(
+        select(TblFundorte.ablage).where(TblFundorte.ort == "Nachher")
+    )
+    assert ablage
+    assert (tmp_path / ablage).is_file()

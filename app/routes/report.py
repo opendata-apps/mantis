@@ -388,27 +388,6 @@ def melden(usrid=None):
                 db.session.add(user_link)
                 db.session.commit()
 
-                # Same rule as melder_index: a submission never replaces
-                # another identity, a reviewer's session least of all.
-                if (
-                    not current_user.is_authenticated
-                    or current_user.user_id == reporter.user_id
-                ):
-                    log_in(reporter)
-
-                # Set session data for success page
-                session["report_submission_successful"] = True
-                session["last_submission_reporter_id"] = reporter.user_id
-                session["submission_had_email"] = bool(reporter.user_kontakt)
-
-                return jsonify(
-                    {
-                        "success": True,
-                        "redirect_url": url_for("report.success"),
-                        "message": "Vielen Dank, Ihre Meldung wurde erfolgreich gespeichert!",
-                    }
-                ), 200
-
             except BlankImageError:
                 # The check runs before anything is written, so only the
                 # transaction needs unwinding. Reported as a field error so the
@@ -456,6 +435,27 @@ def melden(usrid=None):
                     ),
                     500,
                 )
+
+            # Same rule as melder_index: a submission never replaces
+            # another identity, a reviewer's session least of all.
+            if (
+                not current_user.is_authenticated
+                or current_user.user_id == reporter.user_id
+            ):
+                log_in(reporter)
+
+            # Set session data for success page
+            session["report_submission_successful"] = True
+            session["last_submission_reporter_id"] = reporter.user_id
+            session["submission_had_email"] = bool(reporter.user_kontakt)
+
+            return jsonify(
+                {
+                    "success": True,
+                    "redirect_url": url_for("report.success"),
+                    "message": "Vielen Dank, Ihre Meldung wurde erfolgreich gespeichert!",
+                }
+            ), 200
         else:
             return _validation_error_response(form.errors)
 
