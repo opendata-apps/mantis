@@ -197,7 +197,8 @@ const ReportForm = {
     loadReview() {
         const form = document.getElementById('reportForm');
         const data = new FormData(form);
-        // photo_preview_data NOT sent - injected client-side via htmx:afterSwap
+        // The review shows the local preview (htmx:afterSwap), so the photo stays here.
+        data.delete('photo');
         htmx.ajax('POST', this.reviewUrl, {
             target: '#review-content-container',
             swap: 'innerHTML',
