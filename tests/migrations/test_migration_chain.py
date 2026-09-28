@@ -376,7 +376,9 @@ class TestMigrationChain:
 
         engine = sa.create_engine(MigrationsConfig.URI)
         with engine.connect() as conn:
-            ctx = MigrationContext.configure(conn)
+            ctx = MigrationContext.configure(
+                conn, opts={"compare_server_default": True}
+            )
             diff = compare_metadata(ctx, db.metadata)
         engine.dispose()
 
