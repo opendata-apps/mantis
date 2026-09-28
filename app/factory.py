@@ -4,7 +4,7 @@ from datetime import datetime
 from pathlib import Path
 
 import pillow_heif
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, render_template, request, url_for
 from PIL import Image
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -106,11 +106,24 @@ def register_template_globals(app: Flask) -> None:
     from heroicons.jinja import heroicon_mini, heroicon_outline
     from app.tools.coordinate_validation import COORDINATE_RANGES
 
+    def url_for_page(endpoint: str, page: int) -> str:
+        """Another page of the current listing, carrying every active filter.
+
+        Flask's own underscore arguments are dropped: a crafted ?_scheme= would
+        otherwise reach url_for and raise while the page renders.
+        """
+        args = {
+            key: value for key, value in request.args.items() if not key.startswith("_")
+        }
+        args["page"] = str(page)
+        return url_for(endpoint, **args)  # ty: ignore[invalid-argument-type]
+
     app.jinja_env.globals.update(
         {
             "coord_range": COORDINATE_RANGES,
             "heroicon_mini": heroicon_mini,
             "heroicon_outline": heroicon_outline,
+            "url_for_page": url_for_page,
         }
     )
 

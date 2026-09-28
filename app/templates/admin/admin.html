@@ -318,15 +318,7 @@
         {% include "admin/partials/_report_card.html" %}
       {% endfor %}
     </div>
-    {{ render_pagination(paginated_sightings,
-        'admin.reviewer',
-        current_filter_status,
-        current_sort_order,
-        search_query,
-        request.args.get('dateFrom', '') ,
-    request.args.get('dateTo', ''),
-    request.args.get('dateType', 'fund')
-    ) }}
+    {{ render_pagination(paginated_sightings, 'admin.reviewer') }}
   </div>
   <dialog id="modal"
           class="modal-admin backdrop:bg-gray-900/55 backdrop:backdrop-blur-sm"
