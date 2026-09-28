@@ -63,27 +63,13 @@ def get_reviewer_filter_args():
     }
 
 
-def get_filtered_query(
-    filter_status: str | None = None,
-    filter_type: str | None = None,
-    search_query: str | None = None,
-    search_type: str | None = None,
-    date_from: str | None = None,
-    date_to: str | None = None,
-    date_type: str | None = None,
-):
-    """Get filtered select statement based on parameters.
+def report_with_relations():
+    """select(TblMeldungen) with everything a reviewer view renders preloaded.
 
-    Returns a single-entity select(TblMeldungen) with relationship-based JOINs
-    and contains_eager() options. Compatible with db.paginate() and
-    db.session.scalars().
+    The INNER JOINs drop reports without a melduser link; every report has
+    exactly one. db.paginate() calls .unique(), which folds duplicate rows.
     """
-    # INNER JOINs to melduser/users intentionally exclude meldungen without a
-    # reporter link (application invariant: every report has exactly one melduser).
-    # contains_eager() populates relationships from these existing JOINs.
-    # db.paginate() calls .unique() internally, so duplicate rows from the
-    # melduser JOIN (if any) are deduplicated before pagination.
-    stmt = (
+    return (
         select(TblMeldungen)
         .join(TblMeldungen.fundort)
         .join(TblFundorte.location_type)
@@ -101,6 +87,24 @@ def get_filtered_query(
             joinedload(TblMeldungen.approver),
         )
     )
+
+
+def get_filtered_query(
+    filter_status: str | None = None,
+    filter_type: str | None = None,
+    search_query: str | None = None,
+    search_type: str | None = None,
+    date_from: str | None = None,
+    date_to: str | None = None,
+    date_type: str | None = None,
+):
+    """Get filtered select statement based on parameters.
+
+    Returns a single-entity select(TblMeldungen) with relationship-based JOINs
+    and contains_eager() options. Compatible with db.paginate() and
+    db.session.scalars().
+    """
+    stmt = report_with_relations()
 
     # The hybrids compile to array containment: statuses @> ARRAY['VALUE'].
     if filter_status in STATUS_FILTERS:

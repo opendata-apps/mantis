@@ -16,7 +16,6 @@ from flask import (
 )
 from sqlalchemy import func, select
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import contains_eager, joinedload
 
 from flask_login import current_user
 
@@ -24,7 +23,6 @@ from app.auth import log_in, reviewer_required
 from app.database.models import (
     STATUS_FILTERS,
     ReportStatus,
-    TblFundorte,
     TblMeldungen,
     TblMeldungUser,
     TblUsers,
@@ -37,6 +35,7 @@ from app.routes.admin.filters import (
     get_filtered_query,
     get_reviewer_filter_args,
     normalize_filter_status,
+    report_with_relations,
 )
 from app.tools.coordinate_validation import (
     validate_coordinate,
@@ -92,23 +91,7 @@ def _resolve_filter_status(default: str = "offen") -> str:
 
 def _load_sighting(report_id: int) -> TblMeldungen | None:
     """Load one report with all relationships populated via eager loading."""
-    stmt = (
-        select(TblMeldungen)
-        .join(TblMeldungen.fundort)
-        .join(TblFundorte.location_type)
-        .join(TblMeldungen.reporter_link)
-        .join(TblMeldungUser.reporter)
-        .options(
-            contains_eager(TblMeldungen.fundort).contains_eager(
-                TblFundorte.location_type
-            ),
-            contains_eager(TblMeldungen.reporter_link).contains_eager(
-                TblMeldungUser.reporter
-            ),
-            joinedload(TblMeldungen.approver),
-        )
-        .where(TblMeldungen.id == report_id)
-    )
+    stmt = report_with_relations().where(TblMeldungen.id == report_id)
     return db.session.scalars(stmt).unique().first()
 
 
