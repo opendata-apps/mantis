@@ -792,7 +792,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 // ---------------------------------------------------------------------------
-// CSP-safe modal triggers (replaces inline hx-on::* handlers).
+// CSP-safe modal triggers (htmx.config.allowEval is off, so no hx-on::*).
 // `data-action="open-modal"` on a button → modal opens when htmx fires its request.
 // Server returns `HX-Trigger: mantis:modal-close` → body closes the modal.
 // ---------------------------------------------------------------------------
