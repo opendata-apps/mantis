@@ -11,6 +11,10 @@ from pathlib import Path
 import json
 
 import pytest
+from sqlalchemy import select
+
+from app.database.fundorte import TblFundorte
+from app.database.fundortbeschreibung import TblFundortBeschreibung
 
 
 @pytest.fixture
@@ -19,51 +23,36 @@ def cli_runner(app, _db):
 
 
 class TestValidateCoordinatesCommand:
-    def test_constant_stub_produces_mismatches(self, cli_runner, session):
-        """Every seeded Fundort is in a different Gemeinde than the stub
-        returns ("Test/Brandenburg"), so every checked record must show
-        up as either LAND_MISMATCH (different Bundesland) or ORT_MISMATCH
-        (same Bundesland, different Ort). Exit code is 1 when there are
-        mismatches — that's the documented contract."""
+    def test_seeded_data_is_clean(self, cli_runner, session):
+        result = cli_runner.invoke(args=["validate-coordinates"])
 
-        def spatial(coord):
-            return {"land": "Brandenburg", "gen": "Test"}
+        assert result.exit_code == 0
+        assert "No contradictions found." in result.output
 
-        with patch(
-            "app.tools.gemeinde_finder.get_amt_enriched",
-            side_effect=spatial,
-        ):
-            result = cli_runner.invoke(args=["validate-coordinates"])
+    def test_contradictory_fundort_is_listed(self, cli_runner, session):
+        """A German Bundesland on a pin in the Egyptian desert."""
+        description = session.scalar(select(TblFundortBeschreibung))
+        location = TblFundorte(
+            plz="75249",
+            ort="Kieselbronn",
+            strasse="",
+            kreis="Enzkreis",
+            land="Baden-Württemberg",
+            amt="",
+            mtb="",
+            beschreibung=description.id,
+            latitude=24.9,
+            longitude=24.9,
+            ablage="contradiction.webp",
+        )
+        session.add(location)
+        session.commit()
+
+        result = cli_runner.invoke(args=["validate-coordinates"])
 
         assert result.exit_code == 1
-        assert "Coordinate Validation Report" in result.output
-        # Both issue types must appear because the demo data spans
-        # multiple Bundesländer.
-        assert "LAND_MISMATCH" in result.output
-        assert "ORT_MISMATCH" in result.output
-
-    def test_csv_export_creates_file(self, cli_runner, session, tmp_path):
-        """Passing ``--csv`` must write a CSV with a header row when
-        mismatches exist."""
-        csv_path = tmp_path / "mismatches.csv"
-
-        # Guarantee at least one mismatch by resolving every point to a
-        # different Bundesland than what's stored.
-        def spatial(coord):
-            return {"land": "Nirgendwoland", "gen": "Nirgendwostadt"}
-
-        with patch(
-            "app.tools.gemeinde_finder.get_amt_enriched",
-            side_effect=spatial,
-        ):
-            result = cli_runner.invoke(
-                args=["validate-coordinates", "--csv", str(csv_path)]
-            )
-
-        assert result.exit_code == 1  # mismatches found → exit 1
-        assert csv_path.exists()
-        header = csv_path.read_text().splitlines()[0]
-        assert header.startswith("id,issue,")
+        assert "Kieselbronn" in result.output
+        assert "1 contradict their coordinates." in result.output
 
 
 class TestSeedCommand:
