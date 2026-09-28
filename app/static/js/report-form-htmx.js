@@ -26,20 +26,15 @@ document.body.addEventListener('htmx:configRequest', (event) => {
     }
 });
 
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-    iconUrl: '/static/images/map/marker-icon.png',
-    iconRetinaUrl: '/static/images/map/marker-icon-2x.png',
-    shadowUrl: '/static/images/map/marker-shadow.png',
-    iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
-});
-
-window.L = L;
-window.htmx = htmx;
+// Leaflet guesses this path from its stylesheet, where Vite inlines the image.
+L.Icon.Default.mergeOptions({ imagePath: '/static/images/map/' });
 
 // Error containers whose id does not match the input the user actually types in.
 // The hidden latitude/longitude fields share one container next to the map.
 const ERROR_INPUT = { coordinates: 'manual-latitude' };
+
+const CONNECTION_ERROR = 'Verbindung zum Server fehlgeschlagen. '
+    + 'Bitte prüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.';
 
 const ReportForm = {
     step: 0,
@@ -70,10 +65,16 @@ const ReportForm = {
         window.addEventListener('beforeunload', (e) => {
             if (this.dirty && !this.submitting) {
                 e.preventDefault();
-                e.returnValue = '';
+                e.returnValue = true; // browsers without the preventDefault() trigger
             }
         });
         form.addEventListener('input', () => { this.dirty = true; });
+
+        const description = document.getElementById('description');
+        const remaining = document.getElementById('char-count');
+        description?.addEventListener('input', () => {
+            remaining.textContent = description.maxLength - description.value.length;
+        });
     },
 
     setupNav() {
@@ -106,18 +107,16 @@ const ReportForm = {
         this._initialized = true;
 
         if (i === 1 && this.map) {
-            // Allow layout to settle before resizing map + auto-locating
-            const activateMap = () => {
-                this.map.invalidateSize();
-                this.autoLocateIfNeeded();
-            };
-            setTimeout(activateMap, 100);
+            // The map was measured while its step was hidden.
+            this.map.invalidateSize();
+            this.autoLocateIfNeeded();
         }
         if (i === 3) this.loadReview();
     },
 
     setupHtmx(form) {
         document.body.addEventListener('htmx:beforeRequest', (e) => {
+            this.clearError('general');
             const btn = e.target.closest('[data-step]');
             if (!btn) return;
             const step = parseInt(btn.dataset.step, 10);
@@ -130,6 +129,19 @@ const ReportForm = {
                 this.showError('coordinates', 'Bitte wählen Sie einen Standort auf der Karte.');
             }
         });
+
+        // htmx swaps no 4xx/5xx response, so without these a failed step
+        // check leaves "Weiter" doing nothing at all.
+        document.body.addEventListener('htmx:responseError', (e) => {
+            const { xhr } = e.detail;
+            let json = null;
+            if (xhr.getResponseHeader('Content-Type')?.includes('application/json')) {
+                try { json = JSON.parse(xhr.responseText); } catch { /* generic message */ }
+            }
+            this.showError('general', json?.error
+                || 'Ihre Angaben konnten nicht geprüft werden. Bitte versuchen Sie es erneut.');
+        });
+        document.body.addEventListener('htmx:sendError', () => this.showError('general', CONNECTION_ERROR));
 
         document.body.addEventListener('stepValid', (e) => {
             this.clearErrors();
@@ -182,7 +194,8 @@ const ReportForm = {
     loadReview() {
         const form = document.getElementById('reportForm');
         const data = new FormData(form);
-        // photo_preview_data NOT sent - injected client-side via htmx:afterSwap
+        // The review shows the local preview (htmx:afterSwap), so the photo stays here.
+        data.delete('photo');
         htmx.ajax('POST', this.reviewUrl, {
             target: '#review-content-container',
             swap: 'innerHTML',
@@ -239,8 +252,7 @@ const ReportForm = {
         } catch (err) {
             this.submitting = false;
             this.showLoading(false);
-            this.showError('general',
-                'Verbindung zum Server fehlgeschlagen. Bitte prüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.');
+            this.showError('general', CONNECTION_ERROR);
         }
     },
 
@@ -347,27 +359,18 @@ const ReportForm = {
 
         try {
             const bytes = await this.stage('read', read);
-            exif = await this.extractExif(bytes);
-            const webp = await this.toWebp(bytes, type, file.size);
-            this.setPhoto(webp.blob, webp.dataUrl, file.name);
+            exif = this.extractExif(bytes);
+            this.setPhoto(await this.toWebp(bytes, type, file.size), file.name);
         } catch (err) {
             const probe = err.stage === 'read' ? await this.probeRead(file) : '';
             const escalation = await this.reportPhotoFailure(file, err, probe);
 
-            // Converting in the browser is an optimisation, not a requirement —
-            // the server decodes every format this form accepts. Forwarding the
-            // original costs bandwidth; refusing it costs the sighting. The one
-            // exception is a 'read' failure: those bytes were never accessible,
-            // so forwarding the file would just defer the same failure to
-            // submit — after four steps of work — as a misleading connection error.
+            // The server decodes every accepted format, so a failed conversion
+            // forwards the original. A failed read does not: submit would fail too.
             if (err.stage === 'read') {
                 // Reset before showing: removePhoto() clears the photo error, so
                 // the other order erases the message the user needs to see.
                 this.removePhoto();
-                // Not a cloud-only photo: reporters confirm local camera shots,
-                // and the same picker hands other files over readable. Re-picking
-                // the same photo fails every time; the mail route appears on the
-                // second failure.
                 this.showError('photo',
                     'Ihr Gerät hat dieses Foto nicht an den Browser übergeben. Das liegt nicht '
                     + 'am Foto, sondern an einem Fehler, der auf manchen Android-Handys '
@@ -377,7 +380,7 @@ const ReportForm = {
                 return;
             }
 
-            this.setPhoto(file, URL.createObjectURL(file), file.name);
+            this.setPhoto(file, file.name);
             this.showHint('photo',
                 'Das Foto konnte im Browser nicht verkleinert werden und wird unverändert '
                 + 'hochgeladen — das kann etwas länger dauern.');
@@ -388,12 +391,11 @@ const ReportForm = {
         this.applyExif(exif);
     },
 
-    // The converted blob and the untouched original are shown and submitted the
-    // same way; only the preview source differs (data: URL vs blob: URL).
-    setPhoto(blob, previewSrc, fileName) {
+    // The converted blob and the untouched original are shown and submitted the same way.
+    setPhoto(blob, fileName) {
         this.hideEscalation();
         this.releasePreview();
-        this.webpData = { previewSrc, blob, fileName };
+        this.webpData = { previewSrc: URL.createObjectURL(blob), blob, fileName };
         this.dirty = true;
 
         document.getElementById('photo-upload-area')?.classList.add('hidden');
@@ -401,15 +403,13 @@ const ReportForm = {
         const img = document.getElementById('preview-img');
         if (preview && img) {
             preview.classList.remove('hidden');
-            img.src = previewSrc;
+            img.src = this.webpData.previewSrc;
         }
     },
 
-    // A blob: URL pins the whole original in memory until it is revoked.
+    // A blob: URL pins the photo in memory until it is revoked.
     releasePreview() {
-        if (this.webpData?.previewSrc?.startsWith('blob:')) {
-            URL.revokeObjectURL(this.webpData.previewSrc);
-        }
+        if (this.webpData) URL.revokeObjectURL(this.webpData.previewSrc);
     },
 
     // Android pickers sometimes deliver a File with an empty `type`, so the
@@ -441,16 +441,8 @@ const ReportForm = {
         return err;
     },
 
-    // Chrome froze the Android UA at "Android 10; K" for every device, so the
-    // log cannot tell a Samsung from a Pixel — and which picker hands Chrome the
-    // content:// URI depends on exactly that. Client hints are the only way to
-    // ask; the JS API needs no Accept-CH opt-in.
-    // platform is a low-entropy hint and comes back alongside the requested
-    // high-entropy ones at no extra cost. The API is Chromium-only — Safari and
-    // Firefox have no userAgentData at all — so this resolves to {} for exactly
-    // the iOS reporters the HEIC failures come from, and the server falls back
-    // to the UA string. Client hint first, UA second is the order Sentry's
-    // relay and BugSnag both use.
+    // Chrome reports every Android device as "Android 10; K", so only client hints
+    // name the model. Chromium-only: elsewhere this is {} and the server reads the UA.
     async deviceHints() {
         try {
             const hints = await navigator.userAgentData?.getHighEntropyValues?.(
@@ -465,11 +457,8 @@ const ReportForm = {
         }
     },
 
-    // The Android photo picker hands over a synthesised numeric name
-    // (168243243.jpg) where DocumentsUI passes the gallery's own
-    // (IMG_20260803_101112.jpg) — the shape is the only clue in the browser to
-    // which picker produced the file. The name itself can identify a person, so
-    // only the class travels.
+    // Tells the Android photo picker (168243243.jpg) from DocumentsUI, which passes
+    // the gallery name. Only the class travels: a file name can identify a person.
     nameShape(name) {
         const base = (name || '').replace(/\.[^.]*$/, '');
         if (!base) return 'empty';
@@ -499,11 +488,8 @@ const ReportForm = {
         return Promise.race([probe, timeout]);
     },
 
-    // The conversion runs entirely in the browser, so until now a failure here
-    // was invisible to the project — the report was simply never submitted.
-    // Reports the failing step and the file class, never the image itself.
-    // Resolves to the server's escalation payload once it has counted enough
-    // failures for this session, otherwise null (204).
+    // Reports the failing step and the file class, never the image. Resolves to the
+    // server's escalation payload once it has counted enough failures, else null.
     async reportPhotoFailure(file, err, probe) {
         const url = document.getElementById('reportForm')?.dataset.photoErrorUrl;
         if (!url) return null;
@@ -554,28 +540,22 @@ const ReportForm = {
         document.getElementById('photo-escalation')?.classList.add('hidden');
     },
 
+    // Autofill only: a photo whose metadata cannot be parsed still uploads.
     extractExif(bytes) {
-        // EXIF autofill is a non-essential enhancement; it must never block or freeze
-        // the upload. Time-box it and swallow every failure (degrade to no autofill).
-        // ExifReader returns tags synchronously for an ArrayBuffer (a promise only for
-        // a File), so the parse has to be lifted into one before it can be raced.
-        const parse = Promise.resolve()
-            .then(() => ExifReader.load(bytes, { expanded: true }))
-            .then((tags) => {
-                const dateTime = tags.exif?.DateTimeOriginal?.description || tags.exif?.DateTime?.description;
-                const gps = (typeof tags.gps?.Latitude === 'number' && typeof tags.gps?.Longitude === 'number')
-                    ? { lat: tags.gps.Latitude, lng: tags.gps.Longitude }
-                    : null;
-                return { dateTime, gps };
-            })
-            .catch(() => ({}));
-        const timeout = new Promise((resolve) => setTimeout(() => resolve({}), 3000));
-        return Promise.race([parse, timeout]);
+        let tags;
+        try {
+            tags = ExifReader.load(bytes, { expanded: true });
+        } catch {
+            return {};
+        }
+        const dateTime = tags.exif?.DateTimeOriginal?.description || tags.exif?.DateTime?.description;
+        const gps = (typeof tags.gps?.Latitude === 'number' && typeof tags.gps?.Longitude === 'number')
+            ? { lat: tags.gps.Latitude, lng: tags.gps.Longitude }
+            : null;
+        return { dateTime, gps };
     },
 
-    // An object URL, not a data URL: base64 inflates a 6MB photo into an 8MB
-    // string handed to img.src, four times Chromium's 2MB URL ceiling, and it
-    // keeps that string in memory next to the decoded bitmap.
+    // An object URL, not a data URL, so no base64 copy of the photo sits in memory.
     decode(blob) {
         const url = URL.createObjectURL(blob);
         return new Promise((res, rej) => {
@@ -606,7 +586,8 @@ const ReportForm = {
         }
         if (!img) throw this.photoError('decode', failure);
 
-        const maxDim = /Mobile|Android|iPhone|iPad/i.test(navigator.userAgent) ? 2048 : 4096;
+        // The server archives at most 2048 px and keeps a client WebP as is.
+        const maxDim = 2048;
         let w = img.naturalWidth, h = img.naturalHeight;
         if (w > maxDim || h > maxDim) {
             const ratio = w / h;
@@ -627,11 +608,8 @@ const ReportForm = {
             throw this.photoError('canvas', cause);
         }
 
-        // drawImage can no-op without throwing in an Android WebView, which
-        // encodes a full-size but entirely transparent frame. Seven such reports
-        // reached the archive before this check existed — one of them approved —
-        // so verify the draw actually landed. Outside the catch above: this is a
-        // verdict, not a native fault, and must keep its own label.
+        // drawImage can no-op without throwing in an Android WebView, leaving a
+        // transparent frame. A verdict, not a native fault, so it keeps its own label.
         if (canvasIsBlank(ctx, w, h)) throw this.photoError('blank-canvas');
 
         const sizeMB = size / 1048576;
@@ -641,9 +619,8 @@ const ReportForm = {
         else if (pixels > 4e6) q = Math.min(q, 0.7);
 
         const encode = (mime) => new Promise((r) => canvas.toBlob(r, mime, q));
-        // WebKit (incl. iOS 26) cannot encode WebP via canvas: toBlob returns null
-        // or silently falls back to PNG. Fall back to JPEG, which every engine encodes
-        // and the server (PIL) decodes — unlike HEIC. See WebKit regression 89356ad.
+        // WebKit cannot encode WebP, and toBlob falls back to PNG for an unsupported
+        // type (HTML spec) or yields null. JPEG is encoded everywhere.
         let mime = 'image/webp';
         let out = await encode(mime);
         if (!out || out.type !== mime) {
@@ -652,11 +629,10 @@ const ReportForm = {
         }
         if (!out) throw this.photoError('encode');
 
-        const dataUrl = canvas.toDataURL(mime, q);
         // WebKit only frees a canvas once it is resized away (bug 195325), and on
         // a phone this is the largest allocation the form makes.
         canvas.width = canvas.height = 0;
-        return { blob: out, dataUrl };
+        return out;
     },
 
     removePhoto() {
@@ -689,23 +665,15 @@ const ReportForm = {
             }
         }
 
-        // EXIF GPS is unverified input. A camera without a fix writes a zeroed
-        // tag, and a wrong hemisphere ref flips a sign — both land far outside
-        // Europe. A photo whose position cannot be trusted simply leaves the
-        // map to the reporter, which is the normal flow for a photo with no
-        // GPS at all.
+        // A camera without a fix writes a zeroed tag, and a wrong hemisphere ref
+        // flips a sign; such a position leaves the map to the reporter.
         if (gps && this.map && coordinatesInRange(gps.lat, gps.lng, this.coordinateRanges)) {
             const { lat, lng } = gps;
             const exifLocation = document.getElementById('exif-location');
             if (exifLocation) exifLocation.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
 
-            // setMarker fills the coordinate fields; writing them here as well
-            // would just put an unformatted copy in front of it for 100ms.
-            setTimeout(() => {
-                this.map.invalidateSize();
-                this.map.setView([lat, lng], this.MIN_ZOOM);
-                this.setMarker(lat, lng, true);
-            }, 100);
+            this.map.setView([lat, lng], this.MIN_ZOOM);
+            this.setMarker(lat, lng, true);
             hasData = true;
         }
 
@@ -850,12 +818,8 @@ const ReportForm = {
         if (this._locTimeout) { clearTimeout(this._locTimeout); this._locTimeout = null; }
     },
 
-    // Out-of-range coordinates are dropped, never clamped. Clamping snapped a
-    // bad pair onto the nearest bound, and the corner of the accepted box —
-    // 24,6 / 44,83, in Saudi Arabia — is a coordinate the server validates as
-    // correct, so garbage became a plausible Fundort instead of an error.
-    // Seven reports reached the reviewers that way. An empty pair is the
-    // honest outcome: the step-2 gate already refuses to advance without one.
+    // Out-of-range coordinates are dropped, never clamped: a clamped pair is a
+    // valid-looking Fundort. The step-2 gate refuses to advance without one.
     setMarker(lat, lng, geocode = true) {
         if (!coordinatesInRange(lat, lng, this.coordinateRanges)) {
             this.clearCoordinates();
@@ -990,4 +954,3 @@ const ReportForm = {
 };
 
 document.addEventListener('DOMContentLoaded', () => ReportForm.init());
-window.ReportForm = ReportForm;

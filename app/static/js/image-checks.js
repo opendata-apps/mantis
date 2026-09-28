@@ -19,11 +19,8 @@ const sampleRows = (ctx, width, height) => {
     return rows;
 };
 
-// A canvas that never received pixels keeps its initial value — transparent
-// black — and `drawImage` can silently no-op in an Android WebView without
-// throwing, so a fully zero alpha channel is what "the draw did nothing" looks
-// like. Photos are opaque, so a single non-zero alpha clears the check.
-// No samples means "could not tell" and must NOT read as blank.
+// A canvas the draw never reached is transparent black, while a photo is opaque:
+// one non-zero alpha clears the check. No samples means "could not tell", not blank.
 export const canvasIsBlank = (ctx, width, height) => {
     const rows = sampleRows(ctx, width, height);
     return (
@@ -37,14 +34,8 @@ export const canvasIsBlank = (ctx, width, height) => {
     );
 };
 
-// FileAllowed on the server validates the extension, so an original forwarded
-// by the fallback would be rejected on a technicality under the wrong one.
-// Every type the server accepts is decodable there (Pillow, plus pillow-heif
-// for HEIC), so there is no format the fallback has to refuse.
-//
-// `extensionByMime` comes from #upload-config, where the server derives it
-// from the one format list — inverting here would pick "jpeg" over "jpg",
-// because serialising the map sorts its keys.
+// FileAllowed on the server checks the extension, so the upload is named after
+// its actual type. `extensionByMime` comes from #upload-config.
 export const extensionFor = (type, extensionByMime) => {
     const extension = extensionByMime[type];
     return extension ? `.${extension}` : '.webp';
