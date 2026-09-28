@@ -1,16 +1,45 @@
 import pytest
 from alembic import command
 from alembic.config import Config
-from sqlalchemy import text
+from sqlalchemy import create_engine, make_url, text
 from sqlalchemy.orm import Session
 from sqlalchemy_utils import create_database, database_exists, drop_database
 
 from tests.helpers import set_client_user
 from tests.test_config import Config as TestConfig
 
+# Arbitrary, only has to be the same number in every run of this suite.
+_RUN_LOCK_KEY = 7_307_195_812_240_001
+
 
 @pytest.fixture(scope="session")
-def _test_database():
+def _exclusive_run():
+    """Refuse to start while another run already owns the test databases.
+
+    The databases are shared mutable state: a second writer surfaces as
+    deadlocks, duplicate keys and vanished tables in unrelated tests, hundreds
+    of tests after the actual cause. The lock lives on the maintenance
+    database so it does not block dropping the test ones.
+    """
+    engine = create_engine(make_url(TestConfig.URI).set(database="postgres"))
+    with engine.connect() as guard:
+        held = guard.scalar(
+            text("SELECT pg_try_advisory_lock(:key)"), {"key": _RUN_LOCK_KEY}
+        )
+        if not held:
+            # Ends the session here: as a fixture failure this would repeat
+            # itself for every database test instead of saying it once.
+            pytest.exit(
+                f"Another test run already owns {TestConfig.DATABASE_DB}. "
+                "Wait for it to finish — a second run corrupts both.",
+                returncode=2,
+            )
+        yield
+    engine.dispose()
+
+
+@pytest.fixture(scope="session")
+def _test_database(_exclusive_run):
     """Create the test database if it doesn't exist, drop it on teardown.
 
     Requires CREATEDB privilege on the PostgreSQL role.

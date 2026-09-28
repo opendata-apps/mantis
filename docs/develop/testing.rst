@@ -49,6 +49,10 @@ Fixture-Lebenszyklus
   werden einmal je Testlauf in einem gemeinsamen temporären Verzeichnis erzeugt.
 - Migrationstests verwalten ihren Schemaaufbau selbst. Die Datenbank wird
   nach Testende gelöscht. Datenbanktests laufen seriell gegen ``mantis_tester``.
+- Ein zweiter gleichzeitiger Testlauf bricht sofort ab. ``_exclusive_run`` hält
+  dafür ein ``pg_advisory_lock`` auf der Wartungsdatenbank. Ohne den Riegel
+  zeigt sich ein zweiter Schreiber als Deadlock, doppelter Primärschlüssel oder
+  verschwundene Tabelle — hunderte Tests hinter der Ursache.
 
 Verifikation und Referenzen
 ----------------------------
