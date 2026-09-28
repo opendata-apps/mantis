@@ -360,15 +360,15 @@ const ReportForm = {
                 // Reset before showing: removePhoto() clears the photo error, so
                 // the other order erases the message the user needs to see.
                 this.removePhoto();
-                // Never "try again": across 67 logged read failures on only 39
-                // distinct files, re-picking the same photo failed every time
-                // (100% Android). The bytes are not on the device — typically a
-                // cloud-only gallery entry — so the only advice that works is to
-                // download it first or pick a different photo.
+                // Not a cloud-only photo: reporters confirm local camera shots,
+                // and the same picker hands other files over readable. Re-picking
+                // the same photo fails every time; the mail route appears on the
+                // second failure.
                 this.showError('photo',
-                    'Dieses Foto konnte nicht vom Gerät gelesen werden — meist liegt es nur '
-                    + 'in der Cloud (z. B. Google Fotos). Bitte laden Sie es in der Galerie '
-                    + 'herunter oder wählen Sie ein anderes Foto.');
+                    'Ihr Gerät hat dieses Foto nicht an den Browser übergeben. Das liegt nicht '
+                    + 'am Foto, sondern an einem Fehler, der auf manchen Android-Handys '
+                    + 'auftritt. Bitte wählen Sie ein anderes Foto — klappt es '
+                    + 'weiterhin nicht, erscheint hier ein Weg, es uns per E-Mail zu schicken.');
                 this.showEscalation(escalation);
                 return;
             }
