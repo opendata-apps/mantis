@@ -150,7 +150,7 @@ def upgrade():
     """)
     op.execute(CREATE_FUNDORTE_TRIGGER)
     op.create_check_constraint(
-        "ck_fundorte_plz_format", "fundorte", "plz ~ '^[0-9]{5}$'"
+        op.f("ck_fundorte_plz_format"), "fundorte", "plz ~ '^[0-9]{5}$'"
     )
 
     op.execute(RECOMPUTE_VECTORS)
@@ -160,7 +160,7 @@ def upgrade():
 def downgrade():
     op.execute(DROP_VIEW)
 
-    op.drop_constraint("ck_fundorte_plz_format", "fundorte", type_="check")
+    op.drop_constraint(op.f("ck_fundorte_plz_format"), "fundorte", type_="check")
     # NULL reverts to the historical 0 sentinel; leading zeros are lost
     # again (that is the defect this migration fixes).
     op.execute(DROP_FUNDORTE_TRIGGER)

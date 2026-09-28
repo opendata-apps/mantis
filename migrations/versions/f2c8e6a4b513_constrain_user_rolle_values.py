@@ -24,9 +24,9 @@ depends_on = None
 def upgrade():
     # '1' reporter, '2' finder, '9' reviewer (UserRole enum)
     op.create_check_constraint(
-        "ck_users_user_rolle_valid", "users", "user_rolle IN ('1', '2', '9')"
+        op.f("ck_users_user_rolle_valid"), "users", "user_rolle IN ('1', '2', '9')"
     )
 
 
 def downgrade():
-    op.drop_constraint("ck_users_user_rolle_valid", "users", type_="check")
+    op.drop_constraint(op.f("ck_users_user_rolle_valid"), "users", type_="check")

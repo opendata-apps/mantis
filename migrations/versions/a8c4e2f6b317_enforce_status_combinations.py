@@ -55,10 +55,10 @@ def upgrade():
     """)
 
     op.create_check_constraint(
-        "ck_meldungen_statuses_valid", "meldungen", STATUSES_VALID
+        op.f("ck_meldungen_statuses_valid"), "meldungen", STATUSES_VALID
     )
 
 
 def downgrade():
     # The data normalization is intentionally not reversed.
-    op.drop_constraint("ck_meldungen_statuses_valid", "meldungen", type_="check")
+    op.drop_constraint(op.f("ck_meldungen_statuses_valid"), "meldungen", type_="check")

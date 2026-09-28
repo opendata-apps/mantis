@@ -349,19 +349,33 @@ class TestMigrationChain:
             diff = compare_metadata(ctx, db.metadata)
         engine.dispose()
 
-        significant = [d for d in diff if not _is_ignorable_diff(d)]
-
-        assert not significant, (
+        assert not diff, (
             "Models and migrations are out of sync. Missing migration for:\n"
-            + "\n".join(str(d) for d in significant)
+            + "\n".join(str(d) for d in diff)
         )
 
+    def test_check_constraints_match_models(self, clean_db, app, alembic_config):
+        """compare_metadata skips CHECK constraints, so their names are compared here.
 
-def _is_ignorable_diff(diff_item):
-    """Filter known-harmless autogenerate false positives.
+        https://alembic.sqlalchemy.org/en/latest/autogenerate.html#what-does-autogenerate-detect-and-what-does-it-not-detect
+        """
+        from app.extensions import db
 
-    Returns True if the diff should be ignored. Extend this function
-    when Alembic flags something that is intentionally managed outside
-    of migrations (e.g., server defaults set at the DB level).
-    """
-    return False
+        upgrade(alembic_config, "head")
+
+        engine = sa.create_engine(MigrationsConfig.URI)
+        inspector = sa.inspect(engine)
+        in_database = {
+            (table, check["name"])
+            for table in db.metadata.tables
+            for check in inspector.get_check_constraints(table)
+        }
+        engine.dispose()
+        in_models = {
+            (table.name, constraint.name)
+            for table in db.metadata.tables.values()
+            for constraint in table.constraints
+            if isinstance(constraint, sa.CheckConstraint)
+        }
+
+        assert in_database == in_models
