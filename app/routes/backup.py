@@ -15,7 +15,7 @@ from flask import (
     send_from_directory,
     url_for,
 )
-from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
+from itsdangerous import BadSignature, URLSafeTimedSerializer
 from sqlalchemy import func, select
 
 from app.extensions import db
@@ -63,7 +63,7 @@ def _validate_download_token(filename: str, token: str | None) -> None:
             token,
             max_age=current_app.config["BACKUP_DOWNLOAD_MAX_AGE_SECONDS"],
         )
-    except (BadSignature, SignatureExpired):
+    except BadSignature:  # includes SignatureExpired
         abort(403)
     if data.get("filename") != filename:
         abort(403)
@@ -193,12 +193,7 @@ def trigger_year_backup(year: int):
 
     try:
         backup_path = create_year_backup(year)
-    except (
-        FileNotFoundError,
-        OSError,
-        subprocess.CalledProcessError,
-        ValueError,
-    ):
+    except (OSError, subprocess.CalledProcessError, ValueError):
         current_app.logger.exception("Backup for year %s failed.", year)
         return render_template("admin/partials/_backup_status.html", error=True), 500
 
