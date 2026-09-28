@@ -2,11 +2,10 @@
 
 from datetime import datetime
 from io import BytesIO
-from pathlib import Path
 import tempfile
 
 import xlsxwriter
-from flask import abort, current_app, send_file
+from flask import abort, send_file
 from sqlalchemy import func
 
 from app.auth import reviewer_required
@@ -98,22 +97,13 @@ def export_data(value):
 
     # Approver is eagerly loaded via outerjoin in get_filtered_query().
 
-    # Use temp file for large exports, BytesIO for small ones
+    # Large exports stream into an unnamed temp file, which send_file closes
+    # and the OS then deletes; small ones build in memory.
     use_large_mode = row_count > LARGE_EXPORT_THRESHOLD
-    output_path: str | None = None
-    output: BytesIO | None = None
     if use_large_mode:
-        # Large export: use temp file + constant_memory mode
-        temp_file = tempfile.NamedTemporaryFile(
-            suffix=".xlsx", delete=False, dir=current_app.config.get("TEMP_DIR")
-        )
-        output_path = temp_file.name
-        temp_file.close()
-        workbook = xlsxwriter.Workbook(
-            output_path, {"constant_memory": True, "tmpdir": "/tmp", **AS_TYPED}
-        )
+        output = tempfile.TemporaryFile()
+        workbook = xlsxwriter.Workbook(output, {"constant_memory": True, **AS_TYPED})
     else:
-        # Small export: use BytesIO (faster for small files)
         output = BytesIO()
         workbook = xlsxwriter.Workbook(output, {"in_memory": True, **AS_TYPED})
 
@@ -158,27 +148,10 @@ def export_data(value):
 
     workbook.close()
 
-    # Send the file
-    mime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    if use_large_mode:
-        # Send temp file and clean up after
-        assert output_path is not None
-        response = send_file(
-            output_path, mimetype=mime, as_attachment=True, download_name=filename
-        )
-
-        # Schedule cleanup of temp file after response is sent
-        @response.call_on_close
-        def cleanup():
-            try:
-                Path(output_path).unlink(missing_ok=True)
-            except Exception:
-                pass
-
-        return response
-    else:
-        assert output is not None
-        output.seek(0)
-        return send_file(
-            output, mimetype=mime, as_attachment=True, download_name=filename
-        )
+    output.seek(0)
+    return send_file(
+        output,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        as_attachment=True,
+        download_name=filename,
+    )

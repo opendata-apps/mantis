@@ -6,8 +6,10 @@ from io import BytesIO
 import openpyxl
 from datetime import datetime, timedelta
 import json
+import tempfile
 from sqlalchemy import select, func
 
+from app.routes.admin import export
 from app.database.models import (
     TblMeldungen,
     TblFundorte,
@@ -694,6 +696,19 @@ class TestAdminRoutes:
         remark = row[headers.index("Anmerkung Melder")]
         assert remark.data_type == "s"
         assert remark.value == '=HYPERLINK("https://example.com","Foto")'
+
+    def test_a_large_export_leaves_no_file_behind(self, client, monkeypatch, tmp_path):
+        # Every export counts as large, and temp files land in tmp_path.
+        monkeypatch.setattr(export, "LARGE_EXPORT_THRESHOLD", 0)
+        monkeypatch.setattr(tempfile, "tempdir", str(tmp_path))
+        with client.session_transaction() as sess:
+            sess["_user_id"] = "9999"
+
+        response = client.get("/admin/export/xlsx/all")
+        assert self.test_sighting.id in exported_ids(response)
+        response.close()
+
+        assert list(tmp_path.iterdir()) == []
 
     def test_export_xlsx_searched(self, client):
         """Test exporting searched data with the shared reviewer filter args."""
