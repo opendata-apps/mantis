@@ -237,3 +237,18 @@ def test_a_tiff_named_like_a_jpeg_is_refused(app_ctx, upload_folder):
         _store(disguised)
 
     assert list(upload_folder.rglob("*.webp")) == []
+
+
+def test_a_webp_larger_than_the_stored_size_is_downscaled(app_ctx, upload_folder):
+    """A WebP the browser did not shrink, e.g. posted directly, is capped too."""
+    rel = _store(make_test_image(fmt="webp", name="big.webp", size=(3000, 2000)))
+
+    assert Image.open(upload_folder / rel).size == (2048, 1365)
+
+
+def test_a_client_sized_webp_is_stored_byte_for_byte(app_ctx, upload_folder):
+    photo = make_test_image(fmt="webp", name="sighting.webp", size=(2048, 1536))
+
+    rel = _store(photo)
+
+    assert (upload_folder / rel).read_bytes() == photo.getvalue()

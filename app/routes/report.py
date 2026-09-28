@@ -72,7 +72,7 @@ def _set_gender_fields(selected_gender_value):
     return genders
 
 
-# The client's downscale target on phones (desktop browsers keep up to 4096).
+# Long side of a stored photo; a larger upload is downscaled to it.
 MAX_STORED_DIMENSION = 2048
 # Covers 48/50 MP phone originals. HEIC has no reduced decode and costs about
 # 12 bytes per pixel, so this cap is what bounds a worker's memory.
@@ -160,9 +160,7 @@ def _process_uploaded_image(photo_file, sighting_date, city_name, user_id):
             if _has_no_visible_pixels(img):
                 raise BlankImageError("uploaded frame has no visible pixels")
 
-            file_size_mb = len(image_bytes) / (1024 * 1024)
-
-            if img.format == "WEBP" and file_size_mb <= 8.0:
+            if img.format == "WEBP" and max(img.size) <= MAX_STORED_DIMENSION:
                 # Preserve client-optimized WebP without recompressing it.
                 image_bytes_to_save = image_bytes
             else:
