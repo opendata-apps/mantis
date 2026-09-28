@@ -271,6 +271,49 @@ class TestStatsMtbTypeInput:
         counts = [int(label.text) for label in svg.select('text[fill="white"]')]
         assert counts == [expected]
 
+    @pytest.mark.parametrize("type_input", ["mtb", "tiere"])
+    def test_unknown_type_input_counts_all_animals(
+        self, reviewer_client, counted_reports, type_input
+    ):
+        response = reviewer_client.post(
+            "/statistik",
+            data={
+                "stats": "meldungen_mtb",
+                "typeInput": type_input,
+                "dateFrom": "1992-06-10",
+                "dateTo": "1992-06-10",
+                "ags": "11",
+            },
+        )
+        assert response.status_code == 200
+        svg = BeautifulSoup(response.data, "html.parser").select_one("svg[xmlns]")
+        assert svg is not None
+        counts = [int(label.text) for label in svg.select('text[fill="white"]')]
+        assert counts == [15]
+
+    def test_a_fundort_without_sheet_logs_no_error(
+        self, reviewer_client, counted_reports, session, caplog
+    ):
+        # A Fundort abroad is stored with an empty sheet number.
+        report = session.scalars(
+            select(TblMeldungen).order_by(TblMeldungen.id).limit(1)
+        ).one()
+        report.fundort.mtb = ""
+        session.commit()
+
+        response = reviewer_client.post(
+            "/statistik",
+            data={
+                "stats": "meldungen_mtb",
+                "dateFrom": "1992-06-10",
+                "dateTo": "1992-06-10",
+                "ags": "",
+            },
+        )
+
+        assert response.status_code == 200
+        assert [r.getMessage() for r in caplog.records if r.levelname == "ERROR"] == []
+
 
 class TestAutocompleteAgs:
     def test_short_query_returns_empty(self, client):

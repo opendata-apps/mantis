@@ -258,12 +258,21 @@ def stats_daily_average(marker="meldungen_zeiten"):
     )
 
 
+# typeInput value -> the _gender_sum_columns label it counts
+MTB_COUNTS = {
+    "maennlich": "maennlich",
+    "weiblich": "weiblich",
+    "oothek": "oothek",
+    "nymphe": "nymphe",
+    "andere": "andere",
+    "all": "gesamt",
+}
+
+
 def stats_mtb(marker):
     "Results as MTB (Messtischblatt-Raster)"
 
-    art = request.form.get("typeInput", "all")
-    typeInput = ["mtb", "maennlich", "weiblich", "oothek", "nymphe", "andere", "all"]
-    dbanswers = []
+    column = MTB_COUNTS.get(request.form.get("typeInput", "all"), "gesamt")
     stmt = (
         select(TblFundorte.mtb, *_gender_sum_columns())
         .join(TblMeldungen)
@@ -271,21 +280,21 @@ def stats_mtb(marker):
             TblMeldungen.dat_fund_von >= date.fromisoformat(session["date_from"]),
             TblMeldungen.dat_fund_von <= date.fromisoformat(session["date_to"]),
             TblMeldungen.is_approved,
+            # Fundorte outside Germany have no sheet.
+            TblFundorte.mtb != "",
         )
         .where(TblFundorte.amt.like(f"{session['ags']}%"))
         .group_by(TblFundorte.mtb)
     )
 
-    results = db.session.execute(stmt).all()
-    idx = typeInput.index(art)
-
-    for row in results[:]:
-        if row[idx] > 0 and row[0] is not None:
+    dbanswers = []
+    for row in db.session.execute(stmt):
+        count = row._mapping[column]
+        if count > 0:
             try:
-                mtb = int(row[0])
-                dbanswers.append((mtb, row[idx]))
-            except ValueError as e:
-                current_app.logger.error(f"Error parsing value: {e}")
+                dbanswers.append((int(row.mtb), count))
+            except ValueError:
+                current_app.logger.error("Unreadable Messtischblatt %r", row.mtb)
 
     bg_url = url_for("static", filename="images/land_brandenburg.svg")
     xml = create_measure_sheet(dataset=dbanswers, bg_image_url=bg_url)
