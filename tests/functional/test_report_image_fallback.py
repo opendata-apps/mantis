@@ -200,7 +200,8 @@ def test_oversized_image_is_rejected_without_saving_a_report(
         session.scalar(select(func.count()).select_from(TblUsers)),
         session.scalar(select(func.count()).select_from(TblMeldungen)),
     )
-    photo = make_test_image(fmt="png", size=(5001, 5000), mode="L", color="gray")
+    # Just above the 50 MP cap; a 200 MP camera mode lands here too.
+    photo = make_test_image(fmt="png", size=(8200, 6200), mode="L", color="gray")
 
     response = client.post(
         "/melden",
@@ -215,3 +216,11 @@ def test_oversized_image_is_rejected_without_saving_a_report(
         session.scalar(select(func.count()).select_from(TblUsers)),
         session.scalar(select(func.count()).select_from(TblMeldungen)),
     )
+
+
+def test_a_48_megapixel_phone_original_is_stored_downscaled(app_ctx, upload_folder):
+    """An iPhone "HEIF Max" frame is 8064x6048. The conversion fallback forwards
+    it untouched, and the reporter has no way to shrink it on the phone."""
+    rel = _store(make_test_image(size=(8064, 6048), color="green"))
+
+    assert Image.open(upload_folder / rel).size == (2048, 1536)

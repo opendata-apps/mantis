@@ -71,7 +71,13 @@ def _set_gender_fields(selected_gender_value):
 # Matches the client's own downscale target, so a photo is archived at the same
 # size whether the browser converted it or the server did.
 MAX_STORED_DIMENSION = 2048
-MAX_UPLOAD_PIXELS = 25_000_000
+# Covers 48/50 MP phone originals. HEIC has no reduced decode and costs about
+# 12 bytes per pixel, so this cap is what bounds a worker's memory.
+MAX_UPLOAD_PIXELS = 50_000_000
+TOO_LARGE_MESSAGE = (
+    "Das Foto darf höchstens 50 Megapixel haben. "
+    "Bitte verkleinern Sie es und wählen Sie es erneut aus."
+)
 
 # A mobile upload that loses its last bytes still carries the whole animal, so
 # decode what arrived; a frame damaged beyond use still fails the blank-pixel
@@ -144,10 +150,10 @@ def _process_uploaded_image(photo_file, sighting_date, city_name, user_id):
     try:
         with Image.open(io.BytesIO(image_bytes)) as img:
             if img.width * img.height > MAX_UPLOAD_PIXELS:
-                raise InvalidImageError(
-                    "Das Foto darf höchstens 25 Megapixel haben. "
-                    "Bitte verkleinern Sie es und wählen Sie es erneut aus."
-                )
+                raise InvalidImageError(TOO_LARGE_MESSAGE)
+            # JPEG only, a no-op otherwise: libjpeg decodes at 1/2–1/8 scale, so
+            # a 48 MP original costs ~90 MiB instead of ~260. Must precede load().
+            img.draft("RGB", (MAX_STORED_DIMENSION, MAX_STORED_DIMENSION))
             img.load()
             if _has_no_visible_pixels(img):
                 raise BlankImageError("uploaded frame has no visible pixels")
@@ -173,7 +179,10 @@ def _process_uploaded_image(photo_file, sighting_date, city_name, user_id):
                 image_bytes_to_save = output_buffer.getvalue()
     except InvalidImageError:
         raise
-    except (OSError, ValueError, Image.DecompressionBombError) as error:
+    except Image.DecompressionBombError as error:
+        # Pillow refuses above ~179 MP before our own cap is reached.
+        raise InvalidImageError(TOO_LARGE_MESSAGE) from error
+    except (OSError, ValueError) as error:
         raise InvalidImageError(
             "Das Foto konnte nicht gelesen werden. Bitte wählen Sie ein anderes Foto."
         ) from error
