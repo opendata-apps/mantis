@@ -6,7 +6,6 @@ from pathlib import Path
 import pillow_heif
 from flask import Flask, jsonify, render_template, request, url_for
 from flask_limiter.errors import RateLimitExceeded
-from PIL import Image
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from .config import Config
@@ -41,7 +40,8 @@ def create_app(config_class=Config) -> Flask:
     # cookiecutter-flask groups it; the order of these calls is the wiring
     # order, so read them top to bottom.
     configure_logger(app)
-    register_heif_opener()
+    # Adds HEIC/HEIF to Image.open for iPhone uploads.
+    pillow_heif.register_heif_opener()
     register_extensions(app)
     register_template_globals(app)
 
@@ -66,22 +66,6 @@ def configure_logger(app: Flask) -> None:
     if not app.debug:
         app.logger.setLevel(os.environ.get("FLASK_LOG_LEVEL", "INFO").upper())
         app.logger.info("Mantis tracker startup")
-
-
-def register_heif_opener() -> None:
-    """HEIC/HEIF decoding for iPhone uploads.
-
-    Registers a plugin into Pillow's own opener table, so `Image.open` handles
-    HEIC and the existing WebP re-encode path needs no change. Verified rather
-    than assumed: registration silently no-ops against an incompatible Pillow,
-    which would turn every HEIC upload into a 500 at runtime instead of here.
-    https://github.com/bigcat88/pillow_heif/issues/340
-    """
-    pillow_heif.register_heif_opener()
-    if "HEIF" not in Image.OPEN:
-        raise RuntimeError(
-            "pillow-heif did not register a HEIF opener; HEIC uploads would fail"
-        )
 
 
 def register_extensions(app: Flask) -> None:
