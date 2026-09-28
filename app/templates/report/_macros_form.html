@@ -32,7 +32,9 @@
             <span class="text-sm md:text-base">Klicken Sie, um ein Foto auszuwählen</span>
             {{ field(class="sr-only", required=true, accept=upload_config.accept) }}
           </label>
-          <p class="mt-1">oder ziehen Sie ein Bild hierher</p>
+          {# The paste hint stays on wide screens only: a key combination is
+             noise on the phones that send two thirds of all reports. #}
+          <p class="mt-1">oder ziehen Sie ein Bild hierher<span class="hidden md:inline"> oder fügen es mit Strg/Cmd+V ein</span></p>
           <p class="mt-1 text-xs text-gray-600">{{ upload_config.formats | join(", ") }} bis zu {{ upload_config.maxMb }}MB</p>
         </div>
       </div>

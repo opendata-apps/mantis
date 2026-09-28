@@ -304,6 +304,24 @@ const ReportForm = {
                 this.handlePhoto(e.dataTransfer.files[0]);
             }
         });
+        // On a desktop the clipboard is often the only route a phone photo takes
+        // onto the machine. Read `items`: Safari leaves `clipboardData.files`
+        // empty while still carrying the image.
+        document.addEventListener('paste', (e) => {
+            const item = [...(e.clipboardData?.items ?? [])].find(
+                (i) => i.kind === 'file' && i.type.startsWith('image/'));
+            const blob = item?.getAsFile();
+            if (!blob) return;
+            e.preventDefault();
+            // Browsers re-encode clipboard images to PNG and hand them over as
+            // "image.png", so the name carries nothing and EXIF is already gone.
+            const ext = blob.type.split('/')[1].replace('jpeg', 'jpg');
+            const pasted = new File([blob], `einfuegen-${Date.now()}.${ext}`, { type: blob.type });
+            const transfer = new DataTransfer();
+            transfer.items.add(pasted);
+            input.files = transfer.files;
+            this.handlePhoto(pasted);
+        });
         document.getElementById('remove-photo')?.addEventListener('click', () => this.removePhoto());
     },
 
