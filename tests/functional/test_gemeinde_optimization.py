@@ -100,6 +100,8 @@ class TestGemeindeOptimization:
             )
         )
         session.commit()
+        # Tests here empty the table; later tests must not see their cache.
+        reload_gemeinde_cache()
 
     def test_finds_correct_administrative_area(self, session):
         """Test that the finder returns the correct area for known points."""

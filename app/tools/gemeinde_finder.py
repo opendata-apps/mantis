@@ -46,6 +46,10 @@ def _load_index() -> tuple[STRtree, list[dict[str, str]]] | None:
     global _index
     try:
         kreise = load_kreise_lookup(KREISE_PATH)
+    except (OSError, ValueError):
+        logger.exception("Could not read %s; Kreis names stay empty", KREISE_PATH)
+        kreise = {}
+    try:
         # JSONB cast to text and parsed by GEOS skips psycopg's JSON decoding.
         rows = db.session.execute(
             select(
@@ -88,10 +92,9 @@ def get_amt_enriched(point) -> dict[str, str] | None:
 
 
 def reload_gemeinde_cache() -> None:
-    """Rebuild the polygon cache after the aemter table changed."""
+    """Drop the polygon cache; the next lookup reads the aemter table again."""
     global _index
     _index = None
-    _load_index()
 
 
 def warm_gemeinde_cache() -> bool:
