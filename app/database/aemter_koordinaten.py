@@ -12,6 +12,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.extensions import db
 
+
 class TblAemterCoordinaten(db.Model):
     __tablename__ = "aemter"
 
@@ -23,10 +24,3 @@ class TblAemterCoordinaten(db.Model):
 
     def __repr__(self):
         return f"<Amt {self.ags}>"
-
-    def to_dict(self):
-        return {
-            "ags": self.ags,
-            "gen": self.gen,
-            "properties": self.properties,
-        }

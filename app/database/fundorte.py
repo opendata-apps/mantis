@@ -89,19 +89,3 @@ class TblFundorte(db.Model):
 
     def __repr__(self):
         return f"<Fundort {self.id}>"
-
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "plz": self.plz,
-            "ort": self.ort,
-            "strasse": self.strasse,
-            "kreis": self.kreis,
-            "land": self.land,
-            "amt": self.amt,
-            "mtb": self.mtb,
-            "latitude": self.latitude,
-            "longitude": self.longitude,
-            "beschreibung": self.beschreibung,
-            "ablage": self.ablage,
-        }

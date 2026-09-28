@@ -75,15 +75,3 @@ class TblUsers(UserMixin, db.Model):
 
     def __repr__(self):
         return f"<User {self.id} ({self.user_name})>"
-
-    def to_dict(self):
-        data = {
-            "id": self.id,
-            "user_id": self.user_id,
-            "user_name": self.user_name,
-            "user_kontakt": self.user_kontakt,
-            "user_rolle": self.user_rolle,
-        }
-        if self.feedback_source:
-            data["feedback_source"] = self.feedback_source.to_dict()
-        return data

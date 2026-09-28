@@ -141,29 +141,6 @@ class TblMeldungen(db.Model):
     def __repr__(self):
         return f"<Report {self.id}>"
 
-    def to_dict(self):
-        data = {
-            "id": self.id,
-            "statuses": self.statuses,
-            "dat_fund_von": self.dat_fund_von,
-            "dat_fund_bis": self.dat_fund_bis,
-            "dat_meld": self.dat_meld,
-            "dat_bear": self.dat_bear,
-            "bearb_id": self.bearb_id,
-            "tiere": self.tiere,
-            "art_m": self.art_m,
-            "art_w": self.art_w,
-            "art_n": self.art_n,
-            "art_o": self.art_o,
-            "art_f": self.art_f,
-            "fo_zuordnung": self.fo_zuordnung,
-            "fo_quelle": self.fo_quelle,
-            "fo_beleg": self.fo_beleg,
-            "anm_melder": self.anm_melder,
-            "anm_bearbeiter": self.anm_bearbeiter,
-        }
-        return data
-
     @hybrid_property
     def is_deleted(self) -> bool:
         """Check if report is deleted."""

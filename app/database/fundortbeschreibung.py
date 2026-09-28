@@ -22,9 +22,3 @@ class TblFundortBeschreibung(db.Model):
 
     def __repr__(self):
         return f"<Beschreibung {self.id}>"
-
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "beschreibung": self.beschreibung,
-        }

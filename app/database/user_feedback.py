@@ -40,14 +40,3 @@ class TblUserFeedback(db.Model):
 
     def __repr__(self):
         return f"<UserFeedback id={self.id} user_id={self.user_id} source='{self.feedback_source}'>"
-
-    def to_dict(self):
-        from app.database.feedback_type import FeedbackSource
-
-        return {
-            "id": self.id,
-            "user_id": self.user_id,
-            "feedback_source": self.feedback_source,
-            "source_type": FeedbackSource.get_display_name(self.feedback_source),
-            "source_detail": self.source_detail,
-        }
