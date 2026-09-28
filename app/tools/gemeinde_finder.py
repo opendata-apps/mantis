@@ -1,273 +1,102 @@
-"""
-Optimized administrative area (Gemeinde/Amt) finder with caching.
+"""Administrative area (Gemeinde/Amt) for a coordinate.
 
-This module provides efficient spatial lookups for determining which administrative
-area (Amt) contains a given coordinate point. It uses in-memory caching and spatial
-indexing to avoid database queries on every lookup.
-
-Performance: Uses STRtree.query(predicate="within") to push the precise
-point-in-polygon check into GEOS C code, eliminating the Python-level loop.
-Geometries are fetched as raw GeoJSON text and parsed by GEOS (from_geojson),
-skipping psycopg's JSONB->dict conversion — ~4x faster cold load.
-A Germany bounding box pre-filter rejects clearly-outside points cheaply.
+The polygons of the aemter table are loaded once per process into a Shapely
+STRtree; a lookup is then one GEOS query without touching the database.
 """
 
-import os
-from collections import namedtuple
-from threading import RLock
+import logging
+from pathlib import Path
 
-from shapely import GEOSException, from_geojson
-from shapely.geometry import Point, Polygon, MultiPolygon
-from shapely.strtree import STRtree
+import shapely
+from shapely import Point, STRtree
 from sqlalchemy import Text, select
-from flask import current_app
 
 from app.extensions import db
 from app.database.aemter_koordinaten import TblAemterCoordinaten
 from app.database.ags import BUNDESLAENDER
+from app.tools.fetch_ags import load_kreise_lookup
 
-# Structured metadata — replaces opaque tuple indexing
-AmtRecord = namedtuple("AmtRecord", ["amt_string", "gen", "ags", "land", "kreis"])
+logger = logging.getLogger(__name__)
 
-# Germany bounding box (generous, includes North Sea islands)
-_DE_BOUNDS = (5.8, 15.1, 47.2, 55.2)  # min_lon, max_lon, min_lat, max_lat
+KREISE_PATH = Path(__file__).parent.parent / "data" / "ags_kreise.json"
 
-
-class GemeindeFinder:
-    """Efficient finder for administrative areas using spatial indexing."""
-
-    def __init__(self):
-        """Initialize the finder with empty cache."""
-        self._geometries = []
-        self._metadata = []
-        self._tree = None
-        self._kreise_lookup = {}
-        self._cache_lock = RLock()
-        self._is_loaded = False
-
-    def _load_kreise(self):
-        """Load Kreise lookup from JSON file."""
-        kreise_path = os.path.join(
-            os.path.dirname(__file__), "..", "data", "ags_kreise.json"
-        )
-        try:
-            from app.tools.fetch_ags import load_kreise_lookup
-
-            self._kreise_lookup = load_kreise_lookup(kreise_path)
-            if self._kreise_lookup:
-                current_app.logger.info(
-                    f"Loaded {len(self._kreise_lookup)} Kreise for enrichment"
-                )
-        except Exception as e:
-            current_app.logger.warning(f"Could not load Kreise lookup: {e}")
-            self._kreise_lookup = {}
-
-    def _load_data(self):
-        """Load all administrative area polygons from database."""
-        with self._cache_lock:
-            if self._is_loaded:
-                return
-
-            try:
-                current_app.logger.info(
-                    "Loading administrative area polygons from database..."
-                )
-                geometries = []
-                metadata = []
-
-                self._load_kreise()
-
-                # Cast JSONB to text and parse with GEOS' C parser: skipping
-                # psycopg's JSONB->dict conversion makes the load ~4x faster.
-                stmt = select(
-                    TblAemterCoordinaten.ags,
-                    TblAemterCoordinaten.gen,
-                    TblAemterCoordinaten.properties.cast(Text).label("properties"),
-                ).order_by(TblAemterCoordinaten.ags)
-                rows = db.session.execute(stmt).all()
-
-                for row in rows:
-                    ags = None
-                    try:
-                        ags = row.ags
-                        gen = row.gen
-
-                        geom = from_geojson(row.properties)
-
-                        # Format AGS with leading zero if needed
-                        ags_str = f"0{ags}" if ags < 10000000 else str(ags)
-                        amt_string = f"{ags_str} -- {gen}"
-
-                        # Derive land and kreis from AGS code
-                        land_code = ags_str[:2]
-                        land_name = BUNDESLAENDER.get(land_code, "")
-                        kreis_code = ags_str[:5]
-                        kreis_name = self._kreise_lookup.get(kreis_code, "")
-
-                        # Store polygon with its metadata
-                        if isinstance(geom, (Polygon, MultiPolygon)):
-                            geometries.append(geom)
-                            metadata.append(
-                                AmtRecord(
-                                    amt_string, gen, ags_str, land_name, kreis_name
-                                )
-                            )
-                        else:
-                            current_app.logger.warning(
-                                f"Skipping non-polygon geometry for {amt_string}"
-                            )
-
-                    except Exception as e:
-                        current_app.logger.error(
-                            f"Error parsing geometry for row (AGS: {ags}): {e}"
-                        )
-                        continue
-
-                # Create spatial index for efficient lookups
-                if geometries:
-                    self._geometries = geometries
-                    self._metadata = metadata
-                    self._tree = STRtree(geometries)
-                    self._is_loaded = True
-                    current_app.logger.info(
-                        f"Loaded {len(self._geometries)} administrative area polygons"
-                    )
-                else:
-                    current_app.logger.warning("No administrative area polygons loaded")
-
-            except Exception:
-                # Do not mark the cache loaded here. Doing so retires this
-                # worker from spatial lookups for the rest of its life, and
-                # `amt`/`mtb` have no fallback in report.py — every report it
-                # then saves carries an empty amt and drops out of the
-                # amt-based statistics, with nothing anywhere to notice it.
-                current_app.logger.exception("Failed to load administrative area data")
-                self._geometries = []
-                self._metadata = []
-                self._tree = None
-
-    def _query_point(self, point):
-        """Internal: find the AmtRecord for a point, or None."""
-        if not self._is_loaded:
-            self._load_data()
-
-        if not self._tree or not self._geometries:
-            return None
-
-        # Fast reject: point outside Germany's bounding box
-        lon, lat = point
-        min_lon, max_lon, min_lat, max_lat = _DE_BOUNDS
-        if not (min_lon <= lon <= max_lon and min_lat <= lat <= max_lat):
-            return None
-
-        try:
-            point_geom = Point(point)
-            # predicate="within" does bbox filtering AND precise point-in-polygon
-            # in a single GEOS C call — no Python loop needed.
-            indices = self._tree.query(point_geom, predicate="within")
-            if len(indices) > 0:
-                return self._metadata[indices[0]]
-            return None
-        except GEOSException as e:
-            current_app.logger.error(f"GEOS error finding AMT for point {point}: {e}")
-            return None
-
-    def find_amt_enriched(self, point):
-        """
-        Find administrative area with full hierarchical data.
-
-        Args:
-            point: Tuple of (longitude, latitude) coordinates
-
-        Returns:
-            Dict with keys {ags, gen, land, kreis, amt_string} if found, None otherwise
-        """
-        record = self._query_point(point)
-        if record is None:
-            return None
-
-        kreis_name = record.kreis
-
-        # City-states (Berlin, Hamburg, Bremen): Kreis level equals Land level,
-        # which is redundant. Use the Gemeinde name (= Bezirk for Berlin) instead.
-        if kreis_name and kreis_name == record.land:
-            kreis_name = record.gen
-
-        return {
-            "ags": record.ags,
-            "gen": record.gen,
-            "land": record.land,
-            "kreis": kreis_name,
-            "amt_string": record.amt_string,
-        }
-
-    def reload_cache(self):
-        """Force reload of the cache from database."""
-        with self._cache_lock:
-            self._is_loaded = False
-            self._geometries = []
-            self._metadata = []
-            self._tree = None
-            self._kreise_lookup = {}
-        self._load_data()
-
-    @property
-    def stats(self):
-        """Return polygon count, vertex count, and load status for observability."""
-        if not self._geometries:
-            return {"loaded": self._is_loaded, "polygons": 0, "vertices": 0}
-        total_verts = sum(
-            sum(
-                len(ring.coords)
-                for ring in (
-                    [g.exterior] + list(g.interiors)
-                    if isinstance(g, Polygon)
-                    else [
-                        r for p in g.geoms for r in ([p.exterior] + list(p.interiors))
-                    ]
-                )
-            )
-            for g in self._geometries
-        )
-        return {
-            "loaded": self._is_loaded,
-            "polygons": len(self._geometries),
-            "vertices": total_verts,
-        }
+# The tree, and per tree index the dict get_amt_enriched returns. None until a
+# load finds polygons, so a failed or empty load is retried on the next lookup.
+_index: tuple[STRtree, list[dict[str, str]]] | None = None
 
 
-# Global instance for reuse
-_gemeinde_finder = GemeindeFinder()
-
-# Module initialization - logging will happen when used within app context
-
-
-def get_amt_enriched(point):
-    """
-    Get full administrative hierarchy for a point.
-
-    Returns a dict with ags, gen, land, kreis, amt_string — or None.
-    Use this when you need the Bundesland or Kreis name in addition to the AMT string.
-    """
-    return _gemeinde_finder.find_amt_enriched(point)
-
-
-def reload_gemeinde_cache():
-    """
-    Force reload of the administrative area cache.
-
-    Call this if the aemter table has been updated.
-    """
-    _gemeinde_finder.reload_cache()
+def _area(ags: int, gen: str, kreise: dict[str, str]) -> dict[str, str]:
+    ags_str = f"{ags:08d}"
+    land = BUNDESLAENDER.get(ags_str[:2], "")
+    kreis = kreise.get(ags_str[:5], "")
+    # City-states (Berlin, Hamburg, Bremen) are their own Kreis; the Gemeinde
+    # (for Berlin, the Bezirk) says more.
+    if kreis and kreis == land:
+        kreis = gen
+    return {
+        "ags": ags_str,
+        "gen": gen,
+        "land": land,
+        "kreis": kreis,
+        "amt_string": f"{ags_str} -- {gen}",
+    }
 
 
-def warm_gemeinde_cache() -> int:
-    """
-    Eagerly build the polygon cache and return how many polygons it holds.
+def _load_index() -> tuple[STRtree, list[dict[str, str]]] | None:
+    global _index
+    try:
+        kreise = load_kreise_lookup(KREISE_PATH)
+    except (OSError, ValueError):
+        logger.exception("Could not read %s; Kreis names stay empty", KREISE_PATH)
+        kreise = {}
+    try:
+        # JSONB cast to text and parsed by GEOS skips psycopg's JSON decoding.
+        rows = db.session.execute(
+            select(
+                TblAemterCoordinaten.ags,
+                TblAemterCoordinaten.gen,
+                TblAemterCoordinaten.properties.cast(Text),
+            ).order_by(TblAemterCoordinaten.ags)
+        ).all()
+    except Exception:
+        # Stays unloaded: report.py stores an empty amt for every lookup that
+        # finds nothing, so this worker must retry rather than go blind.
+        logger.exception("Failed to load administrative area data")
+        return None
 
-    Called from gunicorn's post_worker_init hook so the cold load happens at
-    worker boot instead of on the first user lookup (~1.8s in production).
-    A failed load logs and leaves 0, so callers that must not run blind check it.
-    """
-    _gemeinde_finder._load_data()
-    return len(_gemeinde_finder._geometries)
+    geometries = shapely.from_geojson([row[2] for row in rows], on_invalid="ignore")
+    polygons, areas = [], []
+    for (ags, gen, _), geom in zip(rows, geometries, strict=True):
+        if geom is None or geom.geom_type not in ("Polygon", "MultiPolygon"):
+            logger.warning("Skipping AGS %s: not a polygon", ags)
+            continue
+        polygons.append(geom)
+        areas.append(_area(ags, gen, kreise))
+
+    if not polygons:
+        logger.warning("No administrative area polygons loaded")
+        return None
+    _index = (STRtree(polygons), areas)
+    logger.info("Loaded %d administrative area polygons", len(polygons))
+    return _index
+
+
+def get_amt_enriched(point) -> dict[str, str] | None:
+    """Return ags, gen, land, kreis and amt_string for a (lon, lat) point, or None."""
+    index = _index or _load_index()
+    if index is None:
+        return None
+    tree, areas = index
+    hits = tree.query(Point(point), predicate="within")
+    return dict(areas[hits[0]]) if len(hits) else None
+
+
+def reload_gemeinde_cache() -> None:
+    """Drop the polygon cache; the next lookup reads the aemter table again."""
+    global _index
+    _index = None
+
+
+def warm_gemeinde_cache() -> bool:
+    """Build the polygon cache now; False if no polygons could be loaded."""
+    return (_index or _load_index()) is not None

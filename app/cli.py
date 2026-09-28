@@ -181,14 +181,12 @@ def validate_coordinates_command():
 @click.option("--commit", is_flag=True, help="Write the changes (default: dry run)")
 @with_appcontext
 def recalculate_mtb_command(commit):
-    """Re-derive mtb/amt/land/kreis for every Fundort from its coordinates.
+    """Re-derive every Fundort's Messtischblatt from its coordinates.
 
-    Needed once after the TK25 row lines were corrected: the previous grid sat
-    2.4 km too far south, so roughly a fifth of the stored Messtischblätter name
-    the sheet immediately north of the true one. The same pass clears the sheet
-    numbers that were handed to coordinates outside Germany.
+    A Fundort whose sheet changes also gets amt, land and kreis from the AGS
+    polygons; a coordinate outside Germany loses its sheet and amt.
     """
-    from sqlalchemy import select, func
+    from sqlalchemy import select
 
     from app.extensions import db
     from app.database.fundorte import TblFundorte
@@ -202,13 +200,12 @@ def recalculate_mtb_command(commit):
             "No Gemeinde polygons loaded (is the aemter table seeded?)."
         )
 
-    total = db.session.scalar(select(func.count(TblFundorte.id))) or 0
+    fundorte = db.session.scalars(select(TblFundorte).order_by(TblFundorte.id)).all()
+    total = len(fundorte)
     click.echo(f"Scanning {total} Fundorte...")
 
     changed = []
-    for fundort in db.session.scalars(
-        select(TblFundorte).order_by(TblFundorte.id)
-    ).all():
+    for fundort in fundorte:
         fields = calculate_spatial_fields(fundort.latitude, fundort.longitude)
         if fields["mtb"] == (fundort.mtb or ""):
             continue

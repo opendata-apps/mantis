@@ -217,20 +217,20 @@ class TestRecalculateMtbCommand:
         assert fundort.amt == "12062289 -- Lebusa"
 
     def test_commit_refuses_to_run_without_gemeinde_polygons(
-        self, cli_runner, session, monkeypatch
+        self, cli_runner, session, app_ctx
     ):
         # An unseeded aemter table: every lookup would come back empty.
         from sqlalchemy import delete
 
-        import app.tools.gemeinde_finder as gf
         from app.database.models import TblAemterCoordinaten
+        from app.tools.gemeinde_finder import reload_gemeinde_cache
 
         fundort = self._fundort(session)
         fundort.mtb = "3644"
         fundort.amt = "12054000 -- Potsdam"
         session.execute(delete(TblAemterCoordinaten))
         session.commit()
-        monkeypatch.setattr(gf, "_gemeinde_finder", gf.GemeindeFinder())
+        reload_gemeinde_cache()
 
         result = cli_runner.invoke(args=["recalculate-mtb", "--commit"])
 
