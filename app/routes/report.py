@@ -18,7 +18,7 @@ from flask import (
 )
 from email_validator import validate_email
 from werkzeug.datastructures import MultiDict
-from PIL import Image, ImageOps
+from PIL import Image, ImageFile, ImageOps
 
 from flask_login import current_user
 
@@ -72,6 +72,11 @@ def _set_gender_fields(selected_gender_value):
 # size whether the browser converted it or the server did.
 MAX_STORED_DIMENSION = 2048
 MAX_UPLOAD_PIXELS = 25_000_000
+
+# A mobile upload that loses its last bytes still carries the whole animal, so
+# decode what arrived; a frame damaged beyond use still fails the blank-pixel
+# check below. ty infers the flag as Literal[False] though it exists to be set.
+ImageFile.LOAD_TRUNCATED_IMAGES = True  # ty: ignore[invalid-assignment]
 
 
 class InvalidImageError(ValueError):

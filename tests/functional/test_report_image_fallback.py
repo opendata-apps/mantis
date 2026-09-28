@@ -116,6 +116,21 @@ def test_opaque_image_is_not_mistaken_for_blank(app_ctx, upload_folder):
     assert (upload_folder / rel).is_file()
 
 
+def test_truncated_original_is_still_stored(app_ctx, upload_folder):
+    """A mobile upload cut short mid-transfer still shows the animal.
+
+    Seven 500s on 2026-09-08 were one reporter re-picking the same JPEG, short
+    by 119 of 1_823_138 bytes: Pillow raised OSError and the sighting was lost.
+    """
+    full = make_test_image(size=(400, 300)).getvalue()
+    truncated = io.BytesIO(full[:-119])
+    truncated.name = "cut-short.jpg"
+
+    rel = _store(truncated)
+
+    assert Image.open(upload_folder / rel).format == "WEBP"
+
+
 def _submission(photo):
     return build_valid_report_form_data(photo=photo)
 
