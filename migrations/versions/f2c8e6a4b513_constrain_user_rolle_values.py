@@ -22,11 +22,27 @@ depends_on = None
 
 
 def upgrade():
+    op.execute("""
+        DO $$
+        DECLARE offenders text;
+        BEGIN
+            SELECT string_agg(format('%s (%L)', id, user_rolle), ', ' ORDER BY id)
+              INTO offenders
+              FROM users
+             WHERE user_rolle NOT IN ('1', '2', '9');
+            IF offenders IS NOT NULL THEN
+                RAISE EXCEPTION 'users.user_rolle is not a known role in: %', offenders
+                    USING HINT = 'Repair or remove these rows, then re-run the migration.';
+            END IF;
+        END
+        $$
+    """)
+
     # '1' reporter, '2' finder, '9' reviewer (UserRole enum)
     op.create_check_constraint(
-        "ck_users_user_rolle_valid", "users", "user_rolle IN ('1', '2', '9')"
+        op.f("ck_users_user_rolle_valid"), "users", "user_rolle IN ('1', '2', '9')"
     )
 
 
 def downgrade():
-    op.drop_constraint("ck_users_user_rolle_valid", "users", type_="check")
+    op.drop_constraint(op.f("ck_users_user_rolle_valid"), "users", type_="check")

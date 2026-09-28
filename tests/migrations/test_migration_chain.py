@@ -230,6 +230,12 @@ class TestMigrationChain:
                         "FROM meldungen WHERE id = 1"
                     )
                 )
+                assert conn.scalar(
+                    sa.text(
+                        "SELECT search_vector @@ plainto_tsquery('german', '01067') "
+                        "FROM meldungen WHERE id = 1"
+                    )
+                )
                 long_name = "Mustermann" * 9
                 long_contact = "a" * 50 + "@beispieldomain.de"
                 conn.execute(
@@ -252,6 +258,31 @@ class TestMigrationChain:
                     )
                     == "Neustadt"
                 )
+        finally:
+            engine.dispose()
+
+    def test_identity_conversion_never_reuses_an_id(self, clean_db, alembic_config):
+        upgrade(alembic_config, "b6e8a4c2d931")
+        engine = sa.create_engine(MigrationsConfig.URI)
+        try:
+            with engine.begin() as conn:
+                # Report 2 existed and was deleted; a new report must not become 2.
+                conn.execute(
+                    sa.text(
+                        "INSERT INTO meldungen (dat_fund_von) "
+                        "VALUES ('2025-06-01'), ('2025-06-02')"
+                    )
+                )
+                conn.execute(sa.text("DELETE FROM meldungen WHERE id = 2"))
+            upgrade(alembic_config, "d2f6b8a4c159")
+            with engine.begin() as conn:
+                new_id = conn.scalar(
+                    sa.text(
+                        "INSERT INTO meldungen (dat_fund_von) "
+                        "VALUES ('2025-06-03') RETURNING id"
+                    )
+                )
+            assert new_id == 3
         finally:
             engine.dispose()
 
@@ -345,23 +376,39 @@ class TestMigrationChain:
 
         engine = sa.create_engine(MigrationsConfig.URI)
         with engine.connect() as conn:
-            ctx = MigrationContext.configure(conn)
+            ctx = MigrationContext.configure(
+                conn, opts={"compare_server_default": True}
+            )
             diff = compare_metadata(ctx, db.metadata)
         engine.dispose()
 
-        significant = [d for d in diff if not _is_ignorable_diff(d)]
-
-        assert not significant, (
+        assert not diff, (
             "Models and migrations are out of sync. Missing migration for:\n"
-            + "\n".join(str(d) for d in significant)
+            + "\n".join(str(d) for d in diff)
         )
 
+    def test_check_constraints_match_models(self, clean_db, app, alembic_config):
+        """compare_metadata skips CHECK constraints, so their names are compared here.
 
-def _is_ignorable_diff(diff_item):
-    """Filter known-harmless autogenerate false positives.
+        https://alembic.sqlalchemy.org/en/latest/autogenerate.html#what-does-autogenerate-detect-and-what-does-it-not-detect
+        """
+        from app.extensions import db
 
-    Returns True if the diff should be ignored. Extend this function
-    when Alembic flags something that is intentionally managed outside
-    of migrations (e.g., server defaults set at the DB level).
-    """
-    return False
+        upgrade(alembic_config, "head")
+
+        engine = sa.create_engine(MigrationsConfig.URI)
+        inspector = sa.inspect(engine)
+        in_database = {
+            (table, check["name"])
+            for table in db.metadata.tables
+            for check in inspector.get_check_constraints(table)
+        }
+        engine.dispose()
+        in_models = {
+            (table.name, constraint.name)
+            for table in db.metadata.tables.values()
+            for constraint in table.constraints
+            if isinstance(constraint, sa.CheckConstraint)
+        }
+
+        assert in_database == in_models

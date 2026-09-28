@@ -132,7 +132,6 @@ class TblMeldungen(db.Model):
     )
 
     # Many-to-one: approver (reviewer who last touched this report)
-    # Safe now that users.user_id has a UNIQUE constraint.
     approver: Mapped["TblUsers | None"] = relationship(
         foreign_keys=[bearb_id],
         lazy="select",

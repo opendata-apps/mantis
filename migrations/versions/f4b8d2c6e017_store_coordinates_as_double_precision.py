@@ -149,10 +149,12 @@ def upgrade():
         """)
 
     op.create_check_constraint(
-        "ck_fundorte_latitude_range", "fundorte", "latitude BETWEEN -90 AND 90"
+        op.f("ck_fundorte_latitude_range"), "fundorte", "latitude BETWEEN -90 AND 90"
     )
     op.create_check_constraint(
-        "ck_fundorte_longitude_range", "fundorte", "longitude BETWEEN -180 AND 180"
+        op.f("ck_fundorte_longitude_range"),
+        "fundorte",
+        "longitude BETWEEN -180 AND 180",
     )
 
     op.execute(CREATE_VIEW)
@@ -161,8 +163,8 @@ def upgrade():
 def downgrade():
     op.execute(DROP_VIEW)
 
-    op.drop_constraint("ck_fundorte_latitude_range", "fundorte", type_="check")
-    op.drop_constraint("ck_fundorte_longitude_range", "fundorte", type_="check")
+    op.drop_constraint(op.f("ck_fundorte_latitude_range"), "fundorte", type_="check")
+    op.drop_constraint(op.f("ck_fundorte_longitude_range"), "fundorte", type_="check")
 
     for col in ("latitude", "longitude"):
         op.execute(f"""

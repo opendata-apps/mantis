@@ -14,8 +14,8 @@ Historical data predating the tightened rules is normalized first:
   migration still documented as legal)
 - bare flags ({INFO}, {UNKL}) gain the OPEN workflow state
 
-Unknown status values are NOT silently repaired — adding the CHECK
-fails loudly if any remain.
+Unknown status values are NOT silently repaired — the migration fails
+and names the reports that still carry one.
 
 Revision ID: a8c4e2f6b317
 Revises: f4b8d2c6e017
@@ -54,11 +54,28 @@ def upgrade():
         WHERE NOT (statuses && '{OPEN,APPR,DEL}'::varchar[])
     """)
 
+    op.execute(f"""
+        DO $$
+        DECLARE offenders text;
+        BEGIN
+            SELECT string_agg(format('%s (%s)', id, statuses), ', ' ORDER BY id)
+              INTO offenders
+              FROM meldungen
+             WHERE NOT ({STATUSES_VALID});
+            IF offenders IS NOT NULL THEN
+                RAISE EXCEPTION 'meldungen.statuses is no legal status combination in: %',
+                    offenders
+                    USING HINT = 'Repair or remove these rows, then re-run the migration.';
+            END IF;
+        END
+        $$
+    """)
+
     op.create_check_constraint(
-        "ck_meldungen_statuses_valid", "meldungen", STATUSES_VALID
+        op.f("ck_meldungen_statuses_valid"), "meldungen", STATUSES_VALID
     )
 
 
 def downgrade():
     # The data normalization is intentionally not reversed.
-    op.drop_constraint("ck_meldungen_statuses_valid", "meldungen", type_="check")
+    op.drop_constraint(op.f("ck_meldungen_statuses_valid"), "meldungen", type_="check")
