@@ -178,11 +178,11 @@ def get_table_data(table_name):
             select(func.count()).select_from(stmt.order_by(None).subquery())
         )
 
-        # Apply sorting
+        # meldungen_id breaks ties; without a unique order, OFFSET pages overlap.
         if sort_direction == "asc":
-            stmt = stmt.order_by(table.c[sort_column].asc())
+            stmt = stmt.order_by(table.c[sort_column].asc(), table.c.meldungen_id)
         else:
-            stmt = stmt.order_by(table.c[sort_column].desc())
+            stmt = stmt.order_by(table.c[sort_column].desc(), table.c.meldungen_id)
 
         # Apply pagination
         stmt = stmt.offset((page - 1) * per_page).limit(per_page)

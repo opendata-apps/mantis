@@ -823,6 +823,27 @@ class TestAdminRoutes:
         assert data["total_items"] == 0
         assert data["data"] == []
 
+    @pytest.mark.parametrize("sort_column", ["fo_quelle", "land", "tiere"])
+    def test_paging_the_grid_by_a_shared_value_shows_every_report_once(
+        self, client, session, sort_column
+    ):
+        # Sorted by a column many reports share, one row per page.
+        with client.session_transaction() as sess:
+            sess["_user_id"] = "9999"
+        all_ids = list(session.scalars(select(TblMeldungen.id)))
+
+        seen = []
+        for page in range(1, len(all_ids) + 1):
+            response = client.get(
+                "/admin/get_table_data/all_data_view"
+                f"?page={page}&per_page=1&sort_column={sort_column}"
+            )
+            data = json.loads(response.data)
+            id_column = data["columns"].index("meldungen_id")
+            seen += [row[id_column] for row in data["data"]]
+
+        assert sorted(seen) == sorted(all_ids)
+
     def test_update_cell_valid_field(self, client, session):
         """Test updating a field exposed by the superuser table."""
         with client.session_transaction() as sess:
