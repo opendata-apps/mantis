@@ -39,9 +39,8 @@ def melder_index(usrid):
 
     image_path = current_app.config["UPLOAD_FOLDER"]
 
-    # Scope by the melduser link, never by user_kontakt — as this did until
-    # 2026-09. The email field is unverified, so anyone knowing an address could
-    # file one sighting under it and read that owner's coordinates and photos.
+    # Scope by the melduser link, never by user_kontakt: the address is
+    # unverified, so anyone knowing it could file under it and read these.
     stmt = (
         select(TblMeldungen)
         .join(TblMeldungen.reporter_link)

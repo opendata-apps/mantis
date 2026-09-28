@@ -227,7 +227,8 @@ def _resolve_reporter(usrid, email):
         and current_user.user_rolle == UserRole.REPORTER
         and current_user.user_kontakt == contact
     ):
-        # Unwrap the proxy — this row goes on to be flushed and related.
+        # Unwrap the proxy: log_in stores what it gets as current_user, and a
+        # proxy stored there resolves to itself.
         return current_user._get_current_object()
     return None
 
