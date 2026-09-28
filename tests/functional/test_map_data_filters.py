@@ -136,7 +136,11 @@ class TestMapDataFilters:
             ([ReportStatus.OPEN.value], False, "open status"),
             ([ReportStatus.DEL.value], False, "deleted status"),
             ([ReportStatus.OPEN.value, ReportStatus.INFO.value], False, "info status"),
-            ([ReportStatus.OPEN.value, ReportStatus.UNKL.value], False, "unclear status"),
+            (
+                [ReportStatus.OPEN.value, ReportStatus.UNKL.value],
+                False,
+                "unclear status",
+            ),
         ]
 
         created_sightings = []

@@ -76,9 +76,7 @@ class TestCoordinateValidation:
         ]
 
         for input_val, expected in test_cases:
-            normalized, error = validate_coordinate(
-                input_val, "longitude"
-            )
+            normalized, error = validate_coordinate(input_val, "longitude")
             assert error is None, f"Expected {input_val} to be valid"
             assert normalized == float(expected), (
                 f"Expected {input_val} to normalize to {expected}, got {normalized}"
@@ -100,9 +98,7 @@ class TestCoordinateValidation:
         ]
 
         for input_val, expected_error in test_cases:
-            normalized, error = validate_coordinate(
-                input_val, "longitude"
-            )
+            normalized, error = validate_coordinate(input_val, "longitude")
             assert normalized is None
             assert error == expected_error
 
