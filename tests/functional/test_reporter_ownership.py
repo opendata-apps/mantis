@@ -133,7 +133,10 @@ class TestAddressIsNotACredential:
         assert VICTIM_LON.encode() not in listing.data
         assert b"victim_plain.webp" not in listing.data
 
-        assert client.get("/images/victim_plain.webp").status_code == 403
+        assert (
+            client.get(f"/sichtungen/{stranger}/images/victim_plain.webp").status_code
+            == 403
+        )
 
     def test_normalizing_legacy_contacts_does_not_widen_access(
         self, client, session, upload_folder
@@ -165,7 +168,10 @@ class TestAddressIsNotACredential:
 
         listing = client.get(f"/sichtungen/{stranger}")
         assert VICTIM_LAT.encode() not in listing.data
-        assert client.get("/images/victim_legacy.webp").status_code == 403
+        assert (
+            client.get(f"/sichtungen/{stranger}/images/victim_legacy.webp").status_code
+            == 403
+        )
 
 
 class TestBrowserKeepsTheReporterLink:
@@ -214,7 +220,10 @@ class TestBrowserKeepsTheReporterLink:
 
         listing = client.get(f"/sichtungen/{stranger}")
         assert VICTIM_LAT.encode() not in listing.data
-        assert client.get("/images/victim_cookie.webp").status_code == 403
+        assert (
+            client.get(f"/sichtungen/{stranger}/images/victim_cookie.webp").status_code
+            == 403
+        )
 
     def test_opening_your_own_page_remembers_the_link(self, client):
         _submit_as(client, "rueckkehr@example.com", fund_city="Erststadt")
@@ -255,6 +264,19 @@ class TestOwnReportsStayReachable:
         listing = client.get(f"/sichtungen/{mine}")
         assert listing.status_code == 200
         assert b"Eigenstadt" in listing.data
+
+    def test_a_second_reporter_on_a_shared_device_sees_their_own_photo(self, client):
+        # The browser stays logged in as the first reporter; the second one
+        # holds only the link to their own page.
+        _submit_as(client, "erste@example.com", fund_city="Erststadt")
+        _submit_as(client, "zweite@example.com", fund_city="Zweitstadt")
+        mine = _link_from_success(client)
+
+        listing = client.get(f"/sichtungen/{mine}")
+        soup = BeautifulSoup(listing.data, "html.parser")
+        photos = [str(img["src"]) for img in soup.select("#reportContainer img")]
+
+        assert [client.get(src).status_code for src in photos] == [200]
 
     def test_repeat_report_through_the_link_joins_the_same_history(self, client):
         _submit_as(client, "wieder@example.com", fund_city="Erststadt")

@@ -5,7 +5,7 @@ from flask import (
     abort,
     current_app,
 )
-from flask_login import current_user, login_required
+from flask_login import current_user
 
 from app.extensions import db
 from app.auth import log_in
@@ -65,24 +65,16 @@ def melder_index(usrid):
     )
 
 
-@provider.route("/images/<path:filename>")
-@login_required
-def report_img(filename):
-    """Serve report images — only to the owning reporter or reviewers."""
-    if current_user.user_rolle == UserRole.REVIEWER:
-        return send_from_directory(
-            current_app.config["UPLOAD_FOLDER"], filename, mimetype="image/webp"
-        )
-
+@provider.route("/sichtungen/<usrid>/images/<path:filename>")
+def report_img(usrid, filename):
+    """Serve a report photo to whoever holds the link it was filed under."""
     # Same ownership rule as melder_index.
     owns_image = db.session.scalar(
         select(TblFundorte.id)
         .join(TblMeldungen, TblMeldungen.fo_zuordnung == TblFundorte.id)
         .join(TblMeldungUser, TblMeldungUser.id_meldung == TblMeldungen.id)
-        .where(
-            TblFundorte.ablage == filename,
-            TblMeldungUser.id_user == current_user.id,
-        )
+        .join(TblUsers, TblUsers.id == TblMeldungUser.id_user)
+        .where(TblFundorte.ablage == filename, TblUsers.user_id == usrid)
     )
     if not owns_image:
         abort(403)

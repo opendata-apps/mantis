@@ -17,11 +17,11 @@
           {% set fundort = sighting.fundort %}
           <div class="mb-8 overflow-hidden transition-shadow duration-300 ease-in-out bg-white rounded-lg shadow-lg hover:shadow-2xl report-card">
             <div class="relative">
-              <a href="{{ url_for('provider.report_img', filename=fundort.ablage) }}"
+              <a href="{{ url_for('provider.report_img', usrid=report_user_id, filename=fundort.ablage) }}"
                  data-lightbox="sightings">
                 <img loading="lazy"
                      class="object-cover w-full h-48 transition-transform duration-200 ease-in-out rounded-t-lg cursor-pointer md:h-64 hover:scale-105"
-                     src="{{ url_for('provider.report_img', filename=fundort.ablage) }}"
+                     src="{{ url_for('provider.report_img', usrid=report_user_id, filename=fundort.ablage) }}"
                      alt="Sichtungsfoto">
               </a>
               <div title="{{ fundort.ort }}&#13;&#10;Postleitzahl: {{ fundort.plz or '' }}&#13;&#10;Kreis: {{ fundort.kreis }}&#13;&#10;Land: {{ fundort.land }}"
