@@ -110,20 +110,12 @@ Als Vorlage dienen ``tests/functional/test_reviewer_search.py``,
 ``TestFilterStatusNormalisation`` in
 ``tests/functional/test_is_comparison_filters.py``.
 
-Durchgesetzt wird der mechanisch prüfbare Teil:
-
-- ``ruff check`` mit dem Regelsatz ``PT`` (flake8-pytest-style). ``argnames``
-  schreiben wir als ``"a,b"``, wie die Pytest-Dokumentation selbst.
-- ``tests/meta/test_suite_conventions.py`` prüft Regel 1 (eindeutige Namen),
-  Regel 3 und 4 (keine Zusicherung auf eigene Aufrufe) und Regel 6
-  (Zusicherung nur in Schleife) über den Syntaxbaum der Testdateien. Jede Regel
-  führt die Altlasten mit, die bei ihrer Einführung bestanden, und prüft die
-  Liste in beide Richtungen: ein neuer Verstoß schlägt fehl, ein behobener
-  Verstoß, der noch in der Liste steht, ebenfalls. Die Listen können dadurch
-  nur kürzer werden.
-
-Die übrigen Regeln trägt der Review. Statisch prüfbar sind sie nicht, weil
-keine Analyse erkennt, woher ein Erwartungswert stammt.
+Durchgesetzt wird der mechanisch prüfbare Teil über ``ruff check``: der
+Regelsatz ``PT`` (flake8-pytest-style), ``argnames`` als ``"a,b"`` wie in der
+Pytest-Dokumentation, und ``F811`` meldet einen Testnamen, der in derselben
+Datei oder Klasse zweimal definiert ist (Regel 1). Die übrigen Regeln trägt der
+Review: welche Schleife leer sein kann und woher ein Erwartungswert stammt,
+erkennt keine statische Analyse.
 
 Verifikation und Referenzen
 ----------------------------
