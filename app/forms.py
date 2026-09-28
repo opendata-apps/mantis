@@ -21,6 +21,7 @@ from wtforms.validators import (
 from datetime import date
 from dateutil.relativedelta import relativedelta
 
+from app.database.feedback_type import FeedbackSource
 from app.tools.address_plausibility import contradicts_german_land
 from app.tools.coordinate_validation import (
     INVALID_MESSAGES,
@@ -67,9 +68,6 @@ LOCATION_DESCRIPTION_CHOICES = [
     ("99", "Andere Orte"),
 ]
 
-# Feedback source choices - derived from FeedbackSource enum (single source of truth)
-from app.database.feedback_type import FeedbackSource  # noqa: E402
-
 FEEDBACK_SOURCE_CHOICES = FeedbackSource.choices()
 
 
@@ -93,16 +91,8 @@ def validate_zip_code(form, field):
 
 
 class CoordinateField(FloatField):
-    """FloatField that parses coordinates the way the rest of the app does.
-
-    Plain FloatField coerces with float(), which rejects the comma decimal
-    mobile keyboards emit ("52,52") with the untranslated "Not a valid float
-    value." and then stacks the NumberRange error on top of it. The JS
-    normalises the comma before submit, but a form that arrives without it must
-    not fall back to two English errors. NaN and inf are already caught by
-    NumberRange (it checks math.isnan and compares against the bounds), so this
-    field only owns the parsing and the German message.
-    """
+    """FloatField that parses with parse_coordinate: accepts the comma decimal
+    and fails with a German message instead of "Not a valid float value."."""
 
     def __init__(self, label=None, validators=None, coord_type="latitude", **kwargs):
         super().__init__(label, validators, **kwargs)
@@ -125,9 +115,7 @@ def validate_not_swapped(form, field):
     hint instead of two range errors that don't explain anything.
     """
     if field.data is None:
-        # The float conversion already failed and recorded its own error. Stop
-        # the chain: NumberRange counts None as out of range and would stack
-        # "muss zwischen ... liegen" on top of "not a valid float value".
+        # Parsing failed and recorded its error; NumberRange would add another.
         raise StopValidation()
 
     other = form.longitude if field is form.latitude else form.latitude
@@ -158,16 +146,13 @@ def validate_land_matches_point(form, field):
 
 
 def _strip(value):
-    """Trim surrounding whitespace from string input, leaving non-string field
-    data (dates, files, bools) untouched. WTForms applies filters before
-    validation, so this also lets the Email validator accept pasted addresses
-    with a stray trailing space/NBSP."""
+    """Trim string input; dates, files and bools pass through untouched."""
     return value.strip() if isinstance(value, str) else value
 
 
 class StrippedForm(FlaskForm):
-    """Base form that strips whitespace on every field, matching Django's
-    CharField(strip=True) default. WTForms does not strip by default."""
+    """Base form that adds _strip to every field's filters (WTForms strips
+    nothing by default)."""
 
     class Meta:
         def bind_field(self, form, unbound_field, options):
