@@ -129,17 +129,21 @@ def upgrade():
 
     # Fail loudly on out-of-range historical data instead of letting
     # lpad() silently truncate >5-digit values to a passing CHECK.
-    op.execute(
-        sa.text("""
-            DO $$
-            BEGIN
-                IF EXISTS (SELECT 1 FROM fundorte WHERE plz < 0 OR plz > 99999) THEN
-                    RAISE EXCEPTION 'fundorte.plz contains values outside 0..99999';
-                END IF;
-            END
-            $$
-        """)
-    )
+    op.execute("""
+        DO $$
+        DECLARE offenders text;
+        BEGIN
+            SELECT string_agg(format('%s (%s)', id, plz), ', ' ORDER BY id)
+              INTO offenders
+              FROM fundorte
+             WHERE plz < 0 OR plz > 99999;
+            IF offenders IS NOT NULL THEN
+                RAISE EXCEPTION 'fundorte.plz is outside 0..99999 in: %', offenders
+                    USING HINT = 'Repair or remove these rows, then re-run the migration.';
+            END IF;
+        END
+        $$
+    """)
 
     op.execute(DROP_FUNDORTE_TRIGGER)
     op.alter_column("fundorte", "plz", existing_type=sa.Integer(), nullable=True)
