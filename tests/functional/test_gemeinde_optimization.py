@@ -133,9 +133,8 @@ class TestGemeindeOptimization:
 
         reload_gemeinde_cache()
 
-        # Should not crash when searching
-        _amt_string((13.0, 52.0))
-        # Result doesn't matter, just shouldn't crash
+        # The bad row is skipped; the valid ones still load.
+        assert _amt_string((13.40, 52.52)) == "99999901 -- Test Berlin Mitte"
 
         # Cleanup
         session.execute(
@@ -196,17 +195,29 @@ class TestGemeindeOptimization:
 
     def test_warm_gemeinde_cache_builds_eagerly(self, session):
         """warm_gemeinde_cache() must build the cache without any lookup."""
-        from app.tools import gemeinde_finder as gf
+        from app.tools.gemeinde_finder import warm_gemeinde_cache
 
-        finder = gf.GemeindeFinder()
-        assert not finder.stats["loaded"]
-        gf._gemeinde_finder = finder
-        try:
-            gf.warm_gemeinde_cache()
-            assert finder.stats["loaded"]
-            assert finder.stats["polygons"] >= 3  # the fixture's test areas
-        finally:
-            gf._gemeinde_finder = gf.GemeindeFinder()
+        # Nothing cached: the table is empty when the cache is rebuilt.
+        session.execute(delete(TblAemterCoordinaten))
+        session.commit()
+        reload_gemeinde_cache()
+        session.add(_berlin_mitte())
+        session.commit()
+
+        assert warm_gemeinde_cache() is True
+        # Answered from the cache built above, not from the table.
+        session.execute(delete(TblAemterCoordinaten))
+        session.commit()
+        assert _amt_string((13.40, 52.52)) == "99999901 -- Test Berlin Mitte"
+
+    def test_warm_gemeinde_cache_reports_an_empty_table(self, session):
+        from app.tools.gemeinde_finder import warm_gemeinde_cache
+
+        session.execute(delete(TblAemterCoordinaten))
+        session.commit()
+        reload_gemeinde_cache()
+
+        assert warm_gemeinde_cache() is False
 
     def test_gunicorn_post_worker_init_warms_cache(self, app, session):
         """The gunicorn hook must leave a query-ready cache behind."""
@@ -217,41 +228,55 @@ class TestGemeindeOptimization:
         conf = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(conf)
 
-        from app.tools import gemeinde_finder as gf
+        session.execute(delete(TblAemterCoordinaten))
+        session.commit()
+        reload_gemeinde_cache()
+        session.add(_berlin_mitte())
+        session.commit()
 
-        finder = gf.GemeindeFinder()
-        gf._gemeinde_finder = finder
-        try:
-            conf.post_worker_init(SimpleNamespace(wsgi=app))
-            assert finder.stats["loaded"]
-            # cache answers without further loading
-            assert _amt_string((13.40, 52.52)) == "99999901 -- Test Berlin Mitte"
-        finally:
-            gf._gemeinde_finder = gf.GemeindeFinder()
+        conf.post_worker_init(SimpleNamespace(wsgi=app))
+        session.execute(delete(TblAemterCoordinaten))
+        session.commit()
+        assert _amt_string((13.40, 52.52)) == "99999901 -- Test Berlin Mitte"
 
     def test_failed_load_stays_retryable(self, app, session, monkeypatch):
         """A load failure must not leave the worker permanently blind.
 
-        The failure branch used to set _is_loaded, so one DB hiccup at boot made
-        that worker answer None for every lookup until it was restarted. Reports
-        saved in the meantime carry an empty `amt` — the field report.py has no
-        fallback for and the statistics page filters on.
+        One DB hiccup at boot would otherwise make that worker answer None for
+        every lookup until restarted, and report.py stores that as an empty amt.
         """
         from app.tools import gemeinde_finder as gf
 
-        finder = gf.GemeindeFinder()
-        gf._gemeinde_finder = finder
-        try:
+        session.execute(delete(TblAemterCoordinaten))
+        session.commit()
+        reload_gemeinde_cache()
+        session.add(_berlin_mitte())
+        session.commit()
 
-            def boom(*args, **kwargs):
-                raise OperationalError("SELECT 1", {}, Exception("connection lost"))
+        def boom(*args, **kwargs):
+            raise OperationalError("SELECT 1", {}, Exception("connection lost"))
 
-            monkeypatch.setattr(gf.db.session, "execute", boom)
-            assert gf.get_amt_enriched((13.40, 52.52)) is None
-            assert not finder.stats["loaded"]
+        monkeypatch.setattr(gf.db.session, "execute", boom)
+        assert gf.get_amt_enriched((13.40, 52.52)) is None
 
-            monkeypatch.undo()
-            assert _amt_string((13.40, 52.52)) == "99999901 -- Test Berlin Mitte"
-            assert finder.stats["loaded"]
-        finally:
-            gf._gemeinde_finder = gf.GemeindeFinder()
+        monkeypatch.undo()
+        assert _amt_string((13.40, 52.52)) == "99999901 -- Test Berlin Mitte"
+
+
+def _berlin_mitte():
+    return TblAemterCoordinaten(
+        ags=99999901,
+        gen="Test Berlin Mitte",
+        properties={
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [13.38, 52.50],
+                    [13.42, 52.50],
+                    [13.42, 52.54],
+                    [13.38, 52.54],
+                    [13.38, 52.50],
+                ]
+            ],
+        },
+    )
