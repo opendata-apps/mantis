@@ -190,25 +190,9 @@ def get_table_data(table_name):
         # Execute query and get results
         results = db.session.execute(stmt).fetchall()
 
-        def get_standard_type(column_type):
-            if isinstance(column_type, db.Integer):
-                return "integer"
-            elif isinstance(column_type, db.String):
-                return "string"
-            elif isinstance(column_type, db.Boolean):
-                return "boolean"
-            elif isinstance(column_type, db.Date):
-                return "date"
-            elif isinstance(column_type, db.DateTime):
-                return "datetime"
-            elif isinstance(column_type, db.Float):
-                return "float"
-            else:
-                return "string"
-
-        # Get column names and types
+        # "int", "float", "date", "str" or "list"; the grid picks its editor by it.
         column_types = {
-            column.name: get_standard_type(column.type) for column in table.columns
+            column.name: column.type.python_type.__name__ for column in table.columns
         }
 
         # Exclude sensitive columns

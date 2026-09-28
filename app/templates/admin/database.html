@@ -629,15 +629,6 @@ block content %}
             }
           }
 
-          let additionalDataAttributes = "";
-          if (columnName === "id_user") {
-            additionalDataAttributes += ` data-user-db-id="${escapeHtml(cell)}"`;
-          } else if (columnName === "fundorte_id") {
-            additionalDataAttributes += ` data-fundorte-id="${escapeHtml(cell)}"`;
-          } else if (columnName === "beschreibung_id") {
-            additionalDataAttributes += ` data-beschreibung-id="${escapeHtml(cell)}"`;
-          }
-
           displayValue = escapeHtml(displayValue);
 
           const editableClass = isEditable
@@ -648,8 +639,7 @@ block content %}
                     data-column="${columnName}"
                     data-type="${cellType}"
                     data-id-value="${escapeHtml(idValue)}"
-                    tabindex="0"
-                    ${additionalDataAttributes}>${displayValue}</td>`;
+                    tabindex="0">${displayValue}</td>`;
         });
         return `<tr class="${(tableBody.rows.length + rowIndex) % 2 === 0 ? "bg-white" : "bg-gray-50" } hover:bg-gray-100">${rowHtml}</tr>`;
       })
@@ -802,80 +792,32 @@ block content %}
 
   function formatValueForInput(type, value) {
     if (!value) return "";
-    switch (type) {
-      case "date":
-        try {
-          const date = new Date(value);
-          if (isNaN(date.getTime())) return value;
-          return date.toISOString().split('T')[0];
-        } catch (e) {
-          return value;
-        }
-      case "datetime":
-        try {
-          const date = new Date(value);
-          if (isNaN(date.getTime())) return value;
-          return date.toISOString().slice(0, 16);
-        } catch (e) {
-          return value;
-        }
-      default:
-        return value;
-    }
+    if (type !== "date") return value;
+    const date = new Date(value);
+    return isNaN(date.getTime()) ? value : date.toISOString().split('T')[0];
   }
 
   function createInputElement(type, currentValue) {
-    let input;
-    switch (type) {
-      case "boolean":
-        input = document.createElement("select");
-        input.classList.add("w-full", "p-2", "border", "rounded-sm", "allow-select");
-        input.innerHTML = `
-          <option value="true" ${currentValue === "true" ? "selected" : ""
-          }>true</option>
-          <option value="false" ${currentValue === "false" ? "selected" : ""
-          }>false</option>
-        `;
-        break;
-      case "date":
-        input = document.createElement("input");
-        input.type = "date";
-        input.value = formatValueForInput("date", currentValue);
-        input.classList.add("w-full", "p-2", "border", "rounded-sm", "allow-select");
-        break;
-      case "datetime":
-        input = document.createElement("input");
-        input.type = "datetime-local";
-        input.value = formatValueForInput("datetime", currentValue);
-        input.classList.add("w-full", "p-2", "border", "rounded-sm", "allow-select");
-        break;
-      case "integer":
-      case "float":
-      default:
-        input = document.createElement("input");
-        input.type = type === "integer" ? "number" : "text";
-        if (type === "float") input.step = "any";
-        input.value = formatValueForInput(type, currentValue);
-        input.classList.add("w-full", "p-2", "border", "rounded-sm", "allow-select");
-        break;
-    }
+    const input = document.createElement("input");
+    input.type = type === "date" ? "date" : type === "int" ? "number" : "text";
+    input.value = formatValueForInput(type, currentValue);
+    input.classList.add("w-full", "p-2", "border", "rounded-sm", "allow-select");
     return input;
   }
 
   function parseValueFromInput(type, value) {
+    // Number(), not parseInt()/parseFloat(): "1.5" and "52,41" must not save as 1 and 52.
     switch (type) {
-      case "integer":
-        const intValue = parseInt(value);
-        if (isNaN(intValue)) throw new Error("Please enter a valid integer.");
+      case "int":
+        const intValue = Number(value.trim());
+        if (value.trim() === "" || !Number.isInteger(intValue))
+          throw new Error("Please enter a valid integer.");
         return intValue;
       case "float":
-        // Number(), not parseFloat(): "52,41" must not save as 52.
         const floatValue = Number(value.trim().replace(",", "."));
         if (value.trim() === "" || !Number.isFinite(floatValue))
           throw new Error("Please enter a valid number.");
         return floatValue;
-      case "boolean":
-        return value === "true";
       default:
         return value;
     }
