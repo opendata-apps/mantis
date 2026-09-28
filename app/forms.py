@@ -309,10 +309,11 @@ class MantisSightingForm(StrippedForm):
         ],
         render_kw={"readonly": True, "aria-label": "Längengrad (von Karte gesetzt)"},
     )
+    # Address of the sighting, not of the reporter.
     fund_zip_code = StringField(
         "Postleitzahl",
         validators=[Optional(), validate_zip_code],
-        render_kw={"placeholder": "z.B. 10115", "autocomplete": "postal-code"},
+        render_kw={"placeholder": "z.B. 10115", "autocomplete": "off"},
     )
     fund_city = StringField(
         "Stadt/Ort *",
@@ -322,7 +323,7 @@ class MantisSightingForm(StrippedForm):
         ],
         render_kw={
             "placeholder": "Name der Stadt oder des Ortes",
-            "autocomplete": "address-level2",
+            "autocomplete": "off",
         },
     )
     fund_street = StringField(
@@ -330,7 +331,7 @@ class MantisSightingForm(StrippedForm):
         validators=[Optional(), Length(max=100)],
         render_kw={
             "placeholder": "Straßenname (optional)",
-            "autocomplete": "address-line1",
+            "autocomplete": "off",
         },
     )
     fund_state = StringField(
@@ -339,14 +340,14 @@ class MantisSightingForm(StrippedForm):
             DataRequired(message="Bundesland ist erforderlich."),
             Length(max=50),
         ],
-        render_kw={"placeholder": "Bundesland", "autocomplete": "address-level1"},
+        render_kw={"placeholder": "Bundesland", "autocomplete": "off"},
     )
     fund_district = StringField(
         "Landkreis",
         validators=[Optional(), Length(max=100)],
         render_kw={
             "placeholder": "Landkreis oder Bezirk (optional)",
-            "autocomplete": "address-level3",
+            "autocomplete": "off",
         },
     )
 
