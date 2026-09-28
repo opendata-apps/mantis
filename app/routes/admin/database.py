@@ -168,15 +168,11 @@ def get_table_data(table_name):
                 except ValueError:
                     stmt = stmt.where(false())
             else:  # full_text search
-                tsquery_text = prefix_tsquery(search)
-                if tsquery_text is None:
-                    stmt = stmt.where(false())
-                else:
-                    ts_query = func.to_tsquery("german", tsquery_text)
-                    meldungen_tbl = TblMeldungen.__table__
-                    stmt = stmt.join(
-                        meldungen_tbl, table.c.meldungen_id == meldungen_tbl.c.id
-                    ).where(meldungen_tbl.c.search_vector.op("@@")(ts_query))
+                ts_query = func.to_tsquery("german", prefix_tsquery(search))
+                meldungen_tbl = TblMeldungen.__table__
+                stmt = stmt.join(
+                    meldungen_tbl, table.c.meldungen_id == meldungen_tbl.c.id
+                ).where(meldungen_tbl.c.search_vector.op("@@")(ts_query))
 
         total_items = db.session.scalar(
             select(func.count()).select_from(stmt.order_by(None).subquery())
