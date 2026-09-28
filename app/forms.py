@@ -20,7 +20,6 @@ from wtforms.validators import (
 )
 from datetime import date
 from dateutil.relativedelta import relativedelta
-import re
 
 from app.tools.address_plausibility import contradicts_german_land
 from app.tools.coordinate_validation import (
@@ -33,6 +32,7 @@ from app.tools.coordinate_validation import (
     in_range,
     parse_coordinate,
 )
+from app.tools.postal_code import is_valid_plz
 
 
 # Define constants for choices
@@ -82,7 +82,7 @@ def validate_past_date(form, field):
 
 
 def validate_zip_code(form, field):
-    if field.data and not re.match(r"^\d{5}$", field.data):
+    if field.data and not is_valid_plz(field.data):
         raise ValidationError("Postleitzahl muss genau 5 Ziffern haben.")
 
 

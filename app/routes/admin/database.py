@@ -29,6 +29,7 @@ from app.tools.location_enrichment import recalculate_amt_mtb
 from app.routes.backup import available_backup_years
 from app.tools.coordinate_validation import validate_coordinate
 from app.tools.fts import prefix_tsquery
+from app.tools.postal_code import is_valid_plz
 from app.tools.report_images import ensure_upload_dir
 
 
@@ -313,12 +314,7 @@ def update_cell():
             if column_name == "plz":
                 if new_value in (None, ""):
                     new_value = None
-                elif not (
-                    isinstance(new_value, str)
-                    and new_value.isascii()
-                    and new_value.isdigit()
-                    and len(new_value) == 5
-                ):
+                elif not is_valid_plz(new_value):
                     return jsonify({"error": "Invalid ZIP code"}), 400
 
             stmt = (

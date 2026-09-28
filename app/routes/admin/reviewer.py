@@ -41,6 +41,7 @@ from app.tools.coordinate_validation import (
     validate_coordinate,
     validate_coordinate_pair,
 )
+from app.tools.postal_code import is_valid_plz
 from app.tools.send_reviewer_email import build_email_payload, send_email
 
 # Bounds of the PostgreSQL integer columns the count fields are stored in.
@@ -267,7 +268,7 @@ def change_mantis_meta_data(id):
             return jsonify({"error": error_msg}), 400
         new_data = normalized_value
     elif fieldname == "plz":
-        if not (new_data.isascii() and new_data.isdigit() and len(new_data) == 5):
+        if not is_valid_plz(new_data):
             return jsonify({"error": "Invalid ZIP code"}), 400
 
     setattr(target, fieldname, new_data)
@@ -343,7 +344,7 @@ def update_address(id):
     land = (request.form.get("land") or "").strip()
 
     if plz_raw:
-        if not (plz_raw.isascii() and plz_raw.isdigit() and len(plz_raw) == 5):
+        if not is_valid_plz(plz_raw):
             return jsonify({"error": "Invalid ZIP code"}), 400
         fundort.plz = plz_raw
     if ort:
