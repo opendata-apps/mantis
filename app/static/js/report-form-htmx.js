@@ -26,13 +26,8 @@ document.body.addEventListener('htmx:configRequest', (event) => {
     }
 });
 
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-    iconUrl: '/static/images/map/marker-icon.png',
-    iconRetinaUrl: '/static/images/map/marker-icon-2x.png',
-    shadowUrl: '/static/images/map/marker-shadow.png',
-    iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
-});
+// Leaflet guesses this path from its stylesheet, where Vite inlines the image.
+L.Icon.Default.mergeOptions({ imagePath: '/static/images/map/' });
 
 window.L = L;
 window.htmx = htmx;
