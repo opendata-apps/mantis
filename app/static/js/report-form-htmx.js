@@ -347,7 +347,7 @@ const ReportForm = {
 
         try {
             const bytes = await this.stage('read', read);
-            exif = await this.extractExif(bytes);
+            exif = this.extractExif(bytes);
             const webp = await this.toWebp(bytes, type, file.size);
             this.setPhoto(webp.blob, webp.dataUrl, file.name);
         } catch (err) {
@@ -554,23 +554,19 @@ const ReportForm = {
         document.getElementById('photo-escalation')?.classList.add('hidden');
     },
 
+    // Autofill only: a photo whose metadata cannot be parsed still uploads.
     extractExif(bytes) {
-        // EXIF autofill is a non-essential enhancement; it must never block or freeze
-        // the upload. Time-box it and swallow every failure (degrade to no autofill).
-        // ExifReader returns tags synchronously for an ArrayBuffer (a promise only for
-        // a File), so the parse has to be lifted into one before it can be raced.
-        const parse = Promise.resolve()
-            .then(() => ExifReader.load(bytes, { expanded: true }))
-            .then((tags) => {
-                const dateTime = tags.exif?.DateTimeOriginal?.description || tags.exif?.DateTime?.description;
-                const gps = (typeof tags.gps?.Latitude === 'number' && typeof tags.gps?.Longitude === 'number')
-                    ? { lat: tags.gps.Latitude, lng: tags.gps.Longitude }
-                    : null;
-                return { dateTime, gps };
-            })
-            .catch(() => ({}));
-        const timeout = new Promise((resolve) => setTimeout(() => resolve({}), 3000));
-        return Promise.race([parse, timeout]);
+        let tags;
+        try {
+            tags = ExifReader.load(bytes, { expanded: true });
+        } catch {
+            return {};
+        }
+        const dateTime = tags.exif?.DateTimeOriginal?.description || tags.exif?.DateTime?.description;
+        const gps = (typeof tags.gps?.Latitude === 'number' && typeof tags.gps?.Longitude === 'number')
+            ? { lat: tags.gps.Latitude, lng: tags.gps.Longitude }
+            : null;
+        return { dateTime, gps };
     },
 
     // An object URL, not a data URL: base64 inflates a 6MB photo into an 8MB
