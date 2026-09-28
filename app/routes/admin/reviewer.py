@@ -2,6 +2,7 @@
 
 from datetime import datetime
 
+from email_validator import EmailNotValidError
 from flask import (
     abort,
     current_app,
@@ -366,8 +367,8 @@ def report_img(filename):
 def _notify_reporter_of_approval(report_id: int) -> None:
     """Tell the reporter their sighting was accepted.
 
-    Never raises: a failed notification must not undo an approval that is
-    already committed.
+    Runs after the approval is committed, so an address the mail server or
+    email-validator refuses is logged, not raised.
     """
     # _load_sighting() populates the fundort/reporter relationships the payload
     # reads; without it every attribute below would emit its own query.
@@ -389,7 +390,7 @@ def _notify_reporter_of_approval(report_id: int) -> None:
 
     try:
         send_email(payload)
-    except Exception as e:
+    except (OSError, EmailNotValidError) as e:
         current_app.logger.error(f"Email not sent for sighting {report_id}. Error: {e}")
 
 

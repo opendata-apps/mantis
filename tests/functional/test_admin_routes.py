@@ -6,9 +6,11 @@ from io import BytesIO
 import openpyxl
 from datetime import datetime, timedelta
 import json
+from smtplib import SMTPServerDisconnected
 import tempfile
 from sqlalchemy import select, func
 
+from app.extensions import mail
 from app.routes.admin import export
 from app.database.models import (
     TblMeldungen,
@@ -279,6 +281,31 @@ class TestAdminRoutes:
         session.refresh(self.test_sighting)
         assert self.test_sighting.bearb_id == "9999"
         assert self.test_sighting.dat_bear is not None
+
+    def test_an_approval_stands_when_the_mail_server_refuses(
+        self, app, client, session, monkeypatch
+    ):
+        # The reporter has an address, notifications are on, SMTP is down.
+        self.test_relation.id_user = self.regular_user.id
+        session.commit()
+        app.config["REVIEWERMAIL"] = True
+
+        def refuse(message):
+            raise SMTPServerDisconnected("Connection unexpectedly closed")
+
+        monkeypatch.setattr(mail, "send", refuse)
+        with client.session_transaction() as sess:
+            sess["_user_id"] = "9999"
+
+        response = client.post(
+            f"/toggle_approve_sighting/{self.test_sighting.id}",
+            data={"filter_status": "all"},
+            headers={"HX-Request": "true"},
+        )
+
+        assert response.status_code == 200
+        session.refresh(self.test_sighting)
+        assert self.test_sighting.statuses == ["APPR"]
 
     def test_toggle_approve_sighting_without_email(self, client, session):
         """Test that approving works even when email sending is disabled."""
