@@ -56,9 +56,10 @@ Suche:
 
 - ``search_type=id``: exakte Suche über Meldungs-ID
 - ``search_type=full_text``: PostgreSQL-FTS über ``search_vector``
-  mit ``websearch_to_tsquery('german', ...)``
-- unterstützte Syntax in der UI: Phrasen in Anführungszeichen,
-  ``OR``, Ausschluss mit ``-`` und Gruppierung mit Klammern
+  mit ``to_tsquery('german', ...)`` aus ``app/tools/fts.py``
+- jedes Wort ist ein Präfix (``potsd`` findet Potsdam), mehrere Wörter
+  müssen alle vorkommen; Phrasen, ``OR`` und Ausschluss mit ``-`` gibt es
+  nicht
 
 Sortierung und Pagination:
 
