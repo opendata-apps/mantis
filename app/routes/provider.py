@@ -37,8 +37,6 @@ def melder_index(usrid):
     if not current_user.is_authenticated or current_user.user_id == usrid:
         log_in(user)
 
-    image_path = current_app.config["UPLOAD_FOLDER"]
-
     # Scope by the melduser link, never by user_kontakt: the address is
     # unverified, so anyone knowing it could file under it and read these.
     stmt = (
@@ -59,7 +57,6 @@ def melder_index(usrid):
     return render_template(
         "provider/melder.html",
         reported_sightings=sichtungen,
-        image_path=image_path,
         report_user_id=usrid,
     )
 
