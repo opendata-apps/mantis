@@ -67,7 +67,7 @@ def report_with_relations():
     """select(TblMeldungen) with everything a reviewer view renders preloaded.
 
     The INNER JOINs drop reports without a melduser link; every report has
-    exactly one. db.paginate() calls .unique(), which folds duplicate rows.
+    exactly one. All joins are many-to-one, so each report is one row.
     """
     return (
         select(TblMeldungen)

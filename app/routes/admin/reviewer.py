@@ -5,7 +5,6 @@ from datetime import datetime
 from flask import (
     abort,
     current_app,
-    g,
     jsonify,
     make_response,
     redirect,
@@ -92,20 +91,13 @@ def _resolve_filter_status(default: str = "offen") -> str:
 
 def _load_sighting(report_id: int) -> TblMeldungen | None:
     """Load one report with all relationships populated via eager loading."""
-    stmt = report_with_relations().where(TblMeldungen.id == report_id)
-    return db.session.scalars(stmt).unique().first()
+    return db.session.scalar(
+        report_with_relations().where(TblMeldungen.id == report_id)
+    )
 
 
 def _get_user_report_count(user: TblUsers) -> int:
-    """Count total reports by this person (match by email or user ID).
-
-    Cached per-request in g to avoid redundant COUNT queries when
-    the same user is looked up across modal open + tab switches.
-    """
-    cache = g.setdefault("_user_report_counts", {})
-    if user.id in cache:
-        return cache[user.id]
-
+    """Count total reports by this person (match by email or user ID)."""
     if user.user_kontakt:
         count = db.session.scalar(
             select(func.count())
@@ -119,8 +111,7 @@ def _get_user_report_count(user: TblUsers) -> int:
             .select_from(TblMeldungUser)
             .where(TblMeldungUser.id_user == user.id)
         )
-    cache[user.id] = count or 0
-    return cache[user.id]
+    return count or 0
 
 
 def _load_sighting_for_render(
@@ -213,9 +204,9 @@ def reviewer(usrid=None):
     elif sort_order == "id_desc":
         stmt = stmt.order_by(TblMeldungen.id.desc())
 
+    # db.paginate reads ?page itself; per_page defaults to three columns of seven.
     paginated_sightings = db.paginate(
         stmt,
-        page=request.args.get("page", 1, type=int),
         per_page=request.args.get("per_page", 21, type=int),
         max_per_page=100,
         error_out=False,
