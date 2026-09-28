@@ -378,7 +378,13 @@ def melden(usrid=None):
                 db.session.add(user_link)
                 db.session.commit()
 
-                log_in(reporter)
+                # Same rule as melder_index: a submission never replaces
+                # another identity, a reviewer's session least of all.
+                if (
+                    not current_user.is_authenticated
+                    or current_user.user_id == reporter.user_id
+                ):
+                    log_in(reporter)
 
                 # Set session data for success page
                 session["report_submission_successful"] = True

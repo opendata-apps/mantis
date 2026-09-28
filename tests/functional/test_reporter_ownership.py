@@ -232,6 +232,18 @@ class TestBrowserKeepsTheReporterLink:
         assert b"Zweitstadt" in listing.data
 
 
+class TestSubmissionKeepsTheLogin:
+    """Filing a sighting must not replace the identity the browser holds."""
+
+    def test_a_reviewer_who_files_a_sighting_stays_a_reviewer(self, client):
+        client.get("/reviewer/9999")
+
+        _submit_as(client, "reviewerin@example.com", fund_city="Feldstadt")
+
+        page = client.get("/reviewer?statusInput=offen&sort_order=id_desc")
+        assert page.status_code == 200
+
+
 class TestOwnReportsStayReachable:
     """The reporter's own link keeps working for the reports that belong to it."""
 
