@@ -217,7 +217,10 @@ class MantisSightingForm(StrippedForm):
                 # A non-ASCII domain is fine and handled at submission.
                 allow_smtputf8=False,
             ),
-            Length(max=120),
+            Length(
+                max=120,
+                message="Die E-Mail-Adresse darf maximal 120 Zeichen lang sein.",
+            ),
         ],
         render_kw={"placeholder": "ihre.email@beispiel.de", "autocomplete": "email"},
     )
@@ -319,7 +322,7 @@ class MantisSightingForm(StrippedForm):
         "Stadt/Ort *",
         validators=[
             DataRequired(message="Stadt/Ort ist erforderlich."),
-            Length(max=100),
+            Length(max=100, message="Der Ort darf maximal 100 Zeichen lang sein."),
         ],
         render_kw={
             "placeholder": "Name der Stadt oder des Ortes",
@@ -328,7 +331,10 @@ class MantisSightingForm(StrippedForm):
     )
     fund_street = StringField(
         "Straße",
-        validators=[Optional(), Length(max=100)],
+        validators=[
+            Optional(),
+            Length(max=100, message="Die Straße darf maximal 100 Zeichen lang sein."),
+        ],
         render_kw={
             "placeholder": "Straßenname (optional)",
             "autocomplete": "off",
@@ -338,13 +344,18 @@ class MantisSightingForm(StrippedForm):
         "Bundesland *",
         validators=[
             DataRequired(message="Bundesland ist erforderlich."),
-            Length(max=50),
+            Length(max=50, message="Das Bundesland darf maximal 50 Zeichen lang sein."),
         ],
         render_kw={"placeholder": "Bundesland", "autocomplete": "off"},
     )
     fund_district = StringField(
         "Landkreis",
-        validators=[Optional(), Length(max=100)],
+        validators=[
+            Optional(),
+            Length(
+                max=100, message="Der Landkreis darf maximal 100 Zeichen lang sein."
+            ),
+        ],
         render_kw={
             "placeholder": "Landkreis oder Bezirk (optional)",
             "autocomplete": "off",
@@ -366,7 +377,12 @@ class MantisSightingForm(StrippedForm):
     )
     description = TextAreaField(
         "Details zum Fundort",
-        validators=[Optional(), Length(max=500)],
+        validators=[
+            Optional(),
+            Length(
+                max=500, message="Die Details dürfen maximal 500 Zeichen lang sein."
+            ),
+        ],
         render_kw={"placeholder": "Weitere Details (max. 500 Zeichen)", "rows": 3},
     )
 

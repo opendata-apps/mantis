@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pillow_heif
 from flask import Flask, jsonify, render_template, request, url_for
+from flask_limiter.errors import RateLimitExceeded
 from PIL import Image
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -299,7 +300,16 @@ def too_many_requests(e):
         "Rate limit exceeded: route=%s", request.url_rule or "unmatched"
     )
     if wants_json_response():
-        return jsonify({"error": e.description or "Too many requests"}), 429
+        # flask-limiter's description is "3 per 1 minute", and the report form
+        # shows the error text to the reporter as is.
+        if isinstance(e, RateLimitExceeded):
+            message = (
+                "Zu viele Anfragen in kurzer Zeit. Bitte warten Sie eine "
+                "Minute und versuchen Sie es dann erneut."
+            )
+        else:
+            message = e.description or "Too many requests"
+        return jsonify({"error": message}), 429
     return render_template("error/429.html", error=e), 429
 
 

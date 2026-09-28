@@ -332,7 +332,9 @@ const ReportForm = {
         const type = this.imageType(file);
         if (!type) return this.showError('photo', 'Ungültiges Bildformat.');
         const { maxBytes, maxMb } = uploadConfig();
-        if (file.size > maxBytes) return this.showError('photo', `Max ${maxMb}MB.`);
+        if (file.size > maxBytes) return this.showError('photo',
+            `Das Foto ist größer als ${maxMb} MB. Bitte wählen Sie ein kleineres Foto `
+            + 'oder stellen Sie die Kamera auf eine geringere Auflösung (z. B. 12 MP).');
 
         this.clearError('photo');
         this.setDropzoneLoading(true, 'Bild wird verarbeitet...');
