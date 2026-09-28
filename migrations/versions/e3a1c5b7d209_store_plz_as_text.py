@@ -7,9 +7,10 @@ plz = 0 ("reporter gave no PLZ", written by the report form) becomes
 NULL; the column is now nullable.
 
 The all_data_view materialized view depends on the column and must be
-dropped/recreated around the type change. Search vectors are recomputed
-because the indexed text for sub-10000 codes changes (e.g. '1067' ->
-'01067').
+dropped/recreated around the type change. The indexed text for
+sub-10000 codes changes ('1067' -> '01067'); the merge e5f6a7b8c9d0
+rewrites every search vector that differs, so the upgrade leaves them.
+The downgrade has no such successor and recomputes them itself.
 
 Revision ID: e3a1c5b7d209
 Revises: d7c2a9e41f05
@@ -157,7 +158,6 @@ def upgrade():
         op.f("ck_fundorte_plz_format"), "fundorte", "plz ~ '^[0-9]{5}$'"
     )
 
-    op.execute(RECOMPUTE_VECTORS)
     op.execute(CREATE_VIEW)
 
 

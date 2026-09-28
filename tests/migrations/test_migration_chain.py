@@ -230,6 +230,12 @@ class TestMigrationChain:
                         "FROM meldungen WHERE id = 1"
                     )
                 )
+                assert conn.scalar(
+                    sa.text(
+                        "SELECT search_vector @@ plainto_tsquery('german', '01067') "
+                        "FROM meldungen WHERE id = 1"
+                    )
+                )
                 long_name = "Mustermann" * 9
                 long_contact = "a" * 50 + "@beispieldomain.de"
                 conn.execute(
