@@ -38,7 +38,7 @@ def rendertextmsg(md):
 
     {"Latitude:":<21}  {md["latitude"]:>22}
     {"Longitude:":<21}  {md["longitude"]:>22}
-    {"PLZ:":<21}  {str(md["plz"]):>22}
+    {"PLZ:":<21}  {md["plz"] or "":>22}
     {"Ort:":<21}  {md["ort"]:>22}
     {"Straße:":<21}  {md["strasse"]:>22}
     {"Bundesland:":<22} {md["land"]:>22}

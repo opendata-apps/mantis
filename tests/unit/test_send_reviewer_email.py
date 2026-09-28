@@ -44,6 +44,12 @@ class TestRendertextmsg:
         assert "52.520" in text
         assert "13.405" in text
 
+    def test_a_report_without_postal_code_leaves_the_field_empty(self):
+        # The PLZ column is NULL when the reporter gave none.
+        text = rendertextmsg(_make_mail_data(plz=None))
+        plz_line = next(line for line in text.splitlines() if "PLZ:" in line)
+        assert plz_line.split("PLZ:")[1].strip() == ""
+
     def test_contains_location_fields(self):
         md = _make_mail_data(
             ort="Potsdam",
