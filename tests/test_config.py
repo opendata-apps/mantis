@@ -38,3 +38,15 @@ class Config(AppConfig):
 
     WTF_CSRF_ENABLED = False
     RATELIMIT_ENABLED = False
+
+
+class MigrationsConfig(Config):
+    """Own database for tests/migrations.
+
+    Those tests drop the schema and replay the chain, which would pull the
+    schema out from under the rest of the suite.
+    """
+
+    DATABASE_DB = "mantis_tester_migrations"
+    URI = "postgresql+psycopg://mantis_user:mantis@localhost/mantis_tester_migrations"
+    SQLALCHEMY_DATABASE_URI = URI

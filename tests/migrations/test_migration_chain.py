@@ -25,7 +25,7 @@ from alembic.command import downgrade, upgrade
 from alembic.config import Config
 from alembic.script import ScriptDirectory
 
-from tests.test_config import Config as TestConfig
+from tests.test_config import MigrationsConfig
 
 MIGRATIONS_DIR = Path("migrations/versions")
 
@@ -175,7 +175,7 @@ class TestMigrationChain:
     @pytest.mark.parametrize("old_head", ["d4e5f6a7b8c9", "7e9e54853fa2"])
     def test_merge_preserves_existing_reports(self, clean_db, alembic_config, old_head):
         upgrade(alembic_config, old_head)
-        engine = sa.create_engine(TestConfig.URI)
+        engine = sa.create_engine(MigrationsConfig.URI)
         try:
             with engine.begin() as conn:
                 conn.execute(
@@ -287,7 +287,7 @@ class TestMigrationChain:
         upgrade(alembic_config, "head")
         downgrade(alembic_config, "base")
 
-        engine = sa.create_engine(TestConfig.URI)
+        engine = sa.create_engine(MigrationsConfig.URI)
         with engine.connect() as conn:
             result = conn.execute(
                 sa.text("SELECT tablename FROM pg_tables WHERE schemaname = 'public'")
@@ -312,7 +312,7 @@ class TestMigrationChain:
         upgrade(alembic_config, "head")
         downgrade(alembic_config, "base")
 
-        engine = sa.create_engine(TestConfig.URI)
+        engine = sa.create_engine(MigrationsConfig.URI)
         with engine.connect() as conn:
             result = conn.execute(
                 sa.text(
@@ -343,7 +343,7 @@ class TestMigrationChain:
 
         upgrade(alembic_config, "head")
 
-        engine = sa.create_engine(TestConfig.URI)
+        engine = sa.create_engine(MigrationsConfig.URI)
         with engine.connect() as conn:
             ctx = MigrationContext.configure(conn)
             diff = compare_metadata(ctx, db.metadata)

@@ -54,8 +54,17 @@ def _test_database(_exclusive_run):
 
 
 @pytest.fixture
-def test_config(tmp_path, tmp_path_factory):
-    class Config(TestConfig):
+def config_base():
+    """The configuration the per-test config derives from.
+
+    ``tests/migrations`` overrides this to point at its own database.
+    """
+    return TestConfig
+
+
+@pytest.fixture
+def test_config(tmp_path, tmp_path_factory, config_base):
+    class Config(config_base):
         UPLOAD_FOLDER = str(tmp_path / "uploads")
         BACKUP_DIR = str(tmp_path / "backups")
         FAVICON_BUILD_DIR = str(tmp_path_factory.getbasetemp() / "favicons")
@@ -140,6 +149,20 @@ def _reset_schema():
     db.session.commit()
 
 
+def _truncate_all(tables: tuple[str, ...]):
+    """Empty every seeded table and rewind its identity counter.
+
+    CASCADE covers the foreign keys between them; RESTART IDENTITY makes the
+    ids that ``_seed_test_data`` hands out the same in every test.
+    """
+    from app.extensions import db
+
+    quote = db.engine.dialect.identifier_preparer.quote
+    names = ", ".join(f"public.{quote(table)}" for table in tables)
+    db.session.execute(text(f"TRUNCATE TABLE {names} RESTART IDENTITY CASCADE"))
+    db.session.commit()
+
+
 def _seed_test_data():
     """Populate test database with initial + demo data."""
     from app.extensions import db
@@ -169,18 +192,49 @@ def _run_migrations():
     command.upgrade(alembic_cfg, "heads")
 
 
-@pytest.fixture
-def _db(app):
-    """Rebuild the database before each test that uses it.
+@pytest.fixture(scope="session")
+def _schema(_test_database):
+    """Migrate once per test run; returns the tables ``_db`` empties per test.
 
-    Resets schema, runs Alembic migrations (which create tables,
-    triggers, and functions), then populates with test data.
+    ``tests/migrations`` replays the chain itself and does so against its own
+    database, so nothing removes this schema while tests run.
+    """
+    from app import create_app
+
+    app = create_app(TestConfig)
+    with app.app_context():
+        from app.extensions import db
+
+        _reset_schema()
+        _run_migrations()
+        tables = tuple(
+            db.session.scalars(
+                text(
+                    "SELECT tablename FROM pg_tables WHERE schemaname = 'public' "
+                    "AND tablename <> 'alembic_version'"
+                )
+            )
+        )
+        # Release the connection too, or the session-end DROP DATABASE finds
+        # this one still attached.
+        db.session.remove()
+        db.engine.dispose()
+
+    assert tables, "migrations created no tables"
+    return tables
+
+
+@pytest.fixture
+def _db(app, _schema):
+    """Restore the seeded starting state before each test that uses it.
+
+    Tests commit for real — an HTTP or CLI call runs on its own connection —
+    so isolation comes from emptying the tables, not from a rollback.
     """
     from app.extensions import db
 
     with app.app_context():
-        _reset_schema()
-        _run_migrations()
+        _truncate_all(_schema)
         _seed_test_data()
 
     return db

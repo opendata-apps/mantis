@@ -6,7 +6,8 @@ Tests
 
 Die Test-Suite basiert auf Pytest und verwendet eine echte PostgreSQL-Datenbank.
 Die Fixtures in ``tests/conftest.py`` migrieren und befüllen ``mantis_tester``
-automatisch.
+automatisch. ``tests/migrations`` arbeitet auf einer zweiten Datenbank,
+``mantis_tester_migrations``, weil diese Tests das Schema selbst abräumen.
 
 Voraussetzungen
 ---------------
@@ -40,15 +41,22 @@ Fixture-Lebenszyklus
   Tests mit abweichender Konfiguration überschreiben diese Fixture vor App-Erstellung.
 - ``client`` und ``authenticated_client`` verwenden den normalen Request-Lifecycle.
   Direkte Helpertests aktivieren ``app_ctx`` oder ``request_context`` nur bei Bedarf.
-- ``_db`` setzt vor jedem Datenbanktest das Schema zurück, führt Alembic aus
-  und lädt Basisdaten, Demo-Meldungen und Materialized View.
+- ``_schema`` legt das Schema einmal pro Testlauf an: Schema zurücksetzen,
+  Alembic ausführen, Tabellennamen einsammeln.
+- ``_db`` stellt vor jedem Datenbanktest den Ausgangszustand wieder her:
+  ``TRUNCATE … RESTART IDENTITY CASCADE`` über diese Tabellen, dann Basisdaten
+  und Demo-Meldungen neu laden. Die Ids der Demo-Daten sind dadurch in jedem
+  Test dieselben. Isolation über ``TRUNCATE`` statt über ein Rollback, weil
+  HTTP- und CLI-Aufrufe auf einer eigenen Verbindung wirklich committen —
+  dasselbe Vorgehen wie Djangos ``TransactionTestCase``.
 - ``session`` verwendet eine eigene Datenbankverbindung. Testdaten für HTTP-
   oder CLI-Aufrufe benötigen ``commit()``. Ein ``flush()`` ist nur innerhalb
   derselben Transaktion sichtbar. Die Anwendung verwendet unverändert ``db.session``.
 - Uploads und Backups liegen pro Test unter ``tmp_path``. Unveränderte Favicons
   werden einmal je Testlauf in einem gemeinsamen temporären Verzeichnis erzeugt.
-- Migrationstests verwalten ihren Schemaaufbau selbst. Die Datenbank wird
-  nach Testende gelöscht. Datenbanktests laufen seriell gegen ``mantis_tester``.
+- Migrationstests verwalten ihren Schemaaufbau selbst und laufen dafür gegen
+  ``mantis_tester_migrations``. Beide Datenbanken werden nach Testende
+  gelöscht. Datenbanktests laufen seriell.
 - Ein zweiter gleichzeitiger Testlauf bricht sofort ab. ``_exclusive_run`` hält
   dafür ein ``pg_advisory_lock`` auf der Wartungsdatenbank. Ohne den Riegel
   zeigt sich ein zweiter Schreiber als Deadlock, doppelter Primärschlüssel oder
