@@ -8,6 +8,7 @@ Test data (from demodata/filldb.py):
 
 import pytest
 from bs4 import BeautifulSoup
+from itsdangerous import TimestampSigner
 
 
 # ---------------------------------------------------------------------------
@@ -59,6 +60,23 @@ class TestReviewerAuth:
             "/reviewer?statusInput=offen&sort_order=id_desc", follow_redirects=True
         )
         assert response2.status_code == 200
+
+    def test_an_active_reviewer_stays_logged_in_past_the_session_lifetime(
+        self, client, monkeypatch
+    ):
+        # The session lifetime is one hour. The reviewer logs in, works every
+        # 30 minutes, and is still in two hours after the login.
+        clock = {"now": 1_800_000_000}
+        monkeypatch.setattr(TimestampSigner, "get_timestamp", lambda _: clock["now"])
+        page = "/reviewer?statusInput=offen&sort_order=id_desc"
+
+        client.get("/reviewer/9999")
+        statuses = []
+        for minutes in (30, 60, 90, 120):
+            clock["now"] = 1_800_000_000 + minutes * 60
+            statuses.append(client.get(page).status_code)
+
+        assert statuses == [200, 200, 200, 200]
 
     def test_reviewer_invalid_usrid_returns_403(self, client):
         """GET /reviewer/<invalid-usrid> should return 403."""
