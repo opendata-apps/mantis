@@ -1,6 +1,7 @@
 import io
 import json
 import secrets
+import threading
 from datetime import datetime
 from pathlib import Path
 from urllib.parse import quote, urlencode
@@ -36,6 +37,7 @@ from app.database.models import (
 from app.database.feedback_type import FeedbackSource
 from app.forms import MantisSightingForm, minimum_sighting_date
 from app.tools.gen_user_id import get_new_id
+from app.tools.image_upload import pillow_formats
 from app.tools.gemeinde_finder import get_amt_enriched
 from app.tools.location_enrichment import calculate_spatial_fields
 from app.tools.report_images import build_upload_filename, ensure_upload_dir
@@ -83,6 +85,10 @@ TOO_LARGE_MESSAGE = (
 # decode what arrived; a frame damaged beyond use still fails the blank-pixel
 # check below. ty infers the flag as Literal[False] though it exists to be set.
 ImageFile.LOAD_TRUNCATED_IMAGES = True  # ty: ignore[invalid-assignment]
+
+# One decode at a time per worker process. A 50 MP HEIC peaks near 600 MiB,
+# and anyone can post one directly, bypassing the browser conversion.
+_DECODE_LOCK = threading.Lock()
 
 
 class InvalidImageError(ValueError):
@@ -148,7 +154,10 @@ def _process_uploaded_image(photo_file, sighting_date, city_name, user_id):
     photo_file.seek(0)
 
     try:
-        with Image.open(io.BytesIO(image_bytes)) as img:
+        with (
+            _DECODE_LOCK,
+            Image.open(io.BytesIO(image_bytes), formats=pillow_formats()) as img,
+        ):
             if img.width * img.height > MAX_UPLOAD_PIXELS:
                 raise InvalidImageError(TOO_LARGE_MESSAGE)
             # JPEG only, a no-op otherwise: libjpeg decodes at 1/2–1/8 scale, so

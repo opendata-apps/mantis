@@ -24,6 +24,20 @@ IMAGE_TYPES: dict[str, str] = {
 MAX_UPLOAD_BYTES = 12 * 1024 * 1024
 
 
+def pillow_formats() -> list[str]:
+    """Pillow format names for ``Image.open(formats=...)``.
+
+    Without the list Pillow sniffs any format it knows (TIFF, PSD, JPEG 2000,
+    …) whatever the filename says. Read from Pillow's registry, so HEIF only
+    appears once pillow-heif has registered; the app factory asserts it did.
+    """
+    from PIL import Image
+
+    Image.init()
+    mimes = set(IMAGE_TYPES.values())
+    return [fmt for fmt, mime in Image.MIME.items() if mime in mimes]
+
+
 def allowed_extensions() -> list[str]:
     """Extensions for FileAllowed, without the leading dot."""
     return list(IMAGE_TYPES)

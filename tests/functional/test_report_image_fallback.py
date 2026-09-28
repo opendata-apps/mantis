@@ -16,6 +16,7 @@ from PIL import Image
 from app.routes.report import (
     MAX_STORED_DIMENSION,
     BlankImageError,
+    InvalidImageError,
     _process_uploaded_image,
 )
 from tests.helpers import build_valid_report_form_data, make_test_image
@@ -224,3 +225,15 @@ def test_a_48_megapixel_phone_original_is_stored_downscaled(app_ctx, upload_fold
     rel = _store(make_test_image(size=(8064, 6048), color="green"))
 
     assert Image.open(upload_folder / rel).size == (2048, 1536)
+
+
+def test_a_tiff_named_like_a_jpeg_is_refused(app_ctx, upload_folder):
+    """The extension check sees only the client's filename. Pillow would open
+    TIFF by its magic bytes and hand it to libtiff, a parser the form never
+    accepts."""
+    disguised = make_test_image(fmt="tiff", name="IMG_0001.jpg", size=(64, 64))
+
+    with pytest.raises(InvalidImageError):
+        _store(disguised)
+
+    assert list(upload_folder.rglob("*.webp")) == []
