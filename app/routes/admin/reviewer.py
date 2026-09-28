@@ -2,10 +2,10 @@
 
 from datetime import datetime
 
+from email_validator import EmailNotValidError
 from flask import (
     abort,
     current_app,
-    g,
     jsonify,
     make_response,
     redirect,
@@ -92,20 +92,13 @@ def _resolve_filter_status(default: str = "offen") -> str:
 
 def _load_sighting(report_id: int) -> TblMeldungen | None:
     """Load one report with all relationships populated via eager loading."""
-    stmt = report_with_relations().where(TblMeldungen.id == report_id)
-    return db.session.scalars(stmt).unique().first()
+    return db.session.scalar(
+        report_with_relations().where(TblMeldungen.id == report_id)
+    )
 
 
 def _get_user_report_count(user: TblUsers) -> int:
-    """Count total reports by this person (match by email or user ID).
-
-    Cached per-request in g to avoid redundant COUNT queries when
-    the same user is looked up across modal open + tab switches.
-    """
-    cache = g.setdefault("_user_report_counts", {})
-    if user.id in cache:
-        return cache[user.id]
-
+    """Count total reports by this person (match by email or user ID)."""
     if user.user_kontakt:
         count = db.session.scalar(
             select(func.count())
@@ -119,8 +112,7 @@ def _get_user_report_count(user: TblUsers) -> int:
             .select_from(TblMeldungUser)
             .where(TblMeldungUser.id_user == user.id)
         )
-    cache[user.id] = count or 0
-    return cache[user.id]
+    return count or 0
 
 
 def _load_sighting_for_render(
@@ -213,9 +205,9 @@ def reviewer(usrid=None):
     elif sort_order == "id_desc":
         stmt = stmt.order_by(TblMeldungen.id.desc())
 
+    # db.paginate reads ?page itself; per_page defaults to three columns of seven.
     paginated_sightings = db.paginate(
         stmt,
-        page=request.args.get("page", 1, type=int),
         per_page=request.args.get("per_page", 21, type=int),
         max_per_page=100,
         error_out=False,
@@ -375,8 +367,8 @@ def report_img(filename):
 def _notify_reporter_of_approval(report_id: int) -> None:
     """Tell the reporter their sighting was accepted.
 
-    Never raises: a failed notification must not undo an approval that is
-    already committed.
+    Runs after the approval is committed, so an address the mail server or
+    email-validator refuses is logged, not raised.
     """
     # _load_sighting() populates the fundort/reporter relationships the payload
     # reads; without it every attribute below would emit its own query.
@@ -398,7 +390,7 @@ def _notify_reporter_of_approval(report_id: int) -> None:
 
     try:
         send_email(payload)
-    except Exception as e:
+    except (OSError, EmailNotValidError) as e:
         current_app.logger.error(f"Email not sent for sighting {report_id}. Error: {e}")
 
 
@@ -444,11 +436,8 @@ def toggle_approve_sighting(id):
 
     filter_status = _resolve_filter_status()
     response = make_response(_render_updated_sighting_by_id(id, filter_status))
-    # CSP-safe modal close: body listens for `mantis:modal-close` and closes
-    # the dialog. Replaces the previous hx-on::after-request inline handler
-    # on the Annehmen button. No-op when no modal is open (the report-card
-    # variant of this button calls the endpoint without a modal). Namespaced
-    # per htmx's `<ns>:<event>` convention to avoid collisions.
+    # The body closes the modal on this event; a no-op when the card's own
+    # button made the request and no modal is open.
     response.headers["HX-Trigger"] = "mantis:modal-close"
     return response
 

@@ -6,8 +6,12 @@ from io import BytesIO
 import openpyxl
 from datetime import datetime, timedelta
 import json
+from smtplib import SMTPServerDisconnected
+import tempfile
 from sqlalchemy import select, func
 
+from app.extensions import mail
+from app.routes.admin import export
 from app.database.models import (
     TblMeldungen,
     TblFundorte,
@@ -277,6 +281,31 @@ class TestAdminRoutes:
         session.refresh(self.test_sighting)
         assert self.test_sighting.bearb_id == "9999"
         assert self.test_sighting.dat_bear is not None
+
+    def test_an_approval_stands_when_the_mail_server_refuses(
+        self, app, client, session, monkeypatch
+    ):
+        # The reporter has an address, notifications are on, SMTP is down.
+        self.test_relation.id_user = self.regular_user.id
+        session.commit()
+        app.config["REVIEWERMAIL"] = True
+
+        def refuse(message):
+            raise SMTPServerDisconnected("Connection unexpectedly closed")
+
+        monkeypatch.setattr(mail, "send", refuse)
+        with client.session_transaction() as sess:
+            sess["_user_id"] = "9999"
+
+        response = client.post(
+            f"/toggle_approve_sighting/{self.test_sighting.id}",
+            data={"filter_status": "all"},
+            headers={"HX-Request": "true"},
+        )
+
+        assert response.status_code == 200
+        session.refresh(self.test_sighting)
+        assert self.test_sighting.statuses == ["APPR"]
 
     def test_toggle_approve_sighting_without_email(self, client, session):
         """Test that approving works even when email sending is disabled."""
@@ -675,6 +704,39 @@ class TestAdminRoutes:
         # xlsxwriter stores "" as an empty cell, which reads back as None
         assert cells["Bearbeiter"] is None  # not approved yet
 
+    def test_export_keeps_a_reporter_remark_that_looks_like_a_formula_as_text(
+        self, client, session
+    ):
+        # A public reporter types a formula into the remark field.
+        self.test_sighting.anm_melder = '=HYPERLINK("https://example.com","Foto")'
+        session.commit()
+        with client.session_transaction() as sess:
+            sess["_user_id"] = "9999"
+
+        response = client.get("/admin/export/xlsx/all")
+
+        sheet = openpyxl.load_workbook(BytesIO(response.data))["Daten"]
+        headers = [cell.value for cell in sheet[1]]
+        row = next(
+            r for r in sheet.iter_rows(min_row=2) if r[0].value == self.test_sighting.id
+        )
+        remark = row[headers.index("Anmerkung Melder")]
+        assert remark.data_type == "s"
+        assert remark.value == '=HYPERLINK("https://example.com","Foto")'
+
+    def test_a_large_export_leaves_no_file_behind(self, client, monkeypatch, tmp_path):
+        # Every export counts as large, and temp files land in tmp_path.
+        monkeypatch.setattr(export, "LARGE_EXPORT_THRESHOLD", 0)
+        monkeypatch.setattr(tempfile, "tempdir", str(tmp_path))
+        with client.session_transaction() as sess:
+            sess["_user_id"] = "9999"
+
+        response = client.get("/admin/export/xlsx/all")
+        assert self.test_sighting.id in exported_ids(response)
+        response.close()
+
+        assert list(tmp_path.iterdir()) == []
+
     def test_export_xlsx_searched(self, client):
         """Test exporting searched data with the shared reviewer filter args."""
         with client.session_transaction() as sess:
@@ -695,6 +757,13 @@ class TestAdminRoutes:
             == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
         assert exported_ids(response) == {self.test_sighting.id}
+
+    def test_export_of_an_unknown_selection_is_not_found(self, client):
+        with client.session_transaction() as sess:
+            sess["_user_id"] = "9999"
+
+        response = client.get("/admin/export/xlsx/geloescht")
+        assert response.status_code == 404
 
     def test_alldata_view_access(self, client):
         """Test accessing the alldata view."""
@@ -753,6 +822,27 @@ class TestAdminRoutes:
 
         assert data["total_items"] == 0
         assert data["data"] == []
+
+    @pytest.mark.parametrize("sort_column", ["fo_quelle", "land", "tiere"])
+    def test_paging_the_grid_by_a_shared_value_shows_every_report_once(
+        self, client, session, sort_column
+    ):
+        # Sorted by a column many reports share, one row per page.
+        with client.session_transaction() as sess:
+            sess["_user_id"] = "9999"
+        all_ids = list(session.scalars(select(TblMeldungen.id)))
+
+        seen = []
+        for page in range(1, len(all_ids) + 1):
+            response = client.get(
+                "/admin/get_table_data/all_data_view"
+                f"?page={page}&per_page=1&sort_column={sort_column}"
+            )
+            data = json.loads(response.data)
+            id_column = data["columns"].index("meldungen_id")
+            seen += [row[id_column] for row in data["data"]]
+
+        assert sorted(seen) == sorted(all_ids)
 
     def test_update_cell_valid_field(self, client, session):
         """Test updating a field exposed by the superuser table."""

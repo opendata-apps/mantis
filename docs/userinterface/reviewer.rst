@@ -65,6 +65,8 @@ Sortierung und Pagination:
 
 - ``sort_order=id_asc`` oder ``sort_order=id_desc``
 - Default ``per_page=21``, Maximum ``100``
+- die Seitenleiste zeigt die erste und letzte Seite und je zwei Seiten
+  um die aktuelle; übersprungene Seiten stehen als ``…``
 
 Statusmodell und Aktionen
 -------------------------
@@ -127,3 +129,6 @@ Folgende Exporttypen stehen als XLSX bereit:
 ``searched`` übernimmt aktive Filterparameter
 (``statusInput``, ``typeInput``, ``q``, ``search_type``,
 ``dateFrom``, ``dateTo``, ``dateType``).
+
+Text aus der Meldung steht in der Tabelle als Text: ein führendes ``=``
+wird nicht als Formel ausgewertet, eine Adresse nicht zum Link.

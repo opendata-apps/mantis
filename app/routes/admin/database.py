@@ -59,6 +59,20 @@ EDITABLE_FIELDS = {
     "user_kontakt": TblUsers,
 }
 
+# Internal ids and fields the grid does not show.
+HIDDEN_COLUMNS = frozenset(
+    {
+        "id_user",
+        "id_finder",
+        "fundorte_id",
+        "beschreibung_id",
+        "dat_fund_bis",
+        "fo_beleg",
+        "bearb_id",
+        "ablage",
+    }
+)
+
 
 def update_report_image_date(report_id, new_date):
     """Update the image location when dat_fund_von changes"""
@@ -137,121 +151,55 @@ def database_view():
 def get_table_data(table_name):
     if table_name != "all_data_view":
         return jsonify({"error": "Only all_data_view is available"}), 403
-    try:
-        page = request.args.get("page", 1, type=int)
-        per_page = request.args.get("per_page", 10, type=int)
-        search = request.args.get("search", "")
-        search_type = request.args.get("search_type", "full_text")
-        sort_column = request.args.get("sort_column", "meldungen_id")
-        sort_direction = request.args.get("sort_direction", "asc")
+    search = request.args.get("search", "")
+    search_type = request.args.get("search_type", "full_text")
+    sort_column = request.args.get("sort_column", "meldungen_id")
+    sort_direction = request.args.get("sort_direction", "asc")
 
-        # Get the table object - we only work with TblAllData now
-        table = TblAllData.__table__
+    table = TblAllData.__table__
+    columns = [column for column in table.columns if column.name not in HIDDEN_COLUMNS]
+    if sort_column not in table.c:
+        sort_column = "meldungen_id"
 
-        columns = [column.name for column in table.columns]
+    stmt = select(TblAllData)
+    if search and search_type == "id":
+        try:
+            stmt = stmt.where(TblAllData.meldungen_id == int(search))
+        except ValueError:
+            stmt = stmt.where(false())
+    elif search:
+        ts_query = func.to_tsquery("german", prefix_tsquery(search))
+        stmt = stmt.join(TblMeldungen, TblAllData.meldungen_id == TblMeldungen.id)
+        stmt = stmt.where(TblMeldungen.search_vector.op("@@")(ts_query))
 
-        # Validate sort_column to prevent SQL injection
-        if sort_column not in columns:
-            sort_column = "meldungen_id"
+    # meldungen_id breaks ties; without a unique order, OFFSET pages overlap.
+    sort = table.c[sort_column]
+    stmt = stmt.order_by(
+        sort.asc() if sort_direction == "asc" else sort.desc(), TblAllData.meldungen_id
+    )
+    # db.paginate reads ?page itself.
+    pagination = db.paginate(
+        stmt,
+        per_page=request.args.get("per_page", 10, type=int),
+        max_per_page=100,
+        error_out=False,
+    )
 
-        # Create a filtered select statement first; count and paginated data
-        # should come from the same search conditions.
-        stmt = select(table)
-
-        # Apply search filter if search term is provided
-        if search:
-            if search_type == "id":
-                try:
-                    # Try to convert search term to integer for ID search
-                    search_id = int(search)
-                    stmt = stmt.where(table.c.meldungen_id == search_id)
-                except ValueError:
-                    stmt = stmt.where(false())
-            else:  # full_text search
-                tsquery_text = prefix_tsquery(search)
-                if tsquery_text is None:
-                    stmt = stmt.where(false())
-                else:
-                    ts_query = func.to_tsquery("german", tsquery_text)
-                    meldungen_tbl = TblMeldungen.__table__
-                    stmt = stmt.join(
-                        meldungen_tbl, table.c.meldungen_id == meldungen_tbl.c.id
-                    ).where(meldungen_tbl.c.search_vector.op("@@")(ts_query))
-
-        total_items = db.session.scalar(
-            select(func.count()).select_from(stmt.order_by(None).subquery())
-        )
-
-        # Apply sorting
-        if sort_direction == "asc":
-            stmt = stmt.order_by(table.c[sort_column].asc())
-        else:
-            stmt = stmt.order_by(table.c[sort_column].desc())
-
-        # Apply pagination
-        stmt = stmt.offset((page - 1) * per_page).limit(per_page)
-
-        # Execute query and get results
-        results = db.session.execute(stmt).fetchall()
-
-        def get_standard_type(column_type):
-            if isinstance(column_type, db.Integer):
-                return "integer"
-            elif isinstance(column_type, db.String):
-                return "string"
-            elif isinstance(column_type, db.Boolean):
-                return "boolean"
-            elif isinstance(column_type, db.Date):
-                return "date"
-            elif isinstance(column_type, db.DateTime):
-                return "datetime"
-            elif isinstance(column_type, db.Float):
-                return "float"
-            else:
-                return "string"
-
-        # Get column names and types
-        column_types = {
-            column.name: get_standard_type(column.type) for column in table.columns
+    return jsonify(
+        {
+            "columns": [column.name for column in columns],
+            "data": [
+                [getattr(row, column.name) for column in columns]
+                for row in pagination.items
+            ],
+            # "int", "float", "date", "str" or "list"; the grid picks its editor by it.
+            "column_types": {
+                column.name: column.type.python_type.__name__ for column in columns
+            },
+            "editable_fields": list(EDITABLE_FIELDS),
+            "total_items": pagination.total,
         }
-
-        # Exclude sensitive columns
-        EXCLUDED_COLUMNS = [
-            "id_user",
-            "id_finder",
-            "fundorte_id",
-            "beschreibung_id",
-            "dat_fund_bis",
-            "fo_beleg",
-            "bearb_id",
-            "ablage",
-        ]
-        columns_with_excluded = columns.copy()
-        columns = [col for col in columns if col not in EXCLUDED_COLUMNS]
-        column_types = {col: column_types[col] for col in columns}
-
-        # Convert results to list of lists
-        data = [
-            [
-                getattr(row, col)
-                for col in columns_with_excluded
-                if col not in EXCLUDED_COLUMNS
-            ]
-            for row in results
-        ]
-
-        return jsonify(
-            {
-                "columns": columns,
-                "data": data,
-                "column_types": column_types,
-                "editable_fields": list(EDITABLE_FIELDS),
-                "total_items": total_items,
-            }
-        )
-    except Exception as e:
-        current_app.logger.exception(f"Error in get_table_data: {str(e)}")
-        return jsonify({"error": "An error occurred while fetching table data"}), 500
+    )
 
 
 @admin.route("/admin/update_cell", methods=["POST"])
@@ -279,112 +227,103 @@ def update_cell():
     if original_table is None:
         return jsonify({"error": "This field is not editable"}), 403
 
-    try:
-        # Fetch the corresponding row from all_data_view
-        all_data_row = db.session.scalar(
-            select(TblAllData).where(TblAllData.meldungen_id == id_value)
+    # Fetch the corresponding row from all_data_view
+    all_data_row = db.session.scalar(
+        select(TblAllData).where(TblAllData.meldungen_id == id_value)
+    )
+    if not all_data_row:
+        return jsonify({"error": "Record not found"}), 404
+
+    fundorte_id = None
+    if original_table == TblUsers:
+        user_db_id = all_data_row.id_user
+        if not user_db_id:
+            return jsonify({"error": "User ID not found in the record"}), 400
+        stmt = (
+            update(original_table)
+            .where(original_table.id == user_db_id)
+            .values(**{column_name: new_value})
         )
-        if not all_data_row:
-            return jsonify({"error": "Record not found"}), 404
+    elif original_table == TblFundorte:
+        fundorte_id = all_data_row.fundorte_id
+        if not fundorte_id:
+            return jsonify({"error": "Fundorte ID not found in the record"}), 400
 
-        fundorte_id = None
-        if original_table == TblUsers:
-            user_db_id = all_data_row.id_user
-            if not user_db_id:
-                return jsonify({"error": "User ID not found in the record"}), 400
-            stmt = (
-                update(original_table)
-                .where(original_table.id == user_db_id)
-                .values(**{column_name: new_value})
-            )
-        elif original_table == TblFundorte:
-            fundorte_id = all_data_row.fundorte_id
-            if not fundorte_id:
-                return jsonify({"error": "Fundorte ID not found in the record"}), 400
+        # Validate and normalize coordinates before storing
+        if column_name in ["latitude", "longitude"]:
+            normalized_value, error_msg = validate_coordinate(new_value, column_name)
+            if error_msg:
+                return jsonify({"error": error_msg}), 400
+            new_value = normalized_value
 
-            # Validate and normalize coordinates before storing
-            if column_name in ["latitude", "longitude"]:
-                normalized_value, error_msg = validate_coordinate(
-                    new_value, column_name
-                )
-                if error_msg:
-                    return jsonify({"error": error_msg}), 400
-                new_value = normalized_value
+        if column_name == "plz":
+            if new_value in (None, ""):
+                new_value = None
+            elif not is_valid_plz(new_value):
+                return jsonify({"error": "Invalid ZIP code"}), 400
 
-            if column_name == "plz":
-                if new_value in (None, ""):
-                    new_value = None
-                elif not is_valid_plz(new_value):
-                    return jsonify({"error": "Invalid ZIP code"}), 400
+        stmt = (
+            update(original_table)
+            .where(original_table.id == fundorte_id)
+            .values(**{column_name: new_value})
+        )
+    else:
+        stmt = (
+            update(original_table)
+            .where(original_table.id == id_value)
+            .values(**{column_name: new_value})
+        )
 
-            stmt = (
-                update(original_table)
-                .where(original_table.id == fundorte_id)
-                .values(**{column_name: new_value})
-            )
-        else:
-            stmt = (
-                update(original_table)
-                .where(original_table.id == id_value)
-                .values(**{column_name: new_value})
-            )
+    # Execute the update
+    result = db.session.execute(stmt)
 
-        # Execute the update
-        result = db.session.execute(stmt)
+    if getattr(result, "rowcount", None) == 0:
+        return jsonify({"error": "Record not found"}), 404
 
-        if getattr(result, "rowcount", None) == 0:
-            return jsonify({"error": "Record not found"}), 404
+    # If coordinates were updated, recalculate AMT and MTB
+    if (
+        column_name in ["latitude", "longitude"]
+        and original_table == TblFundorte
+        and fundorte_id is not None
+    ):
+        fundort = db.session.get(TblFundorte, fundorte_id)
+        recalculate_amt_mtb(fundort)
 
-        # If coordinates were updated, recalculate AMT and MTB
-        if (
-            column_name in ["latitude", "longitude"]
-            and original_table == TblFundorte
-            and fundorte_id is not None
-        ):
-            fundort = db.session.get(TblFundorte, fundorte_id)
-            recalculate_amt_mtb(fundort)
-
-        # Handle dat_fund_von changes - move images to new date folder
-        image_update_result = None
-        if column_name == "dat_fund_von":
-            try:
-                image_update_result = update_report_image_date(id_value, new_value)
-            except (LookupError, FileNotFoundError, ValueError, OSError) as exc:
-                db.session.rollback()
-                return jsonify({"error": f"Date update failed: {exc}"}), 500
-
-            if image_update_result.get("status") == "success":
-                current_app.logger.info(
-                    f"Moved image for report {id_value} from {image_update_result.get('old_path')} "
-                    f"to {image_update_result.get('new_path')}"
-                )
-
+    # Handle dat_fund_von changes - move images to new date folder
+    image_update_result = None
+    if column_name == "dat_fund_von":
         try:
-            db.session.commit()
-        except SQLAlchemyError:
+            image_update_result = update_report_image_date(id_value, new_value)
+        except (LookupError, FileNotFoundError, ValueError, OSError) as exc:
             db.session.rollback()
-            # Compensate the filesystem change if the DB commit failed — otherwise
-            # the DB would roll back to the old `ablage` while the file is already
-            # at the new location, leaving the image inaccessible to /admin/images.
-            if image_update_result and image_update_result.get("status") == "success":
-                try:
-                    shutil.move(
-                        image_update_result["new_path"],
-                        image_update_result["old_path"],
-                    )
-                except Exception:
-                    current_app.logger.critical(
-                        f"Could not revert image move for report {id_value} after "
-                        f"commit failure: file stuck at "
-                        f"{image_update_result['new_path']}, "
-                        f"DB expects {image_update_result['old_path']}"
-                    )
-            raise
+            return jsonify({"error": f"Date update failed: {exc}"}), 500
 
-        return jsonify({"success": True})
+        if image_update_result.get("status") == "success":
+            current_app.logger.info(
+                f"Moved image for report {id_value} from {image_update_result.get('old_path')} "
+                f"to {image_update_result.get('new_path')}"
+            )
 
-    except Exception as e:
+    try:
+        db.session.commit()
+    except SQLAlchemyError:
         db.session.rollback()
-        current_app.logger.exception(f"Error in update_cell: {str(e)}")
-        errmsg = jsonify({"error": "Error while updating the cell"})
-        return errmsg, 500
+        # Compensate the filesystem change if the DB commit failed — otherwise
+        # the DB would roll back to the old `ablage` while the file is already
+        # at the new location, leaving the image inaccessible to /admin/images.
+        if image_update_result and image_update_result.get("status") == "success":
+            try:
+                shutil.move(
+                    image_update_result["new_path"],
+                    image_update_result["old_path"],
+                )
+            except OSError:
+                current_app.logger.critical(
+                    f"Could not revert image move for report {id_value} after "
+                    f"commit failure: file stuck at "
+                    f"{image_update_result['new_path']}, "
+                    f"DB expects {image_update_result['old_path']}"
+                )
+        raise
+
+    return jsonify({"success": True})

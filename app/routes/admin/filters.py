@@ -67,7 +67,7 @@ def report_with_relations():
     """select(TblMeldungen) with everything a reviewer view renders preloaded.
 
     The INNER JOINs drop reports without a melduser link; every report has
-    exactly one. db.paginate() calls .unique(), which folds duplicate rows.
+    exactly one. All joins are many-to-one, so each report is one row.
     """
     return (
         select(TblMeldungen)
@@ -122,30 +122,19 @@ def get_filtered_query(
             *(func.coalesce(column, 0) == 0 for column in SPECIES_FILTERS.values())
         )
 
-    # Apply search
     if search_query:
-        try:
-            if search_type == "id":
-                try:
-                    search_id = int(search_query)
-                    stmt = stmt.where(TblMeldungen.id == search_id)
-                except ValueError:
-                    search_type = "full_text"
+        if search_type == "id":
+            try:
+                stmt = stmt.where(TblMeldungen.id == int(search_query))
+            except ValueError:
+                search_type = "full_text"
 
-            if search_type == "full_text":
-                tsquery_text = prefix_tsquery(search_query)
-                if tsquery_text is None:
-                    # Nothing searchable in the input, so nothing matches.
-                    stmt = stmt.where(false())
-                else:
-                    ts_query = func.to_tsquery("german", tsquery_text)
-                    stmt = stmt.where(TblMeldungen.search_vector.op("@@")(ts_query))
-                    stmt = stmt.order_by(
-                        func.ts_rank_cd(TblMeldungen.search_vector, ts_query).desc()
-                    )
-        except Exception as e:
-            current_app.logger.error(f"Search error: {e}")
-            stmt = stmt.where(false())
+        if search_type == "full_text":
+            ts_query = func.to_tsquery("german", prefix_tsquery(search_query))
+            stmt = stmt.where(TblMeldungen.search_vector.op("@@")(ts_query))
+            stmt = stmt.order_by(
+                func.ts_rank_cd(TblMeldungen.search_vector, ts_query).desc()
+            )
 
     # Apply date filters
     # Choose which date column to filter on based on date_type
