@@ -36,6 +36,9 @@ window.htmx = htmx;
 // The hidden latitude/longitude fields share one container next to the map.
 const ERROR_INPUT = { coordinates: 'manual-latitude' };
 
+const CONNECTION_ERROR = 'Verbindung zum Server fehlgeschlagen. '
+    + 'Bitte prüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.';
+
 const ReportForm = {
     step: 0,
     submitting: false,
@@ -113,6 +116,7 @@ const ReportForm = {
 
     setupHtmx(form) {
         document.body.addEventListener('htmx:beforeRequest', (e) => {
+            this.clearError('general');
             const btn = e.target.closest('[data-step]');
             if (!btn) return;
             const step = parseInt(btn.dataset.step, 10);
@@ -125,6 +129,19 @@ const ReportForm = {
                 this.showError('coordinates', 'Bitte wählen Sie einen Standort auf der Karte.');
             }
         });
+
+        // htmx swaps no 4xx/5xx response, so without these a failed step
+        // check leaves "Weiter" doing nothing at all.
+        document.body.addEventListener('htmx:responseError', (e) => {
+            const { xhr } = e.detail;
+            let json = null;
+            if (xhr.getResponseHeader('Content-Type')?.includes('application/json')) {
+                try { json = JSON.parse(xhr.responseText); } catch { /* generic message */ }
+            }
+            this.showError('general', json?.error
+                || 'Ihre Angaben konnten nicht geprüft werden. Bitte versuchen Sie es erneut.');
+        });
+        document.body.addEventListener('htmx:sendError', () => this.showError('general', CONNECTION_ERROR));
 
         document.body.addEventListener('stepValid', (e) => {
             this.clearErrors();
@@ -234,8 +251,7 @@ const ReportForm = {
         } catch (err) {
             this.submitting = false;
             this.showLoading(false);
-            this.showError('general',
-                'Verbindung zum Server fehlgeschlagen. Bitte prüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.');
+            this.showError('general', CONNECTION_ERROR);
         }
     },
 

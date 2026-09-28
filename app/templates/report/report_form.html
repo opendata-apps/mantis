@@ -238,14 +238,14 @@
                 <span class="ml-3 text-gray-600">Lade Zusammenfassung...</span>
               </div>
             </div>
-            {# General error container for submit failures (JS-only, not a field error) #}
-            <div id="error-general"
-                 class="hidden p-4 mt-4 text-red-800 bg-red-50 border border-red-300 rounded-lg"
-                 role="alert"
-                 aria-live="assertive"></div>
             {{ render_step_navigation(current_step=4, total_steps=4, show_prev=True, show_submit=True) }}
           </div>
         </div>
+        {# Failures no field owns: a refused submit, a request that never got an answer. #}
+        <div id="error-general"
+             class="hidden p-4 text-red-800 bg-red-50 border border-red-300 rounded-lg"
+             role="alert"
+             aria-live="assertive"></div>
       </form>
     </div>
   </div>
