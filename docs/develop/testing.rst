@@ -80,7 +80,9 @@ Cookiecutters globaler Request-Kontext wird nicht übernommen.
 Für Kontextgrenzen gilt die aktuelle
 `Flask-SQLAlchemy-Dokumentation <https://flask-sqlalchemy.palletsprojects.com/en/stable/contexts/#tests>`_.
 PostgreSQL und Alembic bleiben notwendig, weil die Tests auch Trigger,
-Volltextsuche und Materialized Views prüfen.
+Volltextsuche, ``CHECK``-Constraints und die View ``all_data_view`` prüfen.
 
-Pytest-Optionen stehen in ``pyproject.toml``. Die Standardoptionen ``-x -l``
-brechen beim ersten Fehler ab und zeigen lokale Variablen.
+Pytest-Optionen stehen in ``pyproject.toml``. Die Standardoption ``-l`` zeigt
+lokale Variablen. Kein ``-x``: ein Defekt in der gemeinsamen Datenbank-Fixture
+lässt jeden folgenden Test scheitern, und der erste dieser Fehler sagt nichts
+über die Ursache.
