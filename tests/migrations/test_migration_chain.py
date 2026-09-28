@@ -255,6 +255,31 @@ class TestMigrationChain:
         finally:
             engine.dispose()
 
+    def test_identity_conversion_never_reuses_an_id(self, clean_db, alembic_config):
+        upgrade(alembic_config, "b6e8a4c2d931")
+        engine = sa.create_engine(MigrationsConfig.URI)
+        try:
+            with engine.begin() as conn:
+                # Report 2 existed and was deleted; a new report must not become 2.
+                conn.execute(
+                    sa.text(
+                        "INSERT INTO meldungen (dat_fund_von) "
+                        "VALUES ('2025-06-01'), ('2025-06-02')"
+                    )
+                )
+                conn.execute(sa.text("DELETE FROM meldungen WHERE id = 2"))
+            upgrade(alembic_config, "d2f6b8a4c159")
+            with engine.begin() as conn:
+                new_id = conn.scalar(
+                    sa.text(
+                        "INSERT INTO meldungen (dat_fund_von) "
+                        "VALUES ('2025-06-03') RETURNING id"
+                    )
+                )
+            assert new_id == 3
+        finally:
+            engine.dispose()
+
     def test_full_upgrade(self, clean_db, alembic_config):
         """The complete chain from base to head succeeds on a fresh database."""
         upgrade(alembic_config, "head")
