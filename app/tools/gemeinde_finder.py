@@ -261,11 +261,13 @@ def reload_gemeinde_cache():
     _gemeinde_finder.reload_cache()
 
 
-def warm_gemeinde_cache():
+def warm_gemeinde_cache() -> int:
     """
-    Eagerly build the polygon cache.
+    Eagerly build the polygon cache and return how many polygons it holds.
 
     Called from gunicorn's post_worker_init hook so the cold load happens at
     worker boot instead of on the first user lookup (~1.8s in production).
+    A failed load logs and leaves 0, so callers that must not run blind check it.
     """
     _gemeinde_finder._load_data()
+    return len(_gemeinde_finder._geometries)

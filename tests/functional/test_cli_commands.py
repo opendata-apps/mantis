@@ -216,6 +216,28 @@ class TestRecalculateMtbCommand:
         assert fundort.mtb == "4246"
         assert fundort.amt == "12062289 -- Lebusa"
 
+    def test_commit_refuses_to_run_without_gemeinde_polygons(
+        self, cli_runner, session, monkeypatch
+    ):
+        # An unseeded aemter table: every lookup would come back empty.
+        from sqlalchemy import delete
+
+        import app.tools.gemeinde_finder as gf
+        from app.database.models import TblAemterCoordinaten
+
+        fundort = self._fundort(session)
+        fundort.mtb = "3644"
+        fundort.amt = "12054000 -- Potsdam"
+        session.execute(delete(TblAemterCoordinaten))
+        session.commit()
+        monkeypatch.setattr(gf, "_gemeinde_finder", gf.GemeindeFinder())
+
+        result = cli_runner.invoke(args=["recalculate-mtb", "--commit"])
+
+        assert result.exit_code != 0
+        session.refresh(fundort)
+        assert (fundort.mtb, fundort.amt) == ("3644", "12054000 -- Potsdam")
+
 
 class TestSeedAgsCommand:
     """Covers ``flask seed-ags`` by patching the WFS fetchers."""

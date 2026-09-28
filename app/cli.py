@@ -192,7 +192,15 @@ def recalculate_mtb_command(commit):
 
     from app.extensions import db
     from app.database.fundorte import TblFundorte
+    from app.tools.gemeinde_finder import warm_gemeinde_cache
     from app.tools.location_enrichment import calculate_spatial_fields
+
+    # Without polygons every lookup is empty and --commit would blank the
+    # sheet and Amt of every Fundort.
+    if not warm_gemeinde_cache():
+        raise click.ClickException(
+            "No Gemeinde polygons loaded (is the aemter table seeded?)."
+        )
 
     total = db.session.scalar(select(func.count(TblFundorte.id))) or 0
     click.echo(f"Scanning {total} Fundorte...")
