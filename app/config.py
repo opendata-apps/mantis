@@ -176,11 +176,9 @@ class Config:
 
     # Reporters only — see app.auth.log_in.
     REMEMBER_COOKIE_NAME = "mantis_reporter"
-    REMEMBER_COOKIE_DURATION = timedelta(days=365)
     # Copies the value, not a link — a subclass overriding SESSION_COOKIE_SECURE
     # alone leaves this one as it was. Override both (tests/test_config.py does).
     REMEMBER_COOKIE_SECURE = SESSION_COOKIE_SECURE
-    REMEMBER_COOKIE_HTTPONLY = True
     REMEMBER_COOKIE_SAMESITE = "Lax"
 
     # DoS Prevention (Static Security Settings)

@@ -1,10 +1,11 @@
 """Tests for provider image route access control.
 
-Validates that /images/<path> enforces ownership:
-- Unauthenticated: 403
-- Reporter sees own images: 200
-- Reporter cannot see other user's images: 403
-- Reviewer sees all images: 200
+The link in /sichtungen/<usrid>/images/<path> is the credential:
+- The owner's link serves the image: 200
+- Any other link, known or not: 403
+- The login session plays no part
+
+Reviewers see every image through /admin/images, tested in test_admin_routes.
 """
 
 import os
@@ -20,11 +21,11 @@ from app.database.models import (
     TblMeldungUser,
     TblFundortBeschreibung,
 )
-from tests.helpers import set_client_user, clear_client_session
+from tests.helpers import set_client_user
 
 
 class TestProviderImageAccess:
-    """Test suite for /images/ route ownership enforcement."""
+    """Test suite for /sichtungen/<usrid>/images/ ownership enforcement."""
 
     IMAGE_FILE = "test_provider.webp"
     OTHER_IMAGE_FILE = "test_other_provider.webp"
@@ -153,52 +154,32 @@ class TestProviderImageAccess:
 
         session.commit()
 
-    def test_unauthenticated_access_returns_403(self, client):
-        """No session → 403."""
-        clear_client_session(client)
-        response = client.get(f"/images/{self.IMAGE_FILE}")
-        assert response.status_code == 403
-
-    def test_invalid_user_id_returns_403(self, client):
-        """Session with non-existent user_id → 403."""
-        set_client_user(client, "nonexistent_user_id_xyz")
-        response = client.get(f"/images/{self.IMAGE_FILE}")
+    def test_unknown_link_returns_403(self, client):
+        response = client.get(f"/sichtungen/nonexistent_xyz/images/{self.IMAGE_FILE}")
         assert response.status_code == 403
 
     def test_reporter_can_access_own_image(self, client):
-        """Reporter A can see their own image."""
-        set_client_user(client, "img_user_a")
-        response = client.get(f"/images/{self.IMAGE_FILE}")
+        response = client.get(f"/sichtungen/img_user_a/images/{self.IMAGE_FILE}")
         assert response.status_code == 200
 
     def test_reporter_cannot_access_other_users_image(self, client):
-        """Reporter A cannot see Reporter B's image."""
-        set_client_user(client, "img_user_a")
-        response = client.get(f"/images/{self.OTHER_IMAGE_FILE}")
+        response = client.get(f"/sichtungen/img_user_a/images/{self.OTHER_IMAGE_FILE}")
         assert response.status_code == 403
 
     def test_reporter_b_can_access_own_image(self, client):
-        """Reporter B can see their own image."""
-        set_client_user(client, "img_user_b")
-        response = client.get(f"/images/{self.OTHER_IMAGE_FILE}")
+        response = client.get(f"/sichtungen/img_user_b/images/{self.OTHER_IMAGE_FILE}")
         assert response.status_code == 200
 
     def test_reporter_b_cannot_access_other_users_image(self, client):
-        """Reporter B cannot see Reporter A's image."""
-        set_client_user(client, "img_user_b")
-        response = client.get(f"/images/{self.IMAGE_FILE}")
+        response = client.get(f"/sichtungen/img_user_b/images/{self.IMAGE_FILE}")
         assert response.status_code == 403
 
-    def test_reviewer_can_access_any_image(self, client):
-        """Reviewer (role 9) can see all images."""
-        set_client_user(client, "9999")
-        response_a = client.get(f"/images/{self.IMAGE_FILE}")
-        response_b = client.get(f"/images/{self.OTHER_IMAGE_FILE}")
-        assert response_a.status_code == 200
-        assert response_b.status_code == 200
+    def test_the_owners_session_does_not_unlock_another_link(self, client):
+        # Logged in as A, asking for A's image under B's link.
+        set_client_user(client, "img_user_a")
+        response = client.get(f"/sichtungen/img_user_b/images/{self.IMAGE_FILE}")
+        assert response.status_code == 403
 
-    def test_nonexistent_image_returns_404(self, client):
-        """Authenticated user requesting non-existent file gets 404, not 403."""
-        set_client_user(client, "9999")
-        response = client.get("/images/does_not_exist.webp")
-        assert response.status_code == 404
+    def test_a_reviewer_link_does_not_serve_reporter_images(self, client):
+        response = client.get(f"/sichtungen/9999/images/{self.IMAGE_FILE}")
+        assert response.status_code == 403
