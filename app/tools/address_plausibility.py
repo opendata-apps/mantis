@@ -1,5 +1,7 @@
 """Agreement between a typed address and the coordinate it claims to describe."""
 
+from app.database.ags import BUNDESLAENDER
+
 # Wider than Germany's true extent (lat 47.27–55.06, lon 5.87–15.04): a pin on
 # the border stays inside.
 GERMANY_BBOX_LAT = (47.0, 55.3)
@@ -7,25 +9,7 @@ GERMANY_BBOX_LON = (5.5, 15.4)
 
 # The 16 Bundesländer plus "Deutschland". Abbreviations ("NRW") are not matched.
 GERMAN_LAND_NAMES = frozenset(
-    {
-        "baden-württemberg",
-        "bayern",
-        "berlin",
-        "brandenburg",
-        "bremen",
-        "deutschland",
-        "hamburg",
-        "hessen",
-        "mecklenburg-vorpommern",
-        "niedersachsen",
-        "nordrhein-westfalen",
-        "rheinland-pfalz",
-        "saarland",
-        "sachsen",
-        "sachsen-anhalt",
-        "schleswig-holstein",
-        "thüringen",
-    }
+    {name.casefold() for name in BUNDESLAENDER.values()} | {"deutschland"}
 )
 
 
