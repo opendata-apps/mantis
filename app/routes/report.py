@@ -17,7 +17,6 @@ from flask import (
     current_app,
 )
 from email_validator import validate_email
-from werkzeug.datastructures import MultiDict
 from PIL import Image, ImageFile, ImageOps
 
 from flask_login import current_user
@@ -753,15 +752,7 @@ def validate_step_partial():
         )
     step_fields = get_step_fields(step)
 
-    form_data = MultiDict(request.form)
-    if "identical_finder_reporter" in request.form:
-        form_data["identical_finder_reporter"] = (
-            "y"
-            if _is_checkbox_true(request.form.get("identical_finder_reporter"))
-            else ""
-        )
-
-    form = MantisSightingForm(formdata=form_data, meta={"csrf": False})
+    form = MantisSightingForm(formdata=request.form, meta={"csrf": False})
 
     is_valid = True
     errors = {}
