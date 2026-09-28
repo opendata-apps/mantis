@@ -79,24 +79,67 @@ LEFT JOIN users u ON mu.id_user = u.id
 """
 
 
-def upgrade():
-    op.execute(DROP_VIEW)
+# Probes the exact expression the USING clause applies, so the guard refuses
+# precisely what the cast would choke on rather than a regex approximation.
+CASTABLE_HELPER = """
+CREATE OR REPLACE FUNCTION pg_temp.coordinate_is_castable(v text)
+RETURNS boolean AS $f$
+BEGIN
+    PERFORM replace(btrim(v), ',', '.')::double precision;
+    RETURN true;
+EXCEPTION WHEN invalid_text_representation THEN
+    RETURN false;
+END;
+$f$ LANGUAGE plpgsql IMMUTABLE;
+"""
 
-    # Fail loudly on numeric-but-out-of-range legacy coordinates; the
-    # post-cast CHECK below would otherwise abort opaquely (mirrors the PLZ guard).
+
+def upgrade():
+    # Both guards name the rows to repair. The castable one runs first, or the
+    # range guard dies on its own cast with a bare "invalid input syntax".
+    op.execute(CASTABLE_HELPER)
     op.execute("""
         DO $$
+        DECLARE offenders text;
         BEGIN
-            IF EXISTS (
-                SELECT 1 FROM fundorte
-                WHERE replace(btrim(latitude), ',', '.')::double precision NOT BETWEEN -90 AND 90
-                   OR replace(btrim(longitude), ',', '.')::double precision NOT BETWEEN -180 AND 180
-            ) THEN
-                RAISE EXCEPTION 'fundorte.latitude/longitude contains values outside valid geographic range';
+            SELECT string_agg(format('%s (%L / %L)', id, latitude, longitude),
+                              ', ' ORDER BY id)
+              INTO offenders
+              FROM fundorte
+             WHERE NOT pg_temp.coordinate_is_castable(latitude)
+                OR NOT pg_temp.coordinate_is_castable(longitude);
+            IF offenders IS NOT NULL THEN
+                RAISE EXCEPTION
+                    'fundorte.latitude/longitude is not numeric in: %', offenders
+                    USING HINT = 'Repair or remove these rows, then re-run the migration.';
             END IF;
         END
         $$
     """)
+
+    op.execute("""
+        DO $$
+        DECLARE offenders text;
+        BEGIN
+            SELECT string_agg(format('%s (%L / %L)', id, latitude, longitude),
+                              ', ' ORDER BY id)
+              INTO offenders
+              FROM fundorte
+             WHERE replace(btrim(latitude), ',', '.')::double precision
+                       NOT BETWEEN -90 AND 90
+                OR replace(btrim(longitude), ',', '.')::double precision
+                       NOT BETWEEN -180 AND 180;
+            IF offenders IS NOT NULL THEN
+                RAISE EXCEPTION
+                    'fundorte.latitude/longitude is out of geographic range in: %',
+                    offenders
+                    USING HINT = 'Repair or remove these rows, then re-run the migration.';
+            END IF;
+        END
+        $$
+    """)
+
+    op.execute(DROP_VIEW)
 
     for col in ("latitude", "longitude"):
         op.execute(f"""
