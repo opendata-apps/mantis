@@ -307,6 +307,9 @@ const ReportForm = {
         // onto the machine. Read `items`: Safari leaves `clipboardData.files`
         // empty while still carrying the image.
         document.addEventListener('paste', (e) => {
+            // Office and LibreOffice put a rendered PNG beside copied text; the
+            // text wins. Image copies and screenshots carry no text/plain.
+            if (e.clipboardData?.getData('text/plain').trim()) return;
             const item = [...(e.clipboardData?.items ?? [])].find(
                 (i) => i.kind === 'file' && i.type.startsWith('image/'));
             const blob = item?.getAsFile();
