@@ -72,21 +72,27 @@ describe('canvasIsBlank', () => {
 });
 
 describe('extensionFor', () => {
-    // Must stay in step with FileAllowed in app/forms.py, which validates the
-    // extension of whatever the fallback forwards.
+    // Sample map standing in for #upload-config.extensionByMime. That the real
+    // one is derived from app/tools/image_upload.py — and that image/jpeg
+    // resolves to jpg, not jpeg — is asserted in
+    // tests/functional/test_upload_config.py.
+    const extensionByMime = {
+        'image/jpeg': 'jpg',
+        'image/png': 'png',
+        'image/webp': 'webp',
+    };
+
     test.each([
         ['image/jpeg', '.jpg'],
         ['image/png', '.png'],
         ['image/webp', '.webp'],
-        ['image/heic', '.heic'],
-        ['image/heif', '.heif'],
     ])('%s -> %s', (type, expected) => {
-        expect(extensionFor(type)).toBe(expected);
+        expect(extensionFor(type, extensionByMime)).toBe(expected);
     });
 
     test('an unknown type falls back to the converted extension', () => {
         // Android pickers can hand over a File with an empty type.
-        expect(extensionFor('')).toBe('.webp');
-        expect(extensionFor('image/gif')).toBe('.webp');
+        expect(extensionFor('', extensionByMime)).toBe('.webp');
+        expect(extensionFor('image/gif', extensionByMime)).toBe('.webp');
     });
 });

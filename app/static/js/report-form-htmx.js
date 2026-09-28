@@ -11,6 +11,7 @@ import ExifReader from 'exifreader';
 import htmx from 'htmx.org';
 import { canvasIsBlank, extensionFor } from './image-checks.js';
 import { coordinatesInRange, parseCoordinateInput } from './coordinate-input.js';
+import { uploadConfig } from './upload-config.js';
 
 // CSP hardening: disable eval-based attribute features (hx-on::*, `js:` prefix).
 // The report form does not use them; this lets us drop `unsafe-eval` from CSP.
@@ -39,11 +40,6 @@ window.htmx = htmx;
 // Error containers whose id does not match the input the user actually types in.
 // The hidden latitude/longitude fields share one container next to the map.
 const ERROR_INPUT = { coordinates: 'manual-latitude' };
-
-const MIME_BY_EXT = {
-    jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png',
-    webp: 'image/webp', heic: 'image/heic', heif: 'image/heif'
-};
 
 const ReportForm = {
     step: 0,
@@ -208,7 +204,7 @@ const ReportForm = {
         try {
             const data = new FormData(form);
             data.delete('photo');
-            const ext = extensionFor(this.webpData.blob.type);
+            const ext = extensionFor(this.webpData.blob.type, uploadConfig().extensionByMime);
             const name = (this.webpData.fileName || 'photo').replace(/\.[^.]+$/, ext);
             data.append('photo', new File([this.webpData.blob], name, { type: this.webpData.blob.type }));
 
@@ -315,7 +311,8 @@ const ReportForm = {
         if (!file) return;
         const type = this.imageType(file);
         if (!type) return this.showError('photo', 'Ungültiges Bildformat.');
-        if (file.size > 12 * 1024 * 1024) return this.showError('photo', 'Max 12MB.');
+        const { maxBytes, maxMb } = uploadConfig();
+        if (file.size > maxBytes) return this.showError('photo', `Max ${maxMb}MB.`);
 
         this.clearError('photo');
         this.setDropzoneLoading(true, 'Bild wird verarbeitet...');
@@ -395,10 +392,11 @@ const ReportForm = {
     // Android pickers sometimes deliver a File with an empty `type`, so the
     // extension has to be able to stand in for it — and vice versa.
     imageType(file) {
+        const types = uploadConfig().types;
         const ext = (file.name || '').toLowerCase().split('.').pop();
         const type = (file.type || '').toLowerCase();
-        if (Object.values(MIME_BY_EXT).includes(type)) return type;
-        return MIME_BY_EXT[ext] || null;
+        if (Object.values(types).includes(type)) return type;
+        return types[ext] || null;
     },
 
     // One catch covers the whole pipeline, so each step has to name itself —

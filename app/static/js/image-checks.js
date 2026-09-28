@@ -39,14 +39,13 @@ export const canvasIsBlank = (ctx, width, height) => {
 
 // FileAllowed on the server validates the extension, so an original forwarded
 // by the fallback would be rejected on a technicality under the wrong one.
-// Every type imageType() admits is decodable server-side (Pillow, plus
-// pillow-heif for HEIC), so there is no format the fallback has to refuse.
-const EXT_BY_TYPE = {
-    'image/jpeg': '.jpg',
-    'image/png': '.png',
-    'image/webp': '.webp',
-    'image/heic': '.heic',
-    'image/heif': '.heif',
+// Every type the server accepts is decodable there (Pillow, plus pillow-heif
+// for HEIC), so there is no format the fallback has to refuse.
+//
+// `extensionByMime` comes from #upload-config, where the server derives it
+// from the one format list — inverting here would pick "jpeg" over "jpg",
+// because serialising the map sorts its keys.
+export const extensionFor = (type, extensionByMime) => {
+    const extension = extensionByMime[type];
+    return extension ? `.${extension}` : '.webp';
 };
-
-export const extensionFor = (type) => EXT_BY_TYPE[type] || '.webp';

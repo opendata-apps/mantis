@@ -32,6 +32,12 @@ from app.tools.coordinate_validation import (
     in_range,
     parse_coordinate,
 )
+from app.tools.image_upload import (
+    MAX_UPLOAD_BYTES,
+    allowed_extensions,
+    display_formats,
+    max_upload_mb,
+)
 from app.tools.postal_code import is_valid_plz
 
 
@@ -364,16 +370,16 @@ class MantisSightingForm(StrippedForm):
     )
 
     photo = FileField(
-        "Foto (max. 12MB) *",
+        f"Foto (max. {max_upload_mb()}MB) *",
         validators=[
             FileRequired(message="Ein Foto ist erforderlich."),
             FileAllowed(
-                ["jpg", "jpeg", "png", "webp", "heic", "heif"],
-                "Nur Bilddateien (JPG, PNG, WEBP, HEIC, HEIF) sind erlaubt.",
+                allowed_extensions(),
+                f"Nur Bilddateien ({', '.join(display_formats())}) sind erlaubt.",
             ),
             FileSize(
-                max_size=12 * 1024 * 1024,
-                message="Das Bild darf maximal 12MB groß sein.",
+                max_size=MAX_UPLOAD_BYTES,
+                message=f"Das Bild darf maximal {max_upload_mb()}MB groß sein.",
             ),
         ],
     )

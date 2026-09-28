@@ -105,6 +105,7 @@ def register_template_globals(app: Flask) -> None:
     # Heroicons — usage: {{ heroicon_outline("map-pin", class="w-4 h-4") }}
     from heroicons.jinja import heroicon_mini, heroicon_outline
     from app.tools.coordinate_validation import COORDINATE_RANGES
+    from app.tools.image_upload import upload_config
 
     def url_for_page(endpoint: str, page: int) -> str:
         """Another page of the current listing, carrying every active filter.
@@ -123,6 +124,7 @@ def register_template_globals(app: Flask) -> None:
             "coord_range": COORDINATE_RANGES,
             "heroicon_mini": heroicon_mini,
             "heroicon_outline": heroicon_outline,
+            "upload_config": upload_config(),
             "url_for_page": url_for_page,
         }
     )

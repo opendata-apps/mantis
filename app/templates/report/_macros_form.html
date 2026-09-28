@@ -13,6 +13,9 @@
 
 {% macro render_photo_upload(field) %}
   <div class="form-group">
+    {# A data block, not a script: the browser never executes it, so it needs
+       no CSP exception. app/tools/image_upload.py is the only source. #}
+    <script type="application/json" id="upload-config">{{ upload_config | tojson }}</script>
     <div id="photo-upload-area"
          class="relative flex justify-center h-48 px-6 pt-8 pb-8 mt-1 cursor-pointer border-2 border-dashed border-gray-200 rounded-lg transition-[border-color,background-color] duration-300 ease-[ease] hover:border-green-500 hover:bg-green-500/5 [&.dragover]:border-green-500 [&.dragover]:bg-green-500/5">
       <!-- Loading indicator for dropzone -->
@@ -27,12 +30,10 @@
           <label for="{{ field.id }}"
                  class="relative font-medium text-green-600 bg-white rounded-md cursor-pointer">
             <span class="text-sm md:text-base">Klicken Sie, um ein Foto auszuwählen</span>
-            {# MIME types first: Android pickers ignore extension-only accept lists
-               and can end up greying out every file in the gallery. #}
-            {{ field(class="sr-only", required=true, accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.heic,.heif") }}
+            {{ field(class="sr-only", required=true, accept=upload_config.accept) }}
           </label>
           <p class="mt-1">oder ziehen Sie ein Bild hierher</p>
-          <p class="mt-1 text-xs text-gray-600">JPG, PNG, WEBP, HEIC, HEIF bis zu 12MB</p>
+          <p class="mt-1 text-xs text-gray-600">{{ upload_config.formats | join(", ") }} bis zu {{ upload_config.maxMb }}MB</p>
         </div>
       </div>
     </div>
