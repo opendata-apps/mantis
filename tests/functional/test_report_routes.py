@@ -414,10 +414,12 @@ class TestPhotoFailure:
                 "size": 3124606,
                 "mtime": 1754380800000,
                 "name": "numeric",
+                "probe": "head=ok stream=3099960/NotReadableError",
                 "model": "SM-A715F",
                 "osVersion": "13.0.0",
             },
         )
+        assert "probe=head=ok stream=3099960/NotReadableError" in caplog.text
         assert "model=SM-A715F" in caplog.text
         assert "osv=13.0.0" in caplog.text
         assert "name=numeric" in caplog.text

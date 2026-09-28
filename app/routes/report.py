@@ -674,7 +674,7 @@ def photo_failure():
     ref = secrets.token_hex(3).upper()
     current_app.logger.warning(
         "Photo pipeline failed: ref=%s n=%s stage=%s error=%s size=%s mtime=%s"
-        " type=%s ext=%s name=%s model=%s os=%s osv=%s ua=%s",
+        " type=%s ext=%s name=%s probe=%s model=%s os=%s osv=%s ua=%s",
         ref,
         failures,
         stage,
@@ -684,6 +684,7 @@ def photo_failure():
         _beacon_field(data.get("type"), 40),
         _beacon_field(data.get("ext"), 10),
         _beacon_field(data.get("name"), 10),
+        _beacon_field(data.get("probe"), 60),
         _beacon_field(data.get("model"), 40),
         _device_platform(data, request.user_agent.string),
         _beacon_field(data.get("osVersion"), 20),

@@ -347,7 +347,8 @@ const ReportForm = {
             const webp = await this.toWebp(bytes, type, file.size);
             this.setPhoto(webp.blob, webp.dataUrl, file.name);
         } catch (err) {
-            const escalation = await this.reportPhotoFailure(file, err);
+            const probe = err.stage === 'read' ? await this.probeRead(file) : '';
+            const escalation = await this.reportPhotoFailure(file, err, probe);
 
             // Converting in the browser is an optimisation, not a requirement —
             // the server decodes every format this form accepts. Forwarding the
@@ -471,12 +472,35 @@ const ReportForm = {
         return /^\d+$/.test(base) ? 'numeric' : 'named';
     },
 
+    // Inside Chrome a 'read' failure is one of two faults: the provider refuses
+    // to reopen the file, or it delivers a byte count other than the size it
+    // reported. A small slice needs only the open; the stream counts what arrives.
+    // Bounded, because the failure message waits for it.
+    async probeRead(file) {
+        const probe = (async () => {
+            const head = await file.slice(0, 65536).arrayBuffer().then(() => 'ok', (e) => e.name);
+            let bytes = 0;
+            try {
+                const reader = file.stream().getReader();
+                for (;;) {
+                    const { done, value } = await reader.read();
+                    if (done) return `head=${head} stream=${bytes}/done`;
+                    bytes += value.byteLength;
+                }
+            } catch (e) {
+                return `head=${head} stream=${bytes}/${e.name}`;
+            }
+        })();
+        const timeout = new Promise((resolve) => setTimeout(() => resolve('timeout'), 5000));
+        return Promise.race([probe, timeout]);
+    },
+
     // The conversion runs entirely in the browser, so until now a failure here
     // was invisible to the project — the report was simply never submitted.
     // Reports the failing step and the file class, never the image itself.
     // Resolves to the server's escalation payload once it has counted enough
     // failures for this session, otherwise null (204).
-    async reportPhotoFailure(file, err) {
+    async reportPhotoFailure(file, err, probe) {
         const url = document.getElementById('reportForm')?.dataset.photoErrorUrl;
         if (!url) return null;
         const hints = await this.deviceHints();
@@ -499,6 +523,7 @@ const ReportForm = {
                     type: file?.type || '',
                     ext: (file?.name || '').toLowerCase().split('.').pop().slice(0, 10),
                     name: this.nameShape(file?.name),
+                    probe,
                     model: hints.model || '',
                     osVersion: hints.osVersion || '',
                     platform: hints.platform || ''
