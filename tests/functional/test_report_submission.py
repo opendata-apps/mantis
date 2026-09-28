@@ -22,6 +22,10 @@ from app.database.fundortbeschreibung import TblFundortBeschreibung
 from app.tools.coordinate_validation import LAT_RANGE, LON_RANGE
 from tests.helpers import build_valid_report_form_data, make_test_image
 
+# The route answers with errors keyed by error container, not by field: both
+# axes share id="error-coordinates".
+ERROR_SLOTS = {"latitude": "coordinates", "longitude": "coordinates"}
+
 
 def create_test_image():
     """Create a test image file in memory."""
@@ -407,7 +411,7 @@ class TestReportSubmission:
 
         # Invalid submissions are answered with the field errors as JSON
         assert response.status_code == 400
-        messages = response.get_json()["errors"].get(field, [])
+        messages = response.get_json()["errors"].get(ERROR_SLOTS.get(field, field), [])
         assert any(error_message in msg for msg in messages), (
             f"Expected error message '{error_message}' not found in {messages}"
         )
@@ -430,7 +434,7 @@ class TestReportSubmission:
         assert response.status_code == 400
         payload = response.get_json()
         assert payload["success"] is False
-        assert any("vertauscht" in msg for msg in payload["errors"]["longitude"])
+        assert any("vertauscht" in msg for msg in payload["errors"]["coordinates"])
 
         location = session.scalar(
             select(TblFundorte).where(TblFundorte.latitude == 13.404954)

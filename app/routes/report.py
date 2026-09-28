@@ -87,10 +87,26 @@ class BlankImageError(InvalidImageError):
     """The uploaded frame has no visible pixels."""
 
 
+def _errors_by_slot(errors):
+    """Field errors re-keyed to the error container that displays them.
+
+    Both coordinates share id="error-coordinates"; there is no per-axis slot.
+    """
+    by_slot = dict(errors)
+    coordinate_messages = by_slot.pop("latitude", []) + by_slot.pop("longitude", [])
+    if coordinate_messages:
+        by_slot["coordinates"] = coordinate_messages[:1]
+    return by_slot
+
+
 def _validation_error_response(errors):
     """Field-level rejection in the shape `showServerErrors` expects."""
     return jsonify(
-        {"success": False, "error": "Ungültige Formulardaten.", "errors": errors}
+        {
+            "success": False,
+            "error": "Ungültige Formulardaten.",
+            "errors": _errors_by_slot(errors),
+        }
     ), 400
 
 
@@ -749,11 +765,7 @@ def validate_step_partial():
             if form.finder_last_name.errors:
                 errors["finder_last_name"] = form.finder_last_name.errors
 
-    # Map latitude/longitude errors to 'coordinates' — the DOM has id="error-coordinates",
-    # not id="error-latitude" / id="error-longitude" (those elements don't exist).
-    if "latitude" in errors or "longitude" in errors:
-        coord_msgs = errors.pop("latitude", []) + errors.pop("longitude", [])
-        errors["coordinates"] = coord_msgs[:1]  # Show first relevant message
+    errors = _errors_by_slot(errors)
 
     if is_valid:
         # Return a trigger to advance to next step + clear any previous errors via OOB

@@ -257,8 +257,7 @@ const ReportForm = {
 
         let target = Infinity;
         const unplaced = [];
-        for (const [field, messages] of Object.entries(errors)) {
-            const slot = (field === 'latitude' || field === 'longitude') ? 'coordinates' : field;
+        for (const [slot, messages] of Object.entries(errors)) {
             const msg = Array.isArray(messages) ? messages[0] : String(messages);
             // Not every field has an error container (finder names, feedback).
             // Those messages still have to reach the user somewhere.
