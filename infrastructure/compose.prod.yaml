@@ -1,12 +1,7 @@
-# Production overlay. Used explicitly:
-#   podman-compose -f compose.yaml -f compose.prod.yaml up -d
-#
-# This name is what the live containers and the mantis_data volume hang off.
-# Changing it resolves to a fresh, empty volume — an empty database.
-#
-# It does not take effect on its own under podman-compose 1.5, which addresses
-# containers under the *first* file's name however many later files override it.
-# The just recipes therefore pass -p as well; keep both in step.
+# Production overlay, see the justfile's `compose`.
+# Never change this name: the live mantis_data volume hangs off it, and a new
+# name resolves to a fresh, empty database. podman-compose 1.5 reads the name
+# from the first file only, so -p is required too; keep both in step.
 name: infrastructure
 
 services:
@@ -19,31 +14,19 @@ services:
     # each). Past this the kernel kills a worker inside this container, which
     # gunicorn respawns, instead of picking Postgres on a host without swap.
     mem_limit: 3g
-    # Neither lives in the checkout. The base mounts both from the repo, which
-    # suits a throwaway dev tree but puts the only copy of every reporter's
-    # photo inside the directory `prod-deploy` runs `git pull` in — and both
-    # paths are gitignored, so `git clean -fdx` takes them and a fresh clone
-    # brings nothing back.
-    #
-    # The two differ in who touches them. Photos are read and written only by
-    # the app, which serves them through send_from_directory, so they belong in
-    # a volume like the database's. Backups are shared: the app writes the
-    # yearly archives, and `just prod-backup` redirects pg_dump into the same
-    # directory from the host — the case the Docker documentation names as the
-    # reason to keep a bind mount.
+    # Both outside the checkout: the base's repo paths are gitignored, so
+    # `git clean -fdx` would delete every photo and backup. Photos are app-only,
+    # hence a volume; backups are also written from the host by prod-backup,
+    # hence a bind mount.
     volumes:
       - mantis_datastore:/mantis/app/datastore
       - /home/mantis/data/backups:/mantis/backups:z
     environment:
-      # Deployment metadata, not image content — don't move this into the
-      # Dockerfile as a build ARG. buildah keys the ENV layer on the instruction
-      # text rather than the arg value, so a deploy touching no copied file
-      # serves the whole image from cache and /health answers the wrong commit.
+      # Not a Dockerfile build ARG: buildah caches the ENV layer by instruction
+      # text, so an unchanged build would report the previous commit on /health.
       - GIT_SHA=${GIT_SHA:-unknown}
-    # Loopback only: nginx proxies to 127.0.0.1:5000, so nothing needs the public
-    # interface. Published on all interfaces, only firewalld stands between the
-    # internet and a Flask app that bypasses nginx's rate limiting, harvester 403
-    # and scanner filter.
+    # Loopback only: nginx proxies here, and a public port would bypass nginx's
+    # rate limiting and filters.
     ports:
       - "127.0.0.1:${WEB_PORT:-5000}:5000"
 

@@ -15,22 +15,12 @@ _project_root = os.path.dirname(_config_dir)  # project root
 
 
 def _resolve_upload_folder():
-    """Resolve UPLOAD_FOLDER to an absolute path (Flask best practice).
-
-    Priority:
-    1. UPLOAD_FOLDER env var (must be absolute path)
-    2. Default: app/datastore (for local development)
-
-    Container: UPLOAD_FOLDER=/mantis/app/datastore (mirrors host structure)
-
-    Raises ValueError if env var contains a relative path.
-    """
+    """UPLOAD_FOLDER from the environment, else app/datastore; must be absolute."""
     env_path = os.getenv("UPLOAD_FOLDER")
     if env_path:
         if not os.path.isabs(env_path):
             raise ValueError(
-                f"UPLOAD_FOLDER must be an absolute path, got: '{env_path}'. "
-                f"For containers, use UPLOAD_FOLDER=/data (the mount point)."
+                f"UPLOAD_FOLDER must be an absolute path, got: '{env_path}'."
             )
         return env_path
     return os.path.join(_config_dir, "datastore")
@@ -106,14 +96,9 @@ class Config:
     ).render_as_string(hide_password=False)
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    # Connection Pooling Configuration
-    #
-    # SQLAlchemy's own defaults. Every gunicorn worker builds its own engine, so
-    # the ceiling the server sees is (pool_size + max_overflow) × workers, and it
-    # has to stay under the server's max_connections — otherwise a connection
-    # leak does not degrade this app, it locks everyone out of the database,
-    # including psql and the backup. Raise workers and this sum with the same
-    # hand.
+    # SQLAlchemy's defaults. Each gunicorn worker has its own pool, so keep
+    # (pool_size + max_overflow) × workers under Postgres' max_connections, or a
+    # leak locks out psql and the backup too.
     SQLALCHEMY_ENGINE_OPTIONS = {
         "pool_size": _env_int("DB_POOL_SIZE", 5),
         "max_overflow": _env_int("DB_MAX_OVERFLOW", 10),

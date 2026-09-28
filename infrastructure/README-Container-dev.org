@@ -24,13 +24,15 @@ Sitzung, statt sie an jeden Befehl zu hängen:
 
 #+begin_src bash
 
-  export COMPOSE_FILE=compose.yaml:compose.prod.yaml
+  export COMPOSE_FILE=compose.yaml:compose.prod.yaml COMPOSE_PROJECT_NAME=infrastructure
   podman-compose exec db psql -U mantis_user -d mantis_tracker
 
 #+end_src
 
-Ohne die Variable landet man in der Entwicklungsumgebung — das ist so
-gewollt, Produktion muss man verlangen.
+Ohne die Variablen landet man in der Entwicklungsumgebung — das ist so
+gewollt, Produktion muss man verlangen. Der Projektname gehört dazu:
+podman-compose 1.5 liest =name:= nur aus der ersten Datei, ohne ihn
+adressiert auch die Prod-Dateiliste das Projekt =mantis_dev=.
 
 =just= deckt nur noch das ab, was eigene Logik hat: =prod-backup=,
 =prod-deploy=, =prod-rollback= und =prod-down=. Alles andere ist ein
@@ -75,7 +77,7 @@ Journalzugriff:
 
   # if production
 
-  podman-compose -f compose.yaml -f compose.prod.yaml down
+  podman-compose -p infrastructure -f compose.yaml -f compose.prod.yaml down
   
 #+end_src
 
@@ -142,8 +144,8 @@ Alles neu bauen ...
   podman build -t mantis_web ..
 
   # 3. Container starten
-  podman-compose -f compose.yaml -f compose.prod.yaml up -d
-  podman-compose -f compose.yaml -f compose.prod.yaml up -d --build
+  podman-compose -p infrastructure -f compose.yaml -f compose.prod.yaml up -d
+  podman-compose -p infrastructure -f compose.yaml -f compose.prod.yaml up -d --build
 
 #+end_src
 

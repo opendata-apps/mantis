@@ -63,6 +63,15 @@ def test_download_token_rejects_wrong_filename(backup_app):
         backup_routes._validate_download_token("backup_2024.zip", token)
 
 
+def test_download_token_rejects_expired_token(backup_app):
+    token = backup_routes._download_token("backup_2025.zip")
+    # Any age exceeds a negative maximum, so the link has expired.
+    backup_app.config["BACKUP_DOWNLOAD_MAX_AGE_SECONDS"] = -1
+
+    with pytest.raises(Forbidden):
+        backup_routes._validate_download_token("backup_2025.zip", token)
+
+
 def test_resolve_upload_path_rejects_path_traversal(backup_app):
     with pytest.raises(ValueError, match="Unsafe upload path"):
         backup_routes._resolve_upload_path("../secret.txt")
