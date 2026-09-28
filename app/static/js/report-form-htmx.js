@@ -606,7 +606,8 @@ const ReportForm = {
         }
         if (!img) throw this.photoError('decode', failure);
 
-        const maxDim = /Mobile|Android|iPhone|iPad/i.test(navigator.userAgent) ? 2048 : 4096;
+        // The server archives at most 2048 px and keeps a client WebP as is.
+        const maxDim = 2048;
         let w = img.naturalWidth, h = img.naturalHeight;
         if (w > maxDim || h > maxDim) {
             const ratio = w / h;
