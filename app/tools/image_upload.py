@@ -19,23 +19,14 @@ IMAGE_TYPES: dict[str, str] = {
     "heif": "image/heif",
 }
 
+# The same formats as Pillow names them (`python3 -m PIL`), for
+# Image.open(formats=...): without it Pillow sniffs TIFF, PSD, EPS and the rest
+# whatever the filename says (Pillow security guide, S-1).
+PILLOW_FORMATS = ("JPEG", "PNG", "WEBP", "HEIF")
+
 # The photo alone. Config's MAX_CONTENT_LENGTH is deliberately larger: it has
 # to fit the rest of the form fields alongside the file.
 MAX_UPLOAD_BYTES = 12 * 1024 * 1024
-
-
-def pillow_formats() -> list[str]:
-    """Pillow format names for ``Image.open(formats=...)``.
-
-    Without the list Pillow sniffs any format it knows (TIFF, PSD, JPEG 2000,
-    …) whatever the filename says. Read from Pillow's registry, so HEIF only
-    appears once pillow-heif has registered; the app factory asserts it did.
-    """
-    from PIL import Image
-
-    Image.init()
-    mimes = set(IMAGE_TYPES.values())
-    return [fmt for fmt, mime in Image.MIME.items() if mime in mimes]
 
 
 def allowed_extensions() -> list[str]:
