@@ -227,112 +227,103 @@ def update_cell():
     if original_table is None:
         return jsonify({"error": "This field is not editable"}), 403
 
-    try:
-        # Fetch the corresponding row from all_data_view
-        all_data_row = db.session.scalar(
-            select(TblAllData).where(TblAllData.meldungen_id == id_value)
+    # Fetch the corresponding row from all_data_view
+    all_data_row = db.session.scalar(
+        select(TblAllData).where(TblAllData.meldungen_id == id_value)
+    )
+    if not all_data_row:
+        return jsonify({"error": "Record not found"}), 404
+
+    fundorte_id = None
+    if original_table == TblUsers:
+        user_db_id = all_data_row.id_user
+        if not user_db_id:
+            return jsonify({"error": "User ID not found in the record"}), 400
+        stmt = (
+            update(original_table)
+            .where(original_table.id == user_db_id)
+            .values(**{column_name: new_value})
         )
-        if not all_data_row:
-            return jsonify({"error": "Record not found"}), 404
+    elif original_table == TblFundorte:
+        fundorte_id = all_data_row.fundorte_id
+        if not fundorte_id:
+            return jsonify({"error": "Fundorte ID not found in the record"}), 400
 
-        fundorte_id = None
-        if original_table == TblUsers:
-            user_db_id = all_data_row.id_user
-            if not user_db_id:
-                return jsonify({"error": "User ID not found in the record"}), 400
-            stmt = (
-                update(original_table)
-                .where(original_table.id == user_db_id)
-                .values(**{column_name: new_value})
-            )
-        elif original_table == TblFundorte:
-            fundorte_id = all_data_row.fundorte_id
-            if not fundorte_id:
-                return jsonify({"error": "Fundorte ID not found in the record"}), 400
+        # Validate and normalize coordinates before storing
+        if column_name in ["latitude", "longitude"]:
+            normalized_value, error_msg = validate_coordinate(new_value, column_name)
+            if error_msg:
+                return jsonify({"error": error_msg}), 400
+            new_value = normalized_value
 
-            # Validate and normalize coordinates before storing
-            if column_name in ["latitude", "longitude"]:
-                normalized_value, error_msg = validate_coordinate(
-                    new_value, column_name
-                )
-                if error_msg:
-                    return jsonify({"error": error_msg}), 400
-                new_value = normalized_value
+        if column_name == "plz":
+            if new_value in (None, ""):
+                new_value = None
+            elif not is_valid_plz(new_value):
+                return jsonify({"error": "Invalid ZIP code"}), 400
 
-            if column_name == "plz":
-                if new_value in (None, ""):
-                    new_value = None
-                elif not is_valid_plz(new_value):
-                    return jsonify({"error": "Invalid ZIP code"}), 400
+        stmt = (
+            update(original_table)
+            .where(original_table.id == fundorte_id)
+            .values(**{column_name: new_value})
+        )
+    else:
+        stmt = (
+            update(original_table)
+            .where(original_table.id == id_value)
+            .values(**{column_name: new_value})
+        )
 
-            stmt = (
-                update(original_table)
-                .where(original_table.id == fundorte_id)
-                .values(**{column_name: new_value})
-            )
-        else:
-            stmt = (
-                update(original_table)
-                .where(original_table.id == id_value)
-                .values(**{column_name: new_value})
-            )
+    # Execute the update
+    result = db.session.execute(stmt)
 
-        # Execute the update
-        result = db.session.execute(stmt)
+    if getattr(result, "rowcount", None) == 0:
+        return jsonify({"error": "Record not found"}), 404
 
-        if getattr(result, "rowcount", None) == 0:
-            return jsonify({"error": "Record not found"}), 404
+    # If coordinates were updated, recalculate AMT and MTB
+    if (
+        column_name in ["latitude", "longitude"]
+        and original_table == TblFundorte
+        and fundorte_id is not None
+    ):
+        fundort = db.session.get(TblFundorte, fundorte_id)
+        recalculate_amt_mtb(fundort)
 
-        # If coordinates were updated, recalculate AMT and MTB
-        if (
-            column_name in ["latitude", "longitude"]
-            and original_table == TblFundorte
-            and fundorte_id is not None
-        ):
-            fundort = db.session.get(TblFundorte, fundorte_id)
-            recalculate_amt_mtb(fundort)
-
-        # Handle dat_fund_von changes - move images to new date folder
-        image_update_result = None
-        if column_name == "dat_fund_von":
-            try:
-                image_update_result = update_report_image_date(id_value, new_value)
-            except (LookupError, FileNotFoundError, ValueError, OSError) as exc:
-                db.session.rollback()
-                return jsonify({"error": f"Date update failed: {exc}"}), 500
-
-            if image_update_result.get("status") == "success":
-                current_app.logger.info(
-                    f"Moved image for report {id_value} from {image_update_result.get('old_path')} "
-                    f"to {image_update_result.get('new_path')}"
-                )
-
+    # Handle dat_fund_von changes - move images to new date folder
+    image_update_result = None
+    if column_name == "dat_fund_von":
         try:
-            db.session.commit()
-        except SQLAlchemyError:
+            image_update_result = update_report_image_date(id_value, new_value)
+        except (LookupError, FileNotFoundError, ValueError, OSError) as exc:
             db.session.rollback()
-            # Compensate the filesystem change if the DB commit failed — otherwise
-            # the DB would roll back to the old `ablage` while the file is already
-            # at the new location, leaving the image inaccessible to /admin/images.
-            if image_update_result and image_update_result.get("status") == "success":
-                try:
-                    shutil.move(
-                        image_update_result["new_path"],
-                        image_update_result["old_path"],
-                    )
-                except Exception:
-                    current_app.logger.critical(
-                        f"Could not revert image move for report {id_value} after "
-                        f"commit failure: file stuck at "
-                        f"{image_update_result['new_path']}, "
-                        f"DB expects {image_update_result['old_path']}"
-                    )
-            raise
+            return jsonify({"error": f"Date update failed: {exc}"}), 500
 
-        return jsonify({"success": True})
+        if image_update_result.get("status") == "success":
+            current_app.logger.info(
+                f"Moved image for report {id_value} from {image_update_result.get('old_path')} "
+                f"to {image_update_result.get('new_path')}"
+            )
 
-    except Exception as e:
+    try:
+        db.session.commit()
+    except SQLAlchemyError:
         db.session.rollback()
-        current_app.logger.exception(f"Error in update_cell: {str(e)}")
-        errmsg = jsonify({"error": "Error while updating the cell"})
-        return errmsg, 500
+        # Compensate the filesystem change if the DB commit failed — otherwise
+        # the DB would roll back to the old `ablage` while the file is already
+        # at the new location, leaving the image inaccessible to /admin/images.
+        if image_update_result and image_update_result.get("status") == "success":
+            try:
+                shutil.move(
+                    image_update_result["new_path"],
+                    image_update_result["old_path"],
+                )
+            except OSError:
+                current_app.logger.critical(
+                    f"Could not revert image move for report {id_value} after "
+                    f"commit failure: file stuck at "
+                    f"{image_update_result['new_path']}, "
+                    f"DB expects {image_update_result['old_path']}"
+                )
+        raise
+
+    return jsonify({"success": True})
