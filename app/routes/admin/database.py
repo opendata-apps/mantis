@@ -59,6 +59,20 @@ EDITABLE_FIELDS = {
     "user_kontakt": TblUsers,
 }
 
+# Internal ids and fields the grid does not show.
+HIDDEN_COLUMNS = frozenset(
+    {
+        "id_user",
+        "id_finder",
+        "fundorte_id",
+        "beschreibung_id",
+        "dat_fund_bis",
+        "fo_beleg",
+        "bearb_id",
+        "ablage",
+    }
+)
+
 
 def update_report_image_date(report_id, new_date):
     """Update the image location when dat_fund_von changes"""
@@ -137,101 +151,55 @@ def database_view():
 def get_table_data(table_name):
     if table_name != "all_data_view":
         return jsonify({"error": "Only all_data_view is available"}), 403
-    try:
-        page = request.args.get("page", 1, type=int)
-        per_page = request.args.get("per_page", 10, type=int)
-        search = request.args.get("search", "")
-        search_type = request.args.get("search_type", "full_text")
-        sort_column = request.args.get("sort_column", "meldungen_id")
-        sort_direction = request.args.get("sort_direction", "asc")
+    search = request.args.get("search", "")
+    search_type = request.args.get("search_type", "full_text")
+    sort_column = request.args.get("sort_column", "meldungen_id")
+    sort_direction = request.args.get("sort_direction", "asc")
 
-        # Get the table object - we only work with TblAllData now
-        table = TblAllData.__table__
+    table = TblAllData.__table__
+    columns = [column for column in table.columns if column.name not in HIDDEN_COLUMNS]
+    if sort_column not in table.c:
+        sort_column = "meldungen_id"
 
-        columns = [column.name for column in table.columns]
+    stmt = select(TblAllData)
+    if search and search_type == "id":
+        try:
+            stmt = stmt.where(TblAllData.meldungen_id == int(search))
+        except ValueError:
+            stmt = stmt.where(false())
+    elif search:
+        ts_query = func.to_tsquery("german", prefix_tsquery(search))
+        stmt = stmt.join(TblMeldungen, TblAllData.meldungen_id == TblMeldungen.id)
+        stmt = stmt.where(TblMeldungen.search_vector.op("@@")(ts_query))
 
-        # Validate sort_column to prevent SQL injection
-        if sort_column not in columns:
-            sort_column = "meldungen_id"
+    # meldungen_id breaks ties; without a unique order, OFFSET pages overlap.
+    sort = table.c[sort_column]
+    stmt = stmt.order_by(
+        sort.asc() if sort_direction == "asc" else sort.desc(), TblAllData.meldungen_id
+    )
+    # db.paginate reads ?page itself.
+    pagination = db.paginate(
+        stmt,
+        per_page=request.args.get("per_page", 10, type=int),
+        max_per_page=100,
+        error_out=False,
+    )
 
-        # Create a filtered select statement first; count and paginated data
-        # should come from the same search conditions.
-        stmt = select(table)
-
-        # Apply search filter if search term is provided
-        if search:
-            if search_type == "id":
-                try:
-                    # Try to convert search term to integer for ID search
-                    search_id = int(search)
-                    stmt = stmt.where(table.c.meldungen_id == search_id)
-                except ValueError:
-                    stmt = stmt.where(false())
-            else:  # full_text search
-                ts_query = func.to_tsquery("german", prefix_tsquery(search))
-                meldungen_tbl = TblMeldungen.__table__
-                stmt = stmt.join(
-                    meldungen_tbl, table.c.meldungen_id == meldungen_tbl.c.id
-                ).where(meldungen_tbl.c.search_vector.op("@@")(ts_query))
-
-        total_items = db.session.scalar(
-            select(func.count()).select_from(stmt.order_by(None).subquery())
-        )
-
-        # meldungen_id breaks ties; without a unique order, OFFSET pages overlap.
-        if sort_direction == "asc":
-            stmt = stmt.order_by(table.c[sort_column].asc(), table.c.meldungen_id)
-        else:
-            stmt = stmt.order_by(table.c[sort_column].desc(), table.c.meldungen_id)
-
-        # Apply pagination
-        stmt = stmt.offset((page - 1) * per_page).limit(per_page)
-
-        # Execute query and get results
-        results = db.session.execute(stmt).fetchall()
-
-        # "int", "float", "date", "str" or "list"; the grid picks its editor by it.
-        column_types = {
-            column.name: column.type.python_type.__name__ for column in table.columns
+    return jsonify(
+        {
+            "columns": [column.name for column in columns],
+            "data": [
+                [getattr(row, column.name) for column in columns]
+                for row in pagination.items
+            ],
+            # "int", "float", "date", "str" or "list"; the grid picks its editor by it.
+            "column_types": {
+                column.name: column.type.python_type.__name__ for column in columns
+            },
+            "editable_fields": list(EDITABLE_FIELDS),
+            "total_items": pagination.total,
         }
-
-        # Exclude sensitive columns
-        EXCLUDED_COLUMNS = [
-            "id_user",
-            "id_finder",
-            "fundorte_id",
-            "beschreibung_id",
-            "dat_fund_bis",
-            "fo_beleg",
-            "bearb_id",
-            "ablage",
-        ]
-        columns_with_excluded = columns.copy()
-        columns = [col for col in columns if col not in EXCLUDED_COLUMNS]
-        column_types = {col: column_types[col] for col in columns}
-
-        # Convert results to list of lists
-        data = [
-            [
-                getattr(row, col)
-                for col in columns_with_excluded
-                if col not in EXCLUDED_COLUMNS
-            ]
-            for row in results
-        ]
-
-        return jsonify(
-            {
-                "columns": columns,
-                "data": data,
-                "column_types": column_types,
-                "editable_fields": list(EDITABLE_FIELDS),
-                "total_items": total_items,
-            }
-        )
-    except Exception as e:
-        current_app.logger.exception(f"Error in get_table_data: {str(e)}")
-        return jsonify({"error": "An error occurred while fetching table data"}), 500
+    )
 
 
 @admin.route("/admin/update_cell", methods=["POST"])
