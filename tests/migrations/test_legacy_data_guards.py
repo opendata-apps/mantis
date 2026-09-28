@@ -1,8 +1,9 @@
-"""Guards in the migrations that add a CHECK constraint.
+"""Guards in the migrations that existing data could trip.
 
 A row that violates a new CHECK
-aborts ADD CONSTRAINT with "is violated by some row", which names no row —
-so each migration has to name the offending ids itself before it fails.
+aborts ADD CONSTRAINT with "is violated by some row", which names no row, and
+a dropped column takes whatever only it recorded along. Each migration names
+the offending ids itself and stops before either happens.
 """
 
 import pytest
@@ -98,3 +99,19 @@ def test_unknown_user_role_names_the_user(engine, alembic_config):
         upgrade(alembic_config, "f2c8e6a4b513")
 
     assert f"{user_id} ('3')" in str(excinfo.value)
+
+
+def test_deletion_recorded_only_in_deleted_names_the_report(engine, alembic_config):
+    upgrade(alembic_config, "a8c4e2f6b317")
+    with engine.begin() as conn:
+        report_id = conn.execute(
+            sa.text(
+                "INSERT INTO meldungen (dat_fund_von, statuses, deleted) "
+                "VALUES ('2025-06-01', '{APPR}', true) RETURNING id"
+            )
+        ).scalar_one()
+
+    with pytest.raises(Exception, match="deleted but not DEL") as excinfo:
+        upgrade(alembic_config, "c9d5f1a3e825")
+
+    assert f"{report_id} ({{APPR}})" in str(excinfo.value)

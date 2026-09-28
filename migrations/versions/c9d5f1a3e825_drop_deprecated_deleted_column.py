@@ -84,6 +84,23 @@ SELECT
 
 
 def upgrade():
+    # A deletion recorded only in the column would be lost with it.
+    op.execute("""
+        DO $$
+        DECLARE offenders text;
+        BEGIN
+            SELECT string_agg(format('%s (%s)', id, statuses), ', ' ORDER BY id)
+              INTO offenders
+              FROM meldungen
+             WHERE deleted AND NOT 'DEL' = ANY(statuses);
+            IF offenders IS NOT NULL THEN
+                RAISE EXCEPTION 'meldungen marked deleted but not DEL in: %', offenders
+                    USING HINT = 'Set statuses to {DEL} or clear deleted, then re-run.';
+            END IF;
+        END
+        $$
+    """)
+
     op.execute(DROP_VIEW)
     op.drop_column("meldungen", "deleted")
     op.execute(CREATE_VIEW)
