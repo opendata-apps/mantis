@@ -29,9 +29,6 @@ document.body.addEventListener('htmx:configRequest', (event) => {
 // Leaflet guesses this path from its stylesheet, where Vite inlines the image.
 L.Icon.Default.mergeOptions({ imagePath: '/static/images/map/' });
 
-window.L = L;
-window.htmx = htmx;
-
 // Error containers whose id does not match the input the user actually types in.
 // The hidden latitude/longitude fields share one container next to the map.
 const ERROR_INPUT = { coordinates: 'manual-latitude' };
@@ -957,4 +954,3 @@ const ReportForm = {
 };
 
 document.addEventListener('DOMContentLoaded', () => ReportForm.init());
-window.ReportForm = ReportForm;
