@@ -20,41 +20,18 @@ neighbouring lines — the north-west corner of the grid:
                             │              │              │
 
 LAT_EDGES runs south to north, so the row number counts *down* as the index
-counts up: the band above LAT_EDGES[i] is row LAST_ROW - i, and the band east
-of LON_EDGES[j] is column FIRST_COL + j. That inversion is the one place this
-module is easy to get wrong. It bottoms out at LAT_EDGES[0] = 47.199179 (the
-south edge of row 87) and LON_EDGES[56] = 15.164693 (the east edge of column
-56); rows run 9..87 and columns 1..56.
+counts up: the band above LAT_EDGES[i] is row LAST_ROW - i.
 
 The lines are defined on the **Potsdam datum** (Bessel ellipsoid), not on
-WGS84:
+WGS84 — row r's north edge at 56.0° - 0.1°·r, column c's west edge at
+17/3° + (1/6)°·c. Read as WGS84 they sit 100-190 m off, so the tables hold the
+lines transformed once by scripts/gen_mtb_grid.py. The datum shift varies along
+a line by 2-12 m; against the official Brandenburg Blattschnitt that puts 8 of
+20000 coordinates on the wrong sheet, all within 3.5 m of a boundary.
 
-    row r  north edge at  56.0° - 0.1°·r      [Potsdam]
-    col c  west edge at   17/3° + (1/6)°·c    [Potsdam]
-
-Feeding WGS84 degrees straight into those numbers puts every line 100-190 m
-off, which is why the tables below hold the official lines transformed to
-WGS84 once by scripts/gen_mtb_grid.py, rather than a closed form evaluated at
-runtime.
-
-One number per line cannot be exact: the datum shift varies across the country,
-so a line's true WGS84 position moves 2-12 m along its own length, and the
-tables hold its value mid-country. Checked against the official Brandenburg
-Blattschnitt — the region nearly every report comes from — that puts 8 of 20000
-coordinates on the wrong sheet, none of them further than 3.5 m from a sheet
-boundary. Nationwide it is 13 of 30000. Sheets are 11 km across, and a pin
-dropped on a map is not accurate to 3 m, so the grid is not the weak link in a
-Fundort's position.
-
-Until 2026-09 this module used a closed form whose latitude origin placed
-every row line 2.4 km too far south — a fifth of a row height — so it named
-the sheet immediately north of the true one for 22% of all German coordinates.
-Potsdam's centre, for one, is on 3644 Potsdam (Süd) and was reported as 3544.
-
-The lattice is rectangular but Germany is not: a coordinate inside the tables'
-span can still fall on a cell that was never published as a sheet — Praha and
-Zürich both do. Whether a coordinate is German is a question for the AGS
-polygons in gemeinde_finder; ask them before storing what this module returns.
+The lattice is rectangular but Germany is not: Praha and Zürich fall on cells
+that were never published as sheets. Ask the AGS polygons in gemeinde_finder
+whether a coordinate is German before storing what this module returns.
 
 Sources and cross-checks:
   - Numbering and sheet size: BKG, "Blattschnitt der Topographischen Karte
