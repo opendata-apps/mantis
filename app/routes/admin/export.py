@@ -20,8 +20,7 @@ def _export_date(value) -> str:
 
 
 # One row per spreadsheet column: header, width, and how to read the value off a
-# Meldung. Header text and value used to live in two separate lists indexed by
-# hand, where inserting a column silently shifted every value after it.
+# Meldung.
 EXPORT_COLUMNS = (
     ("ID", 8, lambda m: m.id),
     ("Status", 12, lambda m: ReportStatus.get_display_names(m.statuses or [])),
@@ -56,7 +55,7 @@ EXPORT_COLUMNS = (
 # file. That mode cannot add a table, so the formatting below is skipped.
 LARGE_EXPORT_THRESHOLD = 5000
 
-# Reporters type the text cells, so "=..." must stay text, not become a formula.
+# Reporters type the text cells, so they stay text: no formulas, no hyperlinks.
 AS_TYPED = {"strings_to_formulas": False, "strings_to_urls": False}
 
 EXPORT_FILENAMES = {
@@ -69,34 +68,20 @@ EXPORT_FILENAMES = {
 @admin.route("/admin/export/xlsx/<string:value>")
 @reviewer_required
 def export_data(value):
-    """Export data from the database as an Excel file.
-
-    Memory-optimized for large exports using:
-    - yield_per() for streaming DB results in batches
-    - xlsxwriter constant_memory mode for row-by-row writing
-    - Temp file on disk instead of BytesIO for large exports
-    """
+    """Send the selected reports as an Excel file."""
     current_time = datetime.now().strftime("%d.%m.%Y_%H%M")
-    filter_args = get_reviewer_filter_args()
 
-    # Get filtered select statement based on export type
     if value in EXPORT_FILENAMES:
         stem, filter_status = EXPORT_FILENAMES[value]
         filename = f"{stem}_{current_time}.xlsx"
         stmt = get_filtered_query(filter_status=filter_status)
     elif value == "searched":
         filename = f"Suchergebnisse_{current_time}.xlsx"
-        stmt = get_filtered_query(**filter_args)
+        stmt = get_filtered_query(**get_reviewer_filter_args())
     else:
         abort(404, description="Resource not found")
 
-    # First pass: Get count for choosing export mode.
-    # Build a lightweight count query reusing the same JOINs/WHERE but no ORM options.
-    count_stmt = stmt.options().with_only_columns(func.count()).order_by(None)
-    row_count = db.session.scalar(count_stmt) or 0
-
-    # Approver is eagerly loaded via outerjoin in get_filtered_query().
-
+    row_count = db.session.scalar(stmt.with_only_columns(func.count()).order_by(None))
     # Large exports stream into an unnamed temp file, which send_file closes
     # and the OS then deletes; small ones build in memory.
     use_large_mode = row_count > LARGE_EXPORT_THRESHOLD
@@ -108,44 +93,30 @@ def export_data(value):
         workbook = xlsxwriter.Workbook(output, {"in_memory": True, **AS_TYPED})
 
     worksheet = workbook.add_worksheet("Daten")
-
-    # Create formats
     header_format = workbook.add_format(
         {"bold": True, "bg_color": "#4472C4", "font_color": "white", "border": 1}
     )
-
-    # Write headers and set column widths
     for col_idx, (header, width, _) in enumerate(EXPORT_COLUMNS):
         worksheet.write(0, col_idx, header, header_format)
         worksheet.set_column(col_idx, col_idx, width)
 
-    # Stream data using yield_per for memory efficiency.
-    # contains_eager() on scalar (uselist=False) relationships is compatible
-    # with yield_per — no collection loading, so no dedup needed.
-    # Note: .unique() is NOT compatible with yield_per in SQLAlchemy ORM mode.
-    streaming_stmt = stmt.execution_options(yield_per=1000)
-    result = db.session.scalars(streaming_stmt)
-
-    row_idx = 1
-    for meldung in result:
+    # yield_per streams in batches; it allows the many-to-one eager loads here.
+    reports = db.session.scalars(stmt.execution_options(yield_per=1000))
+    last_row = 0
+    for last_row, meldung in enumerate(reports, start=1):
         for col_idx, (_, _, value_of) in enumerate(EXPORT_COLUMNS):
-            worksheet.write(row_idx, col_idx, value_of(meldung))
-        row_idx += 1
+            worksheet.write(last_row, col_idx, value_of(meldung))
 
-    # Add table formatting only for small exports (constant_memory can't use tables)
-    if not use_large_mode and row_idx > 1:
+    if not use_large_mode and last_row:
         column_settings = [{"header": header} for header, _, _ in EXPORT_COLUMNS]
         worksheet.add_table(
             0,
             0,
-            row_idx - 1,
+            last_row,
             len(EXPORT_COLUMNS) - 1,
             {"columns": column_settings, "style": "Table Style Medium 9"},
         )
-
-    # Freeze header row
     worksheet.freeze_panes(1, 0)
-
     workbook.close()
 
     output.seek(0)
