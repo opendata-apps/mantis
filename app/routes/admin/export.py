@@ -57,6 +57,9 @@ EXPORT_COLUMNS = (
 # file. That mode cannot add a table, so the formatting below is skipped.
 LARGE_EXPORT_THRESHOLD = 5000
 
+# Reporters type the text cells, so "=..." must stay text, not become a formula.
+AS_TYPED = {"strings_to_formulas": False, "strings_to_urls": False}
+
 EXPORT_FILENAMES = {
     "all": ("Alle_Meldungen", "all"),
     "accepted": ("Akzeptierte_Meldungen", "bearbeitet"),
@@ -107,12 +110,12 @@ def export_data(value):
         output_path = temp_file.name
         temp_file.close()
         workbook = xlsxwriter.Workbook(
-            output_path, {"constant_memory": True, "tmpdir": "/tmp"}
+            output_path, {"constant_memory": True, "tmpdir": "/tmp", **AS_TYPED}
         )
     else:
         # Small export: use BytesIO (faster for small files)
         output = BytesIO()
-        workbook = xlsxwriter.Workbook(output, {"in_memory": True})
+        workbook = xlsxwriter.Workbook(output, {"in_memory": True, **AS_TYPED})
 
     worksheet = workbook.add_worksheet("Daten")
 

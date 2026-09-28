@@ -675,6 +675,26 @@ class TestAdminRoutes:
         # xlsxwriter stores "" as an empty cell, which reads back as None
         assert cells["Bearbeiter"] is None  # not approved yet
 
+    def test_export_keeps_a_reporter_remark_that_looks_like_a_formula_as_text(
+        self, client, session
+    ):
+        # A public reporter types a formula into the remark field.
+        self.test_sighting.anm_melder = '=HYPERLINK("https://example.com","Foto")'
+        session.commit()
+        with client.session_transaction() as sess:
+            sess["_user_id"] = "9999"
+
+        response = client.get("/admin/export/xlsx/all")
+
+        sheet = openpyxl.load_workbook(BytesIO(response.data))["Daten"]
+        headers = [cell.value for cell in sheet[1]]
+        row = next(
+            r for r in sheet.iter_rows(min_row=2) if r[0].value == self.test_sighting.id
+        )
+        remark = row[headers.index("Anmerkung Melder")]
+        assert remark.data_type == "s"
+        assert remark.value == '=HYPERLINK("https://example.com","Foto")'
+
     def test_export_xlsx_searched(self, client):
         """Test exporting searched data with the shared reviewer filter args."""
         with client.session_transaction() as sess:
