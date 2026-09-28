@@ -148,6 +148,10 @@
     zoomControl: false
   }).setView([51.991649, 13.080113], 9);
 
+  {# maxZoom 12 is the second half of obfuscate_location() in routes/data.py:
+     markers are offset by up to ~500 m, and this keeps the map from being
+     zoomed in far enough for that offset to stand out. The report form and the
+     reviewer modal deliberately go to 18 and 19 — they show the real point. #}
   const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     maxZoom: 12
