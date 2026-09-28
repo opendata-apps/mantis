@@ -348,8 +348,7 @@ const ReportForm = {
         try {
             const bytes = await this.stage('read', read);
             exif = this.extractExif(bytes);
-            const webp = await this.toWebp(bytes, type, file.size);
-            this.setPhoto(webp.blob, webp.dataUrl, file.name);
+            this.setPhoto(await this.toWebp(bytes, type, file.size), file.name);
         } catch (err) {
             const probe = err.stage === 'read' ? await this.probeRead(file) : '';
             const escalation = await this.reportPhotoFailure(file, err, probe);
@@ -377,7 +376,7 @@ const ReportForm = {
                 return;
             }
 
-            this.setPhoto(file, URL.createObjectURL(file), file.name);
+            this.setPhoto(file, file.name);
             this.showHint('photo',
                 'Das Foto konnte im Browser nicht verkleinert werden und wird unverändert '
                 + 'hochgeladen — das kann etwas länger dauern.');
@@ -388,12 +387,11 @@ const ReportForm = {
         this.applyExif(exif);
     },
 
-    // The converted blob and the untouched original are shown and submitted the
-    // same way; only the preview source differs (data: URL vs blob: URL).
-    setPhoto(blob, previewSrc, fileName) {
+    // The converted blob and the untouched original are shown and submitted the same way.
+    setPhoto(blob, fileName) {
         this.hideEscalation();
         this.releasePreview();
-        this.webpData = { previewSrc, blob, fileName };
+        this.webpData = { previewSrc: URL.createObjectURL(blob), blob, fileName };
         this.dirty = true;
 
         document.getElementById('photo-upload-area')?.classList.add('hidden');
@@ -401,15 +399,13 @@ const ReportForm = {
         const img = document.getElementById('preview-img');
         if (preview && img) {
             preview.classList.remove('hidden');
-            img.src = previewSrc;
+            img.src = this.webpData.previewSrc;
         }
     },
 
-    // A blob: URL pins the whole original in memory until it is revoked.
+    // A blob: URL pins the photo in memory until it is revoked.
     releasePreview() {
-        if (this.webpData?.previewSrc?.startsWith('blob:')) {
-            URL.revokeObjectURL(this.webpData.previewSrc);
-        }
+        if (this.webpData) URL.revokeObjectURL(this.webpData.previewSrc);
     },
 
     // Android pickers sometimes deliver a File with an empty `type`, so the
@@ -649,11 +645,10 @@ const ReportForm = {
         }
         if (!out) throw this.photoError('encode');
 
-        const dataUrl = canvas.toDataURL(mime, q);
         // WebKit only frees a canvas once it is resized away (bug 195325), and on
         // a phone this is the largest allocation the form makes.
         canvas.width = canvas.height = 0;
-        return { blob: out, dataUrl };
+        return out;
     },
 
     removePhoto() {
