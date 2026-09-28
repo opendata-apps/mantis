@@ -31,12 +31,7 @@ def unauthorized():
 
 def log_in(user):
     """Log a user in. Reporters are remembered; without that a repeat
-    submission mints a second identity and splits their history.
-
-    Flask checks every session cookie against PERMANENT_SESSION_LIFETIME but
-    re-signs it per request only when permanent, so this makes the hour idle
-    time instead of time since login."""
-    session.permanent = True
+    submission mints a second identity and splits their history."""
     login_user(user, remember=user.user_rolle == UserRole.REPORTER)
 
 

@@ -4,7 +4,15 @@ from datetime import datetime
 from pathlib import Path
 
 import pillow_heif
-from flask import Flask, current_app, jsonify, render_template, request, url_for
+from flask import (
+    Flask,
+    current_app,
+    jsonify,
+    render_template,
+    request,
+    session,
+    url_for,
+)
 from flask_limiter.errors import RateLimitExceeded
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -35,6 +43,9 @@ def create_app(config_class=Config) -> Flask:
     # Adds HEIC/HEIF to Image.open for iPhone uploads.
     pillow_heif.register_heif_opener()
     register_extensions(app)
+    # Flask re-signs only a permanent session per request, so this makes
+    # PERMANENT_SESSION_LIFETIME an idle limit for every visitor.
+    app.before_request(_make_session_permanent)
     register_template_globals(app)
 
     from app.cli import register_commands
@@ -58,6 +69,10 @@ def configure_logger(app: Flask) -> None:
     if not app.debug:
         app.logger.setLevel(os.environ.get("FLASK_LOG_LEVEL", "INFO").upper())
         app.logger.info("Mantis tracker startup")
+
+
+def _make_session_permanent() -> None:
+    session.permanent = True
 
 
 def register_extensions(app: Flask) -> None:

@@ -5,6 +5,7 @@ Covers:
 """
 
 from bs4 import BeautifulSoup
+from itsdangerous import TimestampSigner
 import pytest
 
 from app.database.models import TblMeldungen
@@ -64,3 +65,26 @@ def test_htmx_csrf_failure_returns_hx_redirect(authenticated_client):
     )
     assert resp.status_code == 403
     assert resp.headers["HX-Redirect"] == "/"
+
+
+def test_an_active_reporter_keeps_the_form_past_an_hour(client, monkeypatch):
+    # The session lifetime is one hour. The reporter loads the form and checks
+    # a step every 20 minutes for three hours.
+    clock = {"now": 1_800_000_000}
+    monkeypatch.setattr(TimestampSigner, "get_timestamp", lambda _: clock["now"])
+    page = BeautifulSoup(client.get("/melden").text, "html.parser")
+    field = page.select_one('input[name="csrf_token"]')
+    assert field is not None
+    token = str(field["value"])
+
+    statuses = []
+    for minutes in range(20, 181, 20):
+        clock["now"] = 1_800_000_000 + minutes * 60
+        response = client.post(
+            "/melden/validate-step",
+            data={"step": "1"},
+            headers={"X-CSRFToken": token, "HX-Request": "true"},
+        )
+        statuses.append(response.status_code)
+
+    assert 403 not in statuses

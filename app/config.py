@@ -123,6 +123,9 @@ class Config:
 
         SECRET_KEY = secrets.token_hex(32)
     WTF_CSRF_ENABLED = True
+    # Valid for the session (an idle hour, see the factory), not an hour from
+    # issue: filling in a report can take longer.
+    WTF_CSRF_TIME_LIMIT = None
 
     # Email Configuration
     MAIL_SERVER = _env_or_default("MAIL_SERVER", "mail.mantis-projekt.de")
