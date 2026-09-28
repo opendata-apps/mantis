@@ -696,6 +696,13 @@ class TestAdminRoutes:
         )
         assert exported_ids(response) == {self.test_sighting.id}
 
+    def test_export_of_an_unknown_selection_is_not_found(self, client):
+        with client.session_transaction() as sess:
+            sess["_user_id"] = "9999"
+
+        response = client.get("/admin/export/xlsx/geloescht")
+        assert response.status_code == 404
+
     def test_alldata_view_access(self, client):
         """Test accessing the alldata view."""
         with client.session_transaction() as sess:
