@@ -1,7 +1,6 @@
 import logging
 
 from email_validator import validate_email
-from flask import current_app
 from flask_mail import Message
 
 from app.extensions import mail
@@ -125,43 +124,4 @@ def send_email(data):
     )
 
     mail.send(msg)
-    current_app.logger.info(f"Mail an {data['user_kontakt']} verschickt.")
-
-
-if __name__ == "__main__":
-    # check script with real data and:
-    # cd project-root
-    # python -m app.tools.send_reviewer_email
-    import datetime
-
-    from app import create_app
-
-    data = {
-        "user_id": "xxxxxxxxx",
-        "user_kontakt": "test@example.com",
-        "anm_bearbeiter": "",
-        "datum": datetime.datetime.today(),
-        "dat_fund_von": datetime.datetime.today(),
-        "latitude": "3.14",
-        "longitude": "6.28",
-        "plz": "123456",
-        "ort": "Nirgendwo",
-        "strasse": "Irgendwo",
-        "land": "Lummerland",
-        "kreis": "bahn",
-        "art_m": 0,
-        "art_w": 1,
-        "art_n": 2,
-        "art_o": 3,
-    }
-    app = create_app()
-    with app.app_context():
-        try:
-            send_email(data)
-        except OSError as err:
-            print("OS error:", err)
-        except ValueError:
-            print("Could not convert data to an integer.")
-        except Exception as err:
-            print(f"Unexpected {err=}, {type(err)=}")
-            raise
+    logger.info(f"Mail an {data['user_kontakt']} verschickt.")
