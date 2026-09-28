@@ -4,7 +4,7 @@ from datetime import datetime
 from pathlib import Path
 
 import pillow_heif
-from flask import Flask, jsonify, render_template, request, url_for
+from flask import Flask, current_app, jsonify, render_template, request, url_for
 from flask_limiter.errors import RateLimitExceeded
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -26,19 +26,11 @@ with (Path(__file__).resolve().parent.parent / "pyproject.toml").open(
 
 
 def create_app(config_class=Config) -> Flask:
-    # Must be the bare package, not "app.factory" (cookiecutter-flask does the
-    # same). Flask names its logger after the import name, and app/tools/* log
-    # through logging.getLogger(__name__); only an "app" logger is an ancestor
-    # of those, so only it passes down the level set in configure_logger and
-    # Flask's handler. Under "app.factory" they fall back to root/WARNING and
-    # drop out of the logs. Template and static roots are unaffected either
-    # way — factory.py already sits in app/.
+    # The bare package: Flask names its logger after it, and only an "app"
+    # logger passes its level and handler to app/tools' getLogger(__name__).
     app = Flask(__name__.split(".")[0])
     app.config.from_object(config_class)
 
-    # Logging first, so every step below can log. The rest is grouped the way
-    # cookiecutter-flask groups it; the order of these calls is the wiring
-    # order, so read them top to bottom.
     configure_logger(app)
     # Adds HEIC/HEIF to Image.open for iPhone uploads.
     pillow_heif.register_heif_opener()
@@ -157,17 +149,10 @@ def configure_middlewares(app: Flask) -> None:
             response.headers["Strict-Transport-Security"] = (
                 "max-age=31536000; includeSubDomains"
             )
-        # Content Security Policy. `script-src` deliberately omits
-        # 'unsafe-eval' — htmx's eval-based features are gated off via
-        # `htmx.config.allowEval = false` in every JS entrypoint.
-        # 'unsafe-inline' is still required for the remaining inline
-        # `onclick=` handlers and `<script>` blocks.
-        # TODO: move those to delegated listeners so 'unsafe-inline' can go.
-        # 'wasm-unsafe-eval' is what lets the report form's HEIC decoder
-        # (heic2any = libheif compiled to wasm) compile at all; without it
-        # every HEIC upload hangs. It permits WebAssembly only — not JS eval.
-        # `worker-src 'self' blob:` — canvas-confetti spawns its render
-        # worker via URL.createObjectURL(new Blob(...)) for performance.
+        # No 'unsafe-eval': every JS entrypoint sets htmx.config.allowEval = false.
+        # 'unsafe-inline' serves the inline handlers and <script> blocks (TODO:
+        # move them to listeners). 'wasm-unsafe-eval' lets heic2any compile;
+        # blob: workers are canvas-confetti's renderer.
         response.headers["Content-Security-Policy"] = "; ".join(
             [
                 "default-src 'self'",
@@ -197,12 +182,8 @@ def configure_middlewares(app: Flask) -> None:
         )
         return response
 
-    # HTMX error recovery middleware
-    # When an HTMX request hits an auth/CSRF denial, the default HTMX 2.0
-    # behavior (swap:false for 4xx) causes silent failure — the user gets
-    # no feedback. Adding HX-Redirect tells HTMX to do a full-page
-    # navigation to a recovery URL instead.
-    # Pattern: https://www.wimdeblauwe.com/blog/2022/10/04/htmx-authentication-error-handling/
+    # htmx 2 swaps nothing on a 4xx, so an auth or CSRF denial would fail
+    # silently; HX-Redirect turns it into a full-page navigation.
     @app.after_request
     def htmx_error_redirect(response):
         if request.headers.get("HX-Request") == "true" and response.status_code == 403:
@@ -255,8 +236,6 @@ def wants_json_response():
 
 
 def page_not_found(e):
-    from flask import current_app
-
     current_app.logger.warning(
         "Page not found: route=%s", request.url_rule or "unmatched"
     )
@@ -266,8 +245,6 @@ def page_not_found(e):
 
 
 def forbidden(e):
-    from flask import current_app
-
     current_app.logger.warning(
         "Forbidden access: route=%s", request.url_rule or "unmatched"
     )
@@ -278,8 +255,6 @@ def forbidden(e):
 
 def too_many_requests(e):
     """Custom error handler for rate limiting (429 errors)"""
-    from flask import current_app
-
     current_app.logger.warning(
         "Rate limit exceeded: route=%s", request.url_rule or "unmatched"
     )
@@ -298,10 +273,7 @@ def too_many_requests(e):
 
 
 def internal_server_error(e):
-    # Unlike the handlers above this one does not log: Flask's own log_exception
-    # already wrote the traceback before calling us, and the single explicit
-    # abort(500) logs at its call site. `e` is the InternalServerError wrapper —
-    # the cause is e.original_exception.
+    # Not logged here: Flask's log_exception already wrote the traceback.
     if wants_json_response():
         return jsonify({"error": "Internal server error"}), 500
     return render_template("error/500.html"), 500

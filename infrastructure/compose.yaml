@@ -1,12 +1,6 @@
-# Shared base for both stacks. Anything that differs between development and
-# production belongs in an override file, never here: an override can change a
-# value but cannot drop one without the !reset tag.
-#
-# The project name defaults to the development one on purpose. Compose takes the
-# last `name:` of the files it was given, so a bare `podman-compose up` in this
-# directory resolves to mantis_dev, and only compose.prod.yaml raises it to
-# infrastructure — the name the live containers and the mantis_data volume hang
-# off. Production has to be asked for; it is never what you get by accident.
+# Shared base for both stacks; differences go in an override file, since an
+# override cannot drop a value without !reset. The dev project name is the
+# default, so production has to be asked for (compose.prod.yaml plus -p).
 name: mantis_dev
 
 services:
@@ -48,9 +42,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      # Covers a cold start against an empty volume, where the entrypoint runs
-      # every migration and a full seed before gunicorn binds. A warm start
-      # takes ~10s. Inside this window a crash loop still counts as "starting".
+      # A cold start runs every migration and a full seed before gunicorn binds.
       start_period: 60s
 
 volumes:

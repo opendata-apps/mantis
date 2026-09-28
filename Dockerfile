@@ -1,8 +1,5 @@
-# Base images are pinned by digest so two builds of the same commit produce
-# the same image. `build --pull` re-resolves floating tags on every deploy —
-# ghcr.io/astral-sh/uv:latest demonstrably moved during the 2026-08-01 deploy.
-# Digests below are the ones running in production as of 2026-08-07.
-# Bump deliberately: change the digest, deploy, watch the health check.
+# Base images are pinned by digest: `build --pull` re-resolves floating tags on
+# every deploy. Bump deliberately: change the digest, deploy, watch /health.
 
 # Stage 1: Build frontend assets
 FROM docker.io/oven/bun:1@sha256:e10577f0db68676a7024391c6e5cb4b879ebd17188ab750cf10024a6d700e5c4 AS frontend-builder

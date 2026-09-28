@@ -1,26 +1,15 @@
-set dotenv-load := false
-
-# Spelled out rather than read from COMPOSE_FILE, so these recipes address the
-# same stack in any shell.
-#
-# -p is not redundant with the `name:` in compose.prod.yaml. podman-compose 1.5
-# reports the last file's name from `config` but addresses containers under the
-# first file's name at runtime; without -p these recipes reach the development
-# project.
+# -p is required: podman-compose 1.5 takes the project name from the first
+# file, so compose.prod.yaml's `name:` alone would address the dev project.
 compose := "podman-compose -p infrastructure -f infrastructure/compose.yaml -f infrastructure/compose.prod.yaml"
 
-# The same directory compose.prod.yaml bind-mounts. pg_dump writes it from the
-# host, the yearly archives from inside the container. Outside the checkout that
-# prod-deploy runs `git pull` in.
+# Bind-mounted by compose.prod.yaml, outside the checkout prod-deploy pulls into.
 backup_dir := "/home/mantis/data/backups/postgres"
 
 # Not `set default-list := true`, which needs just 1.52; the server runs 1.50.
 @_default:
     just --list
 
-# A container's log starts when the container does, and prod-deploy recreates
-# it, so this does not reach past the last deploy. journald keeps the request
-# log across container swaps. The host clock is UTC:
+# Reaches back only to the last deploy; journald keeps older logs (UTC):
 #     journalctl _UID=$(id -u mantis) --since '3 days ago'
 
 # Show production web logs
@@ -45,9 +34,8 @@ backup_dir := "/home/mantis/data/backups/postgres"
 @prod-down *ARGS:
     {{ compose }} down {{ ARGS }}
 
-# prod-rollback swaps the image but does not downgrade schema. Roles are a
-# second dump: a single-database dump carries no role definitions, so a rebuilt
-# cluster has no mantis_user.
+# Roles are a second dump: a single-database dump carries no role definitions,
+# so a rebuilt cluster would have no mantis_user.
 
 # Dump the production database (custom format) + roles, verify, rotate at 14d.
 [group('prod')]
@@ -87,10 +75,8 @@ prod-backup:
     # up twice. The second run is a no-op.
     {{ compose }} run --rm -T --no-deps web flask db upgrade
 
-# entrypoint.sh runs `flask db upgrade` on container start, so a schema-changing
-# commit migrates when the new container boots. A broken migration fails that
-# boot and `restart: unless-stopped` loops it; `just prod-migrate` applies them
-# beforehand.
+# The new container migrates on boot (entrypoint.sh); a broken migration makes
+# it crash-loop. `just prod-migrate` applies migrations beforehand.
 
 # Pull latest, back up, rebuild & swap web, verify the running commit.
 [group('prod')]
@@ -104,8 +90,8 @@ prod-deploy: prod-backup
     {{ compose }} build --pull web
     # --no-deps leaves the DB container and its volume out of the swap.
     GIT_SHA=$sha {{ compose }} up -d --force-recreate --no-deps web
-    # Split from the version check below: one pipe for both aborts under
-    # pipefail before the log runs.
+    # Captured apart from the version check: in one pipe, pipefail aborts before
+    # the log below runs.
     # 25 retries, not 30: /health is rate limited to 30/min and -f retries a 429.
     if ! health=$(curl -fsS --retry 25 --retry-delay 2 --retry-all-errors http://localhost:5000/health); then
         echo "✗ /health never answered — the container is not serving. Last 40 lines:"
@@ -124,10 +110,9 @@ prod-deploy: prod-backup
     # Last, so a failed verification still has both images.
     podman image prune -f --filter "dangling=true"
 
-# Does not run migrations: schema changes from the bad deploy stay applied, and
-# the previous image has to be compatible with them. If it is not, restore the
-# newest {{ backup_dir }}/db_*.dump. A fully cached build commits the same image
-# id, which leaves both tags on one image. /health reads "unknown" afterwards.
+# Does not downgrade the schema: the previous image must work with it, or
+# restore the newest {{ backup_dir }}/db_*.dump. A fully cached build leaves both
+# tags on one image id. /health reads "unknown" afterwards.
 
 # Roll back web to the :previous image tag. Use after a failed deploy.
 [group('prod')]

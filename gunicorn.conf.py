@@ -1,4 +1,4 @@
-"""Gunicorn configuration, loaded via --config in entrypoint.sh."""
+"""Gunicorn configuration, loaded via --config in the Dockerfile's CMD."""
 
 bind = "0.0.0.0:5000"
 workers = 4
@@ -17,13 +17,9 @@ access_log_format = '%(h)s %(t)s "%(m)s %({mantis.route}e)s" %(s)s %(b)s %(L)s'
 
 
 def post_worker_init(worker):
-    """Warm per-worker caches after app load, before the worker serves traffic.
+    """Build the polygon cache before the worker serves traffic.
 
-    gunicorn runs this hook after load_wsgi() (gunicorn/workers/base.py), so
-    worker.wsgi is the loaded Flask app. Without it, the first
-    /melden/ags-lookup request hitting each worker pays the full polygon-cache
-    build (~1.8s in production) while the report form's address fields are
-    locked.
+    Otherwise each worker's first /melden/ags-lookup waits ~1.8 s for it.
     """
     from app.tools.gemeinde_finder import warm_gemeinde_cache
 
