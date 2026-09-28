@@ -104,12 +104,9 @@ const ReportForm = {
         this._initialized = true;
 
         if (i === 1 && this.map) {
-            // Allow layout to settle before resizing map + auto-locating
-            const activateMap = () => {
-                this.map.invalidateSize();
-                this.autoLocateIfNeeded();
-            };
-            setTimeout(activateMap, 100);
+            // The map was measured while its step was hidden.
+            this.map.invalidateSize();
+            this.autoLocateIfNeeded();
         }
         if (i === 3) this.loadReview();
     },
@@ -702,13 +699,8 @@ const ReportForm = {
             const exifLocation = document.getElementById('exif-location');
             if (exifLocation) exifLocation.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
 
-            // setMarker fills the coordinate fields; writing them here as well
-            // would just put an unformatted copy in front of it for 100ms.
-            setTimeout(() => {
-                this.map.invalidateSize();
-                this.map.setView([lat, lng], this.MIN_ZOOM);
-                this.setMarker(lat, lng, true);
-            }, 100);
+            this.map.setView([lat, lng], this.MIN_ZOOM);
+            this.setMarker(lat, lng, true);
             hasData = true;
         }
 
