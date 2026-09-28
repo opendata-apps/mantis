@@ -212,7 +212,8 @@ class TestGemeindeOptimization:
         """The gunicorn hook must leave a query-ready cache behind."""
         conf_path = Path(__file__).parents[2] / "gunicorn.conf.py"
         spec = importlib.util.spec_from_file_location("gunicorn_conf", conf_path)
-        assert spec is not None and spec.loader is not None
+        assert spec is not None
+        assert spec.loader is not None
         conf = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(conf)
 

@@ -108,7 +108,8 @@ class TestSeedCommand:
         ).order_by(TblAemterCoordinaten.ags)
         before_descriptions = session.execute(descriptions).all()
         before_areas = session.execute(areas).all()
-        assert before_descriptions and before_areas
+        assert before_descriptions
+        assert before_areas
         assert cli_runner.invoke(args=["seed"]).exit_code == 0
         assert session.execute(descriptions).all() == before_descriptions
         assert session.execute(areas).all() == before_areas

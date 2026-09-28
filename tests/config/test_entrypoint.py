@@ -17,7 +17,8 @@ from sqlalchemy.engine import make_url
 from tests.test_config import Config
 
 
-def test_entrypoint_serves_health_after_migration_and_seed(_db, tmp_path):
+@pytest.mark.usefixtures("_db")
+def test_entrypoint_serves_health_after_migration_and_seed(tmp_path):
     database = make_url(Config.URI)
     with socket.socket() as listener:
         listener.bind(("127.0.0.1", 0))

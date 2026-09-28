@@ -55,9 +55,7 @@ class TestStatsDispatchSmoke:
         "does-not-exist": "statistics/statistiken.html",
     }
 
-    @pytest.mark.parametrize(
-        ("stats_key", "expected_template"), sorted(DISPATCH.items())
-    )
+    @pytest.mark.parametrize("stats_key,expected_template", sorted(DISPATCH.items()))
     def test_statistik_dispatch_renders_expected_template(
         self, reviewer_client, stats_key, expected_template
     ):

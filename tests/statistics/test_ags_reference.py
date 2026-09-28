@@ -14,7 +14,8 @@ class TestBundeslaender:
 
     def test_codes_are_two_digits(self):
         for code in BUNDESLAENDER:
-            assert len(code) == 2 and code.isdigit()
+            assert len(code) == 2
+            assert code.isdigit()
 
     def test_codes_cover_01_to_16(self):
         expected = {f"{i:02d}" for i in range(1, 17)}
@@ -37,7 +38,8 @@ class TestBerlinBezirke:
 
     def test_codes_are_eight_digits(self):
         for code in BERLIN_BEZIRKE:
-            assert len(code) == 8 and code.isdigit()
+            assert len(code) == 8
+            assert code.isdigit()
 
 
 class TestBrandenburgLandkreise:
@@ -51,7 +53,8 @@ class TestBrandenburgLandkreise:
 
     def test_codes_are_five_digits(self):
         for code in BRANDENBURG_LANDKREISE:
-            assert len(code) == 5 and code.isdigit()
+            assert len(code) == 5
+            assert code.isdigit()
 
 
 class TestBuildGesamtTemplate:

@@ -186,4 +186,6 @@ class TestHybridSqlMatchesPython:
 
         assert pending, "expected at least one pending report"
         for row in pending:
-            assert row.is_open and not row.needs_info and not row.is_unclear
+            assert row.is_open
+            assert not row.needs_info
+            assert not row.is_unclear

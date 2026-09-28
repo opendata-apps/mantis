@@ -92,7 +92,7 @@ class TestCoordinateUpdates:
 
         session.commit()
 
-        yield
+        return
 
     def test_update_latitude_authenticated(self, client, session):
         """Test updating latitude with authenticated reviewer."""
@@ -509,7 +509,7 @@ class TestAmtMtbRecalculation:
         session.add(self.test_sighting)
         session.commit()
 
-        yield
+        return
 
     def test_amt_mtb_recalculation_on_coordinate_change(
         self, client, session, monkeypatch

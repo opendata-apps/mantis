@@ -104,7 +104,7 @@ class TestAdminRoutes:
 
         session.commit()
 
-        yield
+        return
 
     def test_reviewer_page_access_with_valid_reviewer(self, client):
         """Test that reviewers can access the reviewer page."""

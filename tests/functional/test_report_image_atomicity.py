@@ -47,7 +47,7 @@ def test_process_image_failure_leaves_no_partial_or_final(app, tmp_path, monkeyp
 
     monkeypatch.setattr(Path, "replace", boom)
 
-    with pytest.raises(OSError):
+    with pytest.raises(OSError, match="simulated rename failure"):
         _process_uploaded_image(
             io.BytesIO(_webp_bytes()), date(2025, 6, 1), "Testdorf", "9999"
         )

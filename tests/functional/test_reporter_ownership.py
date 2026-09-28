@@ -124,7 +124,8 @@ class TestAddressIsNotACredential:
 
         _submit_as(client, VICTIM_EMAIL)
         stranger = _link_from_success(client)
-        assert stranger and stranger != "victim_plain"
+        assert stranger
+        assert stranger != "victim_plain"
 
         listing = client.get(f"/sichtungen/{stranger}")
         assert listing.status_code == 200

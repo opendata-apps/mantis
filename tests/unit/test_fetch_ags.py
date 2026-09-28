@@ -23,7 +23,7 @@ from app.tools.fetch_ags import (
 # ---------------------------------------------------------------------------
 
 
-@pytest.fixture()
+@pytest.fixture
 def bkg_feature():
     """A single BKG VG5000 Gemeinde feature as returned by the WFS."""
     return {
@@ -38,7 +38,7 @@ def bkg_feature():
     }
 
 
-@pytest.fixture()
+@pytest.fixture
 def berlin_feature():
     """A single Berlin ALKIS Bezirk feature as returned by the WFS."""
     return {
@@ -52,7 +52,7 @@ def berlin_feature():
     }
 
 
-@pytest.fixture()
+@pytest.fixture
 def gemeinden_data(bkg_feature):
     """A minimal FeatureCollection including one Berlin whole-city entry."""
     berlin_whole = {
@@ -63,7 +63,7 @@ def gemeinden_data(bkg_feature):
     return {"type": "FeatureCollection", "features": [bkg_feature, berlin_whole]}
 
 
-@pytest.fixture()
+@pytest.fixture
 def kreise_data():
     """A minimal Kreise FeatureCollection with different Bezirk types."""
     return {

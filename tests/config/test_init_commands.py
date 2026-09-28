@@ -15,7 +15,8 @@ def factory_app(app):
     return app
 
 
-def test_flask_app_with_testing_config(factory_app, _db):
+@pytest.mark.usefixtures("_db")
+def test_flask_app_with_testing_config(factory_app):
     assert factory_app.testing
     response = factory_app.test_client().get("/melden")
     assert response.status_code == 200

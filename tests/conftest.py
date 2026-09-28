@@ -123,7 +123,7 @@ def session_with_user(request_context):
 
     session["_user_id"] = "9999"
     session["_fresh"] = True
-    yield session
+    return session
 
 
 @pytest.fixture

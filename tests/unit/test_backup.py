@@ -64,7 +64,7 @@ def test_download_token_rejects_wrong_filename(backup_app):
 
 
 def test_resolve_upload_path_rejects_path_traversal(backup_app):
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Unsafe upload path"):
         backup_routes._resolve_upload_path("../secret.txt")
 
 
