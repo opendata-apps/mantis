@@ -72,6 +72,12 @@ const ReportForm = {
             }
         });
         form.addEventListener('input', () => { this.dirty = true; });
+
+        const description = document.getElementById('description');
+        const remaining = document.getElementById('char-count');
+        description?.addEventListener('input', () => {
+            remaining.textContent = description.maxLength - description.value.length;
+        });
     },
 
     setupNav() {

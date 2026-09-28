@@ -83,11 +83,10 @@
                 {{ render_form_field(form.location_description, attrs={'id': 'location_description'}) }}
               </div>
               <div class="form-group">
-                {{ render_form_field(form.description, attrs={'id': 'description', 'rows': '4', 'maxlength': '500', 'oninput': 'updateCharCount(this)'}) }}
+                {{ render_form_field(form.description, attrs={'id': 'description', 'rows': '4', 'maxlength': '500'}) }}
                 <p class="mt-1 text-xs text-gray-600">
                   Verbleibende Zeichen: <span id="char-count" class="font-mono tabular-nums">500</span>
                 </p>
-                <script>function updateCharCount(el){var s=document.getElementById('char-count'),r=500-el.value.length;s.textContent=r;s.classList.toggle('text-red-600',r<0)}</script>
               </div>
             </div>
             {{ render_step_navigation(current_step=1, total_steps=4, show_prev=False, show_next=True) }}
