@@ -17,7 +17,6 @@ from flask import (
     current_app,
 )
 from email_validator import validate_email
-from werkzeug.datastructures import MultiDict
 from PIL import Image, ImageFile, ImageOps
 
 from flask_login import current_user
@@ -34,7 +33,12 @@ from app.database.models import (
     UserRole,
 )
 from app.database.feedback_type import FeedbackSource
-from app.forms import MantisSightingForm, minimum_sighting_date
+from app.forms import (
+    GENDER_CHOICES,
+    LOCATION_DESCRIPTION_CHOICES,
+    MantisSightingForm,
+    minimum_sighting_date,
+)
 from app.tools.gen_user_id import get_new_id
 from app.tools.image_upload import PILLOW_FORMATS
 from app.tools.gemeinde_finder import get_amt_enriched
@@ -58,7 +62,6 @@ def _set_gender_fields(selected_gender_value):
         "Weiblich": "art_w",
         "Nymphe": "art_n",
         "Oothek": "art_o",
-        # "Unbekannt" is no longer mapped to art_f
     }
 
     genders = {"art_m": 0, "art_w": 0, "art_n": 0, "art_o": 0, "art_f": 0}
@@ -69,8 +72,7 @@ def _set_gender_fields(selected_gender_value):
     return genders
 
 
-# Matches the client's own downscale target, so a photo is archived at the same
-# size whether the browser converted it or the server did.
+# Long side of a stored photo; a larger upload is downscaled to it.
 MAX_STORED_DIMENSION = 2048
 # Covers 48/50 MP phone originals. HEIC has no reduced decode and costs about
 # 12 bytes per pixel, so this cap is what bounds a worker's memory.
@@ -146,7 +148,6 @@ def _process_uploaded_image(photo_file, sighting_date, city_name, user_id):
     full_path = upload_dir / filename
 
     image_bytes = photo_file.read()
-    photo_file.seek(0)
 
     try:
         with Image.open(io.BytesIO(image_bytes), formats=PILLOW_FORMATS) as img:
@@ -159,9 +160,7 @@ def _process_uploaded_image(photo_file, sighting_date, city_name, user_id):
             if _has_no_visible_pixels(img):
                 raise BlankImageError("uploaded frame has no visible pixels")
 
-            file_size_mb = len(image_bytes) / (1024 * 1024)
-
-            if img.format == "WEBP" and file_size_mb <= 8.0:
+            if img.format == "WEBP" and max(img.size) <= MAX_STORED_DIMENSION:
                 # Preserve client-optimized WebP without recompressing it.
                 image_bytes_to_save = image_bytes
             else:
@@ -171,10 +170,8 @@ def _process_uploaded_image(photo_file, sighting_date, city_name, user_id):
                 # archived sideways with nothing left to fix it.
                 output_buffer = io.BytesIO()
                 ImageOps.exif_transpose(img, in_place=True)
-                # The client caps its own output at 2048; an original forwarded by
-                # the conversion fallback has had no such cap, and a 12MP frame
-                # re-encodes to ~0.9MB against the ~0.16MB the converted path
-                # produces. Cap here so the archive is uniform either way.
+                # An original forwarded by the conversion fallback has had no
+                # client-side downscale; a 12MP frame would re-encode to ~0.9MB.
                 img.thumbnail((MAX_STORED_DIMENSION, MAX_STORED_DIMENSION))
                 img.save(output_buffer, format="WEBP", quality=60)
                 image_bytes_to_save = output_buffer.getvalue()
@@ -196,7 +193,7 @@ def _process_uploaded_image(photo_file, sighting_date, city_name, user_id):
         tmp_path.unlink(missing_ok=True)
         raise
 
-    return str((upload_dir / filename).relative_to(upload_root))
+    return str(full_path.relative_to(upload_root))
 
 
 def _normalized_contact(email):
@@ -234,11 +231,7 @@ def _resolve_reporter(usrid, email):
 
 
 def _create_user(first_name, last_name, email, role=UserRole.REPORTER):
-    """Create a new user with standardized name format.
-
-    ``role`` is coerced to the varchar(1) string, so int callers still compare
-    equal to UserRole before the row round-trips through the database.
-    """
+    """Create a new user with standardized name format."""
     user_id = get_new_id()
     name = f"{last_name.strip()} {first_name.strip()[0].upper()}."
     user = TblUsers()
@@ -389,27 +382,6 @@ def melden(usrid=None):
                 db.session.add(user_link)
                 db.session.commit()
 
-                # Same rule as melder_index: a submission never replaces
-                # another identity, a reviewer's session least of all.
-                if (
-                    not current_user.is_authenticated
-                    or current_user.user_id == reporter.user_id
-                ):
-                    log_in(reporter)
-
-                # Set session data for success page
-                session["report_submission_successful"] = True
-                session["last_submission_reporter_id"] = reporter.user_id
-                session["submission_had_email"] = bool(reporter.user_kontakt)
-
-                return jsonify(
-                    {
-                        "success": True,
-                        "redirect_url": url_for("report.success"),
-                        "message": "Vielen Dank, Ihre Meldung wurde erfolgreich gespeichert!",
-                    }
-                ), 200
-
             except BlankImageError:
                 # The check runs before anything is written, so only the
                 # transaction needs unwinding. Reported as a field error so the
@@ -457,6 +429,27 @@ def melden(usrid=None):
                     ),
                     500,
                 )
+
+            # Same rule as melder_index: a submission never replaces
+            # another identity, a reviewer's session least of all.
+            if (
+                not current_user.is_authenticated
+                or current_user.user_id == reporter.user_id
+            ):
+                log_in(reporter)
+
+            # Set session data for success page
+            session["report_submission_successful"] = True
+            session["last_submission_reporter_id"] = reporter.user_id
+            session["submission_had_email"] = bool(reporter.user_kontakt)
+
+            return jsonify(
+                {
+                    "success": True,
+                    "redirect_url": url_for("report.success"),
+                    "message": "Vielen Dank, Ihre Meldung wurde erfolgreich gespeichert!",
+                }
+            ), 200
         else:
             return _validation_error_response(form.errors)
 
@@ -617,12 +610,8 @@ _UA_PLATFORMS = (
 def _device_platform(data, user_agent):
     """Name the operating system behind a failed upload.
 
-    getHighEntropyValues() is Chromium-only — Safari and Firefox expose no
-    userAgentData at all, which is precisely the iOS population the HEIC
-    timeouts come from. So the client hint is preferred and the UA string is
-    the fallback, the same order Sentry's relay and BugSnag use. Previously
-    this line was hardcoded to "Android", which mislabelled every non-Android
-    reporter in the one mail meant to diagnose their device.
+    Prefers the client hint; getHighEntropyValues() is Chromium-only, so Safari
+    and Firefox (the iOS population) fall back to the UA string.
     """
     hinted = _beacon_field(data.get("platform") or "", 20)
     if hinted:
@@ -754,15 +743,7 @@ def validate_step_partial():
         )
     step_fields = get_step_fields(step)
 
-    form_data = MultiDict(request.form)
-    if "identical_finder_reporter" in request.form:
-        form_data["identical_finder_reporter"] = (
-            "y"
-            if _is_checkbox_true(request.form.get("identical_finder_reporter"))
-            else ""
-        )
-
-    form = MantisSightingForm(formdata=form_data, meta={"csrf": False})
+    form = MantisSightingForm(formdata=request.form, meta={"csrf": False})
 
     is_valid = True
     errors = {}
@@ -894,15 +875,11 @@ def _get_choice_display(selected_value, choices):
 
 def _get_gender_display(gender_value):
     """Convert gender field value to display text."""
-    from app.forms import GENDER_CHOICES
-
     return _get_choice_display(gender_value, GENDER_CHOICES)
 
 
 def _get_location_description_display(location_value):
     """Convert location description value to display text."""
-    from app.forms import LOCATION_DESCRIPTION_CHOICES
-
     return _get_choice_display(location_value, LOCATION_DESCRIPTION_CHOICES)
 
 
@@ -918,8 +895,6 @@ def _format_date(date_str):
     if not date_str:
         return "-"
     try:
-        from datetime import datetime
-
         date_obj = datetime.strptime(date_str, "%Y-%m-%d")
         return date_obj.strftime("%d.%m.%Y")
     except ValueError:
