@@ -349,6 +349,42 @@ class TestReportSubmission:
         assert location.amt == ""
         assert location.mtb == ""
 
+    def test_german_land_with_foreign_point_is_rejected(
+        self, client, report_form_data, session
+    ):
+        """Address typed as Kieselbronn, 24.9/24.9 typed into the
+        coordinate boxes."""
+        form_data = report_form_data.copy()
+        form_data.update(
+            {
+                "latitude": "24.9",
+                "longitude": "24.9",
+                "fund_city": "Kieselbronn",
+                "fund_state": "Baden-Württemberg",
+                "fund_zip_code": "75249",
+            }
+        )
+
+        response = client.post(
+            "/melden",
+            data={**form_data, "photo": create_test_image()},
+            content_type="multipart/form-data",
+        )
+
+        assert response.status_code == 400
+        payload = response.get_json()
+        assert payload["success"] is False
+        assert "nicht in Deutschland" in payload["errors"]["coordinates"][0]
+
+        assert (
+            session.scalar(
+                select(TblMeldungen).where(
+                    TblMeldungen.anm_melder == form_data["description"]
+                )
+            )
+            is None
+        )
+
     ############################
     # Form Validation Tests #
     ############################
