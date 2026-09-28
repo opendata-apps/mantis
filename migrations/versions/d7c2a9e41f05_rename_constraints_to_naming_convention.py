@@ -1,7 +1,7 @@
 """rename constraints to naming convention
 
 Aligns all PostgreSQL-default constraint names with the MetaData
-naming_convention introduced on the model Base (app/__init__.py), so
+naming_convention on the model Base (app/extensions.py), so
 future migrations can DROP/ALTER constraints by predictable names.
 ALTER TABLE ... RENAME CONSTRAINT is a catalog-only update (instant);
 renaming a PK constraint renames its backing index as well.

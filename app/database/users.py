@@ -14,13 +14,7 @@ from app.extensions import db
 
 
 class TblUsers(UserMixin, db.Model):
-    """User model for storing reporter and reviewer information.
-
-    Constraints:
-        - ix_users_user_id: UNIQUE index on user_id for constraint enforcement
-          and fast lookups. Used in 7+ queries across admin, report, provider,
-          and statistics routes. Also serves as FK target for meldungen.bearb_id.
-    """
+    """User model for storing reporter and reviewer information."""
 
     __tablename__ = "users"
 
