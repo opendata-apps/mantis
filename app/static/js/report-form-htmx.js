@@ -368,20 +368,12 @@ const ReportForm = {
             const probe = err.stage === 'read' ? await this.probeRead(file) : '';
             const escalation = await this.reportPhotoFailure(file, err, probe);
 
-            // Converting in the browser is an optimisation, not a requirement —
-            // the server decodes every format this form accepts. Forwarding the
-            // original costs bandwidth; refusing it costs the sighting. The one
-            // exception is a 'read' failure: those bytes were never accessible,
-            // so forwarding the file would just defer the same failure to
-            // submit — after four steps of work — as a misleading connection error.
+            // The server decodes every accepted format, so a failed conversion
+            // forwards the original. A failed read does not: submit would fail too.
             if (err.stage === 'read') {
                 // Reset before showing: removePhoto() clears the photo error, so
                 // the other order erases the message the user needs to see.
                 this.removePhoto();
-                // Not a cloud-only photo: reporters confirm local camera shots,
-                // and the same picker hands other files over readable. Re-picking
-                // the same photo fails every time; the mail route appears on the
-                // second failure.
                 this.showError('photo',
                     'Ihr Gerät hat dieses Foto nicht an den Browser übergeben. Das liegt nicht '
                     + 'am Foto, sondern an einem Fehler, der auf manchen Android-Handys '
@@ -452,16 +444,8 @@ const ReportForm = {
         return err;
     },
 
-    // Chrome froze the Android UA at "Android 10; K" for every device, so the
-    // log cannot tell a Samsung from a Pixel — and which picker hands Chrome the
-    // content:// URI depends on exactly that. Client hints are the only way to
-    // ask; the JS API needs no Accept-CH opt-in.
-    // platform is a low-entropy hint and comes back alongside the requested
-    // high-entropy ones at no extra cost. The API is Chromium-only — Safari and
-    // Firefox have no userAgentData at all — so this resolves to {} for exactly
-    // the iOS reporters the HEIC failures come from, and the server falls back
-    // to the UA string. Client hint first, UA second is the order Sentry's
-    // relay and BugSnag both use.
+    // Chrome reports every Android device as "Android 10; K", so only client hints
+    // name the model. Chromium-only: elsewhere this is {} and the server reads the UA.
     async deviceHints() {
         try {
             const hints = await navigator.userAgentData?.getHighEntropyValues?.(
@@ -476,11 +460,8 @@ const ReportForm = {
         }
     },
 
-    // The Android photo picker hands over a synthesised numeric name
-    // (168243243.jpg) where DocumentsUI passes the gallery's own
-    // (IMG_20260803_101112.jpg) — the shape is the only clue in the browser to
-    // which picker produced the file. The name itself can identify a person, so
-    // only the class travels.
+    // Tells the Android photo picker (168243243.jpg) from DocumentsUI, which passes
+    // the gallery name. Only the class travels: a file name can identify a person.
     nameShape(name) {
         const base = (name || '').replace(/\.[^.]*$/, '');
         if (!base) return 'empty';
@@ -510,11 +491,8 @@ const ReportForm = {
         return Promise.race([probe, timeout]);
     },
 
-    // The conversion runs entirely in the browser, so until now a failure here
-    // was invisible to the project — the report was simply never submitted.
-    // Reports the failing step and the file class, never the image itself.
-    // Resolves to the server's escalation payload once it has counted enough
-    // failures for this session, otherwise null (204).
+    // Reports the failing step and the file class, never the image. Resolves to the
+    // server's escalation payload once it has counted enough failures, else null.
     async reportPhotoFailure(file, err, probe) {
         const url = document.getElementById('reportForm')?.dataset.photoErrorUrl;
         if (!url) return null;
@@ -580,9 +558,7 @@ const ReportForm = {
         return { dateTime, gps };
     },
 
-    // An object URL, not a data URL: base64 inflates a 6MB photo into an 8MB
-    // string handed to img.src, four times Chromium's 2MB URL ceiling, and it
-    // keeps that string in memory next to the decoded bitmap.
+    // An object URL, not a data URL, so no base64 copy of the photo sits in memory.
     decode(blob) {
         const url = URL.createObjectURL(blob);
         return new Promise((res, rej) => {
@@ -635,11 +611,8 @@ const ReportForm = {
             throw this.photoError('canvas', cause);
         }
 
-        // drawImage can no-op without throwing in an Android WebView, which
-        // encodes a full-size but entirely transparent frame. Seven such reports
-        // reached the archive before this check existed — one of them approved —
-        // so verify the draw actually landed. Outside the catch above: this is a
-        // verdict, not a native fault, and must keep its own label.
+        // drawImage can no-op without throwing in an Android WebView, leaving a
+        // transparent frame. A verdict, not a native fault, so it keeps its own label.
         if (canvasIsBlank(ctx, w, h)) throw this.photoError('blank-canvas');
 
         const sizeMB = size / 1048576;
@@ -649,9 +622,8 @@ const ReportForm = {
         else if (pixels > 4e6) q = Math.min(q, 0.7);
 
         const encode = (mime) => new Promise((r) => canvas.toBlob(r, mime, q));
-        // WebKit (incl. iOS 26) cannot encode WebP via canvas: toBlob returns null
-        // or silently falls back to PNG. Fall back to JPEG, which every engine encodes
-        // and the server (PIL) decodes — unlike HEIC. See WebKit regression 89356ad.
+        // WebKit cannot encode WebP, and toBlob falls back to PNG for an unsupported
+        // type (HTML spec) or yields null. JPEG is encoded everywhere.
         let mime = 'image/webp';
         let out = await encode(mime);
         if (!out || out.type !== mime) {
@@ -696,11 +668,8 @@ const ReportForm = {
             }
         }
 
-        // EXIF GPS is unverified input. A camera without a fix writes a zeroed
-        // tag, and a wrong hemisphere ref flips a sign — both land far outside
-        // Europe. A photo whose position cannot be trusted simply leaves the
-        // map to the reporter, which is the normal flow for a photo with no
-        // GPS at all.
+        // A camera without a fix writes a zeroed tag, and a wrong hemisphere ref
+        // flips a sign; such a position leaves the map to the reporter.
         if (gps && this.map && coordinatesInRange(gps.lat, gps.lng, this.coordinateRanges)) {
             const { lat, lng } = gps;
             const exifLocation = document.getElementById('exif-location');
@@ -852,12 +821,8 @@ const ReportForm = {
         if (this._locTimeout) { clearTimeout(this._locTimeout); this._locTimeout = null; }
     },
 
-    // Out-of-range coordinates are dropped, never clamped. Clamping snapped a
-    // bad pair onto the nearest bound, and the corner of the accepted box —
-    // 24,6 / 44,83, in Saudi Arabia — is a coordinate the server validates as
-    // correct, so garbage became a plausible Fundort instead of an error.
-    // Seven reports reached the reviewers that way. An empty pair is the
-    // honest outcome: the step-2 gate already refuses to advance without one.
+    // Out-of-range coordinates are dropped, never clamped: a clamped pair is a
+    // valid-looking Fundort. The step-2 gate refuses to advance without one.
     setMarker(lat, lng, geocode = true) {
         if (!coordinatesInRange(lat, lng, this.coordinateRanges)) {
             this.clearCoordinates();
