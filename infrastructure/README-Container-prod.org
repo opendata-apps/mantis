@@ -1,18 +1,23 @@
 * Produktion
-- Es werden keine Demodaten importiert
-- Es muss ein erster Benutzer mit Admin-Rechten angelegt werden
-- in .env sind folgende Werte gesetzt:
-  - LOAD_DEMO_DATA=False
-  - TESTING=False
-  
-** Ersten reviewer anlegen
+- Es werden keine Demodaten importiert: =entrypoint.sh= seedet sie nur bei
+  =FLASK_DEBUG=1=, und =compose.yaml= setzt =FLASK_DEBUG=0=.
+- Es muss ein erster Benutzer mit Reviewer-Rechten angelegt werden.
+
+** Ersten Reviewer anlegen
+
+Die =user_id= ist zugleich die Login-URL =/reviewer/<user_id>=, also
+zufällig erzeugen und nicht erraten lassen:
+
+#+begin_src bash
+
+  python3 -c "import secrets; print(secrets.token_hex(20))"
+  just prod-db
+
+#+end_src
 
 #+begin_src sql
 
-  podman exec -it infrastructure_db_1 psql -U mantis_user -d mantis_tracker
-  INSERT INTO users (user_id, user_name, user_rolle, user_kontakt) VALUES ('9999', 'Reviewer 1', '9', 'reviewer@mantis.org');
-         
+  INSERT INTO users (user_id, user_name, user_rolle, user_kontakt)
+  VALUES ('<zufällige id>', 'Reviewer 1', '9', 'reviewer@mantis.org');
+
 #+end_src
-
-
-
