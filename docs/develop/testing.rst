@@ -62,6 +62,69 @@ Fixture-Lebenszyklus
   zeigt sich ein zweiter Schreiber als Deadlock, doppelter Primärschlüssel oder
   verschwundene Tabelle — hunderte Tests hinter der Ursache.
 
+Konventionen
+------------
+
+Grundlage ist Googles `Test Behavior, Not Implementation
+<https://testing.googleblog.com/2013/08/testing-on-toilet-test-behavior-not.html>`_
+und das Testkapitel von *Software Engineering at Google*. Ein Test schlägt fehl,
+wenn sich das Verhalten ändert — und nur dann. Ein Refactoring, das Verhalten
+erhält, darf keinen Test brechen.
+
+1. **Ein Test pro Verhalten, nicht pro Methode.** Der Name nennt Bedingung und
+   Erwartung: ``test_a_partial_place_name_finds_the_same_reports``, nicht
+   ``test_search``. Innerhalb einer Datei ist jeder Name eindeutig, sonst sagt
+   der Fehlerbericht nicht, welcher Fall gebrochen ist.
+2. **Erwartungswerte kommen von außen.** Aus dem Blattschnitt, der
+   Spezifikation, einer Handrechnung — nie aus der Implementierung und nie über
+   dieselbe Formel berechnet, die der Code verwendet. Das MTB-Gitter stand
+   achtzehn Monate falsch, weil die Erwartungswerte aus dem Code abgelesen und
+   mit dem Kommentar ``# Potsdam - corrected`` auf den falschen Wert gesetzt
+   worden waren.
+3. **Zusichern auf Antwort und gespeichertem Zustand.** Kein
+   ``assert_called_once`` auf eine eigene Funktion: das wiederholt den Code,
+   statt ihn zu prüfen. Ein ``populate_all``, das nichts schreibt, erfüllt eine
+   solche Zusicherung.
+4. **Ersetzt wird nur die Prozessgrenze.** SMTP, HTTP, ``subprocess``,
+   Dateisystem außerhalb ``tmp_path``. Eigene private Helfer werden nicht
+   gepatcht — dann testet der Test die Verdrahtung, nicht die Funktion.
+5. **Jeder Test besitzt seine Daten.** Werte und Ids aus dem Demo-Seed sind
+   keine Zusicherung; sie brechen, wenn sich der Seed ändert, und beweisen
+   nichts über die Aggregation. Der Test schreibt die Zeilen, über die er
+   urteilt (Beispiel: ``counted_reports`` in ``tests/statistics/conftest.py``).
+6. **Keine Zusicherung nur in einer Schleife oder einem Zweig.** Sonst ist der
+   Test grün, wenn die Menge leer ist — und genau das ist der Ausfall, der
+   auffallen müsste. Stattdessen die ganze Menge vergleichen
+   (``assert ids == {8, 18}``) oder ``@pytest.mark.parametrize`` verwenden, das
+   jeden Fall einzeln meldet.
+7. **Größe statt Schicht.** Ohne Datenbank und ohne Ein-/Ausgabe ist ein Test
+   klein und läuft in Millisekunden; braucht er ``session`` oder ``client``,
+   kostet er den Datenreset. Eine reine Funktion bekommt keine
+   Datenbank-Fixture.
+8. **DAMP vor DRY.** Ein wiederholter Aufbau im Test ist billiger als eine
+   Indirektion, die den geprüften Fall verbirgt. Kommentare in Tests sind das
+   Szenario, nicht der Code.
+
+Als Vorlage dienen ``tests/functional/test_reviewer_search.py``,
+``tests/functional/test_reporter_ownership.py`` und
+``TestFilterStatusNormalisation`` in
+``tests/functional/test_is_comparison_filters.py``.
+
+Durchgesetzt wird der mechanisch prüfbare Teil:
+
+- ``ruff check`` mit dem Regelsatz ``PT`` (flake8-pytest-style). ``argnames``
+  schreiben wir als ``"a,b"``, wie die Pytest-Dokumentation selbst.
+- ``tests/meta/test_suite_conventions.py`` prüft Regel 1 (eindeutige Namen),
+  Regel 3 und 4 (keine Zusicherung auf eigene Aufrufe) und Regel 6
+  (Zusicherung nur in Schleife) über den Syntaxbaum der Testdateien. Jede Regel
+  führt die Altlasten mit, die bei ihrer Einführung bestanden, und prüft die
+  Liste in beide Richtungen: ein neuer Verstoß schlägt fehl, ein behobener
+  Verstoß, der noch in der Liste steht, ebenfalls. Die Listen können dadurch
+  nur kürzer werden.
+
+Die übrigen Regeln trägt der Review. Statisch prüfbar sind sie nicht, weil
+keine Analyse erkennt, woher ein Erwartungswert stammt.
+
 Verifikation und Referenzen
 ----------------------------
 
