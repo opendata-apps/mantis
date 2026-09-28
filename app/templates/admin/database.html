@@ -869,8 +869,10 @@ block content %}
         if (isNaN(intValue)) throw new Error("Please enter a valid integer.");
         return intValue;
       case "float":
-        const floatValue = parseFloat(value);
-        if (isNaN(floatValue)) throw new Error("Please enter a valid number.");
+        // Number(), not parseFloat(): "52,41" must not save as 52.
+        const floatValue = Number(value.trim().replace(",", "."));
+        if (value.trim() === "" || !Number.isFinite(floatValue))
+          throw new Error("Please enter a valid number.");
         return floatValue;
       case "boolean":
         return value === "true";
