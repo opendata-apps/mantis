@@ -68,7 +68,7 @@ const ReportForm = {
         window.addEventListener('beforeunload', (e) => {
             if (this.dirty && !this.submitting) {
                 e.preventDefault();
-                e.returnValue = '';
+                e.returnValue = true; // browsers without the preventDefault() trigger
             }
         });
         form.addEventListener('input', () => { this.dirty = true; });
