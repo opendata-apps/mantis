@@ -15,6 +15,11 @@ services:
 
   web:
     restart: unless-stopped
+    # Four ~130 MiB workers, each allowed one image decode at a time (a 50 MP
+    # HEIC peaks near 600 MiB). Past this the kernel kills inside this container,
+    # where gunicorn respawns the worker, instead of picking Postgres on a host
+    # without swap.
+    mem_limit: 3g
     # Neither lives in the checkout. The base mounts both from the repo, which
     # suits a throwaway dev tree but puts the only copy of every reporter's
     # photo inside the directory `prod-deploy` runs `git pull` in — and both
