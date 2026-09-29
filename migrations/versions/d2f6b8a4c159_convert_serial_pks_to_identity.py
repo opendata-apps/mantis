@@ -39,17 +39,26 @@ def _next_value(table, col):
     Not max(id) + 1: ids of deleted rows stay burnt, as they were under SERIAL.
     """
     bind = op.get_bind()
-    # last_value is NULL until the sequence is first read.
-    sequence_next = bind.execute(
+    schema_name, sequence_name, increment = bind.execute(
         sa.text("""
-            SELECT coalesce(s.last_value + s.increment_by, s.start_value)
+            SELECT s.schemaname, s.sequencename, s.increment_by
               FROM pg_sequences s
               JOIN pg_namespace n ON n.nspname = s.schemaname
               JOIN pg_class c ON c.relnamespace = n.oid AND c.relname = s.sequencename
              WHERE c.oid = pg_get_serial_sequence(:t, :c)::regclass
         """),
         {"t": table, "c": col},
-    ).scalar_one()
+    ).one()
+    sequence = sa.table(
+        sequence_name,
+        sa.column("last_value"),
+        sa.column("is_called"),
+        schema=schema_name,
+    )
+    last_value, is_called = bind.execute(
+        sa.select(sequence.c.last_value, sequence.c.is_called)
+    ).one()
+    sequence_next = last_value + increment if is_called else last_value
     after_max = bind.execute(
         sa.select(sa.func.coalesce(sa.func.max(sa.column(col)), 0) + 1).select_from(
             sa.table(table)

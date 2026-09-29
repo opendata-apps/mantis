@@ -267,7 +267,10 @@ class TestMigrationChain:
         finally:
             engine.dispose()
 
-    def test_identity_conversion_never_reuses_an_id(self, clean_db, alembic_config):
+    @pytest.mark.parametrize("round_trip", [False, True], ids=["upgrade", "rollback"])
+    def test_identity_conversion_never_reuses_an_id(
+        self, clean_db, alembic_config, round_trip
+    ):
         upgrade(alembic_config, "b6e8a4c2d931")
         engine = sa.create_engine(MigrationsConfig.URI)
         try:
@@ -281,6 +284,8 @@ class TestMigrationChain:
                 )
                 conn.execute(sa.text("DELETE FROM meldungen WHERE id = 2"))
             upgrade(alembic_config, "d2f6b8a4c159")
+            if round_trip:
+                downgrade(alembic_config, "b6e8a4c2d931")
             with engine.begin() as conn:
                 new_id = conn.scalar(
                     sa.text(
