@@ -88,29 +88,29 @@ block content %}
 <!-- Edit Modal -->
 <dialog id="editModal"
         class="p-0 rounded-lg shadow-lg backdrop:bg-black/50 max-w-md w-full">
-  <div class="bg-white rounded-lg">
-    <!-- Modal header -->
-    <div class="flex items-start justify-between p-4 border-b rounded-t">
-      <h3 class="text-xl font-semibold text-gray-900">Edit Field</h3>
+  <form method="dialog" id="editForm">
+    <div class="bg-white rounded-lg">
+      <!-- Modal header -->
+      <div class="flex items-start justify-between p-4 border-b rounded-t">
+        <h3 class="text-xl font-semibold text-gray-900">Edit Field</h3>
+      </div>
+      <!-- Modal body -->
+      <div class="p-6 space-y-6">
+        <div id="modalInputContainer"></div>
+      </div>
+      <!-- Modal footer -->
+      <div class="flex items-center p-6 space-x-2 border-t border-gray-200 rounded-b">
+        <button type="submit" class="btn-green">Save</button>
+        <button type="button"
+                command="close"
+                commandfor="editModal"
+                class="btn-secondary">Cancel</button>
+        <button type="reset"
+                class="inline-flex items-center justify-center px-5 py-2.5 text-sm font-medium text-red-600 bg-white rounded-lg border border-red-300 transition-[color,background-color,border-color,box-shadow] duration-200 hover:bg-red-50 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-red-500/30">
+          Reset
+        </button>
+      </div>
     </div>
-    <!-- Modal body -->
-    <div class="p-6 space-y-6">
-      <div id="modalInputContainer"></div>
-    </div>
-    <!-- Modal footer -->
-    <div class="flex items-center p-6 space-x-2 border-t border-gray-200 rounded-b">
-      <button type="button"
-              id="saveEditButton"
-              class="btn-green">Save</button>
-      <button type="button"
-              id="cancelEditButton"
-              class="btn-secondary">Cancel</button>
-      <button type="button"
-              id="resetEditButton"
-              class="inline-flex items-center justify-center px-5 py-2.5 text-sm font-medium text-red-600 bg-white rounded-lg border border-red-300 transition-[color,background-color,border-color,box-shadow] duration-200 hover:bg-red-50 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-red-500/30">
-        Reset
-      </button>
-    </div>
-  </div>
+  </form>
 </dialog>
 {% endblock %}

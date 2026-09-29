@@ -66,47 +66,20 @@ function initializeApp() {
     });
   }
 
-  // Initialize edit modal buttons
-  const saveEditButton = document.getElementById("saveEditButton");
-  if (saveEditButton) {
-    saveEditButton.addEventListener("click", function () {
-      const input = document.getElementById("modalInputField");
-      if (!input) return;
-      const newValue = input.value;
-      updateCell(
-        currentlyEditingCellData.column,
-        newValue,
-        currentlyEditingCell
-      );
-      editModal.close();
-    });
-  }
+  // Native validation runs before submit; method="dialog" then closes the dialog.
+  const editForm = document.getElementById("editForm");
+  editForm.addEventListener("submit", () => {
+    updateCell(
+      currentlyEditingCellData.column,
+      new FormData(editForm).get("value"),
+      currentlyEditingCell
+    );
+  });
 
-  const cancelEditButton = document.getElementById("cancelEditButton");
-  if (cancelEditButton) {
-    cancelEditButton.addEventListener("click", function () {
-      editModal.close();
-    });
-  }
-
-  const resetEditButton = document.getElementById("resetEditButton");
-  if (resetEditButton) {
-    resetEditButton.addEventListener("click", function () {
-      const input = document.getElementById("modalInputField");
-      if (input && currentlyEditingCellData) {
-        input.value = currentlyEditingCellData.originalValue;
-      }
-    });
-  }
-
-  // Initialize Modal (native dialog)
-  if (editModal) {
-    // Handle close event
-    editModal.addEventListener('close', () => {
-      currentlyEditingCell = null;
-      currentlyEditingCellData = null;
-    });
-  }
+  editModal.addEventListener("close", () => {
+    currentlyEditingCell = null;
+    currentlyEditingCellData = null;
+  });
 
   // Load initial state and data
   loadState().then(() => {
@@ -388,14 +361,8 @@ function startEdit(cell) {
   const column = cell.dataset.column;
   const type = cell.dataset.type;
 
-  currentlyEditingCellData = {
-    column: column,
-    type: type,
-    originalValue: currentValue,
-  };
-
-  let idValue = cell.dataset.idValue;
-  currentlyEditingCellData.idValue = idValue;
+  const idValue = cell.dataset.idValue;
+  currentlyEditingCellData = { column, type, idValue };
 
   if (!idValue) {
     console.error("Could not find ID value");
@@ -407,7 +374,6 @@ function startEdit(cell) {
   modalInputContainer.innerHTML = "";
 
   const input = createInputElement(type, currentValue);
-  input.id = "modalInputField";
   modalInputContainer.appendChild(input);
 
   editModal.showModal();
@@ -422,47 +388,30 @@ function formatValueForInput(type, value) {
 
 function createInputElement(type, currentValue) {
   const input = document.createElement("input");
+  input.name = "value";
   input.type = type === "date" ? "date" : type === "int" ? "number" : "text";
-  input.value = formatValueForInput(type, currentValue);
+  // defaultValue is what the form's Reset button restores.
+  input.defaultValue = formatValueForInput(type, currentValue);
+  if (type === "int") input.required = true;
+  if (type === "float") {
+    input.required = true;
+    input.pattern = "\\s*-?(\\d+([.,]\\d*)?|[.,]\\d+)\\s*";
+    input.title = "A number, e.g. 52.41";
+  }
   input.classList.add("w-full", "p-2", "border", "rounded-sm", "allow-select");
   return input;
 }
 
+// Number(), not parseInt()/parseFloat(): "1.5" and "52,41" must not save as 1 and 52.
 function parseValueFromInput(type, value) {
-  // Number(), not parseInt()/parseFloat(): "1.5" and "52,41" must not save as 1 and 52.
-  switch (type) {
-    case "int":
-      const intValue = Number(value.trim());
-      if (value.trim() === "" || !Number.isInteger(intValue))
-        throw new Error("Please enter a valid integer.");
-      return intValue;
-    case "float":
-      const floatValue = Number(value.trim().replace(",", "."));
-      if (value.trim() === "" || !Number.isFinite(floatValue))
-        throw new Error("Please enter a valid number.");
-      return floatValue;
-    default:
-      return value;
-  }
+  if (type === "int") return Number(value);
+  if (type === "float") return Number(value.replace(",", "."));
+  return value;
 }
 
 function updateCell(column, newValue, cell) {
-  const idValue = currentlyEditingCellData.idValue;
-  const type = currentlyEditingCellData.type;
-
-  if (!idValue) {
-    console.error("Could not find ID value");
-    alert("Could not find ID value");
-    return;
-  }
-
-  let formattedValue;
-  try {
-    formattedValue = parseValueFromInput(type, newValue);
-  } catch (e) {
-    alert(e.message);
-    return;
-  }
+  const { idValue, type } = currentlyEditingCellData;
+  const formattedValue = parseValueFromInput(type, newValue);
 
   showLoadingIndicator();
 
