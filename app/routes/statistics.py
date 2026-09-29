@@ -295,7 +295,7 @@ def stats_mtb(marker):
             try:
                 dbanswers.append((int(row.mtb), count))
             except ValueError:
-                current_app.logger.error("Unreadable Messtischblatt %r", row.mtb)
+                current_app.logger.warning("Unreadable Messtischblatt %r", row.mtb)
 
     bg_url = url_for("static", filename="images/land_brandenburg.svg")
     xml = create_measure_sheet(dataset=dbanswers, bg_image_url=bg_url)
@@ -583,9 +583,9 @@ def stats_gesamt(marker):
             # Brandenburg
             elif amt.startswith("12"):
                 result_dict[kreis_code][4].append([amt, "", "", amt, result[1]])
-        except Exception as e:
-            current_app.logger.error(
-                f"Error in statistics query - Result: {result}, Error: {e}"
+        except Exception:
+            current_app.logger.exception(
+                "Error in statistics query - Result: %s", result
             )
 
     return render_template(

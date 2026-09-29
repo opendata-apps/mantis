@@ -54,7 +54,7 @@ def fetch_gemeinden():
     logger.info("Fetching Gemeinden from BKG VG5000 WFS...")
     data = _wfs_get_feature(BKG_WFS_BASE, "vg5000_0101:vg5000_gem")
     count = data.get("numberReturned", len(data.get("features", [])))
-    logger.info(f"Fetched {count} Gemeinden from BKG")
+    logger.info("Fetched %s Gemeinden from BKG", count)
     return data
 
 
@@ -66,7 +66,7 @@ def fetch_kreise():
     logger.info("Fetching Kreise from BKG VG5000 WFS...")
     data = _wfs_get_feature(BKG_WFS_BASE, "vg5000_0101:vg5000_krs")
     count = data.get("numberReturned", len(data.get("features", [])))
-    logger.info(f"Fetched {count} Kreise from BKG")
+    logger.info("Fetched %s Kreise from BKG", count)
     return data
 
 
@@ -78,7 +78,7 @@ def fetch_berlin_bezirke():
     logger.info("Fetching Berlin Bezirke from ALKIS WFS...")
     data = _wfs_get_feature(BERLIN_WFS_BASE, "alkis_bezirke:bezirksgrenzen")
     features = data.get("features", [])
-    logger.info(f"Fetched {len(features)} Berlin Bezirke")
+    logger.info("Fetched %s Berlin Bezirke", len(features))
     return features
 
 
@@ -147,9 +147,10 @@ def merge_gemeinden_with_berlin(gemeinden_data, berlin_features):
         merged.append(_normalize_berlin_feature(feature))
 
     logger.info(
-        f"Merged: {len(merged)} features "
-        f"({len(gemeinden_data.get('features', [])) - 1} Gemeinden + "
-        f"{len(berlin_features)} Berlin Bezirke)"
+        "Merged: %s features (%s Gemeinden + %s Berlin Bezirke)",
+        len(merged),
+        len(gemeinden_data.get("features", [])) - 1,
+        len(berlin_features),
     )
 
     return {
@@ -165,7 +166,7 @@ def save_fallback(data, path):
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, separators=(",", ":"))
     size_mb = path.stat().st_size / (1024 * 1024)
-    logger.info(f"Saved fallback to {path} ({size_mb:.1f} MB)")
+    logger.info("Saved fallback to %s (%.1f MB)", path, size_mb)
 
 
 def save_kreise_lookup(lookup, path):
@@ -174,7 +175,7 @@ def save_kreise_lookup(lookup, path):
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
         json.dump(lookup, f, ensure_ascii=False, indent=2, sort_keys=True)
-    logger.info(f"Saved {len(lookup)} Kreise to {path}")
+    logger.info("Saved %s Kreise to %s", len(lookup), path)
 
 
 def load_kreise_lookup(path):

@@ -95,7 +95,7 @@ def _warn_missing_entry(entry: str) -> None:
     silently broken page.
     """
     current_app.logger.error(
-        f"Vite manifest has no entry for {entry!r} — run `bun run build`."
+        "Vite manifest has no entry for %r — run `bun run build`.", entry
     )
 
 

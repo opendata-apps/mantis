@@ -74,9 +74,9 @@ def _commit_or_log(log_context: str) -> bool:
     """
     try:
         db.session.commit()
-    except SQLAlchemyError as e:
+    except SQLAlchemyError:
         db.session.rollback()
-        current_app.logger.error(f"{log_context}: {e}")
+        current_app.logger.exception(log_context)
         return False
     return True
 
@@ -271,8 +271,11 @@ def change_mantis_meta_data(id):
         return jsonify({"error": "Database error"}), 500
 
     current_app.logger.info(
-        f"Report {id} metadata updated: {fieldname} to {new_data} "
-        f"by user {sighting.bearb_id}"
+        "Report %s metadata updated: %s to %s by user %s",
+        id,
+        fieldname,
+        new_data,
+        sighting.bearb_id,
     )
     return jsonify({"success": True})
 
@@ -374,7 +377,7 @@ def _notify_reporter_of_approval(report_id: int) -> None:
     meldung = _load_sighting(report_id)
     if not meldung:
         current_app.logger.error(
-            f"Sighting {report_id} not found while building email payload."
+            "Sighting %s not found while building email payload.", report_id
         )
         return
 
@@ -383,14 +386,14 @@ def _notify_reporter_of_approval(report_id: int) -> None:
         # Contact is optional on the report form, so a blank one is routine,
         # not an error — at ERROR it drowns out real SMTP faults.
         current_app.logger.warning(
-            f"Email not sent for sighting {report_id}. No email address found."
+            "Email not sent for sighting %s. No email address found.", report_id
         )
         return
 
     try:
         send_email(payload)
-    except (OSError, EmailNotValidError) as e:
-        current_app.logger.error(f"Email not sent for sighting {report_id}. Error: {e}")
+    except (OSError, EmailNotValidError):
+        current_app.logger.exception("Email not sent for sighting %s", report_id)
 
 
 @admin.route("/toggle_approve_sighting/<int:id>", methods=["POST"])
@@ -405,14 +408,14 @@ def toggle_approve_sighting(id):
 
     sighting = db.session.get(TblMeldungen, id)
     if not sighting:
-        current_app.logger.error(f"Sighting {id} not found for approval toggle.")
+        current_app.logger.error("Sighting %s not found for approval toggle.", id)
         return "", 404
 
     # Toggle between APPR and OPEN.
     # Un-approving preserves flags (re-opening keeps existing context).
     if sighting.is_approved:
         flags = [s for s in (sighting.statuses or []) if s in REVIEW_FLAGS]
-        sighting.statuses = [ReportStatus.OPEN.value] + flags
+        sighting.statuses = [ReportStatus.OPEN.value, *flags]
         sighting.dat_bear = None
     else:
         # Any active review flag blocks approval — open concerns must be
@@ -427,7 +430,10 @@ def toggle_approve_sighting(id):
         return "", 500
 
     current_app.logger.debug(
-        f"Sighting {id} statuses toggled to {sighting.statuses}. dat_bear set to {sighting.dat_bear}"
+        "Sighting %s statuses toggled to %s. dat_bear set to %s",
+        id,
+        sighting.statuses,
+        sighting.dat_bear,
     )
 
     if current_app.config.get("REVIEWERMAIL", False) and sighting.is_approved:

@@ -123,4 +123,4 @@ def send_email(data):
     )
 
     mail.send(msg)
-    logger.info(f"Mail an {data['user_kontakt']} verschickt.")
+    logger.info("Mail an %s verschickt.", data["user_kontakt"])

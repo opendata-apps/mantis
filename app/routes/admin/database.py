@@ -298,8 +298,10 @@ def update_cell():
 
         if image_update_result.get("status") == "success":
             current_app.logger.info(
-                f"Moved image for report {id_value} from {image_update_result.get('old_path')} "
-                f"to {image_update_result.get('new_path')}"
+                "Moved image for report %s from %s to %s",
+                id_value,
+                image_update_result.get("old_path"),
+                image_update_result.get("new_path"),
             )
 
     try:
@@ -317,10 +319,10 @@ def update_cell():
                 )
             except OSError:
                 current_app.logger.critical(
-                    f"Could not revert image move for report {id_value} after "
-                    f"commit failure: file stuck at "
-                    f"{image_update_result['new_path']}, "
-                    f"DB expects {image_update_result['old_path']}"
+                    "Could not revert image move for report %s after commit failure: file stuck at %s, DB expects %s",
+                    id_value,
+                    image_update_result["new_path"],
+                    image_update_result["old_path"],
                 )
         raise
 

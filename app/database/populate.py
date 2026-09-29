@@ -26,16 +26,16 @@ def populate_beschreibung(session: Session):
     for id, beschreibung in INITIAL_BESCHREIBUNG_DATA:
         if not session.get(TblFundortBeschreibung, id):
             session.add(TblFundortBeschreibung(id=id, beschreibung=beschreibung))
-            current_app.logger.info(f"Inserted beschreibung: {id} - {beschreibung}")
+            current_app.logger.info("Inserted beschreibung: %s - %s", id, beschreibung)
             count += 1
         else:
             current_app.logger.debug(
-                f"Beschreibung record with id {id} already exists."
+                "Beschreibung record with id %s already exists.", id
             )
     if count > 0:
         session.commit()
     current_app.logger.info(
-        f"Beschreibung table population complete. Inserted {count} new records."
+        "Beschreibung table population complete. Inserted %s new records.", count
     )
 
 
@@ -58,10 +58,10 @@ def populate_all(session: Session, vg5000_json_data):
             import_aemter_data(session, vg5000_json_data)
             current_app.logger.info("VG5000 Aemter data population complete.")
         except ImportError:
-            current_app.logger.error(
+            current_app.logger.warning(
                 "Could not import vg5000_fill_aemter. Skipping VG5000 data population."
             )
-        except Exception as e:
-            current_app.logger.error(f"Error during VG5000 data population: {e}")
+        except Exception:
+            current_app.logger.exception("Error during VG5000 data population")
 
     current_app.logger.info("Initial data population finished.")

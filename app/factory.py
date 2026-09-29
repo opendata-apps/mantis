@@ -241,7 +241,7 @@ def register_errorhandlers(app: Flask) -> None:
 
     @app.errorhandler(CSRFError)
     def handle_csrf_error(e):
-        app.logger.warning(f"CSRF error: {e!s}")
+        app.logger.warning("CSRF error: %s", e)
         return render_template("error/403.html"), 403
 
 

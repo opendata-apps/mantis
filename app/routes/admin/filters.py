@@ -146,7 +146,7 @@ def get_filtered_query(
     parsed_to = _parse_german_date(date_to)
 
     if (date_from and parsed_from is None) or (date_to and parsed_to is None):
-        current_app.logger.error(f"Date parsing error: {date_from!r} / {date_to!r}")
+        current_app.logger.error("Date parsing error: %r / %r", date_from, date_to)
         stmt = stmt.where(false())
     elif parsed_from and parsed_to:
         stmt = stmt.where(date_column.between(parsed_from, parsed_to))
