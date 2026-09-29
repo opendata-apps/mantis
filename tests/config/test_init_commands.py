@@ -2,8 +2,8 @@
 
 from datetime import datetime
 
-from flask import abort, render_template_string
 import pytest
+from flask import abort, render_template_string
 
 
 @pytest.fixture

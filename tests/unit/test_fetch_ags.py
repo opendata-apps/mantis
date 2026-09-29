@@ -8,15 +8,14 @@ these all operate on plain dicts and files.
 import pytest
 
 from app.tools.fetch_ags import (
-    _normalize_bkg_feature,
     _normalize_berlin_feature,
+    _normalize_bkg_feature,
     build_kreise_lookup,
+    load_kreise_lookup,
     merge_gemeinden_with_berlin,
     save_fallback,
     save_kreise_lookup,
-    load_kreise_lookup,
 )
-
 
 # ---------------------------------------------------------------------------
 # Fixtures

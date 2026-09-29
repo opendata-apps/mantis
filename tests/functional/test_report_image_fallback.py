@@ -7,8 +7,8 @@ WebView blank-canvas bug that produced reports 10595, 16651, 17355, 21953,
 23905, 26254 and 31196).
 """
 
-from datetime import date
 import io
+from datetime import date
 
 import pytest
 from PIL import Image

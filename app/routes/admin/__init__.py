@@ -4,7 +4,7 @@ Importing the route modules is what registers their routes on the blueprint, so
 the imports below are deliberately unused.
 """
 
-from app.routes.admin.blueprint import admin
 from app.routes.admin import database, export, reviewer  # noqa: F401
+from app.routes.admin.blueprint import admin
 
 __all__ = ["admin"]

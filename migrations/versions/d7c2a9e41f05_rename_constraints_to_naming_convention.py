@@ -14,7 +14,6 @@ Create Date: 2026-06-09 22:05:00.000000
 
 from alembic import op
 
-
 # revision identifiers, used by Alembic.
 revision = "d7c2a9e41f05"
 down_revision = "3ef7360331ea"

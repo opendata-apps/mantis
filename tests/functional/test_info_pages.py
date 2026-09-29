@@ -8,7 +8,6 @@ test per route.
 
 import pytest
 
-
 PUBLIC_INFO_ROUTES = [
     "/faq",
     "/impressum",

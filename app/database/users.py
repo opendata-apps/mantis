@@ -1,10 +1,9 @@
-from flask_login import UserMixin
 from datetime import datetime
 from typing import TYPE_CHECKING
 
+from flask_login import UserMixin
 from sqlalchemy import CheckConstraint, DateTime, Identity, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-
 
 if TYPE_CHECKING:
     from app.database.meldung_user import TblMeldungUser

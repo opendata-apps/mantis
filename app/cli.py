@@ -20,7 +20,6 @@ def register_commands(app):
 def seed_command(demo):
     """Seed database with base data. Use --demo to include sample reports."""
     from app.database.populate import populate_all
-
     from app.extensions import db
 
     # Load AGS data from fallback JSON file
@@ -65,11 +64,11 @@ def seed_ags_command():
 
     from app.extensions import db
     from app.tools.fetch_ags import (
+        build_kreise_lookup,
+        fetch_berlin_bezirke,
         fetch_gemeinden,
         fetch_kreise,
-        fetch_berlin_bezirke,
         merge_gemeinden_with_berlin,
-        build_kreise_lookup,
         save_fallback,
         save_kreise_lookup,
     )
@@ -154,8 +153,8 @@ def validate_coordinates_command():
     """
     from sqlalchemy import select
 
-    from app.extensions import db
     from app.database.fundorte import TblFundorte
+    from app.extensions import db
     from app.tools.address_plausibility import contradicts_german_land
 
     fundorte = db.session.scalars(select(TblFundorte)).all()
@@ -188,8 +187,8 @@ def recalculate_mtb_command(commit):
     """
     from sqlalchemy import select
 
-    from app.extensions import db
     from app.database.fundorte import TblFundorte
+    from app.extensions import db
     from app.tools.gemeinde_finder import warm_gemeinde_cache
     from app.tools.location_enrichment import calculate_spatial_fields
 

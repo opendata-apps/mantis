@@ -10,7 +10,6 @@ import pytest
 from bs4 import BeautifulSoup
 from itsdangerous import TimestampSigner
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------

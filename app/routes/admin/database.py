@@ -1,9 +1,9 @@
 """Superuser table browser over the alldata view."""
 
-from datetime import datetime
 import os
-from pathlib import Path
 import shutil
+from datetime import datetime
+from pathlib import Path
 
 from flask import (
     current_app,
@@ -11,10 +11,9 @@ from flask import (
     render_template,
     request,
 )
+from flask_login import current_user
 from sqlalchemy import false, func, select, update
 from sqlalchemy.exc import SQLAlchemyError
-
-from flask_login import current_user
 
 from app.auth import reviewer_required
 from app.database.models import (
@@ -25,13 +24,12 @@ from app.database.models import (
 )
 from app.extensions import db
 from app.routes.admin.blueprint import admin
-from app.tools.location_enrichment import recalculate_amt_mtb
 from app.routes.backup import available_backup_years
 from app.tools.coordinate_validation import validate_coordinate
 from app.tools.fts import prefix_tsquery
+from app.tools.location_enrichment import recalculate_amt_mtb
 from app.tools.postal_code import is_valid_plz
 from app.tools.report_images import ensure_upload_dir
-
 
 EDITABLE_FIELDS = {
     "dat_fund_von": TblMeldungen,

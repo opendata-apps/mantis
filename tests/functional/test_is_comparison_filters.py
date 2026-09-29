@@ -1,9 +1,11 @@
 """Test that status-based filtering works correctly."""
 
-import pytest
 from datetime import datetime
-from sqlalchemy import select, func
-from app.database.models import TblMeldungen, ReportStatus
+
+import pytest
+from sqlalchemy import func, select
+
+from app.database.models import ReportStatus, TblMeldungen
 from app.routes.admin.filters import get_filtered_query, normalize_filter_status
 from app.routes.admin.reviewer import _matches_filter_status
 

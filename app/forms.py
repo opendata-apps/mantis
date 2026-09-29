@@ -1,25 +1,26 @@
+from datetime import date
+
+from dateutil.relativedelta import relativedelta
 from flask_wtf import FlaskForm
-from flask_wtf.file import FileField, FileAllowed, FileRequired, FileSize
+from flask_wtf.file import FileAllowed, FileField, FileRequired, FileSize
 from wtforms import (
+    BooleanField,
+    DateField,
     FloatField,
+    SelectField,
     StringField,
     TextAreaField,
-    DateField,
-    SelectField,
-    BooleanField,
 )
 from wtforms.validators import (
     DataRequired,
     Email,
+    InputRequired,
+    Length,
     NumberRange,
     Optional,
-    Length,
     StopValidation,
     ValidationError,
-    InputRequired,
 )
-from datetime import date
-from dateutil.relativedelta import relativedelta
 
 from app.database.feedback_type import FeedbackSource
 from app.tools.address_plausibility import contradicts_german_land
@@ -40,7 +41,6 @@ from app.tools.image_upload import (
     max_upload_mb,
 )
 from app.tools.postal_code import is_valid_plz
-
 
 # Define constants for choices
 GENDER_CHOICES = [

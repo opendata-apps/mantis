@@ -11,9 +11,9 @@ import shapely
 from shapely import Point, STRtree
 from sqlalchemy import Text, select
 
-from app.extensions import db
 from app.database.aemter_koordinaten import TblAemterCoordinaten
 from app.database.ags import BUNDESLAENDER
+from app.extensions import db
 from app.tools.fetch_ags import load_kreise_lookup
 
 logger = logging.getLogger(__name__)

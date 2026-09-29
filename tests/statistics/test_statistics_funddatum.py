@@ -1,6 +1,8 @@
-import pytest
 from unittest.mock import patch
+
+import pytest
 from flask import session as flask_session
+
 from app.routes.statistics import stats_bardiagram_datum
 
 

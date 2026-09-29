@@ -1,8 +1,8 @@
 import os
-from dotenv import load_dotenv
 from datetime import timedelta
 from email.utils import parseaddr
 
+from dotenv import load_dotenv
 from sqlalchemy import URL
 
 # Load .env file from project root

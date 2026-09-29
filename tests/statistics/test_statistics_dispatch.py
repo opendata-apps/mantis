@@ -12,11 +12,12 @@ dispatch + the downstream query + the Jinja template all run — catching
 regressions at each layer at once.
 """
 
-import pytest
-from bs4 import BeautifulSoup
-from datetime import date
 import json
 import re
+from datetime import date
+
+import pytest
+from bs4 import BeautifulSoup
 from sqlalchemy import select
 
 from app.database.models import ReportStatus, TblMeldungen
@@ -200,10 +201,11 @@ class TestStatsFeedback:
     def test_feedback_aggregates_counts(self, reviewer_client, session):
         """Inserting a feedback row must surface through the aggregation
         without breaking the template."""
+        from sqlalchemy import select
+
         from app.database.feedback_type import FeedbackSource
         from app.database.user_feedback import TblUserFeedback
         from app.database.users import TblUsers
-        from sqlalchemy import select
 
         user = session.scalar(select(TblUsers).where(TblUsers.user_id == "9999"))
         session.add(

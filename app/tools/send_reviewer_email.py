@@ -5,7 +5,6 @@ from flask_mail import Message
 
 from app.extensions import mail
 
-
 logger = logging.getLogger(__name__)
 
 

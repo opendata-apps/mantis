@@ -5,15 +5,16 @@ They catch regressions like the Männchen/Männlich mismatch that existed before
 """
 
 import pytest
+
 from app.routes.report import (
-    _set_gender_fields,
-    _parse_user_name,
-    _format_date,
     _format_coordinates,
+    _format_date,
+    _get_feedback_source_display,
     _get_finder_name,
     _get_gender_display,
     _get_location_description_display,
-    _get_feedback_source_display,
+    _parse_user_name,
+    _set_gender_fields,
 )
 
 

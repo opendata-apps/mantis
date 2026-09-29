@@ -13,12 +13,14 @@ import datetime
 import io
 import json
 from unittest.mock import patch
-from PIL import Image
+
 import pytest
+from PIL import Image
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
-from app.database.models import TblFundorte, TblMeldungen, TblUsers, TblMeldungUser
+
 from app.database.fundortbeschreibung import TblFundortBeschreibung
+from app.database.models import TblFundorte, TblMeldungen, TblMeldungUser, TblUsers
 from app.tools.coordinate_validation import LAT_RANGE, LON_RANGE
 from tests.helpers import build_valid_report_form_data, make_test_image
 

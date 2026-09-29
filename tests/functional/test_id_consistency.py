@@ -1,16 +1,18 @@
 """Test ID consistency across different views of the application."""
 
-import pytest
 import json
 from datetime import datetime
+
+import pytest
 from bs4 import BeautifulSoup
 from sqlalchemy import select
+
 from app.database.models import (
-    TblMeldungen,
-    TblFundorte,
-    TblUsers,
-    TblMeldungUser,
     ReportStatus,
+    TblFundorte,
+    TblMeldungen,
+    TblMeldungUser,
+    TblUsers,
 )
 from tests.helpers import extract_reports_json, set_client_user
 

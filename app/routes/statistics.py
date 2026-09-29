@@ -1,24 +1,25 @@
-from flask import Blueprint
-from flask import render_template, request, current_app, url_for
-from flask import session
-from markupsafe import escape
-from sqlalchemy import func, select
-from sqlalchemy import cast, String
-from sqlalchemy import literal_column
-from app.extensions import db
-from app.database.models import TblAemterCoordinaten
-from app.auth import reviewer_required
-from app.tools.gen_messtisch_svg import create_measure_sheet
-from app.database.models import TblFundorte, TblMeldungen
-from app.database.models import TblUserFeedback
 from datetime import date, timedelta
-from app.database.feedback_type import FeedbackSource
+
+from flask import Blueprint, current_app, render_template, request, session, url_for
+from markupsafe import escape
+from sqlalchemy import String, cast, func, literal_column, select
+
+from app.auth import reviewer_required
 from app.database.ags import (
-    BUNDESLAENDER,
     BERLIN_BEZIRKE,
     BRANDENBURG_LANDKREISE,
+    BUNDESLAENDER,
     build_gesamt_template,
 )
+from app.database.feedback_type import FeedbackSource
+from app.database.models import (
+    TblAemterCoordinaten,
+    TblFundorte,
+    TblMeldungen,
+    TblUserFeedback,
+)
+from app.extensions import db
+from app.tools.gen_messtisch_svg import create_measure_sheet
 
 stats = Blueprint("statistics", __name__)
 

@@ -1,10 +1,10 @@
 import os
-from smtplib import SMTPException
 import subprocess
 import tempfile
 import zipfile
 from datetime import date
 from pathlib import Path
+from smtplib import SMTPException
 
 from flask import (
     Blueprint,
@@ -18,11 +18,10 @@ from flask import (
 from itsdangerous import BadSignature, URLSafeTimedSerializer
 from sqlalchemy import func, select
 
-from app.extensions import db
 from app.auth import reviewer_required
 from app.database.models import TblFundorte, TblMeldungen
+from app.extensions import db
 from app.tools.send_backup_email import send_backup_email
-
 
 backup = Blueprint("backup", __name__, url_prefix="/admin/backup")
 

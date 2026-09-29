@@ -1,3 +1,4 @@
+from datetime import date
 from random import Random
 
 from flask import (
@@ -7,16 +8,14 @@ from flask import (
     render_template,
     request,
 )
-from datetime import date
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 
-from app.extensions import db
 from app.database.models import (
     TblFundorte,
     TblMeldungen,
 )
+from app.extensions import db
 from app.tools.coordinate_validation import in_range, parse_coordinate
-
 
 # Blueprints
 data = Blueprint("data", __name__)

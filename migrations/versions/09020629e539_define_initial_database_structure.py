@@ -11,8 +11,8 @@ model MetaData carries a naming_convention (which would otherwise rename
 unnamed constraints here retroactively).
 """
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.

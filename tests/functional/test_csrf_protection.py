@@ -4,9 +4,9 @@ Covers:
 - Protected routes reject POST without CSRF token (admin and statistics).
 """
 
+import pytest
 from bs4 import BeautifulSoup
 from itsdangerous import TimestampSigner
-import pytest
 
 from app.database.models import TblMeldungen
 

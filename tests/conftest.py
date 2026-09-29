@@ -165,9 +165,9 @@ def _truncate_all(tables: tuple[str, ...]):
 
 def _seed_test_data():
     """Populate test database with initial + demo data."""
-    from app.extensions import db
-    from app.demodata.filldb import insert_data_reports
     from app.database.populate import populate_all
+    from app.demodata.filldb import insert_data_reports
+    from app.extensions import db
     from tests.database.jsondata import data as jsondata
 
     session = db.session

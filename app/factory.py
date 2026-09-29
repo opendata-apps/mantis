@@ -96,6 +96,7 @@ def register_extensions(app: Flask) -> None:
 def register_template_globals(app: Flask) -> None:
     # Heroicons — usage: {{ heroicon_outline("map-pin", class="w-4 h-4") }}
     from heroicons.jinja import heroicon_mini, heroicon_outline
+
     from app.tools.coordinate_validation import COORDINATE_RANGES
     from app.tools.image_upload import upload_config
 

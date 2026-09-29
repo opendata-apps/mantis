@@ -6,10 +6,9 @@ Create Date: 2026-02-17 14:18:18.232204
 
 """
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects.postgresql import TSVECTOR
-
 
 # revision identifiers, used by Alembic.
 revision = "a90f81bfa252"

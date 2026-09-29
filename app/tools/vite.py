@@ -9,9 +9,9 @@ https://vite.dev/guide/backend-integration
 
 import json
 import os
+
 from flask import current_app, url_for
 from markupsafe import Markup
-
 
 _manifest_cache = {}
 

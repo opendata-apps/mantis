@@ -6,15 +6,15 @@ Network-calling commands (``seed-ags``) are tested by patching the
 occurs.
 """
 
-from unittest.mock import patch
-from pathlib import Path
 import json
+from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 from sqlalchemy import select
 
-from app.database.fundorte import TblFundorte
 from app.database.fundortbeschreibung import TblFundortBeschreibung
+from app.database.fundorte import TblFundorte
 
 
 @pytest.fixture
@@ -115,6 +115,7 @@ class TestSeedCommand:
         assert target_dir.exists()
 
         from sqlalchemy import select
+
         from app.database.models import TblFundorte, TblMeldungen
 
         image_paths = session.scalars(
@@ -158,8 +159,9 @@ class TestRecalculateMtbCommand:
     """``flask recalculate-mtb`` re-derives stored sheet numbers."""
 
     def _fundort(self, session):
-        from app.database.fundorte import TblFundorte
         from sqlalchemy import select
+
+        from app.database.fundorte import TblFundorte
 
         return session.scalars(select(TblFundorte).order_by(TblFundorte.id)).first()
 
@@ -243,8 +245,9 @@ class TestSeedAgsCommand:
     """Covers ``flask seed-ags`` by patching the WFS fetchers."""
 
     def test_successful_sync(self, cli_runner, session, tmp_path, monkeypatch):
-        import app.cli
         from sqlalchemy import select
+
+        import app.cli
         from app.database.models import TblAemterCoordinaten
 
         monkeypatch.setattr(app.cli, "__file__", str(tmp_path / "cli.py"))
@@ -302,8 +305,9 @@ class TestSeedAgsCommand:
     def test_fetch_error_preserves_saved_data(
         self, cli_runner, session, tmp_path, monkeypatch
     ):
-        import app.cli
         from sqlalchemy import select
+
+        import app.cli
         from app.database.models import TblAemterCoordinaten
 
         monkeypatch.setattr(app.cli, "__file__", str(tmp_path / "cli.py"))

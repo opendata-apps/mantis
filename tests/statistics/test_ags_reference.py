@@ -1,9 +1,9 @@
 """Tests for AGS reference data integrity."""
 
 from app.database.ags import (
-    BUNDESLAENDER,
     BERLIN_BEZIRKE,
     BRANDENBURG_LANDKREISE,
+    BUNDESLAENDER,
     build_gesamt_template,
 )
 

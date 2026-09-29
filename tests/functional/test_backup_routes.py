@@ -1,7 +1,7 @@
+import zipfile
 from pathlib import Path
 from smtplib import SMTPException
 from unittest.mock import patch
-import zipfile
 
 
 def test_backup_route_requires_post(client):
@@ -90,6 +90,7 @@ def test_missing_backup_images_do_not_log_reporter_credentials(
     app, session, tmp_path, monkeypatch, caplog
 ):
     from datetime import date
+
     from sqlalchemy import select
 
     from app.database.models import TblMeldungen

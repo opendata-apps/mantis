@@ -1,9 +1,10 @@
+import os
+import platform
+import signal
 import subprocess
 import sys
 import threading
-import os
-import signal
-import platform
+
 from app import create_app
 
 

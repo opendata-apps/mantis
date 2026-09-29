@@ -7,6 +7,7 @@ ReportStatus enforces a state machine:
 """
 
 import pytest
+
 from app.database.report_status import ReportStatus
 
 

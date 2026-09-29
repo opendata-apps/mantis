@@ -1,5 +1,5 @@
-from sqlalchemy.orm import Session
 from flask import current_app
+from sqlalchemy.orm import Session
 
 from app.database.fundortbeschreibung import TblFundortBeschreibung
 

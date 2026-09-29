@@ -1,8 +1,10 @@
-import pytest
-from unittest.mock import patch
 from datetime import datetime
-from app.database.models import TblMeldungen
+from unittest.mock import patch
+
+import pytest
+
 from app.config import Config
+from app.database.models import TblMeldungen
 from tests.helpers import set_client_user
 
 
@@ -150,13 +152,14 @@ class TestAdminApproval:
 @pytest.fixture
 def reported_sighting(session):
     """A report with the reporter link and contact the approval mail needs."""
+    from sqlalchemy import select
+
     from app.database.models import (
-        TblFundorte,
         TblFundortBeschreibung,
+        TblFundorte,
         TblMeldungUser,
         TblUsers,
     )
-    from sqlalchemy import select
 
     reporter = TblUsers(
         user_id="mailtest-reporter",

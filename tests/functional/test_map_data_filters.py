@@ -1,9 +1,11 @@
 """Test map data generation to ensure status filtering works correctly."""
 
-import pytest
 import json
 from datetime import datetime
-from app.database.models import TblMeldungen, TblFundorte, ReportStatus
+
+import pytest
+
+from app.database.models import ReportStatus, TblFundorte, TblMeldungen
 from tests.helpers import extract_reports_json
 
 

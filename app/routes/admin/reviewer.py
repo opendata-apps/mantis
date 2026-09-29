@@ -14,10 +14,9 @@ from flask import (
     send_from_directory,
     url_for,
 )
+from flask_login import current_user
 from sqlalchemy import func, select
 from sqlalchemy.exc import SQLAlchemyError
-
-from flask_login import current_user
 
 from app.auth import log_in, reviewer_required
 from app.database.models import (
@@ -30,7 +29,6 @@ from app.database.models import (
 )
 from app.extensions import db, limiter
 from app.routes.admin.blueprint import admin
-from app.tools.location_enrichment import recalculate_amt_mtb
 from app.routes.admin.filters import (
     get_filtered_query,
     get_reviewer_filter_args,
@@ -41,6 +39,7 @@ from app.tools.coordinate_validation import (
     validate_coordinate,
     validate_coordinate_pair,
 )
+from app.tools.location_enrichment import recalculate_amt_mtb
 from app.tools.postal_code import is_valid_plz
 from app.tools.send_reviewer_email import build_email_payload, send_email
 

@@ -1,6 +1,7 @@
 """Tests for the Users database table functionality."""
 
 from sqlalchemy import select
+
 from app.database.users import TblUsers
 
 

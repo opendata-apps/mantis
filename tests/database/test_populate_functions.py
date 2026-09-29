@@ -1,15 +1,16 @@
 """Tests for database population functions."""
 
-import pytest
 from unittest.mock import patch
+
+import pytest
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.database.populate import (
-    populate_beschreibung,
-    populate_all,
-)
 from app.database.models import TblFundortBeschreibung
+from app.database.populate import (
+    populate_all,
+    populate_beschreibung,
+)
 
 
 @pytest.mark.usefixtures("app_ctx")

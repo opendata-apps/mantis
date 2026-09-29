@@ -1,6 +1,7 @@
-from flask import has_app_context
 from pathlib import Path
+
 import pytest
+from flask import has_app_context
 
 
 def test_requests_release_their_application_context(client):

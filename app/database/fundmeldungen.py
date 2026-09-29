@@ -1,5 +1,3 @@
-from sqlalchemy import and_, not_
-from sqlalchemy.ext.hybrid import hybrid_property
 from datetime import date, datetime
 from typing import TYPE_CHECKING
 
@@ -11,13 +9,16 @@ from sqlalchemy import (
     Identity,
     Index,
     String,
+    and_,
     func,
+    not_,
 )
 from sqlalchemy.dialects.postgresql import ARRAY, TSVECTOR
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.extensions import db
 from app.database.report_status import ReportStatus
+from app.extensions import db
 
 if TYPE_CHECKING:
     from app.database.fundorte import TblFundorte

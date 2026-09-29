@@ -3,8 +3,8 @@
 from datetime import date
 
 import pytest
+from sqlalchemy import func, select
 
-from sqlalchemy import select, func
 from app.database.models import TblMeldungen
 
 SEEDED_SAMPLE_IDS = {1, 3, 9, 11, 16}

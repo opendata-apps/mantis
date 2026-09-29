@@ -17,7 +17,6 @@ import app.routes.report as report_mod
 from app.routes.report import _process_uploaded_image
 from tests.helpers import build_valid_report_form_data
 
-
 pytestmark = pytest.mark.usefixtures("app_ctx")
 
 

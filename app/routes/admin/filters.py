@@ -10,13 +10,13 @@ from flask import current_app, request
 from sqlalchemy import false, func, select
 from sqlalchemy.orm import contains_eager, joinedload
 
-from app.tools.fts import prefix_tsquery
 from app.database.models import (
     STATUS_FILTERS,
     TblFundorte,
     TblMeldungen,
     TblMeldungUser,
 )
+from app.tools.fts import prefix_tsquery
 
 
 def _parse_german_date(value: str | None) -> datetime | None:

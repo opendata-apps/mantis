@@ -1,5 +1,5 @@
-from app.tools.gemeinde_finder import get_amt_enriched
 from app.tools.coordinate_validation import parse_coordinate
+from app.tools.gemeinde_finder import get_amt_enriched
 from app.tools.mtb_calc import get_mtb
 
 

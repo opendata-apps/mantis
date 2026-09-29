@@ -6,6 +6,7 @@ sheet the reporter would find on the printed map, or the number is wrong.
 """
 
 import pytest
+
 from app.tools.mtb_calc import get_mtb
 
 

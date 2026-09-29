@@ -1,7 +1,7 @@
 """Merge the schema branches and remove the experimental geographic scores."""
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects import postgresql
 
 revision = "e5f6a7b8c9d0"

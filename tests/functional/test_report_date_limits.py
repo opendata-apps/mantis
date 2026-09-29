@@ -1,7 +1,7 @@
 from datetime import date, timedelta
 
-from bs4 import BeautifulSoup
 import pytest
+from bs4 import BeautifulSoup
 from werkzeug.datastructures import MultiDict
 
 from app import forms

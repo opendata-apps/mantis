@@ -5,50 +5,49 @@ from datetime import datetime
 from pathlib import Path
 from urllib.parse import quote, urlencode
 
+from email_validator import validate_email
 from flask import (
     Blueprint,
+    abort,
+    current_app,
     jsonify,
     make_response,
     render_template,
     request,
-    url_for,
-    abort,
     session,
-    current_app,
+    url_for,
 )
-from email_validator import validate_email
-from PIL import Image, ImageFile, ImageOps
-
 from flask_login import current_user
-
-from app.extensions import db, limiter
-from app.auth import log_in
+from PIL import Image, ImageFile, ImageOps
 from sqlalchemy import select
+
+from app.auth import log_in
+from app.database.feedback_type import FeedbackSource
 from app.database.models import (
     TblFundorte,
     TblMeldungen,
     TblMeldungUser,
-    TblUsers,
     TblUserFeedback,
+    TblUsers,
     UserRole,
 )
-from app.database.feedback_type import FeedbackSource
+from app.extensions import db, limiter
 from app.forms import (
     GENDER_CHOICES,
     LOCATION_DESCRIPTION_CHOICES,
     MantisSightingForm,
     minimum_sighting_date,
 )
-from app.tools.gen_user_id import get_new_id
-from app.tools.image_upload import PILLOW_FORMATS
-from app.tools.gemeinde_finder import get_amt_enriched
-from app.tools.location_enrichment import calculate_spatial_fields
-from app.tools.report_images import build_upload_filename, ensure_upload_dir
 from app.tools.coordinate_validation import (
     COORDINATE_RANGES,
     in_range,
     parse_coordinate,
 )
+from app.tools.gemeinde_finder import get_amt_enriched
+from app.tools.gen_user_id import get_new_id
+from app.tools.image_upload import PILLOW_FORMATS
+from app.tools.location_enrichment import calculate_spatial_fields
+from app.tools.report_images import build_upload_filename, ensure_upload_dir
 
 # Blueprints
 report = Blueprint("report", __name__)

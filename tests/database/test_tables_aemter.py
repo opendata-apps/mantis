@@ -1,6 +1,7 @@
 """Tests for the Aemter (administrative areas) database table functionality."""
 
 from sqlalchemy import select
+
 from app.database.aemter_koordinaten import TblAemterCoordinaten
 
 

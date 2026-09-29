@@ -7,8 +7,9 @@ from types import SimpleNamespace
 import pytest
 from sqlalchemy import delete
 from sqlalchemy.exc import OperationalError
-from app.tools.gemeinde_finder import get_amt_enriched, reload_gemeinde_cache
+
 from app.database.aemter_koordinaten import TblAemterCoordinaten
+from app.tools.gemeinde_finder import get_amt_enriched, reload_gemeinde_cache
 
 
 def _amt_string(point):

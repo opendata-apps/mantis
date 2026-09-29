@@ -12,18 +12,16 @@ from unittest.mock import patch
 from urllib.parse import unquote
 
 import pytest
-from sqlalchemy import select, func
-from tests.helpers import build_valid_report_form_data, make_test_image
-
+from sqlalchemy import func, select
 
 from app.database.models import (
     TblFundorte,
     TblMeldungen,
     TblMeldungUser,
-    TblUsers,
     TblUserFeedback,
+    TblUsers,
 )
-
+from tests.helpers import build_valid_report_form_data, make_test_image
 
 # ---------------------------------------------------------------------------
 # Shared helpers and fixtures

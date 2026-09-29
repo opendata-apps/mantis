@@ -12,8 +12,8 @@ from bs4 import BeautifulSoup
 from sqlalchemy import select
 
 from app.database.models import (
-    TblFundorte,
     TblFundortBeschreibung,
+    TblFundorte,
     TblMeldungen,
     TblMeldungUser,
     TblUsers,

@@ -4,9 +4,11 @@ These verify the convenience properties (is_deleted, is_approved,
 is_open, is_unclear, needs_info) that the admin UI and query filters rely on.
 """
 
-import pytest
 from datetime import date
+
+import pytest
 from sqlalchemy import select
+
 from app.database.models import STATUS_FILTERS, TblMeldungen
 
 

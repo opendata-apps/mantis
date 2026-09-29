@@ -1,8 +1,8 @@
 """Excel export of the reviewer's current filter selection."""
 
+import tempfile
 from datetime import datetime
 from io import BytesIO
-import tempfile
 
 import xlsxwriter
 from flask import abort, send_file

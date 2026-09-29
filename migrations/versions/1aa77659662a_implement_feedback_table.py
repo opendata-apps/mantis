@@ -9,9 +9,8 @@ Constraint names are pinned to the PostgreSQL defaults this migration
 originally produced (see 09020629e539 for rationale).
 """
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "1aa77659662a"
