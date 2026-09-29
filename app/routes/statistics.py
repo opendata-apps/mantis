@@ -1,7 +1,6 @@
 from datetime import date, timedelta
 
 from flask import Blueprint, current_app, render_template, request, session, url_for
-from markupsafe import escape
 from sqlalchemy import String, cast, func, literal_column, select
 
 from app.auth import reviewer_required
@@ -89,18 +88,7 @@ def autocomplete_ags():
     )
 
     rows = db.session.execute(stmt).all()
-    return "".join(
-        f"""
-        <li
-            class="suggestion"
-            data-ags="{escape(ags)}"
-            data-gen="{escape(gen)}"
-        >
-            <strong>{escape(ags)}</strong>: {escape(gen)}
-        </li>
-        """
-        for ags, gen in rows
-    )
+    return render_template("statistics/partials/_ags_options.html", rows=rows)
 
 
 def _iso_date_or(value, fallback):

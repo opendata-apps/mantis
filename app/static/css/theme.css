@@ -756,26 +756,6 @@ body:has(dialog:modal) {
 }
 
 /* ==========================================================================
-   AGS Autocomplete Suggestions
-   These <li> are built in app/routes/statistics.py, outside Tailwind's
-   @source scan, so utilities there would never be generated. They carry a
-   click handler (statistiken.html) but shipped with no padding or hover.
-   ========================================================================== */
-
-#vorschlaege .suggestion {
-  display: flex;
-  align-items: center;
-  min-height: 44px;
-  padding: 0.5rem 0.75rem;
-  border-radius: 0.375rem;
-  cursor: pointer;
-}
-
-#vorschlaege .suggestion:hover {
-  background-color: var(--color-gray-100);
-}
-
-/* ==========================================================================
    Reduced Motion — disable transform-based animations for vestibular safety
    ========================================================================== */
 @media (prefers-reduced-motion: reduce) {

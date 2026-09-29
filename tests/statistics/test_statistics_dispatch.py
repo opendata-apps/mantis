@@ -342,7 +342,7 @@ class TestAutocompleteAgs:
         response = client.get("/statistik/ags?ags_input=Testst")
         assert response.status_code == 200
         html = response.data.decode()
-        assert html.count('class="suggestion"') == 1
+        assert html.count("<li ") == 1
         assert "Teststadt-Suggest" in html
         assert 'data-ags="99999001"' in html
 
