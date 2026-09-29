@@ -21,22 +21,12 @@ let allDataLoaded = false;
 
 // Main initialization function
 function initializeApp() {
-  // Initialize search elements
   const searchInput = document.getElementById("searchInput");
-  if (searchInput) {
-    searchInput.addEventListener("input", function () {
-      clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
-        searchTerm = this.value;
-        currentPage = 1;
-        allDataLoaded = false;
-        document.getElementById("tableBody").innerHTML = "";
-        initializeInfiniteScroll();
-        fetchTableData();
-        saveState();
-      }, 300);
-    });
-  }
+  searchInput.addEventListener("input", () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => applySearch(searchInput.value), 300);
+  });
+
 
   // Initialize search type select and clear search button
   const searchType = document.querySelector("[data-search-type]");
@@ -535,7 +525,12 @@ function loadState() {
 
 function clearSearch() {
   document.getElementById("searchInput").value = "";
-  searchTerm = "";
+  applySearch("");
+}
+
+// Restart the table from page 1 with a new search term.
+function applySearch(term) {
+  searchTerm = term;
   currentPage = 1;
   allDataLoaded = false;
   document.getElementById("tableBody").innerHTML = "";
