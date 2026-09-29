@@ -1,0 +1,54 @@
+{# Toolbar controls shared by the reviewer (admin.html) and database pages. #}
+
+{# The <summary> of a toolbar dropdown. py-2.5 keeps it level with search_bar. #}
+{% macro dropdown_toggle(variant="secondary", extra="") -%}
+  <summary class="group flex justify-center items-center px-4 py-2.5 w-full text-sm font-medium rounded-lg border cursor-pointer list-none transition-[color,background-color,border-color,box-shadow] duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-green-500/30 group-open:ring-2 group-open:ring-green-500/30 {{ 'text-white bg-green-600 border-green-700 hover:bg-green-700 focus-visible:border-green-700 group-open:border-green-700' if variant == 'green' else 'text-gray-700 bg-white border-gray-300 hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900 focus-visible:border-green-500 group-open:border-green-500' }} {{ extra }}">
+    {{ caller() }}
+  </summary>
+{%- endmacro %}
+
+{# Search type select, text input and clear/submit buttons; admin-modal.js wires
+   changeInputPattern() and clearSearch(). A call block adds hidden inputs. #}
+{% macro search_bar(input_name, placeholder, clear_title, submit_title, value="", maxlength=none, search_type="", action=none, form_id=none) -%}
+  <div class="flex relative items-center w-full lg:flex-1 lg:min-w-96">
+    <form {% if action %}action="{{ action }}" method="GET"{% endif %}
+          {% if form_id %}id="{{ form_id }}"{% endif %}
+          class="flex items-center w-full bg-white rounded-lg border border-gray-300 transition-[color,background-color,border-color,box-shadow] duration-200 focus-within:border-green-500 focus-within:ring-2 focus-within:ring-green-500/30">
+      <div class="relative shrink-0">
+        <select id="searchType"
+                name="search_type"
+                onchange="changeInputPattern()"
+                class="appearance-none bg-none py-2.5 pr-9 pl-3.5 min-w-[90px] text-sm text-gray-700 bg-transparent border-0 rounded-l-lg shadow-none cursor-pointer focus:outline-hidden focus:ring-0 focus:border-transparent">
+          <option value="full_text" {% if search_type == 'full_text' %}selected{% endif %}>Text</option>
+          <option value="id" {% if search_type == 'id' %}selected{% endif %}>ID</option>
+        </select>
+        {{ heroicon_outline("chevron-down", class="absolute right-3 top-1/2 size-4 text-gray-500 pointer-events-none -translate-y-1/2", stroke_width=2) }}
+      </div>
+      <div class="w-px h-6 bg-gray-300"></div>
+      <div class="relative grow">
+        <input type="text"
+               id="searchInput"
+               name="{{ input_name }}"
+               placeholder="{{ placeholder }}"
+               value="{{ value }}"
+               {% if maxlength %}maxlength="{{ maxlength }}"{% endif %}
+               class="py-2.5 pr-22 pl-3.5 w-full text-sm bg-transparent border-0 rounded-r-lg shadow-none placeholder:text-gray-500 focus:outline-hidden focus:ring-0 focus:border-transparent">
+        <div class="flex absolute inset-y-0 right-2 items-center gap-1">
+          <button type="button"
+                  onclick="clearSearch()"
+                  title="{{ clear_title }}"
+                  class="inline-flex justify-center items-center p-2 text-gray-500 rounded-md transition-colors hover:text-gray-700 hover:bg-gray-100 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-green-500/30">
+            {{ heroicon_mini("x-mark", size=16) }}
+          </button>
+          <span class="w-px h-5 bg-gray-300"></span>
+          <button type="submit"
+                  class="inline-flex justify-center items-center p-1 rounded-md transition-colors group hover:bg-gray-100 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-green-500/30"
+                  title="{{ submit_title }}">
+            {{ heroicon_mini("magnifying-glass", class="size-5 text-gray-500 transition-colors duration-200 group-hover:text-green-600") }}
+          </button>
+        </div>
+      </div>
+      {% if caller is defined %}{{ caller() }}{% endif %}
+    </form>
+  </div>
+{%- endmacro %}
