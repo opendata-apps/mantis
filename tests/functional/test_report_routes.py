@@ -8,10 +8,12 @@ Design principles:
 """
 
 import datetime
+import json
 from unittest.mock import patch
 from urllib.parse import unquote
 
 import pytest
+from bs4 import BeautifulSoup
 from sqlalchemy import func, select
 
 from app.database.models import (
@@ -349,10 +351,14 @@ class TestMeldenGet:
         assert 'name="gender"' in html
         assert 'name="sighting_date"' in html
         assert 'name="report_first_name"' in html
-        assert 'data-latitude-min="24.6"' in html
-        assert 'data-latitude-max="60.0"' in html
-        assert 'data-longitude-min="-20.0"' in html
-        assert 'data-longitude-max="44.83"' in html
+        body = BeautifulSoup(html, "html.parser").body
+        assert body is not None
+        coord_range = body.get("data-coord-range")
+        assert isinstance(coord_range, str)
+        assert json.loads(coord_range) == {
+            "latitude": [24.6, 60.0],
+            "longitude": [-20.0, 44.83],
+        }
         assert 'placeholder="z.B. 52,3906"' in html
         coordinate_pattern = (
             r'pattern="[+\-]?(?:[0-9]+(?:[.,][0-9]*)?|[.,][0-9]+)(?:[eE][+\-]?[0-9]+)?"'

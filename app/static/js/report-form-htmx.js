@@ -686,13 +686,7 @@ const ReportForm = {
         const container = document.getElementById('map');
         if (!container) return;
 
-        this.coordinateRanges = {
-            latitude: [Number(container.dataset.latitudeMin), Number(container.dataset.latitudeMax)],
-            longitude: [Number(container.dataset.longitudeMin), Number(container.dataset.longitudeMax)],
-        };
-        if (!Object.values(this.coordinateRanges).flat().every(Number.isFinite)) {
-            throw new Error('Coordinate ranges are missing from the report form');
-        }
+        this.coordinateRanges = JSON.parse(document.body.dataset.coordRange);
 
         this.map = L.map(container, { zoomControl: true, attributionControl: false })
             .setView([51.1657, 10.4515], 6);

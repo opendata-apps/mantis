@@ -37,7 +37,6 @@ from app.forms import (
     minimum_sighting_date,
 )
 from app.tools.coordinate_validation import (
-    COORDINATE_RANGES,
     in_range,
     parse_coordinate,
 )
@@ -266,7 +265,6 @@ def melden(usrid=None):
                 user_has_feedback=bool(
                     user_to_prefill and user_to_prefill.feedback_source is not None
                 ),
-                coordinate_ranges=COORDINATE_RANGES,
             )
         )
         if user_to_prefill:
