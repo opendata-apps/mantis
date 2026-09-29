@@ -1,0 +1,11 @@
+{# Cell editor shell; the editor form is loaded into #cellEditor. Swapped in out of band after a save, it closes the open dialog. #}
+<dialog id="editModal"
+        {% if oob %}hx-swap-oob="true"{% endif %}
+        class="p-0 rounded-lg shadow-lg backdrop:bg-black/50 max-w-md w-full">
+  <div class="bg-white rounded-lg">
+    <div class="flex items-start justify-between p-4 border-b rounded-t">
+      <h3 class="text-xl font-semibold text-gray-900">Edit Field</h3>
+    </div>
+    <div id="cellEditor"></div>
+  </div>
+</dialog>

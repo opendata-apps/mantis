@@ -1,0 +1,8 @@
+<button type="button"
+        id="cell-{{ row.meldungen_id }}-{{ column.name }}"
+        command="show-modal"
+        commandfor="editModal"
+        hx-get="{{ url_for('admin.cell_editor', report_id=row.meldungen_id, column=column.name) }}"
+        hx-target="#cellEditor"
+        hx-swap="innerHTML"
+        class="block relative px-4 py-3 w-full text-sm text-left text-gray-800 whitespace-nowrap min-h-11 cursor-pointer select-none transition-colors hover:bg-gray-100 after:absolute after:right-1 after:bottom-1 after:size-1.5 after:rounded-full after:bg-green-600 after:opacity-0 after:transition-opacity hover:after:opacity-100">{{ row[column.name] | cell_text }}</button>

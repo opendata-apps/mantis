@@ -6,8 +6,9 @@ from datetime import datetime
 from pathlib import Path
 
 from flask import (
+    abort,
     current_app,
-    jsonify,
+    make_response,
     render_template,
     request,
 )
@@ -29,6 +30,8 @@ from app.tools.coordinate_validation import normalize_location_input
 from app.tools.fts import prefix_tsquery
 from app.tools.location_enrichment import recalculate_amt_mtb
 from app.tools.report_images import ensure_upload_dir
+
+GRID_PAGE_SIZE = 50
 
 EDITABLE_FIELDS = {
     "dat_fund_von": TblMeldungen,
@@ -134,31 +137,8 @@ def update_report_image_date(report_id, new_date):
     }
 
 
-@admin.route("/alldata")
-@reviewer_required
-def database_view():
-    return render_template(
-        "admin/database.html",
-        user_id=current_user.user_id,
-        backup_years=available_backup_years(),
-    )
-
-
-@admin.route("/admin/get_table_data/<table_name>")
-@reviewer_required
-def get_table_data(table_name):
-    if table_name != "all_data_view":
-        return jsonify({"error": "Only all_data_view is available"}), 403
-    search = request.args.get("search", "")
-    search_type = request.args.get("search_type", "full_text")
-    sort_column = request.args.get("sort_column", "meldungen_id")
-    sort_direction = request.args.get("sort_direction", "asc")
-
-    table = TblAllData.__table__
-    columns = [column for column in table.columns if column.name not in HIDDEN_COLUMNS]
-    if sort_column not in table.c:
-        sort_column = "meldungen_id"
-
+def grid_statement(search, search_type, sort_column, direction):
+    """The alldata rows matching the search, in a stable order."""
     stmt = select(TblAllData)
     if search and search_type == "id":
         try:
@@ -171,97 +151,137 @@ def get_table_data(table_name):
         stmt = stmt.where(TblMeldungen.search_vector.op("@@")(ts_query))
 
     # meldungen_id breaks ties; without a unique order, OFFSET pages overlap.
-    sort = table.c[sort_column]
-    stmt = stmt.order_by(
-        sort.asc() if sort_direction == "asc" else sort.desc(), TblAllData.meldungen_id
+    sort = TblAllData.__table__.c[sort_column]
+    return stmt.order_by(
+        sort.asc() if direction == "asc" else sort.desc(), TblAllData.meldungen_id
     )
-    # db.paginate reads ?page itself.
+
+
+@admin.route("/alldata")
+@reviewer_required
+def database_view():
+    columns = [
+        column
+        for column in TblAllData.__table__.columns
+        if column.name not in HIDDEN_COLUMNS
+    ]
+    sort = request.args.get("sort", "meldungen_id")
+    if sort not in TblAllData.__table__.c:
+        sort = "meldungen_id"
+    # The URL query is the grid state: search, sort and the page being loaded.
+    state = {
+        "q": request.args.get("q", ""),
+        "search_type": request.args.get("search_type", "full_text"),
+        "sort": sort,
+        "dir": "desc" if request.args.get("dir") == "desc" else "asc",
+    }
     pagination = db.paginate(
-        stmt,
-        per_page=request.args.get("per_page", 10, type=int),
-        max_per_page=100,
+        grid_statement(state["q"], state["search_type"], state["sort"], state["dir"]),
+        per_page=GRID_PAGE_SIZE,
         error_out=False,
     )
+    grid = {
+        "columns": columns,
+        "pagination": pagination,
+        "state": state,
+        "editable": EDITABLE_FIELDS,
+    }
+    if not request.headers.get("HX-Request"):
+        return render_template(
+            "admin/database.html",
+            user_id=current_user.user_id,
+            backup_years=available_backup_years(),
+            **grid,
+        )
+    template = "_grid_rows.html" if pagination.page > 1 else "_grid.html"
+    return render_template(f"admin/partials/{template}", **grid)
 
-    return jsonify(
-        {
-            "columns": [column.name for column in columns],
-            "data": [
-                [getattr(row, column.name) for column in columns]
-                for row in pagination.items
-            ],
-            # "int", "float", "date", "str" or "list"; the grid picks its editor by it.
-            "column_types": {
-                column.name: column.type.python_type.__name__ for column in columns
-            },
-            "editable_fields": list(EDITABLE_FIELDS),
-            "total_items": pagination.total,
-        }
+
+def render_cell_editor(report_id, column, value, error=None):
+    column_type = TblAllData.__table__.c[column].type.python_type.__name__
+    return render_template(
+        "admin/partials/_cell_editor.html",
+        report_id=report_id,
+        column=column,
+        column_type=column_type,
+        value=cell_text(value),
+        error=error,
     )
 
 
-@admin.route("/admin/update_cell", methods=["POST"])
+@admin.app_template_filter("cell_text")
+def cell_text(value):
+    if value is None:
+        return ""
+    if isinstance(value, list):
+        return ",".join(value)
+    if isinstance(value, float) and value.is_integer():
+        return int(value)
+    return value
+
+
+@admin.get("/admin/cell/<int:report_id>/<column>")
 @reviewer_required
-def update_cell():
-    data = request.json
-    if data is None:
-        return jsonify({"error": "Invalid request"}), 400
+def cell_editor(report_id, column):
+    if column not in EDITABLE_FIELDS:
+        abort(403, "This field is not editable")
+    row = db.get_or_404(TblAllData, report_id)
+    return render_cell_editor(report_id, column, getattr(row, column))
 
-    try:
-        column_name = data["column"]
-        raw_id_value = data["meldungen_id"]
-        new_value = data["value"]
-    except KeyError as exc:
-        return jsonify({"error": f"Missing field: {exc.args[0]}"}), 400
 
-    if isinstance(raw_id_value, bool):
-        return jsonify({"error": "Invalid report ID"}), 400
-    try:
-        id_value = int(raw_id_value)
-    except (TypeError, ValueError):
-        return jsonify({"error": "Invalid report ID"}), 400
-
-    original_table = EDITABLE_FIELDS.get(column_name)
+@admin.post("/admin/cell/<int:report_id>/<column>")
+@reviewer_required
+def update_cell(report_id, column):
+    """Save one cell. A rejected value re-renders the editor with the message."""
+    original_table = EDITABLE_FIELDS.get(column)
     if original_table is None:
-        return jsonify({"error": "This field is not editable"}), 403
+        abort(403, "This field is not editable")
+    new_value = request.form["value"]
 
-    report = db.session.get(TblMeldungen, id_value)
-    if not report:
-        return jsonify({"error": "Record not found"}), 404
+    def rejected(message):
+        return render_cell_editor(report_id, column, new_value, message)
+
+    report = db.get_or_404(TblMeldungen, report_id)
+
+    if TblAllData.__table__.c[column].type.python_type is int:
+        try:
+            new_value = int(new_value)
+        except ValueError:
+            return rejected("Enter a whole number.")
 
     if original_table == TblUsers:
         link = report.reporter_link
         target = link.reporter if link else None
         if not target:
-            return jsonify({"error": "User ID not found in the record"}), 400
+            abort(400, "User ID not found in the record")
     elif original_table == TblFundorte:
         target = report.fundort
         if not target:
-            return jsonify({"error": "Fundorte ID not found in the record"}), 400
-        new_value, error_msg = normalize_location_input(column_name, new_value)
+            abort(400, "Fundorte ID not found in the record")
+        new_value, error_msg = normalize_location_input(column, new_value)
         if error_msg:
-            return jsonify({"error": error_msg}), 400
+            return rejected(error_msg)
     else:
         target = report
 
-    setattr(target, column_name, new_value)
+    setattr(target, column, new_value)
 
-    if column_name in ("latitude", "longitude"):
+    if column in ("latitude", "longitude"):
         recalculate_amt_mtb(target)
 
     # Handle dat_fund_von changes - move images to new date folder
     image_update_result = None
-    if column_name == "dat_fund_von":
+    if column == "dat_fund_von":
         try:
-            image_update_result = update_report_image_date(id_value, new_value)
+            image_update_result = update_report_image_date(report_id, new_value)
         except (LookupError, FileNotFoundError, ValueError, OSError) as exc:
             db.session.rollback()
-            return jsonify({"error": f"Date update failed: {exc}"}), 500
+            return rejected(f"Date update failed: {exc}")
 
         if image_update_result.get("status") == "success":
             current_app.logger.info(
                 "Moved image for report %s from %s to %s",
-                id_value,
+                report_id,
                 image_update_result.get("old_path"),
                 image_update_result.get("new_path"),
             )
@@ -282,10 +302,22 @@ def update_cell():
             except OSError:
                 current_app.logger.critical(
                     "Could not revert image move for report %s after commit failure: file stuck at %s, DB expects %s",
-                    id_value,
+                    report_id,
                     image_update_result["new_path"],
                     image_update_result["old_path"],
                 )
         raise
 
-    return jsonify({"success": True})
+    # The cell replaces itself; an empty dialog shell swapped in out of band closes the editor.
+    response = make_response(
+        render_template(
+            "admin/partials/_cell.html",
+            row=db.session.get(TblAllData, report_id),
+            column=TblAllData.__table__.c[column],
+            editable=EDITABLE_FIELDS,
+        )
+        + render_template("admin/partials/_cell_dialog.html", oob=True)
+    )
+    response.headers["HX-Retarget"] = f"#cell-{report_id}-{column}"
+    response.headers["HX-Reswap"] = "outerHTML"
+    return response

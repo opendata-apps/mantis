@@ -1,0 +1,28 @@
+<form hx-post="{{ url_for('admin.update_cell', report_id=report_id, column=column) }}"
+      hx-target="this"
+      hx-swap="outerHTML"
+      hx-disabled-elt="find [type=submit]">
+  <div class="p-6 space-y-3">
+    <label for="cellValue" class="block text-sm font-medium text-gray-700">{{ column }}</label>
+    <input id="cellValue"
+           name="value"
+           type="{{ 'date' if column_type == 'date' else 'number' if column_type == 'int' else 'text' }}"
+           value="{{ value }}"
+           {% if column_type in ('int', 'float') %}required{% endif %}
+           {% if column_type == 'float' %}pattern="\s*-?(\d+([.,]\d*)?|[.,]\d+)\s*" title="A number, e.g. 52.41"{% endif %}
+           autofocus
+           class="w-full p-2 border rounded-sm">
+    {% if error %}<p role="alert" class="text-sm text-red-600">{{ error }}</p>{% endif %}
+  </div>
+  <div class="flex items-center p-6 space-x-2 border-t border-gray-200 rounded-b">
+    <button type="submit" class="btn-green">Save</button>
+    <button type="button"
+            command="close"
+            commandfor="editModal"
+            class="btn-secondary">Cancel</button>
+    <button type="reset"
+            class="inline-flex items-center justify-center px-5 py-2.5 text-sm font-medium text-red-600 bg-white rounded-lg border border-red-300 transition-[color,background-color,border-color,box-shadow] duration-200 hover:bg-red-50 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-red-500/30">
+      Reset
+    </button>
+  </div>
+</form>

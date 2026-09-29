@@ -745,15 +745,10 @@ class TestAmtMtbRecalculation:
             sess["_user_id"] = self.reviewer.user_id
         try:
             response = client.post(
-                "/admin/update_cell",
-                json={
-                    "column": "latitude",
-                    "meldungen_id": self.test_sighting.id,
-                    "value": "52.520008",
-                },
+                f"/admin/cell/{self.test_sighting.id}/latitude",
+                data={"value": "52.520008"},
             )
             assert response.status_code == 200
-            assert response.json == {"success": True}
             session.refresh(self.test_location)
             assert self.test_location.latitude == 52.520008
             assert self.test_location.longitude == 13.404954

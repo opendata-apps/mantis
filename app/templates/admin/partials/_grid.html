@@ -1,0 +1,33 @@
+<div id="grid"
+     hx-indicator="#loadingIndicator"
+     class="overflow-y-auto h-[66vh] [scrollbar-color:var(--color-green-600)_var(--color-gray-50)]">
+  <input type="hidden" name="sort" value="{{ state.sort }}">
+  <input type="hidden" name="dir" value="{{ state.dir }}">
+  <table id="dataTable"
+         class="w-full text-sm text-left text-gray-600 bg-white border-separate border-spacing-0 max-md:block max-md:overflow-x-auto max-md:whitespace-nowrap">
+    <thead class="sticky top-0 z-10 text-xs bg-gray-50 shadow-xs"
+           hx-target="#grid"
+           hx-swap="outerHTML"
+           hx-replace-url="true">
+      <tr>
+        {% for column in columns %}
+          {% set next_dir = 'desc' if state.sort == column.name and state.dir == 'asc' else 'asc' %}
+          {% set sort_url = url_for('admin.database_view', q=state.q, search_type=state.search_type, sort=column.name, dir=next_dir) %}
+          <th class="p-0 font-semibold tracking-wider text-left text-gray-600 uppercase bg-gray-50 border-b-2 border-gray-200 transition-colors hover:bg-gray-100">
+            <a href="{{ sort_url }}"
+               hx-get="{{ sort_url }}"
+               class="flex justify-between items-center px-4 py-3 cursor-pointer">
+              <span>{{ column.name }}</span>
+              <span class="inline-block ml-2 text-[10px] text-green-600 min-w-2">
+                {%- if state.sort == column.name %}{{ '&uarr;' | safe if state.dir == 'asc' else '&darr;' | safe }}{% endif -%}
+              </span>
+            </a>
+          </th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% include "admin/partials/_grid_rows.html" %}
+    </tbody>
+  </table>
+</div>

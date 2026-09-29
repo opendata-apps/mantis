@@ -161,21 +161,20 @@ class TestIDConsistency:
         # Test that the alldata view doesn't expose sensitive internal IDs
         set_client_user(client, self.reviewer.user_id)
 
-        # Check the get_table_data endpoint which might expose internal IDs
-        response = client.get("/admin/get_table_data/all_data_view?page=1&per_page=100")
+        response = client.get("/alldata", headers={"HX-Request": "true"})
         assert response.status_code == 200
-        data = response.get_json()
-        columns = data["columns"]
-        assert data["data"]
-        assert {"meldungen_id", "user_id"} <= set(columns)
-        assert not {"id_user", "id_finder", "fundorte_id", "beschreibung_id"} & set(
-            columns
-        )
-        assert {column for column in columns if "id" in column.lower()} == {
+        headers = {
+            th.get_text(strip=True)
+            for th in BeautifulSoup(response.data, "html.parser").select(
+                "th span:first-child"
+            )
+        }
+        assert {"meldungen_id", "user_id"} <= headers
+        assert not {"id_user", "id_finder", "fundorte_id", "beschreibung_id"} & headers
+        assert {name for name in headers if "id" in name.lower()} == {
             "meldungen_id",
             "user_id",
         }
-        assert all(len(row) == len(columns) for row in data["data"])
 
     def test_database_view_uses_consistent_naming(self, client):
         """Test that database view uses consistent ID naming."""
@@ -183,12 +182,7 @@ class TestIDConsistency:
 
         response = client.get("/alldata")
         assert response.status_code == 200
-
-        # Check for API endpoint
-        response = client.get("/admin/get_table_data/all_data_view?page=1&per_page=10")
-        assert response.status_code == 200
-        data = response.get_json()
-        assert "meldungen_id" in data["columns"]
+        assert "meldungen_id" in response.text
 
     def test_id_display_format_consistency(self, client):
         """Test that IDs are displayed in consistent format (no prefixes, just numbers)."""

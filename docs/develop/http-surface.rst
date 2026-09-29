@@ -57,7 +57,7 @@ Hauptaktionen:
 - Geo/Adresse: ``/update_coordinates/<id>``, ``/update_address/<id>``
 - Modals: ``/modal/<id>``, ``/modal/<tab>/<id>``
 - Export: ``/admin/export/xlsx/<value>``
-- Superuser: ``/alldata``, ``/admin/get_table_data/<table_name>``, ``/admin/update_cell``
+- Superuser: ``/alldata`` (Grid; mit ``HX-Request`` nur Tabelle oder weitere Zeilen), ``/admin/cell/<id>/<column>`` (GET: Editor, POST: speichern)
 
 Alle oben genannten Admin-Endpunkte (außer ``/reviewer``) sind mit
 ``@reviewer_required`` geschützt.

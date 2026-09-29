@@ -1,6 +1,7 @@
 """Tests for admin routes including reviewer interface and data management."""
 
 import json
+import re
 import tempfile
 from datetime import date, datetime, timedelta
 from io import BytesIO
@@ -19,7 +20,8 @@ from app.database.models import (
     TblUsers,
 )
 from app.extensions import mail
-from app.routes.admin import export
+from app.routes.admin import database, export
+from app.routes.admin.database import GRID_PAGE_SIZE
 
 
 def exported_ids(response):
@@ -775,73 +777,75 @@ class TestAdminRoutes:
         assert response.status_code == 200
         assert b"database" in response.data.lower()
 
-    def test_get_table_data_api(self, client):
-        """Test getting table data via API."""
+    def grid(self, client, **args):
+        """The grid fragment htmx loads: page 1 is the table, later pages only rows."""
         with client.session_transaction() as sess:
             sess["_user_id"] = "9999"
+        return client.get("/alldata", query_string=args, headers={"HX-Request": "true"})
 
-        response = client.get("/admin/get_table_data/all_data_view?page=1&per_page=10")
+    @staticmethod
+    def grid_ids(response):
+        return [int(id_) for id_ in re.findall(r'id="cell-(\d+)-tiere"', response.text)]
+
+    def test_grid_fragment_lists_reports_with_editable_cells(self, client):
+        response = self.grid(client)
         assert response.status_code == 200
-        data = json.loads(response.data)
+        soup = BeautifulSoup(response.data, "html.parser")
 
-        assert "data" in data
-        assert "total_items" in data
-        assert "columns" in data
-        assert "editable_fields" in data
-        assert "strasse" in data["editable_fields"]
-        assert "statuses" not in data["editable_fields"]
-        assert "beschreibung" not in data["editable_fields"]
-        assert len(data["data"]) > 0  # Should have at least our test sighting
+        assert soup.find("html") is None
+        assert self.test_sighting.id in self.grid_ids(response)
+        assert soup.select_one(f"#cell-{self.test_sighting.id}-strasse")
+        assert not soup.select("[id$=-statuses], [id$=-beschreibung]")
 
-    def test_get_table_data_full_text_search_keeps_count_in_sync(self, client):
-        """Full-text search should filter both rows and total_items the same way."""
-        with client.session_transaction() as sess:
-            sess["_user_id"] = "9999"
+    def test_grid_full_text_search_filters_rows(self, client):
+        response = self.grid(client, q="Test sighting", search_type="full_text")
+        assert self.grid_ids(response) == [self.test_sighting.id]
 
-        response = client.get(
-            "/admin/get_table_data/all_data_view"
-            "?page=1&per_page=10&search=Test%20sighting&search_type=full_text"
-        )
+    def test_grid_invalid_id_search_returns_no_rows(self, client):
+        response = self.grid(client, q="not-an-int", search_type="id")
         assert response.status_code == 200
-        data = json.loads(response.data)
+        assert self.grid_ids(response) == []
 
-        assert data["total_items"] == 1
-        id_column = data["columns"].index("meldungen_id")
-        assert [row[id_column] for row in data["data"]] == [self.test_sighting.id]
+    def test_grid_sorts_by_the_requested_column(self, client):
+        sort_ids = self.grid_ids(self.grid(client, sort="meldungen_id", dir="desc"))
+        assert sort_ids == sorted(sort_ids, reverse=True)
 
-    def test_get_table_data_invalid_id_search_returns_zero_rows_and_count(self, client):
-        """Invalid ID search input should produce an empty page with total_items=0."""
-        with client.session_transaction() as sess:
-            sess["_user_id"] = "9999"
+    def test_grid_loads_the_rest_on_the_next_page(self, client, session):
+        for _ in range(GRID_PAGE_SIZE + 2):
+            report = TblMeldungen(
+                dat_fund_von=date.today(),
+                dat_meld=date.today(),
+                fo_zuordnung=self.test_location.id,
+            )
+            session.add(report)
+            session.flush()
+            session.add(
+                TblMeldungUser(id_meldung=report.id, id_user=self.reviewer_user.id)
+            )
+        session.commit()
+        total = session.scalar(select(func.count(TblMeldungen.id)))
 
-        response = client.get(
-            "/admin/get_table_data/all_data_view"
-            "?page=1&per_page=10&search=not-an-int&search_type=id"
-        )
-        assert response.status_code == 200
-        data = json.loads(response.data)
+        first = self.grid(client)
+        second = self.grid(client, page=2)
 
-        assert data["total_items"] == 0
-        assert data["data"] == []
+        assert len(self.grid_ids(first)) == GRID_PAGE_SIZE
+        assert 'hx-trigger="intersect once"' in first.text
+        assert "page=2" in first.text
+        assert len(self.grid_ids(second)) == total - GRID_PAGE_SIZE
+        assert "hx-trigger" not in second.text
+        assert "<table" not in second.text
 
     @pytest.mark.parametrize("sort_column", ["fo_quelle", "land", "tiere"])
     def test_paging_the_grid_by_a_shared_value_shows_every_report_once(
-        self, client, session, sort_column
+        self, client, session, monkeypatch, sort_column
     ):
         # Sorted by a column many reports share, one row per page.
-        with client.session_transaction() as sess:
-            sess["_user_id"] = "9999"
+        monkeypatch.setattr(database, "GRID_PAGE_SIZE", 1)
         all_ids = list(session.scalars(select(TblMeldungen.id)))
 
         seen = []
         for page in range(1, len(all_ids) + 1):
-            response = client.get(
-                "/admin/get_table_data/all_data_view"
-                f"?page={page}&per_page=1&sort_column={sort_column}"
-            )
-            data = json.loads(response.data)
-            id_column = data["columns"].index("meldungen_id")
-            seen += [row[id_column] for row in data["data"]]
+            seen += self.grid_ids(self.grid(client, page=page, sort=sort_column))
 
         assert sorted(seen) == sorted(all_ids)
 
@@ -849,67 +853,46 @@ class TestAdminRoutes:
         with client.session_transaction() as sess:
             sess["_user_id"] = "9999"
         return client.post(
-            "/admin/update_cell",
-            json={"meldungen_id": report_id, "column": column, "value": value},
+            f"/admin/cell/{report_id}/{column}",
+            data={"value": value},
+            headers={"HX-Request": "true"},
+        )
+
+    def test_cell_editor_offers_the_stored_value(self, client):
+        with client.session_transaction() as sess:
+            sess["_user_id"] = "9999"
+
+        response = client.get(f"/admin/cell/{self.test_sighting.id}/strasse")
+        assert response.status_code == 200
+        assert 'value="Test Street"' in response.text
+        assert (
+            client.get(f"/admin/cell/{self.test_sighting.id}/ablage").status_code == 403
         )
 
     def test_update_cell_valid_field(self, client, session):
         """Test updating a field exposed by the superuser table."""
-        with client.session_transaction() as sess:
-            sess["_user_id"] = "9999"
-
-        # Update anm_melder field
-        response = client.post(
-            "/admin/update_cell",
-            json={
-                "meldungen_id": self.test_sighting.id,
-                "column": "anm_melder",
-                "value": "Updated comment",
-            },
+        response = self.post_cell(
+            client, self.test_sighting.id, "anm_melder", "Updated comment"
         )
         assert response.status_code == 200
-        data = json.loads(response.data)
-        assert data["success"] is True
+        assert response.headers["HX-Retarget"] == (
+            f"#cell-{self.test_sighting.id}-anm_melder"
+        )
+        assert "Updated comment" in response.text
+        # A fresh, closed editor dialog replaces the open one.
+        assert '<dialog id="editModal"' in response.text
 
         # Verify in database
         session.refresh(self.test_sighting)
         assert self.test_sighting.anm_melder == "Updated comment"
 
-    def test_update_cell_accepts_browser_string_report_id(self, client, session):
-        """The table DOM exposes report IDs as strings in its JSON request."""
-        with client.session_transaction() as sess:
-            sess["_user_id"] = "9999"
-
-        response = client.post(
-            "/admin/update_cell",
-            json={
-                "meldungen_id": str(self.test_sighting.id),
-                "column": "strasse",
-                "value": "Neue Straße 12",
-            },
-        )
-
-        assert response.status_code == 200
-        assert response.get_json() == {"success": True}
-        session.refresh(self.test_location)
-        assert self.test_location.strasse == "Neue Straße 12"
-
     def test_update_cell_is_immediately_visible(self, client, session):
         """The table view reflects the committed edit without a refresh."""
-        with client.session_transaction() as sess:
-            sess["_user_id"] = "9999"
-
-        response = client.post(
-            "/admin/update_cell",
-            json={
-                "meldungen_id": self.test_sighting.id,
-                "column": "strasse",
-                "value": "Neue Straße 7",
-            },
+        response = self.post_cell(
+            client, self.test_sighting.id, "strasse", "Neue Straße 7"
         )
 
         assert response.status_code == 200
-        assert response.get_json() == {"success": True}
         session.expire_all()
         assert (
             session.get(TblFundorte, self.test_location.id).strasse == "Neue Straße 7"
@@ -961,9 +944,11 @@ class TestAdminRoutes:
     ):
         original = getattr(self.test_location, column)
         response = self.post_cell(client, self.test_sighting.id, column, value)
-        assert response.status_code == 400
+        assert response.status_code == 200
+        assert 'role="alert"' in response.text
+        assert "HX-Retarget" not in response.headers
         if message:
-            assert response.json == {"error": message}
+            assert message in response.text
         session.expire_all()
         assert getattr(session.get(TblFundorte, self.test_location.id), column) == (
             original
@@ -979,7 +964,7 @@ class TestAdminRoutes:
         assert reporter.reporter.user_name == "Neuer Name"
 
     def test_update_cell_unknown_report_is_404(self, client):
-        assert self.post_cell(client, 999999, "tiere", 3).status_code == 404
+        assert self.post_cell(client, 999999, "tiere", "3").status_code == 404
 
     @pytest.mark.parametrize(
         "column, value",
@@ -987,8 +972,8 @@ class TestAdminRoutes:
             ("meldungen_id", "999"),
             # Internal review state must not be reachable through the cell
             # editor — these used to bypass status guards entirely.
-            ("deleted", True),
-            ("statuses", ["APPR"]),
+            ("deleted", "true"),
+            ("statuses", "APPR"),
             ("ablage", "/etc/passwd"),
             ("bearb_id", "9999"),
             ("fo_zuordnung", "1"),
@@ -999,51 +984,22 @@ class TestAdminRoutes:
     )
     def test_update_cell_non_editable_field(self, client, column, value):
         """Test that non-editable fields cannot be updated."""
-        with client.session_transaction() as sess:
-            sess["_user_id"] = "9999"
-
-        response = client.post(
-            "/admin/update_cell",
-            json={
-                "meldungen_id": self.test_sighting.id,
-                "column": column,
-                "value": value,
-            },
-        )
+        response = self.post_cell(client, self.test_sighting.id, column, value)
         assert response.status_code == 403
-        data = json.loads(response.data)
-        assert "not editable" in data["error"]
 
     @pytest.mark.parametrize("column", ["id", "not_a_column"])
     def test_update_cell_rejects_columns_the_view_does_not_expose(self, client, column):
         """`column` is attacker-controlled, so only view columns are accepted."""
-        with client.session_transaction() as sess:
-            sess["_user_id"] = "9999"
-
-        response = client.post(
-            "/admin/update_cell",
-            json={
-                "table": "all_data_view",
-                "meldungen_id": self.test_sighting.id,
-                "column": column,
-                "value": "1",
-            },
-        )
+        response = self.post_cell(client, self.test_sighting.id, column, "1")
         assert response.status_code == 403
-        assert "not editable" in json.loads(response.data)["error"]
 
-    def test_update_cell_missing_required_field(self, client):
-        """Malformed JSON payload returns 400, not a 500 KeyError."""
-        with client.session_transaction() as sess:
-            sess["_user_id"] = "9999"
-
-        response = client.post(
-            "/admin/update_cell",
-            json={},
-        )
-        assert response.status_code == 400
-        data = json.loads(response.data)
-        assert "Missing field" in data["error"]
+    def test_update_cell_rejects_a_non_integer_count(self, client, session):
+        original = self.test_sighting.tiere
+        response = self.post_cell(client, self.test_sighting.id, "tiere", "many")
+        assert response.status_code == 200
+        assert "whole number" in response.text
+        session.expire_all()
+        assert session.get(TblMeldungen, self.test_sighting.id).tiere == original
 
     def test_change_mantis_meta_plz_non_numeric_returns_400(self, client):
         """plz is CHECK-constrained to 5 digits — non-numeric input must yield 400, not 500."""

@@ -4,7 +4,6 @@
 {% block title %}Database Admin{% endblock %}
 {% block content %}
 {{ vite_tags("js/admin-htmx.js") }}
-{{ vite_tags("js/database.js") }}
 <div class="container px-4 py-8 mx-auto">
   <h1 class="mb-6 text-3xl font-bold text-gray-800">Database Administration</h1>
   <div class="flex flex-col gap-3 mb-5 lg:flex-row lg:items-center">
@@ -27,7 +26,52 @@
         </div>
       </details>
     </div>
-    {{ toolbar.search_bar("search", "Search...", "Clear", "Search", form_id="searchForm") }}
+    <div class="flex relative items-center w-full lg:flex-1 lg:min-w-96">
+      <form id="searchForm"
+            action="{{ url_for('admin.database_view') }}"
+            method="get"
+            hx-get="{{ url_for('admin.database_view') }}"
+            hx-trigger="input delay:300ms, submit"
+            hx-target="#grid"
+            hx-swap="outerHTML"
+            hx-sync="this:replace"
+            hx-replace-url="true"
+            hx-include="#grid"
+            hx-indicator="#loadingIndicator"
+            class="flex items-center w-full bg-white rounded-lg border border-gray-300 transition-[color,background-color,border-color,box-shadow] duration-200 focus-within:border-green-500 focus-within:ring-2 focus-within:ring-green-500/30">
+        <div class="relative shrink-0">
+          <select id="searchType"
+                  name="search_type"
+                  class="appearance-none bg-none py-2.5 pr-9 pl-3.5 min-w-[90px] text-sm text-gray-700 bg-transparent border-0 rounded-l-lg shadow-none cursor-pointer focus:outline-hidden focus:ring-0 focus:border-transparent">
+            <option value="full_text" {% if state.search_type == 'full_text' %}selected{% endif %}>Text</option>
+            <option value="id" {% if state.search_type == 'id' %}selected{% endif %}>ID</option>
+          </select>
+          {{ heroicon_outline("chevron-down", class="absolute right-3 top-1/2 size-4 text-gray-500 pointer-events-none -translate-y-1/2", stroke_width=2) }}
+        </div>
+        <div class="w-px h-6 bg-gray-300"></div>
+        <div class="relative grow">
+          <input type="text"
+                 id="searchInput"
+                 name="q"
+                 placeholder="Search..."
+                 value="{{ state.q }}"
+                 class="py-2.5 pr-22 pl-3.5 w-full text-sm bg-transparent border-0 rounded-r-lg shadow-none placeholder:text-gray-500 focus:outline-hidden focus:ring-0 focus:border-transparent">
+          <div class="flex absolute inset-y-0 right-2 items-center gap-1">
+            <a href="{{ url_for('admin.database_view') }}"
+               title="Clear"
+               class="inline-flex justify-center items-center p-2 text-gray-500 rounded-md transition-colors hover:text-gray-700 hover:bg-gray-100 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-green-500/30">
+              {{ heroicon_mini("x-mark", size=16) }}
+            </a>
+            <span class="w-px h-5 bg-gray-300"></span>
+            <button type="submit"
+                    class="inline-flex justify-center items-center p-1 rounded-md transition-colors group hover:bg-gray-100 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-green-500/30"
+                    title="Search">
+              {{ heroicon_mini("magnifying-glass", class="size-5 text-gray-500 transition-colors duration-200 group-hover:text-green-600") }}
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
     <div class="w-full lg:w-auto">
       <details class="relative dropdown group">
         {% call toolbar.dropdown_toggle("green", extra="lg:w-auto") %}
@@ -59,53 +103,16 @@
     </div>
   </div>
   <div id="backupStatus" class="mb-5" role="status" aria-live="polite"></div>
-  <div id="tableContainer" class="hidden">
-    <h2 id="tableTitle" class="mb-4 text-2xl font-semibold text-gray-700"></h2>
+  <div id="tableContainer" hx-history="false">
+    <h2 class="mb-4 text-2xl font-semibold text-gray-700">Table: all_data_view</h2>
     <div class="overflow-x-auto shadow-md sm:rounded-lg">
-      <div id="scrollContainer" class="overflow-y-auto h-[66vh]">
-        <table id="dataTable" class="w-full text-sm text-left text-gray-600">
-          <thead class="sticky top-0 text-xs text-gray-700 uppercase bg-gray-50">
-            <tr id="tableHeader"></tr>
-          </thead>
-          <tbody id="tableBody">
-          </tbody>
-        </table>
-        <!-- The sentinel will be appended here by JavaScript -->
-      </div>
-      <div id="loadingIndicator"
-           hidden
-           class="absolute inset-0 z-10 flex items-center justify-center">
-        <div class="size-16 border-4 border-gray-200 border-t-green-600 rounded-full animate-spin"></div>
-      </div>
+      {% include "admin/partials/_grid.html" %}
+    </div>
+    <div id="loadingIndicator"
+         class="absolute opacity-0 transition-opacity [&.htmx-request]:opacity-100 inset-0 z-10 flex items-center justify-center pointer-events-none">
+      <div class="size-16 border-4 border-gray-200 border-t-green-600 rounded-full animate-spin"></div>
     </div>
   </div>
 </div>
-<!-- Edit Modal -->
-<dialog id="editModal"
-        class="p-0 rounded-lg shadow-lg backdrop:bg-black/50 max-w-md w-full">
-  <form method="dialog" id="editForm">
-    <div class="bg-white rounded-lg">
-      <!-- Modal header -->
-      <div class="flex items-start justify-between p-4 border-b rounded-t">
-        <h3 class="text-xl font-semibold text-gray-900">Edit Field</h3>
-      </div>
-      <!-- Modal body -->
-      <div class="p-6 space-y-6">
-        <div id="modalInputContainer"></div>
-      </div>
-      <!-- Modal footer -->
-      <div class="flex items-center p-6 space-x-2 border-t border-gray-200 rounded-b">
-        <button type="submit" class="btn-green">Save</button>
-        <button type="button"
-                command="close"
-                commandfor="editModal"
-                class="btn-secondary">Cancel</button>
-        <button type="reset"
-                class="inline-flex items-center justify-center px-5 py-2.5 text-sm font-medium text-red-600 bg-white rounded-lg border border-red-300 transition-[color,background-color,border-color,box-shadow] duration-200 hover:bg-red-50 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-red-500/30">
-          Reset
-        </button>
-      </div>
-    </div>
-  </form>
-</dialog>
+{% include "admin/partials/_cell_dialog.html" %}
 {% endblock %}

@@ -1,0 +1,24 @@
+{% for row in pagination.items %}
+  <tr class="odd:bg-white even:bg-gray-50">
+    {% for column in columns %}
+      {% if column.name in editable %}
+        <td class="p-0 border-b border-gray-200">
+          {% include "admin/partials/_cell.html" %}
+        </td>
+      {% else %}
+        <td class="px-4 py-3 text-sm italic text-gray-500 whitespace-nowrap bg-gray-50 border-b border-gray-200">
+          {{ row[column.name] | cell_text }}
+        </td>
+      {% endif %}
+    {% endfor %}
+  </tr>
+{% endfor %}
+{% if pagination.has_next %}
+  {# `intersect once`, not `revealed`, because the rows scroll inside #grid. #}
+  <tr hx-get="{{ url_for('admin.database_view', page=pagination.next_num, **state) }}"
+      hx-trigger="intersect once"
+      hx-target="this"
+      hx-swap="outerHTML">
+    <td colspan="{{ columns | length }}" class="p-0 h-px"></td>
+  </tr>
+{% endif %}
