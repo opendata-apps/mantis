@@ -55,7 +55,7 @@
   <span class="text-base">(ein geschütztes Tier)</span>
 {% endblock title %}
 {% block content %}
-  <main class="container px-4 py-12 mx-auto sm:px-6 lg:px-8">
+  <div class="container px-4 py-12 mx-auto sm:px-6 lg:px-8">
     <div class="grid grid-cols-1 gap-8 md:grid-cols-4">
       <aside class="-order-1 md:col-span-1 md:order-1">
         <div class="sticky top-20">
@@ -477,6 +477,6 @@
         </div>
       </article>
     </div>
-  </main>
+  </div>
 {% endblock content %}
 {% block scripts %}<script type="module" src="{{ vite_asset('js/gallery.js') }}"></script>{% endblock %}
