@@ -158,9 +158,6 @@ Security/Session
    * - ``SESSION_COOKIE_SECURE``
      - ``True`` (Config) / ``False`` (.env.example)
      - Secure-Flag für Session-Cookie
-   * - ``BACKUP_DOWNLOAD_MAX_AGE_SECONDS``
-     - ``604800``
-     - Gültigkeitsdauer signierter Backup-Downloadlinks
 
 Sonstiges
 ^^^^^^^^^

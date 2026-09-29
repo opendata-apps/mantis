@@ -3,6 +3,36 @@ from pathlib import Path
 from smtplib import SMTPException
 from unittest.mock import patch
 
+import pytest
+from itsdangerous import URLSafeTimedSerializer
+
+from app.database.models import TblUsers
+from tests.helpers import set_client_user
+
+
+@pytest.mark.parametrize("role", [None, "1"], ids=["anonymous", "reporter"])
+def test_backup_link_does_not_grant_reviewer_access(
+    app, client, session, tmp_path, role
+):
+    backup_file = tmp_path / "backup_2025.zip"
+    backup_file.write_bytes(b"private database dump")
+    app.config["BACKUP_DIR"] = str(tmp_path)
+    if role:
+        session.add(
+            TblUsers(user_id="backup-reporter", user_name="Reporter", user_rolle=role)
+        )
+        session.commit()
+        set_client_user(client, "backup-reporter")
+
+    # A previously issued signed link must not authorize an anonymous visitor
+    # or a reporter to download the complete database.
+    token = URLSafeTimedSerializer(
+        app.config["SECRET_KEY"], salt="backup-download"
+    ).dumps({"filename": backup_file.name})
+    response = client.get(f"/admin/backup/download/{backup_file.name}?token={token}")
+
+    assert response.status_code == 403
+
 
 def test_backup_route_requires_post(client):
     response = client.get("/admin/backup/2025")
@@ -62,23 +92,18 @@ def test_backup_route_keeps_download_link_when_mail_fails(
     assert "Backup herunterladen" in response.text
 
 
-def test_backup_download_requires_signed_token(client):
+def test_backup_download_requires_reviewer(client):
     response = client.get("/admin/backup/download/backup_2025.zip")
 
     assert response.status_code == 403
 
 
-def test_backup_download_serves_file_with_valid_token(app, client, tmp_path):
+def test_backup_download_serves_file_to_reviewer(app, authenticated_client, tmp_path):
     backup_file = Path(tmp_path) / "backup_2025.zip"
     backup_file.write_bytes(b"zip")
     app.config["BACKUP_DIR"] = str(tmp_path)
 
-    with app.app_context():
-        from app.routes.backup import _download_token
-
-        token = _download_token(backup_file.name)
-
-    response = client.get(f"/admin/backup/download/{backup_file.name}?token={token}")
+    response = authenticated_client.get(f"/admin/backup/download/{backup_file.name}")
 
     assert response.status_code == 200
     assert response.data == b"zip"

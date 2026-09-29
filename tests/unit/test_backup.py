@@ -4,7 +4,6 @@ from unittest.mock import patch
 
 import pytest
 from flask import Flask
-from werkzeug.exceptions import Forbidden
 
 from app.extensions import mail
 from app.routes import backup as backup_routes
@@ -16,7 +15,6 @@ def backup_app(tmp_path):
     app = Flask(__name__)
     app.config.update(
         BACKUP_DIR=str(tmp_path / "backups"),
-        BACKUP_DOWNLOAD_MAX_AGE_SECONDS=604800,
         DATABASE_DB="mantis_tester",
         DATABASE_HOST="localhost",
         DATABASE_PASSWORD="mantis",
@@ -34,10 +32,10 @@ def backup_app(tmp_path):
 
 
 def test_render_backup_email_contains_download_url():
-    text = render_backup_email("https://example.test/download", 7)
+    text = render_backup_email("https://example.test/download")
 
     assert "https://example.test/download" in text
-    assert "7 Tage" in text
+    assert "aktive Reviewer-Sitzung" in text
     assert "Datensicherung" in text
 
 
@@ -46,7 +44,6 @@ def test_send_backup_email_sends_message(backup_app):
         send_backup_email(
             recipient="backup@example.com",
             download_url="https://example.test/download",
-            expires_in_days=7,
         )
 
     assert len(outbox) == 1
@@ -54,22 +51,6 @@ def test_send_backup_email_sends_message(backup_app):
     assert msg.recipients == ["backup@example.com"]
     assert msg.body is not None
     assert "https://example.test/download" in msg.body
-
-
-def test_download_token_rejects_wrong_filename(backup_app):
-    token = backup_routes._download_token("backup_2025.zip")
-
-    with pytest.raises(Forbidden):
-        backup_routes._validate_download_token("backup_2024.zip", token)
-
-
-def test_download_token_rejects_expired_token(backup_app):
-    token = backup_routes._download_token("backup_2025.zip")
-    # Any age exceeds a negative maximum, so the link has expired.
-    backup_app.config["BACKUP_DOWNLOAD_MAX_AGE_SECONDS"] = -1
-
-    with pytest.raises(Forbidden):
-        backup_routes._validate_download_token("backup_2025.zip", token)
 
 
 def test_resolve_upload_path_rejects_path_traversal(backup_app):

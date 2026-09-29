@@ -4,7 +4,7 @@ from flask_mail import Message
 from app.extensions import mail
 
 
-def render_backup_email(download_url: str, expires_in_days: int) -> str:
+def render_backup_email(download_url: str) -> str:
     """Build the reviewer backup notification email body."""
     return f"""
     Lieber Reviewer,
@@ -16,7 +16,8 @@ def render_backup_email(download_url: str, expires_in_days: int) -> str:
 
     {download_url}
 
-    Der Link ist {expires_in_days} Tage gültig.
+    Zum Herunterladen benötigen Sie eine aktive Reviewer-Sitzung.
+    Öffnen Sie zuerst Ihren persönlichen Reviewer-Link im selben Browser.
 
     Mit freundlichen Grüßen
 
@@ -28,12 +29,11 @@ def send_backup_email(
     *,
     recipient: str,
     download_url: str,
-    expires_in_days: int,
 ) -> None:
     msg = Message(
         subject="[Gottesanbeterin-Gesucht] Backup",
         recipients=[recipient],
-        body=render_backup_email(download_url, expires_in_days),
+        body=render_backup_email(download_url),
     )
     mail.send(msg)
     current_app.logger.info("Backup mail sent to %s.", recipient)

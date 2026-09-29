@@ -11,11 +11,9 @@ from flask import (
     abort,
     current_app,
     render_template,
-    request,
     send_from_directory,
     url_for,
 )
-from itsdangerous import BadSignature, URLSafeTimedSerializer
 from sqlalchemy import func, select
 
 from app.auth import reviewer_required
@@ -41,31 +39,6 @@ def _backup_dir() -> Path:
     backup_dir = Path(current_app.config["BACKUP_DIR"])
     backup_dir.mkdir(parents=True, exist_ok=True)
     return backup_dir
-
-
-def _serializer() -> URLSafeTimedSerializer:
-    return URLSafeTimedSerializer(
-        current_app.config["SECRET_KEY"],
-        salt="backup-download",
-    )
-
-
-def _download_token(filename: str) -> str:
-    return _serializer().dumps({"filename": filename})
-
-
-def _validate_download_token(filename: str, token: str | None) -> None:
-    if not token:
-        abort(403)
-    try:
-        data = _serializer().loads(
-            token,
-            max_age=current_app.config["BACKUP_DOWNLOAD_MAX_AGE_SECONDS"],
-        )
-    except BadSignature:  # includes SignatureExpired
-        abort(403)
-    if data.get("filename") != filename:
-        abort(403)
 
 
 def _resolve_upload_path(relative_path: str) -> Path | None:
@@ -196,20 +169,16 @@ def trigger_year_backup(year: int):
         current_app.logger.exception("Backup for year %s failed.", year)
         return render_template("admin/partials/_backup_status.html", error=True), 500
 
-    token = _download_token(backup_path.name)
     download_url = url_for(
         "backup.download_backup",
         filename=backup_path.name,
-        token=token,
         _external=True,
     )
-    expires_in_days = current_app.config["BACKUP_DOWNLOAD_MAX_AGE_SECONDS"] // 86400
 
     try:
         send_backup_email(
             recipient=recipient,
             download_url=download_url,
-            expires_in_days=expires_in_days,
         )
     except (OSError, SMTPException):
         current_app.logger.exception("Backup mail for year %s failed.", year)
@@ -233,8 +202,8 @@ def trigger_year_backup(year: int):
 
 
 @backup.get("/download/<path:filename>")
+@reviewer_required
 def download_backup(filename: str):
-    _validate_download_token(filename, request.args.get("token"))
     response = send_from_directory(
         _backup_dir(),
         filename,

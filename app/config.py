@@ -148,9 +148,6 @@ class Config:
     )
     REVIEWERMAIL = os.getenv("REVIEWERMAIL", "False").lower() in ("true", "1", "yes")
     BACKUPMAIL = os.getenv("BACKUPMAIL", "").strip()
-    BACKUP_DOWNLOAD_MAX_AGE_SECONDS = _env_int(
-        "BACKUP_DOWNLOAD_MAX_AGE_SECONDS", 7 * 24 * 60 * 60
-    )
 
     # Public support intake for photos the browser cannot upload. GitLab creates
     # confidential tickets; knowing this address does not grant access to them.
