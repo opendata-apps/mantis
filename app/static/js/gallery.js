@@ -208,3 +208,21 @@ class Lightbox {
 }
 
 document.addEventListener('DOMContentLoaded', () => new Lightbox());
+
+// Staggered gallery reveal — items fade in as they enter the viewport
+const galleryItems = document.querySelectorAll('.gallery-item');
+if (galleryItems.length && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  const io = new IntersectionObserver((entries) => {
+    // Collect newly visible items and stagger them
+    entries.filter(e => e.isIntersecting).forEach((entry, i) => {
+      entry.target.style.animationDelay = `${i * 40}ms`;
+      entry.target.classList.add('animate-gallery-fade-up');
+      io.unobserve(entry.target);
+    });
+  }, { threshold: 0.05, rootMargin: '0px 0px -40px 0px' });
+
+  galleryItems.forEach(el => io.observe(el));
+} else {
+  // Reduced motion — show immediately
+  galleryItems.forEach(el => { el.style.opacity = '1'; });
+}

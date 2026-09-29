@@ -55,12 +55,12 @@
         {% for faq in faq_entries %}
           <div class="transition-shadow duration-300 bg-white rounded-lg shadow-md faq-item hover:shadow-lg"
                data-title="{{ faq.title|lower }}">
-            <button class="w-full text-left focus:outline-hidden focus-visible:ring-2 focus-visible:ring-green-500/30 rounded-lg"
+            <button class="group w-full text-left focus:outline-hidden focus-visible:ring-2 focus-visible:ring-green-500/30 rounded-lg"
                     data-id="faq{{ loop.index }}"
                     aria-expanded="false">
               <div class="flex items-center justify-between p-6">
                 <span class="text-xl font-semibold text-gray-800">{{ faq.title }}</span>
-                {{ heroicon_outline("chevron-down", class="size-6 text-gray-500 transition-transform duration-200 ease-in", stroke_width=2) }}
+                {{ heroicon_outline("chevron-down", class="size-6 text-gray-500 transition-transform duration-200 ease-in group-aria-expanded:rotate-180", stroke_width=2) }}
               </div>
             </button>
             <div class="overflow-hidden transition-[max-height] duration-300 max-h-0"
@@ -89,39 +89,5 @@
   ]
 }
   </script>
-  <script>
-  const faqItems = document.querySelectorAll(".faq-item");
-  faqItems.forEach((item) => {
-    const button = item.querySelector('button');
-    const content = item.querySelector('div[id^="faq"]');
-    const arrow = button.querySelector('svg');
-
-    button.addEventListener('click', () => {
-      const expanded = button.getAttribute('aria-expanded') === 'true' || false;
-      button.setAttribute('aria-expanded', !expanded);
-      
-      if (expanded) {
-        content.style.maxHeight = '0px';
-        arrow.style.transform = 'rotate(0deg)';
-      } else {
-        content.style.maxHeight = content.scrollHeight + 'px';
-        arrow.style.transform = 'rotate(180deg)';
-      }
-    });
-  });
-
-  const search = document.querySelector('#faq-search');
-  search.addEventListener('input', (e) => {
-    const val = e.target.value.toLowerCase();
-    const items = document.querySelectorAll('.faq-item');
-    items.forEach(item => {
-      const title = item.getAttribute('data-title');
-      if (title.includes(val)) {
-        item.style.display = 'block';
-      } else {
-        item.style.display = 'none';
-      }
-    });
-  });
-  </script>
 {% endblock content %}
+{% block scripts %}{{ vite_tags("js/faq.js") }}{% endblock %}

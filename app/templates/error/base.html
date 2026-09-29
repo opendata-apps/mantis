@@ -39,12 +39,7 @@
       </div>
     </div>
     {% block scripts %}
-      <script>
-      const mantis = document.getElementById("mantis");
-      setInterval(() => {
-        mantis.classList.toggle("animate-blink");
-      }, 5000);
-      </script>
+      {{ vite_tags("js/error.js") }}
     {% endblock %}
   </body>
 </html>
