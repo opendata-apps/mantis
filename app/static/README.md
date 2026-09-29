@@ -7,7 +7,6 @@ app/static/
 ├── css/
 │   └── theme.css          # Tailwind v4 + @theme Tokens
 ├── js/
-│   ├── vendor.js
 │   ├── map.js
 │   ├── report-form-htmx.js
 │   ├── admin-htmx.js

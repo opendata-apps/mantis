@@ -2,9 +2,7 @@
 {% import "admin/_macros_toolbar.html" as toolbar %}
 {% block meta_robots %}noindex,nofollow{% endblock %}
 {% block title %}Database Admin{% endblock %}
-{%
-block content %}
-<script type="module" src="{{ vite_asset('js/vendor.js') }}"></script>
+{% block content %}
 {{ vite_tags("js/admin-htmx.js") }}
 {{ vite_tags("js/database.js") }}
 <div class="container px-4 py-8 mx-auto">

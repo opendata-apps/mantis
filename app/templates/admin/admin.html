@@ -7,7 +7,6 @@
 {% import "admin/_macros_toolbar.html" as toolbar %}
 {% block head %}{{ vite_tags("js/map.js") }}{% endblock %}
 {% block content %}
-  <script type="module" src="{{ vite_asset('js/vendor.js') }}"></script>
   <script type="module" src="{{ vite_asset('js/admin.js') }}"></script>
   {{ vite_tags("js/admin-htmx.js") }}
   {{ vite_tags("js/admin-modal.js") }}

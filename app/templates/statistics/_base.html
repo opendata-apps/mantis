@@ -22,6 +22,5 @@
 {% endblock content %}
 {% block scripts %}
   <script src="{{ url_for('static', filename='build/plotly.min.js') }}"></script>
-  <script type="module" src="{{ vite_asset('js/vendor.js') }}"></script>
   <script type="module" src="{{ vite_asset('js/statistics.js') }}"></script>
 {% endblock scripts %}

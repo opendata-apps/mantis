@@ -35,6 +35,14 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && nav.classList.contains('open')) closeMenu();
 });
 
+// Close open admin dropdowns on outside click, but not on datepicker popups
+document.addEventListener('click', (e) => {
+  if (e.target.closest('[class*="datepicker"]')) return;
+  document.querySelectorAll('details.dropdown[open]').forEach((dropdown) => {
+    if (!dropdown.contains(e.target)) dropdown.removeAttribute('open');
+  });
+});
+
 window.addEventListener('scroll', () => {
   header.classList.toggle('scrolled', window.scrollY > 10);
 }, { passive: true });

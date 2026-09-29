@@ -29,7 +29,6 @@ export default defineConfig({
     manifest: true,
     rollupOptions: {
       input: {
-        vendor: resolve(__dirname, 'app/static/js/vendor.js'),
         htmx: resolve(__dirname, 'app/static/js/htmx.js'),
         map: resolve(__dirname, 'app/static/js/map.js'),
         'map-page': resolve(__dirname, 'app/static/js/map-page.js'),
