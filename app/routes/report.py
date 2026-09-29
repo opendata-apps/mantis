@@ -158,6 +158,84 @@ def _parse_user_name(user_name):
     return last_name, first_name
 
 
+def _save_report(form, reporter, image_path):
+    """Write the finder, feedback, location, sighting and link rows and commit."""
+    finder = None
+    if (
+        not form.identical_finder_reporter.data
+        and form.finder_first_name.data
+        and form.finder_last_name.data
+    ):
+        finder = _create_user(
+            form.finder_first_name.data,
+            form.finder_last_name.data,
+            "",
+            role=UserRole.FINDER,
+        )
+        db.session.add(finder)
+        db.session.flush()
+
+    if form.feedback_source.data and not reporter.feedback_source:
+        db.session.add(
+            TblUserFeedback(
+                user_id=reporter.id,
+                feedback_source=form.feedback_source.data,
+                source_detail=form.feedback_detail.data,
+            )
+        )
+
+    lat, lon = form.latitude.data, form.longitude.data
+    sighting_date = form.sighting_date.data
+    if lat is None or lon is None or sighting_date is None:
+        raise RuntimeError("Missing coordinates or date after form validation")
+    spatial_fields = calculate_spatial_fields(lat, lon)
+
+    location_description = form.location_description.data
+    if not isinstance(location_description, str):
+        raise RuntimeError(
+            "Expected location description after successful form validation"
+        )
+
+    fundort = TblFundorte(
+        plz=form.fund_zip_code.data or None,
+        ort=form.fund_city.data,
+        strasse=form.fund_street.data,
+        # AGS spatial data is authoritative for land/kreis;
+        # fall back to Nominatim (form) only if spatial lookup missed
+        kreis=spatial_fields["kreis"] or form.fund_district.data,
+        land=spatial_fields["land"] or form.fund_state.data,
+        longitude=lon,
+        latitude=lat,
+        mtb=spatial_fields["mtb"],
+        amt=spatial_fields["amt"],
+        beschreibung=int(location_description),
+        ablage=image_path or "",
+    )
+    db.session.add(fundort)
+    db.session.flush()
+
+    meldung = TblMeldungen(
+        dat_fund_von=sighting_date,
+        dat_meld=datetime.now(),
+        fo_zuordnung=fundort.id,
+        fo_quelle="F",
+        tiere=1,
+        anm_melder=form.description.data,
+        **_set_gender_fields(form.gender.data),
+    )
+    db.session.add(meldung)
+    db.session.flush()
+
+    db.session.add(
+        TblMeldungUser(
+            id_meldung=meldung.id,
+            id_user=reporter.id,
+            id_finder=finder.id if finder else None,
+        )
+    )
+    db.session.commit()
+
+
 @report.route("/melden", methods=["GET", "POST"])
 @report.route("/melden/<usrid>", methods=["GET", "POST"])
 @limiter.limit("10 per hour", methods=["POST"])
@@ -165,213 +243,134 @@ def _parse_user_name(user_name):
 def melden(usrid=None):
     """Handle mantis sighting report form submission with user prefilling support."""
     form = MantisSightingForm()
-    user_prefilled_data = False
-    user_has_feedback = False
 
-    # Handle GET request with user prefilling
-    if request.method == "GET" and usrid:
-        user_to_prefill = db.session.scalar(
-            select(TblUsers).where(TblUsers.user_id == usrid)
+    if request.method == "GET":
+        user_to_prefill = (
+            db.session.scalar(select(TblUsers).where(TblUsers.user_id == usrid))
+            if usrid
+            else None
         )
         if user_to_prefill:
             last_name, first_name = _parse_user_name(user_to_prefill.user_name)
-
             form.report_last_name.data = last_name
             form.report_first_name.data = first_name
             form.email.data = user_to_prefill.user_kontakt or ""
-            user_has_feedback = user_to_prefill.feedback_source is not None
-            user_prefilled_data = True
 
-    if request.method == "POST":
-        if request.form.get("honeypot", "").strip():
-            abort(403)
+        response = make_response(
+            render_template(
+                "report/report_form.html",
+                form=form,
+                now=datetime.now,
+                minimum_sighting_date=minimum_sighting_date(),
+                user_prefilled=bool(user_to_prefill),
+                user_has_feedback=bool(
+                    user_to_prefill and user_to_prefill.feedback_source is not None
+                ),
+                coordinate_ranges=COORDINATE_RANGES,
+            )
+        )
+        if user_to_prefill:
+            # A prefilled form embeds the reporter's name + email in the markup;
+            # keep it out of search and AI indexes. Pairs with the meta-robots tag
+            # in report_form.html (page-level noindex, not a robots.txt Disallow —
+            # a disallowed page can't be crawled to read the noindex).
+            response.headers["X-Robots-Tag"] = "noindex, nofollow"
+        return response
 
-        if form.validate_on_submit():
-            # Bound before the try so the failure path can name the photo even
-            # when the save dies before the upload is processed.
-            db_image_path = None
-            try:
-                reporter = _resolve_reporter(usrid, form.email.data)
-                if not reporter:
-                    reporter = _create_user(
-                        form.report_first_name.data,
-                        form.report_last_name.data,
-                        form.email.data,
-                    )
-                    db.session.add(reporter)
-                    db.session.flush()
+    if request.form.get("honeypot", "").strip():
+        abort(403)
 
-                finder_instance = None
-                if (
-                    not form.identical_finder_reporter.data
-                    and form.finder_first_name.data
-                    and form.finder_last_name.data
-                ):
-                    finder_instance = _create_user(
-                        form.finder_first_name.data,
-                        form.finder_last_name.data,
-                        "",
-                        role=UserRole.FINDER,
-                    )
-                    db.session.add(finder_instance)
-                    db.session.flush()
-
-                if form.feedback_source.data and not reporter.feedback_source:
-                    user_feedback = TblUserFeedback()
-                    user_feedback.user_id = reporter.id
-                    user_feedback.feedback_source = form.feedback_source.data
-                    user_feedback.source_detail = form.feedback_detail.data
-                    db.session.add(user_feedback)
-
-                if form.photo.data:
-                    db_image_path = process_uploaded_image(
-                        form.photo.data,
-                        form.sighting_date.data,
-                        form.fund_city.data,
-                        reporter.user_id,
-                    )
-
-                lat, lon = form.latitude.data, form.longitude.data
-                sighting_date = form.sighting_date.data
-                if lat is None or lon is None or sighting_date is None:
-                    raise RuntimeError(
-                        "Missing coordinates or date after form validation"
-                    )
-                spatial_fields = calculate_spatial_fields(lat, lon)
-
-                location_description_data = form.location_description.data
-                if not isinstance(location_description_data, str):
-                    raise RuntimeError(
-                        "Expected location description after successful form validation"
-                    )
-                location_description = int(location_description_data)
-
-                fundort = TblFundorte()
-                fundort.plz = form.fund_zip_code.data or None
-                fundort.ort = form.fund_city.data
-                fundort.strasse = form.fund_street.data
-                # AGS spatial data is authoritative for land/kreis;
-                # fall back to Nominatim (form) only if spatial lookup missed
-                fundort.kreis = spatial_fields["kreis"] or form.fund_district.data
-                fundort.land = spatial_fields["land"] or form.fund_state.data
-                fundort.longitude = lon
-                fundort.latitude = lat
-                fundort.mtb = spatial_fields["mtb"]
-                fundort.amt = spatial_fields["amt"]
-                fundort.beschreibung = location_description
-                fundort.ablage = db_image_path or ""
-                db.session.add(fundort)
-                db.session.flush()
-
-                gender_fields = _set_gender_fields(form.gender.data)
-                meldung = TblMeldungen()
-                meldung.dat_fund_von = sighting_date
-                meldung.dat_meld = datetime.now()
-                meldung.fo_zuordnung = fundort.id
-                meldung.fo_quelle = "F"
-                meldung.tiere = 1
-                meldung.anm_melder = form.description.data
-
-                for field, value in gender_fields.items():
-                    setattr(meldung, field, value)
-                db.session.add(meldung)
-                db.session.flush()
-
-                user_link = TblMeldungUser()
-                user_link.id_meldung = meldung.id
-                user_link.id_user = reporter.id
-                user_link.id_finder = finder_instance.id if finder_instance else None
-                db.session.add(user_link)
-                db.session.commit()
-
-            except BlankImageError:
-                # The check runs before anything is written, so only the
-                # transaction needs unwinding. Reported as a field error so the
-                # reporter re-picks the photo and keeps the rest of the form.
-                db.session.rollback()
-                # Same shape as the client beacon, so one grep over
-                # "Photo pipeline failed" finds every instance of this bug.
-                current_app.logger.warning(
-                    "Photo pipeline failed: stage=%s error=%s size=%s type=%s ext=%s ua=%s",
-                    "blank-canvas",
-                    "rejected at upload",
-                    None,
-                    None,
-                    None,
-                    _beacon_field(request.user_agent.string, 200),
-                )
-                return _validation_error_response(
-                    {
-                        "photo": [
-                            (
-                                "Das Foto enthält kein sichtbares Bild. "
-                                "Bitte wählen Sie es erneut aus."
-                            )
-                        ]
-                    }
-                )
-
-            except InvalidImageError as error:
-                db.session.rollback()
-                return _validation_error_response({"photo": [str(error)]})
-
-            except Exception:
-                db.session.rollback()
-                if db_image_path:
-                    (Path(current_app.config["UPLOAD_FOLDER"]) / db_image_path).unlink(
-                        missing_ok=True
-                    )
-                current_app.logger.exception("Failed to save report")
-                return (
-                    jsonify(
-                        {
-                            "success": False,
-                            "error": "Ein Fehler ist beim Speichern Ihrer Meldung aufgetreten.",
-                        }
-                    ),
-                    500,
-                )
-
-            # Same rule as melder_index: a submission never replaces
-            # another identity, a reviewer's session least of all.
-            if (
-                not current_user.is_authenticated
-                or current_user.user_id == reporter.user_id
-            ):
-                log_in(reporter)
-
-            # Set session data for success page
-            session["report_submission_successful"] = True
-            session["last_submission_reporter_id"] = reporter.user_id
-            session["submission_had_email"] = bool(reporter.user_kontakt)
-
-            return jsonify(
-                {
-                    "success": True,
-                    "redirect_url": url_for("report.success"),
-                    "message": "Vielen Dank, Ihre Meldung wurde erfolgreich gespeichert!",
-                }
-            ), 200
+    if not form.validate_on_submit():
         return _validation_error_response(form.errors)
 
-    response = make_response(
-        render_template(
-            "report/report_form.html",
-            form=form,
-            now=datetime.now,
-            minimum_sighting_date=minimum_sighting_date(),
-            user_prefilled=user_prefilled_data,
-            user_has_feedback=user_has_feedback,
-            coordinate_ranges=COORDINATE_RANGES,
+    # Bound before the try so the failure path can name the photo even
+    # when the save dies before the upload is processed.
+    db_image_path = None
+    try:
+        reporter = _resolve_reporter(usrid, form.email.data)
+        if not reporter:
+            reporter = _create_user(
+                form.report_first_name.data,
+                form.report_last_name.data,
+                form.email.data,
+            )
+            db.session.add(reporter)
+            db.session.flush()
+
+        if form.photo.data:
+            db_image_path = process_uploaded_image(
+                form.photo.data,
+                form.sighting_date.data,
+                form.fund_city.data,
+                reporter.user_id,
+            )
+        _save_report(form, reporter, db_image_path)
+
+    except BlankImageError:
+        # The check runs before anything is written, so only the
+        # transaction needs unwinding. Reported as a field error so the
+        # reporter re-picks the photo and keeps the rest of the form.
+        db.session.rollback()
+        # Same shape as the client beacon, so one grep over
+        # "Photo pipeline failed" finds every instance of this bug.
+        current_app.logger.warning(
+            "Photo pipeline failed: stage=%s error=%s size=%s type=%s ext=%s ua=%s",
+            "blank-canvas",
+            "rejected at upload",
+            None,
+            None,
+            None,
+            _beacon_field(request.user_agent.string, 200),
         )
-    )
-    if user_prefilled_data:
-        # A prefilled form embeds the reporter's name + email in the markup;
-        # keep it out of search and AI indexes. Pairs with the meta-robots tag
-        # in report_form.html (page-level noindex, not a robots.txt Disallow —
-        # a disallowed page can't be crawled to read the noindex).
-        response.headers["X-Robots-Tag"] = "noindex, nofollow"
-    return response
+        return _validation_error_response(
+            {
+                "photo": [
+                    (
+                        "Das Foto enthält kein sichtbares Bild. "
+                        "Bitte wählen Sie es erneut aus."
+                    )
+                ]
+            }
+        )
+
+    except InvalidImageError as error:
+        db.session.rollback()
+        return _validation_error_response({"photo": [str(error)]})
+
+    except Exception:
+        db.session.rollback()
+        if db_image_path:
+            (Path(current_app.config["UPLOAD_FOLDER"]) / db_image_path).unlink(
+                missing_ok=True
+            )
+        current_app.logger.exception("Failed to save report")
+        return (
+            jsonify(
+                {
+                    "success": False,
+                    "error": "Ein Fehler ist beim Speichern Ihrer Meldung aufgetreten.",
+                }
+            ),
+            500,
+        )
+
+    # Same rule as melder_index: a submission never replaces
+    # another identity, a reviewer's session least of all.
+    if not current_user.is_authenticated or current_user.user_id == reporter.user_id:
+        log_in(reporter)
+
+    # Set session data for success page
+    session["report_submission_successful"] = True
+    session["last_submission_reporter_id"] = reporter.user_id
+    session["submission_had_email"] = bool(reporter.user_kontakt)
+
+    return jsonify(
+        {
+            "success": True,
+            "redirect_url": url_for("report.success"),
+            "message": "Vielen Dank, Ihre Meldung wurde erfolgreich gespeichert!",
+        }
+    ), 200
 
 
 @report.route("/success")
