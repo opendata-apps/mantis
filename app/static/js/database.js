@@ -38,18 +38,6 @@ function initializeApp() {
     });
   }
 
-  // Initialize filter form
-  const filterForm = document.getElementById("filterForm");
-  if (filterForm) {
-    filterForm.addEventListener("submit", function (e) {
-      e.preventDefault();
-      currentPage = 1;
-      document.getElementById("tableBody").innerHTML = "";
-      initializeInfiniteScroll();
-      fetchTableData();
-    });
-  }
-
   // Initialize search type select and clear search button
   const searchType = document.querySelector("[data-search-type]");
   if (searchType) {
@@ -128,26 +116,7 @@ function initializeApp() {
       currentlyEditingCell = null;
       currentlyEditingCellData = null;
     });
-    // Prevent closing on stray backdrop clicks (accidental data loss).
-    // ESC is allowed through — it is an intentional cancel gesture, the
-    // keyboard equivalent of clicking the Cancel button.
-    editModal.addEventListener('click', (e) => {
-      if (e.target === editModal) {
-        e.preventDefault();
-      }
-    });
   }
-
-  // Initialize window resize handler
-  let resizeTimeout;
-  window.addEventListener('resize', () => {
-    clearTimeout(resizeTimeout);
-    resizeTimeout = setTimeout(() => {
-      if (!allDataLoaded) {
-        checkIfMoreDataNeeded();
-      }
-    }, 250);
-  });
 
   // Load initial state and data
   loadState().then(() => {
@@ -587,30 +556,5 @@ function changeInputPattern() {
     searchInput.removeAttribute('pattern');
     searchInput.removeAttribute('title');
     searchInput.setAttribute('inputmode', 'text');
-  }
-}
-
-// Call the function on page load to set the initial pattern
-window.addEventListener('load', () => {
-  changeInputPattern();
-});
-
-
-
-function checkIfMoreDataNeeded() {
-  const scrollContainer = document.getElementById("scrollContainer");
-  if (!scrollContainer) return;
-
-  const containerHeight = scrollContainer.clientHeight;
-  const scrollHeight = scrollContainer.scrollHeight;
-  const scrollTop = scrollContainer.scrollTop;
-  
-  // If we're close to the bottom and not already loading or finished
-  if (containerHeight + scrollTop + 100 >= scrollHeight && !isLoading && !allDataLoaded) {
-    const totalPages = Math.ceil(totalItems / itemsPerPage);
-    if (currentPage < totalPages) {
-      currentPage++;
-      fetchTableData();
-    }
   }
 }
