@@ -509,14 +509,8 @@ function updateAddressDisplay(d) {
 }
 
 // ---------------------------------------------------------------------------
-// Sort / search / export
+// Search
 // ---------------------------------------------------------------------------
-
-function setSortOrder(value) {
-  var searchParams = new URLSearchParams(window.location.search);
-  searchParams.set("sort_order", value);
-  window.location.search = searchParams.toString();
-}
 
 function changeInputPattern() {
   var searchType = document.getElementById("searchType");
@@ -534,26 +528,6 @@ function changeInputPattern() {
 function clearSearch() {
   document.getElementById("searchInput").value = "";
   document.getElementById("searchInput").form.submit();
-}
-
-function exportData(exportType) {
-  var urlParams = new URLSearchParams(window.location.search);
-  var params = new URLSearchParams();
-  [
-    "statusInput",
-    "typeInput",
-    "q",
-    "search_type",
-    "dateFrom",
-    "dateTo",
-    "dateType",
-  ].forEach(function (param) {
-    var value = urlParams.get(param);
-    if (value !== null) params.append(param, value);
-  });
-  window.location.assign(
-    "/admin/export/xlsx/" + exportType + "?" + params.toString(),
-  );
 }
 
 function setDateType(type) {
@@ -687,12 +661,6 @@ window.addEventListener("load", function () {
 // One delegated listener for all [data-action] buttons, including the
 // htmx-swapped modal partials.
 var CLICK_ACTIONS = {
-  sort: function (el) {
-    setSortOrder(el.dataset.sort);
-  },
-  export: function (el) {
-    exportData(el.dataset.export);
-  },
   "date-type": function (el) {
     setDateType(el.dataset.dateType);
   },

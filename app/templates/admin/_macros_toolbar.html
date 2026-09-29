@@ -9,7 +9,7 @@
 
 {# Search type select, text input and clear/submit buttons. Each page's module
    wires [data-search-type] and [data-search-clear]. A call block adds hidden inputs. #}
-{% macro search_bar(input_name, placeholder, clear_title, submit_title, value="", maxlength=none, search_type="", action=none, form_id=none) -%}
+{% macro search_bar(input_name, placeholder, clear_title, submit_title, value="", maxlength=none, search_type="", action=none, form_id=none, sort_order=none) -%}
   <div class="flex relative items-center w-full lg:flex-1 lg:min-w-96">
     <form {% if action %}action="{{ action }}" method="get"{% endif %}
           {% if form_id %}id="{{ form_id }}"{% endif %}
@@ -41,7 +41,10 @@
             {{ heroicon_mini("x-mark", size=16) }}
           </button>
           <span class="w-px h-5 bg-gray-300"></span>
+          {# Enter submits through the form's first submit button, so this one
+             carries the current sort; the sort menu's buttons send their own. #}
           <button type="submit"
+                  {% if sort_order %}name="sort_order" value="{{ sort_order }}"{% endif %}
                   class="inline-flex justify-center items-center p-1 rounded-md transition-colors group hover:bg-gray-100 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-green-500/30"
                   title="{{ submit_title }}">
             {{ heroicon_mini("magnifying-glass", class="size-5 text-gray-500 transition-colors duration-200 group-hover:text-green-600") }}

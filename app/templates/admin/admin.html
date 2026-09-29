@@ -154,8 +154,9 @@
       {% call toolbar.search_bar("q", "Suche nach Meldungen...", "Löschen",
           "Suche: Wortanfänge genügen (potsd findet Potsdam). Mehrere Wörter müssen alle vorkommen: berlin nymphe",
           value=request.args.get('q', ''), maxlength=50, search_type=search_type,
-          action=url_for('admin.reviewer')) %}
-          {% for name in ["statusInput", "sort_order"] %}
+          action=url_for('admin.reviewer'), form_id="searchForm",
+          sort_order=current_sort_order) %}
+          {% for name in ["statusInput", "typeInput"] %}
             <input type="hidden" name="{{ name }}" value="{{ request.args.get(name, '') }}">
           {% endfor %}
           <input type="hidden"
@@ -187,7 +188,7 @@
                 ("id_desc", "Absteigend", "M4.5 2.5a.5.5 0 0 0-1 0v9.793l-1.146-1.147a.5.5 0 0 0-.708.708l2 1.999.007.007a.497.497 0 0 0 .7-.006l2-2a.5.5 0 0 0-.707-.708L4.5 12.293V2.5z"),
               ] %}
                 <li>
-                  <button type="button" data-action="sort" data-sort="{{ sort }}"
+                  <button type="submit" form="searchForm" name="sort_order" value="{{ sort }}"
                           class="flex items-center w-full px-4 py-2.5 text-left text-gray-700 transition-colors duration-200 hover:bg-gray-50 hover:text-gray-900 {% if current_sort_order == sort %}bg-gray-50{% endif %}">
                     <div class="size-2 mr-2 {{ 'bg-green-500' if current_sort_order == sort }} rounded-full">
                     </div>
@@ -224,7 +225,7 @@
                 ("searched", "Export gesuchte Meldungen"),
               ] %}
                 <li>
-                  <button type="button" data-action="export" data-export="{{ export }}"
+                  <button type="submit" form="searchForm" formaction="{{ url_for('admin.export_data', value=export) }}" formmethod="get"
                           class="flex items-center px-4 py-2.5 w-full text-left text-gray-700 transition-colors duration-200 hover:bg-gray-200 hover:text-gray-900">
                     <span class="grow">{{ label }}</span>
                   </button>
