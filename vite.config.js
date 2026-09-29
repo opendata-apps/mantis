@@ -38,6 +38,7 @@ export default defineConfig({
         admin: resolve(__dirname, 'app/static/js/admin.js'),
         'admin-htmx': resolve(__dirname, 'app/static/js/admin-htmx.js'),
         'admin-modal': resolve(__dirname, 'app/static/js/admin-modal.js'),
+        database: resolve(__dirname, 'app/static/js/database.js'),
         counter: resolve(__dirname, 'app/static/js/counter.js'),
         theme: resolve(__dirname, 'app/static/css/theme.css'),
       },

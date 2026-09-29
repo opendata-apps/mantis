@@ -736,10 +736,12 @@ document.addEventListener("click", function (e) {
   var el = e.target.closest("[data-action]");
   var action = el && CLICK_ACTIONS[el.dataset.action];
   if (action) action(el);
+  if (e.target.closest("[data-search-clear]")) clearSearch();
 });
 
 document.addEventListener("change", function (e) {
   var input = e.target;
+  if (input.matches("[data-search-type]")) changeInputPattern();
   if (input.matches("[data-coordinate]")) {
     validateAndUpdateCoordinate(input, input.dataset.coordinate);
   }
@@ -838,7 +840,3 @@ document.body.addEventListener("htmx:beforeRequest", (event) => {
   }
 });
 document.body.addEventListener("mantis:modal-close", closeModal);
-
-// Window exports (search toolbar handlers referenced from the shared macro)
-window.clearSearch = clearSearch;
-window.changeInputPattern = changeInputPattern;

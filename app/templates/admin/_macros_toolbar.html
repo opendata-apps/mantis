@@ -7,8 +7,8 @@
   </summary>
 {%- endmacro %}
 
-{# Search type select, text input and clear/submit buttons; admin-modal.js wires
-   changeInputPattern() and clearSearch(). A call block adds hidden inputs. #}
+{# Search type select, text input and clear/submit buttons. Each page's module
+   wires [data-search-type] and [data-search-clear]. A call block adds hidden inputs. #}
 {% macro search_bar(input_name, placeholder, clear_title, submit_title, value="", maxlength=none, search_type="", action=none, form_id=none) -%}
   <div class="flex relative items-center w-full lg:flex-1 lg:min-w-96">
     <form {% if action %}action="{{ action }}" method="GET"{% endif %}
@@ -17,7 +17,7 @@
       <div class="relative shrink-0">
         <select id="searchType"
                 name="search_type"
-                onchange="changeInputPattern()"
+                data-search-type
                 class="appearance-none bg-none py-2.5 pr-9 pl-3.5 min-w-[90px] text-sm text-gray-700 bg-transparent border-0 rounded-l-lg shadow-none cursor-pointer focus:outline-hidden focus:ring-0 focus:border-transparent">
           <option value="full_text" {% if search_type == 'full_text' %}selected{% endif %}>Text</option>
           <option value="id" {% if search_type == 'id' %}selected{% endif %}>ID</option>
@@ -35,7 +35,7 @@
                class="py-2.5 pr-22 pl-3.5 w-full text-sm bg-transparent border-0 rounded-r-lg shadow-none placeholder:text-gray-500 focus:outline-hidden focus:ring-0 focus:border-transparent">
         <div class="flex absolute inset-y-0 right-2 items-center gap-1">
           <button type="button"
-                  onclick="clearSearch()"
+                  data-search-clear
                   title="{{ clear_title }}"
                   class="inline-flex justify-center items-center p-2 text-gray-500 rounded-md transition-colors hover:text-gray-700 hover:bg-gray-100 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-green-500/30">
             {{ heroicon_mini("x-mark", size=16) }}

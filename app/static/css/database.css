@@ -1,0 +1,152 @@
+#dataTable thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: var(--color-gray-50);
+  box-shadow: 0 1px 2px 0 color-mix(in srgb, black 5%, transparent);
+}
+
+@media (max-width: 768px) {
+  #dataTable {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  #dataTable th,
+  #dataTable td {
+    padding: 8px 12px;
+  }
+}
+
+.editable {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.allow-select {
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+}
+
+.selected-cell {
+  background-color: var(--color-green-100) !important;
+  border-left: 2px solid var(--color-green-600) !important;
+}
+
+#dataTable {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px 0 color-mix(in srgb, black 10%, transparent), 0 1px 2px -1px color-mix(in srgb, black 10%, transparent);
+}
+
+#dataTable th {
+  padding: 12px 16px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 12px;
+  color: var(--color-gray-600);
+  background-color: var(--color-gray-50);
+  border-bottom: 2px solid var(--color-gray-200);
+  transition: background-color 0.2s;
+}
+
+#dataTable th:hover {
+  background-color: var(--color-gray-100);
+  cursor: pointer;
+}
+
+#dataTable td {
+  padding: 12px 16px;
+  font-size: 14px;
+  color: var(--color-gray-800);
+  border-bottom: 1px solid var(--color-gray-200);
+  transition: background-color 0.2s;
+}
+
+#dataTable tr:last-child td {
+  border-bottom: none;
+}
+
+#dataTable tr:hover td {
+  background-color: var(--color-gray-50);
+}
+
+#dataTable td.editable {
+  position: relative;
+}
+
+#dataTable td.editable:hover {
+  background-color: var(--color-gray-100);
+  cursor: pointer;
+}
+
+#dataTable td.editable::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--color-green-600);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+#dataTable td.editable:hover::after {
+  opacity: 1;
+}
+
+#dataTable td.bg-gray-50 {
+  color: var(--color-gray-500);
+  background-color: var(--color-gray-50);
+  font-style: italic;
+}
+
+.sort-indicator {
+  display: inline-block;
+  font-size: 10px;
+  color: var(--color-green-600);
+  min-width: 8px;
+}
+
+#dataTable th > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+#scrollContainer {
+  scrollbar-color: var(--color-green-600) var(--color-gray-50);
+}
+
+#scrollContainer::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+#scrollContainer::-webkit-scrollbar-track {
+  background: var(--color-gray-100);
+  border-radius: 4px;
+}
+
+#scrollContainer::-webkit-scrollbar-thumb {
+  background-color: var(--color-gray-300);
+  border-radius: 4px;
+  border: 2px solid var(--color-gray-100);
+}
+
+#scrollContainer::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-gray-400);
+}
