@@ -1,44 +1,35 @@
-{% extends "layout.html" %}
-{% block title %}
-  Statistiken
-{% endblock title %}
+{% extends "statistics/_base.html" %}
 {% block meta_keywords %}Auswertungen, Feedback{% endblock %}
-{% from 'statistics/_macros_stats_menu.html' import StatsMenu with context %}
-{% block content %}
-  <section class="container px-4 mx-auto mt-10">
-    <div class="stats-panel">
-      <form action="" method="post" class="space-y-4">
-        {{ StatsMenu() }}
-      </form>
-      <div class="mt-4">
-        {% if fehler != True %}
-          <p class="mt-2 mb-5">Folgende Antworten wurden gegeben:</p>
-          <div class="overflow-x-auto">
-            <table class="w-full tabular-nums min-w-[18rem] table-fixed">
-              <thead>
-                <tr>
-                  <th class="w-[200px]">Art</th>
-                  <th class="w-[50px] text-right">Anzahl</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for f in feedback %}
-                  <tr>
-                    <td>{{ f[0] }}</td>
-                    <td class="text-right">{{ f[1] }}</td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        {% endif %}
+{% block period %}{% endblock period %}
+{% block area %}{% endblock area %}
+{% block stats %}
+  <div class="mt-4">
+    {% if fehler != True %}
+      <p class="mt-2 mb-5">Folgende Antworten wurden gegeben:</p>
+      <div class="overflow-x-auto">
+        <table class="w-full tabular-nums min-w-[18rem] table-fixed">
+          <thead>
+            <tr>
+              <th class="w-[200px]">Art</th>
+              <th class="w-[50px] text-right">Anzahl</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for f in feedback %}
+              <tr>
+                <td>{{ f[0] }}</td>
+                <td class="text-right">{{ f[1] }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
-      <div class="mt-4">
-        <h2 class="font-semibold text-lg mb-4">Ergänzende Hinweise</h2>
-        <ul class="list-disc ml-4">
-          {% for d in details %}<li>{{ d }}</li>{% endfor %}
-        </ul>
-      </div>
-    </div>
-  </section>
-{% endblock content %}
+    {% endif %}
+  </div>
+  <div class="mt-4">
+    <h2 class="font-semibold text-lg mb-4">Ergänzende Hinweise</h2>
+    <ul class="list-disc ml-4">
+      {% for d in details %}<li>{{ d }}</li>{% endfor %}
+    </ul>
+  </div>
+{% endblock stats %}

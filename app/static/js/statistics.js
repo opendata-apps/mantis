@@ -1,5 +1,5 @@
 // Statistics pages: auto-submitting selects, AGS suggestions and Plotly charts.
-// Plotly is a global from build/plotly.min.js (see _macros_stats_menu.html).
+// Plotly is a global from build/plotly.min.js (see statistics/_base.html).
 
 document.addEventListener('change', (e) => {
   if (e.target.matches('select[data-autosubmit]')) e.target.form.submit();

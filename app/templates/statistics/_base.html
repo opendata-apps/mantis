@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+{% from 'statistics/_macros_stats_menu.html' import StatsMenu with context %}
+{% block title %}
+  Statistiken
+{% endblock title %}
+{% block meta_keywords %}Auswertungen, Statistik{% endblock %}
+{% block content %}
+  <section class="container px-4 mx-auto mt-10">
+    <div class="stats-panel">
+      <form action="" method="post" class="space-y-4">
+        {{ StatsMenu() }}
+      </form>
+      {% block period %}
+        <p class="mt-4 text-sm text-gray-700">Für den Zeitraum vom {{ session['date_from'] }} bis {{ session['date_to'] }}.</p>
+      {% endblock period %}
+      {% block area %}
+        <p class="text-sm text-gray-700">Gebietskennzahl: {{ session['ags'] }}</p>
+      {% endblock area %}
+      {% block stats %}{% endblock stats %}
+    </div>
+  </section>
+{% endblock content %}
+{% block scripts %}
+  <script src="{{ url_for('static', filename='build/plotly.min.js') }}"></script>
+  <script type="module" src="{{ vite_asset('js/vendor.js') }}"></script>
+  <script type="module" src="{{ vite_asset('js/statistics.js') }}"></script>
+{% endblock scripts %}

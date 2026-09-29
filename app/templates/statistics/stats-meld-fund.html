@@ -1,22 +1,7 @@
-{% extends "layout.html" %}
-{% block title %}
-  Statistiken
-{% endblock title %}
-{% block meta_keywords %}Auswertungen, Statistik{% endblock %}
-{% from 'statistics/_macros_stats_menu.html' import StatsMenu with context %}
-{% block content %}
-  <section class="container px-4 mx-auto mt-10">
-    <div class="stats-panel">
-      <form action="" method="post" class="space-y-4">
-        {{ StatsMenu() }}
-      </form>
-      <p class="mt-4 text-sm text-gray-700">Für den Zeitraum vom {{ session['date_from'] }} bis {{ session['date_to'] }}.</p>
-      <p class="text-sm text-gray-700">Gebietskennzahl: {{ session['ags'] }}</p>
-      <h1 class="py-2 text-lg text-center">Meldungen nach Fund- und Meldedatum</h1>
-      <div id="meld" data-chart="meld-fund" class="overflow-x-auto w-full">
-        <!-- Grafik -->
-      </div>
-      <script type="application/json" id="chart-data">{{ {"trace1": trace1, "trace2": trace2} | tojson }}</script>
-    </div>
-  </section>
-{% endblock content %}
+{% extends "statistics/_base.html" %}
+{% block stats %}
+  <h1 class="py-2 text-lg text-center">Meldungen nach Fund- und Meldedatum</h1>
+  <div id="meld" data-chart="meld-fund" class="overflow-x-auto w-full">
+  </div>
+  <script type="application/json" id="chart-data">{{ {"trace1": trace1, "trace2": trace2} | tojson }}</script>
+{% endblock stats %}

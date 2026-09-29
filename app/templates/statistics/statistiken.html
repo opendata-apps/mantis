@@ -3,17 +3,86 @@
   Statistiken
 {% endblock title %}
 {% block meta_keywords %}Auswertungen, Statistik{% endblock %}
-{% from 'statistics/_macros_filter_menu.html' import MenuFilter with context %}
-{% from 'statistics/_macros_filter_selection.html' import StatsAuswahl with context %}
 {% block content %}
   <section class="container px-4 mx-auto mt-10">
     <form action="" method="post" class="space-y-4">
-      {{ MenuFilter() }}
+      <div class="p-3 bg-white rounded-lg border border-gray-200 sm:p-4">
+        <div class="flex flex-col gap-3 lg:flex-row lg:items-center">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="relative w-full lg:max-w-xs">
+            <select id="stats"
+                    name="stats"
+                    data-autosubmit
+                    class="appearance-none bg-none py-2.5 pr-9 pl-3.5 w-full text-sm text-gray-700 bg-white rounded-lg border border-gray-300 transition-[color,background-color,border-color,box-shadow] duration-200 focus:outline-hidden focus-visible:border-green-500 focus-visible:ring-2 focus-visible:ring-green-500/30">
+              {% for statistik in menu.items() %}
+                <option value="{{ statistik[0] }}"
+                        {% if statistik[0]==marker %}selected="selected"{% endif %}>{{ statistik[1] }}</option>
+              {% endfor %}
+            </select>
+            {{ heroicon_outline("chevron-down", class="absolute right-3 top-1/2 size-4 text-gray-500 pointer-events-none -translate-y-1/2", stroke_width=2) }}
+          </div>
+          <p class="text-sm text-gray-700">Für den Zeitraum vom {{ session['date_from'] }} bis {{ session['date_to'] }}.</p>
+          <p class="text-sm text-gray-700">Gebietskennzahl: {{ session['ags'] }}</p>
+        </div>
+      </div>
       <div class="stats-panel">
         <p class="mb-4 text-sm text-gray-700">Zeitraum für alle Statistiken festlegen.</p>
-        <div>{{ StatsAuswahl() }}</div>
+        <div>
+          {% set input_class = "block px-3 py-2 w-full min-h-11 text-base text-gray-700 bg-white rounded-lg border border-gray-300 transition-[color,background-color,border-color,box-shadow] duration-200 focus:outline-hidden focus-visible:border-green-500 focus-visible:ring-2 focus-visible:ring-green-500/30" %}
+          <div class="w-full">
+            {# Concentric with the 8px inputs inside: 8px + 16px padding. #}
+            <div id="filterDropdown"
+                 class="p-4 space-y-4 bg-white rounded-3xl border border-gray-200">
+              <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div>
+                  <label for="dateFrom" class="block mb-1 text-sm font-semibold text-gray-700">Funddatum von</label>
+                  <input type="date"
+                         id="dateFrom"
+                         name="dateFrom"
+                         value="{{ session["date_from"] }}"
+                         class="{{ input_class }}">
+                </div>
+                <div>
+                  <label for="dateTo" class="block mb-1 text-sm font-semibold text-gray-700">Funddatum bis</label>
+                  <input type="date"
+                         id="dateTo"
+                         name="dateTo"
+                         value="{{ session["date_to"] }}"
+                         class="{{ input_class }}">
+                </div>
+              </div>
+              <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div>
+                  <label for="ags_input"
+                         class="block mb-1 text-sm font-semibold text-gray-700">Gebiet</label>
+                  <input type="text"
+                         name="ags_input"
+                         id="ags_input"
+                         autocomplete="off"
+                         hx-get="/statistik/ags"
+                         hx-trigger="keyup changed delay:300ms"
+                         hx-target="#vorschlaege"
+                         hx-swap="innerHTML"
+                         class="{{ input_class }}">
+                </div>
+                <div>
+                  <label for="ags" class="block mb-1 text-sm font-semibold text-gray-700">AGS</label>
+                  <input type="text"
+                         value="{{ session["ags"] }}"
+                         name="ags"
+                         id="ags"
+                         class="{{ input_class }}">
+                </div>
+              </div>
+              <div class="flex flex-col gap-3 items-start sm:flex-row sm:items-center sm:justify-between">
+                <button type="submit" class="btn-green w-full sm:w-auto">Auswahl aktualisieren</button>
+                <ul id="vorschlaege" class="overflow-auto w-full max-h-40 text-sm">
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
         <input type="hidden"
-               id="stats"
                name="stats"
                value="start"
                class="rounded-lg">
@@ -47,3 +116,7 @@
     </div>
   </section>
 {% endblock content %}
+{% block scripts %}
+  <script type="module" src="{{ vite_asset('js/htmx.js') }}"></script>
+  <script type="module" src="{{ vite_asset('js/statistics.js') }}"></script>
+{% endblock scripts %}
