@@ -81,6 +81,12 @@
             <a href="{{ url_for('data.show_map', year=now.year) }}">Auswertungen</a>
           </li>
           {% if is_admin %}
+            {%- set admin_links = [
+                (url_for('admin.reviewer'), "Reviewer"),
+                (url_for('statistics.stats_start'), "Statistics"),
+                (url_for('main.galerie'), "Galerie"),
+                (url_for('admin.database_view'), "Superuser"),
+            ] -%}
             {# Admin dropdown - desktop only #}
             <li class="hidden md:flex md:items-center">
               <details class="relative dropdown">
@@ -88,34 +94,20 @@
                   {{ heroicon_outline("plus", class="size-5", stroke_width=2.5) }}
                 </summary>
                 <ul class="absolute right-0 z-50 mt-2 py-2 w-48 bg-white rounded-lg shadow-lg divide-y divide-gray-100">
-                  <li>
-                    <a href="{{ url_for('admin.reviewer') }}">Reviewer</a>
-                  </li>
-                  <li>
-                    <a href="{{ url_for('statistics.stats_start') }}">Statistics</a>
-                  </li>
-                  <li>
-                    <a href="{{ url_for('main.galerie') }}">Galerie</a>
-                  </li>
-                  <li>
-                    <a href="{{ url_for('admin.database_view') }}">Superuser</a>
-                  </li>
+                  {% for href, label in admin_links %}
+                    <li>
+                      <a href="{{ href }}">{{ label }}</a>
+                    </li>
+                  {% endfor %}
                 </ul>
               </details>
             </li>
             {# Admin links - inline on mobile only #}
-            <li class="block md:hidden">
-              <a href="{{ url_for('admin.reviewer') }}">Reviewer</a>
-            </li>
-            <li class="block md:hidden">
-              <a href="{{ url_for('statistics.stats_start') }}">Statistics</a>
-            </li>
-            <li class="block md:hidden">
-              <a href="{{ url_for('main.galerie') }}">Galerie</a>
-            </li>
-            <li class="block md:hidden">
-              <a href="{{ url_for('admin.database_view') }}">Superuser</a>
-            </li>
+            {% for href, label in admin_links %}
+              <li class="block md:hidden">
+                <a href="{{ href }}">{{ label }}</a>
+              </li>
+            {% endfor %}
           {% endif %}
         </ul>
         {# Mobile toggle. aria-expanded drives the hamburger→X animation, so the
@@ -198,97 +190,55 @@
           einzigartigen Jagdstrategie.
         </p>
         <ul class="flex flex-wrap gap-6 justify-center sm:gap-8">
-          <li>
-            <a class="mantis-footer-link"
-               href="https://mantis-religiosa.readthedocs.io/de/latest/index.html"
-               target="_blank"
-               rel="noreferrer noopener">Dokumentation</a>
-          </li>
-          <li>
-            <a class="mantis-footer-link"
-               href="https://gitlab.com/opendata-apps/mantis"
-               target="_blank"
-               rel="noreferrer noopener">Quellcode (GitLab)</a>
-          </li>
-          <li>
-            <a class="mantis-footer-link" href="{{ url_for('main.faq') }}">FAQ</a>
-          </li>
-          <li>
-            <a class="mantis-footer-link" href="{{ url_for('main.impressum') }}">Impressum</a>
-          </li>
-          <li>
-            <a class="mantis-footer-link" href="{{ url_for('main.lizenz') }}">Lizenz</a>
-          </li>
-          <li>
-            <a class="mantis-footer-link" href="{{ url_for('main.datenschutz') }}">Datenschutz</a>
-          </li>
+          {% for href, label, external in [
+              ("https://mantis-religiosa.readthedocs.io/de/latest/index.html", "Dokumentation", true),
+              ("https://gitlab.com/opendata-apps/mantis", "Quellcode (GitLab)", true),
+              (url_for('main.faq'), "FAQ", false),
+              (url_for('main.impressum'), "Impressum", false),
+              (url_for('main.lizenz'), "Lizenz", false),
+              (url_for('main.datenschutz'), "Datenschutz", false),
+          ] %}
+            <li>
+              <a class="mantis-footer-link"
+                 href="{{ href }}"
+                 {% if external %}target="_blank" rel="noreferrer noopener"{% endif %}>{{ label }}</a>
+            </li>
+          {% endfor %}
         </ul>
         <ul class="footer-social flex flex-wrap gap-6 justify-center mt-6 sm:gap-8">
-          <li>
-            <a href="https://gitlab.com/opendata-apps/mantis"
-               rel="noreferrer noopener"
-               target="_blank"
-               class="inline-flex items-center justify-center p-1">
-              <span class="sr-only">GitLab</span>
-              <img loading="lazy"
-                   src="{{ url_for('static', filename='images/svg/gitlab.svg') }}"
-                   alt="GitLab (Code)"
-                   title="GitLab"
-                   class="size-10" />
-            </a>
-          </li>
-          <li>
-            <a href="https://github.com/opendata-apps/mantis"
-               rel="noreferrer noopener"
-               target="_blank"
-               class="inline-flex items-center justify-center p-1">
-              <span class="sr-only">GitHub</span>
-              <img loading="lazy"
-                   src="{{ url_for('static', filename='images/svg/github.svg') }}"
-                   alt="GitHub (Code)"
-                   title="GitHub"
-                   class="size-10" />
-            </a>
-          </li>
-          <li>
-            <a href="https://www.naturkundemuseum-potsdam.de/gottesanbeterin-gesucht"
-               rel="noreferrer noopener"
-               target="_blank"
-               class="inline-flex items-center justify-center p-1">
-              <span class="sr-only">Naturkundemuseum Potsdam</span>
-              <img loading="lazy"
-                   src="{{ url_for('static', filename='images/svg/praying-mantis.svg') }}"
-                   alt="Museum"
-                   title="Naturkundemuseum Potsdam"
-                   class="size-10" />
-            </a>
-          </li>
-          <li>
-            <a href="https://mantis-religiosa.readthedocs.io"
-               rel="noreferrer noopener"
-               target="_blank"
-               class="inline-flex items-center justify-center p-1">
-              <span class="sr-only">Dokumentation</span>
-              <img loading="lazy"
-                   src="{{ url_for('static', filename='images/svg/readme.svg') }}"
-                   alt="Dokumentation"
-                   title="Dokumentation"
-                   class="size-10" />
-            </a>
-          </li>
+          {% for href, label, icon, alt, title in [
+              ("https://gitlab.com/opendata-apps/mantis", "GitLab", "gitlab", "GitLab (Code)", "GitLab"),
+              ("https://github.com/opendata-apps/mantis", "GitHub", "github", "GitHub (Code)", "GitHub"),
+              ("https://www.naturkundemuseum-potsdam.de/gottesanbeterin-gesucht", "Naturkundemuseum Potsdam", "praying-mantis", "Museum", "Naturkundemuseum Potsdam"),
+              ("https://mantis-religiosa.readthedocs.io", "Dokumentation", "readme", "Dokumentation", "Dokumentation"),
+          ] %}
+            <li>
+              <a href="{{ href }}"
+                 rel="noreferrer noopener"
+                 target="_blank"
+                 class="inline-flex items-center justify-center p-1">
+                <span class="sr-only">{{ label }}</span>
+                <img loading="lazy"
+                     src="{{ url_for('static', filename='images/svg/' ~ icon ~ '.svg') }}"
+                     alt="{{ alt }}"
+                     title="{{ title }}"
+                     class="size-10" />
+              </a>
+            </li>
+          {% endfor %}
         </ul>
         <div class="flex flex-col justify-center pt-8 mt-8 space-y-4 text-center text-gray-600 border-t border-gray-300 sm:space-y-0 sm:mt-10 sm:flex-row sm:space-x-10 sm:text-left">
-        <span>Python/Flask-App: <a href="https://gitlab.com/opendata-apps/mantis/-/commits/v{{ version }}"
-    class="font-medium text-green-700 hover:underline">v{{ version }}</a>
-      </span>
-    <span>Lizenz: <a href="{{ url_for('main.lizenz') }}" class="font-medium text-green-700 hover:underline">MIT</a>
-  </span>
-  <span>{{ now.year }}</span>
-</div>
-</div>
-</footer>
-<!--! End Footer -->
-{{ vite_tags("js/layout.js") }}
-{% block scripts %}{% endblock scripts %}
-</body>
+          <span>Python/Flask-App: <a href="https://gitlab.com/opendata-apps/mantis/-/commits/v{{ version }}"
+   class="font-medium text-green-700 hover:underline">v{{ version }}</a>
+          </span>
+          <span>Lizenz: <a href="{{ url_for('main.lizenz') }}" class="font-medium text-green-700 hover:underline">MIT</a>
+          </span>
+          <span>{{ now.year }}</span>
+        </div>
+      </div>
+    </footer>
+    <!--! End Footer -->
+    {{ vite_tags("js/layout.js") }}
+    {% block scripts %}{% endblock scripts %}
+  </body>
 </html>

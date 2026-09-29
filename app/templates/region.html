@@ -115,18 +115,11 @@
       <div class="mb-12">
         <h2 class="section-heading">Weitere Regionen</h2>
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {% for sib in siblings %}
-            <a href="{{ url_for('regionen.region_page', slug=sib.slug) }}"
+          {% for related in siblings + children %}
+            <a href="{{ url_for('regionen.region_page', slug=related.slug) }}"
                class="block p-6 transition-shadow bg-white rounded-lg shadow-md hover:shadow-lg">
-              <h3 class="text-lg font-semibold text-green-700">{{ sib.title }}</h3>
-              <p class="mt-2 text-sm text-gray-600">{{ sib.meta_description[:100] }}...</p>
-            </a>
-          {% endfor %}
-          {% for child in children %}
-            <a href="{{ url_for('regionen.region_page', slug=child.slug) }}"
-               class="block p-6 transition-shadow bg-white rounded-lg shadow-md hover:shadow-lg">
-              <h3 class="text-lg font-semibold text-green-700">{{ child.title }}</h3>
-              <p class="mt-2 text-sm text-gray-600">{{ child.meta_description[:100] }}...</p>
+              <h3 class="text-lg font-semibold text-green-700">{{ related.title }}</h3>
+              <p class="mt-2 text-sm text-gray-600">{{ related.meta_description[:100] }}...</p>
             </a>
           {% endfor %}
         </div>
