@@ -3,41 +3,32 @@
 {% set filter_query = 'filter_status=' ~ filter_status %}
 {% set has_unkl = 'UNKL' in sighting.statuses %}
 {% set has_info = 'INFO' in sighting.statuses %}
+{% set flags = [
+  ('UNKL', 'Unklar', 'question-mark-circle', 'peer-checked:bg-orange-50 peer-checked:text-orange-700 peer-checked:border-orange-300 peer-checked:hover:bg-orange-100 peer-checked:hover:border-orange-400'),
+  ('INFO', 'Informiert', 'chat-bubble-left-ellipsis', 'peer-checked:bg-yellow-50 peer-checked:text-yellow-700 peer-checked:border-yellow-300 peer-checked:hover:bg-yellow-100 peer-checked:hover:border-yellow-400'),
+] %}
 <div id="modal-actions" hx-swap-oob="innerHTML">
 <div class="flex flex-wrap items-center gap-2 action-container">
   {# Left: flag toggles — only for open reports (flags are active review concerns) #}
   {% if not sighting.is_deleted and not is_approved %}
     <div class="flex items-center gap-2 mr-auto">
-      <label class="inline-flex cursor-pointer" title="Unklar">
-        <input type="checkbox"
-               class="sr-only peer"
-               data-flag="UNKL"
-               {% if has_unkl %}checked{% endif %}
-               hx-post="{{ url_for('admin.toggle_flag', id=sighting.id) }}"
-               hx-target="#report-card-{{ sighting.id }}"
-               hx-swap="outerHTML swap:150ms"
-               hx-vals='{{ {"flag": "UNKL", "filter_status": filter_status}|tojson }}'
-               data-action="toggle-overlay">
-        <span class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border transition-colors duration-200 text-gray-700 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 peer-checked:bg-orange-50 peer-checked:text-orange-700 peer-checked:border-orange-300 peer-checked:hover:bg-orange-100 peer-checked:hover:border-orange-400">
-          {{ heroicon_outline("question-mark-circle", class="size-4", stroke_width=1.5) }}
-          Unklar
-        </span>
-      </label>
-      <label class="inline-flex cursor-pointer" title="Informiert">
-        <input type="checkbox"
-               class="sr-only peer"
-               data-flag="INFO"
-               {% if has_info %}checked{% endif %}
-               hx-post="{{ url_for('admin.toggle_flag', id=sighting.id) }}"
-               hx-target="#report-card-{{ sighting.id }}"
-               hx-swap="outerHTML swap:150ms"
-               hx-vals='{{ {"flag": "INFO", "filter_status": filter_status}|tojson }}'
-               data-action="toggle-overlay">
-        <span class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border transition-colors duration-200 text-gray-700 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 peer-checked:bg-yellow-50 peer-checked:text-yellow-700 peer-checked:border-yellow-300 peer-checked:hover:bg-yellow-100 peer-checked:hover:border-yellow-400">
-          {{ heroicon_outline("chat-bubble-left-ellipsis", class="size-4", stroke_width=1.5) }}
-          Informiert
-        </span>
-      </label>
+      {% for flag, label, icon, checked_colors in flags %}
+        <label class="inline-flex cursor-pointer" title="{{ label }}">
+          <input type="checkbox"
+                 class="sr-only peer"
+                 data-flag="{{ flag }}"
+                 {% if flag in sighting.statuses %}checked{% endif %}
+                 hx-post="{{ url_for('admin.toggle_flag', id=sighting.id) }}"
+                 hx-target="#report-card-{{ sighting.id }}"
+                 hx-swap="outerHTML swap:150ms"
+                 hx-vals='{{ {"flag": flag, "filter_status": filter_status}|tojson }}'
+                 data-action="toggle-overlay">
+          <span class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border transition-colors duration-200 text-gray-700 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 {{ checked_colors }}">
+            {{ heroicon_outline(icon, class="size-4", stroke_width=1.5) }}
+            {{ label }}
+          </span>
+        </label>
+      {% endfor %}
     </div>
   {% endif %}
   {# Right: primary actions #}

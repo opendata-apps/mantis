@@ -1,12 +1,25 @@
 {# General Info tab for the reviewer modal — loaded via HTMX into #tab-content.
-"Freigabe" review layout: identity + large image on the left, species counts +
-comments on the right. Anzahl is an auto-summed, read-only total
-(Männchen+Weibchen+Nymphe+Oothek+andere). Quelldaten collapse by default. Dates
-kept subtle (also shown on the list view). Template variables: sighting,
-feedback, editable, edit_mode, user_report_count #} {% set disabled = '' if
-editable else 'disabled' %} {% set edit_ring = 'border-green-500' if edit_mode else '' %} {% set fundort = sighting.fundort
-%} {% set reporter = sighting.reporter_link.reporter %} {% set finder =
-sighting.reporter_link.finder %}
+   "Freigabe" review layout: identity + large image on the left, species counts +
+   comments on the right. Anzahl is an auto-summed, read-only total
+   (Männchen+Weibchen+Nymphe+Oothek+andere). Quelldaten collapse by default. Dates
+   kept subtle (also shown on the list view).
+   Template variables: sighting, feedback, editable, edit_mode, user_report_count #}
+{% set disabled = '' if editable else 'disabled' %}
+{% set edit_ring = 'border-green-500' if edit_mode else '' %}
+{% set fundort = sighting.fundort %}
+{% set reporter = sighting.reporter_link.reporter %}
+{% set finder = sighting.reporter_link.finder %}
+{# A "Quelldaten" text input that saves one metadata field on change. #}
+{% macro meta_input(field, value) %}
+    <input type="text"
+           class="w-full input-field-admin {{ edit_ring }}"
+           name="new_data"
+           hx-post="{{ url_for('admin.change_mantis_meta_data', id=sighting.id) }}"
+           hx-swap="none"
+           hx-vals='{{ {"type": field}|tojson }}'
+           value="{{ value or '' }}"
+           {{ disabled }} />
+{% endmacro %}
 <div class="flex flex-col p-4 h-auto md:h-full">
     <div class="grid grid-cols-1 gap-5 md:grid-cols-2 grow min-h-0">
         {# ── Left column: identity + photo ── #}
@@ -197,13 +210,10 @@ sighting.reporter_link.finder %}
                             value="{{ count }}"
                             data-sum-input
                             hx-post="{{ url_for('admin.change_mantis_count', id=sighting.id) }}"
-                            hx-trigger="change"
                             hx-swap="none"
                             hx-vals='{{ {"type": label}|tojson }}'
                             class="w-full text-center tabular-nums input-field-admin {{ edit_ring }}"
-                            {{
-                            disabled
-                            }}
+                            {{ disabled }}
                         />
                     </div>
                     {% endfor %}
@@ -225,13 +235,10 @@ sighting.reporter_link.finder %}
                                 value="{{ sighting.art_f }}"
                                 data-sum-input
                                 hx-post="{{ url_for('admin.change_mantis_count', id=sighting.id) }}"
-                                hx-trigger="change"
                                 hx-swap="none"
                                 hx-vals='{{ {"type": "Andere"}|tojson }}'
                                 class="w-20 text-center tabular-nums input-field-admin {{ edit_ring }}"
-                                {{
-                                disabled
-                                }}
+                            {{ disabled }}
                             />
                         </div>
                         <div
@@ -255,7 +262,6 @@ sighting.reporter_link.finder %}
                                 readonly
                                 aria-disabled="true"
                                 hx-post="{{ url_for('admin.change_mantis_count', id=sighting.id) }}"
-                                hx-trigger="change"
                                 hx-swap="none"
                                 hx-vals='{{ {"type": "Anzahl"}|tojson }}'
                                 class="w-20 font-semibold text-center text-gray-800 rounded-md cursor-default bg-gray-100 hover:bg-gray-100 tabular-nums input-field-admin pointer-events-none"
@@ -282,37 +288,13 @@ sighting.reporter_link.finder %}
                         <label class="block mb-0.5 text-xs text-gray-500"
                             >Fundortquelle</label
                         >
-                        <input
-                            type="text"
-                            class="w-full input-field-admin {{ edit_ring }}"
-                            name="new_data"
-                            hx-post="{{ url_for('admin.change_mantis_meta_data', id=sighting.id) }}"
-                            hx-trigger="change"
-                            hx-swap="none"
-                            hx-vals='{"type": "fo_quelle"}'
-                            value="{{ sighting.fo_quelle or '' }}"
-                            {{
-                            disabled
-                            }}
-                        />
+                        {{ meta_input("fo_quelle", sighting.fo_quelle) }}
                     </div>
                     <div>
                         <label class="block mb-0.5 text-xs text-gray-500"
                             >Amt</label
                         >
-                        <input
-                            type="text"
-                            class="w-full input-field-admin {{ edit_ring }}"
-                            name="new_data"
-                            hx-post="{{ url_for('admin.change_mantis_meta_data', id=sighting.id) }}"
-                            hx-trigger="change"
-                            hx-swap="none"
-                            hx-vals='{"type": "amt"}'
-                            value="{{ fundort.amt or '' }}"
-                            {{
-                            disabled
-                            }}
-                        />
+                        {{ meta_input("amt", fundort.amt) }}
                     </div>
                     <div>
                         <label class="block mb-0.5 text-xs text-gray-500">
@@ -325,19 +307,7 @@ sighting.reporter_link.finder %}
                                 >↗</a
                             >
                         </label>
-                        <input
-                            type="text"
-                            class="w-full input-field-admin {{ edit_ring }}"
-                            name="new_data"
-                            hx-post="{{ url_for('admin.change_mantis_meta_data', id=sighting.id) }}"
-                            hx-trigger="change"
-                            hx-swap="none"
-                            hx-vals='{"type": "mtb"}'
-                            value="{{ fundort.mtb or '' }}"
-                            {{
-                            disabled
-                            }}
-                        />
+                        {{ meta_input("mtb", fundort.mtb) }}
                     </div>
                     <div>
                         <label class="block mb-0.5 text-xs text-gray-500"
@@ -371,20 +341,11 @@ sighting.reporter_link.finder %}
                     class="grow min-h-24 border border-gray-200 outline-hidden resize-none input-field-admin {{ edit_ring }}"
                     name="new_data"
                     hx-post="{{ url_for('admin.change_mantis_meta_data', id=sighting.id) }}"
-                    hx-trigger="change"
                     hx-swap="none"
                     hx-vals='{"type": "anm_bearbeiter"}'
                     placeholder="Notiz zur Prüfung …"
-                    {%
-                    if
-                    editable
-                    %}title="Dieses Feld kann jetzt bearbeitet werden"
-                    {%
-                    endif
-                    %}
-                    {{
-                    disabled
-                    }}
+                    {% if editable %}title="Dieses Feld kann jetzt bearbeitet werden"{% endif %}
+                    {{ disabled }}
                 >
 {{ sighting.anm_bearbeiter or '' }}</textarea
                 >
