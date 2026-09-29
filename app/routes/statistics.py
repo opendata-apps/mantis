@@ -1,4 +1,5 @@
 from datetime import date, timedelta
+from functools import partial
 
 from flask import Blueprint, current_app, render_template, request, session, url_for
 from sqlalchemy import String, cast, func, literal_column, select
@@ -161,43 +162,10 @@ def stats_start():
     value = request.form.get("stats", "start")
     session["marker"] = value
 
-    match value:
-        case "geschlecht":
-            return stats_geschlecht()
-        case "meldungen_meldedatum":
-            return stats_bardiagram_datum(
-                dbfields=["dat_meld"], page="stats-meldedatum.html"
-            )
-        case "meldungen_funddatum":
-            return stats_bardiagram_datum(
-                dbfields=["dat_fund_von"], page="stats-funddatum.html"
-            )
-        case "meldungen_meld_fund":
-            return stats_bardiagram_datum(
-                dbfields=["dat_fund_von", "dat_meld"], page="stats-meld-fund.html"
-            )
-        case "meldungen_mtb":
-            return stats_mtb()
-        case "meldungen_amt":
-            return stats_amt()
-        case "meldungen_laender":
-            return stats_laender()
-        case "meldungen_brb":
-            return stats_bundesland(marker="meldungen_brb")
-        case "meldungen_berlin":
-            return stats_bundesland(marker="meldungen_berlin")
-        case "meldungen_gesamt":
-            return stats_gesamt()
-        case "meldungen_zeiten":
-            return stats_daily_average()
-        case "feedback":
-            return stats_feedback(
-                page="stats-feedback.html",
-            )
-        case "start":
-            return render_template("statistics/statistiken.html", menu=list_of_stats)
-        case _:
-            return render_template("statistics/statistiken.html", menu=list_of_stats)
+    view = STATS_VIEWS.get(value)
+    if view is None:
+        return render_template("statistics/statistiken.html")
+    return view()
 
 
 def stats_daily_average():
@@ -234,10 +202,7 @@ def stats_daily_average():
     for row in results:
         daily[str(int(row[0]))] = row[1]
 
-    return render_template(
-        "statistics/stats-daily-average.html",
-        daten=daily,
-    )
+    return render_template("statistics/stats-daily-average.html", daten=daily)
 
 
 # typeInput value -> the _gender_sum_columns label it counts
@@ -281,10 +246,7 @@ def stats_mtb():
 
     bg_url = url_for("static", filename="images/land_brandenburg.svg")
     xml = create_measure_sheet(dataset=dbanswers, bg_image_url=bg_url)
-    return render_template(
-        "statistics/stats-messtischblatt.html",
-        svg=xml,
-    )
+    return render_template("statistics/stats-messtischblatt.html", svg=xml)
 
 
 def stats_bardiagram_datum(dbfields, page):
@@ -314,11 +276,7 @@ def stats_bardiagram_datum(dbfields, page):
             trace["y"].append(row.anzahl)
         results[idx] = trace
 
-    return render_template(
-        "statistics/" + page,
-        trace1=results[0],
-        trace2=results[1],
-    )
+    return render_template("statistics/" + page, trace1=results[0], trace2=results[1])
 
 
 def stats_geschlecht():
@@ -351,10 +309,7 @@ def stats_geschlecht():
     if row:
         res = {_LABEL_MAP[k]: v for k, v in row._mapping.items()}
 
-    return render_template(
-        "statistics/stats-geschlecht.html",
-        values=res,
-    )
+    return render_template("statistics/stats-geschlecht.html", values=res)
 
 
 def stats_amt():
@@ -504,13 +459,10 @@ def stats_gesamt():
                 "Error in statistics query - Result: %s", result
             )
 
-    return render_template(
-        "statistics/stats-table-all.html",
-        result=result_dict,
-    )
+    return render_template("statistics/stats-table-all.html", result=result_dict)
 
 
-def stats_feedback(page):
+def stats_feedback():
     """Summary of the feedback questions provided."""
 
     stmt = (
@@ -536,7 +488,27 @@ def stats_feedback(page):
     details = [row.source_detail for row in rows]
 
     return render_template(
-        "statistics/" + page,
-        feedback=feedback,
-        details=details,
+        "statistics/stats-feedback.html", feedback=feedback, details=details
     )
+
+
+STATS_VIEWS = {
+    "geschlecht": stats_geschlecht,
+    "meldungen_meldedatum": partial(
+        stats_bardiagram_datum, ["dat_meld"], "stats-meldedatum.html"
+    ),
+    "meldungen_funddatum": partial(
+        stats_bardiagram_datum, ["dat_fund_von"], "stats-funddatum.html"
+    ),
+    "meldungen_meld_fund": partial(
+        stats_bardiagram_datum, ["dat_fund_von", "dat_meld"], "stats-meld-fund.html"
+    ),
+    "meldungen_mtb": stats_mtb,
+    "meldungen_amt": stats_amt,
+    "meldungen_laender": stats_laender,
+    "meldungen_brb": partial(stats_bundesland, "meldungen_brb"),
+    "meldungen_berlin": partial(stats_bundesland, "meldungen_berlin"),
+    "meldungen_gesamt": stats_gesamt,
+    "meldungen_zeiten": stats_daily_average,
+    "feedback": stats_feedback,
+}
