@@ -53,7 +53,7 @@
 {% block title %}
   Gottesanbeterin gesucht!
 {% endblock title %}
-{% from "_macros_ui.html" import popover %}
+{% from "_macros_ui.html" import cta_link, popover %}
 {% block content %}
   <!--p class="py-3 text-center text-sm text-green-800 bg-green-50 border-b border-green-100 text-pretty">
     <strong class="font-semibold">Zeit der Eiablage</strong> — Melden Sie bitte auch Ootheken, sie sind der Start für die nächste Generation im kommenden Jahr.
@@ -93,15 +93,7 @@
                 Fangschreckenart und bitten Sie, uns bei der Erforschung ihrer
                 Ausbreitung zu unterstützen.
               </p>
-              <a href="https://www.naturkundemuseum-potsdam.de/gottesanbeterin-gesucht"
-                 target="_blank"
-                 rel="noopener noreferrer"
-                 class="btn-primary group relative overflow-hidden">
-                <span class="relative z-10">Mehr erfahren</span>
-                {{ heroicon_mini("arrow-right", class="-mr-1 ml-2 w-5 h-5 transition-transform duration-300 group-hover:translate-x-1") }}
-                <div class="absolute inset-0 w-full h-full rounded-lg transition-transform duration-300 scale-0 group-hover:scale-100 bg-white/10">
-                </div>
-              </a>
+              {{ cta_link("https://www.naturkundemuseum-potsdam.de/gottesanbeterin-gesucht", "Mehr erfahren", new_tab=true) }}
             </div>
           </div>
         </div>
@@ -135,13 +127,7 @@
                 Ihre Meldungen angewiesen.
               </p>
               <div class="flex flex-wrap gap-3">
-                <a href="/mantis-religiosa"
-                   class="btn-primary group relative overflow-hidden">
-                  <span class="relative z-10">Mehr über Mantis religiosa</span>
-                  {{ heroicon_mini("arrow-right", class="-mr-1 ml-2 w-5 h-5 transition-transform duration-300 group-hover:translate-x-1") }}
-                  <div class="absolute inset-0 w-full h-full rounded-lg transition-transform duration-300 scale-0 group-hover:scale-100 bg-white/10">
-                  </div>
-                </a>
+                {{ cta_link("/mantis-religiosa", "Mehr über Mantis religiosa") }}
                 <a href="/bestimmung"
                    class="inline-flex items-center px-5 py-3 text-sm font-medium text-green-700 border border-green-600 rounded-lg transition-colors duration-300 hover:bg-green-50">
                   <span>Bestimmungsschlüssel</span>
@@ -182,12 +168,7 @@
                 erstellen, welche die aktuelle Ausbreitung der Gottesanbeterin in
                 Brandenburg zeigen.
               </p>
-              <a href="/faq" class="btn-primary group relative overflow-hidden">
-                <span class="relative z-10">FAQ lesen</span>
-                {{ heroicon_mini("arrow-right", class="-mr-1 ml-2 w-5 h-5 transition-transform duration-300 group-hover:translate-x-1") }}
-                <div class="absolute inset-0 w-full h-full rounded-md transition-transform duration-300 scale-0 group-hover:scale-100 bg-white/10">
-                </div>
-              </a>
+              {{ cta_link("/faq", "FAQ lesen") }}
             </div>
           </div>
         </div>

@@ -1,4 +1,5 @@
 {% extends "layout.html" %}
+{% from "_macros_ui.html" import cta_link %}
 {% block page_title %}{{ region.title }} | Gottesanbeterin Gesucht{% endblock %}
 {% block meta_description %}{{ region.meta_description }}{% endblock %}
 {% block canonical %}{{ url_for('regionen.region_page', slug=region.slug, _external=True) }}{% endblock %}
@@ -122,13 +123,7 @@
       <p class="mb-6 text-lg text-gray-700">
         Haben Sie eine Gottesanbeterin in {{ region.name }} entdeckt? Helfen Sie der Forschung und melden Sie Ihre Beobachtung!
       </p>
-      <a href="{{ region.cta_url }}"
-         class="btn-primary group relative overflow-hidden">
-        <span class="relative z-10">Jetzt melden</span>
-        {{ heroicon_mini("arrow-right", class="w-5 h-5 ml-2 -mr-1 transition-transform duration-300 group-hover:translate-x-1") }}
-        <div class="absolute inset-0 w-full h-full transition-all duration-300 scale-0 rounded-md group-hover:scale-100 group-hover:bg-white/10">
-        </div>
-      </a>
+      {{ cta_link(region.cta_url, "Jetzt melden") }}
     </div>
     {# Related regions #}
     {% if siblings or children %}

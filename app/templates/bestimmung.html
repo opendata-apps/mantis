@@ -1,4 +1,5 @@
 {% extends "layout.html" %}
+{% from "_macros_ui.html" import cta_link %}
 {% block meta_keywords %}
   Gottesanbeterin Bestimmung, Mantis religiosa Identifikation, Merkmale, Unterscheidung, Brandenburg, Berlin
 {% endblock %}
@@ -458,13 +459,7 @@
       </div>
       <!-- Call to action -->
       <div class="mt-16 text-center">
-        <a href="{{ url_for('report.melden') }}"
-           class="relative inline-flex items-center px-6 py-3 overflow-hidden text-base font-medium text-white transition duration-300 bg-green-600 rounded-lg shadow-md group hover:bg-green-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-          <span class="relative z-10">Jetzt Fundmeldung abgeben</span>
-          {{ heroicon_mini("arrow-right", class="w-5 h-5 ml-2 -mr-1 transition-transform duration-300 group-hover:translate-x-1") }}
-          <div class="absolute inset-0 w-full h-full transition-all duration-300 scale-0 rounded-lg group-hover:scale-100 group-hover:bg-white/10">
-          </div>
-        </a>
+        {{ cta_link(url_for('report.melden'), "Jetzt Fundmeldung abgeben") }}
         <p class="mt-4 text-sm text-gray-600">Helfen Sie uns, die Verbreitung der Gottesanbeterin zu dokumentieren!</p>
       </div>
     </div>

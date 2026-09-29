@@ -21,6 +21,16 @@
     </div>
   </div>
 {% endmacro %}
+{# Primary call-to-action link: the arrow nudges and a white wash grows on hover. #}
+{% macro cta_link(href, label, new_tab=false) %}
+  <a href="{{ href }}"
+     {% if new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}
+     class="btn-primary group relative overflow-hidden">
+    <span class="relative z-10">{{ label }}</span>
+    {{ heroicon_mini("arrow-right", class="-mr-1 ml-2 size-5 transition-transform duration-300 group-hover:translate-x-1") }}
+    <div class="absolute inset-0 size-full transition-transform duration-300 scale-0 group-hover:scale-100 bg-white/10"></div>
+  </a>
+{% endmacro %}
 {% macro render_pagination(pagination, endpoint) %}
   <div class="flex items-center justify-center my-2 text-xl font-semibold text-green-600 tabular-nums">
     {{ pagination.first }} - {{ pagination.last }} von {{ pagination.total }}
