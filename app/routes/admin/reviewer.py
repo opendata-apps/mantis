@@ -1,6 +1,7 @@
 """Reviewer workflow: report list, modal, approval, flags, inline edits."""
 
 from datetime import datetime
+from urllib.parse import urlencode
 
 from email_validator import EmailNotValidError
 from flask import (
@@ -167,8 +168,13 @@ def reviewer(usrid=None):
     # Redirect before doing any work: an unlabelled view would show the "offen"
     # result set with the filter controls sitting at their blank defaults.
     if "statusInput" not in request.args and "sort_order" not in request.args:
+        query_args = request.args.copy()
+        query_args["statusInput"] = "offen"
+        query_args["sort_order"] = "id_desc"
         return redirect(
-            url_for("admin.reviewer", statusInput="offen", sort_order="id_desc")
+            url_for("admin.reviewer")
+            + "?"
+            + urlencode(list(query_args.items(multi=True)))
         )
 
     filters = get_reviewer_filter_args()

@@ -152,7 +152,7 @@
         </details>
       </div>
       {% call toolbar.search_bar("q", "Suche nach Meldungen...", "Löschen",
-          "Suche: Wortanfänge genügen (potsd findet Potsdam). Mehrere Wörter müssen alle vorkommen: berlin nymphe",
+          "Suche: Wortanfänge genügen (potsd findet Potsdam). Mehrere Wörter müssen alle vorkommen: berlin garten. Umlaute gehen auch als ae/oe/ue. Für Meldungsnummern ID wählen. Aktive Filter gelten weiterhin.",
           value=request.args.get('q', ''), maxlength=50, search_type=search_type,
           action=url_for('admin.reviewer'), form_id="searchForm",
           sort_order=current_sort_order) %}

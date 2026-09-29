@@ -8,8 +8,12 @@ built, so that changing how the query is assembled does not break them.
 Report ids refer to the demo data in app/demodata/filldb.py.
 """
 
-import pytest
+from datetime import date
 
+import pytest
+from bs4 import BeautifulSoup
+
+from app.database.models import TblFundorte, TblMeldungen, TblMeldungUser, TblUsers
 from app.routes.admin.filters import get_filtered_query
 
 
@@ -19,6 +23,92 @@ def _search(session, term):
         filter_status="all", search_query=term, search_type="full_text"
     )
     return {meldung.id for meldung in session.scalars(stmt).unique()}
+
+
+@pytest.fixture
+def search_reports(session):
+    reporter = TblUsers(user_id="search-regression", user_name="Probe", user_rolle="1")
+    session.add(reporter)
+    session.flush()
+    reports = {}
+    for place, note in [
+        ("Jüterbog", "Die Straße"),
+        ("Jueterbog", ""),
+        ("Langerwisch", ""),
+    ]:
+        location = TblFundorte(
+            ort=place,
+            strasse="",
+            kreis="",
+            land="Brandenburg",
+            beschreibung=1,
+            latitude=52.3,
+            longitude=13.1,
+            ablage="",
+        )
+        session.add(location)
+        session.flush()
+        report = TblMeldungen(
+            dat_fund_von=date(2026, 9, 1),
+            dat_meld=date(2026, 9, 1),
+            fo_zuordnung=location.id,
+            anm_melder=note,
+        )
+        session.add(report)
+        session.flush()
+        session.add(TblMeldungUser(id_meldung=report.id, id_user=reporter.id))
+        reports[place] = report.id
+    session.flush()
+    return reports
+
+
+def test_search_link_keeps_its_query_when_default_filters_are_added(
+    authenticated_client, session, search_reports
+):
+    session.commit()
+
+    response = authenticated_client.get(
+        "/reviewer?q=Jueter&search_type=full_text", follow_redirects=True
+    )
+
+    assert response.status_code == 200
+    page = BeautifulSoup(response.data, "html.parser")
+    search_input = page.find("input", attrs={"name": "q"})
+    assert search_input is not None
+    assert search_input.get("value") == "Jueter"
+    visible_ids = {
+        int(str(card["id"]).removeprefix("report-card-"))
+        for card in page.select(".report-card")
+    }
+    assert visible_ids & set(search_reports.values()) == {
+        search_reports["Jüterbog"],
+        search_reports["Jueterbog"],
+    }
+
+
+@pytest.mark.parametrize(
+    "term", ["Jüterbog", "Jueterbog", "JÜTER", "Jueter", "Ju\u0308terbog"]
+)
+def test_umlaut_spellings_and_prefixes_find_both_stored_spellings(
+    session, search_reports, term
+):
+    assert _search(session, term) & set(search_reports.values()) == {
+        search_reports["Jüterbog"],
+        search_reports["Jueterbog"],
+    }
+
+
+def test_place_prefix_is_not_lost_to_german_stemming(session, search_reports):
+    assert _search(session, "Langerwis") & set(search_reports.values()) == {
+        search_reports["Langerwisch"],
+    }
+
+
+@pytest.mark.parametrize("term", ["Die", "Straße", "Strasse"])
+def test_literal_words_and_sharp_s_are_searchable(session, search_reports, term):
+    assert _search(session, term) & set(search_reports.values()) == {
+        search_reports["Jüterbog"],
+    }
 
 
 class TestWhatTheSearchFinds:

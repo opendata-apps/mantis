@@ -26,7 +26,9 @@ class TestSearchVector:
 
     def test_search_by_city(self, session):
         """Search for a city name via the search_vector."""
-        ts_query = func.websearch_to_tsquery("german", "Cottbus")
+        ts_query = func.websearch_to_tsquery(
+            "simple", func.reviewer_search_normalize("Cottbus")
+        )
         results = session.scalars(
             select(TblMeldungen.id)
             .where(TblMeldungen.id.in_(SEEDED_SAMPLE_IDS))
@@ -36,7 +38,9 @@ class TestSearchVector:
 
     def test_search_by_city_case_insensitive(self, session):
         """FTS is case-insensitive by design."""
-        ts_query = func.websearch_to_tsquery("german", "cottbus")
+        ts_query = func.websearch_to_tsquery(
+            "simple", func.reviewer_search_normalize("cottbus")
+        )
         results = session.scalars(
             select(TblMeldungen.id)
             .where(TblMeldungen.id.in_(SEEDED_SAMPLE_IDS))
@@ -46,7 +50,9 @@ class TestSearchVector:
 
     def test_search_berlin(self, session):
         """Search for Berlin."""
-        ts_query = func.websearch_to_tsquery("german", "Berlin")
+        ts_query = func.websearch_to_tsquery(
+            "simple", func.reviewer_search_normalize("Berlin")
+        )
         results = session.scalars(
             select(TblMeldungen.id)
             .where(TblMeldungen.id.in_(SEEDED_SAMPLE_IDS))
@@ -56,7 +62,9 @@ class TestSearchVector:
 
     def test_search_zossen(self, session):
         """Search for Zossen."""
-        ts_query = func.websearch_to_tsquery("german", "Zossen")
+        ts_query = func.websearch_to_tsquery(
+            "simple", func.reviewer_search_normalize("Zossen")
+        )
         results = session.scalars(
             select(TblMeldungen.id)
             .where(TblMeldungen.id.in_(SEEDED_SAMPLE_IDS))
@@ -66,7 +74,9 @@ class TestSearchVector:
 
     def test_search_with_ranking(self, session):
         """Verify ts_rank_cd returns float scores."""
-        ts_query = func.websearch_to_tsquery("german", "Berlin")
+        ts_query = func.websearch_to_tsquery(
+            "simple", func.reviewer_search_normalize("Berlin")
+        )
         results = session.execute(
             select(
                 TblMeldungen.id,
@@ -80,7 +90,9 @@ class TestSearchVector:
 
     def test_search_no_results(self, session):
         """Search for a term that doesn't exist returns empty."""
-        ts_query = func.websearch_to_tsquery("german", "Xyznonexistent")
+        ts_query = func.websearch_to_tsquery(
+            "simple", func.reviewer_search_normalize("Xyznonexistent")
+        )
         results = session.scalars(
             select(TblMeldungen.id).where(TblMeldungen.search_vector.op("@@")(ts_query))
         ).all()
@@ -102,7 +114,9 @@ class TestSearchVector:
         session.add(meldung)
         session.flush()
 
-        ts_query = func.websearch_to_tsquery("german", "Xylophonstrasse")
+        ts_query = func.websearch_to_tsquery(
+            "simple", func.reviewer_search_normalize("Xylophonstrasse")
+        )
         found = session.scalars(
             select(TblMeldungen.id)
             .where(TblMeldungen.id == meldung.id)
@@ -112,7 +126,9 @@ class TestSearchVector:
 
     def test_search_websearch_syntax_negation(self, session):
         """websearch_to_tsquery supports -exclude syntax."""
-        ts_query = func.websearch_to_tsquery("german", "Cottbus -Berlin")
+        ts_query = func.websearch_to_tsquery(
+            "simple", func.reviewer_search_normalize("Cottbus -Berlin")
+        )
         results = session.scalars(
             select(TblMeldungen.id).where(TblMeldungen.search_vector.op("@@")(ts_query))
         ).all()
@@ -132,7 +148,9 @@ def test_search_tracks_related_edits(session, target):
     query = select(TblMeldungen.id).where(
         TblMeldungen.id == report.id,
         TblMeldungen.search_vector.op("@@")(
-            func.websearch_to_tsquery("german", "Zebrafalterprobe")
+            func.websearch_to_tsquery(
+                "simple", func.reviewer_search_normalize("Zebrafalterprobe")
+            )
         ),
     )
     assert session.scalar(query) is None

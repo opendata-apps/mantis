@@ -226,13 +226,19 @@ class TestMigrationChain:
                 )
                 assert conn.scalar(
                     sa.text(
-                        "SELECT search_vector @@ plainto_tsquery('german', 'beispieldomain.de') "
+                        "SELECT search_vector @@ plainto_tsquery('simple', reviewer_search_normalize('Dresden')) "
                         "FROM meldungen WHERE id = 1"
                     )
                 )
                 assert conn.scalar(
                     sa.text(
-                        "SELECT search_vector @@ plainto_tsquery('german', '01067') "
+                        "SELECT search_vector @@ plainto_tsquery('simple', reviewer_search_normalize('beispieldomain.de')) "
+                        "FROM meldungen WHERE id = 1"
+                    )
+                )
+                assert conn.scalar(
+                    sa.text(
+                        "SELECT search_vector @@ plainto_tsquery('simple', reviewer_search_normalize('01067')) "
                         "FROM meldungen WHERE id = 1"
                     )
                 )

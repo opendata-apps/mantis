@@ -130,7 +130,9 @@ def get_filtered_query(
                 search_type = "full_text"
 
         if search_type == "full_text":
-            ts_query = func.to_tsquery("german", prefix_tsquery(search_query))
+            ts_query = func.to_tsquery(
+                "simple", func.reviewer_search_normalize(prefix_tsquery(search_query))
+            )
             stmt = stmt.where(TblMeldungen.search_vector.op("@@")(ts_query))
             stmt = stmt.order_by(
                 func.ts_rank_cd(TblMeldungen.search_vector, ts_query).desc()

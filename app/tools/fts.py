@@ -1,12 +1,7 @@
-"""Build the tsquery behind the reviewer search box.
+"""AND word prefixes for the reviewer's PostgreSQL simple-text search.
 
-Every word the reviewer types matches as a prefix ("Potsd" finds Potsdam), and
-all words must occur. websearch_to_tsquery has no prefix syntax, so this builds
-to_tsquery input; its phrase, `or` and `-word` operators do not apply here.
-https://www.postgresql.org/docs/16/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES
-
-to_tsquery stems a prefix like any word and drops german stopwords, so
-"Langerwis" misses Langerwisch (indexed as 'langerw') and "Die" matches nothing.
+The database normalizes German transliterations in both index and query.
+Quoted terms keep typed punctuation from becoming search operators.
 """
 
 
