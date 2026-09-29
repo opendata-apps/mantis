@@ -82,6 +82,7 @@
   --animate-mantis-search: mantis-search 5s ease-in-out infinite alternate;
   --animate-blink: blink 1.5s linear infinite;
   --animate-dance: dance 0.5s ease-in-out infinite;
+  --animate-mantis-shake: mantis-shake 0.5s ease-in-out infinite;
 
   @keyframes gallery-fade-up {
     from {
@@ -113,6 +114,19 @@
     }
     50% {
       opacity: 0.5;
+    }
+  }
+
+  @keyframes mantis-shake {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    25% {
+      transform: translateX(-5px);
+    }
+    75% {
+      transform: translateX(5px);
     }
   }
 
