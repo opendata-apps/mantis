@@ -90,6 +90,8 @@ extend-select = [
     "LOG", # logging misuse
     "PIE", # flake8-pie
     "PT",  # flake8-pytest-style
+    "RET", # return
+    "SIM", # simplify
     "TRY400", # error() instead of exception() in an except block
     "UP",  # pyupgrade
 ]

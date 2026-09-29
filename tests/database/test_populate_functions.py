@@ -30,9 +30,11 @@ class TestPopulateFunctions:
 
     def test_populate_beschreibung_database_error(self, session):
         """Test handling of database errors during population."""
-        with patch.object(session, "get", side_effect=SQLAlchemyError("DB Error")):
-            with pytest.raises(SQLAlchemyError):
-                populate_beschreibung(session)
+        with (
+            patch.object(session, "get", side_effect=SQLAlchemyError("DB Error")),
+            pytest.raises(SQLAlchemyError),
+        ):
+            populate_beschreibung(session)
 
     @patch("app.database.vg5000_fill_aemter.import_aemter_data")
     @patch("app.database.populate.populate_beschreibung")
@@ -50,12 +52,14 @@ class TestPopulateFunctions:
         """Test populate_all when beschreibung population fails."""
         mock_json_data = '{"test": "data"}'
 
-        with patch(
-            "app.database.populate.populate_beschreibung",
-            side_effect=Exception("Beschreibung failed"),
+        with (
+            patch(
+                "app.database.populate.populate_beschreibung",
+                side_effect=Exception("Beschreibung failed"),
+            ),
+            pytest.raises(Exception, match="Beschreibung failed"),
         ):
-            with pytest.raises(Exception, match="Beschreibung failed"):
-                populate_all(session, mock_json_data)
+            populate_all(session, mock_json_data)
 
         mock_aemter.assert_not_called()
 

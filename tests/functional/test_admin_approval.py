@@ -221,13 +221,15 @@ class TestApprovalMailPayload:
         # populated by the time the app exists, so rebinding the class
         # attribute would not reach the running application.
         app_config = authenticated_admin_client.application.config
-        with patch.dict(app_config, {"REVIEWERMAIL": True}):
-            with patch("app.tools.send_reviewer_email.mail.send") as mock_send:
-                response = authenticated_admin_client.post(
-                    f"/toggle_approve_sighting/{reported_sighting.id}",
-                    data={"filter_status": "all"},
-                    headers={"HX-Request": "true"},
-                )
+        with (
+            patch.dict(app_config, {"REVIEWERMAIL": True}),
+            patch("app.tools.send_reviewer_email.mail.send") as mock_send,
+        ):
+            response = authenticated_admin_client.post(
+                f"/toggle_approve_sighting/{reported_sighting.id}",
+                data={"filter_status": "all"},
+                headers={"HX-Request": "true"},
+            )
 
         assert response.status_code == 200
         mock_send.assert_called_once()

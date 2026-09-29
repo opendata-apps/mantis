@@ -302,16 +302,19 @@ def melden(usrid=None):
                     db.session.flush()
 
                 finder_instance = None
-                if not form.identical_finder_reporter.data:
-                    if form.finder_first_name.data and form.finder_last_name.data:
-                        finder_instance = _create_user(
-                            form.finder_first_name.data,
-                            form.finder_last_name.data,
-                            "",
-                            role=UserRole.FINDER,
-                        )
-                        db.session.add(finder_instance)
-                        db.session.flush()
+                if (
+                    not form.identical_finder_reporter.data
+                    and form.finder_first_name.data
+                    and form.finder_last_name.data
+                ):
+                    finder_instance = _create_user(
+                        form.finder_first_name.data,
+                        form.finder_last_name.data,
+                        "",
+                        role=UserRole.FINDER,
+                    )
+                    db.session.add(finder_instance)
+                    db.session.flush()
 
                 if form.feedback_source.data and not reporter.feedback_source:
                     user_feedback = TblUserFeedback()
@@ -449,8 +452,7 @@ def melden(usrid=None):
                     "message": "Vielen Dank, Ihre Meldung wurde erfolgreich gespeichert!",
                 }
             ), 200
-        else:
-            return _validation_error_response(form.errors)
+        return _validation_error_response(form.errors)
 
     response = make_response(
         render_template(
@@ -754,13 +756,12 @@ def validate_step_partial():
             errors[field_name] = field.errors
 
     # Step 3: Cross-field validation for finder names
-    if is_valid and step == 3:
-        if not form.validate_finder_names_dependency():
-            is_valid = False
-            if form.finder_first_name.errors:
-                errors["finder_first_name"] = form.finder_first_name.errors
-            if form.finder_last_name.errors:
-                errors["finder_last_name"] = form.finder_last_name.errors
+    if is_valid and step == 3 and not form.validate_finder_names_dependency():
+        is_valid = False
+        if form.finder_first_name.errors:
+            errors["finder_first_name"] = form.finder_first_name.errors
+        if form.finder_last_name.errors:
+            errors["finder_last_name"] = form.finder_last_name.errors
 
     errors = _errors_by_slot(errors)
 
@@ -775,9 +776,8 @@ def validate_step_partial():
             {"stepValid": {"step": step, "nextStep": step + 1}}
         )
         return response
-    else:
-        # Return inline error messages via OOB swaps
-        return render_template("report/partials/_validation_errors.html", errors=errors)
+    # Return inline error messages via OOB swaps
+    return render_template("report/partials/_validation_errors.html", errors=errors)
 
 
 @report.route("/melden/toggle-finder", methods=["POST"])
@@ -790,12 +790,9 @@ def toggle_finder():
 
     if is_identical:
         return render_template("report/partials/_finder_fields.html", show=False)
-    else:
-        # Return visible finder fields
-        form = MantisSightingForm()
-        return render_template(
-            "report/partials/_finder_fields.html", show=True, form=form
-        )
+    # Return visible finder fields
+    form = MantisSightingForm()
+    return render_template("report/partials/_finder_fields.html", show=True, form=form)
 
 
 @report.route("/melden/feedback-detail", methods=["POST"])

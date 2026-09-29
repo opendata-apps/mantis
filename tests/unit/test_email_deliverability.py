@@ -87,9 +87,11 @@ def test_an_undeliverable_recipient_is_rejected_before_the_message_is_built(app)
 
     from app.tools import send_reviewer_email as sre
 
-    with app.app_context():
-        with pytest.raises(EmailNotValidError, match="Internationalized characters"):
-            sre.send_email(_reviewer_payload("müller@web.de"))
+    with (
+        app.app_context(),
+        pytest.raises(EmailNotValidError, match="Internationalized characters"),
+    ):
+        sre.send_email(_reviewer_payload("müller@web.de"))
 
 
 def _reviewer_payload(contact):

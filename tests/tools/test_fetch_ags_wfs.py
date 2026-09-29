@@ -118,6 +118,8 @@ class TestWfsGetFeatureParams:
         bad = Mock()
         bad.raise_for_status.side_effect = RuntimeError("502 Bad Gateway")
 
-        with patch("app.tools.fetch_ags.requests.get", return_value=bad):
-            with pytest.raises(RuntimeError, match="502"):
-                fetch_ags._wfs_get_feature(fetch_ags.BKG_WFS_BASE, "some:typename")
+        with (
+            patch("app.tools.fetch_ags.requests.get", return_value=bad),
+            pytest.raises(RuntimeError, match="502"),
+        ):
+            fetch_ags._wfs_get_feature(fetch_ags.BKG_WFS_BASE, "some:typename")

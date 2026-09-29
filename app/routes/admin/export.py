@@ -86,7 +86,7 @@ def export_data(value):
     # and the OS then deletes; small ones build in memory.
     use_large_mode = row_count > LARGE_EXPORT_THRESHOLD
     if use_large_mode:
-        output = tempfile.TemporaryFile()
+        output = tempfile.TemporaryFile()  # noqa: SIM115
         workbook = xlsxwriter.Workbook(output, {"constant_memory": True, **AS_TYPED})
     else:
         output = BytesIO()

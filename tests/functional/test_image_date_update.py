@@ -61,44 +61,46 @@ def test_update_report_image_date_success(
     app, session, mock_meldung_with_image, mock_fundorte_with_image
 ):
     """Test successful image move when date changes"""
-    with tempfile.TemporaryDirectory() as temp_dir:
-        with patch("app.routes.admin.database.current_app") as mock_app:
-            mock_app.config = {"UPLOAD_FOLDER": temp_dir}
-            mock_app.logger = MagicMock()
+    with (
+        tempfile.TemporaryDirectory() as temp_dir,
+        patch("app.routes.admin.database.current_app") as mock_app,
+    ):
+        mock_app.config = {"UPLOAD_FOLDER": temp_dir}
+        mock_app.logger = MagicMock()
 
-            # Create the original file structure
-            original_dir = Path(temp_dir) / "2024" / "2024-07-15"
-            original_dir.mkdir(parents=True, exist_ok=True)
-            original_file = original_dir / "TestCity-20240715120000-testuser123.webp"
-            original_file.write_text("test image content")
+        # Create the original file structure
+        original_dir = Path(temp_dir) / "2024" / "2024-07-15"
+        original_dir.mkdir(parents=True, exist_ok=True)
+        original_file = original_dir / "TestCity-20240715120000-testuser123.webp"
+        original_file.write_text("test image content")
 
-            new_date = date(2024, 8, 20)
-            result = update_report_image_date(mock_meldung_with_image.id, new_date)
-            db.session.commit()
+        new_date = date(2024, 8, 20)
+        result = update_report_image_date(mock_meldung_with_image.id, new_date)
+        db.session.commit()
 
-            assert result["status"] == "success"
+        assert result["status"] == "success"
 
-            # The image follows its report into the new date folder keeping the
-            # name it was uploaded under — the filename identifies the upload,
-            # not the sighting date.
-            new_file_path = (
-                Path(temp_dir)
-                / "2024"
-                / "2024-08-20"
-                / "TestCity-20240715120000-testuser123.webp"
-            )
-            assert new_file_path.exists()
-            assert new_file_path.read_text() == "test image content"
+        # The image follows its report into the new date folder keeping the
+        # name it was uploaded under — the filename identifies the upload,
+        # not the sighting date.
+        new_file_path = (
+            Path(temp_dir)
+            / "2024"
+            / "2024-08-20"
+            / "TestCity-20240715120000-testuser123.webp"
+        )
+        assert new_file_path.exists()
+        assert new_file_path.read_text() == "test image content"
 
-            # Check old file removed
-            assert not original_file.exists()
+        # Check old file removed
+        assert not original_file.exists()
 
-            # Check database updated
-            session.refresh(mock_fundorte_with_image)
-            assert (
-                mock_fundorte_with_image.ablage
-                == "2024/2024-08-20/TestCity-20240715120000-testuser123.webp"
-            )
+        # Check database updated
+        session.refresh(mock_fundorte_with_image)
+        assert (
+            mock_fundorte_with_image.ablage
+            == "2024/2024-08-20/TestCity-20240715120000-testuser123.webp"
+        )
 
 
 def test_update_report_image_date_no_image(app, session):
@@ -177,13 +179,15 @@ def test_update_report_image_date_file_not_found(app, session):
     session.add(meldung)
     session.commit()
 
-    with tempfile.TemporaryDirectory() as temp_dir:
-        with patch("app.routes.admin.database.current_app") as mock_app:
-            mock_app.config = {"UPLOAD_FOLDER": temp_dir}
+    with (
+        tempfile.TemporaryDirectory() as temp_dir,
+        patch("app.routes.admin.database.current_app") as mock_app,
+    ):
+        mock_app.config = {"UPLOAD_FOLDER": temp_dir}
 
-            # Don't create the file, just try to update
-            with pytest.raises(FileNotFoundError, match="Image file not found"):
-                update_report_image_date(meldung.id, date(2024, 8, 20))
+        # Don't create the file, just try to update
+        with pytest.raises(FileNotFoundError, match="Image file not found"):
+            update_report_image_date(meldung.id, date(2024, 8, 20))
 
 
 def test_update_report_image_date_same_date(app, session):
@@ -220,27 +224,29 @@ def test_update_report_image_date_same_date(app, session):
     session.add(meldung)
     session.commit()
 
-    with tempfile.TemporaryDirectory() as temp_dir:
-        with patch("app.routes.admin.database.current_app") as mock_app:
-            mock_app.config = {"UPLOAD_FOLDER": temp_dir}
+    with (
+        tempfile.TemporaryDirectory() as temp_dir,
+        patch("app.routes.admin.database.current_app") as mock_app,
+    ):
+        mock_app.config = {"UPLOAD_FOLDER": temp_dir}
 
-            # Create the file
-            original_dir = Path(temp_dir) / "2024" / "2024-07-15"
-            original_dir.mkdir(parents=True, exist_ok=True)
-            original_file = original_dir / "TestCity-20240715120000-testuser123.webp"
-            original_file.write_text("test image content")
+        # Create the file
+        original_dir = Path(temp_dir) / "2024" / "2024-07-15"
+        original_dir.mkdir(parents=True, exist_ok=True)
+        original_file = original_dir / "TestCity-20240715120000-testuser123.webp"
+        original_file.write_text("test image content")
 
-            # Update to same date
-            result = update_report_image_date(meldung.id, date(2024, 7, 15))
+        # Update to same date
+        result = update_report_image_date(meldung.id, date(2024, 7, 15))
 
-            # Same date means same target path — nothing to move.
-            assert result["status"] == "no_change"
+        # Same date means same target path — nothing to move.
+        assert result["status"] == "no_change"
 
-            # The file is left exactly where and as it was
-            files_in_dir = list(original_dir.glob("*.webp"))
-            assert len(files_in_dir) == 1
-            assert files_in_dir[0].name == "TestCity-20240715120000-testuser123.webp"
-            assert files_in_dir[0].read_text() == "test image content"
+        # The file is left exactly where and as it was
+        files_in_dir = list(original_dir.glob("*.webp"))
+        assert len(files_in_dir) == 1
+        assert files_in_dir[0].name == "TestCity-20240715120000-testuser123.webp"
+        assert files_in_dir[0].read_text() == "test image content"
 
 
 def test_update_report_image_date_refuses_to_overwrite(app, session):
@@ -286,35 +292,35 @@ def test_update_report_image_date_refuses_to_overwrite(app, session):
         meldungen.append(meldung)
     session.commit()
 
-    with tempfile.TemporaryDirectory() as temp_dir:
-        with patch("app.routes.admin.database.current_app") as mock_app:
-            mock_app.config = {"UPLOAD_FOLDER": temp_dir}
-            mock_app.logger = MagicMock()
+    with (
+        tempfile.TemporaryDirectory() as temp_dir,
+        patch("app.routes.admin.database.current_app") as mock_app,
+    ):
+        mock_app.config = {"UPLOAD_FOLDER": temp_dir}
+        mock_app.logger = MagicMock()
 
-            source_dir = Path(temp_dir) / "2024" / "2024-07-15"
-            source_dir.mkdir(parents=True, exist_ok=True)
-            for record, content in zip(
-                fundorte, ("image one", "image two"), strict=True
-            ):
-                (Path(temp_dir) / record.ablage).write_text(content)
+        source_dir = Path(temp_dir) / "2024" / "2024-07-15"
+        source_dir.mkdir(parents=True, exist_ok=True)
+        for record, content in zip(fundorte, ("image one", "image two"), strict=True):
+            (Path(temp_dir) / record.ablage).write_text(content)
 
-            new_date = date(2024, 8, 20)
-            assert update_report_image_date(meldungen[0].id, new_date)["status"] == (
-                "success"
-            )
-            assert update_report_image_date(meldungen[1].id, new_date)["status"] == (
-                "success"
-            )
+        new_date = date(2024, 8, 20)
+        assert update_report_image_date(meldungen[0].id, new_date)["status"] == (
+            "success"
+        )
+        assert update_report_image_date(meldungen[1].id, new_date)["status"] == (
+            "success"
+        )
 
-            target_dir = Path(temp_dir) / "2024" / "2024-08-20"
-            moved = sorted(p.read_text() for p in target_dir.glob("*.webp"))
-            assert moved == ["image one", "image two"]
+        target_dir = Path(temp_dir) / "2024" / "2024-08-20"
+        moved = sorted(p.read_text() for p in target_dir.glob("*.webp"))
+        assert moved == ["image one", "image two"]
 
-            # And the paths recorded in the DB still point at distinct files
-            db.session.commit()
-            session.refresh(fundorte[0])
-            session.refresh(fundorte[1])
-            assert fundorte[0].ablage != fundorte[1].ablage
+        # And the paths recorded in the DB still point at distinct files
+        db.session.commit()
+        session.refresh(fundorte[0])
+        session.refresh(fundorte[1])
+        assert fundorte[0].ablage != fundorte[1].ablage
 
 
 def test_update_report_record_not_found(app, session):

@@ -107,8 +107,7 @@ def get_marker_data(report_id):
                 "kreis": report.kreis,
             }
         )
-    else:
-        return jsonify({"error": "Report not found"}), 404
+    return jsonify({"error": "Report not found"}), 404
 
 
 def obfuscate_location(lat, long, report_id):
