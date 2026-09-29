@@ -31,8 +31,6 @@ from app.database.models import (
 )
 from app.extensions import db, limiter
 from app.forms import (
-    GENDER_CHOICES,
-    LOCATION_DESCRIPTION_CHOICES,
     MantisSightingForm,
     minimum_sighting_date,
 )
@@ -704,69 +702,19 @@ def review_step():
     if not _is_partial_request():
         abort(400)
 
-    # Collect all form data for the review
-    review_data = {
-        # Step 1: Photo & Details
-        "gender": _get_gender_display(request.form.get("gender", "")),
-        "location_description": _get_location_description_display(
-            request.form.get("location_description", "")
-        ),
-        "description": request.form.get("description", "-") or "-",
-        # photo_data injected client-side via htmx:afterSwap to avoid ~4MB round-trip
-        "photo_data": "",
-        # Step 2: Location & Date
-        "sighting_date": _format_date(request.form.get("sighting_date", "")),
-        "latitude": request.form.get("latitude", ""),
-        "longitude": request.form.get("longitude", ""),
-        "coordinates": _format_coordinates(
+    form = MantisSightingForm(formdata=request.form, meta={"csrf": False})
+    return render_template(
+        "report/partials/_review_content.html",
+        form=form,
+        sighting_date=_format_date(request.form.get("sighting_date", "")),
+        coordinates=_format_coordinates(
             request.form.get("latitude", ""), request.form.get("longitude", "")
         ),
-        "fund_city": request.form.get("fund_city", "-") or "-",
-        "fund_state": request.form.get("fund_state", "-") or "-",
-        "fund_district": request.form.get("fund_district", "-") or "-",
-        "fund_street": request.form.get("fund_street", "-") or "-",
-        "fund_zip_code": request.form.get("fund_zip_code", "-") or "-",
-        # Step 3: Contact
-        "reporter_name": f"{request.form.get('report_first_name', '')} {request.form.get('report_last_name', '')}".strip()
-        or "-",
-        "email": request.form.get("email", "-") or "-",
-        "identical_finder": _is_checkbox_true(
+        identical_finder=_is_checkbox_true(
             request.form.get("identical_finder_reporter")
         ),
-        "finder_name": _get_finder_name(request.form),
-        "feedback_source": _get_feedback_source_display(
-            request.form.get("feedback_source", "")
-        ),
-        "feedback_detail": request.form.get("feedback_detail", ""),
-    }
-
-    return render_template("report/partials/_review_content.html", review=review_data)
-
-
-# Helper functions for review display
-def _get_choice_display(selected_value, choices):
-    """Convert a choice value to its display label."""
-    for value, label in choices:
-        if value == selected_value:
-            return label
-    return "-"
-
-
-def _get_gender_display(gender_value):
-    """Convert gender field value to display text."""
-    return _get_choice_display(gender_value, GENDER_CHOICES)
-
-
-def _get_location_description_display(location_value):
-    """Convert location description value to display text."""
-    return _get_choice_display(location_value, LOCATION_DESCRIPTION_CHOICES)
-
-
-def _get_feedback_source_display(feedback_value):
-    """Convert feedback source value to display text."""
-    if not feedback_value:
-        return "Nicht angegeben"
-    return FeedbackSource.get_display_name(feedback_value)
+        finder_name=_get_finder_name(request.form),
+    )
 
 
 def _format_date(date_str):

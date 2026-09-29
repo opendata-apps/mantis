@@ -9,10 +9,7 @@ import pytest
 from app.routes.report import (
     _format_coordinates,
     _format_date,
-    _get_feedback_source_display,
     _get_finder_name,
-    _get_gender_display,
-    _get_location_description_display,
     _parse_user_name,
     _set_gender_fields,
 )
@@ -146,61 +143,3 @@ class TestGetFinderName:
 
     def test_missing_keys(self):
         assert _get_finder_name({}) == "-"
-
-
-# ---------------------------------------------------------------------------
-# _get_gender_display  (needs app context for import)
-# ---------------------------------------------------------------------------
-class TestGetGenderDisplay:
-    def test_known_values(self, app):
-        with app.app_context():
-            assert _get_gender_display("Männlich") == "Männlich"
-            assert _get_gender_display("Weiblich") == "Weiblich"
-            assert _get_gender_display("Nymphe") == "Nymphe"
-            assert _get_gender_display("Oothek") == "Oothek (Eipaket)"
-            assert _get_gender_display("Unbekannt") == "Unbekannt"
-
-    def test_empty(self, app):
-        with app.app_context():
-            # Empty string matches the first choice ("", "-- Bitte wählen --")
-            assert _get_gender_display("") == "-- Bitte wählen --"
-
-    def test_unknown_value(self, app):
-        with app.app_context():
-            assert _get_gender_display("INVALID") == "-"
-
-
-# ---------------------------------------------------------------------------
-# _get_location_description_display
-# ---------------------------------------------------------------------------
-class TestGetLocationDescriptionDisplay:
-    def test_known_ids(self, app):
-        with app.app_context():
-            assert _get_location_description_display("1") == "Innenräume"
-            assert _get_location_description_display("2") == "Garten"
-            assert _get_location_description_display("99") == "Andere Orte"
-
-    def test_empty(self, app):
-        with app.app_context():
-            assert _get_location_description_display("") == "-- Bitte wählen --"
-
-    def test_unknown_id(self, app):
-        with app.app_context():
-            assert _get_location_description_display("999") == "-"
-
-
-# ---------------------------------------------------------------------------
-# _get_feedback_source_display
-# ---------------------------------------------------------------------------
-class TestGetFeedbackSourceDisplay:
-    def test_known_values(self):
-        assert _get_feedback_source_display("EVENT") == "Auf einer Veranstaltung"
-        assert _get_feedback_source_display("PRESS") == "Presse"
-        assert _get_feedback_source_display("SOCIAL") == "Social Media"
-
-    def test_empty(self):
-        assert _get_feedback_source_display("") == "Nicht angegeben"
-
-    def test_unknown(self):
-        # FeedbackSource.get_display_name returns the value itself for unknowns
-        assert _get_feedback_source_display("UNKNOWN") == "UNKNOWN"

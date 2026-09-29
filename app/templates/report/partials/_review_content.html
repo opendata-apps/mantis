@@ -1,170 +1,105 @@
 {# HTMX partial: Complete review section content #}
+{% macro section(icon, title, step) %}
+  <div class="overflow-hidden bg-white border border-gray-200 rounded-lg shadow-xs review-section">
+    <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-gray-50">
+      <h4 class="flex items-center font-medium text-gray-700 text-base">
+        {{ heroicon_outline(icon, class="size-5 mr-2 text-green-600") }}
+        {{ title }}
+      </h4>
+      <button type="button"
+              class="edit-btn flex items-center p-1 text-sm font-medium text-green-700 rounded-sm hover:text-green-800 hover:bg-green-50"
+              data-step="{{ step }}">
+        {{ heroicon_outline("pencil-square", class="size-4 mr-1") }}
+        Bearbeiten
+      </button>
+    </div>
+    <div class="p-4">{{ caller() }}</div>
+  </div>
+{% endmacro %}
+{% macro item(icon, label, value, wide=false) %}
+  {% if wide %}<div class="md:col-span-2">{% endif %}
+  <div class="p-3 rounded-md bg-gray-50">
+    <div class="flex items-center mb-2">
+      {{ heroicon_outline(icon, class="size-5 text-green-500 mr-2") }}
+      <span class="font-medium text-gray-700">{{ label }}</span>
+    </div>
+    <div class="text-gray-900 ml-7">{{ value }}</div>
+    {% if caller %}{{ caller() }}{% endif %}
+  </div>
+  {% if wide %}</div>{% endif %}
+{% endmacro %}
+{% set gender_labels = dict(form.gender.choices) %}
+{% set location_labels = dict(form.location_description.choices) %}
+{% set feedback_labels = dict(form.feedback_source.choices) %}
 <div id="review-content" class="space-y-6">
-  {# Photo & Details Review #}
-  <div class="overflow-hidden bg-white border border-gray-200 rounded-lg shadow-xs review-section">
-    <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-gray-50">
-      <h4 class="flex items-center font-medium text-gray-700 text-base">
-        {{ heroicon_outline("photo", class="size-5 mr-2 text-green-600") }}
-        Foto & Details
-      </h4>
-      <button type="button"
-              class="edit-btn flex items-center p-1 text-sm font-medium text-green-700 rounded-sm hover:text-green-800 hover:bg-green-50"
-              data-step="1">
-        {{ heroicon_outline("pencil-square", class="size-4 mr-1") }}
-        Bearbeiten
-      </button>
-    </div>
-    <div class="p-4">
-      <div class="flex flex-col md:flex-row md:space-x-6">
-        <div class="mb-4 md:w-1/3 md:mb-0">
-          <div class="flex overflow-hidden justify-center items-center h-40 bg-gray-50 rounded-md border border-gray-200 md:h-48">
-            {# Photo src injected client-side via htmx:afterSwap to avoid base64 round-trip #}
-            <img id="review-photo"
-                 class="object-contain max-w-full max-h-full"
-                 alt="Uploaded photo">
-          </div>
+  {% call section("photo", "Foto & Details", 1) %}
+    <div class="flex flex-col md:flex-row md:space-x-6">
+      <div class="mb-4 md:w-1/3 md:mb-0">
+        <div class="flex overflow-hidden justify-center items-center h-40 bg-gray-50 rounded-md border border-gray-200 md:h-48">
+          {# Photo src injected client-side via htmx:afterSwap to avoid base64 round-trip #}
+          <img id="review-photo"
+               class="object-contain max-w-full max-h-full"
+               alt="Uploaded photo">
         </div>
-        <div class="md:w-2/3">
-          <div class="grid grid-cols-1 gap-3 text-sm">
-            <div class="border-b border-gray-100 pb-2">
-              <span class="font-medium text-gray-700">Entwicklungsstadium/Geschlecht:</span>
-              <span class="text-gray-900 ml-1">{{ review.gender }}</span>
-            </div>
-            <div class="border-b border-gray-100 pb-2">
-              <span class="font-medium text-gray-700">Fundortbeschreibung:</span>
-              <span class="text-gray-900 ml-1">{{ review.location_description }}</span>
-            </div>
-            <div>
-              <span class="font-medium text-gray-700">Zusätzliche Details:</span>
-              <div class="p-2 mt-1 overflow-y-auto text-gray-900 wrap-break-word rounded-md bg-gray-50 max-h-32">
-                {{ review.description }}
-              </div>
+      </div>
+      <div class="md:w-2/3">
+        <div class="grid grid-cols-1 gap-3 text-sm">
+          <div class="border-b border-gray-100 pb-2">
+            <span class="font-medium text-gray-700">Entwicklungsstadium/Geschlecht:</span>
+            <span class="text-gray-900 ml-1">{{ gender_labels.get(form.gender.data or "", "-") }}</span>
+          </div>
+          <div class="border-b border-gray-100 pb-2">
+            <span class="font-medium text-gray-700">Fundortbeschreibung:</span>
+            <span class="text-gray-900 ml-1">{{ location_labels.get(form.location_description.data or "", "-") }}</span>
+          </div>
+          <div>
+            <span class="font-medium text-gray-700">Zusätzliche Details:</span>
+            <div class="p-2 mt-1 overflow-y-auto text-gray-900 wrap-break-word rounded-md bg-gray-50 max-h-32">
+              {{ form.description.data or "-" }}
             </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-  {# Location & Date Review #}
-  <div class="overflow-hidden bg-white border border-gray-200 rounded-lg shadow-xs review-section">
-    <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-gray-50">
-      <h4 class="flex items-center font-medium text-gray-700 text-base">
-        {{ heroicon_outline("map-pin", class="size-5 mr-2 text-green-600") }}
-        Wann und Wo?
-      </h4>
-      <button type="button"
-              class="edit-btn flex items-center p-1 text-sm font-medium text-green-700 rounded-sm hover:text-green-800 hover:bg-green-50"
-              data-step="2">
-        {{ heroicon_outline("pencil-square", class="size-4 mr-1") }}
-        Bearbeiten
-      </button>
-    </div>
-    <div class="p-4">
-      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+  {% endcall %}
+  {% call section("map-pin", "Wann und Wo?", 2) %}
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+      {{ item("calendar", "Datum der Sichtung", sighting_date) }}
+      {% call item("map-pin", "Genaue Koordinaten", coordinates) %}
+        <p class="text-xs italic text-gray-600 ml-7">Bitte prüfen: Ist dies der genaue Fundort?</p>
+      {% endcall %}
+      <div class="md:col-span-2">
         <div class="p-3 rounded-md bg-gray-50">
           <div class="flex items-center mb-2">
-            {{ heroicon_outline("calendar", class="size-5 text-green-500 mr-2") }}
-            <span class="font-medium text-gray-700">Datum der Sichtung</span>
+            {{ heroicon_outline("home-modern", class="size-5 text-green-500 mr-2") }}
+            <span class="font-medium text-gray-700">Adressinformationen</span>
           </div>
-          <div class="text-gray-900 ml-7">{{ review.sighting_date }}</div>
-        </div>
-        <div class="p-3 rounded-md bg-gray-50">
-          <div class="flex items-center mb-2">
-            {{ heroicon_outline("map-pin", class="size-5 text-green-500 mr-2") }}
-            <span class="font-medium text-gray-700">Genaue Koordinaten</span>
-          </div>
-          <div class="text-gray-900 ml-7">{{ review.coordinates }}</div>
-          <p class="text-xs italic text-gray-600 ml-7">Bitte prüfen: Ist dies der genaue Fundort?</p>
-        </div>
-        <div class="md:col-span-2">
-          <div class="p-3 rounded-md bg-gray-50">
-            <div class="flex items-center mb-2">
-              {{ heroicon_outline("home-modern", class="size-5 text-green-500 mr-2") }}
-              <span class="font-medium text-gray-700">Adressinformationen</span>
-            </div>
-            <div class="grid grid-cols-1 gap-2 ml-7 md:grid-cols-2">
+          <div class="grid grid-cols-1 gap-2 ml-7 md:grid-cols-2">
+            {% for label, field in [("Straße", form.fund_street), ("PLZ", form.fund_zip_code), ("Stadt/Ort", form.fund_city), ("Bundesland", form.fund_state), ("Landkreis", form.fund_district)] %}
               <div>
-                <span class="text-sm text-gray-600">Straße:</span>
-                <span class="text-gray-900 ml-1">{{ review.fund_street }}</span>
+                <span class="text-sm text-gray-600">{{ label }}:</span>
+                <span class="text-gray-900 ml-1">{{ field.data or "-" }}</span>
               </div>
-              <div>
-                <span class="text-sm text-gray-600">PLZ:</span>
-                <span class="text-gray-900 ml-1">{{ review.fund_zip_code }}</span>
-              </div>
-              <div>
-                <span class="text-sm text-gray-600">Stadt/Ort:</span>
-                <span class="text-gray-900 ml-1">{{ review.fund_city }}</span>
-              </div>
-              <div>
-                <span class="text-sm text-gray-600">Bundesland:</span>
-                <span class="text-gray-900 ml-1">{{ review.fund_state }}</span>
-              </div>
-              <div>
-                <span class="text-sm text-gray-600">Landkreis:</span>
-                <span class="text-gray-900 ml-1">{{ review.fund_district }}</span>
-              </div>
-            </div>
+            {% endfor %}
           </div>
         </div>
       </div>
     </div>
-  </div>
-  {# Contact Information Review #}
-  <div class="overflow-hidden bg-white border border-gray-200 rounded-lg shadow-xs review-section">
-    <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-gray-50">
-      <h4 class="flex items-center font-medium text-gray-700 text-base">
-        {{ heroicon_outline("user", class="size-5 mr-2 text-green-600") }}
-        Ihre Kontaktdaten
-      </h4>
-      <button type="button"
-              class="edit-btn flex items-center p-1 text-sm font-medium text-green-700 rounded-sm hover:text-green-800 hover:bg-green-50"
-              data-step="3">
-        {{ heroicon_outline("pencil-square", class="size-4 mr-1") }}
-        Bearbeiten
-      </button>
-    </div>
-    <div class="p-4">
-      <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
-        <div class="p-3 rounded-md bg-gray-50">
-          <div class="flex items-center mb-2">
-            {{ heroicon_outline("user", class="size-5 text-green-500 mr-2") }}
-            <span class="font-medium text-gray-700">Melder</span>
-          </div>
-          <div class="text-gray-900 ml-7">{{ review.reporter_name }}</div>
-        </div>
-        <div class="p-3 rounded-md bg-gray-50">
-          <div class="flex items-center mb-2">
-            {{ heroicon_outline("envelope", class="size-5 text-green-500 mr-2") }}
-            <span class="font-medium text-gray-700">E-Mail</span>
-          </div>
-          <div class="text-gray-900 ml-7">{{ review.email }}</div>
-        </div>
-        {% if not review.identical_finder and review.finder_name != '-' %}
-          <div class="md:col-span-2">
-            <div class="p-3 rounded-md bg-gray-50">
-              <div class="flex items-center mb-2">
-                {{ heroicon_outline("user", class="size-5 text-green-500 mr-2") }}
-                <span class="font-medium text-gray-700">Finder</span>
-              </div>
-              <div class="text-gray-900 ml-7">{{ review.finder_name }}</div>
-            </div>
-          </div>
+  {% endcall %}
+  {% call section("user", "Ihre Kontaktdaten", 3) %}
+    <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+      {{ item("user", "Melder", ((form.report_first_name.data or "") ~ " " ~ (form.report_last_name.data or "")).strip() or "-") }}
+      {{ item("envelope", "E-Mail", form.email.data or "-") }}
+      {% if not identical_finder and finder_name != '-' %}
+        {{ item("user", "Finder", finder_name, wide=true) }}
+      {% endif %}
+      {% call item("light-bulb", "Wie haben Sie von uns erfahren?", feedback_labels.get(form.feedback_source.data, form.feedback_source.data) if form.feedback_source.data else "Nicht angegeben", wide=true) %}
+        {% if form.feedback_detail.data %}
+          <div class="mt-1 ml-7 text-sm text-gray-600">Details: {{ form.feedback_detail.data }}</div>
         {% endif %}
-        <div class="md:col-span-2">
-          <div class="p-3 rounded-md bg-gray-50">
-            <div class="flex items-center mb-2">
-              {{ heroicon_outline("light-bulb", class="size-5 text-green-500 mr-2") }}
-              <span class="font-medium text-gray-700">Wie haben Sie von uns erfahren?</span>
-            </div>
-            <div class="text-gray-900 ml-7">{{ review.feedback_source }}</div>
-            {% if review.feedback_detail %}
-              <div class="mt-1 ml-7 text-sm text-gray-600">Details: {{ review.feedback_detail }}</div>
-            {% endif %}
-          </div>
-        </div>
-      </div>
+      {% endcall %}
     </div>
-  </div>
+  {% endcall %}
   {# Final warning #}
   <div class="p-4 bg-amber-50 rounded-lg border border-amber-200 shadow-xs">
     <div class="flex">
