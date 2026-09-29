@@ -222,7 +222,7 @@
   }
 
   html {
-    scroll-behavior: smooth !important;
+    scroll-behavior: smooth;
     font-size: 100% !important;
     overscroll-behavior: none;
     scrollbar-gutter: stable;
