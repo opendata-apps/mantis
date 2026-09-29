@@ -27,6 +27,11 @@ function initializeApp() {
     debounceTimer = setTimeout(() => applySearch(searchInput.value), 300);
   });
 
+  document.getElementById("searchForm").addEventListener("submit", (event) => {
+    event.preventDefault();
+    clearTimeout(debounceTimer);
+    applySearch(searchInput.value);
+  });
 
   // Initialize search type select and clear search button
   const searchType = document.querySelector("[data-search-type]");
