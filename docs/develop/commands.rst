@@ -39,6 +39,8 @@ Flask-CLI
      - Basisdaten plus Demo-Meldungen/Bilder einspielen
    * - ``uv run flask seed-ags``
      - Verwaltungsgebiete (AGS) von BKG/Berlin-WFS aktualisieren
+   * - ``uv run flask check-images``
+     - Prüft referenzierte Fotos im Datastore; fehlende oder unsichere Pfade führen zu Exit-Code 1
 
 Qualitätssicherung
 ------------------
@@ -111,7 +113,9 @@ Alles andere ist ein gewöhnlicher Compose-Befehl.
    * - ``just prod-backup``
      - Dump + Rollen sichern, verifizieren, nach 14 Tagen rotieren
    * - ``just prod-deploy``
-     - Sichern, pullen, bauen, Web tauschen, laufenden Commit prüfen
+     - Sichern, pullen, bauen, Datastore prüfen, Web tauschen, laufenden Commit prüfen
+   * - ``just prod-migrate``
+     - Aktuellen Checkout bauen und dessen Migrationen anwenden
    * - ``just prod-rollback``
      - Web auf das ``:previous``-Image zurücksetzen
    * - ``just prod-down``

@@ -71,6 +71,7 @@ prod-backup:
 # Apply pending migrations without swapping the container
 [group('prod')]
 @prod-migrate:
+    {{ compose }} build --pull web
     # entrypoint.sh upgrades before it execs the command, so the upgrade shows
     # up twice. The second run is a no-op.
     {{ compose }} run --rm -T --no-deps web flask db upgrade
@@ -85,9 +86,18 @@ prod-deploy: prod-backup
     set -euo pipefail
     git pull --ff-only
     sha=$(git rev-parse --short HEAD)
-    # Before the build, so prod-rollback is a one-liner.
-    podman tag localhost/infrastructure_web:latest localhost/infrastructure_web:previous || true
+    # Preserve the running image, even when prod-migrate rebuilt :latest.
+    container=$(podman ps -q \
+        --filter label=io.podman.compose.project=infrastructure \
+        --filter label=io.podman.compose.service=web)
+    if [ -n "$container" ]; then
+        image=$(podman inspect "$container" \
+            | python3 -c 'import json, sys; print(json.load(sys.stdin)[0]["Image"])')
+        podman tag "$image" localhost/infrastructure_web:previous
+    fi
     {{ compose }} build --pull web
+    # Check the candidate's datastore without running migrations or seeding.
+    {{ compose }} run --rm -T --no-deps --entrypoint flask web check-images
     # --no-deps leaves the DB container and its volume out of the swap.
     GIT_SHA=$sha {{ compose }} up -d --force-recreate --no-deps web
     # Captured apart from the version check: in one pipe, pipefail aborts before
