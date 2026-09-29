@@ -7,6 +7,8 @@ the CLI.
 
 import re
 
+from app.tools.postal_code import is_valid_plz
+
 # Accepted range: Europe per the EPSG:3035 (LAEA Europe) area of use, clipped
 # north to 60 and west to -20 — Iceland, Svalbard and the mid-Atlantic are far
 # outside the range of Mantis religiosa.
@@ -74,6 +76,22 @@ def validate_coordinate(value, coord_type):
     if not (low <= number <= high):
         return None, RANGE_MESSAGES[coord_type]
     return number, None
+
+
+def normalize_location_input(field, value):
+    """Return the value to store for a Fundorte field and its error, if any.
+
+    Coordinates are parsed and range-checked; an empty PLZ becomes None. Any
+    other field passes through unchanged.
+    """
+    if field in COORDINATE_RANGES:
+        return validate_coordinate(value, field)
+    if field == "plz":
+        if value in (None, ""):
+            return None, None
+        if not is_valid_plz(value):
+            return None, "Invalid ZIP code"
+    return value, None
 
 
 def coordinates_look_swapped(latitude, longitude):

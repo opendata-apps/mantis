@@ -36,7 +36,7 @@ from app.routes.admin.filters import (
     report_with_relations,
 )
 from app.tools.coordinate_validation import (
-    validate_coordinate,
+    normalize_location_input,
     validate_coordinate_pair,
 )
 from app.tools.location_enrichment import recalculate_amt_mtb
@@ -233,14 +233,9 @@ def change_mantis_meta_data(id):
     if target is None:
         return jsonify({"error": "Location not found"}), 404
 
-    if fieldname in COORDINATE_FIELDS:
-        normalized_value, error_msg = validate_coordinate(new_data, fieldname)
-        if error_msg:
-            return jsonify({"error": error_msg}), 400
-        new_data = normalized_value
-    elif fieldname == "plz":
-        if not is_valid_plz(new_data):
-            return jsonify({"error": "Invalid ZIP code"}), 400
+    new_data, error_msg = normalize_location_input(fieldname, new_data)
+    if error_msg:
+        return jsonify({"error": error_msg}), 400
 
     setattr(target, fieldname, new_data)
     if fieldname in COORDINATE_FIELDS:

@@ -25,10 +25,9 @@ from app.database.models import (
 from app.extensions import db
 from app.routes.admin.blueprint import admin
 from app.routes.backup import available_backup_years
-from app.tools.coordinate_validation import validate_coordinate
+from app.tools.coordinate_validation import normalize_location_input
 from app.tools.fts import prefix_tsquery
 from app.tools.location_enrichment import recalculate_amt_mtb
-from app.tools.postal_code import is_valid_plz
 from app.tools.report_images import ensure_upload_dir
 
 EDITABLE_FIELDS = {
@@ -247,18 +246,9 @@ def update_cell():
         if not fundorte_id:
             return jsonify({"error": "Fundorte ID not found in the record"}), 400
 
-        # Validate and normalize coordinates before storing
-        if column_name in ["latitude", "longitude"]:
-            normalized_value, error_msg = validate_coordinate(new_value, column_name)
-            if error_msg:
-                return jsonify({"error": error_msg}), 400
-            new_value = normalized_value
-
-        if column_name == "plz":
-            if new_value in (None, ""):
-                new_value = None
-            elif not is_valid_plz(new_value):
-                return jsonify({"error": "Invalid ZIP code"}), 400
+        new_value, error_msg = normalize_location_input(column_name, new_value)
+        if error_msg:
+            return jsonify({"error": error_msg}), 400
 
         stmt = (
             update(original_table)
