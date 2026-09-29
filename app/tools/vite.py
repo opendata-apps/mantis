@@ -144,7 +144,7 @@ def vite_font_preloads(*patterns: str) -> Markup:
                 f'<link rel="preload" as="font" type="font/woff2"'
                 f' crossorigin href="{font_url}">'
             )
-    return Markup("\n".join(sorted(links)))
+    return Markup("\n".join(sorted(links)))  # noqa: S704 built from the Vite manifest
 
 
 def vite_tags(entry: str) -> Markup:
@@ -182,7 +182,7 @@ def vite_tags(entry: str) -> Markup:
         preload_url = url_for("static", filename=f"build/{file}")
         tags.append(f'<link rel="modulepreload" href="{preload_url}">')
 
-    return Markup("\n".join(tags))
+    return Markup("\n".join(tags))  # noqa: S704 built from the Vite manifest
 
 
 def init_app(app):

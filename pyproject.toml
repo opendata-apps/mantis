@@ -92,17 +92,25 @@ extend-select = [
     "PT",  # flake8-pytest-style
     "RET", # return
     "RUF",
+    "S",   # bandit
     "SIM", # simplify
+    "T20", # print
     "TRY400", # error() instead of exception() in an except block
     "UP",  # pyupgrade
 ]
 ignore = [
     "RUF001", "RUF002", "RUF003", # ambiguous unicode: fires on German text
     "RUF012", # ClassVar on Flask config and SQLAlchemy __table_args__ dicts
+    "S101",   # assert
+    "S603",   # every subprocess call; the shell=True case is S602
 ]
-# Candidates, each with violations today: G, DTZ, RUF, PTH, ARG, S. Read the
-# current count with `ruff check --select <rule> --statistics .` — most of S is
-# `assert` in tests.
+# Not adopted, too noisy for what they catch here: DTZ, PTH, ARG, PL, TRY.
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S"]
+"migrations/**" = ["S608"] # SQL interpolates module constants
+"run.py" = ["T201", "S"]   # dev launcher
+"scripts/**" = ["T201"]
 
 [tool.ruff.lint.flake8-pytest-style]
 # Ruff defaults to the tuple form; pytest's own documentation writes "a,b".

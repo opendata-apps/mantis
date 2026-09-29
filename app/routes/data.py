@@ -122,5 +122,5 @@ def obfuscate_location(lat, long, report_id):
     report id alone would let anyone re-run this function and subtract it.
     """
     offset = 0.005
-    rng = Random(f"{report_id}:{current_app.config['SECRET_KEY']}")
+    rng = Random(f"{report_id}:{current_app.config['SECRET_KEY']}")  # noqa: S311
     return lat + rng.uniform(-offset, offset), long + rng.uniform(-offset, offset)

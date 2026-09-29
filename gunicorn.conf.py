@@ -8,7 +8,7 @@ threads = 2
 # Must stay on a tmpfs. The heartbeat calls os.fchmod on a file in here, which
 # gunicorn's own worker_tmp_dir setting documents as able to block a worker for
 # arbitrary time when the directory is disk-backed.
-worker_tmp_dir = "/dev/shm"
+worker_tmp_dir = "/dev/shm"  # noqa: S108
 # Keep both on the streams. Pointing either at a file takes the request log out
 # of `journalctl _UID=1002`, which is the only place we read it from.
 accesslog = "-"

@@ -129,4 +129,4 @@ if __name__ == "__main__":
 
     dbanswer = [(3328, 5), (3830, 10), (4138, 1), (5446, 3), (4634, 99)]
 
-    print(create_measure_sheet(rows, cols, box_size, dataset=dbanswer))
+    print(create_measure_sheet(rows, cols, box_size, dataset=dbanswer))  # noqa: T201
