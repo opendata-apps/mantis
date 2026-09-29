@@ -163,9 +163,9 @@
           <span class="lightbox-counter block mt-0.5 text-xs opacity-70 tabular-nums"></span>
         </div>
         {# New-tab: hidden by default, JS shows it only in compact/reviewer mode #}
-        <button type="button" class="lightbox-btn lightbox-newtab absolute z-10 top-3 right-15 flex size-11 items-center justify-center rounded-full bg-black/35 text-white transition-[opacity,background-color] duration-300"
-                aria-label="In neuem Tab öffnen"
-                hidden>{{ heroicon_outline("arrow-top-right-on-square", class="size-5", stroke_width=2) }}</button>
+        <a target="_blank" rel="noopener" class="lightbox-btn lightbox-newtab absolute z-10 top-3 right-15 flex size-11 items-center justify-center rounded-full bg-black/35 text-white transition-[opacity,background-color] duration-300"
+           aria-label="In neuem Tab öffnen"
+           hidden>{{ heroicon_outline("arrow-top-right-on-square", class="size-5", stroke_width=2) }}</a>
         {# Close: always visible #}
         <button type="button" class="lightbox-btn lightbox-close absolute z-10 top-3 right-3 flex size-11 items-center justify-center rounded-full bg-black/35 text-white transition-[opacity,background-color] duration-300"
                 aria-label="Schließen">{{ heroicon_outline("x-mark", class="size-5", stroke_width=2.5) }}</button>

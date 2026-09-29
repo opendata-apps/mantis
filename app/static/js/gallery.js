@@ -38,9 +38,6 @@ class Lightbox {
     });
 
     this.dialog.querySelector('.lightbox-close').addEventListener('click', () => this.close());
-    this.dialog.querySelector('.lightbox-newtab')?.addEventListener('click', () => {
-      if (this.img.src) window.open(this.img.src, '_blank');
-    });
     this.prevBtn.addEventListener('click', () => this.prev());
     this.nextBtn.addEventListener('click', () => this.next());
 
@@ -95,6 +92,7 @@ class Lightbox {
     // Show loading state while image loads (uses TW4 opacity-30 + transition-opacity on the element)
     this.img.classList.add('opacity-30');
     this.img.src = link.href;
+    this.newtabBtn.href = link.href;
     this.img.addEventListener('load', () => this.img.classList.remove('opacity-30'), { once: true });
 
     const title = link.getAttribute('data-title') || link.getAttribute('title') || '';
