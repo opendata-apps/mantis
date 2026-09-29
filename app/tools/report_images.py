@@ -1,4 +1,6 @@
+import fcntl
 import io
+from contextlib import contextmanager
 from datetime import date, datetime
 from pathlib import Path
 
@@ -77,6 +79,14 @@ def _has_no_visible_pixels(img):
     return alpha.getextrema() == (0, 0)
 
 
+@contextmanager
+def _image_decode_slot(upload_root: Path):
+    """One decoder across all workers sharing this upload directory."""
+    with (upload_root / ".image-decode.lock").open("a") as lock_file:
+        fcntl.flock(lock_file, fcntl.LOCK_EX)
+        yield
+
+
 def process_uploaded_image(photo_file, sighting_date, city_name, user_id):
     """Process uploaded image - trust client-optimized WebP files to avoid double compression."""
     upload_root = Path(current_app.config["UPLOAD_FOLDER"])
@@ -87,7 +97,10 @@ def process_uploaded_image(photo_file, sighting_date, city_name, user_id):
     image_bytes = photo_file.read()
 
     try:
-        with Image.open(io.BytesIO(image_bytes), formats=PILLOW_FORMATS) as img:
+        with (
+            _image_decode_slot(upload_root),
+            Image.open(io.BytesIO(image_bytes), formats=PILLOW_FORMATS) as img,
+        ):
             if img.width * img.height > MAX_UPLOAD_PIXELS:
                 raise InvalidImageError(TOO_LARGE_MESSAGE)
             # JPEG only, a no-op otherwise: libjpeg decodes at 1/2–1/8 scale, so

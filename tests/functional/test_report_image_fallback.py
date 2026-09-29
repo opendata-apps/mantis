@@ -8,7 +8,10 @@ WebView blank-canvas bug that produced reports 10595, 16651, 17355, 21953,
 """
 
 import io
+from concurrent.futures import ThreadPoolExecutor
+from contextlib import contextmanager
 from datetime import date
+from threading import Barrier, Event, Lock
 
 import pytest
 from PIL import Image
@@ -252,3 +255,49 @@ def test_a_client_sized_webp_is_stored_byte_for_byte(app_ctx, upload_folder):
     rel = _store(photo)
 
     assert (upload_folder / rel).read_bytes() == photo.getvalue()
+
+
+def test_concurrent_uploads_do_not_decode_at_the_same_time(
+    app, upload_folder, monkeypatch
+):
+    original_open = Image.open
+    start = Barrier(2)
+    release = Event()
+    counter_lock = Lock()
+    active = 0
+    peak = 0
+
+    @contextmanager
+    def slow_decoder(*args, **kwargs):
+        nonlocal active, peak
+        with original_open(*args, **kwargs) as image:
+            with counter_lock:
+                active += 1
+                peak = max(peak, active)
+                if active > 1:
+                    release.set()
+            try:
+                release.wait(timeout=1)
+                yield image
+            finally:
+                with counter_lock:
+                    active -= 1
+
+    def upload(user_id):
+        photo = make_test_image(size=(32, 32))
+        start.wait(timeout=5)
+        with app.app_context():
+            return process_uploaded_image(photo, date(2025, 6, 1), "Testdorf", user_id)
+
+    with monkeypatch.context() as patch:
+        patch.setattr(Image, "open", slow_decoder)
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            first = pool.submit(upload, "first")
+            second = pool.submit(upload, "second")
+            paths = [first.result(timeout=5), second.result(timeout=5)]
+
+    assert peak == 1
+    assert [Image.open(upload_folder / path).format for path in paths] == [
+        "WEBP",
+        "WEBP",
+    ]

@@ -10,9 +10,7 @@ services:
 
   web:
     restart: unless-stopped
-    # Four ~130 MiB workers leave room for a few 50 MP HEIC decodes (~600 MiB
-    # each). Past this the kernel kills a worker inside this container, which
-    # gunicorn respawns, instead of picking Postgres on a host without swap.
+    # The shared upload lock permits one full-resolution decode at a time.
     mem_limit: 3g
     # Both outside the checkout: the base's repo paths are gitignored, so
     # `git clean -fdx` would delete every photo and backup. Photos are app-only,

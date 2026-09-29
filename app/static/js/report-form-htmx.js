@@ -256,6 +256,7 @@ const ReportForm = {
     },
 
     showServerErrors(errors) {
+        if (errors.photo) this.removePhoto();
         this.clearErrors();
 
         let target = Infinity;
