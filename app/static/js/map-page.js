@@ -35,6 +35,10 @@ L.Control.YearSelector = L.Control.extend({
 L.control.yearSelector = opts => new L.Control.YearSelector(opts);
 
 // Init map
+// maxZoom 12 is the second half of obfuscate_location() in routes/data.py:
+// markers are offset by up to ~500 m, and this keeps the map from being
+// zoomed in far enough for that offset to stand out. The report form and the
+// reviewer modal deliberately go to 18 and 19 — they show the real point.
 const germanyBounds = [[47.270111, 5.866342], [55.058347, 15.041896]];
 const map = L.map('map', {
   renderer: L.canvas(),
@@ -42,22 +46,19 @@ const map = L.map('map', {
   maxBoundsViscosity: 1.0,
   keyboard: true,
   keyboardPanDelta: 100,
+  minZoom: 6,
+  maxZoom: 12,
   zoomControl: false
 }).setView([51.991649, 13.080113], 9);
 
-// maxZoom 12 is the second half of obfuscate_location() in routes/data.py:
-// markers are offset by up to ~500 m, and this keeps the map from being
-// zoomed in far enough for that offset to stand out. The report form and the
-// reviewer modal deliberately go to 18 and 19 — they show the real point.
 const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-  maxZoom: 12
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 });
 const esriImagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-  maxZoom: 12, attribution: 'Tiles &copy; Esri'
+  attribution: 'Tiles &copy; Esri'
 });
 const esriLabels = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
-  maxZoom: 12, attribution: 'Tiles &copy; Esri'
+  attribution: 'Tiles &copy; Esri'
 });
 
 map.addLayer(osmLayer);
@@ -100,9 +101,3 @@ reports.forEach(r => {
   markers.addLayer(marker);
 });
 map.addLayer(markers);
-
-// Zoom restrictions
-map.on('zoomend', () => {
-  if (map.getZoom() > 12) map.setZoom(12);
-  if (map.getZoom() < 6) map.setZoom(6);
-});
