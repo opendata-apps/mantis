@@ -67,13 +67,13 @@
     {# ── Action bar — pinned to bottom via mt-auto ── #}
     <div class="flex justify-between items-center mt-auto pt-3 min-h-7">
       <div class="flex items-center">
-        {# Edit — overrides inherited hx-target/hx-swap to open modal.
-           `data-action="open-modal"` lets admin-modal.js open the dialog on
-           htmx:beforeRequest without an inline (eval) handler. #}
+        {# Edit — overrides inherited hx-target/hx-swap; the invoker command
+           opens the dialog while htmx loads its content. #}
         <button type="button" hx-get="{{ url_for('admin.modal_open', id=sighting.id) }}"
                 hx-target="#modal-body"
                 hx-swap="innerHTML"
-                data-action="open-modal"
+                commandfor="modal"
+                command="show-modal"
                 title="Bearbeiten"
                 class="inline-flex items-center justify-center size-10 rounded-md text-gray-500 transition-colors duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-green-500/30 hover:bg-green-100 hover:text-green-700">
           {{ heroicon_outline("pencil-square", class="size-4 md:size-5", stroke_width=1.5) }}

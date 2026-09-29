@@ -44,19 +44,6 @@ function initializeCustomIcon() {
 // Modal lifecycle (minimal — HTMX loads content)
 // ---------------------------------------------------------------------------
 
-function openModal() {
-  var modal = document.getElementById("modal");
-  if (!modal) return;
-  var body = document.getElementById("modal-body");
-  if (body) {
-    body.innerHTML =
-      '<div class="flex justify-center items-center h-full text-sm text-gray-500">' +
-      "Meldung wird geladen..." +
-      "</div>";
-  }
-  if (!modal.open) modal.showModal();
-}
-
 function closeModal() {
   var modal = document.getElementById("modal");
   if (modal && modal.open) modal.close();
@@ -721,7 +708,6 @@ var CLICK_ACTIONS = {
   "date-type": function (el) {
     setDateType(el.dataset.dateType);
   },
-  "close-modal": closeModal,
   "dismiss-alert": function (el) {
     el.closest("[role=alert]").remove();
   },
@@ -794,6 +780,8 @@ document.addEventListener("DOMContentLoaded", function () {
   );
 
   var editDialog = document.getElementById("modal");
+  var modalBody = document.getElementById("modal-body");
+  var modalPlaceholder = modalBody && modalBody.innerHTML;
 
   // Backdrop click-to-close (click on <dialog> itself = backdrop area)
   if (editDialog) {
@@ -802,6 +790,8 @@ document.addEventListener("DOMContentLoaded", function () {
     });
     // Map cleanup on any close (ESC, backdrop, button, HTMX after-request)
     editDialog.addEventListener("close", function () {
+      // The next open shows the loading placeholder, not the previous report.
+      if (modalBody) modalBody.innerHTML = modalPlaceholder;
       geocodeRequestSeq += 1;
       if (map) {
         map.remove();
@@ -829,14 +819,6 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 
-// ---------------------------------------------------------------------------
-// CSP-safe modal triggers (htmx.config.allowEval is off, so no hx-on::*).
-// `data-action="open-modal"` on a button → modal opens when htmx fires its request.
-// Server returns `HX-Trigger: mantis:modal-close` → body closes the modal.
-// ---------------------------------------------------------------------------
-document.body.addEventListener("htmx:beforeRequest", (event) => {
-  if (event.detail?.elt?.dataset?.action === "open-modal") {
-    openModal();
-  }
-});
+// Open and close buttons use invoker commands (commandfor/command). A response
+// with `HX-Trigger: mantis:modal-close` closes the modal.
 document.body.addEventListener("mantis:modal-close", closeModal);
