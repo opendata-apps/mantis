@@ -71,6 +71,15 @@ list_of_stats = {
 }
 
 
+def _filters():
+    """Return date_from, date_to and the AGS prefix stored by stats_start."""
+    return (
+        date.fromisoformat(session["date_from"]),
+        date.fromisoformat(session["date_to"]),
+        session["ags"],
+    )
+
+
 @stats.route("/statistik/ags", methods=["GET"])
 def autocomplete_ags():
     q = request.args.get("ags_input", "").strip()
@@ -190,8 +199,7 @@ def stats_daily_average(marker="meldungen_zeiten"):
     timestamp_expr = func.to_timestamp(timestamp_substr, "YYYYMMDDHH24MISS")
     hour_expr = func.extract("hour", timestamp_expr)
 
-    date_from = date.fromisoformat(session["date_from"])
-    date_to = date.fromisoformat(session["date_to"])
+    date_from, date_to, ags = _filters()
 
     stmt = (
         select(hour_expr.label("stunde"), func.count().label("anzahl_meldungen"))
@@ -202,7 +210,7 @@ def stats_daily_average(marker="meldungen_zeiten"):
             TblMeldungen.dat_fund_von <= date_to,
             TblMeldungen.is_approved,
         )
-        .where(TblFundorte.amt.like(f"{session['ags']}%"))
+        .where(TblFundorte.amt.like(f"{ags}%"))
         .group_by(hour_expr)
         .order_by(hour_expr)
     )
@@ -237,17 +245,18 @@ def stats_mtb(marker):
     "Results as MTB (Messtischblatt-Raster)"
 
     column = MTB_COUNTS.get(request.form.get("typeInput", "all"), "gesamt")
+    date_from, date_to, ags = _filters()
     stmt = (
         select(TblFundorte.mtb, *_gender_sum_columns())
         .join(TblMeldungen)
         .where(
-            TblMeldungen.dat_fund_von >= date.fromisoformat(session["date_from"]),
-            TblMeldungen.dat_fund_von <= date.fromisoformat(session["date_to"]),
+            TblMeldungen.dat_fund_von >= date_from,
+            TblMeldungen.dat_fund_von <= date_to,
             TblMeldungen.is_approved,
             # Fundorte outside Germany have no sheet.
             TblFundorte.mtb != "",
         )
-        .where(TblFundorte.amt.like(f"{session['ags']}%"))
+        .where(TblFundorte.amt.like(f"{ags}%"))
         .group_by(TblFundorte.mtb)
     )
 
@@ -273,8 +282,7 @@ def stats_mtb(marker):
 def stats_bardiagram_datum(dbfields, page, marker=None):
     """Calculate statistics by date using ORM queries."""
 
-    date_from = date.fromisoformat(session["date_from"])
-    date_to = date.fromisoformat(session["date_to"])
+    date_from, date_to, ags = _filters()
 
     results = {0: {}, 1: {}}
     for idx, field_name in enumerate(dbfields):
@@ -285,7 +293,7 @@ def stats_bardiagram_datum(dbfields, page, marker=None):
             .where(
                 col.between(date_from, date_to),
                 TblMeldungen.is_approved,
-                TblFundorte.amt.like(f"{session['ags']}%"),
+                TblFundorte.amt.like(f"{ags}%"),
             )
             .group_by(col)
             .order_by(col)
@@ -320,13 +328,14 @@ def stats_geschlecht(marker):
         "gesamt": "Gesamt",
     }
 
+    date_from, date_to, ags = _filters()
     stmt = (
         select(*_gender_sum_columns())
         .join(TblMeldungen.fundort)
         .where(
-            TblMeldungen.dat_fund_von >= date.fromisoformat(session["date_from"]),
-            TblMeldungen.dat_fund_von <= date.fromisoformat(session["date_to"]),
-            TblFundorte.amt.like(f"{session['ags']}%"),
+            TblMeldungen.dat_fund_von >= date_from,
+            TblMeldungen.dat_fund_von <= date_to,
+            TblFundorte.amt.like(f"{ags}%"),
             TblMeldungen.is_approved,
         )
     )
@@ -358,15 +367,16 @@ def stats_amt(marker):
     }
     fehler = False
 
+    date_from, date_to, ags = _filters()
     stmt = (
         select(TblFundorte.amt, *_gender_sum_columns())
         .join(TblMeldungen)
         .where(
-            TblMeldungen.dat_meld >= date.fromisoformat(session["date_from"]),
-            TblMeldungen.dat_meld <= date.fromisoformat(session["date_to"]),
+            TblMeldungen.dat_meld >= date_from,
+            TblMeldungen.dat_meld <= date_to,
             TblMeldungen.is_approved,
         )
-        .where(TblFundorte.amt.like(f"{session['ags']}%"))
+        .where(TblFundorte.amt.like(f"{ags}%"))
         .group_by(TblFundorte.amt)
     )
     results = db.session.execute(stmt).all()
@@ -412,12 +422,13 @@ def stats_laender(marker):
     substring_start = literal_column("1")
     state_code_len = literal_column("2")
     amt_group_expr = func.substring(TblFundorte.amt, substring_start, state_code_len)
+    date_from, date_to, _ = _filters()
     results = db.session.execute(
         select(amt_group_expr.label("amt_group"), *_gender_sum_columns())
         .join(TblMeldungen)
         .where(
-            TblMeldungen.dat_meld >= date.fromisoformat(session["date_from"]),
-            TblMeldungen.dat_meld <= date.fromisoformat(session["date_to"]),
+            TblMeldungen.dat_meld >= date_from,
+            TblMeldungen.dat_meld <= date_to,
             TblMeldungen.is_approved,
         )
         .group_by(amt_group_expr)
@@ -470,12 +481,13 @@ def stats_bundesland(marker):
     district_len = literal_column(str(maxchars))
     state_prefix_expr = func.substring(TblFundorte.amt, substring_start, state_code_len)
     amt_group_expr = func.substring(TblFundorte.amt, substring_start, district_len)
+    date_from, date_to, _ = _filters()
     results = db.session.execute(
         select(amt_group_expr.label("amt_group"), *_gender_sum_columns())
         .join(TblMeldungen)
         .where(
-            TblMeldungen.dat_meld >= date.fromisoformat(session["date_from"]),
-            TblMeldungen.dat_meld <= date.fromisoformat(session["date_to"]),
+            TblMeldungen.dat_meld >= date_from,
+            TblMeldungen.dat_meld <= date_to,
             state_prefix_expr == ags,
             TblMeldungen.is_approved,
         )
@@ -511,12 +523,13 @@ def stats_gesamt(marker):
 
     result_dict = build_gesamt_template()
 
+    date_from, date_to, _ = _filters()
     stmt = (
         select(TblFundorte.amt, _total_animals())
         .join(TblMeldungen)
         .where(
-            TblMeldungen.dat_meld >= date.fromisoformat(session["date_from"]),
-            TblMeldungen.dat_meld <= date.fromisoformat(session["date_to"]),
+            TblMeldungen.dat_meld >= date_from,
+            TblMeldungen.dat_meld <= date_to,
             TblMeldungen.is_approved,
         )
         .group_by(TblFundorte.amt)
