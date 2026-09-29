@@ -4,8 +4,7 @@ comments on the right. Anzahl is an auto-summed, read-only total
 (Männchen+Weibchen+Nymphe+Oothek+andere). Quelldaten collapse by default. Dates
 kept subtle (also shown on the list view). Template variables: sighting,
 feedback, editable, edit_mode, user_report_count #} {% set disabled = '' if
-editable else 'disabled' %} {% set edit_ring = 'border-green-500
-focus:ring-green-500' if edit_mode else '' %} {% set fundort = sighting.fundort
+editable else 'disabled' %} {% set edit_ring = 'border-green-500' if edit_mode else '' %} {% set fundort = sighting.fundort
 %} {% set reporter = sighting.reporter_link.reporter %} {% set finder =
 sighting.reporter_link.finder %}
 <div class="flex flex-col p-4 h-auto md:h-full">
