@@ -114,8 +114,9 @@ class Lightbox {
 
     const author = link.getAttribute('data-author');
     const date = link.getAttribute('data-date');
-    const licenseHtml = link.getAttribute('data-license');
-    if (!author && !date && !licenseHtml) return;
+    const licenseUrl = link.getAttribute('data-license-url');
+    const licenseBadge = link.getAttribute('data-license-badge');
+    if (!author && !date && !licenseUrl) return;
 
     // Metadata row — horizontal flex with dot separators
     const meta = document.createElement('div');
@@ -125,27 +126,17 @@ class Lightbox {
     if (author) items.push(this.createMetaItem(author.trim()));
     if (date) items.push(this.createMetaItem(date));
 
-    // License — parse HTML safely via inert DOMParser, extract href + img src
-    if (licenseHtml) {
-      const doc = new DOMParser().parseFromString(licenseHtml, 'text/html');
-      const srcAnchor = doc.querySelector('a[href]');
-      if (srcAnchor) {
-        const safeLink = document.createElement('a');
-        safeLink.href = srcAnchor.href;
-        safeLink.rel = 'license';
-        safeLink.target = '_blank';
-        safeLink.className = 'lightbox-license';
-        const srcImg = srcAnchor.querySelector('img');
-        if (srcImg?.src) {
-          const badge = document.createElement('img');
-          badge.src = srcImg.src;
-          badge.alt = srcImg.alt || 'Lizenz';
-          safeLink.appendChild(badge);
-        } else {
-          safeLink.textContent = srcAnchor.textContent || 'Lizenz';
-        }
-        items.push(safeLink);
-      }
+    if (licenseUrl) {
+      const licenseLink = document.createElement('a');
+      licenseLink.href = licenseUrl;
+      licenseLink.rel = 'license';
+      licenseLink.target = '_blank';
+      licenseLink.className = 'lightbox-license';
+      const badge = document.createElement('img');
+      badge.src = licenseBadge;
+      badge.alt = 'Creative Commons Lizenzvertrag';
+      licenseLink.appendChild(badge);
+      items.push(licenseLink);
     }
 
     items.forEach((item, i) => {

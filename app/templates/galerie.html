@@ -26,7 +26,8 @@
              title="{{ slide.beschreibung }}"
              data-author="{{ slide.fotograph }}"
              data-date="{{ slide.funddatum }}"
-             data-license="{{ slide.lizenz }}"
+             data-license-url="{{ slide.lizenz_url }}"
+             data-license-badge="{{ slide.lizenz_badge }}"
              class="transition-opacity duration-300 hover:opacity-75">
             <img src="{{ url_for('static', filename='images/galerie/' + slide.bildname) }}"
                  alt="{{ slide.beschreibung or 'Gottesanbeterin Galeriebild' }}"
