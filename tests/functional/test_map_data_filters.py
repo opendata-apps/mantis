@@ -1,6 +1,5 @@
 """Test map data generation to ensure status filtering works correctly."""
 
-import json
 from datetime import datetime
 
 import pytest
@@ -118,8 +117,7 @@ class TestMapDataFilters:
         # Try to get data for approved sighting - should work
         response = client.get(f"/get_marker_data/{self.approved_sighting.id}")
         assert response.status_code == 200
-        data = json.loads(response.data)
-        assert data["id"] == self.approved_sighting.id
+        assert f"Melde ID: {self.approved_sighting.id}<" in response.text
 
         # Unapproved and deleted sightings must never be publicly exposed.
         response = client.get(f"/get_marker_data/{self.unapproved_sighting.id}")

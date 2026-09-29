@@ -1,0 +1,9 @@
+<div class="popup-content">
+  <h2>Melde ID: {{ report.id }}</h2>
+  <ul class="popup-list">
+    {% if report.dat_meld %}<li><strong>Melde Datum:</strong> {{ report.dat_meld }}</li>{% endif %}
+    {% if report.dat_fund_von %}<li><strong>Fund Datum:</strong> {{ report.dat_fund_von }}</li>{% endif %}
+    {% if report.ort %}<li><strong>Ort:</strong> {{ report.ort }}</li>{% endif %}
+    {% if report.kreis %}<li><strong>Lkr./Kr./Bez.:</strong> {{ report.kreis }}</li>{% endif %}
+  </ul>
+</div>

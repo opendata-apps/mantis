@@ -85,28 +85,16 @@ const customIcon = L.icon({
   iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34]
 });
 
-function escapeHtml(text) {
-  if (text === null || text === undefined) return '';
-  const div = document.createElement('div');
-  div.textContent = String(text);
-  return div.innerHTML;
-}
-
 reports.forEach(r => {
   const marker = L.marker([r.latitude, r.longitude], { icon: customIcon });
   marker.bindPopup("<div class='popup-loading'>Daten werden geladen...</div>");
   marker.on('popupopen', e => {
     fetch(`/get_marker_data/${r.report_id}`)
-      .then(res => res.json())
-      .then(data => {
-        let html = `<div class="popup-content"><h2>Melde ID: ${escapeHtml(data.id)}</h2><ul class="popup-list">`;
-        if (data.dat_meld) html += `<li><strong>Melde Datum:</strong> ${escapeHtml(data.dat_meld)}</li>`;
-        if (data.dat_fund_von) html += `<li><strong>Fund Datum:</strong> ${escapeHtml(data.dat_fund_von)}</li>`;
-        if (data.ort) html += `<li><strong>Ort:</strong> ${escapeHtml(data.ort)}</li>`;
-        if (data.kreis) html += `<li><strong>Lkr./Kr./Bez.:</strong> ${escapeHtml(data.kreis)}</li>`;
-        html += '</ul></div>';
-        e.popup.setContent(html);
+      .then(res => {
+        if (!res.ok) throw new Error(res.status);
+        return res.text();
       })
+      .then(html => e.popup.setContent(html))
       .catch(() => e.popup.setContent("<div class='popup-error'>Fehler beim Laden.</div>"));
   });
   markers.addLayer(marker);

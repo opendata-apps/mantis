@@ -3,8 +3,8 @@ from random import Random
 
 from flask import (
     Blueprint,
+    abort,
     current_app,
-    jsonify,
     render_template,
     request,
 )
@@ -97,17 +97,9 @@ def get_marker_data(report_id):
     )
     report = db.session.execute(stmt).first()
 
-    if report:
-        return jsonify(
-            {
-                "id": report.id,
-                "dat_meld": str(report.dat_meld),
-                "dat_fund_von": str(report.dat_fund_von),
-                "ort": report.ort,
-                "kreis": report.kreis,
-            }
-        )
-    return jsonify({"error": "Report not found"}), 404
+    if report is None:
+        abort(404)
+    return render_template("partials/_marker_popup.html", report=report)
 
 
 def obfuscate_location(lat, long, report_id):
