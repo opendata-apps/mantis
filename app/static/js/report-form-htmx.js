@@ -13,14 +13,7 @@ import { canvasIsBlank, extensionFor } from './image-checks.js';
 import { coordinatesInRange, parseCoordinateInput } from './coordinate-input.js';
 import { uploadConfig } from './upload-config.js';
 
-// Configure HTMX to include CSRF token in all requests
-// This is the recommended approach from Flask-WTF documentation for AJAX requests
-document.body.addEventListener('htmx:configRequest', (event) => {
-    const csrfToken = document.querySelector('input[name="csrf_token"]')?.value;
-    if (csrfToken) {
-        event.detail.headers['X-CSRFToken'] = csrfToken;
-    }
-});
+const csrfToken = () => document.querySelector('meta[name="csrf-token"]').content;
 
 // Leaflet guesses this path from its stylesheet, where Vite inlines the image.
 L.Icon.Default.mergeOptions({ imagePath: '/static/images/map/' });
@@ -222,7 +215,7 @@ const ReportForm = {
                 method: 'POST',
                 body: data,
                 headers: {
-                    'X-CSRFToken': document.querySelector('input[name="csrf_token"]')?.value,
+                    'X-CSRFToken': csrfToken(),
                     'Accept': 'application/json'
                 }
             });
@@ -498,7 +491,7 @@ const ReportForm = {
                 keepalive: true,
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': document.querySelector('input[name="csrf_token"]')?.value
+                    'X-CSRFToken': csrfToken()
                 },
                 body: JSON.stringify({
                     stage: err?.stage || 'unbekannt',

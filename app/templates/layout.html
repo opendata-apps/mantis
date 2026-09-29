@@ -5,6 +5,7 @@
     <meta charset="UTF-8" />
     {% include "flask-favicon.html" %}
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="csrf-token" content="{{ csrf_token() }}" />
     <meta name="htmx-config" content='{"allowEval": false}' />
     <title>
       {% block page_title %}
@@ -47,6 +48,7 @@
     <link rel="stylesheet" href="{{ vite_asset('css/theme.css') }}" />
   </head>
   <body class="flex flex-col min-h-screen antialiased bg-gray-100"
+        hx-headers='{{ {"X-CSRFToken": csrf_token()}|tojson }}'
         data-coord-range='{{ coord_range|tojson }}'>
     <a href="#content-container"
        class="sr-only focus:not-sr-only focus:fixed focus:z-9999 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-white focus:text-green-700 focus:rounded-lg focus:shadow-lg focus:font-medium">Zum Inhalt springen</a>

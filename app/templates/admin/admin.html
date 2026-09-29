@@ -11,8 +11,6 @@
   <script type="module" src="{{ vite_asset('js/admin.js') }}"></script>
   {{ vite_tags("js/admin-htmx.js") }}
   {{ vite_tags("js/admin-modal.js") }}
-  <!-- CSRF Token for JavaScript -->
-  <meta name="csrf-token" content="{{ csrf_token() }}">
   <div class="container px-4 mx-auto my-10 md:px-12">
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}

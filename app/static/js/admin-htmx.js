@@ -3,14 +3,6 @@ import htmx from 'htmx.org';
 import { showToast } from './toast.js';
 window.htmx = htmx;
 
-// CSRF via meta tag (admin uses <meta name="csrf-token">)
-document.body.addEventListener('htmx:configRequest', (event) => {
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-    if (csrfToken) {
-        event.detail.headers['X-CSRFToken'] = csrfToken;
-    }
-});
-
 // When a card is removed (HX-Reswap:delete), check if container is now empty → reload
 document.body.addEventListener('htmx:afterSwap', (event) => {
     const container = event.detail.target?.closest('#reportContainer');
