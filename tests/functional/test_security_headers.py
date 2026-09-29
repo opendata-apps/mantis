@@ -27,6 +27,15 @@ def test_csp_header_present_and_omits_unsafe_eval(client):
     assert "worker-src 'self' blob:" in csp
 
 
+def test_csp_script_src_blocks_inline_scripts(client):
+    """Behaviour lives in the Vite modules, so the browser may refuse every
+    inline <script> and on*= handler — the main defence against injected markup."""
+    csp = client.get("/").headers["Content-Security-Policy"]
+    script_src = next(d for d in csp.split("; ") if d.startswith("script-src "))
+
+    assert "'unsafe-inline'" not in script_src
+
+
 def test_x_xss_protection_is_explicitly_disabled(client):
     """Absent is not the same as "0" — a legacy browser then uses its default.
 
