@@ -78,7 +78,22 @@
 {% endblock head %}
 {% block content %}
   {% set option_class = "p-4 transition-shadow duration-300 border border-green-200 rounded-lg hover:shadow-md" %}
-  {% set image_card_class = "overflow-hidden transition-shadow duration-300 bg-white rounded-lg shadow-xs ring-1 ring-black/[.06] hover:shadow-md" %}
+  {% macro fig(file, group, n, text, short=none, img_class="", card_class="") %}
+    {% set src = url_for('static', filename='images/bestimmung/' ~ file) %}
+    {% set label = "Bild " ~ n ~ ": " ~ (short or text) %}
+    <div class="{{ [card_class, "overflow-hidden transition-shadow duration-300 bg-white rounded-lg shadow-xs ring-1 ring-black/[.06] hover:shadow-md"]|select|join(" ") }}">
+      <a href="{{ src }}"
+         data-lightbox="{{ group }}"
+         title="{{ label }}"
+         aria-label="Vergrößern: {{ text }}">
+        <img src="{{ src }}"
+             alt="{{ label }}"
+             class="{{ ["object-cover w-full transition-transform duration-500", img_class, "hover:scale-110"]|select|join(" ") }}"
+             loading="lazy">
+      </a>
+      <div class="p-2 text-sm text-center text-gray-700">Bild {{ n }}: {{ text }}</div>
+    </div>
+  {% endmacro %}
   <section class="relative px-4 py-12 overflow-hidden sm:px-6 lg:px-8">
     <div class="container mx-auto max-w-7xl">
       <!-- Information Card -->
@@ -130,42 +145,9 @@
                 </div>
                 <!-- Image gallery for 1a -->
                 <div class="grid grid-cols-1 gap-4 mt-4 sm:grid-cols-3">
-                  <div class="{{ image_card_class }}">
-                    <a href="{{ url_for('static', filename='images/bestimmung/oothek--gross__an-vegetation.jpg') }}"
-                       data-lightbox="Oothek"
-                       title="Bild 1: Oothek an der Vegetation"
-                       aria-label="Vergrößern: Oothek an der Vegetation">
-                      <img src="{{ url_for('static', filename='images/bestimmung/oothek--gross__an-vegetation.jpg') }}"
-                           alt="Bild 1: Oothek an der Vegetation"
-                           class="object-cover w-full transition-transform duration-500 h-36 hover:scale-110"
-                           loading="lazy">
-                    </a>
-                    <div class="p-2 text-sm text-center text-gray-700">Bild 1: Oothek an der Vegetation</div>
-                  </div>
-                  <div class="{{ image_card_class }}">
-                    <a href="{{ url_for('static', filename='images/bestimmung/oothek--gross__an-holz.jpg') }}"
-                       data-lightbox="Oothek"
-                       title="Bild 2: Oothek an Holz"
-                       aria-label="Vergrößern: Oothek an Holz">
-                      <img src="{{ url_for('static', filename='images/bestimmung/oothek--gross__an-holz.jpg') }}"
-                           alt="Bild 2: Oothek an Holz"
-                           class="object-cover w-full transition-transform duration-500 h-36 hover:scale-110"
-                           loading="lazy">
-                    </a>
-                    <div class="p-2 text-sm text-center text-gray-700">Bild 2: Oothek an Holz</div>
-                  </div>
-                  <div class="{{ image_card_class }}">
-                    <a href="{{ url_for('static', filename='images/bestimmung/oothek--gross__an-schiene.jpg') }}"
-                       data-lightbox="Oothek"
-                       title="Bild 3: Oothek an einer Bahnschiene"
-                       aria-label="Vergrößern: Oothek an einer Bahnschiene">
-                      <img src="{{ url_for('static', filename='images/bestimmung/oothek--gross__an-schiene.jpg') }}"
-                           alt="Bild 3: Oothek an einer Bahnschiene"
-                           class="object-cover w-full transition-transform duration-500 h-36 hover:scale-110"
-                           loading="lazy">
-                    </a>
-                    <div class="p-2 text-sm text-center text-gray-700">Bild 3: Oothek an einer Bahnschiene</div>
-                  </div>
+                  {{ fig("oothek--gross__an-vegetation.jpg", "Oothek", 1, "Oothek an der Vegetation", img_class="h-36") }}
+                  {{ fig("oothek--gross__an-holz.jpg", "Oothek", 2, "Oothek an Holz", img_class="h-36") }}
+                  {{ fig("oothek--gross__an-schiene.jpg", "Oothek", 3, "Oothek an einer Bahnschiene", img_class="h-36") }}
                 </div>
               </div>
               <!-- Option 1b -->
@@ -224,30 +206,8 @@
                 </div>
                 <!-- Image gallery for 2a -->
                 <div class="grid grid-cols-1 gap-4 mt-4 sm:grid-cols-2">
-                  <div class="{{ image_card_class }}">
-                    <a href="{{ url_for('static', filename='images/bestimmung/berger-junge-nymphe-ohne-fluegelgross.jpg') }}"
-                       data-lightbox="Nymphe"
-                       title="Bild 4: Nymphe"
-                       aria-label="Vergrößern: Sehr junge Nymphe ohne Flügel">
-                      <img src="{{ url_for('static', filename='images/bestimmung/berger-junge-nymphe-ohne-fluegelgross.jpg') }}"
-                           alt="Bild 4: Nymphe"
-                           class="object-cover w-full h-48 transition-transform duration-500 hover:scale-110"
-                           loading="lazy">
-                    </a>
-                    <div class="p-2 text-sm text-center text-gray-700">Bild 4: Sehr junge Nymphe ohne Flügel</div>
-                  </div>
-                  <div class="{{ image_card_class }}">
-                    <a href="{{ url_for('static', filename='images/bestimmung/krueger-junge-nymphe-stummelfluegel-gross.jpg') }}"
-                       data-lightbox="Nymphe"
-                       title="Bild 5: Nymphe mit Stummelflügeln"
-                       aria-label="Vergrößern: Nymphe mit Stummelflügeln">
-                      <img src="{{ url_for('static', filename='images/bestimmung/krueger-junge-nymphe-stummelfluegel-gross.jpg') }}"
-                           alt="Bild 5: Nymphe mit Stummelflügeln"
-                           class="object-cover w-full h-48 transition-transform duration-500 hover:scale-110"
-                           loading="lazy">
-                    </a>
-                    <div class="p-2 text-sm text-center text-gray-700">Bild 5: Nymphe mit Stummelflügeln</div>
-                  </div>
+                  {{ fig("berger-junge-nymphe-ohne-fluegelgross.jpg", "Nymphe", 4, "Sehr junge Nymphe ohne Flügel", "Nymphe", img_class="h-48") }}
+                  {{ fig("krueger-junge-nymphe-stummelfluegel-gross.jpg", "Nymphe", 5, "Nymphe mit Stummelflügeln", img_class="h-48") }}
                 </div>
               </div>
               <!-- Option 2b -->
@@ -272,18 +232,7 @@
                 </div>
                 <!-- Image for 2b -->
                 <div class="flex justify-center mt-4">
-                  <div class="max-w-sm {{ image_card_class }}">
-                    <a href="{{ url_for('static', filename='images/bestimmung/erwachsenes-tier-gross.jpg') }}"
-                       data-lightbox="Nymphe"
-                       title="Bild 6: Erwachsenes Tier"
-                       aria-label="Vergrößern: Erwachsenes Tier">
-                      <img src="{{ url_for('static', filename='images/bestimmung/erwachsenes-tier-gross.jpg') }}"
-                           alt="Bild 6: Erwachsenes Tier"
-                           class="object-cover w-full transition-transform duration-500 hover:scale-110"
-                           loading="lazy">
-                    </a>
-                    <div class="p-2 text-sm text-center text-gray-700">Bild 6: Erwachsenes Tier</div>
-                  </div>
+                  {{ fig("erwachsenes-tier-gross.jpg", "Nymphe", 6, "Erwachsenes Tier", card_class="max-w-sm") }}
                 </div>
               </div>
             </div>
@@ -301,18 +250,7 @@
             <div class="space-y-6">
               <!-- Bild 7 zuerst: Pärchen (Reihenfolge korrigiert) -->
               <div class="flex justify-center mt-4">
-                <div class="max-w-sm {{ image_card_class }}">
-                  <a href="{{ url_for('static', filename='images/bestimmung/paerchengross.jpg') }}"
-                     data-lightbox="Adult"
-                     title="Bild 7: Pärchen"
-                     aria-label="Vergrößern: Pärchen (links Weibchen, rechts Männchen)">
-                    <img src="{{ url_for('static', filename='images/bestimmung/paerchengross.jpg') }}"
-                         alt="Bild 7: Pärchen"
-                         class="object-cover w-full transition-transform duration-500 hover:scale-110"
-                         loading="lazy">
-                  </a>
-                  <div class="p-2 text-sm text-center text-gray-700">Bild 7: Pärchen (links Weibchen, rechts Männchen)</div>
-                </div>
+                {{ fig("paerchengross.jpg", "Adult", 7, "Pärchen (links Weibchen, rechts Männchen)", "Pärchen", card_class="max-w-sm") }}
               </div>
               <!-- Option 3a -->
               <div class="{{ option_class }}">
@@ -333,18 +271,7 @@
                 </div>
                 <!-- Image for 3a -->
                 <div class="flex justify-center mt-4">
-                  <div class="max-w-sm {{ image_card_class }}">
-                    <a href="{{ url_for('static', filename='images/bestimmung/maennchen-adult-gruengross.jpg') }}"
-                       data-lightbox="Adult"
-                       title="Bild 8: Männchen"
-                       aria-label="Vergrößern: Männchen">
-                      <img src="{{ url_for('static', filename='images/bestimmung/maennchen-adult-gruengross.jpg') }}"
-                           alt="Bild 8: Männchen"
-                           class="object-cover w-full transition-transform duration-500 hover:scale-110"
-                           loading="lazy">
-                    </a>
-                    <div class="p-2 text-sm text-center text-gray-700">Bild 8: Männchen</div>
-                  </div>
+                  {{ fig("maennchen-adult-gruengross.jpg", "Adult", 8, "Männchen", card_class="max-w-sm") }}
                 </div>
               </div>
               <!-- Option 3b -->
@@ -366,18 +293,7 @@
                 </div>
                 <!-- Image for 3b -->
                 <div class="flex justify-center mt-4">
-                  <div class="max-w-sm {{ image_card_class }}">
-                    <a href="{{ url_for('static', filename='images/bestimmung/erwachsenes-weibchen-gross.jpg') }}"
-                       data-lightbox="Adult"
-                       title="Bild 9: Weibchen"
-                       aria-label="Vergrößern: Weibchen">
-                      <img src="{{ url_for('static', filename='images/bestimmung/erwachsenes-weibchen-gross.jpg') }}"
-                           alt="Bild 9: Weibchen"
-                           class="object-cover w-full transition-transform duration-500 hover:scale-110"
-                           loading="lazy">
-                    </a>
-                    <div class="p-2 text-sm text-center text-gray-700">Bild 9: Weibchen</div>
-                  </div>
+                  {{ fig("erwachsenes-weibchen-gross.jpg", "Adult", 9, "Weibchen", card_class="max-w-sm") }}
                 </div>
               </div>
               <!-- Option 3c -->
