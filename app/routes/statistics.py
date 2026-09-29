@@ -71,6 +71,9 @@ list_of_stats = {
 }
 
 
+COUNT_KEYS = ("maennlich", "weiblich", "oothek", "nymphe", "andere", "gesamt")
+
+
 def _filters():
     """Return date_from, date_to and the AGS prefix stored by stats_start."""
     return (
@@ -78,6 +81,17 @@ def _filters():
         date.fromisoformat(session["date_to"]),
         session["ags"],
     )
+
+
+def _counts_by_group(rows, names, separator):
+    """Map "<code><separator><name>" to the gender/stage counts of each row."""
+    return {
+        f"{row.amt_group}{separator}{names.get(row.amt_group, 'Unbekannt')}": {
+            key: getattr(row, key) for key in COUNT_KEYS
+        }
+        for row in rows
+        if row.amt_group
+    }
 
 
 @stats.route("/statistik/ags", methods=["GET"])
@@ -356,17 +370,6 @@ def stats_geschlecht(marker):
 def stats_amt(marker):
     "Statistics pro Gemeinden (AGS))"
 
-    totals = {
-        "amt": "",
-        "maennlich": 0,
-        "weiblich": 0,
-        "oothek": 0,
-        "nymphe": 0,
-        "andere": 0,
-        "gesamt": 0,
-    }
-    fehler = False
-
     date_from, date_to, ags = _filters()
     stmt = (
         select(TblFundorte.amt, *_gender_sum_columns())
@@ -381,37 +384,18 @@ def stats_amt(marker):
     )
     results = db.session.execute(stmt).all()
 
-    if results:
-        gemeinde = results[0][0]
-    else:
-        gemeinde = ""
-        fehler = True
-    for row in results:
-        totals["amt"] = row[0]
-        totals["maennlich"] += row.maennlich or 0
-        totals["weiblich"] += row.weiblich or 0
-        totals["oothek"] += row.oothek or 0
-        totals["nymphe"] += row.nymphe or 0
-        totals["andere"] += row.andere or 0
-        totals["gesamt"] += row.gesamt or 0
-
-    # Convert to list format expected by template: [amt, m, w, o, n, a, g]
+    # Template row: [amt, m, w, o, n, a, g]; the amt is the last group's.
     dbanswers = [
-        totals["amt"],
-        totals["maennlich"],
-        totals["weiblich"],
-        totals["oothek"],
-        totals["nymphe"],
-        totals["andere"],
-        totals["gesamt"],
+        results[-1].amt if results else "",
+        *(sum(getattr(row, key) or 0 for row in results) for key in COUNT_KEYS),
     ]
 
     return render_template(
         "statistics/stats-gemeinde.html",
         menu=list_of_stats,
         result=dbanswers,
-        gemeinde=gemeinde,
-        fehler=fehler,
+        gemeinde=results[0].amt if results else "",
+        fehler=not results,
         marker=marker,
     )
 
@@ -434,24 +418,10 @@ def stats_laender(marker):
         .group_by(amt_group_expr)
     ).all()
 
-    result_dict = {}
-    for row in results:
-        if not row.amt_group:
-            continue
-        state_name = BUNDESLAENDER.get(row.amt_group, "Unbekannt")
-        result_dict[f"{row.amt_group} --  {state_name}"] = {
-            "maennlich": row.maennlich,
-            "weiblich": row.weiblich,
-            "oothek": row.oothek,
-            "nymphe": row.nymphe,
-            "andere": row.andere,
-            "gesamt": row.gesamt,
-        }
-
     return render_template(
         "statistics/stats-laender.html",
         menu=list_of_stats,
-        result=result_dict,
+        result=_counts_by_group(results, BUNDESLAENDER, " --  "),
         marker=marker,
     )
 
@@ -494,24 +464,10 @@ def stats_bundesland(marker):
         .group_by(amt_group_expr)
     ).all()
 
-    result_dict = {}
-    for row in results:
-        if not row.amt_group:
-            continue
-        district_name = laender.get(row.amt_group, "Unbekannt")
-        result_dict[f"{row.amt_group} -- {district_name}"] = {
-            "maennlich": row.maennlich,
-            "weiblich": row.weiblich,
-            "oothek": row.oothek,
-            "nymphe": row.nymphe,
-            "andere": row.andere,
-            "gesamt": row.gesamt,
-        }
-
     return render_template(
         "statistics/stats-bundesland.html",
         menu=list_of_stats,
-        result=result_dict,
+        result=_counts_by_group(results, laender, " -- "),
         ags=ags,
         land=land,
         marker=marker,
