@@ -55,6 +55,7 @@
   <span class="text-base">(ein geschütztes Tier)</span>
 {% endblock title %}
 {% block content %}
+  {% set toc = [("steckbrief", "Steckbrief"), ("ueberblick", "Überblick"), ("habitat", "Habitat"), ("verbreitungsgebiet", "Verbreitungsgebiet"), ("lebenszyklus", "Lebenszyklus"), ("beobachtungstipps", "Beobachtungstipps"), ("bestimmung", "Bestimmungsschlüssel"), ("weiterfuehrende-links", "Weiterführende Links"), ("meldeformular", "Meldeformular")] %}
   <div class="container px-4 py-12 mx-auto sm:px-6 lg:px-8">
     <div class="grid grid-cols-1 gap-8 md:grid-cols-4">
       <aside class="-order-1 md:col-span-1 md:order-1">
@@ -65,60 +66,14 @@
               <h2 class="text-lg font-semibold text-gray-800">Inhaltsverzeichnis</h2>
             </div>
             <ul class="p-3">
-              <li class="py-1">
-                <a href="#steckbrief"
-                   class="block p-2 text-gray-700 transition-colors rounded-sm hover:bg-gray-100 hover:text-green-700">
-                  Steckbrief
-                </a>
-              </li>
-              <li class="py-1">
-                <a href="#ueberblick"
-                   class="block p-2 text-gray-700 transition-colors rounded-sm hover:bg-gray-100 hover:text-green-700">
-                  Überblick
-                </a>
-              </li>
-              <li class="py-1">
-                <a href="#habitat"
-                   class="block p-2 text-gray-700 transition-colors rounded-sm hover:bg-gray-100 hover:text-green-700">
-                  Habitat
-                </a>
-              </li>
-              <li class="py-1">
-                <a href="#verbreitungsgebiet"
-                   class="block p-2 text-gray-700 transition-colors rounded-sm hover:bg-gray-100 hover:text-green-700">
-                  Verbreitungsgebiet
-                </a>
-              </li>
-              <li class="py-1">
-                <a href="#lebenszyklus"
-                   class="block p-2 text-gray-700 transition-colors rounded-sm hover:bg-gray-100 hover:text-green-700">
-                  Lebenszyklus
-                </a>
-              </li>
-              <li class="py-1">
-                <a href="#beobachtungstipps"
-                   class="block p-2 text-gray-700 transition-colors rounded-sm hover:bg-gray-100 hover:text-green-700">
-                  Beobachtungstipps
-                </a>
-              </li>
-              <li class="py-1">
-                <a href="#bestimmung"
-                   class="block p-2 text-gray-700 transition-colors rounded-sm hover:bg-gray-100 hover:text-green-700">
-                  Bestimmungsschlüssel
-                </a>
-              </li>
-              <li class="py-1">
-                <a href="#weiterfuehrende-links"
-                   class="block p-2 text-gray-700 transition-colors rounded-sm hover:bg-gray-100 hover:text-green-700">
-                  Weiterführende Links
-                </a>
-              </li>
-              <li class="py-1">
-                <a href="#meldeformular"
-                   class="block p-2 text-gray-700 transition-colors rounded-sm hover:bg-gray-100 hover:text-green-700">
-                  Meldeformular
-                </a>
-              </li>
+              {% for id, label in toc %}
+                <li class="py-1">
+                  <a href="#{{ id }}"
+                     class="block p-2 text-gray-700 transition-colors rounded-sm hover:bg-gray-100 hover:text-green-700">
+                    {{ label }}
+                  </a>
+                </li>
+              {% endfor %}
             </ul>
           </nav>
         </div>
@@ -189,8 +144,7 @@
             Inzwischen ist sie in der südlichen Hälfte des Bundeslandes etabliert, während aus den nördlichen Landkreisen
             erst seit kurzem vereinzelte Meldungen vorliegen. Auch in Berlin wird die Art immer häufiger beobachtet.
           </p>
-          <span id="steckbrief" class="block relative -top-20 invisible"></span>
-          <section class="mb-8">
+          <section id="steckbrief" class="mb-8 scroll-mt-20">
             <h2 class="pb-2 mb-4 text-2xl font-bold tracking-tight text-gray-800 border-b border-gray-200">Steckbrief</h2>
             <figure class="article-thumb">
               <a href="{{ url_for('static', filename='images/mantis--weibchen__krueger.webp') }}"
@@ -250,8 +204,7 @@
               </div>
             </dl>
           </section>
-          <span id="ueberblick" class="block relative -top-20 invisible"></span>
-          <section class="mb-8">
+          <section id="ueberblick" class="mb-8 scroll-mt-20">
             <h2 class="pb-2 mb-4 text-2xl font-bold tracking-tight text-gray-800 border-b border-gray-200"
                 id="section-ueberblick">Überblick</h2>
             <div itemprop="articleBody">
@@ -264,8 +217,7 @@
               </p>
             </div>
           </section>
-          <span id="habitat" class="block relative -top-20 invisible"></span>
-          <section class="mb-8" itemscope itemtype="https://schema.org/Place">
+          <section id="habitat" class="mb-8 scroll-mt-20" itemscope itemtype="https://schema.org/Place">
             <h2 class="pb-2 mb-4 text-2xl font-bold tracking-tight text-gray-800 border-b border-gray-200"
                 id="section-habitat">Habitat</h2>
             <div itemprop="description">
@@ -276,8 +228,7 @@
               </p>
             </div>
           </section>
-          <span id="verbreitungsgebiet" class="block relative -top-20 invisible"></span>
-          <section class="mb-8">
+          <section id="verbreitungsgebiet" class="mb-8 scroll-mt-20">
             <h2 class="pb-2 mb-4 text-2xl font-bold tracking-tight text-gray-800 border-b border-gray-200"
                 id="section-verbreitungsgebiet">Verbreitungsgebiet</h2>
             <figure class="article-thumb">
@@ -307,8 +258,7 @@
               </p>
             </div>
           </section>
-          <span id="lebenszyklus" class="block relative -top-20 invisible"></span>
-          <section class="mb-8">
+          <section id="lebenszyklus" class="mb-8 scroll-mt-20">
             <h2 class="pb-2 mb-4 text-2xl font-bold tracking-tight text-gray-800 border-b border-gray-200">Lebenszyklus</h2>
             <figure class="article-thumb">
               <a href="{{ url_for('static', filename='images/weibchen-mit-oothek.avif') }}"
@@ -337,8 +287,7 @@
               </p>
             </div>
           </section>
-          <span id="beobachtungstipps" class="block relative -top-20 invisible"></span>
-          <section class="mb-8">
+          <section id="beobachtungstipps" class="mb-8 scroll-mt-20">
             <h2 class="pb-2 mb-4 text-2xl font-bold tracking-tight text-gray-800 border-b border-gray-200">Beobachtungstipps</h2>
             <p class="mb-4 text-lg/relaxed text-gray-700 max-w-prose">
               Die Gottesanbeterin ist tagsüber aktiv und kann bei ruhigem und vorsichtigem Herangehen gut beobachtet
@@ -357,8 +306,7 @@
               </ul>
             </div>
           </section>
-          <span id="bestimmung" class="block relative -top-20 invisible"></span>
-          <section class="mb-8">
+          <section id="bestimmung" class="mb-8 scroll-mt-20">
             <h2 class="pb-2 mb-4 text-2xl font-bold tracking-tight text-gray-800 border-b border-gray-200">
               Bestimmungsschlüssel
             </h2>
@@ -387,8 +335,7 @@
               </a>
             </div>
           </section>
-          <span id="weiterfuehrende-links" class="block relative -top-20 invisible"></span>
-          <section class="mb-8">
+          <section id="weiterfuehrende-links" class="mb-8 scroll-mt-20">
             <h2 class="pb-2 mb-4 text-2xl font-bold tracking-tight text-gray-800 border-b border-gray-200">
               Weiterführende Links
             </h2>
@@ -425,8 +372,7 @@
               </li>
             </ul>
           </section>
-          <span id="regionale-verbreitung" class="block relative -top-20 invisible"></span>
-          <section class="mb-8">
+          <section id="regionale-verbreitung" class="mb-8 scroll-mt-20">
             <h2 class="pb-2 mb-4 text-2xl font-bold tracking-tight text-gray-800 border-b border-gray-200">
               Regionale Verbreitung
             </h2>
@@ -452,8 +398,7 @@
               </a>
             </div>
           </section>
-          <span id="meldeformular" class="block relative -top-20 invisible"></span>
-          <section class="p-6 mt-8 transition-shadow duration-300 bg-green-100 rounded-lg shadow-lg hover:shadow-xl">
+          <section id="meldeformular" class="p-6 mt-8 transition-shadow duration-300 bg-green-100 rounded-lg shadow-lg hover:shadow-xl scroll-mt-20">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between">
               <div class="mb-6 md:mb-0 md:pr-8">
                 <h2 class="mb-4 text-2xl font-bold text-green-800"
