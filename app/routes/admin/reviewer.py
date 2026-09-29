@@ -22,6 +22,7 @@ from app.auth import log_in, reviewer_required
 from app.database.models import (
     STATUS_FILTERS,
     ReportStatus,
+    TblFundorte,
     TblMeldungen,
     TblMeldungUser,
     TblUsers,
@@ -97,20 +98,15 @@ def _load_sighting(report_id: int) -> TblMeldungen | None:
 
 
 def _get_user_report_count(user: TblUsers) -> int:
-    """Count total reports by this person (match by email or user ID)."""
-    if user.user_kontakt:
-        count = db.session.scalar(
-            select(func.count())
-            .select_from(TblMeldungUser)
-            .join(TblMeldungUser.reporter)
-            .where(TblUsers.user_kontakt == user.user_kontakt)
-        )
-    else:
-        count = db.session.scalar(
-            select(func.count())
-            .select_from(TblMeldungUser)
-            .where(TblMeldungUser.id_user == user.id)
-        )
+    """Count the reports visible through this reporter's history link."""
+    count = db.session.scalar(
+        select(func.count())
+        .select_from(TblMeldungen)
+        .join(TblMeldungen.reporter_link)
+        .join(TblMeldungen.fundort)
+        .join(TblFundorte.location_type)
+        .where(TblMeldungUser.id_user == user.id)
+    )
     return count or 0
 
 

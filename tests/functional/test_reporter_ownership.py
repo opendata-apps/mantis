@@ -88,6 +88,29 @@ def _seed_victim(session, upload_folder, *, usrid, image, contact=VICTIM_EMAIL):
     return victim
 
 
+def test_reviewer_count_matches_history_link_despite_a_shared_email(
+    authenticated_client, session, upload_folder
+):
+    first = _seed_victim(
+        session, upload_folder, usrid="count-first", image="first.webp"
+    )
+    _seed_victim(session, upload_folder, usrid="count-second", image="second.webp")
+    report_id = session.scalar(
+        select(TblMeldungUser.id_meldung).where(TblMeldungUser.id_user == first.id)
+    )
+
+    response = authenticated_client.get(f"/modal/{report_id}")
+
+    assert response.status_code == 200
+    page = BeautifulSoup(response.data, "html.parser")
+    label = page.find("span", string="Anzahl Meldungen")
+    assert label is not None
+    count = label.find_next_sibling("span")
+    assert count is not None
+    assert count.get_text(strip=True) == "1"
+    assert page.find("a", href="/sichtungen/count-first") is not None
+
+
 def _submit_as(client, email, **overrides):
     """File a sighting through the public form."""
     data = build_valid_report_form_data(email=email, **overrides)
