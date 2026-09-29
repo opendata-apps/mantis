@@ -215,9 +215,7 @@ class MantisSightingForm(StrippedForm):
     finder_first_name = StringField(
         "Vorname des Finders",
         validators=[
-            Optional(),
             Length(
-                min=1,
                 max=50,
                 message="Vorname muss zwischen 1 und 50 Zeichen lang sein.",
             ),
@@ -227,9 +225,7 @@ class MantisSightingForm(StrippedForm):
     finder_last_name = StringField(
         "Nachname des Finders",
         validators=[
-            Optional(),
             Length(
-                min=1,
                 max=50,
                 message="Nachname muss zwischen 1 und 50 Zeichen lang sein.",
             ),
@@ -391,23 +387,22 @@ class MantisSightingForm(StrippedForm):
     # would surface the field name in the errors returned to the client.
     honeypot = StringField(validators=[Optional()])
 
-    def validate_finder_names_dependency(self):
-        if not self.identical_finder_reporter.data:
-            first_name_filled = bool(self.finder_first_name.data)
-            last_name_filled = bool(self.finder_last_name.data)
+    def validate_finder_first_name(self, field):
+        if (
+            not self.identical_finder_reporter.data
+            and self.finder_last_name.data
+            and not field.data
+        ):
+            raise ValidationError(
+                "Vorname des Finders ist erforderlich, wenn Nachname angegeben wurde."
+            )
 
-            if first_name_filled and not last_name_filled:
-                errors = self.finder_last_name.errors
-                assert isinstance(errors, list)
-                errors.append(
-                    "Nachname des Finders ist erforderlich, wenn Vorname angegeben wurde."
-                )
-                return False
-            if last_name_filled and not first_name_filled:
-                errors = self.finder_first_name.errors
-                assert isinstance(errors, list)
-                errors.append(
-                    "Vorname des Finders ist erforderlich, wenn Nachname angegeben wurde."
-                )
-                return False
-        return True
+    def validate_finder_last_name(self, field):
+        if (
+            not self.identical_finder_reporter.data
+            and self.finder_first_name.data
+            and not field.data
+        ):
+            raise ValidationError(
+                "Nachname des Finders ist erforderlich, wenn Vorname angegeben wurde."
+            )

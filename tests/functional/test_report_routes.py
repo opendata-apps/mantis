@@ -893,6 +893,34 @@ class TestMeldenPostBranches:
         assert link.id_finder is not None  # finder was linked
 
     @patch("app.routes.report._process_uploaded_image")
+    def test_submission_with_only_finder_first_name_is_rejected(
+        self, mock_process_image, client, valid_form_data, session
+    ):
+        mock_process_image.return_value = "2025/2025-01-01/test.webp"
+        data = {
+            **valid_form_data,
+            "identical_finder_reporter": "",
+            "finder_first_name": "Max",
+        }
+        sightings_before = session.scalar(
+            select(func.count()).select_from(TblMeldungen)
+        )
+
+        response = client.post(
+            "/melden",
+            data={**data, "photo": _create_test_image()},
+            content_type="multipart/form-data",
+        )
+
+        assert response.status_code == 400
+        assert "finder_last_name" in response.get_json()["errors"]
+        mock_process_image.assert_not_called()
+        assert (
+            session.scalar(select(func.count()).select_from(TblMeldungen))
+            == sightings_before
+        )
+
+    @patch("app.routes.report._process_uploaded_image")
     def test_submission_with_feedback_source(
         self, mock_process_image, client, valid_form_data, session
     ):

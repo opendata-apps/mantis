@@ -746,26 +746,10 @@ def validate_step_partial():
 
     form = MantisSightingForm(formdata=request.form, meta={"csrf": False})
 
-    is_valid = True
-    errors = {}
+    form.validate()
+    errors = {name: form.errors[name] for name in step_fields if name in form.errors}
 
-    for field_name in step_fields:
-        field = getattr(form, field_name, None)
-        if field and not field.validate(form):
-            is_valid = False
-            errors[field_name] = field.errors
-
-    # Step 3: Cross-field validation for finder names
-    if is_valid and step == 3 and not form.validate_finder_names_dependency():
-        is_valid = False
-        if form.finder_first_name.errors:
-            errors["finder_first_name"] = form.finder_first_name.errors
-        if form.finder_last_name.errors:
-            errors["finder_last_name"] = form.finder_last_name.errors
-
-    errors = _errors_by_slot(errors)
-
-    if is_valid:
+    if not errors:
         # Return a trigger to advance to next step + clear any previous errors via OOB
         visible_fields = get_visible_error_fields(step)
         clear_html = render_template(
@@ -777,7 +761,9 @@ def validate_step_partial():
         )
         return response
     # Return inline error messages via OOB swaps
-    return render_template("report/partials/_validation_errors.html", errors=errors)
+    return render_template(
+        "report/partials/_validation_errors.html", errors=_errors_by_slot(errors)
+    )
 
 
 @report.route("/melden/toggle-finder", methods=["POST"])
