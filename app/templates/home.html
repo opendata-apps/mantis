@@ -223,12 +223,5 @@
       </div>
     </div>
     {{ vite_tags("js/confetti.js") }}
-    {# The confetti canvas is created by canvas-confetti at runtime, so it can't
-       carry a utility class. #}
-    <style>
-    canvas {
-        z-index: 12000 !important;
-    }
-    </style>
   {% endif %}
 {% endblock content %}

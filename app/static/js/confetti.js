@@ -1,10 +1,14 @@
 // Canvas confetti for celebration - auto-initializes from data attributes
 import confetti from 'canvas-confetti';
 
+// Above the thanks modal and the mobile sticky bar (z-100).
+const zIndex = 12000;
+
 function sprayConfetti() {
   confetti({
     particleCount: 100,
     spread: 70,
+    zIndex,
     origin: { y: 0.6 }
   });
 }
@@ -16,7 +20,7 @@ function randomInRange(min, max) {
 function fireworks() {
   const duration = 15 * 1000;
   const animationEnd = Date.now() + duration;
-  const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+  const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex };
 
   const interval = setInterval(() => {
     const timeLeft = animationEnd - Date.now();
