@@ -73,7 +73,7 @@
       <div>
         <label class="block mb-1 text-sm font-medium text-gray-700">Latitude</label>
         <input type="text"
-               class="px-3 py-2 w-full text-sm rounded-md border-gray-300 bg-white/70 focus:ring-2 focus:ring-green-500 focus:border-transparent input-field-admin {% if edit_mode %}border-green-500 focus:ring-green-500{% endif %}"
+               class="w-full border-gray-300 input-field-admin {% if edit_mode %}border-green-500 focus:ring-green-500{% endif %}"
                name="latitude"
                onchange="validateAndUpdateCoordinate(this, 'latitude')"
                {% if editable %}title="Dieses Feld kann jetzt bearbeitet werden"{% endif %}
@@ -83,7 +83,7 @@
       <div>
         <label class="block mb-1 text-sm font-medium text-gray-700">Longitude</label>
         <input type="text"
-               class="px-3 py-2 w-full text-sm rounded-md border-gray-300 bg-white/70 focus:ring-2 focus:ring-green-500 focus:border-transparent input-field-admin {% if edit_mode %}border-green-500 focus:ring-green-500{% endif %}"
+               class="w-full border-gray-300 input-field-admin {% if edit_mode %}border-green-500 focus:ring-green-500{% endif %}"
                name="longitude"
                onchange="validateAndUpdateCoordinate(this, 'longitude')"
                {% if editable %}title="Dieses Feld kann jetzt bearbeitet werden"{% endif %}
