@@ -37,7 +37,7 @@ const CONNECTION_ERROR = 'Verbindung zum Server fehlgeschlagen. '
     + 'Bitte prüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.';
 
 const ReportForm = {
-    step: 0,
+    initialized: false,
     submitting: false,
     dirty: false,
     stepTitles: ['Foto & Details', 'Ort & Datum', 'Kontaktdaten', 'Überprüfen'],
@@ -46,6 +46,9 @@ const ReportForm = {
     webpData: null,
     geocodeController: null,
     coordinateRanges: null,
+    locUpdates: 0,
+    bestAccuracy: Infinity,
+    locTimeout: null,
     MIN_ZOOM: 17,
 
     init() {
@@ -94,16 +97,15 @@ const ReportForm = {
         steps.forEach((s, idx) => {
             s.classList.toggle('hidden', idx !== i);
         });
-        this.step = i;
 
         document.title = `${this.stepTitles[i]} – Sichtung melden`;
 
         // Move focus to the new step's heading (skip on initial load to avoid jarring scroll)
-        if (this._initialized) {
+        if (this.initialized) {
             const heading = steps[i].querySelector('h3');
             if (heading) { heading.setAttribute('tabindex', '-1'); heading.focus(); }
         }
-        this._initialized = true;
+        this.initialized = true;
 
         if (i === 1 && this.map) {
             // The map was measured while its step was hidden.
@@ -780,20 +782,20 @@ const ReportForm = {
         const lng = parseCoordinateInput(document.getElementById('longitude')?.value, ...this.coordinateRanges.longitude);
         if (lat === null || lng === null) {
             if (navigator.geolocation && this.locateCtrl && this.map) {
-                this._locUpdates = 0;
-                this._bestAccuracy = Infinity;
-                this._locTimeout = null;
+                this.locUpdates = 0;
+                this.bestAccuracy = Infinity;
+                this.locTimeout = null;
                 this.locateCtrl.start();
             }
         }
     },
 
     handleLocationFound(e) {
-        this._locUpdates = (this._locUpdates || 0) + 1;
+        this.locUpdates += 1;
         const accuracy = e.accuracy || Infinity;
 
-        if (accuracy < this._bestAccuracy || this._locUpdates === 1) {
-            this._bestAccuracy = accuracy;
+        if (accuracy < this.bestAccuracy || this.locUpdates === 1) {
+            this.bestAccuracy = accuracy;
             // MIN_ZOOM, not 15: the message asks the user to click the map, and
             // clicking below MIN_ZOOM is refused.
             this.map.setView(e.latlng, this.MIN_ZOOM);
@@ -806,16 +808,16 @@ const ReportForm = {
             this.showHint('coordinates', msg);
         }
 
-        if (accuracy < 50 || this._locUpdates >= 5) {
+        if (accuracy < 50 || this.locUpdates >= 5) {
             this.stopLocationUpdates();
-        } else if (!this._locTimeout) {
-            this._locTimeout = setTimeout(() => this.stopLocationUpdates(), 10000);
+        } else if (!this.locTimeout) {
+            this.locTimeout = setTimeout(() => this.stopLocationUpdates(), 10000);
         }
     },
 
     stopLocationUpdates() {
         this.locateCtrl?.stop();
-        if (this._locTimeout) { clearTimeout(this._locTimeout); this._locTimeout = null; }
+        if (this.locTimeout) { clearTimeout(this.locTimeout); this.locTimeout = null; }
     },
 
     // Out-of-range coordinates are dropped, never clamped: a clamped pair is a
