@@ -513,19 +513,18 @@ def toggle_flag(id):
     # OOB: keep the modal footer in sync with the new flag state so the
     # "Annehmen" button enables/disables live when UNKL is toggled. This
     # route is only called from the open modal, so the target always exists.
-    modal_actions_html = render_template(
-        "admin/partials/_modal_actions.html",
-        sighting=sighting,
-        is_approved=sighting.is_approved,
-        editable=not sighting.is_approved,
-        edit_mode=False,
-        active_tab="general",
-        filter_status=filter_status,
-    )
     response = make_response(_render_updated_sighting_by_id(id, filter_status))
     response.set_data(
         response.get_data(as_text=True)
-        + f'<div id="modal-actions" hx-swap-oob="innerHTML">{modal_actions_html}</div>'
+        + render_template(
+            "admin/partials/_modal_actions.html",
+            sighting=sighting,
+            is_approved=sighting.is_approved,
+            editable=not sighting.is_approved,
+            edit_mode=False,
+            active_tab="general",
+            filter_status=filter_status,
+        )
     )
     return response
 

@@ -1,8 +1,9 @@
-{# Modal footer actions — rendered server-side, OOB-swapped on tab changes.
+{# Modal footer actions — an hx-swap-oob fragment that replaces the content of #modal-actions.
    Template variables: sighting, is_approved, editable, edit_mode, active_tab, filter_status #}
 {% set filter_query = 'filter_status=' ~ filter_status %}
 {% set has_unkl = 'UNKL' in sighting.statuses %}
 {% set has_info = 'INFO' in sighting.statuses %}
+<div id="modal-actions" hx-swap-oob="innerHTML">
 <div class="flex flex-wrap items-center gap-2 action-container">
   {# Left: flag toggles — only for open reports (flags are active review concerns) #}
   {% if not sighting.is_deleted and not is_approved %}
@@ -82,4 +83,5 @@
   <button type="button"
           class="btn-secondary w-full sm:w-auto"
           data-action="close-modal">Schließen</button>
+</div>
 </div>
