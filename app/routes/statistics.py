@@ -209,35 +209,10 @@ def stats_daily_average(marker="meldungen_zeiten"):
 
     results = db.session.execute(stmt).all()
 
-    daily = {
-        "0": 0,
-        "1": 0,
-        "2": 0,
-        "3": 0,
-        "4": 0,
-        "5": 0,
-        "6": 0,
-        "7": 0,
-        "8": 0,
-        "9": 0,
-        "10": 0,
-        "11": 0,
-        "12": 0,
-        "13": 0,
-        "14": 0,
-        "15": 0,
-        "16": 0,
-        "17": 0,
-        "18": 0,
-        "19": 0,
-        "20": 0,
-        "21": 0,
-        "22": 0,
-        "23": 0,
-    }
+    daily = {str(hour): 0 for hour in range(24)}
 
     for row in results:
-        daily[f"{int(row[0])}"] = row[1]
+        daily[str(int(row[0]))] = row[1]
 
     return render_template(
         "statistics/stats-daily-average.html",
