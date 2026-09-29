@@ -4,6 +4,7 @@
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { geocoder } from 'leaflet-control-geocoder';
+import { reverseGeocode } from './geocode.js';
 import 'leaflet-control-geocoder/dist/Control.Geocoder.css';
 import { locate } from 'leaflet.locatecontrol';
 import 'leaflet.locatecontrol/dist/L.Control.Locate.min.css';
@@ -852,21 +853,12 @@ const ReportForm = {
         Object.values(fields).forEach(f => f && (f.readOnly = true));
 
         try {
-            // Fetch Nominatim + local AGS lookup in parallel
-            const [nominatimRes, agsRes] = await Promise.all([
-                fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=de`, { signal }),
-                fetch(`${this.agsUrl}?lat=${lat}&lon=${lng}`, { signal })
-            ]);
-
-            const a = (await nominatimRes.json()).address || {};
-            const ags = agsRes.ok ? await agsRes.json() : {};
-
-            if (fields.zip) fields.zip.value = a.postcode || '';
-            if (fields.city) fields.city.value = a.city || a.town || a.village || '';
-            if (fields.street) fields.street.value = a.house_number ? `${a.road || ''} ${a.house_number}`.trim() : (a.road || '');
-            // AGS spatial data is authoritative for land/kreis; Nominatim as fallback
-            if (fields.state) fields.state.value = ags.land || a.state || a.city || '';
-            if (fields.district) fields.district.value = ags.kreis || a.county || a.borough || '';
+            const r = await reverseGeocode(lat, lng, { agsUrl: this.agsUrl, signal });
+            if (fields.zip) fields.zip.value = r.plz;
+            if (fields.city) fields.city.value = r.ort;
+            if (fields.street) fields.street.value = r.strasse;
+            if (fields.state) fields.state.value = r.land;
+            if (fields.district) fields.district.value = r.kreis;
         } catch (err) {
             if (err.name === 'AbortError') return; // superseded by a newer request
         } finally {

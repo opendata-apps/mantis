@@ -3,6 +3,7 @@
 
 import { parseCoordinateInput } from "./coordinate-input.js";
 import { showToast } from "./toast.js";
+import { reverseGeocode } from "./geocode.js";
 
 const COORDINATE_RANGES = JSON.parse(document.body.dataset.coordRange);
 
@@ -356,38 +357,11 @@ function validateAndUpdateCoordinate(input, type) {
 // Reverse geocoding
 // ---------------------------------------------------------------------------
 
-function fetchAddressFromNominatim(latitude, longitude) {
-  var url = new URL("https://nominatim.openstreetmap.org/reverse");
-  url.searchParams.append("format", "jsonv2");
-  url.searchParams.append("lat", latitude.toString());
-  url.searchParams.append("lon", longitude.toString());
-  url.searchParams.append("zoom", "18");
-  url.searchParams.append("addressdetails", "1");
-  url.searchParams.append("accept-language", "de");
-  return fetch(url.toString()).then(function (r) {
-    if (!r.ok) throw new Error("HTTP error! status: " + r.status);
-    return r.json();
-  });
-}
-
 function nominatimDelay() {
   // 1-second delay to respect Nominatim's usage policy
   return new Promise(function (resolve) {
     window.setTimeout(resolve, 1000);
   });
-}
-
-function fetchAgsData(latitude, longitude) {
-  var mapEl = document.getElementById("map");
-  var agsUrl = mapEl && mapEl.dataset.agsUrl;
-  if (!agsUrl) return Promise.resolve({});
-  return fetch(agsUrl + "?lat=" + latitude + "&lon=" + longitude)
-    .then(function (r) {
-      return r.ok ? r.json() : {};
-    })
-    .catch(function () {
-      return {};
-    });
 }
 
 function getAddressFromCoordinates(latitude, longitude) {
@@ -400,80 +374,39 @@ function getAddressFromCoordinates(latitude, longitude) {
     state: "",
   });
 
-  // Fetch Nominatim (after rate-limit delay) + AGS spatial data in parallel
-  Promise.all([
-    nominatimDelay().then(function () {
-      return fetchAddressFromNominatim(latitude, longitude);
-    }),
-    fetchAgsData(latitude, longitude),
-  ])
-    .then(function (results) {
-      var data = results[0];
-      var ags = results[1];
+  var mapEl = document.getElementById("map");
+  var agsUrl = mapEl && mapEl.dataset.agsUrl;
+
+  nominatimDelay()
+    .then(function () {
+      return reverseGeocode(latitude, longitude, { agsUrl: agsUrl });
+    })
+    .then(function (r) {
       if (requestSeq !== geocodeRequestSeq) return;
 
-      if (data.error) {
-        console.error("Nominatim API error:", data.error);
-        updateAddressDisplay({
-          street: "",
-          zipCode: "",
-          city: "",
-          district: "",
-          state: "",
-        });
-        return;
-      }
-
-      var address = data.address || {};
-
-      var zipCode = address.postcode || "";
-      var city =
-        address.city || address.town || address.village || address.hamlet || "";
-      var streetName =
-        address.road ||
-        address.pedestrian ||
-        address.cycleway ||
-        address.path ||
-        address.footway ||
-        "";
-      var houseNumber = address.house_number || "";
-      var street = houseNumber
-        ? (streetName + " " + houseNumber).trim()
-        : streetName;
-
-      // AGS spatial data is authoritative for land/kreis; Nominatim as fallback
-      var state = ags.land || address.state || address.city || "";
-      var district = ags.kreis || address.county || address.borough || "";
-
       updateAddressDisplay({
-        street: street,
-        zipCode: zipCode,
-        city: city,
-        district: district,
-        state: state,
+        street: r.strasse,
+        zipCode: r.plz,
+        city: r.ort,
+        district: r.kreis,
+        state: r.land,
       });
 
       // Fill hidden address form and submit via HTMX
       var form = document.getElementById("address-update-form");
       if (form) {
-        form.querySelector('[name="plz"]').value = zipCode;
-        form.querySelector('[name="ort"]').value = city;
-        form.querySelector('[name="strasse"]').value = street;
-        form.querySelector('[name="kreis"]').value = district;
-        form.querySelector('[name="land"]').value = state;
+        form.querySelector('[name="plz"]').value = r.plz;
+        form.querySelector('[name="ort"]').value = r.ort;
+        form.querySelector('[name="strasse"]').value = r.strasse;
+        form.querySelector('[name="kreis"]').value = r.kreis;
+        form.querySelector('[name="land"]').value = r.land;
         form.requestSubmit();
       }
 
       // Update marker popup
       if (marker) {
         marker.setPopupContent(
-          buildPopupContent(latitude, longitude, {
-            strasse: street,
-            plz: zipCode,
-            ort: city,
-            kreis: district,
-            land: state,
-          }),
+          buildPopupContent(latitude, longitude, r),
         );
       }
     })
