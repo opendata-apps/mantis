@@ -71,6 +71,11 @@ list_of_stats = {
 }
 
 
+@stats.context_processor
+def _menu_context():
+    return {"menu": list_of_stats, "marker": session.get("marker")}
+
+
 COUNT_KEYS = ("maennlich", "weiblich", "oothek", "nymphe", "andere", "gesamt")
 
 
@@ -158,51 +163,44 @@ def stats_start():
 
     match value:
         case "geschlecht":
-            return stats_geschlecht(marker=value)
+            return stats_geschlecht()
         case "meldungen_meldedatum":
             return stats_bardiagram_datum(
-                dbfields=["dat_meld"], page="stats-meldedatum.html", marker=value
+                dbfields=["dat_meld"], page="stats-meldedatum.html"
             )
         case "meldungen_funddatum":
             return stats_bardiagram_datum(
-                dbfields=["dat_fund_von"], page="stats-funddatum.html", marker=value
+                dbfields=["dat_fund_von"], page="stats-funddatum.html"
             )
         case "meldungen_meld_fund":
             return stats_bardiagram_datum(
-                dbfields=["dat_fund_von", "dat_meld"],
-                page="stats-meld-fund.html",
-                marker=value,
+                dbfields=["dat_fund_von", "dat_meld"], page="stats-meld-fund.html"
             )
         case "meldungen_mtb":
-            return stats_mtb(marker=value)
+            return stats_mtb()
         case "meldungen_amt":
-            return stats_amt(marker="meldungen_amt")
+            return stats_amt()
         case "meldungen_laender":
-            return stats_laender(marker="meldungen_laender")
+            return stats_laender()
         case "meldungen_brb":
             return stats_bundesland(marker="meldungen_brb")
         case "meldungen_berlin":
             return stats_bundesland(marker="meldungen_berlin")
         case "meldungen_gesamt":
-            return stats_gesamt(marker="meldungen_gesamt")
+            return stats_gesamt()
         case "meldungen_zeiten":
-            return stats_daily_average(marker="meldungen_zeiten")
+            return stats_daily_average()
         case "feedback":
             return stats_feedback(
-                marker="feedback",
                 page="stats-feedback.html",
             )
         case "start":
-            return render_template(
-                "statistics/statistiken.html", menu=list_of_stats, marker=value
-            )
+            return render_template("statistics/statistiken.html", menu=list_of_stats)
         case _:
-            return render_template(
-                "statistics/statistiken.html", menu=list_of_stats, marker=value
-            )
+            return render_template("statistics/statistiken.html", menu=list_of_stats)
 
 
-def stats_daily_average(marker="meldungen_zeiten"):
+def stats_daily_average():
     """Get reports based on hours
 
     We are using timestamps included in image names
@@ -238,9 +236,7 @@ def stats_daily_average(marker="meldungen_zeiten"):
 
     return render_template(
         "statistics/stats-daily-average.html",
-        menu=list_of_stats,
         daten=daily,
-        marker=marker,
     )
 
 
@@ -255,7 +251,7 @@ MTB_COUNTS = {
 }
 
 
-def stats_mtb(marker):
+def stats_mtb():
     "Results as MTB (Messtischblatt-Raster)"
 
     column = MTB_COUNTS.get(request.form.get("typeInput", "all"), "gesamt")
@@ -287,13 +283,11 @@ def stats_mtb(marker):
     xml = create_measure_sheet(dataset=dbanswers, bg_image_url=bg_url)
     return render_template(
         "statistics/stats-messtischblatt.html",
-        menu=list_of_stats,
         svg=xml,
-        marker=marker,
     )
 
 
-def stats_bardiagram_datum(dbfields, page, marker=None):
+def stats_bardiagram_datum(dbfields, page):
     """Calculate statistics by date using ORM queries."""
 
     date_from, date_to, ags = _filters()
@@ -322,14 +316,12 @@ def stats_bardiagram_datum(dbfields, page, marker=None):
 
     return render_template(
         "statistics/" + page,
-        menu=list_of_stats,
         trace1=results[0],
         trace2=results[1],
-        marker=marker,
     )
 
 
-def stats_geschlecht(marker):
+def stats_geschlecht():
     """Count sum of all kategories"""
 
     # Reuse shared aggregation columns, then relabel for German display
@@ -361,13 +353,11 @@ def stats_geschlecht(marker):
 
     return render_template(
         "statistics/stats-geschlecht.html",
-        menu=list_of_stats,
         values=res,
-        marker=marker,
     )
 
 
-def stats_amt(marker):
+def stats_amt():
     "Statistics pro Gemeinden (AGS))"
 
     date_from, date_to, ags = _filters()
@@ -392,15 +382,13 @@ def stats_amt(marker):
 
     return render_template(
         "statistics/stats-gemeinde.html",
-        menu=list_of_stats,
         result=dbanswers,
         gemeinde=results[0].amt if results else "",
         fehler=not results,
-        marker=marker,
     )
 
 
-def stats_laender(marker):
+def stats_laender():
     "Statistics pro Bundesland (AGS))"
 
     substring_start = literal_column("1")
@@ -420,9 +408,7 @@ def stats_laender(marker):
 
     return render_template(
         "statistics/stats-laender.html",
-        menu=list_of_stats,
         result=_counts_by_group(results, BUNDESLAENDER, " --  "),
-        marker=marker,
     )
 
 
@@ -466,15 +452,13 @@ def stats_bundesland(marker):
 
     return render_template(
         "statistics/stats-bundesland.html",
-        menu=list_of_stats,
         result=_counts_by_group(results, laender, " -- "),
         ags=ags,
         land=land,
-        marker=marker,
     )
 
 
-def stats_gesamt(marker):
+def stats_gesamt():
     "Get sum for  Bundesland, Landkreis/Stadtbezirk and Amt"
 
     result_dict = build_gesamt_template()
@@ -522,13 +506,11 @@ def stats_gesamt(marker):
 
     return render_template(
         "statistics/stats-table-all.html",
-        menu=list_of_stats,
         result=result_dict,
-        marker=marker,
     )
 
 
-def stats_feedback(page, marker):
+def stats_feedback(page):
     """Summary of the feedback questions provided."""
 
     stmt = (
@@ -555,8 +537,6 @@ def stats_feedback(page, marker):
 
     return render_template(
         "statistics/" + page,
-        menu=list_of_stats,
         feedback=feedback,
         details=details,
-        marker=marker,
     )
