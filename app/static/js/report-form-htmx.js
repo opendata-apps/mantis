@@ -93,7 +93,6 @@ const ReportForm = {
 
         steps.forEach((s, idx) => {
             s.classList.toggle('hidden', idx !== i);
-            s.classList.toggle('active', idx === i);
         });
         this.step = i;
 

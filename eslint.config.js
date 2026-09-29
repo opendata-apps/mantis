@@ -31,7 +31,7 @@ export default defineConfig({
     // Non-Tailwind classes: JS hooks and the plain-CSS components in theme.css.
     "better-tailwindcss/no-unknown-classes": ["error", {
       ignore: [
-        "action-container", "active", "article-thumb", "btn-copy", "counter", "date-type-btn",
+        "action-container", "article-thumb", "btn-copy", "counter", "date-type-btn",
         "dropdown", "edit-btn", "faq-item", "footer-social", "form-group", "gallery-grid",
         "gallery-item", "lightbox-.+", "modal-admin", "modal-admin-panel", "modal-lightbox",
         "report-card", "review-section", "site-header", "step", "step-container",
