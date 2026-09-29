@@ -12,7 +12,7 @@ from flask import (
     request,
 )
 from flask_login import current_user
-from sqlalchemy import false, func, select, update
+from sqlalchemy import false, func, select
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.auth import reviewer_required
@@ -55,6 +55,7 @@ EDITABLE_FIELDS = {
     "user_name": TblUsers,
     "user_kontakt": TblUsers,
 }
+
 
 # Internal ids and fields the grid does not show.
 HIDDEN_COLUMNS = frozenset(
@@ -224,58 +225,29 @@ def update_cell():
     if original_table is None:
         return jsonify({"error": "This field is not editable"}), 403
 
-    # Fetch the corresponding row from all_data_view
-    all_data_row = db.session.scalar(
-        select(TblAllData).where(TblAllData.meldungen_id == id_value)
-    )
-    if not all_data_row:
+    report = db.session.get(TblMeldungen, id_value)
+    if not report:
         return jsonify({"error": "Record not found"}), 404
 
-    fundorte_id = None
     if original_table == TblUsers:
-        user_db_id = all_data_row.id_user
-        if not user_db_id:
+        link = report.reporter_link
+        target = link.reporter if link else None
+        if not target:
             return jsonify({"error": "User ID not found in the record"}), 400
-        stmt = (
-            update(original_table)
-            .where(original_table.id == user_db_id)
-            .values(**{column_name: new_value})
-        )
     elif original_table == TblFundorte:
-        fundorte_id = all_data_row.fundorte_id
-        if not fundorte_id:
+        target = report.fundort
+        if not target:
             return jsonify({"error": "Fundorte ID not found in the record"}), 400
-
         new_value, error_msg = normalize_location_input(column_name, new_value)
         if error_msg:
             return jsonify({"error": error_msg}), 400
-
-        stmt = (
-            update(original_table)
-            .where(original_table.id == fundorte_id)
-            .values(**{column_name: new_value})
-        )
     else:
-        stmt = (
-            update(original_table)
-            .where(original_table.id == id_value)
-            .values(**{column_name: new_value})
-        )
+        target = report
 
-    # Execute the update
-    result = db.session.execute(stmt)
+    setattr(target, column_name, new_value)
 
-    if getattr(result, "rowcount", None) == 0:
-        return jsonify({"error": "Record not found"}), 404
-
-    # If coordinates were updated, recalculate AMT and MTB
-    if (
-        column_name in ["latitude", "longitude"]
-        and original_table == TblFundorte
-        and fundorte_id is not None
-    ):
-        fundort = db.session.get(TblFundorte, fundorte_id)
-        recalculate_amt_mtb(fundort)
+    if column_name in ("latitude", "longitude"):
+        recalculate_amt_mtb(target)
 
     # Handle dat_fund_von changes - move images to new date folder
     image_update_result = None

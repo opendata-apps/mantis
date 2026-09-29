@@ -2,7 +2,7 @@
 
 import json
 import tempfile
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from io import BytesIO
 from smtplib import SMTPServerDisconnected
 
@@ -845,6 +845,14 @@ class TestAdminRoutes:
 
         assert sorted(seen) == sorted(all_ids)
 
+    def post_cell(self, client, report_id, column, value):
+        with client.session_transaction() as sess:
+            sess["_user_id"] = "9999"
+        return client.post(
+            "/admin/update_cell",
+            json={"meldungen_id": report_id, "column": column, "value": value},
+        )
+
     def test_update_cell_valid_field(self, client, session):
         """Test updating a field exposed by the superuser table."""
         with client.session_transaction() as sess:
@@ -916,6 +924,62 @@ class TestAdminRoutes:
             )
             == "Neue Straße 7"
         )
+
+    @pytest.mark.parametrize(
+        "column, value, stored",
+        [
+            ("dat_meld", "2024-05-06", date(2024, 5, 6)),
+            ("plz", "", None),
+            ("plz", "14467", "14467"),
+            ("latitude", "52,4", 52.4),
+        ],
+    )
+    def test_update_cell_stores_normalized_value(
+        self, client, session, column, value, stored
+    ):
+        response = self.post_cell(client, self.test_sighting.id, column, value)
+        assert response.status_code == 200
+        session.expire_all()
+        report = session.get(TblMeldungen, self.test_sighting.id)
+        owner = report if column.startswith("dat_") else report.fundort
+        assert getattr(owner, column) == stored
+
+    def test_update_cell_recalculates_mtb_for_new_coordinates(self, client, session):
+        self.post_cell(client, self.test_sighting.id, "latitude", "52,4")
+        session.expire_all()
+        assert session.get(TblFundorte, self.test_location.id).mtb != "3644"
+
+    @pytest.mark.parametrize(
+        "column, value, message",
+        [
+            ("plz", "not-a-zip", "Invalid ZIP code"),
+            ("latitude", "abc", None),
+        ],
+    )
+    def test_update_cell_rejects_invalid_location_value(
+        self, client, session, column, value, message
+    ):
+        original = getattr(self.test_location, column)
+        response = self.post_cell(client, self.test_sighting.id, column, value)
+        assert response.status_code == 400
+        if message:
+            assert response.json == {"error": message}
+        session.expire_all()
+        assert getattr(session.get(TblFundorte, self.test_location.id), column) == (
+            original
+        )
+
+    def test_update_cell_updates_the_reporter(self, client, session):
+        response = self.post_cell(
+            client, self.test_sighting.id, "user_name", "Neuer Name"
+        )
+        assert response.status_code == 200
+        session.expire_all()
+        reporter = session.get(TblMeldungen, self.test_sighting.id).reporter_link
+        assert reporter.reporter.user_name == "Neuer Name"
+
+    def test_update_cell_unknown_report_is_404(self, client):
+        assert self.post_cell(client, 999999, "tiere", 3).status_code == 404
 
     @pytest.mark.parametrize(
         "column, value",
