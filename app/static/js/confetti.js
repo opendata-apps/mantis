@@ -9,14 +9,14 @@ function sprayConfetti() {
   });
 }
 
+function randomInRange(min, max) {
+  return Math.random() * (max - min) + min;
+}
+
 function fireworks() {
   const duration = 15 * 1000;
   const animationEnd = Date.now() + duration;
   const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
-
-  function randomInRange(min, max) {
-    return Math.random() * (max - min) + min;
-  }
 
   const interval = setInterval(() => {
     const timeLeft = animationEnd - Date.now();

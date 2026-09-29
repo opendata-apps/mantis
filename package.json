@@ -6,7 +6,8 @@
   "scripts": {
     "build": "vite build",
     "test": "bun test tests/js",
-    "watch": "vite build --watch"
+    "watch": "vite build --watch",
+    "lint": "oxlint"
   },
   "dependencies": {
     "canvas-confetti": "^1.9.4",
@@ -25,6 +26,7 @@
     "@tailwindcss/forms": "^0.5.11",
     "@tailwindcss/vite": "^4.3.3",
     "happy-dom": "^20.14.0",
+    "oxlint": "^1.86.0",
     "tailwindcss": "^4.3.3",
     "vite": "^8.2.2"
   }

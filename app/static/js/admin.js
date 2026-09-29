@@ -26,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const autoSelectToday = el.hasAttribute('datepicker-autoselect-today');
 
     // Note: autohide is NOT used for DateRangePicker - users need to select two dates
+    // oxlint-disable-next-line no-new -- the picker attaches itself to el
     new DateRangePicker(el, {
       format: format,
       language: 'de',

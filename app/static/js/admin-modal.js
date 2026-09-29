@@ -709,6 +709,27 @@ window.addEventListener("load", function () {
   changeInputPattern();
 });
 
+// Auto-sum for the compact reviewer layout: the derived "Anzahl" field
+// ([data-sum-output]) mirrors the sum of the [data-sum-input] counts within
+// its [data-sum-group]. 'input' updates the displayed total live; 'change'
+// also re-dispatches a change on the output so its hx-post persists `tiere`.
+function handleAutoSum(e) {
+  var input = e.target;
+  if (!input.matches || !input.matches("[data-sum-input]")) return;
+  var group = input.closest("[data-sum-group]");
+  if (!group) return;
+  var output = group.querySelector("[data-sum-output]");
+  if (!output) return;
+  var sum = 0;
+  group.querySelectorAll("[data-sum-input]").forEach(function (el) {
+    sum += parseInt(el.value, 10) || 0;
+  });
+  output.value = sum;
+  if (e.type === "change") {
+    output.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+  return sum;
+}
 document.addEventListener("DOMContentLoaded", function () {
   // Delegated click handler for copy-to-clipboard buttons
   document.addEventListener("click", function (e) {
@@ -716,27 +737,6 @@ document.addEventListener("DOMContentLoaded", function () {
     if (button) handleCopyClick(button);
   });
 
-  // Auto-sum for the compact reviewer layout: the derived "Anzahl" field
-  // ([data-sum-output]) mirrors the sum of the [data-sum-input] counts within
-  // its [data-sum-group]. 'input' updates the displayed total live; 'change'
-  // also re-dispatches a change on the output so its hx-post persists `tiere`.
-  function handleAutoSum(e) {
-    var input = e.target;
-    if (!input.matches || !input.matches("[data-sum-input]")) return;
-    var group = input.closest("[data-sum-group]");
-    if (!group) return;
-    var output = group.querySelector("[data-sum-output]");
-    if (!output) return;
-    var sum = 0;
-    group.querySelectorAll("[data-sum-input]").forEach(function (el) {
-      sum += parseInt(el.value, 10) || 0;
-    });
-    output.value = sum;
-    if (e.type === "change") {
-      output.dispatchEvent(new Event("change", { bubbles: true }));
-    }
-    return sum;
-  }
   document.addEventListener("input", handleAutoSum);
   document.addEventListener("change", handleAutoSum);
 

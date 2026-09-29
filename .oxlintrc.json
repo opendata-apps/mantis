@@ -1,0 +1,42 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "options": {
+    "reportUnusedDisableDirectives": "error"
+  },
+  "plugins": [
+    "unicorn",
+    "oxc"
+  ],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn",
+    "perf": "warn"
+  },
+  "rules": {
+    "eqeqeq": "error",
+    "no-constant-binary-expression": "error",
+    "no-else-return": "error",
+    "no-shadow": "error",
+    "preserve-caught-error": "error",
+    "max-statements": [
+      "warn",
+      40
+    ],
+    "unicorn/consistent-function-scoping": [
+      "warn",
+      {
+        "checkArrowFunctions": false
+      }
+    ],
+    "unicorn/no-new-array": "off",
+    "unicorn/no-useless-spread": "off",
+    "no-underscore-dangle": "off"
+  },
+  "env": {
+    "builtin": true,
+    "browser": true
+  },
+  "ignorePatterns": [
+    "app/static/build/**"
+  ]
+}

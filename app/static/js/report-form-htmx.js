@@ -249,7 +249,7 @@ const ReportForm = {
 
             this.dirty = false;
             window.location.href = json.redirect_url;
-        } catch (err) {
+        } catch {
             this.submitting = false;
             this.showLoading(false);
             this.showError('general', CONNECTION_ERROR);
@@ -476,6 +476,7 @@ const ReportForm = {
             try {
                 const reader = file.stream().getReader();
                 for (;;) {
+                    // oxlint-disable-next-line no-await-in-loop -- a stream reads in order
                     const { done, value } = await reader.read();
                     if (done) return `head=${head} stream=${bytes}/done`;
                     bytes += value.byteLength;
@@ -560,8 +561,8 @@ const ReportForm = {
         const url = URL.createObjectURL(blob);
         return new Promise((res, rej) => {
             const el = new Image();
-            el.onload = () => res(el);
-            el.onerror = () => rej(new Error('image decode failed'));
+            el.addEventListener('load', () => res(el));
+            el.addEventListener('error', () => rej(new Error('image decode failed')));
             el.src = url;
         }).finally(() => URL.revokeObjectURL(url));
     },

@@ -59,7 +59,8 @@ class Lightbox {
     this.dialog.addEventListener('touchend', (e) => {
       const diff = e.changedTouches[0].screenX - touchStartX;
       if (Math.abs(diff) > 50) {
-        diff > 0 ? this.prev() : this.next();
+        if (diff > 0) this.prev();
+        else this.next();
       }
     }, { passive: true });
 
@@ -102,7 +103,7 @@ class Lightbox {
     // Show loading state while image loads (uses TW4 opacity-30 + transition-opacity on the element)
     this.img.classList.add('opacity-30');
     this.img.src = link.href;
-    this.img.onload = () => { this.img.classList.remove('opacity-30'); };
+    this.img.addEventListener('load', () => this.img.classList.remove('opacity-30'), { once: true });
 
     const title = link.getAttribute('data-title') || link.getAttribute('title') || '';
     this.img.alt = title;
