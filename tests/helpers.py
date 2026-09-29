@@ -80,6 +80,13 @@ def build_valid_report_form_data(*, sighting_days_ago: int = 3, **overrides):
     return data
 
 
+def json_block(html, block_id):
+    """The payload of the page's `<script type="application/json" id=...>` block."""
+    block = BeautifulSoup(html, "html.parser").find("script", id=block_id)
+    assert block is not None, f"no #{block_id} JSON block in response"
+    return json.loads(block.get_text())
+
+
 def extract_reports_json(response_data):
     """Extract the inline `const reports = [...]` payload from the map page."""
     soup = BeautifulSoup(response_data, "html.parser")

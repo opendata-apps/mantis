@@ -13,42 +13,10 @@
       <p class="mt-4 text-sm text-gray-700">Für den Zeitraum vom {{ session['date_from'] }} bis {{ session['date_to'] }}.</p>
       <p class="text-sm text-gray-700">Gebietskennzahl: {{ session['ags'] }}</p>
       <h1 class="py-2 text-lg text-center">Meldungen nach Funddatum</h1>
-      <div id='meld' class="overflow-x-auto w-full">
+      <div id='meld' data-chart="datum" class="overflow-x-auto w-full">
         <!-- Grafik -->
       </div>
-      <script type="module">
-      var daten = {{ trace1 | tojson }};
-      var xValues = daten.x;
-      var yValues = daten.y;
-      const trace1 = {
-        x: xValues,
-        y: yValues,
-        type: "bar",
-        text: yValues.map(String),
-        textposition: 'auto',
-        hoverinfo: 'none',
-        marker: {
-          color: '#5bae31', //'rgb(158,202,225)',
-          opacity: 0.6,
-          line: {
-            color: 'rgb(8,48,107)',
-            width: 1.5
-          }
-        }
-      };
-      const data = [trace1];
-      const layout = {
-        showlegend: false,
-        margin: {l: 40, r: 10, b: 30, t: 10, pad: 4},
-        paper_bgcolor: 'rgba(0,0,0,0)',
-        plot_bgcolor: 'rgba(0,0,0,0)'
-      };
-      var config = {
-        scrollZoom: true,
-        displayModeBar: false
-      };
-      Plotly.newPlot("meld", data, layout, config);
-      </script>
+      <script type="application/json" id="chart-data">{{ trace1 | tojson }}</script>
     </div>
   </section>
 {% endblock content %}

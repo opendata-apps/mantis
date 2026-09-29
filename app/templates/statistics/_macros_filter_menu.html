@@ -1,5 +1,6 @@
 {% macro MenuFilter() -%}
   <script type="module" src="{{ vite_asset('js/htmx.js') }}"></script>
+  <script type="module" src="{{ vite_asset('js/statistics.js') }}"></script>
   <div class="p-3 bg-white rounded-lg border border-gray-200 sm:p-4">
     <div class="flex flex-col gap-3 lg:flex-row lg:items-center">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -11,7 +12,7 @@
       <div class="relative w-full lg:max-w-xs">
         <select id="stats"
                 name="stats"
-                onchange="this.form.submit()"
+                data-autosubmit
                 class="appearance-none bg-none py-2.5 pr-9 pl-3.5 w-full text-sm text-gray-700 bg-white rounded-lg border border-gray-300 transition-[color,background-color,border-color,box-shadow] duration-200 focus:outline-hidden focus-visible:border-green-500 focus-visible:ring-2 focus-visible:ring-green-500/30">
           {% for statistik in menu.items() %}
             <option value="{{ statistik[0] }}"

@@ -1,10 +1,9 @@
-import json
-import re
 from datetime import date
 
 import pytest
 
 from app.database.models import TblFundorte, TblMeldungen
+from tests.helpers import json_block
 
 
 @pytest.fixture
@@ -65,8 +64,6 @@ def test_hourly_chart_counts_approved_reports(
         },
     )
     assert response.status_code == 200
-    chart = re.search(r"var daten = (.*);", response.text)
-    assert chart is not None
-    assert json.loads(chart[1]) == {
+    assert json_block(response.text, "chart-data") == {
         str(hour): counts.get(str(hour), 0) for hour in range(24)
     }

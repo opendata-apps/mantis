@@ -12,8 +12,6 @@ dispatch + the downstream query + the Jinja template all run — catching
 regressions at each layer at once.
 """
 
-import json
-import re
 from datetime import date
 
 import pytest
@@ -21,6 +19,7 @@ from bs4 import BeautifulSoup
 from sqlalchemy import select
 
 from app.database.models import ReportStatus, TblMeldungen
+from tests.helpers import json_block
 
 
 @pytest.fixture
@@ -169,9 +168,7 @@ class TestStatsGesamt:
             "/statistik", data={**filters, "stats": "geschlecht"}
         )
         assert chart.status_code == 200
-        values = re.search(r"var daten = (.*);", chart.text)
-        assert values is not None
-        assert json.loads(values[1])["Gesamt"] == expected
+        assert json_block(chart.text, "chart-data")["Gesamt"] == expected
 
         table = reviewer_client.post(
             "/statistik", data={**filters, "stats": "meldungen_gesamt"}

@@ -45,20 +45,5 @@
            rel="noopener noreferrer">Amtlicher Gemeindeschlüssel</a>
       </p>
     </div>
-    <script>
-		document.addEventListener("click", function (e) {
-			const li = e.target.closest("#vorschlaege li");
-			if (!li) return;
-
-			// Eingabe für User sichtbar
-			document.getElementById("ags_input").value = li.dataset.gen;
-
-			// Hidden-Feld für Submit
-			document.getElementById("ags").value = li.dataset.ags;
-
-			// Vorschläge löschen
-			document.getElementById("vorschlaege").innerHTML = "";
-		});
-    </script>
   </section>
 {% endblock content %}

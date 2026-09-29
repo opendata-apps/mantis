@@ -13,43 +13,10 @@
       <p class="mt-4 text-sm text-gray-700">Für den Zeitraum vom {{ session['date_from'] }} bis {{ session['date_to'] }}.</p>
       <p class="text-sm text-gray-700">Gebietskennzahl: {{ session['ags'] }}</p>
       <h1 class="py-2 text-lg text-center">Meldungen nach Fund- und Meldedatum</h1>
-      <div id='meld' class="overflow-x-auto w-full">
+      <div id='meld' data-chart="meld-fund" class="overflow-x-auto w-full">
         <!-- Grafik -->
       </div>
-      <script type="module">
-      var trace1 = {{ trace1| tojson }};
-      var trace2 = {{ trace2| tojson }};
-
-      var t1xValues = trace1.x;
-      var t1yValues = trace1.y;
-
-      var t2xValues = trace2.x;
-      var t2yValues = trace2.y;
-
-      var trace1 = {
-        x: t1xValues,
-        y: t1yValues,
-        name: 'Funddatum',
-        type: 'bar'
-      };
-
-      var trace2 = {
-        x: t2xValues,
-        y: t2yValues,
-        name: 'Meldedatum',
-        type: 'bar'
-      };
-
-      var data = [trace1, trace2];
-      var layout = {
-        barmode: 'group',
-        margin: {l: 40, r: 10, b: 30, t: 10, pad: 4},
-        paper_bgcolor: 'rgba(0,0,0,0)',
-        plot_bgcolor: 'rgba(0,0,0,0)'
-      };
-      Plotly.newPlot('meld', data, layout, { displayModeBar: false });
-
-      </script>
+      <script type="application/json" id="chart-data">{{ {"trace1": trace1, "trace2": trace2} | tojson }}</script>
     </div>
   </section>
 {% endblock content %}
