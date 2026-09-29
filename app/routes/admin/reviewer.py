@@ -114,16 +114,6 @@ def _get_user_report_count(user: TblUsers) -> int:
     return count or 0
 
 
-def _load_sighting_for_render(
-    report_id: int,
-) -> tuple[TblMeldungen | None, TblUsers | None]:
-    """Load a report for modal/card rendering."""
-    meldung = _load_sighting(report_id)
-    if not meldung:
-        return None, None
-    return meldung, meldung.reporter_link.reporter if meldung.reporter_link else None
-
-
 def _matches_filter_status(sighting: TblMeldungen, filter_status: str) -> bool:
     """Check whether sighting should stay visible in current filtered list."""
     normalized = normalize_filter_status(filter_status, default="")
@@ -136,31 +126,21 @@ def _matches_filter_status(sighting: TblMeldungen, filter_status: str) -> bool:
     return not sighting.is_deleted
 
 
-def _render_report_card_or_delete(sighting: TblMeldungen, filter_status: str):
-    """Render updated card for HTMX or delete target when it no longer matches filter."""
-    if not _matches_filter_status(sighting, filter_status):
-        return _hx_delete_response()
+def _render_updated_sighting_by_id(report_id: int, filter_status: str):
+    """Return the refreshed card, or an empty response that deletes it.
 
+    The card goes away when the report no longer matches the list's filter.
+    """
+    sighting = _load_sighting(report_id)
+    if not sighting or not _matches_filter_status(sighting, filter_status):
+        response = make_response("", 200)
+        response.headers["HX-Reswap"] = "delete"
+        return response
     return render_template(
         "admin/partials/_report_card.html",
         sighting=sighting,
         current_filter_status=filter_status,
     )
-
-
-def _hx_delete_response():
-    """Return an empty HTMX response that deletes the target element."""
-    response = make_response("", 200)
-    response.headers["HX-Reswap"] = "delete"
-    return response
-
-
-def _render_updated_sighting_by_id(report_id: int, filter_status: str):
-    """Load updated sighting and return card partial or delete response."""
-    rendered_sighting, _ = _load_sighting_for_render(report_id)
-    if not rendered_sighting:
-        return _hx_delete_response()
-    return _render_report_card_or_delete(rendered_sighting, filter_status)
 
 
 # The URL grants a session. Only that entry point is limited; subsequent
@@ -449,7 +429,10 @@ def toggle_approve_sighting(id):
 
 def _render_modal(template: str, report_id: int, active_tab: str):
     """Render modal content. Both entry points need the same context."""
-    sighting, user = _load_sighting_for_render(report_id)
+    sighting = _load_sighting(report_id)
+    user = (
+        sighting.reporter_link.reporter if sighting and sighting.reporter_link else None
+    )
     if not sighting or not user:
         abort(404, description="Report not found")
 
