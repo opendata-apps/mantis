@@ -709,6 +709,42 @@ window.addEventListener("load", function () {
   changeInputPattern();
 });
 
+// One delegated listener for all [data-action] buttons, including the
+// htmx-swapped modal partials.
+var CLICK_ACTIONS = {
+  sort: function (el) {
+    setSortOrder(el.dataset.sort);
+  },
+  export: function (el) {
+    exportData(el.dataset.export);
+  },
+  "date-type": function (el) {
+    setDateType(el.dataset.dateType);
+  },
+  "close-modal": closeModal,
+  "dismiss-alert": function (el) {
+    el.closest("[role=alert]").remove();
+  },
+  "toggle-overlay": toggleModalOverlay,
+  "marker-toggle": toggleMarkerPlacement,
+  "marker-confirm": confirmMarkerPlacement,
+  "marker-cancel": cancelMarkerPlacement,
+  "marker-reset": resetMarker,
+};
+
+document.addEventListener("click", function (e) {
+  var el = e.target.closest("[data-action]");
+  var action = el && CLICK_ACTIONS[el.dataset.action];
+  if (action) action(el);
+});
+
+document.addEventListener("change", function (e) {
+  var input = e.target;
+  if (input.matches("[data-coordinate]")) {
+    validateAndUpdateCoordinate(input, input.dataset.coordinate);
+  }
+});
+
 // Auto-sum for the compact reviewer layout: the derived "Anzahl" field
 // ([data-sum-output]) mirrors the sum of the [data-sum-input] counts within
 // its [data-sum-group]. 'input' updates the displayed total live; 'change'
@@ -803,18 +839,6 @@ document.body.addEventListener("htmx:beforeRequest", (event) => {
 });
 document.body.addEventListener("mantis:modal-close", closeModal);
 
-// ---------------------------------------------------------------------------
-// Window exports (only functions referenced from template onclick handlers)
-// ---------------------------------------------------------------------------
-window.closeModal = closeModal;
-window.setSortOrder = setSortOrder;
+// Window exports (search toolbar handlers referenced from the shared macro)
 window.clearSearch = clearSearch;
-window.exportData = exportData;
 window.changeInputPattern = changeInputPattern;
-window.setDateType = setDateType;
-window.validateAndUpdateCoordinate = validateAndUpdateCoordinate;
-window.toggleMarkerPlacement = toggleMarkerPlacement;
-window.confirmMarkerPlacement = confirmMarkerPlacement;
-window.cancelMarkerPlacement = cancelMarkerPlacement;
-window.resetMarker = resetMarker;
-window.toggleModalOverlay = toggleModalOverlay;

@@ -16,7 +16,7 @@
                hx-target="#report-card-{{ sighting.id }}"
                hx-swap="outerHTML swap:150ms"
                hx-vals='{{ {"flag": "UNKL", "filter_status": filter_status}|tojson }}'
-               onclick="toggleModalOverlay()">
+               data-action="toggle-overlay">
         <span class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border transition-colors duration-200 text-gray-700 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 peer-checked:bg-orange-50 peer-checked:text-orange-700 peer-checked:border-orange-300 peer-checked:hover:bg-orange-100 peer-checked:hover:border-orange-400">
           {{ heroicon_outline("question-mark-circle", class="size-4", stroke_width=1.5) }}
           Unklar
@@ -31,7 +31,7 @@
                hx-target="#report-card-{{ sighting.id }}"
                hx-swap="outerHTML swap:150ms"
                hx-vals='{{ {"flag": "INFO", "filter_status": filter_status}|tojson }}'
-               onclick="toggleModalOverlay()">
+               data-action="toggle-overlay">
         <span class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border transition-colors duration-200 text-gray-700 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 peer-checked:bg-yellow-50 peer-checked:text-yellow-700 peer-checked:border-yellow-300 peer-checked:hover:bg-yellow-100 peer-checked:hover:border-yellow-400">
           {{ heroicon_outline("chat-bubble-left-ellipsis", class="size-4", stroke_width=1.5) }}
           Informiert
@@ -81,5 +81,5 @@
   {% endif %}
   <button type="button"
           class="btn-secondary w-full sm:w-auto"
-          onclick="closeModal()">Schließen</button>
+          data-action="close-modal">Schließen</button>
 </div>

@@ -52,7 +52,7 @@ test('coordinate edits reject numeric prefixes and accept decimal commas', async
         const document = window.document;
         document.body.dataset.coordRange = JSON.stringify({ latitude: [24.6, 60], longitude: [-20, 44.83] });
         document.body.innerHTML = `<form id="coord-update-form">
-            <input name="latitude" value="52,52km">
+            <input name="latitude" data-coordinate="latitude" value="52,52km">
             <input name="longitude" value="13,405">
         </form>`;
         const saved = [];
@@ -60,11 +60,11 @@ test('coordinate edits reject numeric prefixes and accept decimal commas', async
         form.addEventListener('coord-valid', () => saved.push(Object.fromEntries(new window.FormData(form))));
         window.eval(source);
         const latitude = form.querySelector('[name=latitude]');
-        window.validateAndUpdateCoordinate(latitude, 'latitude');
+        latitude.dispatchEvent(new window.Event('change', { bubbles: true }));
         expect(saved).toEqual([]);
         expect(latitude.classList.contains('border-red-500')).toBe(true);
         latitude.value = '52,52';
-        window.validateAndUpdateCoordinate(latitude, 'latitude');
+        latitude.dispatchEvent(new window.Event('change', { bubbles: true }));
         expect(saved).toEqual([{latitude: '52,52', longitude: '13,405'}]);
         expect(latitude.classList.contains('border-red-500')).toBe(false);
     } finally {

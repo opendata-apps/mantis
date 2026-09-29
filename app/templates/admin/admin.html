@@ -24,7 +24,7 @@
                 <strong class="font-bold">Error!</strong>
                 <span class="block sm:inline">{{ message }}</span>
               </div>
-              <button onclick="this.closest('[role=alert]').remove()"
+              <button data-action="dismiss-alert"
                       class="text-red-800 hover:text-red-900">
                 {{ heroicon_mini("x-mark", class="size-6", size=20) }}
               </button>
@@ -36,7 +36,7 @@
                 <strong class="font-bold">Info:</strong>
                 <span class="block sm:inline">{{ message }}</span>
               </div>
-              <button onclick="this.closest('[role=alert]').remove()"
+              <button data-action="dismiss-alert"
                       class="text-blue-800 hover:text-blue-900">
                 {{ heroicon_mini("x-mark", class="size-6", size=20) }}
               </button>
@@ -100,13 +100,13 @@
                   <span class="text-sm font-semibold text-gray-700">Datum</span>
                   <div class="inline-flex rounded-md border border-gray-300 overflow-hidden">
                     <button type="button"
+                            data-action="date-type"
                             data-date-type="fund"
-                            class="date-type-btn px-2.5 py-1 text-xs font-medium transition-colors duration-150 {{ 'bg-green-600 text-white' if current_date_type != 'meld' else 'bg-white text-gray-600 hover:bg-gray-100' }}"
-                            onclick="setDateType('fund')">Funddatum</button>
+                            class="date-type-btn px-2.5 py-1 text-xs font-medium transition-colors duration-150 {{ 'bg-green-600 text-white' if current_date_type != 'meld' else 'bg-white text-gray-600 hover:bg-gray-100' }}">Funddatum</button>
                     <button type="button"
+                            data-action="date-type"
                             data-date-type="meld"
-                            class="date-type-btn px-2.5 py-1 text-xs font-medium transition-colors duration-150 border-l border-gray-300 {{ 'bg-green-600 text-white border-l-green-600' if current_date_type == 'meld' else 'bg-white text-gray-600 hover:bg-gray-100' }}"
-                            onclick="setDateType('meld')">Meldedatum</button>
+                            class="date-type-btn px-2.5 py-1 text-xs font-medium transition-colors duration-150 border-l border-gray-300 {{ 'bg-green-600 text-white border-l-green-600' if current_date_type == 'meld' else 'bg-white text-gray-600 hover:bg-gray-100' }}">Meldedatum</button>
                   </div>
                 </div>
                 <input type="hidden"
@@ -199,7 +199,7 @@
             <ul class="py-2 text-sm text-gray-700"
                 aria-labelledby="dropdownSortButton">
               <li>
-                <button onclick="setSortOrder('id_asc')"
+                <button data-action="sort" data-sort="id_asc"
                         class="flex items-center w-full px-4 py-2.5 text-left text-gray-700 transition-colors duration-200 hover:bg-gray-50 hover:text-gray-900 {% if current_sort_order == 'id_asc' %}bg-gray-50{% endif %}">
                   <div class="size-2 mr-2 {{ 'bg-green-500' if current_sort_order == 'id_asc' }} rounded-full">
                   </div>
@@ -217,7 +217,7 @@
                 </button>
               </li>
               <li>
-                <button onclick="setSortOrder('id_desc')"
+                <button data-action="sort" data-sort="id_desc"
                         class="flex items-center w-full px-4 py-2.5 text-left text-gray-700 transition-colors duration-200 hover:bg-gray-50 hover:text-gray-900 {% if current_sort_order == 'id_desc' %}bg-gray-50{% endif %}">
                   <div class="size-2 mr-2 {{ 'bg-green-500' if current_sort_order == 'id_desc' }} rounded-full">
                   </div>
@@ -247,25 +247,25 @@
             <ul class="py-2 text-sm text-gray-700"
                 aria-labelledby="dropdownExportButton">
               <li>
-                <button onclick="exportData('all')"
+                <button data-action="export" data-export="all"
                         class="flex items-center px-4 py-2.5 w-full text-left text-gray-700 transition-colors duration-200 hover:bg-gray-200 hover:text-gray-900">
                   <span class="grow">Export alle Meldungen</span>
                 </button>
               </li>
               <li>
-                <button onclick="exportData('accepted')"
+                <button data-action="export" data-export="accepted"
                         class="flex items-center px-4 py-2.5 w-full text-left text-gray-700 transition-colors duration-200 hover:bg-gray-200 hover:text-gray-900">
                   <span class="grow">Export angenommene Meldungen</span>
                 </button>
               </li>
               <li>
-                <button onclick="exportData('non_accepted')"
+                <button data-action="export" data-export="non_accepted"
                         class="flex items-center px-4 py-2.5 w-full text-left text-gray-700 transition-colors duration-200 hover:bg-gray-200 hover:text-gray-900">
                   <span class="grow">Export nicht angenommene Meldungen</span>
                 </button>
               </li>
               <li>
-                <button onclick="exportData('searched')"
+                <button data-action="export" data-export="searched"
                         class="flex items-center px-4 py-2.5 w-full text-left text-gray-700 transition-colors duration-200 hover:bg-gray-200 hover:text-gray-900">
                   <span class="grow">Export gesuchte Meldungen</span>
                 </button>
@@ -297,7 +297,7 @@
              class="flex flex-wrap gap-2 justify-end action-container">
           <button type="button"
                   class="btn-secondary w-full sm:w-auto"
-                  onclick="closeModal()">Schließen</button>
+                  data-action="close-modal">Schließen</button>
         </div>
       </div>
     </div>
