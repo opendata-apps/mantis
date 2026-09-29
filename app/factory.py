@@ -107,7 +107,9 @@ def register_template_globals(app: Flask) -> None:
         otherwise reach url_for and raise while the page renders.
         """
         args = {
-            key: value for key, value in request.args.items() if not key.startswith("_")
+            key: value
+            for key, value in request.args.items()
+            if key != "endpoint" and not key.startswith("_")
         }
         args["page"] = str(page)
         return url_for(endpoint, **args)  # ty: ignore[invalid-argument-type]

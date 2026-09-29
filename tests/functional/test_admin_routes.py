@@ -1024,7 +1024,8 @@ class TestAdminRoutes:
         assert response.data == b"test photo bytes"
         assert client.get("/admin/images/missing.jpg").status_code == 404
 
-    def test_pagination_on_reviewer_page(self, client, session):
+    @pytest.mark.parametrize("extra_query", [{}, {"endpoint": "x"}])
+    def test_pagination_on_reviewer_page(self, client, session, extra_query):
         ids = []
         for _ in range(25):
             sighting = TblMeldungen(
@@ -1056,6 +1057,7 @@ class TestAdminRoutes:
                     "sort_order": "id_desc",
                     "q": "Paginationkontrolle",
                     "search_type": "full_text",
+                    **extra_query,
                 },
             )
             assert response.status_code == 200
