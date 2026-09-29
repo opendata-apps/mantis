@@ -7,13 +7,13 @@
 {% block content %}
   <section class="container px-4 mx-auto mt-10">
     <div class="stats-panel">
-      <form action="" method="POST" class="space-y-4">
+      <form action="" method="post" class="space-y-4">
         {{ StatsMenu() }}
       </form>
       <p class="mt-4 text-sm text-gray-700">Für den Zeitraum vom {{ session['date_from'] }} bis {{ session['date_to'] }}.</p>
       <p class="text-sm text-gray-700">Gebietskennzahl: {{ session['ags'] }}</p>
       <h1 class="py-2 text-lg text-center">Meldungen nach Funddatum</h1>
-      <div id='meld' data-chart="datum" class="overflow-x-auto w-full">
+      <div id="meld" data-chart="datum" class="overflow-x-auto w-full">
         <!-- Grafik -->
       </div>
       <script type="application/json" id="chart-data">{{ trace1 | tojson }}</script>

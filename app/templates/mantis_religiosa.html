@@ -386,7 +386,7 @@
                 <li>Männlichen Gottesanbeterinnen</li>
                 <li>Weiblichen Gottesanbeterinnen</li>
               </ul>
-              <a href="/bestimmung"
+              <a href="{{ url_for('main.bestimmung') }}"
                  class="inline-flex items-center pl-4 pr-3.5 py-2 font-medium text-white transition-colors duration-200 bg-green-600 rounded-lg hover:bg-green-700 focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
                 <span>Zum Bestimmungsschlüssel</span>
                 {{ heroicon_outline("arrow-right", class="size-4 ml-2", stroke_width=2) }}
@@ -441,17 +441,17 @@
               Erfahren Sie mehr über die Verbreitung in einzelnen Regionen:
             </p>
             <div class="grid grid-cols-1 gap-4 mt-4 md:grid-cols-3">
-              <a href="/gottesanbeterin-in-deutschland/"
+              <a href="{{ url_for('regionen.region_page', slug='deutschland') }}"
                  class="block p-6 transition-shadow bg-white rounded-lg shadow-md hover:shadow-lg">
                 <h3 class="text-lg font-semibold text-green-700">Deutschland</h3>
                 <p class="mt-2 text-sm text-gray-600">Überblick über die Verbreitung in ganz Deutschland</p>
               </a>
-              <a href="/gottesanbeterin-in-brandenburg/"
+              <a href="{{ url_for('regionen.region_page', slug='brandenburg') }}"
                  class="block p-6 transition-shadow bg-white rounded-lg shadow-md hover:shadow-lg">
                 <h3 class="text-lg font-semibold text-green-700">Brandenburg</h3>
                 <p class="mt-2 text-sm text-gray-600">Kerngebiet der östlichen Population</p>
               </a>
-              <a href="/gottesanbeterin-in-berlin/"
+              <a href="{{ url_for('regionen.region_page', slug='berlin') }}"
                  class="block p-6 transition-shadow bg-white rounded-lg shadow-md hover:shadow-lg">
                 <h3 class="text-lg font-semibold text-green-700">Berlin</h3>
                 <p class="mt-2 text-sm text-gray-600">Urbane Verbreitung in der Hauptstadt</p>

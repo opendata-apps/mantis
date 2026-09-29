@@ -11,13 +11,13 @@
 <div id="modal-tabs"
      class="flex flex-wrap justify-center gap-2 mb-3"
      {% if oob_tabs %}hx-swap-oob="outerHTML"{% endif %}>
-  <button hx-get="{{ url_for('admin.modal_tab', tab='general', id=sighting.id) }}?{{ qs }}"
+  <button type="button" hx-get="{{ url_for('admin.modal_tab', tab='general', id=sighting.id) }}?{{ qs }}"
           hx-target="#tab-content"
           hx-swap="innerHTML swap:150ms"
           class="px-4 py-2 text-sm font-medium rounded-lg transition duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-green-500/30 {{ tab_active if active_tab == 'general' else tab_idle }}">
     General Information
   </button>
-  <button hx-get="{{ url_for('admin.modal_tab', tab='location', id=sighting.id) }}?{{ qs }}"
+  <button type="button" hx-get="{{ url_for('admin.modal_tab', tab='location', id=sighting.id) }}?{{ qs }}"
           hx-target="#tab-content"
           hx-swap="innerHTML swap:150ms"
           class="px-4 py-2 text-sm font-medium rounded-lg transition duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-green-500/30 {{ tab_active if active_tab == 'location' else tab_idle }}">

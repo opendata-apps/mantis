@@ -56,7 +56,7 @@
         </div>
       </noscript>
       <form id="reportForm"
-            method="POST"
+            method="post"
             action="{{ url_for('report.melden', usrid=request.view_args.get('usrid') ) if request.view_args.get('usrid') else url_for('report.melden') }}"
             enctype="multipart/form-data"
             class="space-y-8"
@@ -211,7 +211,7 @@
                 </span>
               </label>
               {# HTMX-managed finder fields container #}
-              <div id="finder_fields_container">{% include 'report/partials/_finder_fields.html' with context %}</div>
+              <div id="finder_fields_container">{% include "report/partials/_finder_fields.html" with context %}</div>
               <!-- Feedback section - only for new users -->
               {% if not user_has_feedback %}{{ render_feedback_section(form.feedback_source, form.feedback_detail) }}{% endif %}
               <!-- Honeypot spam protection -->

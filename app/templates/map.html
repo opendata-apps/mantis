@@ -12,12 +12,10 @@
   <link rel="preconnect" href="https://server.arcgisonline.com">
 {% endblock %}
 {% block page_title %}
-  Auswertungen der Beobachtungen | Mantis Religiosa Mitmachprojekt | Gottesanbeterin Gesucht{%
-  endblock %}
+  Auswertungen der Beobachtungen | Mantis Religiosa Mitmachprojekt | Gottesanbeterin Gesucht{% endblock %}
   {% block meta_keywords %}Auswertungen, Karte, Gottesanbeterin, Mantis religiosa Auswertungen{% endblock %}
   {% block meta_description %}
-    Schauen Sie sich die Auswertungen von Gottesanbeterin-Beobachtungen in Deutschland an. {%
-    endblock %}
+    Schauen Sie sich die Auswertungen von Gottesanbeterin-Beobachtungen in Deutschland an. {% endblock %}
     {% block canonical %}{{ url_for('data.show_map', _external=True) }}{% endblock %}
     {% block og_meta %}
       {% if selected_year %}

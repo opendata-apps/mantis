@@ -7,14 +7,14 @@
 {% block content %}
   <section class="container px-4 mx-auto mt-10">
     <div class="stats-panel">
-      <form action="" method="POST" class="space-y-4">
+      <form action="" method="post" class="space-y-4">
         {{ StatsMenu() }}
       </form>
       <p class="mt-4 text-sm text-gray-700">
         Für den Zeitraum vom {{ session['date_from'] }} bis {{ session['date_to'] }} und das Gebiet {{ session["ags"] }} wurden folgende Werte erfasst.
       </p>
       {% if marker == "meldungen_amt" %}
-        <form action="/statistik" method="POST">
+        <form action="{{ url_for('statistics.stats_start') }}" method="post">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <div class="mt-3">
             <input type="text"

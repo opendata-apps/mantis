@@ -97,7 +97,7 @@
            class="hidden px-3 py-2 text-sm font-medium text-center text-white bg-yellow-500 rounded-md">
         Platzierung aktiv — Karte klicken
       </div>
-      <button data-action="marker-toggle"
+      <button type="button" data-action="marker-toggle"
               class="btn-green w-full {% if not editable %}opacity-50 cursor-not-allowed{% endif %}"
               id="markerPlacementBtn"
               {% if not editable %}disabled{% endif %}
@@ -106,16 +106,16 @@
         <span id="markerBtnText">Marker platzieren</span>
       </button>
       <div id="confirmationButtons" class="hidden space-y-2">
-        <button data-action="marker-confirm" class="btn-green w-full">
+        <button type="button" data-action="marker-confirm" class="btn-green w-full">
           {{ heroicon_outline("check", class="mr-2 size-4", stroke_width=2) }}
           Position bestätigen
         </button>
-        <button data-action="marker-cancel" class="btn-secondary w-full">
+        <button type="button" data-action="marker-cancel" class="btn-secondary w-full">
           {{ heroicon_outline("x-mark", class="mr-2 size-4", stroke_width=2) }}
           Abbrechen
         </button>
       </div>
-      <button data-action="marker-reset"
+      <button type="button" data-action="marker-reset"
               class="btn-secondary w-full"
               {{ disabled }}>
         {{ heroicon_outline("arrow-path", class="mr-2 size-4", stroke_width=2) }}

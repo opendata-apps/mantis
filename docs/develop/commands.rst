@@ -47,6 +47,7 @@ Qualitätssicherung
 
    uv run ruff check .
    uv run ty check
+   uv run djlint app/templates --lint
    bun run lint
    uv run pytest
    uv run pytest -m unit

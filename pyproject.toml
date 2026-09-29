@@ -38,6 +38,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "djlint>=1.46.3",
     "openpyxl>=3.1.5",
     "pytest>=9.1.1",
     "pytest-cov>=7.1.0",
@@ -115,3 +116,10 @@ ignore = [
 [tool.ruff.lint.flake8-pytest-style]
 # Ruff defaults to the tuple form; pytest's own documentation writes "a,b".
 parametrize-names-type = "csv"
+
+[tool.djlint]
+profile = "jinja"
+use_gitignore = true
+ignore = "H021,H023"
+# H021: layout.html builds a background-image with url_for; a class cannot.
+# H023: &#13;&#10; puts a line break into a title attribute (tooltip).

@@ -86,7 +86,7 @@
               <p class="prose-content mb-6">
                 Das Naturkundemuseum Potsdam und die Mantidenfreunde Berlin-Brandenburg
                 initiieren das Projekt „Gottesanbeterin gesucht!" mit dem Ziel,
-                die <a href="/mantis-religiosa"
+                die <a href="{{ url_for('main.mantis_religiosa') }}"
     class="font-semibold text-green-600 underline decoration-green-300 hover:decoration-green-600 transition-colors">Europäische Gottesanbeterin</a>
                 (<i>Mantis religiosa</i> L. 1758) in der Region Brandenburg zu
                 kartieren. Seit 2016 sammeln wir Fundmeldungen dieser speziellen
@@ -128,7 +128,7 @@
               </p>
               <div class="flex flex-wrap gap-3">
                 {{ cta_link("/mantis-religiosa", "Mehr über Mantis religiosa") }}
-                <a href="/bestimmung"
+                <a href="{{ url_for('main.bestimmung') }}"
                    class="inline-flex items-center px-5 py-3 text-sm font-medium text-green-700 border border-green-600 rounded-lg transition-colors duration-300 hover:bg-green-50">
                   <span>Bestimmungsschlüssel</span>
                   {{ heroicon_mini("arrow-right", class="-mr-1 ml-2 size-4") }}
@@ -198,7 +198,7 @@
          class="flex fixed inset-0 z-11000 justify-center items-center opacity-0 transition-opacity duration-300 pointer-events-none">
       <div class="absolute inset-0 bg-black/50 backdrop-blur-xs"></div>
       <div class="relative p-8 mx-4 w-full max-w-md bg-white rounded-lg shadow-xl transition-transform duration-300 scale-95">
-        <button id="closeModal"
+        <button type="button" id="closeModal"
                 class="absolute top-4 right-4 text-gray-500 transition-colors duration-200 hover:text-gray-700">
           {{ heroicon_outline("x-mark", class="size-6", stroke_width=2) }}
         </button>
@@ -214,7 +214,7 @@
           {{ celebration_threshold }} Meldungen erreicht! Ihre Unterstützung ist wertvoll für unsere Forschung.
         </p>
         <div class="flex justify-center">
-          <button id="moreConfetti"
+          <button type="button" id="moreConfetti"
                   class="px-6 py-3 text-white bg-green-600 rounded-full shadow-md transition-colors duration-200 hover:bg-green-700 focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
             <span class="mr-2">Feiern!</span>
             <span role="img" aria-label="Konfetti">🎉</span>

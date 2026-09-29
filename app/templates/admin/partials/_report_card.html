@@ -2,7 +2,7 @@
    Template variables: sighting, current_filter_status #}
 {% set has_unkl = 'UNKL' in sighting.statuses %}
 {% set has_info = 'INFO' in sighting.statuses %}
-{% set has_del = 'DEL'  in sighting.statuses %}
+{% set has_del = 'DEL' in sighting.statuses %}
 {% set has_appr = 'APPR' in sighting.statuses %}
 {% set fundort = sighting.fundort %}
 {% set card_state = "bg-gray-50 ring-2 ring-red-300" if has_del
@@ -70,7 +70,7 @@
         {# Edit — overrides inherited hx-target/hx-swap to open modal.
            `data-action="open-modal"` lets admin-modal.js open the dialog on
            htmx:beforeRequest without an inline (eval) handler. #}
-        <button hx-get="{{ url_for('admin.modal_open', id=sighting.id) }}"
+        <button type="button" hx-get="{{ url_for('admin.modal_open', id=sighting.id) }}"
                 hx-target="#modal-body"
                 hx-swap="innerHTML"
                 data-action="open-modal"
@@ -79,14 +79,14 @@
           {{ heroicon_outline("pencil-square", class="size-4 md:size-5", stroke_width=1.5) }}
         </button>
         {% if has_del %}
-          <button hx-post="{{ url_for('admin.undelete_sighting', id=sighting.id) }}"
+          <button type="button" hx-post="{{ url_for('admin.undelete_sighting', id=sighting.id) }}"
                   hx-confirm="Meldung wiederherstellen?"
                   title="Wiederherstellen"
                   class="inline-flex items-center justify-center size-10 ml-1 rounded-md text-green-600 transition-colors duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-green-500/30 hover:bg-green-100 hover:text-green-700">
             {{ heroicon_outline("arrow-uturn-left", class="size-4 md:size-5", stroke_width=1.5) }}
           </button>
         {% else %}
-          <button hx-post="{{ url_for('admin.delete_sighting', id=sighting.id) }}"
+          <button type="button" hx-post="{{ url_for('admin.delete_sighting', id=sighting.id) }}"
                   hx-confirm="Sind Sie sicher, dass Sie die Meldung löschen möchten?"
                   title="Löschen"
                   class="inline-flex items-center justify-center size-10 ml-1 rounded-md text-gray-500 transition-colors duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-red-500/30 hover:bg-red-100 hover:text-red-600">
@@ -111,7 +111,7 @@
                   class="btn-green opacity-50 cursor-not-allowed"
                   title="Bitte erst die aktiven Haken (Unklar/Informiert) entfernen, um diese Meldung anzunehmen">Annehmen</button>
         {% else %}
-          <button hx-post="{{ url_for('admin.toggle_approve_sighting', id=sighting.id) }}"
+          <button type="button" hx-post="{{ url_for('admin.toggle_approve_sighting', id=sighting.id) }}"
                   class="btn-green">Annehmen</button>
         {% endif %}
       </div>

@@ -24,7 +24,7 @@
                 <strong class="font-bold">Error!</strong>
                 <span class="block sm:inline">{{ message }}</span>
               </div>
-              <button data-action="dismiss-alert"
+              <button type="button" data-action="dismiss-alert"
                       class="text-red-800 hover:text-red-900">
                 {{ heroicon_mini("x-mark", class="size-6", size=20) }}
               </button>
@@ -36,7 +36,7 @@
                 <strong class="font-bold">Info:</strong>
                 <span class="block sm:inline">{{ message }}</span>
               </div>
-              <button data-action="dismiss-alert"
+              <button type="button" data-action="dismiss-alert"
                       class="text-blue-800 hover:text-blue-900">
                 {{ heroicon_mini("x-mark", class="size-6", size=20) }}
               </button>
@@ -56,7 +56,7 @@
           {% endcall %}
           <div class="absolute left-0 z-10 p-4 space-y-3 w-64 bg-white rounded-lg divide-y divide-gray-100 shadow-lg sm:w-80 mt-1">
             <form action="{{ url_for('admin.reviewer') }}"
-                  method="GET"
+                  method="get"
                   class="space-y-3">
               <div class="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
                 <div class="space-y-1 w-full md:w-1/2">
@@ -199,7 +199,7 @@
             <ul class="py-2 text-sm text-gray-700"
                 aria-labelledby="dropdownSortButton">
               <li>
-                <button data-action="sort" data-sort="id_asc"
+                <button type="button" data-action="sort" data-sort="id_asc"
                         class="flex items-center w-full px-4 py-2.5 text-left text-gray-700 transition-colors duration-200 hover:bg-gray-50 hover:text-gray-900 {% if current_sort_order == 'id_asc' %}bg-gray-50{% endif %}">
                   <div class="size-2 mr-2 {{ 'bg-green-500' if current_sort_order == 'id_asc' }} rounded-full">
                   </div>
@@ -217,7 +217,7 @@
                 </button>
               </li>
               <li>
-                <button data-action="sort" data-sort="id_desc"
+                <button type="button" data-action="sort" data-sort="id_desc"
                         class="flex items-center w-full px-4 py-2.5 text-left text-gray-700 transition-colors duration-200 hover:bg-gray-50 hover:text-gray-900 {% if current_sort_order == 'id_desc' %}bg-gray-50{% endif %}">
                   <div class="size-2 mr-2 {{ 'bg-green-500' if current_sort_order == 'id_desc' }} rounded-full">
                   </div>
@@ -247,25 +247,25 @@
             <ul class="py-2 text-sm text-gray-700"
                 aria-labelledby="dropdownExportButton">
               <li>
-                <button data-action="export" data-export="all"
+                <button type="button" data-action="export" data-export="all"
                         class="flex items-center px-4 py-2.5 w-full text-left text-gray-700 transition-colors duration-200 hover:bg-gray-200 hover:text-gray-900">
                   <span class="grow">Export alle Meldungen</span>
                 </button>
               </li>
               <li>
-                <button data-action="export" data-export="accepted"
+                <button type="button" data-action="export" data-export="accepted"
                         class="flex items-center px-4 py-2.5 w-full text-left text-gray-700 transition-colors duration-200 hover:bg-gray-200 hover:text-gray-900">
                   <span class="grow">Export angenommene Meldungen</span>
                 </button>
               </li>
               <li>
-                <button data-action="export" data-export="non_accepted"
+                <button type="button" data-action="export" data-export="non_accepted"
                         class="flex items-center px-4 py-2.5 w-full text-left text-gray-700 transition-colors duration-200 hover:bg-gray-200 hover:text-gray-900">
                   <span class="grow">Export nicht angenommene Meldungen</span>
                 </button>
               </li>
               <li>
-                <button data-action="export" data-export="searched"
+                <button type="button" data-action="export" data-export="searched"
                         class="flex items-center px-4 py-2.5 w-full text-left text-gray-700 transition-colors duration-200 hover:bg-gray-200 hover:text-gray-900">
                   <span class="grow">Export gesuchte Meldungen</span>
                 </button>

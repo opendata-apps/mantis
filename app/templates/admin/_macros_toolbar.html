@@ -11,7 +11,7 @@
    wires [data-search-type] and [data-search-clear]. A call block adds hidden inputs. #}
 {% macro search_bar(input_name, placeholder, clear_title, submit_title, value="", maxlength=none, search_type="", action=none, form_id=none) -%}
   <div class="flex relative items-center w-full lg:flex-1 lg:min-w-96">
-    <form {% if action %}action="{{ action }}" method="GET"{% endif %}
+    <form {% if action %}action="{{ action }}" method="get"{% endif %}
           {% if form_id %}id="{{ form_id }}"{% endif %}
           class="flex items-center w-full bg-white rounded-lg border border-gray-300 transition-[color,background-color,border-color,box-shadow] duration-200 focus-within:border-green-500 focus-within:ring-2 focus-within:ring-green-500/30">
       <div class="relative shrink-0">

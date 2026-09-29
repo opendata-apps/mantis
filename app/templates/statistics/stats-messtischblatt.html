@@ -7,13 +7,13 @@
 {% block content %}
   <section class="container px-4 mx-auto mt-10">
     <div class="stats-panel">
-      <form action="" method="POST" class="space-y-4">
+      <form action="" method="post" class="space-y-4">
         {{ StatsMenu() }}
       </form>
       <p class="mt-4 text-sm text-gray-700">Für den Zeitraum vom {{ session['date_from'] }} bis {{ session['date_to'] }}.</p>
       <p class="text-sm text-gray-700">Gebietskennzahl: {{ session["ags"] }}</p>
       <!-- Grafik -->
-      <div id='myDiv' class="overflow-x-auto w-full">{{ svg | safe }}</div>
+      <div id="myDiv" class="overflow-x-auto w-full">{{ svg | safe }}</div>
     </div>
   </section>
 {% endblock content %}
