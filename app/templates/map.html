@@ -62,8 +62,8 @@
             <div class="overflow-hidden relative bg-white rounded-2xl shadow-lg">
               <div class="absolute inset-0 bg-linear-to-r from-green-500 to-green-600 opacity-5"></div>
               <div class="flex relative items-center px-3 py-2 space-x-2 sm:px-6 sm:py-4 sm:space-x-3">
-                <div class="shrink-0 flex justify-center items-center w-8 h-8 sm:w-12 sm:h-12 bg-green-100 rounded-full">
-                  {{ heroicon_outline("lock-closed", class="w-4 h-4 sm:w-6 sm:h-6 text-green-600", stroke_width=2) }}
+                <div class="shrink-0 flex justify-center items-center size-8 sm:size-12 bg-green-100 rounded-full">
+                  {{ heroicon_outline("lock-closed", class="size-4 sm:size-6  text-green-600", stroke_width=2) }}
                 </div>
                 <p class="text-sm sm:text-base text-gray-700">
                   Die Position der Marker kann von den gemeldeten Koordinaten abweichen (Datenschutz).
@@ -74,8 +74,8 @@
           <!-- Enhanced map container with decorative elements -->
           <div class="relative">
             <!-- Decorative corner elements (hidden on mobile) -->
-            <div class="hidden sm:block absolute -top-4 -left-4 w-24 h-24 bg-green-100 rounded-full opacity-20 blur-2xl"></div>
-            <div class="hidden sm:block absolute -right-4 -bottom-4 w-32 h-32 bg-green-200 rounded-full opacity-20 blur-3xl"></div>
+            <div class="hidden sm:block absolute -top-4 -left-4 size-24 bg-green-100 rounded-full opacity-20 blur-2xl"></div>
+            <div class="hidden sm:block absolute -right-4 -bottom-4 size-32 bg-green-200 rounded-full opacity-20 blur-3xl"></div>
             <!-- Map container with improved styling -->
             <div id="map"
                  class="relative z-10 h-[40vh] sm:h-[70vh] md:h-[75vh] rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden border-2 sm:border-4 border-white"
@@ -88,7 +88,7 @@
       <section class="py-12 bg-linear-to-b from-gray-50 to-gray-100">
         <div class="container max-w-5xl px-4 mx-auto sm:px-6 lg:px-8">
           <div class="relative px-6 py-10 bg-green-800 shadow-xl rounded-xl sm:px-10 sm:py-12">
-            <h2 class="mb-6 text-2xl font-bold leading-tight text-center text-white sm:mb-8 sm:text-3xl">
+            <h2 class="mb-6 text-2xl/tight font-bold text-center text-white sm:mb-8 sm:text-3xl/tight">
               {% if not selected_year %}
                 Wir haben insgesamt
                 <br />

@@ -26,7 +26,7 @@
               </div>
               <button onclick="this.closest('[role=alert]').remove()"
                       class="text-red-800 hover:text-red-900">
-                {{ heroicon_mini("x-mark", class="w-6 h-6", size=20) }}
+                {{ heroicon_mini("x-mark", class="size-6", size=20) }}
               </button>
             </div>
           {% elif category == 'info' %}
@@ -38,7 +38,7 @@
               </div>
               <button onclick="this.closest('[role=alert]').remove()"
                       class="text-blue-800 hover:text-blue-900">
-                {{ heroicon_mini("x-mark", class="w-6 h-6", size=20) }}
+                {{ heroicon_mini("x-mark", class="size-6", size=20) }}
               </button>
             </div>
           {% endif %}
@@ -127,7 +127,7 @@
                            class="p-2 w-full text-sm bg-white rounded-md shadow-xs focus:ring-2 focus:ring-green-500 focus:border-transparent"
                            placeholder="von">
                     <div class="flex absolute inset-y-0 right-0 items-center pr-3 pointer-events-none">
-                      {{ heroicon_mini("calendar", class="w-4 h-4 text-gray-400") }}
+                      {{ heroicon_mini("calendar", class="size-4 text-gray-400") }}
                     </div>
                   </div>
                   <div class="relative w-full md:w-1/2">
@@ -139,7 +139,7 @@
                            class="p-2 w-full text-sm bg-white rounded-md shadow-xs focus:ring-2 focus:ring-green-500 focus:border-transparent"
                            placeholder="bis">
                     <div class="flex absolute inset-y-0 right-0 items-center pr-3 pointer-events-none">
-                      {{ heroicon_mini("calendar", class="w-4 h-4 text-gray-400") }}
+                      {{ heroicon_mini("calendar", class="size-4 text-gray-400") }}
                     </div>
                   </div>
                 </div>
@@ -148,7 +148,7 @@
                 <button id="clearFilters"
                         type="button"
                         class="inline-flex justify-center items-center px-2 py-1 w-24 text-sm font-medium text-red-600 bg-white rounded-lg border border-red-300 transition-[color,background-color,border-color,box-shadow] duration-200 hover:bg-red-50 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-red-500/30">
-                  {{ heroicon_outline("x-mark", class="mr-1 w-4 h-4", stroke_width=2) }}
+                  {{ heroicon_outline("x-mark", class="mr-1 size-4", stroke_width=2) }}
                   Löschen
                 </button>
                 <button type="submit" class="btn-green w-1/2">Filtern</button>
@@ -201,13 +201,13 @@
               <li>
                 <button onclick="setSortOrder('id_asc')"
                         class="flex items-center w-full px-4 py-2.5 text-left text-gray-700 transition-colors duration-200 hover:bg-gray-50 hover:text-gray-900 {% if current_sort_order == 'id_asc' %}bg-gray-50{% endif %}">
-                  <div class="w-2 h-2 mr-2 {% if current_sort_order == 'id_asc' %}bg-green-500{% else %}bg-transparent{% endif %} rounded-full">
+                  <div class="size-2 mr-2 {{ 'bg-green-500' if current_sort_order == 'id_asc' }} rounded-full">
                   </div>
                   <svg xmlns="http://www.w3.org/2000/svg"
                        width="16"
                        height="16"
                        fill="currentColor"
-                       class="mr-2 bi bi-sort-numeric-up"
+                       class="mr-2"
                        viewBox="0 0 16 16">
                     <path d="M12.438 1.668V7H11.39V2.684h-.051l-1.211.859v-.969l1.262-.906h1.046z" />
                     <path fill-rule="evenodd" d="M11.36 14.098c-1.137 0-1.708-.657-1.762-1.278h1.004c.058.223.343.45.773.45.824 0 1.164-.829 1.133-1.856h-.059c-.148.39-.57.742-1.261.742-.91 0-1.72-.613-1.72-1.758 0-1.148.848-1.835 1.973-1.835 1.09 0 2.063.636 2.063 2.687 0 1.867-.723 2.848-2.145 2.848zm.062-2.735c.504 0 .933-.336.933-.972 0-.633-.398-1.008-.94-1.008-.52 0-.927.375-.927 1 0 .64.418.98.934.98z" />
@@ -219,13 +219,13 @@
               <li>
                 <button onclick="setSortOrder('id_desc')"
                         class="flex items-center w-full px-4 py-2.5 text-left text-gray-700 transition-colors duration-200 hover:bg-gray-50 hover:text-gray-900 {% if current_sort_order == 'id_desc' %}bg-gray-50{% endif %}">
-                  <div class="w-2 h-2 mr-2 {% if current_sort_order == 'id_desc' %}bg-green-500{% else %}bg-transparent{% endif %} rounded-full">
+                  <div class="size-2 mr-2 {{ 'bg-green-500' if current_sort_order == 'id_desc' }} rounded-full">
                   </div>
                   <svg xmlns="http://www.w3.org/2000/svg"
                        width="16"
                        height="16"
                        fill="currentColor"
-                       class="mr-2 bi bi-sort-numeric-down"
+                       class="mr-2"
                        viewBox="0 0 16 16">
                     <path d="M12.438 1.668V7H11.39V2.684h-.051l-1.211.859v-.969l1.262-.906h1.046z" />
                     <path fill-rule="evenodd" d="M11.36 14.098c-1.137 0-1.708-.657-1.762-1.278h1.004c.058.223.343.45.773.45.824 0 1.164-.829 1.133-1.856h-.059c-.148.39-.57.742-1.261.742-.91 0-1.72-.613-1.72-1.758 0-1.148.848-1.835 1.973-1.835 1.09 0 2.063.636 2.063 2.687 0 1.867-.723 2.848-2.145 2.848zm.062-2.735c.504 0 .933-.336.933-.972 0-.633-.398-1.008-.94-1.008-.52 0-.927.375-.927 1 0 .64.418.98.934.98z" />

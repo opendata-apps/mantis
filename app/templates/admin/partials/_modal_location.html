@@ -5,7 +5,7 @@
 {% set fundort = sighting.fundort %}
 <!-- Map — fills entire tab area via #tab-content as containing block -->
 <div id="map"
-     class="absolute inset-0 !rounded-lg shadow-inner"
+     class="absolute inset-0 rounded-lg! shadow-inner"
      data-lat="{{ fundort.latitude }}"
      data-lng="{{ fundort.longitude }}"
      data-strasse="{{ fundort.strasse or '' }}"
@@ -34,7 +34,7 @@
   <input type="hidden" name="land" value="">
 </form>
 <!-- Floating panel -->
-<div class="absolute top-3 left-3 bottom-3 z-[1001] w-80 pointer-events-none flex flex-col">
+<div class="absolute inset-y-3 left-3 z-1001 w-80 pointer-events-none flex flex-col">
   <div class="pointer-events-auto bg-white/85 backdrop-blur-md rounded-lg shadow-lg p-4 space-y-4 overflow-y-auto">
     <!-- Address -->
     <h3 class="text-sm font-semibold text-gray-900">Standort Details</h3>
@@ -52,19 +52,19 @@
       <div id="addressStreet"
            class="flex items-start gap-2 {{ 'hidden' if not street }}"
            data-row>
-        {{ heroicon_outline("map-pin", class="w-4 h-4 mt-0.5 shrink-0 text-gray-400") }}
+        {{ heroicon_outline("map-pin", class="size-4 mt-0.5 shrink-0 text-gray-400") }}
         <span class="text-sm font-medium text-gray-800" data-text>{{ street }}</span>
       </div>
       <div id="addressCity"
            class="flex items-start gap-2 {{ 'hidden' if not city_line }}"
            data-row>
-        {{ heroicon_outline("building-office", class="w-4 h-4 mt-0.5 shrink-0 text-gray-400") }}
+        {{ heroicon_outline("building-office", class="size-4 mt-0.5 shrink-0 text-gray-400") }}
         <span class="text-sm text-gray-700" data-text>{{ city_line }}</span>
       </div>
       <div id="addressRegion"
            class="flex items-start gap-2 {{ 'hidden' if not region_line }}"
            data-row>
-        {{ heroicon_outline("map", class="w-4 h-4 mt-0.5 shrink-0 text-gray-400") }}
+        {{ heroicon_outline("map", class="size-4 mt-0.5 shrink-0 text-gray-400") }}
         <span class="text-sm text-gray-500" data-text>{{ region_line }}</span>
       </div>
     </div>
@@ -73,7 +73,7 @@
       <div>
         <label class="block mb-1 text-sm font-medium text-gray-700">Latitude</label>
         <input type="text"
-               class="w-full border-gray-300 input-field-admin {% if edit_mode %}border-green-500 focus:ring-green-500{% endif %}"
+               class="w-full input-field-admin {{ 'border-green-500 focus:ring-green-500' if edit_mode else 'border-gray-300' }}"
                name="latitude"
                onchange="validateAndUpdateCoordinate(this, 'latitude')"
                {% if editable %}title="Dieses Feld kann jetzt bearbeitet werden"{% endif %}
@@ -83,7 +83,7 @@
       <div>
         <label class="block mb-1 text-sm font-medium text-gray-700">Longitude</label>
         <input type="text"
-               class="w-full border-gray-300 input-field-admin {% if edit_mode %}border-green-500 focus:ring-green-500{% endif %}"
+               class="w-full input-field-admin {{ 'border-green-500 focus:ring-green-500' if edit_mode else 'border-gray-300' }}"
                name="longitude"
                onchange="validateAndUpdateCoordinate(this, 'longitude')"
                {% if editable %}title="Dieses Feld kann jetzt bearbeitet werden"{% endif %}
@@ -102,23 +102,23 @@
               id="markerPlacementBtn"
               {% if not editable %}disabled{% endif %}
               title="Klicken Sie hier, um einen neuen Marker auf der Karte zu platzieren">
-        {{ heroicon_outline("map-pin", class="mr-2 w-4 h-4", stroke_width=2) }}
+        {{ heroicon_outline("map-pin", class="mr-2 size-4", stroke_width=2) }}
         <span id="markerBtnText">Marker platzieren</span>
       </button>
       <div id="confirmationButtons" class="hidden space-y-2">
         <button onclick="confirmMarkerPlacement()" class="btn-green w-full">
-          {{ heroicon_outline("check", class="mr-2 w-4 h-4", stroke_width=2) }}
+          {{ heroicon_outline("check", class="mr-2 size-4", stroke_width=2) }}
           Position bestätigen
         </button>
         <button onclick="cancelMarkerPlacement()" class="btn-secondary w-full">
-          {{ heroicon_outline("x-mark", class="mr-2 w-4 h-4", stroke_width=2) }}
+          {{ heroicon_outline("x-mark", class="mr-2 size-4", stroke_width=2) }}
           Abbrechen
         </button>
       </div>
       <button onclick="resetMarker()"
               class="btn-secondary w-full"
               {{ disabled }}>
-        {{ heroicon_outline("arrow-path", class="mr-2 w-4 h-4", stroke_width=2) }}
+        {{ heroicon_outline("arrow-path", class="mr-2 size-4", stroke_width=2) }}
         Position zurücksetzen
       </button>
     </div>

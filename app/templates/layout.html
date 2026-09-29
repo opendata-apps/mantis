@@ -56,7 +56,7 @@
   <body class="flex flex-col min-h-screen antialiased bg-gray-100"
         data-coord-range='{{ coord_range|tojson }}'>
     <a href="#content-container"
-       class="sr-only focus:not-sr-only focus:fixed focus:z-[9999] focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-white focus:text-green-700 focus:rounded-lg focus:shadow-lg focus:font-medium">Zum Inhalt springen</a>
+       class="sr-only focus:not-sr-only focus:fixed focus:z-9999 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-white focus:text-green-700 focus:rounded-lg focus:shadow-lg focus:font-medium">Zum Inhalt springen</a>
     {# Check if we're in admin area #}
     {%- set is_admin = request.path.startswith('/reviewer') or
         request.path.startswith('/statistik') or
@@ -92,8 +92,8 @@
             {# Admin dropdown - desktop only #}
             <li class="hidden md:flex md:items-center">
               <details class="relative dropdown">
-                <summary class="flex items-center justify-center w-10 h-10 text-white bg-green-600 rounded-lg cursor-pointer list-none hover:bg-green-700 transition-colors">
-                  {{ heroicon_outline("plus", class="w-5 h-5", stroke_width=2.5) }}
+                <summary class="flex items-center justify-center size-10 text-white bg-green-600 rounded-lg cursor-pointer list-none hover:bg-green-700 transition-colors">
+                  {{ heroicon_outline("plus", class="size-5", stroke_width=2.5) }}
                 </summary>
                 <ul class="absolute right-0 z-50 mt-2 py-2 w-48 bg-white rounded-lg shadow-lg divide-y divide-gray-100">
                   <li>
@@ -136,7 +136,7 @@
                        *:transition-[translate,rotate,opacity] *:duration-200">
           <span class="group-aria-expanded:translate-y-[7px] group-aria-expanded:rotate-45"></span>
           <span class="group-aria-expanded:opacity-0"></span>
-          <span class="group-aria-expanded:-translate-y-[7px] group-aria-expanded:-rotate-45"></span>
+          <span class="group-aria-expanded:translate-y-[-7px] group-aria-expanded:-rotate-45"></span>
         </button>
       </nav>
     </header>
@@ -212,10 +212,10 @@
     </main>
     {# Native lightbox dialog — used by gallery.js on pages with lightbox images #}
     <dialog id="lightbox"
-            class="modal-lightbox backdrop:bg-black/85 backdrop:backdrop-blur-[4px]"
+            class="modal-lightbox backdrop:bg-black/85 backdrop:backdrop-blur-xs"
             aria-label="Bildvorschau">
       <div class="relative flex flex-col items-center">
-        <img class="lightbox-img w-auto h-auto max-w-[90vw] max-h-[calc(90dvh-5rem)] object-contain rounded-md outline outline-1 -outline-offset-1 outline-white/10 transition-opacity duration-200"
+        <img class="lightbox-img size-auto max-w-[90vw] max-h-[calc(90dvh-5rem)] object-contain rounded-md outline -outline-offset-1 outline-white/10 transition-opacity duration-200"
              src=""
              alt="" />
         {# Caption — below image #}
@@ -226,18 +226,18 @@
         {# New-tab: hidden by default, JS shows it only in compact/reviewer mode #}
         <button class="lightbox-btn lightbox-newtab absolute z-10 top-3 right-15 flex size-11 items-center justify-center rounded-full bg-black/35 text-white transition-[opacity,background-color] duration-300"
                 aria-label="In neuem Tab öffnen"
-                hidden>{{ heroicon_outline("arrow-top-right-on-square", class="w-5 h-5", stroke_width=2) }}</button>
+                hidden>{{ heroicon_outline("arrow-top-right-on-square", class="size-5", stroke_width=2) }}</button>
         {# Close: always visible #}
         <button class="lightbox-btn lightbox-close absolute z-10 top-3 right-3 flex size-11 items-center justify-center rounded-full bg-black/35 text-white transition-[opacity,background-color] duration-300"
-                aria-label="Schließen">{{ heroicon_outline("x-mark", class="w-5 h-5", stroke_width=2.5) }}</button>
+                aria-label="Schließen">{{ heroicon_outline("x-mark", class="size-5", stroke_width=2.5) }}</button>
         {# Prev/next: JS toggles hidden based on album size #}
         <button class="lightbox-btn lightbox-prev absolute z-10 top-1/2 -translate-y-1/2 left-3 sm:left-4 flex size-11 sm:size-12 items-center justify-center rounded-full bg-black/35 text-white transition-[opacity,background-color] duration-300"
                 aria-label="Vorheriges Bild"
-                hidden>{{ heroicon_outline("chevron-left", class="w-5 h-5 sm:w-6 sm:h-6", stroke_width=2.5) }}</button>
+                hidden>{{ heroicon_outline("chevron-left", class="size-5 sm:size-6", stroke_width=2.5) }}</button>
         <button class="lightbox-btn lightbox-next absolute z-10 top-1/2 -translate-y-1/2 right-3 sm:right-4 flex size-11 sm:size-12 items-center justify-center rounded-full bg-black/35 text-white transition-[opacity,background-color] duration-300"
                 aria-label="Nächstes Bild"
                 hidden>
-          {{ heroicon_outline("chevron-right", class="w-5 h-5 sm:w-6 sm:h-6", stroke_width=2.5) }}
+          {{ heroicon_outline("chevron-right", class="size-5 sm:size-6", stroke_width=2.5) }}
         </button>
       </div>
     </dialog>
@@ -248,7 +248,7 @@
           <a href="/"
              class="py-1 text-2xl tracking-widest transition-colors sm:text-3xl text-green-700 hover:text-green-800">MITMACHPROJEKT</a>
         </div>
-        <p class="mx-auto mb-6 max-w-xl text-sm leading-relaxed text-center text-gray-600 text-pretty sm:text-base">
+        <p class="mx-auto mb-6 max-w-xl text-sm/relaxed text-center text-gray-600 text-pretty sm:text-base/relaxed">
           Die
           Gottesanbeterin ( <i>Mantis religiosa </i> L., 1758) ist eine faszinierende Insektenart mit einer
           einzigartigen Jagdstrategie.
@@ -290,7 +290,7 @@
                    src="/static/images/svg/gitlab.svg"
                    alt="GitLab (Code)"
                    title="GitLab"
-                   class="w-10 h-10" />
+                   class="size-10" />
             </a>
           </li>
           <li>
@@ -303,7 +303,7 @@
                    src="/static/images/svg/github.svg"
                    alt="GitHub (Code)"
                    title="GitHub"
-                   class="w-10 h-10" />
+                   class="size-10" />
             </a>
           </li>
           <li>
@@ -316,7 +316,7 @@
                    src="/static/images/svg/praying-mantis.svg"
                    alt="Museum"
                    title="Naturkundemuseum Potsdam"
-                   class="w-10 h-10" />
+                   class="size-10" />
             </a>
           </li>
           <li>
@@ -329,7 +329,7 @@
                    src="/static/images/svg/readme.svg"
                    alt="Dokumentation"
                    title="Dokumentation"
-                   class="w-10 h-10" />
+                   class="size-10" />
             </a>
           </li>
         </ul>

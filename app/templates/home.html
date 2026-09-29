@@ -67,16 +67,16 @@
         <div class="relative">
           <div class="items-center lg:grid lg:grid-cols-2 lg:gap-12">
             <div class="relative mb-8 lg:row-start-1 lg:col-start-2 lg:mb-0">
-              <div class="relative overflow-hidden rounded-2xl shadow-2xl ring-1 ring-black/[.06] aspect-[3/2] group">
+              <div class="relative overflow-hidden rounded-2xl shadow-2xl ring-1 ring-black/6 aspect-3/2 group">
                 <img src="{{ url_for('static', filename='images/weibchen-mit-oothek.avif') }}"
                      alt="Gottesanbeterin bei der Eiablage (Oothek)"
-                     class="object-cover object-center w-full h-full transition-transform duration-700 group-hover:scale-105"
+                     class="object-cover object-center size-full transition-transform duration-700 group-hover:scale-105"
                      fetchpriority="high" />
                 <div class="absolute inset-0 bg-black/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
               </div>
               <!-- Decorative Camera Icon -->
               <div class="absolute top-0 right-0 p-3 bg-white rounded-full shadow-lg transform translate-x-1/2 -translate-y-1/2">
-                {{ heroicon_outline("camera", class="w-8 h-8 text-green-500", stroke_width=2) }}
+                {{ heroicon_outline("camera", class="size-8 text-green-500", stroke_width=2) }}
               </div>
             </div>
             <div class="relative lg:row-start-1 lg:col-start-1">
@@ -101,16 +101,16 @@
         <div class="relative">
           <div class="items-center lg:grid lg:grid-cols-2 lg:gap-12">
             <div class="relative mb-8 lg:mb-0">
-              <div class="relative overflow-hidden rounded-2xl shadow-2xl ring-1 ring-black/[.06] aspect-[3/2] group">
+              <div class="relative overflow-hidden rounded-2xl shadow-2xl ring-1 ring-black/6 aspect-3/2 group">
                 <img src="{{ url_for('static', filename='images/berger03.webp') }}"
                      alt="Gottesanbeterin nahaufnahme"
-                     class="object-cover object-center w-full h-full transition-transform duration-700 group-hover:scale-105"
+                     class="object-cover object-center size-full transition-transform duration-700 group-hover:scale-105"
                      loading="lazy" />
                 <div class="absolute inset-0 bg-black/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
               </div>
               <!-- Decorative Icon -->
-              <div class="absolute bottom-0 left-0 p-3 bg-white rounded-full shadow-lg transform translate-x-1/4 translate-y-1/4">
-                {{ heroicon_outline("clipboard-document-list", class="w-8 h-8 text-green-500", stroke_width=2) }}
+              <div class="absolute bottom-0 left-0 p-3 bg-white rounded-full shadow-lg transform translate-1/4">
+                {{ heroicon_outline("clipboard-document-list", class="size-8 text-green-500", stroke_width=2) }}
               </div>
             </div>
             <div class="relative">
@@ -131,7 +131,7 @@
                 <a href="/bestimmung"
                    class="inline-flex items-center px-5 py-3 text-sm font-medium text-green-700 border border-green-600 rounded-lg transition-colors duration-300 hover:bg-green-50">
                   <span>Bestimmungsschlüssel</span>
-                  {{ heroicon_mini("arrow-right", class="-mr-1 ml-2 w-4 h-4") }}
+                  {{ heroicon_mini("arrow-right", class="-mr-1 ml-2 size-4") }}
                 </a>
               </div>
             </div>
@@ -141,16 +141,16 @@
         <div class="relative">
           <div class="items-center lg:grid lg:grid-cols-2 lg:gap-12">
             <div class="relative mb-8 lg:row-start-1 lg:col-start-2 lg:mb-0">
-              <div class="relative overflow-hidden rounded-2xl shadow-2xl ring-1 ring-black/[.06] aspect-[3/2] group">
+              <div class="relative overflow-hidden rounded-2xl shadow-2xl ring-1 ring-black/6 aspect-3/2 group">
                 <img src="{{ url_for('static', filename='images/mantide_auf_hand.avif') }}"
                      alt="Grüne Gottesanbeterin sitzt auf einer Hand"
-                     class="object-cover object-center w-full h-full transition-transform duration-700 group-hover:scale-105"
+                     class="object-cover object-center size-full transition-transform duration-700 group-hover:scale-105"
                      loading="lazy" />
                 <div class="absolute inset-0 bg-black/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
               </div>
               <!-- Floating Element -->
-              <div class="absolute top-0 left-0 p-3 bg-white rounded-full shadow-lg transform -translate-x-1/4 -translate-y-1/4">
-                {{ heroicon_outline("map-pin", class="w-8 h-8 text-green-500", stroke_width=2) }}
+              <div class="absolute top-0 left-0 p-3 bg-white rounded-full shadow-lg transform -translate-1/4">
+                {{ heroicon_outline("map-pin", class="size-8 text-green-500", stroke_width=2) }}
               </div>
             </div>
             <div class="relative lg:row-start-1 lg:col-start-1">
@@ -179,7 +179,7 @@
   <section class="py-16 bg-gray-100">
     <div class="container px-4 mx-auto">
       <div class="relative px-8 py-12 bg-green-800 rounded-lg shadow-2xl">
-        <h2 class="mb-8 text-3xl font-bold leading-tight text-center text-gray-100 text-balance">
+        <h2 class="mb-8 text-3xl/tight font-bold text-center text-gray-100 text-balance">
           Wir haben insgesamt
           <br />
           <span class="text-7xl font-extrabold text-gray-100 counter tabular-nums"
@@ -195,19 +195,19 @@
   <!-- Modal -->
   {% if celebration_enabled %}
     <div id="thanksModal"
-         class="flex fixed inset-0 z-[11000] justify-center items-center opacity-0 transition-opacity duration-300 pointer-events-none">
+         class="flex fixed inset-0 z-11000 justify-center items-center opacity-0 transition-opacity duration-300 pointer-events-none">
       <div class="absolute inset-0 bg-black/50 backdrop-blur-xs"></div>
       <div class="relative p-8 mx-4 w-full max-w-md bg-white rounded-lg shadow-xl transition-transform duration-300 transform scale-95">
         <button id="closeModal"
                 class="absolute top-4 right-4 text-gray-500 transition-colors duration-200 hover:text-gray-700">
-          {{ heroicon_outline("x-mark", class="w-6 h-6", stroke_width=2) }}
+          {{ heroicon_outline("x-mark", class="size-6", stroke_width=2) }}
         </button>
         <h2 class="mb-4 text-2xl font-bold text-center text-green-700">Danke für Ihren Beitrag! 💚</h2>
         <div class="relative mx-auto mb-6 size-[150px]">
           <img id="dancingMantis"
                src="{{ url_for('static', filename='images/svg/praying-mantis.svg') }}"
                alt="Gottesanbeterin"
-               class="mx-auto w-32 h-32">
+               class="mx-auto size-32">
           <span class="absolute top-[29%] left-[19%] text-2xl" role="img" aria-label="Lupe">🔍</span>
         </div>
         <p class="mb-6 text-lg text-center text-gray-700">

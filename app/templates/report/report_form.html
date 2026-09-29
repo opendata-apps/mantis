@@ -46,7 +46,7 @@
     <div class="mx-auto w-full max-w-6xl 2xl:max-w-7xl">
       <div id="loadingOverlay"
            class="flex fixed inset-0 invisible z-50 flex-col justify-center items-center bg-white/80 opacity-0 transition-all duration-200 ease-in-out">
-        <div class="w-12 h-12 rounded-full border-4 border-gray-200 animate-spin border-t-green-600"></div>
+        <div class="size-12 rounded-full border-4 border-gray-200 animate-spin border-t-green-600"></div>
         <div id="loadingMessage" class="mt-4 font-medium text-green-700">Wird verarbeitet...</div>
       </div>
       <noscript>
@@ -73,7 +73,7 @@
                id="step1">
             <h3 class="mb-4 text-xl font-semibold text-green-700">Foto & Details</h3>
             <p class="mb-4 text-sm text-gray-600">
-              {{ heroicon_outline("camera", class="inline mr-1 w-4 h-4 text-green-600", stroke_width=2) }}
+              {{ heroicon_outline("camera", class="inline mr-1 size-4 text-green-600", stroke_width=2) }}
               Bitte laden Sie ein Foto Ihrer Gottesanbeterin-Sichtung hoch und beschreiben Sie, was Sie gesehen haben.
             </p>
             {{ render_photo_upload(form.photo) }}
@@ -96,7 +96,7 @@
                id="step2">
             <h3 class="mb-4 text-xl font-semibold text-green-700">Wann und Wo? (Ort & Datum)</h3>
             <p class="mb-3 text-sm text-gray-600">
-              {{ heroicon_outline("map-pin", class="inline mr-1 w-4 h-4 text-green-600", stroke_width=2) }}
+              {{ heroicon_outline("map-pin", class="inline mr-1 size-4 text-green-600", stroke_width=2) }}
               Tippen Sie auf die Karte, um den genauen Fundort zu markieren.
             </p>
             <div class="mb-4 form-group">
@@ -227,13 +227,13 @@
                id="step4">
             <h3 class="mb-4 text-xl font-semibold text-green-700">Überprüfen & Absenden</h3>
             <p class="mb-6 text-sm text-gray-600">
-              {{ heroicon_outline("check-circle", class="inline mr-1 w-4 h-4 text-green-600", stroke_width=2) }}
+              {{ heroicon_outline("check-circle", class="inline mr-1 size-4 text-green-600", stroke_width=2) }}
               Bitte überprüfen Sie Ihre Angaben und senden Sie Ihre Meldung ab. Sie können jederzeit zurückgehen, um Änderungen vorzunehmen.
             </p>
             {# HTMX-loaded review content container #}
             <div id="review-content-container">
               <div class="flex justify-center items-center py-12">
-                <div class="w-8 h-8 rounded-full border-4 border-gray-200 animate-spin border-t-green-600"></div>
+                <div class="size-8 rounded-full border-4 border-gray-200 animate-spin border-t-green-600"></div>
                 <span class="ml-3 text-gray-600">Lade Zusammenfassung...</span>
               </div>
             </div>

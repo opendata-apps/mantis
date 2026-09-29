@@ -901,7 +901,7 @@ const ReportForm = {
     setDropzoneLoading(show, msg = '') {
         const el = document.getElementById('dropzoneLoadingIndicator');
         const msgEl = document.getElementById('dropzoneLoadingMessage');
-        if (el) el.classList.toggle('hidden', !show);
+        if (el) el.hidden = !show;
         if (msgEl && msg) msgEl.textContent = msg;
     },
 

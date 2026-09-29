@@ -17,15 +17,16 @@
        no CSP exception. app/tools/image_upload.py is the only source. #}
     <script type="application/json" id="upload-config">{{ upload_config | tojson }}</script>
     <div id="photo-upload-area"
-         class="relative flex justify-center h-48 px-6 pt-8 pb-8 mt-1 cursor-pointer border-2 border-dashed border-gray-200 rounded-lg transition-[border-color,background-color] duration-300 ease-[ease] hover:border-green-500 hover:bg-green-500/5 [&.dragover]:border-green-500 [&.dragover]:bg-green-500/5">
+         class="relative flex justify-center h-48 px-6 py-8 mt-1 cursor-pointer border-2 border-dashed border-gray-200 rounded-lg transition-[border-color,background-color] duration-300 ease-[ease] hover:border-green-500 hover:bg-green-500/5 [&.dragover]:border-green-500 [&.dragover]:bg-green-500/5">
       <!-- Loading indicator for dropzone -->
       <div id="dropzoneLoadingIndicator"
-           class="absolute inset-0 z-10 flex flex-col items-center justify-center hidden bg-white/80">
-        <div class="w-12 h-12 border-4 border-gray-200 rounded-full border-t-green-600 animate-spin"></div>
+           hidden
+           class="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/80">
+        <div class="size-12 border-4 border-gray-200 rounded-full border-t-green-600 animate-spin"></div>
         <div id="dropzoneLoadingMessage" class="mt-4 font-medium text-green-700">Bild wird verarbeitet...</div>
       </div>
       <div class="flex flex-col items-center justify-center h-full space-y-2 text-center">
-        {{ heroicon_outline("cloud-arrow-up", class="w-8 h-8 text-gray-500", stroke_width=2) }}
+        {{ heroicon_outline("cloud-arrow-up", class="size-8 text-gray-500", stroke_width=2) }}
         <div class="flex flex-col text-sm text-gray-600">
           <label for="{{ field.id }}"
                  class="relative font-medium text-green-600 bg-white rounded-md cursor-pointer">
@@ -68,9 +69,9 @@
           <button type="button"
                   id="remove-photo"
                   {# 28px visible; pseudo-element lifts the tap target to 40px without bulking up the badge. #}
-                  class="absolute p-1 text-white bg-red-500 rounded-full top-2 right-2 hover:bg-red-600 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2 after:absolute after:top-1/2 after:left-1/2 after:size-10 after:-translate-x-1/2 after:-translate-y-1/2"
+                  class="absolute p-1 text-white bg-red-500 rounded-full top-2 right-2 hover:bg-red-600 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2 after:absolute after:top-1/2 after:left-1/2 after:size-10 after:-translate-1/2"
                   title="Foto entfernen">
-            {{ heroicon_outline("x-mark", class="w-5 h-5") }}
+            {{ heroicon_outline("x-mark", class="size-5") }}
           </button>
         </div>
         <!-- EXIF Metadata display -->
@@ -127,12 +128,12 @@
       <button type="button"
               class="{{ nav_class }} flex items-center justify-center w-24 px-4 sm:pl-3.5 py-2 font-medium text-white transition-colors duration-200 ease-in-out bg-gray-600 rounded-md shadow-xs hover:bg-gray-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
               data-prev-step="{{ current_step }}">
-        {{ heroicon_outline("chevron-left", class="w-4 h-4 mr-1", stroke_width=2.5) }} <span class="hidden sm:inline">Zurück</span>
+        {{ heroicon_outline("chevron-left", class="size-4 mr-1", stroke_width=2.5) }} <span class="hidden sm:inline">Zurück</span>
       </button>
     {% else %}
       <span class="{{ nav_class }} w-24"></span>
     {% endif %}
-    <span class="absolute text-xs sm:text-sm text-gray-600 tabular-nums -translate-x-1/2 -translate-y-1/2 left-1/2 top-1/2 whitespace-nowrap">
+    <span class="absolute text-xs sm:text-sm text-gray-600 tabular-nums -translate-1/2 left-1/2 top-1/2 whitespace-nowrap">
       <span class="hidden sm:inline">Schritt</span> {{ current_step }}<span class="sm:hidden">/</span><span class="hidden sm:inline"> von </span>{{ total_steps }}
     </span>
     {% if show_next %}
@@ -145,12 +146,12 @@
               hx-swap="innerHTML"
               hx-disabled-elt="this"
               data-step="{{ current_step }}">
-        <span class="hidden sm:inline">Weiter</span> {{ heroicon_outline("chevron-right", class="w-4 h-4 ml-1", stroke_width=2.5) }}
+        <span class="hidden sm:inline">Weiter</span> {{ heroicon_outline("chevron-right", class="size-4 ml-1", stroke_width=2.5) }}
       </button>
     {% elif show_submit %}
       <button type="submit"
               class="{{ nav_class }} flex items-center justify-center w-auto pl-4 pr-3.5 py-2 font-medium text-white transition-colors duration-200 ease-in-out bg-green-600 rounded-md shadow-xs hover:bg-green-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-        Absenden {{ heroicon_outline("paper-airplane", class="w-4 h-4 ml-1", stroke_width=2) }}
+        Absenden {{ heroicon_outline("paper-airplane", class="size-4 ml-1", stroke_width=2) }}
       </button>
     {% else %}
       <span class="w-24"></span>
@@ -161,7 +162,7 @@
   {# Concentric with the 8px select inside: 8px + 16px padding. #}
   <div class="p-4 border border-green-200 rounded-3xl bg-green-50">
     <div class="flex items-start mb-3">
-      {{ heroicon_outline("light-bulb", class="w-5 h-5 mr-2 text-green-600") }}
+      {{ heroicon_outline("light-bulb", class="size-5 mr-2 text-green-600") }}
       <div>
         <h4 class="font-medium text-green-800">Helfen Sie uns, unser Projekt zu verbessern!</h4>
         <p class="mt-1 text-sm text-green-700">

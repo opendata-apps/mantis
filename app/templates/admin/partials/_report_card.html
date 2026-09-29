@@ -5,8 +5,12 @@
 {% set has_del = 'DEL'  in sighting.statuses %}
 {% set has_appr = 'APPR' in sighting.statuses %}
 {% set fundort = sighting.fundort %}
+{% set card_state = "bg-gray-50 ring-2 ring-red-300" if has_del
+   else "bg-white ring-2 ring-orange-400" if has_unkl
+   else "bg-white ring-2 ring-yellow-400" if has_info
+   else "bg-white" %}
 <div id="report-card-{{ sighting.id }}"
-     class="flex flex-col overflow-hidden mb-4 rounded-lg shadow-md transition-shadow duration-200 hover:shadow-lg report-card {% if has_del %}bg-gray-50 ring-2 ring-red-300 {% elif has_unkl %}bg-white ring-2 ring-orange-400 {% elif has_info %}bg-white ring-2 ring-yellow-400 {% else %}bg-white{% endif %}"
+     class="flex flex-col overflow-hidden mb-4 rounded-lg shadow-md transition-shadow duration-200 hover:shadow-lg report-card {{ card_state }}"
      hx-sync="this:abort"
      hx-target="#report-card-{{ sighting.id }}"
      hx-swap="outerHTML swap:150ms"
@@ -16,7 +20,7 @@
     <a href="{{ url_for('admin.report_img', filename=fundort.ablage) }}"
        data-lightbox="sightings">
       <img loading="lazy"
-           class="object-cover w-full h-48 rounded-t-lg ring-1 ring-black/[.06] transition-transform duration-200 ease-in-out cursor-pointer md:h-64 hover:scale-105 {% if has_del %}opacity-60{% endif %}"
+           class="object-cover w-full h-48 rounded-t-lg ring-1 ring-black/6 transition-transform duration-200 ease-in-out cursor-pointer md:h-64 hover:scale-105 {% if has_del %}opacity-60{% endif %}"
            src="{{ url_for('admin.report_img', filename=fundort.ablage) }}"
            alt="Foto zur Meldung {{ sighting.id }}">
     </a>
@@ -35,7 +39,7 @@
     sighting.id }}</span>
   </div>
   {# ── Content section ── #}
-  <div class="flex flex-col flex-1 p-4 {% if has_del %}bg-gray-50{% else %}bg-white{% endif %} rounded-b-lg">
+  <div class="flex flex-col flex-1 p-4 {{ 'bg-gray-50' if has_del else 'bg-white' }} rounded-b-lg">
     <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
       <div>
         <p class="text-sm">
@@ -71,34 +75,34 @@
                 hx-swap="innerHTML"
                 data-action="open-modal"
                 title="Bearbeiten"
-                class="inline-flex items-center justify-center w-10 h-10 rounded-md text-gray-500 transition-colors duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-green-500/30 hover:bg-green-100 hover:text-green-700">
-          {{ heroicon_outline("pencil-square", class="w-4 h-4 md:w-5 md:h-5", stroke_width=1.5) }}
+                class="inline-flex items-center justify-center size-10 rounded-md text-gray-500 transition-colors duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-green-500/30 hover:bg-green-100 hover:text-green-700">
+          {{ heroicon_outline("pencil-square", class="size-4 md:size-5", stroke_width=1.5) }}
         </button>
         {% if has_del %}
           <button hx-post="{{ url_for('admin.undelete_sighting', id=sighting.id) }}"
                   hx-confirm="Meldung wiederherstellen?"
                   title="Wiederherstellen"
-                  class="inline-flex items-center justify-center w-10 h-10 ml-1 rounded-md text-green-600 transition-colors duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-green-500/30 hover:bg-green-100 hover:text-green-700">
-            {{ heroicon_outline("arrow-uturn-left", class="w-4 h-4 md:w-5 md:h-5", stroke_width=1.5) }}
+                  class="inline-flex items-center justify-center size-10 ml-1 rounded-md text-green-600 transition-colors duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-green-500/30 hover:bg-green-100 hover:text-green-700">
+            {{ heroicon_outline("arrow-uturn-left", class="size-4 md:size-5", stroke_width=1.5) }}
           </button>
         {% else %}
           <button hx-post="{{ url_for('admin.delete_sighting', id=sighting.id) }}"
                   hx-confirm="Sind Sie sicher, dass Sie die Meldung löschen möchten?"
                   title="Löschen"
-                  class="inline-flex items-center justify-center w-10 h-10 ml-1 rounded-md text-gray-500 transition-colors duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-red-500/30 hover:bg-red-100 hover:text-red-600">
-            {{ heroicon_outline("trash", class="w-4 h-4 md:w-5 md:h-5", stroke_width=1.5) }}
+                  class="inline-flex items-center justify-center size-10 ml-1 rounded-md text-gray-500 transition-colors duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-red-500/30 hover:bg-red-100 hover:text-red-600">
+            {{ heroicon_outline("trash", class="size-4 md:size-5", stroke_width=1.5) }}
           </button>
         {% endif %}
       </div>
       <div class="flex items-center gap-1.5">
         {% if has_del %}
           <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-red-50 text-red-700 rounded-md border border-red-200">
-            {{ heroicon_outline("x-mark", class="w-3 h-3 shrink-0", stroke_width=2.5) }}
+            {{ heroicon_outline("x-mark", class="size-3 shrink-0", stroke_width=2.5) }}
             Gelöscht
           </span>
         {% elif has_appr %}
           <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-emerald-50 text-emerald-700 rounded-md border border-emerald-200">
-            {{ heroicon_outline("check", class="w-3 h-3 shrink-0", stroke_width=2.5) }}
+            {{ heroicon_outline("check", class="size-3 shrink-0", stroke_width=2.5) }}
             Angenommen
           </span>
         {% elif has_unkl or has_info %}

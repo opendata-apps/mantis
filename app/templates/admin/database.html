@@ -51,7 +51,7 @@ block content %}
                         hx-confirm="Backup für {{ year }} erstellen und Download-Link per E-Mail senden?"
                         class="flex items-center px-4 py-2.5 w-full text-left transition-colors hover:bg-gray-100 hover:text-gray-900 disabled:opacity-60 disabled:cursor-wait">
                   <span class="grow">{{ year }}</span>
-                  {{ heroicon_mini("arrow-right", class="w-4 h-4 text-gray-400") }}
+                  {{ heroicon_mini("arrow-right", class="size-4 text-gray-400") }}
                 </button>
               </li>
             {% else %}
@@ -77,8 +77,9 @@ block content %}
         <!-- The sentinel will be appended here by JavaScript -->
       </div>
       <div id="loadingIndicator"
-           class="absolute inset-0 z-10 flex items-center justify-center hidden ">
-        <div class="w-16 h-16 border-4 border-t-4 border-gray-200 rounded-full loader"></div>
+           hidden
+           class="absolute inset-0 z-10 flex items-center justify-center">
+        <div class="size-16 border-4 border-gray-200 border-t-green-600 rounded-full animate-spin"></div>
       </div>
     </div>
   </div>
@@ -150,17 +151,6 @@ block content %}
   .selected-cell {
     background-color: var(--color-green-100) !important;
     border-left: 2px solid var(--color-green-600) !important;
-  }
-
-  .loader {
-    border-top-color: var(--color-green-600);
-    animation: spin 1s linear infinite;
-  }
-
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
   }
 
   #dataTable {
@@ -481,11 +471,11 @@ block content %}
   }
 
   function showLoadingIndicator() {
-    document.getElementById("loadingIndicator").classList.remove("hidden");
+    document.getElementById("loadingIndicator").hidden = false;
   }
 
   function hideLoadingIndicator() {
-    document.getElementById("loadingIndicator").classList.add("hidden");
+    document.getElementById("loadingIndicator").hidden = true;
   }
 
   function fetchTableData() {

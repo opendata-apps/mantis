@@ -614,9 +614,9 @@ function toggleModalOverlay() {
   var info = document.getElementById("modal-overlay-info");
   var unklChecked = document.querySelector('[data-flag="UNKL"]')?.checked;
   var infoChecked = document.querySelector('[data-flag="INFO"]')?.checked;
-  if (unkl) unkl.classList.toggle("hidden", !unklChecked);
-  if (info) info.classList.toggle("hidden", !infoChecked);
-  container.classList.toggle("hidden", !unklChecked && !infoChecked);
+  if (unkl) unkl.hidden = !unklChecked;
+  if (info) info.hidden = !infoChecked;
+  container.hidden = !unklChecked && !infoChecked;
 }
 
 // ---------------------------------------------------------------------------

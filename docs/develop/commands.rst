@@ -47,6 +47,7 @@ Qualitätssicherung
 
    uv run ruff check .
    uv run ty check
+   bun run lint
    uv run pytest
    uv run pytest -m unit
    uv run pytest --cov=app --cov-report=term-missing

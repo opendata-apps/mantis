@@ -18,7 +18,7 @@
                hx-vals='{{ {"flag": "UNKL", "filter_status": filter_status}|tojson }}'
                onclick="toggleModalOverlay()">
         <span class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border transition-colors duration-200 text-gray-700 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 peer-checked:bg-orange-50 peer-checked:text-orange-700 peer-checked:border-orange-300 peer-checked:hover:bg-orange-100 peer-checked:hover:border-orange-400">
-          {{ heroicon_outline("question-mark-circle", class="w-4 h-4", stroke_width=1.5) }}
+          {{ heroicon_outline("question-mark-circle", class="size-4", stroke_width=1.5) }}
           Unklar
         </span>
       </label>
@@ -33,7 +33,7 @@
                hx-vals='{{ {"flag": "INFO", "filter_status": filter_status}|tojson }}'
                onclick="toggleModalOverlay()">
         <span class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border transition-colors duration-200 text-gray-700 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 peer-checked:bg-yellow-50 peer-checked:text-yellow-700 peer-checked:border-yellow-300 peer-checked:hover:bg-yellow-100 peer-checked:hover:border-yellow-400">
-          {{ heroicon_outline("chat-bubble-left-ellipsis", class="w-4 h-4", stroke_width=1.5) }}
+          {{ heroicon_outline("chat-bubble-left-ellipsis", class="size-4", stroke_width=1.5) }}
           Informiert
         </span>
       </label>
@@ -48,7 +48,7 @@
             hx-swap="innerHTML swap:150ms"
             class="btn-secondary w-full sm:w-auto"
             title="Klicken Sie hier, um die Meldung zu bearbeiten">
-      {{ heroicon_outline("pencil-square", class="mr-2 w-4 h-4", stroke_width=2) }}
+      {{ heroicon_outline("pencil-square", class="mr-2 size-4", stroke_width=2) }}
       Bearbeiten
     </button>
   {% elif is_approved and edit_mode %}
@@ -60,7 +60,7 @@
             hx-swap="innerHTML swap:150ms"
             class="btn-green w-full sm:w-auto"
             title="Bearbeitungsmodus verlassen (Änderungen werden bereits automatisch gespeichert)">
-      {{ heroicon_outline("check", class="mr-2 w-4 h-4", stroke_width=2) }}
+      {{ heroicon_outline("check", class="mr-2 size-4", stroke_width=2) }}
       Fertig
     </button>
   {% elif not is_approved and (has_unkl or has_info) %}

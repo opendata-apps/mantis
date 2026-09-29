@@ -11,7 +11,7 @@
         {{ StatsMenu() }}
       </form>
       <p class="mt-4 text-sm text-gray-700">Für den Zeitraum vom {{ session["date_from"] }} bis {{ session["date_to"] }}.</p>
-      <h1 class="pt-2 pb-2 text-lg text-center">Meldungen nach Meldedatum</h1>
+      <h1 class="py-2 text-lg text-center">Meldungen nach Meldedatum</h1>
       <div id='meld' class="overflow-x-auto w-full"></div>
       <script type="module">
       var daten = {{ trace1 | tojson }};

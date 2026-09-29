@@ -7,13 +7,13 @@
   {% set _both = _unkl and _info %}
   <div class="absolute inset-0 flex items-center justify-center {% if _both %}gap-3{% endif %} pointer-events-none">
     {% if _unkl %}
-      <div class="flex items-center justify-center {% if _both %}w-14 h-14{% else %}w-20 h-20{% endif %} rounded-full bg-orange-500/70 backdrop-blur-xs">
-        {{ heroicon_outline("question-mark-circle", class=("w-8 h-8" if _both else "w-12 h-12") ~ " text-white", stroke_width=2) }}
+      <div class="flex items-center justify-center {{ 'size-14' if _both else 'size-20' }} rounded-full bg-orange-500/70 backdrop-blur-xs">
+        {{ heroicon_outline("question-mark-circle", class=("size-8" if _both else "size-12") ~ " text-white", stroke_width=2) }}
       </div>
     {% endif %}
     {% if _info %}
-      <div class="flex items-center justify-center {% if _both %}w-14 h-14{% else %}w-20 h-20{% endif %} rounded-full bg-yellow-500/70 backdrop-blur-xs">
-        {{ heroicon_outline("chat-bubble-left-ellipsis", class=("w-8 h-8" if _both else "w-12 h-12") ~ " text-white", stroke_width=2) }}
+      <div class="flex items-center justify-center {{ 'size-14' if _both else 'size-20' }} rounded-full bg-yellow-500/70 backdrop-blur-xs">
+        {{ heroicon_outline("chat-bubble-left-ellipsis", class=("size-8" if _both else "size-12") ~ " text-white", stroke_width=2) }}
       </div>
     {% endif %}
   </div>
