@@ -516,7 +516,7 @@ def toggle_flag(id):
     if not any(s in workflow_states for s in statuses):
         statuses.insert(0, ReportStatus.OPEN.value)
 
-    is_valid, error = ReportStatus.validate_combination(statuses)
+    is_valid, _error = ReportStatus.validate_combination(statuses)
     if not is_valid:
         return "", 400
 

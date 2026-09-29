@@ -91,9 +91,14 @@ extend-select = [
     "PIE", # flake8-pie
     "PT",  # flake8-pytest-style
     "RET", # return
+    "RUF",
     "SIM", # simplify
     "TRY400", # error() instead of exception() in an except block
     "UP",  # pyupgrade
+]
+ignore = [
+    "RUF001", "RUF002", "RUF003", # ambiguous unicode: fires on German text
+    "RUF012", # ClassVar on Flask config and SQLAlchemy __table_args__ dicts
 ]
 # Candidates, each with violations today: G, DTZ, RUF, PTH, ARG, S. Read the
 # current count with `ruff check --select <rule> --statistics .` — most of S is

@@ -42,7 +42,7 @@ def test_plz_out_of_range_names_the_row(engine, alembic_config):
             """)
         ).scalar_one()
 
-    with pytest.raises(Exception, match="outside 0..99999") as excinfo:
+    with pytest.raises(Exception, match=r"outside 0\.\.99999") as excinfo:
         upgrade(alembic_config, "e3a1c5b7d209")
 
     assert f"{row_id} (123456)" in str(excinfo.value)

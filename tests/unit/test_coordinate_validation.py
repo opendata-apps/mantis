@@ -124,7 +124,7 @@ class TestCoordinateValidation:
 
     def test_transposed_pair_reported_as_swap(self):
         """A transposed pair gets the swap hint, not two range errors."""
-        lat, lon, errors = validate_coordinate_pair("13.40", "52.52")
+        _lat, _lon, errors = validate_coordinate_pair("13.40", "52.52")
         assert errors == ["Breiten- und Längengrad scheinen vertauscht zu sein."]
 
 

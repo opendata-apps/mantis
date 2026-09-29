@@ -61,40 +61,40 @@ class TestValidateCombination:
         assert "invalid" in error.lower()
 
     def test_del_cannot_combine_with_open(self):
-        valid, error = ReportStatus.validate_combination(["DEL", "OPEN"])
+        valid, _error = ReportStatus.validate_combination(["DEL", "OPEN"])
         assert valid is False
 
     def test_del_cannot_combine_with_info(self):
-        valid, error = ReportStatus.validate_combination(["DEL", "INFO"])
+        valid, _error = ReportStatus.validate_combination(["DEL", "INFO"])
         assert valid is False
 
     def test_del_cannot_combine_with_unkl(self):
-        valid, error = ReportStatus.validate_combination(["DEL", "UNKL"])
+        valid, _error = ReportStatus.validate_combination(["DEL", "UNKL"])
         assert valid is False
 
     def test_appr_cannot_combine_with_info(self):
-        valid, error = ReportStatus.validate_combination(["APPR", "INFO"])
+        valid, _error = ReportStatus.validate_combination(["APPR", "INFO"])
         assert valid is False
 
     def test_appr_cannot_combine_with_unkl(self):
-        valid, error = ReportStatus.validate_combination(["APPR", "UNKL"])
+        valid, _error = ReportStatus.validate_combination(["APPR", "UNKL"])
         assert valid is False
 
     def test_open_and_appr_mutually_exclusive(self):
-        valid, error = ReportStatus.validate_combination(["OPEN", "APPR"])
+        valid, _error = ReportStatus.validate_combination(["OPEN", "APPR"])
         assert valid is False
 
     def test_flags_without_workflow_state_rejected(self):
         """INFO alone is not a valid state — needs OPEN."""
-        valid, error = ReportStatus.validate_combination(["INFO"])
+        valid, _error = ReportStatus.validate_combination(["INFO"])
         assert valid is False
 
     def test_unkl_alone_rejected(self):
-        valid, error = ReportStatus.validate_combination(["UNKL"])
+        valid, _error = ReportStatus.validate_combination(["UNKL"])
         assert valid is False
 
     def test_flags_only_rejected(self):
-        valid, error = ReportStatus.validate_combination(["INFO", "UNKL"])
+        valid, _error = ReportStatus.validate_combination(["INFO", "UNKL"])
         assert valid is False
 
 

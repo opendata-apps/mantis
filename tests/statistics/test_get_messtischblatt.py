@@ -5,6 +5,8 @@ TK25-Raster, 2023-02), not off our own output. The sheet the app picks is the
 sheet the reporter would find on the printed map, or the number is wrong.
 """
 
+import itertools
+
 import pytest
 
 from app.tools.mtb_calc import get_mtb
@@ -120,5 +122,5 @@ def test_sheets_tile_the_grid_evenly(
     """
     edges = _boundaries(fixed, low, high, vary_latitude)
     assert len(edges) == expected_count
-    steps = [b - a for a, b in zip(edges, edges[1:], strict=False)]
+    steps = [b - a for a, b in itertools.pairwise(edges)]
     assert max(abs(step - spacing) for step in steps) < 0.0002
