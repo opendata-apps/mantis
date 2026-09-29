@@ -13,17 +13,12 @@ function closeMenu() {
   nav.classList.remove('open');
   toggle.setAttribute('aria-expanded', 'false');
 
-  // Keep the header background until the collapse transition has finished
-  function onTransitionEnd(e) {
-    if (e.propertyName === 'max-height') {
-      // Only remove bg if menu is still closed (handles rapid clicks)
-      if (!nav.classList.contains('open')) {
-        header.classList.remove('menu-open');
-      }
-      nav.removeEventListener('transitionend', onTransitionEnd);
-    }
-  }
-  nav.addEventListener('transitionend', onTransitionEnd);
+  // Keep the header background until the collapse has finished. transitionend
+  // never fires when no transition runs, so wait on the running animations.
+  const settle = () => {
+    if (!nav.classList.contains('open')) header.classList.remove('menu-open');
+  };
+  Promise.all(nav.getAnimations().map((a) => a.finished)).then(settle, settle);
 }
 
 toggle.addEventListener('click', () => nav.classList.contains('open') ? closeMenu() : openMenu());
