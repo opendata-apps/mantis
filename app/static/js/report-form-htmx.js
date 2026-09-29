@@ -13,10 +13,6 @@ import { canvasIsBlank, extensionFor } from './image-checks.js';
 import { coordinatesInRange, parseCoordinateInput } from './coordinate-input.js';
 import { uploadConfig } from './upload-config.js';
 
-// CSP hardening: disable eval-based attribute features (hx-on::*, `js:` prefix).
-// The report form does not use them; this lets us drop `unsafe-eval` from CSP.
-htmx.config.allowEval = false;
-
 // Configure HTMX to include CSRF token in all requests
 // This is the recommended approach from Flask-WTF documentation for AJAX requests
 document.body.addEventListener('htmx:configRequest', (event) => {

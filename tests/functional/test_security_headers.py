@@ -3,8 +3,8 @@
 The response must carry a Content-Security-Policy that does NOT permit
 `unsafe-eval`. htmx's eval-based attribute features (`hx-on::*`,
 `hx-vals "js:"`, `hx-headers "js:"`, trigger filters) are gated off via
-`htmx.config.allowEval = false`; if anyone re-introduces them, this test plus
-the template scan below catches it.
+`allowEval: false` in layout.html's htmx-config meta tag; if anyone
+re-introduces them, this test plus the template scan below catches it.
 """
 
 from pathlib import Path
@@ -19,7 +19,7 @@ def test_csp_header_present_and_omits_unsafe_eval(client):
     assert csp, "Content-Security-Policy header must be set"
     assert "'unsafe-eval'" not in csp, (
         "CSP must not allow 'unsafe-eval' — htmx eval features are disabled "
-        "via htmx.config.allowEval = false in every JS entrypoint."
+        "via the htmx-config meta tag in layout.html."
     )
     assert "default-src 'self'" in csp
     assert "object-src 'none'" in csp

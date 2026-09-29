@@ -165,7 +165,7 @@ def configure_middlewares(app: Flask) -> None:
             response.headers["Strict-Transport-Security"] = (
                 "max-age=31536000; includeSubDomains"
             )
-        # No 'unsafe-eval': every JS entrypoint sets htmx.config.allowEval = false.
+        # No 'unsafe-eval': layout.html's htmx-config meta sets allowEval false.
         # No 'unsafe-inline' for scripts: behaviour lives in the Vite modules.
         # 'wasm-unsafe-eval' lets heic2any compile; blob: workers are
         # canvas-confetti's renderer.
