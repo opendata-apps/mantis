@@ -571,7 +571,7 @@ def stats_gesamt(marker):
             # Brandenburg
             elif amt.startswith("12"):
                 result_dict[kreis_code][4].append([amt, "", "", amt, result[1]])
-        except Exception:
+        except KeyError:
             current_app.logger.exception(
                 "Error in statistics query - Result: %s", result
             )
