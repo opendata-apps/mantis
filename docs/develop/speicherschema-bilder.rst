@@ -28,7 +28,7 @@ Regeln
 Schreibpfad
 -----------
 
-Beim Speichern einer Meldung wird der Pfad in ``report._process_uploaded_image``
+Beim Speichern einer Meldung wird der Pfad in ``report_images.process_uploaded_image``
 gebildet und relativ in ``fundorte.ablage`` persistiert.
 
 Pfadkomponenten:

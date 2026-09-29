@@ -13,11 +13,11 @@ from datetime import date
 import pytest
 from PIL import Image
 
-from app.routes.report import (
+from app.tools.report_images import (
     MAX_STORED_DIMENSION,
     BlankImageError,
     InvalidImageError,
-    _process_uploaded_image,
+    process_uploaded_image,
 )
 from tests.helpers import build_valid_report_form_data, make_test_image
 
@@ -41,7 +41,7 @@ def _webp(alpha):
 
 
 def _store(photo):
-    return _process_uploaded_image(photo, date(2025, 6, 1), "Testdorf", "9999")
+    return process_uploaded_image(photo, date(2025, 6, 1), "Testdorf", "9999")
 
 
 def test_original_jpeg_is_stored_as_webp(app_ctx, upload_folder):

@@ -3,7 +3,7 @@
 Design principles:
 - No conditional assertions — every test makes a clear claim and fails loudly
 - Tests hit actual Flask routes via the test client
-- Only mock file I/O (_process_uploaded_image); test everything else for real
+- Only mock file I/O (process_uploaded_image); test everything else for real
 - HTMX endpoints tested with and without HX-Request header
 """
 
@@ -602,7 +602,7 @@ class TestSuccessRoute:
 
 
 class TestMeldenPostSuccess:
-    @patch("app.routes.report._process_uploaded_image")
+    @patch("app.routes.report.process_uploaded_image")
     def test_successful_submission(
         self, mock_process_image, client, valid_form_data, session
     ):
@@ -639,7 +639,7 @@ class TestMeldenPostSuccess:
         assert post_users == pre_counts["users"] + 1
         assert post_links == pre_counts["links"] + 1
 
-    @patch("app.routes.report._process_uploaded_image")
+    @patch("app.routes.report.process_uploaded_image")
     def test_long_email_and_surname_save(
         self, mock_process_image, client, valid_form_data, session
     ):
@@ -674,7 +674,7 @@ class TestMeldenPostSuccess:
         assert saved is not None
         assert saved.user_kontakt == long_email
 
-    @patch("app.routes.report._process_uploaded_image")
+    @patch("app.routes.report.process_uploaded_image")
     def test_gender_fields_in_db(
         self, mock_process_image, client, valid_form_data, session
     ):
@@ -704,7 +704,7 @@ class TestMeldenPostSuccess:
         assert sighting.art_n == 0
         assert sighting.art_o == 0
 
-    @patch("app.routes.report._process_uploaded_image")
+    @patch("app.routes.report.process_uploaded_image")
     def test_session_data_set(
         self, mock_process_image, client, valid_form_data, session
     ):
@@ -833,7 +833,7 @@ class TestMeldenPostJsContract:
         assert "errors" in payload
         assert "photo" in payload["errors"]
 
-    @patch("app.routes.report._process_uploaded_image")
+    @patch("app.routes.report.process_uploaded_image")
     def test_ajax_submission_internal_error_returns_json_500(
         self, mock_process_image, client, valid_form_data
     ):
@@ -860,7 +860,7 @@ class TestMeldenPostJsContract:
 class TestMeldenPostBranches:
     """Cover additional paths: finder creation, feedback, location_description."""
 
-    @patch("app.routes.report._process_uploaded_image")
+    @patch("app.routes.report.process_uploaded_image")
     def test_submission_with_separate_finder(
         self, mock_process_image, client, valid_form_data, session
     ):
@@ -892,7 +892,7 @@ class TestMeldenPostBranches:
         assert link is not None
         assert link.id_finder is not None  # finder was linked
 
-    @patch("app.routes.report._process_uploaded_image")
+    @patch("app.routes.report.process_uploaded_image")
     def test_submission_with_only_finder_first_name_is_rejected(
         self, mock_process_image, client, valid_form_data, session
     ):
@@ -920,7 +920,7 @@ class TestMeldenPostBranches:
             == sightings_before
         )
 
-    @patch("app.routes.report._process_uploaded_image")
+    @patch("app.routes.report.process_uploaded_image")
     def test_submission_with_feedback_source(
         self, mock_process_image, client, valid_form_data, session
     ):
@@ -956,7 +956,7 @@ class TestMeldenPostBranches:
 
 
 class TestMeldenWithExistingUser:
-    @patch("app.routes.report._process_uploaded_image")
+    @patch("app.routes.report.process_uploaded_image")
     def test_unknown_usrid_creates_new_user(
         self, mock_process_image, client, valid_form_data, session
     ):
@@ -979,7 +979,7 @@ class TestMeldenWithExistingUser:
         post_user_count = session.scalar(select(func.count()).select_from(TblUsers))
         assert post_user_count == pre_user_count + 1
 
-    @patch("app.routes.report._process_uploaded_image")
+    @patch("app.routes.report.process_uploaded_image")
     def test_existing_user_not_duplicated(
         self, mock_process_image, client, valid_form_data, session
     ):

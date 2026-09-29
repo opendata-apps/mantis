@@ -301,7 +301,7 @@ class TestReportSubmission:
         assert user.user_kontakt == report_form_data["email"]
         assert user.user_rolle == "1"
 
-    @patch("app.routes.report._process_uploaded_image")
+    @patch("app.routes.report.process_uploaded_image")
     def test_submission_outside_germany_is_allowed(
         self, mock_process_image, client, report_form_data, session
     ):
