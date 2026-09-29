@@ -88,22 +88,5 @@ def json_block(html, block_id):
 
 
 def extract_reports_json(response_data):
-    """Extract the inline `const reports = [...]` payload from the map page."""
-    soup = BeautifulSoup(response_data, "html.parser")
-
-    for script in soup.find_all("script"):
-        if script.string and "const reports = " in script.string:
-            start = script.string.find("const reports = ") + len("const reports = ")
-            bracket_count = 0
-            end = start
-            for i, char in enumerate(script.string[start:], start):
-                if char == "[":
-                    bracket_count += 1
-                elif char == "]":
-                    bracket_count -= 1
-                    if bracket_count == 0:
-                        end = i + 1
-                        break
-            return json.loads(script.string[start:end])
-
-    raise AssertionError("Could not find reports JSON in response")
+    """The report list the map page hands to map-page.js."""
+    return json_block(response_data, "map-data")["reports"]
