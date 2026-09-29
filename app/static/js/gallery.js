@@ -24,7 +24,7 @@ class Lightbox {
   bindTriggers() {
     // Event delegation — handles dynamically added images too
     document.addEventListener('click', (e) => {
-      const trigger = e.target.closest('a[data-lightbox], a[rel^="lightbox"]');
+      const trigger = e.target.closest('a[data-lightbox]');
       if (!trigger) return;
       e.preventDefault();
       this.open(trigger);
@@ -72,16 +72,8 @@ class Lightbox {
 
   open(trigger) {
     // Build album from group attribute
-    const group = trigger.getAttribute('data-lightbox') ||
-                  trigger.getAttribute('rel')?.match(/lightbox\[(.+)\]/)?.[1];
-
-    if (group) {
-      this.album = [...document.querySelectorAll(
-        `a[data-lightbox="${group}"], a[rel="lightbox[${group}]"]`
-      )];
-    } else {
-      this.album = [trigger];
-    }
+    const group = trigger.getAttribute('data-lightbox');
+    this.album = [...document.querySelectorAll(`a[data-lightbox="${group}"]`)];
 
     this.currentIndex = this.album.indexOf(trigger);
     // Compact mode when opened from inside another dialog or a report card

@@ -22,7 +22,7 @@
       {% for slide in bilder %}
         <div class="gallery-item opacity-0 aspect-video">
           <a href="{{ url_for('static', filename='images/galerie/' + slide.bildname) }}"
-             rel="lightbox[Mantis]"
+             data-lightbox="Mantis"
              title="{{ slide.beschreibung }}"
              data-author="{{ slide.fotograph }}"
              data-date="{{ slide.funddatum }}"
