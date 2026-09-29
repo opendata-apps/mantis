@@ -212,6 +212,7 @@ def _save_report(form, reporter, image_path):
 
 @report.route("/melden", methods=["GET", "POST"])
 @report.route("/melden/<usrid>", methods=["GET", "POST"])
+@limiter.limit("7 per day", methods=["POST"])
 @limiter.limit("10 per hour", methods=["POST"])
 @limiter.limit("3 per minute", methods=["POST"])
 def melden(usrid=None):

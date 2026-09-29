@@ -1,3 +1,5 @@
+import time
+
 import pytest
 from limits.storage import MemoryStorage
 
@@ -43,3 +45,16 @@ def test_fourth_report_submission_is_rate_limited(limited_client):
     for _ in range(3):
         assert limited_client.post("/melden", data={}).status_code == 400
     assert limited_client.post("/melden", data={}).status_code == 429
+
+
+def test_eighth_report_in_a_day_is_limited_after_minute_limits_reset(
+    limited_client, monkeypatch
+):
+    clock = {"now": 1_800_000_000.0}
+    monkeypatch.setattr(time, "time", lambda: clock["now"])
+    statuses = []
+    for seconds in [0, 0, 0, 61, 61, 122, 122, 183]:
+        clock["now"] = 1_800_000_000.0 + seconds
+        statuses.append(limited_client.post("/melden", data={}).status_code)
+
+    assert statuses == [400, 400, 400, 400, 400, 400, 400, 429]
