@@ -35,23 +35,16 @@
             ] %}
       <div class="space-y-8" id="faq-container">
         {% for faq in faq_entries %}
-          <div class="transition-shadow duration-300 bg-white rounded-lg shadow-md faq-item hover:shadow-lg"
-               data-title="{{ faq.title|lower }}">
-            <button type="button" class="group w-full text-left focus:outline-hidden focus-visible:ring-2 focus-visible:ring-green-500/30 rounded-lg"
-                    data-id="faq{{ loop.index }}"
-                    aria-expanded="false">
-              <div class="flex items-center justify-between p-6">
-                <span class="text-xl font-semibold text-gray-800">{{ faq.title }}</span>
-                {{ heroicon_outline("chevron-down", class="size-6 text-gray-500 transition-transform duration-200 ease-in group-aria-expanded:rotate-180", stroke_width=2) }}
-              </div>
-            </button>
-            <div class="overflow-hidden transition-[max-height] duration-300 max-h-0"
-                 id="faq{{ loop.index }}">
-              <div class="p-6 bg-gray-50">
-                <p class="text-lg/relaxed text-gray-600 max-w-prose">{{ faq.content|safe }}</p>
-              </div>
+          <details class="group faq-item bg-white rounded-lg shadow-md transition-shadow duration-300 hover:shadow-lg"
+                   data-title="{{ faq.title|lower }}">
+            <summary class="flex items-center justify-between p-6 rounded-lg cursor-pointer list-none focus:outline-hidden focus-visible:ring-2 focus-visible:ring-green-500/30">
+              <span class="text-xl font-semibold text-gray-800">{{ faq.title }}</span>
+              {{ heroicon_outline("chevron-down", class="size-6 text-gray-500 transition-transform duration-200 ease-in group-open:rotate-180", stroke_width=2) }}
+            </summary>
+            <div class="p-6 bg-gray-50">
+              <p class="text-lg/relaxed text-gray-600 max-w-prose">{{ faq.content|safe }}</p>
             </div>
-          </div>
+          </details>
         {% endfor %}
       </div>
     </div>
