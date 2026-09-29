@@ -55,12 +55,10 @@ def build_valid_report_form_data(*, sighting_days_ago: int = 3, **overrides):
         datetime.date.today() - datetime.timedelta(days=sighting_days_ago)
     ).strftime("%Y-%m-%d")
     data = {
-        "report_first_name": "Anna",
-        "report_last_name": "Testerin",
+        "report_name": "Anna Testerin",
         "email": "anna@example.com",
         "identical_finder_reporter": "true",
-        "finder_first_name": "",
-        "finder_last_name": "",
+        "finder_name": "",
         "feedback_source": "",
         "feedback_detail": "",
         "sighting_date": sighting_date,

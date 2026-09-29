@@ -126,10 +126,9 @@ def _resolve_reporter(usrid, email):
     return None
 
 
-def _create_user(first_name, last_name, email, role=UserRole.REPORTER):
-    """Create a new user with standardized name format."""
+def _create_user(name, email, role=UserRole.REPORTER):
+    """Store the validated display name without splitting or abbreviating it."""
     user_id = get_new_id()
-    name = f"{last_name.strip()} {first_name.strip()[0].upper()}."
     user = TblUsers()
     user.user_id = user_id
     user.user_name = name
@@ -138,34 +137,12 @@ def _create_user(first_name, last_name, email, role=UserRole.REPORTER):
     return user
 
 
-def _parse_user_name(user_name):
-    """Parse database user_name format 'Lastname F.' into components."""
-    name_parts = user_name.split(" ", 1)
-    last_name = name_parts[0]
-
-    if len(name_parts) >= 2:
-        initial_part = name_parts[1].strip()
-        if initial_part.endswith(".") and len(initial_part) == 2:
-            first_name = initial_part[0]
-        else:
-            first_name = initial_part
-    else:
-        first_name = name_parts[0][0] if name_parts[0] else "X"
-
-    return last_name, first_name
-
-
 def _save_report(form, reporter, image_path):
     """Write the finder, feedback, location, sighting and link rows and commit."""
     finder = None
-    if (
-        not form.identical_finder_reporter.data
-        and form.finder_first_name.data
-        and form.finder_last_name.data
-    ):
+    if not form.identical_finder_reporter.data and form.finder_name.data:
         finder = _create_user(
-            form.finder_first_name.data,
-            form.finder_last_name.data,
+            form.finder_name.data,
             "",
             role=UserRole.FINDER,
         )
@@ -248,9 +225,7 @@ def melden(usrid=None):
             else None
         )
         if user_to_prefill:
-            last_name, first_name = _parse_user_name(user_to_prefill.user_name)
-            form.report_last_name.data = last_name
-            form.report_first_name.data = first_name
+            form.report_name.data = user_to_prefill.user_name
             form.email.data = user_to_prefill.user_kontakt or ""
 
         response = make_response(
@@ -286,8 +261,7 @@ def melden(usrid=None):
         reporter = _resolve_reporter(usrid, form.email.data)
         if not reporter:
             reporter = _create_user(
-                form.report_first_name.data,
-                form.report_last_name.data,
+                form.report_name.data,
                 form.email.data,
             )
             db.session.add(reporter)
@@ -401,12 +375,10 @@ def get_step_fields(step):
             "fund_street",
         ],
         3: [
-            "report_first_name",
-            "report_last_name",
+            "report_name",
             "email",
             "identical_finder_reporter",
-            "finder_first_name",
-            "finder_last_name",
+            "finder_name",
             "feedback_source",
             "feedback_detail",
         ],
@@ -419,7 +391,7 @@ def get_visible_error_fields(step):
     """Return field names that have visible error containers (for OOB clearing).
 
     Note: Only includes fields rendered via render_form_field macro (which creates error divs).
-    Excludes: latitude/longitude (use 'coordinates'), finder fields (no error containers),
+    Excludes: latitude/longitude (use 'coordinates'),
               feedback_source/feedback_detail (rendered manually without error containers).
     """
     visible_fields = {
@@ -432,7 +404,7 @@ def get_visible_error_fields(step):
             "fund_district",
             "fund_street",
         ],
-        3: ["report_first_name", "report_last_name", "email"],
+        3: ["report_name", "email", "finder_name"],
         4: [],
     }
     return visible_fields.get(step, [])
@@ -713,7 +685,7 @@ def review_step():
         identical_finder=_is_checkbox_true(
             request.form.get("identical_finder_reporter")
         ),
-        finder_name=_get_finder_name(request.form),
+        finder_name=form.finder_name.data or "-",
     )
 
 
@@ -734,11 +706,3 @@ def _format_coordinates(lat, lng):
     if latitude is None or longitude is None:
         return "-"
     return f"{latitude:.6f}, {longitude:.6f}"
-
-
-def _get_finder_name(form_data):
-    """Get finder name from form data."""
-    first = form_data.get("finder_first_name", "")
-    last = form_data.get("finder_last_name", "")
-    name = f"{first} {last}".strip()
-    return name if name else "-"

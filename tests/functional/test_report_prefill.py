@@ -55,16 +55,10 @@ class TestReportPrefill:
             # Check that the form contains prefilled data
             response_text = response.data.decode("utf-8")
 
-            # The last name should be prefilled (check for HTML-encoded or plain)
-            assert (
-                'value="Müller"' in response_text
-                or 'value="M&uuml;ller"' in response_text
-            ), "Last name should be prefilled"
-
-            # The first name should be prefilled with just the initial letter
-            assert 'value="M"' in response_text, (
-                "First name should be prefilled with initial"
-            )
+            fields = BeautifulSoup(response_text, "html.parser")
+            name_field = fields.select_one('input[name="report_name"]')
+            assert name_field is not None
+            assert name_field["value"] == "Müller M."
 
             # The email should be prefilled
             assert 'value="max.mueller@example.com"' in response_text, (
@@ -76,7 +70,7 @@ class TestReportPrefill:
             # Check that fields are readonly
             # Looking for readonly attribute in the form fields
             fields = BeautifulSoup(response_text, "html.parser")
-            for name in ("report_first_name", "report_last_name", "email"):
+            for name in ("report_name", "email"):
                 field = fields.select_one(f'input[name="{name}"]')
                 assert field is not None
                 assert field.has_attr("readonly")
@@ -103,12 +97,10 @@ class TestReportPrefill:
 
             response_text = response.data.decode("utf-8")
 
-            assert 'value="Schmidt"' in response_text, "Last name should be prefilled"
-
-            # The first name should be prefilled with just the initial letter (K from "K.")
-            assert 'value="K"' in response_text, (
-                "First name should be prefilled with initial letter"
-            )
+            fields = BeautifulSoup(response_text, "html.parser")
+            name_field = fields.select_one('input[name="report_name"]')
+            assert name_field is not None
+            assert name_field["value"] == "Schmidt K."
 
             # The email should be prefilled
             assert 'value="k.schmidt@example.com"' in response_text, (
@@ -118,7 +110,7 @@ class TestReportPrefill:
             # Check that fields are readonly
             # Looking for readonly attribute in the form fields
             fields = BeautifulSoup(response_text, "html.parser")
-            for name in ("report_first_name", "report_last_name", "email"):
+            for name in ("report_name", "email"):
                 field = fields.select_one(f'input[name="{name}"]')
                 assert field is not None
                 assert field.has_attr("readonly")
@@ -148,10 +140,10 @@ class TestReportPrefill:
 
             response_text = response.data.decode("utf-8")
 
-            assert 'value="Weber"' in response_text, "Last name should be prefilled"
-            assert 'value="A"' in response_text, (
-                "First name should be prefilled with initial"
-            )
+            fields = BeautifulSoup(response_text, "html.parser")
+            name_field = fields.select_one('input[name="report_name"]')
+            assert name_field is not None
+            assert name_field["value"] == "Weber A."
 
             field = BeautifulSoup(response_text, "html.parser").select_one(
                 'input[name="email"]'
@@ -175,14 +167,11 @@ class TestReportPrefill:
         response_text = response.data.decode("utf-8")
 
         # Form should render normally but without prefilled data
-        assert 'name="report_first_name"' in response_text, (
-            "Form should render normally"
-        )
-        assert 'name="report_last_name"' in response_text, "Form should render normally"
+        assert 'name="report_name"' in response_text, "Form should render normally"
         assert 'name="email"' in response_text, "Form should render normally"
 
         fields = BeautifulSoup(response_text, "html.parser")
-        for name in ("report_first_name", "report_last_name", "email"):
+        for name in ("report_name", "email"):
             field = fields.select_one(f'input[name="{name}"]')
             assert field is not None
             assert field.get("value", "") == ""
@@ -197,14 +186,11 @@ class TestReportPrefill:
         response_text = response.data.decode("utf-8")
 
         # Form should render normally
-        assert 'name="report_first_name"' in response_text, (
-            "Form should render normally"
-        )
-        assert 'name="report_last_name"' in response_text, "Form should render normally"
+        assert 'name="report_name"' in response_text, "Form should render normally"
         assert 'name="email"' in response_text, "Form should render normally"
 
         fields = BeautifulSoup(response_text, "html.parser")
-        for name in ("report_first_name", "report_last_name", "email"):
+        for name in ("report_name", "email"):
             field = fields.select_one(f'input[name="{name}"]')
             assert field is not None
             assert field.get("value", "") == ""
@@ -225,7 +211,7 @@ class TestReportPrefill:
             assert response.status_code == 200
 
             soup = BeautifulSoup(response.data, "html.parser")
-            for field_id in ("report_first_name", "report_last_name", "email"):
+            for field_id in ("report_name", "email"):
                 field = soup.find("input", id=field_id)
                 assert field is not None
                 assert field.has_attr("readonly")

@@ -44,8 +44,7 @@ def valid_form_data():
     """Minimal valid form data for a full report submission."""
     return build_valid_report_form_data(
         sighting_days_ago=3,
-        report_first_name="Anna",
-        report_last_name="Testerin",
+        report_name="Anna Testerin",
         email="anna@example.com",
         identical_finder_reporter="true",
         location_description="2",
@@ -103,7 +102,7 @@ class TestValidateStepPartial:
             data={"step": "1", "gender": "", "location_description": "2"},
         )
         assert response.status_code == 200
-        assert "stepValid" not in response.headers.get("HX-Trigger", "")
+        assert "stepValid" in response.headers.get("HX-Trigger", "")
 
     def test_step2_missing_coordinates(self, client):
         response = client.post(
@@ -163,19 +162,16 @@ class TestValidateStepPartial:
         assert 'id="error-latitude"' not in html
         assert 'id="error-longitude"' not in html
 
-    def test_step3_finder_cross_validation(self, client):
-        """First name without last name → error."""
+    def test_step3_rejects_an_overlong_finder_name(self, client):
         response = client.post(
             "/melden/validate-step",
             headers=_htmx_headers(),
             data={
                 "step": "3",
-                "report_first_name": "Anna",
-                "report_last_name": "Test",
+                "report_name": "Anna Test",
                 "email": "",
                 "identical_finder_reporter": "",
-                "finder_first_name": "Max",
-                "finder_last_name": "",
+                "finder_name": "F" * 101,
                 "feedback_source": "",
             },
         )
@@ -244,7 +240,7 @@ class TestToggleFinder:
         )
         assert response.status_code == 200
         html = response.data.decode()
-        assert "finder_first_name" in html
+        assert "finder_name" in html
 
     def test_missing_param_shows_fields(self, client):
         response = client.post(
@@ -254,7 +250,7 @@ class TestToggleFinder:
         )
         assert response.status_code == 200
         html = response.data.decode()
-        assert "finder_first_name" in html
+        assert "finder_name" in html
 
 
 # ============================================================================
@@ -326,8 +322,7 @@ class TestReviewStep:
     def test_review_with_different_finder(self, client, valid_form_data):
         data = valid_form_data.copy()
         data["identical_finder_reporter"] = ""
-        data["finder_first_name"] = "Max"
-        data["finder_last_name"] = "Finder"
+        data["finder_name"] = "Max Finder"
         response = client.post(
             "/melden/review",
             headers=_htmx_headers(),
@@ -350,7 +345,7 @@ class TestMeldenGet:
         html = response.data.decode()
         assert 'name="gender"' in html
         assert 'name="sighting_date"' in html
-        assert 'name="report_first_name"' in html
+        assert 'name="report_name"' in html
         body = BeautifulSoup(html, "html.parser").body
         assert body is not None
         coord_range = body.get("data-coord-range")
@@ -649,23 +644,17 @@ class TestMeldenPostSuccess:
     def test_long_email_and_surname_save(
         self, mock_process_image, client, valid_form_data, session
     ):
-        """A 120-char email and a 50-char surname must persist, not 500.
-
-        Regression: user_kontakt/user_name were varchar(45) while the form
-        accepts 120-char emails and 50-char names (user_name stores
-        "Nachname V." → up to 53 chars), so long values raised
-        StringDataRightTruncation and the report was silently lost.
-        """
+        """A long email and a 100-character display name must persist, not 500."""
         mock_process_image.return_value = "2025/2025-01-01/test.webp"
 
         long_email = "a" * 60 + "@example-langdomain-fuer-den-test.de"  # 96 chars
-        long_surname = "L" * 50  # -> user_name "LLL...L A." = 53 chars
+        long_name = "L" * 100
 
         response = client.post(
             "/melden",
             data={
                 **valid_form_data,
-                "report_last_name": long_surname,
+                "report_name": long_name,
                 "email": long_email,
                 "photo": _create_test_image(),
             },
@@ -679,6 +668,7 @@ class TestMeldenPostSuccess:
         )
         assert saved is not None
         assert saved.user_kontakt == long_email
+        assert saved.user_name == long_name
 
     @patch("app.routes.report.process_uploaded_image")
     def test_gender_fields_in_db(
@@ -874,8 +864,7 @@ class TestMeldenPostBranches:
         mock_process_image.return_value = "2025/2025-01-01/test.webp"
         data = valid_form_data.copy()
         data["identical_finder_reporter"] = ""  # not identical
-        data["finder_first_name"] = "Max"
-        data["finder_last_name"] = "Finder"
+        data["finder_name"] = "Max Finder"
         data["description"] = "Finder-Branch-Test"
 
         response = client.post(
@@ -899,14 +888,14 @@ class TestMeldenPostBranches:
         assert link.id_finder is not None  # finder was linked
 
     @patch("app.routes.report.process_uploaded_image")
-    def test_submission_with_only_finder_first_name_is_rejected(
+    def test_submission_with_overlong_finder_name_is_rejected(
         self, mock_process_image, client, valid_form_data, session
     ):
         mock_process_image.return_value = "2025/2025-01-01/test.webp"
         data = {
             **valid_form_data,
             "identical_finder_reporter": "",
-            "finder_first_name": "Max",
+            "finder_name": "F" * 101,
         }
         sightings_before = session.scalar(
             select(func.count()).select_from(TblMeldungen)
@@ -919,7 +908,7 @@ class TestMeldenPostBranches:
         )
 
         assert response.status_code == 400
-        assert "finder_last_name" in response.get_json()["errors"]
+        assert "finder_name" in response.get_json()["errors"]
         mock_process_image.assert_not_called()
         assert (
             session.scalar(select(func.count()).select_from(TblMeldungen))

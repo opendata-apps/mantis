@@ -11,6 +11,9 @@
   {%- endif -%}
 {%- endmacro %}
 
+{% macro required_marker() -%}
+  <span class="text-red-600" aria-hidden="true">*</span><span class="sr-only">Pflichtfeld</span>
+{%- endmacro %}
 {% macro render_photo_upload(field) %}
   <div class="form-group">
     {# A data block, not a script: the browser never executes it, so it needs
@@ -30,7 +33,7 @@
         <div class="flex flex-col text-sm text-gray-600">
           <label for="{{ field.id }}"
                  class="relative font-medium text-green-600 bg-white rounded-md cursor-pointer">
-            <span class="text-sm md:text-base">Klicken Sie, um ein Foto auszuwählen</span>
+            <span class="text-sm md:text-base">Klicken Sie, um ein Foto auszuwählen {{ required_marker() }}</span>
             {{ field(class="sr-only", required=true, accept=upload_config.accept) }}
           </label>
           {# The paste hint stays on wide screens only: a key combination is
@@ -102,7 +105,9 @@
   <div class="form-group">
     {# Get label class from attrs or use default, then remove from dict #}
     {% set label_cls = attrs.pop('label_class', 'block text-sm font-medium text-gray-700 mb-1') %}
-    {{ field.label(class=label_cls) }}
+    <label for="{{ field.id }}" class="{{ label_cls }}">
+      {{ field.label.text.rstrip(' *') }}{% if field.flags.required %} {{ required_marker() }}{% endif %}
+    </label>
     {% set field_kind = attrs.pop('field_kind', 'default') %}
     {% set field_extra = attrs.pop('field_extra', '') %}
     {% set field_cls = attrs.pop('class', report_field_class(field_kind, field_extra)) %}

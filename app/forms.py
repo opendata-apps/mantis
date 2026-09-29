@@ -150,6 +150,17 @@ def _strip(value):
     return value.strip() if isinstance(value, str) else value
 
 
+def _normalize_name(value):
+    return " ".join(value.split()) if isinstance(value, str) else value
+
+
+def _validate_name(form, field):
+    if field.data and not field.data.isprintable():
+        raise ValidationError(
+            "Der Name darf keine unsichtbaren Steuerzeichen enthalten."
+        )
+
+
 class StrippedForm(FlaskForm):
     """Base form that adds _strip to every field's filters (WTForms strips
     nothing by default)."""
@@ -165,32 +176,26 @@ class StrippedForm(FlaskForm):
 # Define WTForms form class for the sighting report
 class MantisSightingForm(StrippedForm):
     # Observer Information
-    report_first_name = StringField(
-        "Vorname *",
+    report_name = StringField(
+        "Meldername",
+        filters=[_normalize_name],
         validators=[
-            DataRequired(message="Vorname ist erforderlich."),
+            DataRequired(message="Meldername ist erforderlich."),
             Length(
                 min=1,
-                max=50,
-                message="Vorname muss zwischen 1 und 50 Zeichen lang sein.",
+                max=100,
+                message="Der Meldername muss zwischen 1 und 100 Zeichen lang sein.",
             ),
+            _validate_name,
         ],
-        render_kw={"placeholder": "Ihr Vorname", "autocomplete": "given-name"},
-    )
-    report_last_name = StringField(
-        "Nachname *",
-        validators=[
-            DataRequired(message="Nachname ist erforderlich."),
-            Length(
-                min=1,
-                max=50,
-                message="Nachname muss zwischen 1 und 50 Zeichen lang sein.",
-            ),
-        ],
-        render_kw={"placeholder": "Ihr Nachname", "autocomplete": "family-name"},
+        render_kw={
+            "placeholder": "Ihr Name oder Kürzel",
+            "autocomplete": "name",
+            "maxlength": 100,
+        },
     )
     email = StringField(
-        "E-Mail (nur wenn Feedback gewünscht)",
+        "E-Mail (freiwillig)",
         validators=[
             Optional(),
             Email(
@@ -212,25 +217,22 @@ class MantisSightingForm(StrippedForm):
     identical_finder_reporter = BooleanField(
         "Ich bin der Finder dieser Gottesanbeterin"
     )
-    finder_first_name = StringField(
-        "Vorname des Finders",
+    finder_name = StringField(
+        "Findername (freiwillig)",
+        filters=[_normalize_name],
         validators=[
+            Optional(),
             Length(
-                max=50,
-                message="Vorname muss zwischen 1 und 50 Zeichen lang sein.",
+                max=100,
+                message="Der Findername darf maximal 100 Zeichen lang sein.",
             ),
+            _validate_name,
         ],
-        render_kw={"placeholder": "Vorname (falls abweichend)", "autocomplete": "off"},
-    )
-    finder_last_name = StringField(
-        "Nachname des Finders",
-        validators=[
-            Length(
-                max=50,
-                message="Nachname muss zwischen 1 und 50 Zeichen lang sein.",
-            ),
-        ],
-        render_kw={"placeholder": "Nachname (falls abweichend)", "autocomplete": "off"},
+        render_kw={
+            "placeholder": "Name oder Kürzel des Finders",
+            "autocomplete": "off",
+            "maxlength": 100,
+        },
     )
 
     # Feedback Information - How did you hear about us?
@@ -345,9 +347,10 @@ class MantisSightingForm(StrippedForm):
 
     # Mantis Details
     gender = SelectField(
-        "Entwicklungsstadium/Geschlecht *",
+        "Entwicklungsstadium/Geschlecht (freiwillig)",
         choices=GENDER_CHOICES,
-        validators=[DataRequired(message="Bitte wählen Sie eine Option aus.")],
+        validators=[Optional()],
+        default="",
         render_kw={"title": "Entwicklungsstadium auswählen"},
     )
     location_description = SelectField(
@@ -386,23 +389,3 @@ class MantisSightingForm(StrippedForm):
     # rejects a filled trap before validation runs, and a length error here
     # would surface the field name in the errors returned to the client.
     honeypot = StringField(validators=[Optional()])
-
-    def validate_finder_first_name(self, field):
-        if (
-            not self.identical_finder_reporter.data
-            and self.finder_last_name.data
-            and not field.data
-        ):
-            raise ValidationError(
-                "Vorname des Finders ist erforderlich, wenn Nachname angegeben wurde."
-            )
-
-    def validate_finder_last_name(self, field):
-        if (
-            not self.identical_finder_reporter.data
-            and self.finder_first_name.data
-            and not field.data
-        ):
-            raise ValidationError(
-                "Nachname des Finders ist erforderlich, wenn Vorname angegeben wurde."
-            )

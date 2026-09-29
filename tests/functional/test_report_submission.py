@@ -45,8 +45,7 @@ def report_form_data():
     return build_valid_report_form_data(
         sighting_days_ago=7,
         userid="",
-        report_first_name="Test",
-        report_last_name="Reporter",
+        report_name="Test Reporter",
         email="test@example.com",
         contact="test@example.com",
         fund_street="Alexanderplatz",
@@ -297,7 +296,7 @@ class TestReportSubmission:
             assert saved.size == (100, 100)
         assert report.reporter_link is not None
         user = report.reporter_link.reporter
-        assert user.user_name == "Reporter T."
+        assert user.user_name == "Test Reporter"
         assert user.user_kontakt == report_form_data["email"]
         assert user.user_rolle == "1"
 

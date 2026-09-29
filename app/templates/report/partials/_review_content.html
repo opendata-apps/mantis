@@ -46,7 +46,7 @@
         <div class="grid grid-cols-1 gap-3 text-sm">
           <div class="border-b border-gray-100 pb-2">
             <span class="font-medium text-gray-700">Entwicklungsstadium/Geschlecht:</span>
-            <span class="text-gray-900 ml-1">{{ gender_labels.get(form.gender.data or "", "-") }}</span>
+            <span class="text-gray-900 ml-1">{{ gender_labels.get(form.gender.data or "Unbekannt", "-") }}</span>
           </div>
           <div class="border-b border-gray-100 pb-2">
             <span class="font-medium text-gray-700">Fundortbeschreibung:</span>
@@ -88,7 +88,7 @@
   {% endcall %}
   {% call section("user", "Ihre Kontaktdaten", 3) %}
     <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
-      {{ item("user", "Melder", ((form.report_first_name.data or "") ~ " " ~ (form.report_last_name.data or "")).strip() or "-") }}
+      {{ item("user", "Melder", form.report_name.data or "-") }}
       {{ item("envelope", "E-Mail", form.email.data or "-") }}
       {% if not identical_finder and finder_name != '-' %}
         {{ item("user", "Finder", finder_name, wide=true) }}

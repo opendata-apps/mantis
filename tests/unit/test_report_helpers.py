@@ -9,8 +9,6 @@ import pytest
 from app.routes.report import (
     _format_coordinates,
     _format_date,
-    _get_finder_name,
-    _parse_user_name,
     _set_gender_fields,
 )
 
@@ -44,39 +42,6 @@ class TestSetGenderFields:
     def test_unbekannt_sets_no_flags(self):
         result = _set_gender_fields("Unbekannt")
         assert sum(result.values()) == 0
-
-
-# ---------------------------------------------------------------------------
-# _parse_user_name
-# ---------------------------------------------------------------------------
-class TestParseUserName:
-    """Splits DB format 'Lastname F.' → (last, first)."""
-
-    def test_standard_format(self):
-        last, first = _parse_user_name("Müller M.")
-        assert last == "Müller"
-        assert first == "M"
-
-    def test_initial_format(self):
-        last, first = _parse_user_name("Schmidt K.")
-        assert last == "Schmidt"
-        assert first == "K"
-
-    def test_single_word(self):
-        last, first = _parse_user_name("Weber")
-        assert last == "Weber"
-        assert first == "W"  # falls back to first char of last name
-
-    def test_longer_first_name_part(self):
-        """If the second part isn't an initial (e.g. full first name), keep it."""
-        last, first = _parse_user_name("Müller Max")
-        assert last == "Müller"
-        assert first == "Max"
-
-    def test_empty_string(self):
-        last, first = _parse_user_name("")
-        assert last == ""
-        assert first == "X"  # fallback for empty
 
 
 # ---------------------------------------------------------------------------
@@ -119,27 +84,3 @@ class TestFormatCoordinates:
 
     def test_non_numeric(self):
         assert _format_coordinates("abc", "def") == "-"
-
-
-# ---------------------------------------------------------------------------
-# _get_finder_name
-# ---------------------------------------------------------------------------
-class TestGetFinderName:
-    def test_both_names(self):
-        form = {"finder_first_name": "Max", "finder_last_name": "Müller"}
-        assert _get_finder_name(form) == "Max Müller"
-
-    def test_first_only(self):
-        form = {"finder_first_name": "Max", "finder_last_name": ""}
-        assert _get_finder_name(form) == "Max"
-
-    def test_last_only(self):
-        form = {"finder_first_name": "", "finder_last_name": "Müller"}
-        assert _get_finder_name(form) == "Müller"
-
-    def test_both_empty(self):
-        form = {"finder_first_name": "", "finder_last_name": ""}
-        assert _get_finder_name(form) == "-"
-
-    def test_missing_keys(self):
-        assert _get_finder_name({}) == "-"

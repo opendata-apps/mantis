@@ -12,7 +12,7 @@
   Sichtung melden, Gottesanbeterin melden, Mantis religiosa melden, Fundmeldung, Oothek, Nymphe, Brandenburg, Berlin
 {% endblock %}
 {% block canonical %}{{ url_for('report.melden', _external=True) }}{% endblock %}
-{% from 'report/_macros_form.html' import render_photo_upload, render_form_field, render_step_navigation, render_feedback_section, report_field_class %}
+{% from 'report/_macros_form.html' import render_photo_upload, render_form_field, render_step_navigation, render_feedback_section, report_field_class, required_marker %}
 {% block title %}Sichtung melden - Gottesanbeterin{% endblock %}
 {% block head %}
   {{ vite_tags("js/report-form-htmx.js") }}
@@ -46,6 +46,7 @@
         {# Hidden target for htmx validation - actual errors use OOB swaps #}
         <div id="validation-errors-container" class="hidden"></div>
         <h2 class="sr-only">Meldeformular</h2>
+        <p class="text-sm text-gray-600"><span class="text-red-600" aria-hidden="true">*</span> Pflichtfeld. Alle übrigen Angaben sind freiwillig.</p>
         <div class="step-container">
           <!-- Step 1: Photo & Details -->
           <div class="p-6 bg-white rounded-lg border border-gray-100 shadow-xs step"
@@ -99,7 +100,7 @@
                 {# Concentric with the 6px inputs inside: 6px + 16px padding. #}
                 <div class="p-4 bg-gray-50 rounded-[22px] border border-gray-200">
                   <div class="mb-2">
-                    <span class="text-sm font-medium text-gray-700">Fundort-Koordinaten</span>
+                    <span class="text-sm font-medium text-gray-700">Fundort-Koordinaten {{ required_marker() }}</span>
                   </div>
                   <div class="grid grid-cols-2 gap-3">
                     <div class="form-group">
@@ -160,14 +161,13 @@
             <div class="space-y-4">
               <!-- Reporter fields - readonly if prefilled -->
               {% if user_prefilled %}
-                {{ render_form_field(form.report_first_name, attrs={'id': 'report_first_name', 'readonly': true}) }}
-                {{ render_form_field(form.report_last_name, attrs={'id': 'report_last_name', 'readonly': true}) }}
+                {{ render_form_field(form.report_name, attrs={'id': 'report_name', 'readonly': true}) }}
                 {{ render_form_field(form.email, attrs={'id': 'email', 'readonly': true}) }}
               {% else %}
-                {{ render_form_field(form.report_first_name, attrs={'id': 'report_first_name'}) }}
-                {{ render_form_field(form.report_last_name, attrs={'id': 'report_last_name'}) }}
+                {{ render_form_field(form.report_name, attrs={'id': 'report_name'}) }}
                 {{ render_form_field(form.email, attrs={'id': 'email'}) }}
               {% endif %}
+              <p class="text-xs text-gray-600">Name oder Kürzel, maximal 100 Zeichen. Umlaute und mehrteilige Namen sind möglich.</p>
               {# Checkbox with htmx toggle for finder fields #}
               {# Whole row is the label so the 16px box gets a full-width, 44px tap target. #}
               <label for="identical_finder_reporter"

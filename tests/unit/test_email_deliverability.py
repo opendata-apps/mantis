@@ -12,8 +12,7 @@ from app.forms import MantisSightingForm
 from app.routes.report import _create_user
 
 BASE = {
-    "report_first_name": "Erika",
-    "report_last_name": "Musterfrau",
+    "report_name": "Erika Musterfrau",
     "fund_city": "Potsdam",
     "sighting_date": "2026-08-01",
 }
@@ -49,21 +48,21 @@ def test_an_invalid_address_reports_the_german_message(app):
 
 def test_storage_keeps_the_address_the_reporter_knows(app):
     """normalized, per the library: domain lowercased, local part untouched."""
-    user = _create_user("Erika", "Musterfrau", "Melder@Müller.DE")
+    user = _create_user("Erika Musterfrau", "Melder@Müller.DE")
 
     assert user.user_kontakt == "Melder@müller.de"
 
 
 def test_storage_folds_case_so_one_mailbox_is_one_row(app):
-    first = _create_user("Erika", "Musterfrau", "melder@WEB.de")
-    second = _create_user("Erika", "Musterfrau", "melder@web.de")
+    first = _create_user("Erika Musterfrau", "melder@WEB.de")
+    second = _create_user("Erika Musterfrau", "melder@web.de")
 
     assert first.user_kontakt == second.user_kontakt
 
 
 def test_a_blank_contact_stays_blank(app):
     """Contact is optional on the report form."""
-    assert not _create_user("Erika", "Musterfrau", "").user_kontakt
+    assert not _create_user("Erika Musterfrau", "").user_kontakt
 
 
 def test_the_envelope_carries_punycode(app, monkeypatch):

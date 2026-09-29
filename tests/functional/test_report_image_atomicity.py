@@ -69,8 +69,7 @@ def test_failed_submission_does_not_orphan_image(app, client, tmp_path, monkeypa
     monkeypatch.setattr(report_mod, "calculate_spatial_fields", boom)
 
     data = {
-        "report_first_name": "Test",
-        "report_last_name": "User",
+        "report_name": "Test User",
         "email": "",
         "sighting_date": "2025-06-01",
         "latitude": "52.4",
