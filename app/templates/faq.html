@@ -1,4 +1,6 @@
 {% extends "layout.html" %}
+{% set og_title = "Häufig gestellte Fragen – Gottesanbeterin (Mantis religiosa)" %}
+{% set og_description = "Antworten auf die häufigsten Fragen zum Melden und Beobachten der Europäischen Gottesanbeterin." %}
 {% block meta_keywords %}Häufig gestellte Fragen, Gottesanbeterin, Mantis religiosa FAQ, Projekt Fragen{% endblock %}
 {% block page_title %}Häufig gestellte Fragen | Mantis Religiosa Mitmachprojekt | Gottesanbeterin Gesucht{% endblock %}
 {% block meta_description %}
@@ -7,26 +9,6 @@
 {% block title %}
   Häufig gestellte Fragen (FAQ)
 {% endblock title %}
-{% block og_meta %}
-  <meta property="og:title"
-        content="Häufig gestellte Fragen – Gottesanbeterin (Mantis religiosa)" />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="{{ url_for('main.faq', _external=True) }}" />
-  <meta property="og:image"
-        content="{{ url_for('static', filename='images/berger03.webp', _external=True) }}" />
-  <meta property="og:description"
-        content="Antworten auf die häufigsten Fragen zum Melden und Beobachten der Europäischen Gottesanbeterin." />
-  <meta property="og:locale" content="de_DE" />
-{% endblock %}
-{% block twitter_meta %}
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title"
-        content="FAQ – Gottesanbeterin (Mantis religiosa)" />
-  <meta name="twitter:description"
-        content="Antworten rund um Meldung, Datenschutz und Beobachtungstipps." />
-  <meta name="twitter:image"
-        content="{{ url_for('static', filename='images/berger03.webp', _external=True) }}" />
-{% endblock %}
 {% block content %}
   <section class="relative px-4 py-20 overflow-hidden sm:px-6 lg:px-8">
     <div class="mx-auto max-w-7xl">

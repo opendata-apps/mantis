@@ -1,5 +1,8 @@
 {% extends "layout.html" %}
 {% from "_macros_ui.html" import cta_link %}
+{% set og_title = "Gottesanbeterin Bestimmungsschlüssel – Merkmale & Identifikation" %}
+{% set og_description = "Oothek, Nymphe oder erwachsenes Tier? Geschlecht bestimmen in 4 einfachen Schritten mit dem Bestimmungsschlüssel." %}
+{% set og_image = url_for('static', filename='images/bestimmung/paerchengross.jpg', _external=True) %}
 {% block meta_keywords %}
   Gottesanbeterin Bestimmung, Mantis religiosa Identifikation, Merkmale, Unterscheidung, Brandenburg, Berlin
 {% endblock %}
@@ -11,28 +14,6 @@
   Bestimmungsschlüssel
 {% endblock title %}
 {% block canonical %}{{ url_for('main.bestimmung', _external=True) }}{% endblock %}
-{% block og_meta %}
-  <meta property="og:title"
-        content="Gottesanbeterin Bestimmungsschlüssel – Merkmale & Identifikation" />
-  <meta property="og:type" content="website" />
-  <meta property="og:url"
-        content="{{ url_for('main.bestimmung', _external=True) }}" />
-  <meta property="og:image"
-        content="{{ url_for('static', filename='images/bestimmung/paerchengross.jpg', _external=True) }}" />
-  <meta property="og:description"
-        content="Oothek, Nymphe oder erwachsenes Tier? Geschlecht bestimmen in 4 einfachen Schritten mit dem Bestimmungsschlüssel." />
-  <meta property="og:site_name" content="Gottesanbeterin Gesucht" />
-  <meta property="og:locale" content="de_DE" />
-{% endblock %}
-{% block twitter_meta %}
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title"
-        content="Gottesanbeterin Bestimmungsschlüssel – Merkmale & Identifikation" />
-  <meta name="twitter:description"
-        content="Oothek, Nymphe oder erwachsenes Tier? Bestimmen Sie Ihre Gottesanbeterin in 4 Schritten." />
-  <meta name="twitter:image"
-        content="{{ url_for('static', filename='images/bestimmung/paerchengross.jpg', _external=True) }}" />
-{% endblock %}
 {% block head %}
   <script type="application/ld+json">
 {
@@ -94,23 +75,6 @@
   }
 }
   </script>
-  <meta property="og:type" content="article" />
-  <meta property="og:title"
-        content="Gottesanbeterin Bestimmung | Merkmale & Bestimmungsschlüssel" />
-  <meta property="og:description"
-        content="Anleitung zur Identifikation der Europäischen Gottesanbeterin (Mantis religiosa) – Oothek, Nymphe, erwachsenes Tier, Geschlechtsbestimmung mit Bildbeispielen." />
-  <meta property="og:image"
-        content="{{ url_for('static', filename='images/bestimmung/paerchengross.jpg', _external=True) }}" />
-  <meta property="og:url"
-        content="{{ url_for('main.bestimmung', _external=True) }}" />
-  <meta property="og:locale" content="de_DE" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title"
-        content="Gottesanbeterin Bestimmung | Merkmale & Bestimmungsschlüssel" />
-  <meta name="twitter:description"
-        content="So bestimmen Sie Mantis religiosa – Schritt für Schritt mit Fotos." />
-  <meta name="twitter:image"
-        content="{{ url_for('static', filename='images/bestimmung/paerchengross.jpg', _external=True) }}" />
 {% endblock head %}
 {% block content %}
   {% set option_class = "p-4 transition-shadow duration-300 border border-green-200 rounded-lg hover:shadow-md" %}

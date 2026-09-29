@@ -1,5 +1,8 @@
 {% extends "layout.html" %}
 {# Prefilled variant (/melden/<token>) exposes the reporter's name + email — never index it. #}
+{% set og_title = "Sichtung melden – Gottesanbeterin (Mantis religiosa)" %}
+{% set og_description = "Foto hochladen, Fundort markieren und Ihre Beobachtung der Gottesanbeterin melden – einfach und schnell." %}
+{% set og_image = url_for('static', filename='images/weibchen-mit-oothek.webp', _external=True) %}
 {% block meta_robots %}{% if user_prefilled %}noindex,nofollow{% else %}index,follow{% endif %}{% endblock %}
 {% block page_title %}Sichtung melden | Gottesanbeterin (Mantis religiosa){% endblock %}
 {% block meta_description %}
@@ -9,30 +12,6 @@
   Sichtung melden, Gottesanbeterin melden, Mantis religiosa melden, Fundmeldung, Oothek, Nymphe, Brandenburg, Berlin
 {% endblock %}
 {% block canonical %}{{ url_for('report.melden', _external=True) }}{% endblock %}
-{% block og_meta %}
-  <meta property="og:title"
-        content="Sichtung melden – Gottesanbeterin (Mantis religiosa)" />
-  <meta property="og:type" content="website" />
-  <meta property="og:url"
-        content="{{ url_for('report.melden', _external=True) }}" />
-  <meta property="og:image"
-        content="{{ url_for('static', filename='images/weibchen-mit-oothek.webp', _external=True) }}" />
-  <meta property="og:description"
-        content="Foto hochladen, Fundort markieren und Ihre Beobachtung der Gottesanbeterin melden – einfach und schnell." />
-  <meta property="og:site_name" content="Gottesanbeterin Gesucht" />
-  <meta property="og:locale" content="de_DE" />
-{% endblock %}
-{% block twitter_meta %}
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title"
-        content="Sichtung melden – Gottesanbeterin (Mantis religiosa)" />
-  <meta name="twitter:description"
-        content="Helfen Sie der Forschung: Gottesanbeterin-Sichtung mit Foto und Fundort melden." />
-  <meta name="twitter:image"
-        content="{{ url_for('static', filename='images/weibchen-mit-oothek.webp', _external=True) }}" />
-  <meta name="twitter:url"
-        content="{{ url_for('report.melden', _external=True) }}" />
-{% endblock %}
 {% from 'report/_macros_form.html' import render_photo_upload, render_form_field, render_step_navigation, render_feedback_section, report_field_class %}
 {% block title %}Sichtung melden - Gottesanbeterin{% endblock %}
 {% block head %}

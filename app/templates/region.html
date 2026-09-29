@@ -1,26 +1,11 @@
 {% extends "layout.html" %}
 {% from "_macros_ui.html" import cta_link %}
+{% set og_title = region.og_title %}
+{% set og_description = region.meta_description %}
+{% set og_type = "article" %}
 {% block page_title %}{{ region.title }} | Gottesanbeterin Gesucht{% endblock %}
 {% block meta_description %}{{ region.meta_description }}{% endblock %}
 {% block canonical %}{{ url_for('regionen.region_page', slug=region.slug, _external=True) }}{% endblock %}
-{% block og_meta %}
-  <meta property="og:title" content="{{ region.og_title }}" />
-  <meta property="og:type" content="article" />
-  <meta property="og:url"
-        content="{{ url_for('regionen.region_page', slug=region.slug, _external=True) }}" />
-  <meta property="og:image"
-        content="{{ url_for('static', filename='images/berger03.webp', _external=True) }}" />
-  <meta property="og:description" content="{{ region.meta_description }}" />
-  <meta property="og:site_name" content="Gottesanbeterin Gesucht" />
-  <meta property="og:locale" content="de_DE" />
-{% endblock %}
-{% block twitter_meta %}
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="{{ region.og_title }}" />
-  <meta name="twitter:description" content="{{ region.meta_description }}" />
-  <meta name="twitter:image"
-        content="{{ url_for('static', filename='images/berger03.webp', _external=True) }}" />
-{% endblock %}
 {% block head %}
   {{ super() }}
   <script type="application/ld+json">

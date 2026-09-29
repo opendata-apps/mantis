@@ -20,30 +20,22 @@
     <link rel="canonical"
           href="{% block canonical %}{{ request.url | replace('http:', 'https:') }}{% endblock %}" />
     <!-- Open Graph data -->
-    {% block og_meta %}
-      <meta property="og:title"
-            content="Gottesanbeterin Gesucht | Mitmachprojekt | Mantis Religiosa Beobachtungen" />
-      <meta property="og:type" content="website" />
-      <meta property="og:url"
-            content="{{ request.url | replace('http:', 'https:') }}" />
-      <meta property="og:image"
-            content="{{ url_for('static', filename='images/berger03.webp', _external=True) }}" />
-      <meta property="og:description"
-            content="Beobachtungen der Gottesanbeterin (Mantis religiosa) in Deutschland. Melden Sie Ihre Beobachtungen und unterstützen Sie die Forschung zur Verbreitung dieser Art." />
-      <meta property="og:site_name" content="Gottesanbeterin Gesucht" />
-      <meta property="og:locale" content="de_DE" />
-    {% endblock %}
-    {% block twitter_meta %}
-      <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:title"
-            content="Gottesanbeterin Gesucht | Mitmachprojekt | Mantis Religiosa Beobachtungen" />
-      <meta name="twitter:description"
-            content="Beobachtungen der Gottesanbeterin (Mantis religiosa) in Deutschland. Melden Sie Ihre Beobachtungen und unterstützen Sie die Forschung zur Verbreitung dieser Art." />
-      <meta name="twitter:image"
-            content="{{ url_for('static', filename='images/berger03.webp', _external=True) }}" />
-      <meta name="twitter:url"
-            content="{{ request.url | replace('http:', 'https:') }}" />
-    {% endblock %}
+    {%- set og_title = og_title | default("Gottesanbeterin Gesucht | Mitmachprojekt | Mantis Religiosa Beobachtungen") -%}
+    {%- set og_description = og_description | default("Beobachtungen der Gottesanbeterin (Mantis religiosa) in Deutschland. Melden Sie Ihre Beobachtungen und unterstützen Sie die Forschung zur Verbreitung dieser Art.") -%}
+    {%- set og_image = og_image | default(url_for('static', filename='images/berger03.webp', _external=True)) -%}
+    {%- set og_url = self.canonical() -%}
+    <meta property="og:title" content="{{ og_title }}" />
+    <meta property="og:type" content="{{ og_type | default('website') }}" />
+    <meta property="og:url" content="{{ og_url }}" />
+    <meta property="og:image" content="{{ og_image }}" />
+    <meta property="og:description" content="{{ og_description }}" />
+    <meta property="og:site_name" content="Gottesanbeterin Gesucht" />
+    <meta property="og:locale" content="de_DE" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="{{ og_title }}" />
+    <meta name="twitter:description" content="{{ og_description }}" />
+    <meta name="twitter:image" content="{{ og_image }}" />
+    <meta name="twitter:url" content="{{ og_url }}" />
     {{ vite_font_preloads('inter-latin-wght-normal', 'inter-latin-wght-italic') }}
     <link rel="preload"
           as="image"

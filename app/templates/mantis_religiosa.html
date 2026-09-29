@@ -1,4 +1,8 @@
 {% extends "layout.html" %}
+{% set og_title = "Mantis Religiosa: Die Europäische Gottesanbeterin in Brandenburg & Berlin" %}
+{% set og_description = "Umfassende Informationen zur Europäischen Gottesanbeterin: Merkmale, Verbreitung, Beobachtungstipps und mehr." %}
+{% set og_type = "article" %}
+{% set og_image = url_for('static', filename='images/mantis--maennchen__krueger.webp', _external=True) %}
 {% block meta_keywords %}
   Mantis religiosa, Europäische Gottesanbeterin, Gottesanbeterin Brandenburg, Gottesanbeterin Berlin, Fangschrecken, Insekten, Biodiversität, Habitat Gottesanbeterin, Lebenszyklus Gottesanbeterin, Beobachtung Gottesanbeterin, Artenschutz, Mantodea
 {% endblock %}
@@ -8,25 +12,15 @@
 {% block page_title %}
   Mantis Religiosa: Die Europäische Gottesanbeterin in Brandenburg & Berlin | Gottesanbeterin Gesucht
 {% endblock %}
+{% block canonical %}{{ url_for('main.mantis_religiosa', _external=True) }}{% endblock %}
 {% block head %}
   {{ super() }}
-  <meta property="og:type" content="article" />
-  <meta property="og:title"
-        content="Mantis Religiosa: Die Europäische Gottesanbeterin in Brandenburg & Berlin" />
-  <meta property="og:description"
-        content="Umfassende Informationen zur Europäischen Gottesanbeterin: Merkmale, Verbreitung, Beobachtungstipps und mehr." />
-  <meta property="og:image"
-        content="{{ url_for('static', filename='images/mantis--maennchen__krueger.webp', _external=True) }}" />
-  <meta property="og:url"
-        content="{{ url_for('main.mantis_religiosa', _external=True) }}" />
   <meta property="article:published_time" content="2023-10-09" />
   <meta property="article:modified_time" content="2023-10-09" />
   <meta property="article:author" content="Gottesanbeterin Gesucht Team" />
   <meta property="article:section" content="Insektenkunde" />
   <meta property="article:tag"
         content="Mantis religiosa,Gottesanbeterin,Fangschrecken,Insekten,Biodiversität" />
-  <link rel="canonical"
-        href="{{ url_for('main.mantis_religiosa', _external=True) }}" />
   <script type="application/ld+json">
 {
   "@context": "https://schema.org",
