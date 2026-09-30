@@ -39,8 +39,6 @@ Flask-CLI
      - Basisdaten plus Demo-Meldungen/Bilder einspielen
    * - ``uv run flask seed-ags``
      - Verwaltungsgebiete (AGS) von BKG/Berlin-WFS aktualisieren
-   * - ``uv run flask check-images``
-     - Prüft referenzierte Fotos im Datastore; fehlende oder unsichere Pfade führen zu Exit-Code 1
 
 Qualitätssicherung
 ------------------
