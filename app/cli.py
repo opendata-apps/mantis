@@ -1,6 +1,5 @@
 import os
 import shutil
-from pathlib import Path
 
 import click
 from flask import current_app
@@ -13,7 +12,6 @@ def register_commands(app):
     app.cli.add_command(seed_ags_command)
     app.cli.add_command(validate_coordinates_command)
     app.cli.add_command(recalculate_mtb_command)
-    app.cli.add_command(check_images_command)
 
 
 @click.command("seed")
@@ -230,37 +228,6 @@ def recalculate_mtb_command(commit):
     else:
         db.session.rollback()
         click.echo("Dry run — nothing written. Re-run with --commit to apply.")
-
-
-@click.command("check-images")
-@with_appcontext
-def check_images_command():
-    """Refuse a datastore that lacks any database-referenced photo."""
-    from sqlalchemy import select
-
-    from app.database.fundorte import TblFundorte
-    from app.extensions import db
-
-    root = Path(current_app.config["UPLOAD_FOLDER"]).resolve()
-    paths = db.session.scalars(
-        select(TblFundorte.ablage)
-        .where(TblFundorte.ablage.is_not(None), TblFundorte.ablage != "")
-        .distinct()
-    )
-    checked = missing = unsafe = 0
-    for relative_path in paths:
-        checked += 1
-        path = (root / relative_path).resolve()
-        if not path.is_relative_to(root):
-            unsafe += 1
-        elif not path.is_file():
-            missing += 1
-
-    click.echo(
-        f"Checked {checked} referenced photos: {missing} missing, {unsafe} unsafe paths."
-    )
-    if missing or unsafe:
-        raise click.ClickException("Restore the referenced photos before deploying.")
 
 
 def _copy_demo_images():

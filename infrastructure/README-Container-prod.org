@@ -21,34 +21,3 @@ zufällig erzeugen und nicht erraten lassen:
   VALUES ('<zufällige id>', 'Reviewer 1', '9', 'reviewer@mantis.org');
 
 #+end_src
-
-** Bestehende Fotos in das Datastore-Volume übernehmen
-
-=just prod-deploy= prüft vor dem Web-Tausch, ob das neue Volume alle in der
-Datenbank referenzierten Fotos enthält. Fehlende Fotos oder Pfade außerhalb
-des Datastores brechen den Deploy ab. Die Prüfung schreibt keine Daten.
-
-Ältere Installationen verwendeten =datastore/= im Checkout, später
-=app/datastore/= und danach =/srv/mantis/datastore=. Prüfen Sie diese
-Verzeichnisse auf dem Server. Kopieren Sie vorhandene Fotos aus jedem
-belegten Verzeichnis in das Volume. Bestehende Dateien werden erhalten:
-
-#+begin_src bash
-
-  legacy_photos=/srv/mantis/datastore
-  test -d "$legacy_photos"
-  podman volume create infrastructure_mantis_datastore
-  podman run --rm --entrypoint sh \
-    --mount "type=bind,source=$legacy_photos,target=/legacy,readonly" \
-    --volume infrastructure_mantis_datastore:/mantis/app/datastore \
-    localhost/infrastructure_web:latest \
-    -c 'cp -an /legacy/. /mantis/app/datastore/'
-  podman-compose -p infrastructure -f infrastructure/compose.yaml \
-    -f infrastructure/compose.prod.yaml run --rm -T --no-deps \
-    --entrypoint flask web check-images
-
-#+end_src
-
-Die alten Verzeichnisse bleiben bis nach der erfolgreichen Prüfung erhalten.
-Bei weiterhin fehlenden Fotos ist eine Wiederherstellung aus einer Sicherung
-nötig. Referenzierte Dateinamen können Reporter-Zugangscodes enthalten.

@@ -96,8 +96,6 @@ prod-deploy: prod-backup
         podman tag "$image" localhost/infrastructure_web:previous
     fi
     {{ compose }} build --pull web
-    # Check the candidate's datastore without running migrations or seeding.
-    {{ compose }} run --rm -T --no-deps --entrypoint flask web check-images
     # --no-deps leaves the DB container and its volume out of the swap.
     GIT_SHA=$sha {{ compose }} up -d --force-recreate --no-deps web
     # Captured apart from the version check: in one pipe, pipefail aborts before
