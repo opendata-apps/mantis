@@ -13,7 +13,9 @@ worker_tmp_dir = "/dev/shm"  # noqa: S108
 # of `journalctl _UID=1002`, which is the only place we read it from.
 accesslog = "-"
 errorlog = "-"
-access_log_format = '%(h)s %(t)s "%(m)s %({mantis.route}e)s" %(s)s %(b)s %(L)s'
+access_log_format = (
+    '%(h)s %(t)s "%(m)s %({mantis.route}e)s" %(s)s %(b)s %(L)s "%(f)s" "%(a)s"'
+)
 
 
 def post_worker_init(worker):
