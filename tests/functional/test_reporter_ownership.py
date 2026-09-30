@@ -318,3 +318,19 @@ class TestOwnReportsStayReachable:
         listing = client.get(f"/sichtungen/{mine}")
         assert b"Erststadt" in listing.data
         assert b"Zweitstadt" in listing.data
+
+    def test_own_page_lists_the_newest_report_first(self, client):
+        _submit_as(client, "reihe@example.com", fund_city="Erststadt")
+        mine = _link_from_success(client)
+        data = build_valid_report_form_data(
+            email="reihe@example.com", fund_city="Zweitstadt"
+        )
+        client.post(
+            f"/melden/{mine}",
+            data={**data, "photo": make_test_image(fmt="webp", name="upload.webp")},
+            content_type="multipart/form-data",
+        )
+
+        listing = client.get(f"/sichtungen/{mine}").data
+
+        assert listing.index(b"Zweitstadt") < listing.index(b"Erststadt")

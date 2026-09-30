@@ -50,6 +50,7 @@ def melder_index(usrid):
             )
         )
         .where(TblMeldungUser.id_user == user.id)
+        .order_by(TblMeldungen.id.desc())
     )
 
     sichtungen = db.session.scalars(stmt).all()
