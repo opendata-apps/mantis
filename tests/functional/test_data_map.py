@@ -11,6 +11,7 @@ from app.database.models import (
     TblFundorte,
     TblMeldungen,
 )
+from tests.helpers import map_report_ids
 
 
 def _approved_in_range_count(session, min_year):
@@ -76,3 +77,4 @@ def test_map_renders_every_approved_report(client, session, app):
     match = re.search(r'data-target="(\d+)"', html)
     assert match, "post_count target not found in rendered map"
     assert int(match.group(1)) == expected
+    assert len(map_report_ids(client)) == expected

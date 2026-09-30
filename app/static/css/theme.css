@@ -229,18 +229,19 @@
   }
 
   /* Headings balance by default so content pages don't have to opt in via
-     .section-heading — several already forgot to. */
+     .section-heading — several already forgot to. The longhand keeps an
+     inherited nowrap intact; the text-wrap shorthand resets it to wrap. */
   h1,
   h2,
   h3 {
-    text-wrap: balance;
+    text-wrap-style: balance;
   }
 
   p,
   li,
   figcaption,
   blockquote {
-    text-wrap: pretty;
+    text-wrap-style: pretty;
   }
 }
 

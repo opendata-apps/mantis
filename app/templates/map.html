@@ -73,5 +73,5 @@
         </div>
       </section>
       <script type="module" src="{{ vite_asset('js/counter.js') }}"></script>
-      <script type="application/json" id="map-data">{{ {"reports": reports, "years": years | sort(reverse=true), "selectedYear": selected_year, "markerIcon": url_for('static', filename='images/map/marker-icon.png')} | tojson }}</script>
+      <script type="application/json" id="map-data">{{ {"pointsUrl": url_for('data.map_points', year=selected_year), "years": years | sort(reverse=true), "selectedYear": selected_year, "markerIcon": url_for('static', filename='images/map/marker-icon.png')} | tojson }}</script>
     {% endblock content %}

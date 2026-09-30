@@ -85,6 +85,8 @@ def json_block(html, block_id):
     return json.loads(block.get_text())
 
 
-def extract_reports_json(response_data):
-    """The report list the map page hands to map-page.js."""
-    return json_block(response_data, "map-data")["reports"]
+def map_report_ids(client, url="/auswertungen/punkte"):
+    """Ids of the markers the public map endpoint serves."""
+    response = client.get(url)
+    assert response.status_code == 200
+    return [report_id for report_id, _lat, _lon in response.get_json()]

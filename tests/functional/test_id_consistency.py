@@ -13,7 +13,7 @@ from app.database.models import (
     TblMeldungUser,
     TblUsers,
 )
-from tests.helpers import extract_reports_json, set_client_user
+from tests.helpers import map_report_ids, set_client_user
 
 
 class TestIDConsistency:
@@ -91,21 +91,7 @@ class TestIDConsistency:
 
     def test_map_view_shows_correct_id(self, client):
         """Test that map view shows the correct report ID."""
-        response = client.get("/auswertungen")
-        assert response.status_code == 200
-
-        reports_json = extract_reports_json(response.data)
-
-        our_report = None
-        for report in reports_json:
-            if report["report_id"] == self.expected_report_id:
-                our_report = report
-                break
-
-        assert our_report is not None, (
-            f"Report with ID {self.expected_report_id} not found in map data"
-        )
-        assert our_report["report_id"] == self.expected_report_id
+        assert self.expected_report_id in map_report_ids(client)
 
     def test_admin_view_shows_correct_id(self, client):
         """Test that admin view shows the correct report ID."""

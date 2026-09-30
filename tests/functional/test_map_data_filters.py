@@ -5,7 +5,7 @@ from datetime import datetime
 import pytest
 
 from app.database.models import ReportStatus, TblFundorte, TblMeldungen
-from tests.helpers import extract_reports_json
+from tests.helpers import map_report_ids
 
 
 class TestMapDataFilters:
@@ -78,12 +78,7 @@ class TestMapDataFilters:
 
     def test_map_view_filters_correctly(self, client):
         """Test that /auswertungen map view only shows approved, non-deleted sightings."""
-        response = client.get("/auswertungen")
-        assert response.status_code == 200
-
-        reports_json = extract_reports_json(response.data)
-
-        report_ids = [report["report_id"] for report in reports_json]
+        report_ids = map_report_ids(client)
 
         # Check that approved sightings are included
         assert self.approved_sighting.id in report_ids, (
@@ -104,11 +99,7 @@ class TestMapDataFilters:
     def test_map_view_with_year_filter(self, client):
         """Test map view with year filter still respects deleted/approved filters."""
         current_year = datetime.now().year
-        response = client.get(f"/auswertungen?year={current_year}")
-        assert response.status_code == 200
-
-        reports_json = extract_reports_json(response.data)
-        report_ids = [report["report_id"] for report in reports_json]
+        report_ids = map_report_ids(client, f"/auswertungen/punkte?year={current_year}")
         assert self.deleted_sighting.id not in report_ids
         assert self.unapproved_sighting.id not in report_ids
 
@@ -162,11 +153,7 @@ class TestMapDataFilters:
 
         session.commit()
 
-        response = client.get("/auswertungen")
-        assert response.status_code == 200
-
-        reports_json = extract_reports_json(response.data)
-        report_ids = [report["report_id"] for report in reports_json]
+        report_ids = map_report_ids(client)
 
         for sighting_id, should_appear in created_sightings:
             if should_appear:
@@ -193,11 +180,7 @@ class TestMapDataFilters:
         session.add(old_approved)
         session.commit()
 
-        response = client.get("/auswertungen")
-        assert response.status_code == 200
-
-        reports_json = extract_reports_json(response.data)
-        report_ids = [report["report_id"] for report in reports_json]
+        report_ids = map_report_ids(client)
         assert old_approved.id not in report_ids
 
         marker_response = client.get(f"/get_marker_data/{old_approved.id}")

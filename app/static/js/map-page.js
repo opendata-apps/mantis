@@ -2,7 +2,7 @@
 import L from 'leaflet';
 import './map.js';
 
-const { reports, years, selectedYear, markerIcon } = JSON.parse(
+const { pointsUrl, years, selectedYear, markerIcon } = JSON.parse(
   document.getElementById('map-data').textContent
 );
 // Year selector control
@@ -79,25 +79,38 @@ L.Control.ClusterLegend = L.Control.extend({
 });
 new L.Control.ClusterLegend({ position: 'bottomright' }).addTo(map);
 
-// Markers
-const markers = L.markerClusterGroup({ showCoverageOnHover: false });
+// Markers: one click handler on the group instead of a popup per marker
+const markers = L.markerClusterGroup({ showCoverageOnHover: false, chunkedLoading: true });
 const customIcon = L.icon({
   iconUrl: markerIcon,
   iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34]
 });
 
-reports.forEach(r => {
-  const marker = L.marker([r.latitude, r.longitude], { icon: customIcon });
-  marker.bindPopup("<div class='popup-loading'>Daten werden geladen...</div>");
-  marker.on('popupopen', e => {
-    fetch(`/get_marker_data/${r.report_id}`)
-      .then(res => {
-        if (!res.ok) throw new Error(res.status);
-        return res.text();
-      })
-      .then(html => e.popup.setContent(html))
-      .catch(() => e.popup.setContent("<div class='popup-error'>Fehler beim Laden.</div>"));
-  });
-  markers.addLayer(marker);
+// A bound popup opens itself on click; this only fills it, retrying after errors.
+const loaded = new WeakSet();
+markers.on('click', e => {
+  const marker = e.layer;
+  if (loaded.has(marker)) return;
+  const loading = "<div class='popup-loading'>Daten werden geladen...</div>";
+  if (marker.getPopup()) marker.setPopupContent(loading);
+  else marker.bindPopup(loading).openPopup();
+  fetch(`/get_marker_data/${marker.options.reportId}`)
+    .then(res => {
+      if (!res.ok) throw new Error(res.status);
+      return res.text();
+    })
+    .then(html => {
+      marker.setPopupContent(html);
+      loaded.add(marker);
+    })
+    .catch(() => marker.setPopupContent("<div class='popup-error'>Fehler beim Laden.</div>"));
 });
 map.addLayer(markers);
+
+fetch(pointsUrl)
+  .then(res => {
+    if (!res.ok) throw new Error(res.status);
+    return res.json();
+  })
+  .then(points => markers.addLayers(points.map(([reportId, lat, lon]) =>
+    L.marker([lat, lon], { icon: customIcon, reportId }))));

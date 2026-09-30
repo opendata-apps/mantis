@@ -1,21 +1,22 @@
+import hmac
 from datetime import date
-from random import Random
 
 from flask import (
     Blueprint,
     abort,
     current_app,
+    jsonify,
     render_template,
     request,
 )
-from sqlalchemy import func, select
+from sqlalchemy import Select, func, select
 
 from app.database.models import (
     TblFundorte,
     TblMeldungen,
 )
 from app.extensions import db
-from app.tools.coordinate_validation import in_range, parse_coordinate
+from app.tools.coordinate_validation import LAT_RANGE, LON_RANGE
 
 # Blueprints
 data = Blueprint("data", __name__)
@@ -29,54 +30,69 @@ def _public_map_filters(min_map_date: date):
     )
 
 
-@data.route("/auswertungen")
-def show_map():
-    selected_year = request.args.get("year", None, type=int)
-    min_map_date = date(current_app.config["MIN_MAP_YEAR"], 1, 1)
-
-    # Get distinct years from dat_fund_von beginning with MIN_MAP_YEAR
-    years_stmt = (
+def _map_years(min_map_date: date) -> list[int]:
+    """Years with reports since MIN_MAP_YEAR, oldest first."""
+    stmt = (
         select(func.extract("year", TblMeldungen.dat_fund_von).label("year"))
         .where(TblMeldungen.dat_fund_von >= min_map_date)
         .distinct()
         .order_by("year")
     )
-    years = [int(row[0]) for row in db.session.execute(years_stmt).all()]
+    return [int(row[0]) for row in db.session.execute(stmt).all()]
 
-    if selected_year is not None and selected_year not in years:
+
+def _map_request() -> tuple[list[int], int | None, Select]:
+    """Years, the valid selected year or None, and the map's points query."""
+    min_map_date = date(current_app.config["MIN_MAP_YEAR"], 1, 1)
+    years = _map_years(min_map_date)
+    selected_year = request.args.get("year", None, type=int)
+    if selected_year not in years:
         selected_year = None
 
-    reports_stmt = (
+    stmt = (
         select(TblMeldungen.id, TblFundorte.latitude, TblFundorte.longitude)
         .join(TblMeldungen.fundort)
-        .where(*_public_map_filters(min_map_date))
+        .where(
+            *_public_map_filters(min_map_date),
+            TblFundorte.latitude.between(*LAT_RANGE),
+            TblFundorte.longitude.between(*LON_RANGE),
+        )
     )
-
     if selected_year is not None:
-        reports_stmt = reports_stmt.where(
+        stmt = stmt.where(
             func.extract("year", TblMeldungen.dat_fund_von) == selected_year
         )
+    return years, selected_year, stmt
 
-    reports = db.session.execute(reports_stmt).all()
 
-    # Serialize the reports data as a JSON object
-    # post_count derived from result set — avoids a separate COUNT query
-    koords = []
-    for report_id, latitude, longitude in reports:
-        lati = parse_coordinate(latitude)
-        long = parse_coordinate(longitude)
-        if lati is None or long is None or not in_range(lati, long):
-            continue
-        lati, long = obfuscate_location(lati, long, report_id)
-        koords.append({"report_id": report_id, "latitude": lati, "longitude": long})
-
+@data.route("/auswertungen")
+def show_map():
+    years, selected_year, points_stmt = _map_request()
+    post_count = db.session.scalar(
+        select(func.count()).select_from(points_stmt.subquery())
+    )
     return render_template(
         "map.html",
-        reports=koords,
-        post_count=len(koords),
+        post_count=post_count,
         years=years,
         selected_year=selected_year,
     )
+
+
+@data.route("/auswertungen/punkte")
+def map_points():
+    """The map's markers as `[id, lat, lon]`, fetched by map-page.js."""
+    _, _, points_stmt = _map_request()
+    points = []
+    for report_id, latitude, longitude in db.session.execute(points_stmt):
+        lat, lon = obfuscate_location(latitude, longitude, report_id)
+        # 4 decimals is ~11 m, far below the offset; it halves the gzip size.
+        points.append([report_id, round(lat, 4), round(lon, 4)])
+
+    response = jsonify(points)
+    response.cache_control.public = True
+    response.cache_control.max_age = 300
+    return response
 
 
 @data.route("/get_marker_data/<int:report_id>")
@@ -110,9 +126,12 @@ def obfuscate_location(lat, long, report_id):
     sighting date beside it. Measured, 500 views of a per-request offset leave
     9 m of error.
 
-    SECRET_KEY belongs in the seed because this repository is public — the
-    report id alone would let anyone re-run this function and subtract it.
+    SECRET_KEY keys the hash because this repository is public — the report id
+    alone would let anyone re-run this function and subtract it.
     """
     offset = 0.005
-    rng = Random(f"{report_id}:{current_app.config['SECRET_KEY']}")  # noqa: S311
-    return lat + rng.uniform(-offset, offset), long + rng.uniform(-offset, offset)
+    secret = current_app.config["SECRET_KEY"].encode()
+    digest = hmac.digest(secret, str(report_id).encode(), "sha256")
+    # Two 32-bit words, each mapped onto [-offset, offset].
+    dlat, dlon = (int.from_bytes(digest[i : i + 4]) / 2**31 - 1 for i in (0, 4))
+    return lat + dlat * offset, long + dlon * offset
