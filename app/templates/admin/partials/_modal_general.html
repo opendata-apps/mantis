@@ -63,10 +63,10 @@
                         class="flex flex-wrap gap-x-2 gap-y-0.5 items-center min-w-0"
                     >
                         <a
-                            href="{{ url_for('provider.melder_index', usrid=reporter.user_id) }}"
+                            href="{{ url_for('admin.reviewer', q=reporter.user_id, search_type='melder', statusInput='all', sort_order='id_desc') }}"
                             target="_blank"
                             class="inline-flex items-center gap-1 text-sm font-medium text-gray-800 hover:text-green-700 transition-colors"
-                            title="Meldungen dieses Nutzers anzeigen"
+                            title="Alle Meldungen dieses Melders anzeigen, auch unter gleicher E-Mail"
                         >
                             {{- reporter.user_name -}} {{
                             heroicon_outline("arrow-top-right-on-square",

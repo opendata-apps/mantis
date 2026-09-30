@@ -23,9 +23,7 @@ from app.auth import log_in, reviewer_required
 from app.database.models import (
     STATUS_FILTERS,
     ReportStatus,
-    TblFundorte,
     TblMeldungen,
-    TblMeldungUser,
     TblUsers,
     UserRole,
 )
@@ -99,15 +97,9 @@ def _load_sighting(report_id: int) -> TblMeldungen | None:
 
 
 def _get_user_report_count(user: TblUsers) -> int:
-    """Count the reports visible through this reporter's history link."""
-    count = db.session.scalar(
-        select(func.count())
-        .select_from(TblMeldungen)
-        .join(TblMeldungen.reporter_link)
-        .join(TblMeldungen.fundort)
-        .join(TblFundorte.location_type)
-        .where(TblMeldungUser.id_user == user.id)
-    )
+    """Count the reports the modal's reporter link lists."""
+    stmt = get_filtered_query(search_query=user.user_id, search_type="melder")
+    count = db.session.scalar(select(func.count()).select_from(stmt.subquery()))
     return count or 0
 
 

@@ -21,6 +21,7 @@
                 class="appearance-none bg-none py-2.5 pr-9 pl-3.5 min-w-[90px] text-sm text-gray-700 bg-transparent border-0 rounded-l-lg shadow-none cursor-pointer focus:outline-hidden focus:ring-0 focus:border-transparent">
           <option value="full_text" {% if search_type == 'full_text' %}selected{% endif %}>Text</option>
           <option value="id" {% if search_type == 'id' %}selected{% endif %}>ID</option>
+          <option value="melder" {% if search_type == 'melder' %}selected{% endif %}>Melder</option>
         </select>
         {{ heroicon_outline("chevron-down", class="absolute right-3 top-1/2 size-4 text-gray-500 pointer-events-none -translate-y-1/2", stroke_width=2) }}
       </div>

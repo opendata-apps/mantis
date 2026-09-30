@@ -7,14 +7,15 @@ same set of reports, so the argument names and the query live together.
 from datetime import datetime
 
 from flask import current_app, request
-from sqlalchemy import false, func, select
-from sqlalchemy.orm import contains_eager, joinedload
+from sqlalchemy import ColumnElement, false, func, or_, select
+from sqlalchemy.orm import aliased, contains_eager, joinedload
 
 from app.database.models import (
     STATUS_FILTERS,
     TblFundorte,
     TblMeldungen,
     TblMeldungUser,
+    TblUsers,
 )
 from app.tools.fts import prefix_tsquery
 
@@ -61,6 +62,24 @@ def get_reviewer_filter_args():
         "date_to": request.args.get("dateTo"),
         "date_type": request.args.get("dateType", "fund"),
     }
+
+
+def filed_by_same_address(user_id: str) -> ColumnElement[bool]:
+    """Match reports filed under this link or any link sharing its address.
+
+    Reviewer-only: the address is unverified, so a reporter's own page stays
+    scoped to the link (see provider.melder_index). Expects the reporter join.
+    """
+    linked = aliased(TblUsers)
+    # NULLIF: thousands of legacy rows store "" for "no address".
+    address = (
+        select(func.nullif(func.lower(linked.user_kontakt), ""))
+        .where(linked.user_id == user_id)
+        .scalar_subquery()
+    )
+    return or_(
+        TblUsers.user_id == user_id, func.lower(TblUsers.user_kontakt) == address
+    )
 
 
 def report_with_relations():
@@ -128,6 +147,9 @@ def get_filtered_query(
                 stmt = stmt.where(TblMeldungen.id == int(search_query))
             except ValueError:
                 search_type = "full_text"
+
+        if search_type == "melder":
+            stmt = stmt.where(filed_by_same_address(search_query))
 
         if search_type == "full_text":
             ts_query = func.to_tsquery(

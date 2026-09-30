@@ -5,6 +5,7 @@ Guards the scoping rule stated at the query in app/routes/provider.py.
 """
 
 import os
+import re
 from datetime import datetime, timedelta
 
 import pytest
@@ -88,27 +89,70 @@ def _seed_victim(session, upload_folder, *, usrid, image, contact=VICTIM_EMAIL):
     return victim
 
 
-def test_reviewer_count_matches_history_link_despite_a_shared_email(
-    authenticated_client, session, upload_folder
-):
-    first = _seed_victim(
-        session, upload_folder, usrid="count-first", image="first.webp"
-    )
-    _seed_victim(session, upload_folder, usrid="count-second", image="second.webp")
-    report_id = session.scalar(
-        select(TblMeldungUser.id_meldung).where(TblMeldungUser.id_user == first.id)
+def _report_of(session, reporter):
+    return session.scalar(
+        select(TblMeldungUser.id_meldung).where(TblMeldungUser.id_user == reporter.id)
     )
 
-    response = authenticated_client.get(f"/modal/{report_id}")
 
-    assert response.status_code == 200
-    page = BeautifulSoup(response.data, "html.parser")
+def _modal_reporter(client, report_id):
+    """The report count and the reporter link the reviewer modal shows."""
+    page = BeautifulSoup(client.get(f"/modal/{report_id}").data, "html.parser")
     label = page.find("span", string="Anzahl Meldungen")
     assert label is not None
     count = label.find_next_sibling("span")
+    link = page.find("a", title=re.compile("Meldungen dieses Melders"))
     assert count is not None
-    assert count.get_text(strip=True) == "1"
-    assert page.find("a", href="/sichtungen/count-first") is not None
+    assert link is not None
+    return count.get_text(strip=True), str(link["href"])
+
+
+class TestReviewerSeesTheWholeAddress:
+    """Reviewers follow a reporter across every link filed under one address."""
+
+    def test_reporter_link_lists_every_link_of_the_address_newest_first(
+        self, authenticated_client, session, upload_folder
+    ):
+        older = _seed_victim(
+            session, upload_folder, usrid="addr-older", image="older.webp"
+        )
+        newer = _seed_victim(
+            session,
+            upload_folder,
+            usrid="addr-newer",
+            image="newer.webp",
+            contact="Victim@EXAMPLE.com",
+        )
+        _seed_victim(
+            session,
+            upload_folder,
+            usrid="addr-other",
+            image="other.webp",
+            contact="other@example.com",
+        )
+
+        count, href = _modal_reporter(authenticated_client, _report_of(session, older))
+        listing = BeautifulSoup(authenticated_client.get(href).data, "html.parser")
+
+        assert count == "2"
+        assert [card["id"] for card in listing.select(".report-card")] == [
+            f"report-card-{_report_of(session, newer)}",
+            f"report-card-{_report_of(session, older)}",
+        ]
+
+    def test_a_blank_address_joins_no_one(
+        self, authenticated_client, session, upload_folder
+    ):
+        first = _seed_victim(
+            session, upload_folder, usrid="blank-first", image="b1.webp", contact=""
+        )
+        _seed_victim(
+            session, upload_folder, usrid="blank-second", image="b2.webp", contact=""
+        )
+
+        count, _ = _modal_reporter(authenticated_client, _report_of(session, first))
+
+        assert count == "1"
 
 
 def _submit_as(client, email, **overrides):
