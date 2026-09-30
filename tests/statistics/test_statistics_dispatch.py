@@ -51,6 +51,7 @@ class TestStatsDispatchSmoke:
         "meldungen_gesamt": "statistics/stats-table-all.html",
         "meldungen_zeiten": "statistics/stats-daily-average.html",
         "feedback": "statistics/stats-feedback.html",
+        "observer": "statistics/stats-observer.html",
         # Unknown key → default case renders the menu (same as "start")
         "does-not-exist": "statistics/statistiken.html",
     }
@@ -232,6 +233,40 @@ class TestStatsFeedback:
         assert "Tagesspiegel" in [
             item.get_text(strip=True) for item in soup.select("li")
         ]
+
+
+class TestStatsObserver:
+    def test_reporters_are_listed_by_number_of_reports(self, reviewer_client, session):
+        from app.database.meldung_user import TblMeldungUser
+        from app.database.users import TblUsers
+
+        # One reporter files three of the seeded reports.
+        eager = TblUsers(
+            user_id="observer-test",
+            user_name="Erika Fleissig",
+            user_kontakt="erika@example.org",
+            user_rolle="1",
+        )
+        session.add(eager)
+        session.flush()
+        links = session.scalars(
+            select(TblMeldungUser).order_by(TblMeldungUser.id).limit(3)
+        ).all()
+        for link in links:
+            link.id_user = eager.id
+        session.commit()
+
+        response = reviewer_client.post("/statistik", data={"stats": "observer"})
+
+        assert response.status_code == 200
+        soup = BeautifulSoup(response.data, "html.parser")
+        rows = [
+            [cell.get_text(strip=True) for cell in row.select("td")]
+            for row in soup.select("tbody tr")
+        ]
+        assert ["3", "Erika Fleissig", "erika@example.org"] in rows
+        counts = [int(row[0]) for row in rows]
+        assert counts == sorted(counts, reverse=True)
 
 
 class TestStatsMtbTypeInput:

@@ -16,7 +16,9 @@ from app.database.models import (
     TblAemterCoordinaten,
     TblFundorte,
     TblMeldungen,
+    TblMeldungUser,
     TblUserFeedback,
+    TblUsers,
 )
 from app.extensions import db
 from app.tools.gen_messtisch_svg import create_measure_sheet
@@ -69,6 +71,7 @@ list_of_stats = {
     "meldungen_gesamt": "Alle Summen (Tabelle)",
     "meldungen_zeiten": "Meldezeiten",
     "feedback": "Feedback",
+    "observer": "Fleißige Melder",
 }
 
 
@@ -492,6 +495,20 @@ def stats_feedback():
     )
 
 
+def stats_observer():
+    """Reporters by number of reports, most first."""
+    count = func.count(TblMeldungUser.id).label("anzahl")
+    stmt = (
+        select(count, TblUsers.user_name, TblUsers.user_kontakt)
+        .join(TblUsers, TblUsers.id == TblMeldungUser.id_user)
+        .where(TblUsers.user_kontakt.is_not(None))
+        .group_by(TblUsers.user_kontakt, TblUsers.user_name)
+        .order_by(count.desc())
+    )
+    observers = db.session.execute(stmt).all()
+    return render_template("statistics/stats-observer.html", observers=observers)
+
+
 STATS_VIEWS = {
     "geschlecht": stats_geschlecht,
     "meldungen_meldedatum": partial(
@@ -511,4 +528,5 @@ STATS_VIEWS = {
     "meldungen_gesamt": stats_gesamt,
     "meldungen_zeiten": stats_daily_average,
     "feedback": stats_feedback,
+    "observer": stats_observer,
 }

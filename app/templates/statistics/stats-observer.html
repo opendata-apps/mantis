@@ -1,0 +1,29 @@
+{% extends "statistics/_base.html" %}
+{% block meta_keywords %}Auswertungen, Melder{% endblock %}
+{% block period %}{% endblock period %}
+{% block area %}{% endblock area %}
+{% block stats %}
+  <div class="mt-4">
+    <p class="mt-2 mb-5">Die fleißigsten Melder</p>
+    <div class="overflow-x-auto">
+      <table class="w-full tabular-nums min-w-[24rem] table-fixed">
+        <thead>
+          <tr>
+            <th class="w-[100px] text-right">Anzahl</th>
+            <th>Name</th>
+            <th>Kontakt</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for anzahl, name, kontakt in observers %}
+            <tr>
+              <td class="text-right">{{ anzahl }}</td>
+              <td>{{ name }}</td>
+              <td>{{ kontakt }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endblock stats %}
