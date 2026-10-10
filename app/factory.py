@@ -155,7 +155,6 @@ def configure_middlewares(app: Flask) -> None:
 
     @app.after_request
     def add_security_headers(response):
-        request.environ["mantis.route"] = str(request.url_rule or "unmatched")
         response.headers["X-Content-Type-Options"] = "nosniff"
         # Keep the site origin for map-provider attribution, never private paths.
         response.headers["Referrer-Policy"] = "strict-origin"
