@@ -268,6 +268,72 @@ class TestStatsObserver:
         counts = [int(row[0]) for row in rows]
         assert counts == sorted(counts, reverse=True)
 
+    def test_links_sharing_an_address_count_as_one_reporter(
+        self, reviewer_client, session
+    ):
+        from app.database.meldung_user import TblMeldungUser
+        from app.database.users import TblUsers
+
+        # Reports per link: Erika files 2 + 3 under two links whose address
+        # differs in case only; two links without an address file 4 each.
+        for index, (name, contact, reports) in enumerate(
+            [
+                ("E. Muster", "Erika@observer.example", 2),
+                ("Erika Muster", "erika@observer.example", 3),
+                ("Unbekannt", "", 4),
+                ("Unbekannt", None, 4),
+            ]
+        ):
+            reporter = TblUsers(
+                user_id=f"observer-link-{index}",
+                user_name=name,
+                user_kontakt=contact,
+                user_rolle="1",
+            )
+            session.add(reporter)
+            session.flush()
+            for _ in range(reports):
+                report = TblMeldungen(dat_fund_von=date(2026, 9, 1))
+                session.add(report)
+                session.flush()
+                session.add(TblMeldungUser(id_meldung=report.id, id_user=reporter.id))
+        session.commit()
+
+        response = reviewer_client.post("/statistik", data={"stats": "observer"})
+
+        soup = BeautifulSoup(response.data, "html.parser")
+        rows = [
+            [cell.get_text(strip=True) for cell in row.select("td")]
+            for row in soup.select("tbody tr")
+        ]
+        assert ["5", "Erika Muster", "erika@observer.example"] in rows
+        assert rows.count(["4", "Unbekannt", ""]) == 2
+
+    def test_only_the_twenty_most_active_reporters_are_listed(
+        self, reviewer_client, session
+    ):
+        from app.database.meldung_user import TblMeldungUser
+        from app.database.users import TblUsers
+
+        for index in range(21):
+            reporter = TblUsers(
+                user_id=f"observer-many-{index}",
+                user_name=f"Melder {index}",
+                user_kontakt=f"melder{index}@observer.example",
+                user_rolle="1",
+            )
+            report = TblMeldungen(dat_fund_von=date(2026, 9, 1))
+            session.add_all([reporter, report])
+            session.flush()
+            session.add(TblMeldungUser(id_meldung=report.id, id_user=reporter.id))
+        session.commit()
+
+        response = reviewer_client.post("/statistik", data={"stats": "observer"})
+
+        soup = BeautifulSoup(response.data, "html.parser")
+        assert len(soup.select("tbody tr")) == 20
+        assert "Die 20 fleißigsten Melder" in soup.get_text()
+
 
 class TestStatsMtbTypeInput:
     """The ``typeInput`` form field selects which gender/stage column
