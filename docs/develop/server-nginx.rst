@@ -47,6 +47,8 @@ Empfohlene Ergänzungen
 - Zugriff auf ``/health`` für externe Healthchecks
 - Access-Log nur in Nginx, mit Rotation per logrotate; Gunicorn schreibt
   keins (``gunicorn.conf.py``)
+- Security-Header setzt allein die App (``app/factory.py``), Nginx weder
+  ``add_header`` noch ``proxy_hide_header`` dafür
 
 Weitere Hinweise in der Flask-Dokumentation:
 `Tell Flask it is Behind a Proxy`_.

@@ -48,7 +48,9 @@ def test_x_xss_protection_is_explicitly_disabled(client):
 def test_responses_prevent_referrer_disclosure(client):
     for path in ("/melden", "/missing/private-bearer"):
         response = client.get(path)
-        assert response.headers.get("Referrer-Policy") == "strict-origin"
+        assert (
+            response.headers.get("Referrer-Policy") == "strict-origin-when-cross-origin"
+        )
 
 
 def test_no_template_uses_eval_based_htmx_attributes():

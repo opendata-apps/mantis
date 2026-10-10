@@ -156,9 +156,9 @@ def configure_middlewares(app: Flask) -> None:
     @app.after_request
     def add_security_headers(response):
         response.headers["X-Content-Type-Options"] = "nosniff"
-        # Keep the site origin for map-provider attribution, never private paths.
-        response.headers["Referrer-Policy"] = "strict-origin"
-        response.headers["X-Frame-Options"] = "SAMEORIGIN"
+        # Other origins, map providers included, get the origin, never the path.
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["X-Frame-Options"] = "DENY"
         # Explicitly off, not absent: OWASP Secure Headers asks for "0" so a
         # legacy browser cannot fall back to its own buggy XSS auditor.
         response.headers["X-XSS-Protection"] = "0"
