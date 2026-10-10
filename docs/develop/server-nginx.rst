@@ -45,7 +45,10 @@ Empfohlene Ergänzungen
 - TLS-Termination in Nginx
 - ``proxy_read_timeout`` passend zu erwarteter Last
 - Zugriff auf ``/health`` für externe Healthchecks
-- Logging und Rotation auf Nginx- und Gunicorn-Ebene
+- Access-Log nur in Nginx, mit Rotation per logrotate; Gunicorn schreibt
+  keins (``gunicorn.conf.py``)
+- Security-Header setzt allein die App (``app/factory.py``), Nginx weder
+  ``add_header`` noch ``proxy_hide_header`` dafür
 
 Weitere Hinweise in der Flask-Dokumentation:
 `Tell Flask it is Behind a Proxy`_.

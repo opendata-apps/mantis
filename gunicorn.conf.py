@@ -9,13 +9,8 @@ threads = 2
 # gunicorn's own worker_tmp_dir setting documents as able to block a worker for
 # arbitrary time when the directory is disk-backed.
 worker_tmp_dir = "/dev/shm"  # noqa: S108
-# Keep both on the streams. Pointing either at a file takes the request log out
-# of `journalctl _UID=1002`, which is the only place we read it from.
-accesslog = "-"
+# The access log is written by nginx.
 errorlog = "-"
-access_log_format = (
-    '%(h)s %(t)s "%(m)s %({mantis.route}e)s" %(s)s %(b)s %(L)s "%(f)s" "%(a)s"'
-)
 
 
 def post_worker_init(worker):

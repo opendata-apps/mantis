@@ -2,7 +2,7 @@ from datetime import date, timedelta
 from functools import partial
 
 from flask import Blueprint, current_app, render_template, request, session, url_for
-from sqlalchemy import String, cast, func, literal_column, select
+from sqlalchemy import String, case, cast, func, literal_column, select
 
 from app.auth import reviewer_required
 from app.database.ags import (
@@ -81,6 +81,7 @@ def _menu_context():
 
 
 COUNT_KEYS = ("maennlich", "weiblich", "oothek", "nymphe", "andere", "gesamt")
+OBSERVER_LIMIT = 20
 
 
 def _filters():
@@ -496,17 +497,29 @@ def stats_feedback():
 
 
 def stats_observer():
-    """Reporters by number of reports, most first."""
+    """The reporters with the most reports, most first."""
+    address = func.nullif(func.lower(TblUsers.user_kontakt), "")
     count = func.count(TblMeldungUser.id).label("anzahl")
-    stmt = (
-        select(count, TblUsers.user_name, TblUsers.user_kontakt)
+    newest = func.max(TblUsers.id).label("reporter_id")
+    # Same address match as the reviewer's Melder search; a link without an
+    # address counts on its own. The newest link supplies name and address.
+    top = (
+        select(count, newest)
         .join(TblUsers, TblUsers.id == TblMeldungUser.id_user)
-        .where(TblUsers.user_kontakt.is_not(None))
-        .group_by(TblUsers.user_kontakt, TblUsers.user_name)
-        .order_by(count.desc())
+        .group_by(address, case((address.is_(None), TblUsers.id)))
+        .order_by(count.desc(), newest.desc())
+        .limit(OBSERVER_LIMIT)
+        .subquery()
+    )
+    stmt = (
+        select(top.c.anzahl, TblUsers.user_name, TblUsers.user_kontakt)
+        .join(TblUsers, TblUsers.id == top.c.reporter_id)
+        .order_by(top.c.anzahl.desc(), TblUsers.id.desc())
     )
     observers = db.session.execute(stmt).all()
-    return render_template("statistics/stats-observer.html", observers=observers)
+    return render_template(
+        "statistics/stats-observer.html", observers=observers, limit=OBSERVER_LIMIT
+    )
 
 
 STATS_VIEWS = {
