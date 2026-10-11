@@ -178,7 +178,7 @@ def configure_middlewares(app: Flask) -> None:
                 "worker-src 'self' blob:",
                 (
                     "img-src 'self' data: blob: "
-                    "https://i.creativecommons.org "
+                    "https://licensebuttons.net "
                     "https://tile.openstreetmap.org "
                     "https://*.tile.openstreetmap.org "
                     "https://server.arcgisonline.com"
