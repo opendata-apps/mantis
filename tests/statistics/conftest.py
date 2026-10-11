@@ -19,7 +19,10 @@ def counted_reports(session):
         [(1, 2, 3, 4, 5), (2, 0, 0, 0, 0), (100, 100, 100, 100, 100)],
         strict=True,
     ):
-        report.dat_meld = report.dat_fund_von = date(1992, 6, 10)
+        # Reported three weeks after the find: the statistics filter on the
+        # find date, so a filter on dat_meld would miss every one of these.
+        report.dat_fund_von = date(1992, 6, 10)
+        report.dat_meld = date(1992, 7, 1)
         report.fundort.amt = ags
         report.fundort.mtb = "3446"
         report.statuses = [status]

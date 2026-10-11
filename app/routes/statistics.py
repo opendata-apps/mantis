@@ -322,8 +322,8 @@ def stats_amt():
         select(TblFundorte.amt, *_gender_sum_columns())
         .join(TblMeldungen)
         .where(
-            TblMeldungen.dat_meld >= date_from,
-            TblMeldungen.dat_meld <= date_to,
+            TblMeldungen.dat_fund_von >= date_from,
+            TblMeldungen.dat_fund_von <= date_to,
             TblMeldungen.is_approved,
         )
         .where(TblFundorte.amt.like(f"{ags}%"))
@@ -356,8 +356,8 @@ def stats_laender():
         select(amt_group_expr.label("amt_group"), *_gender_sum_columns())
         .join(TblMeldungen)
         .where(
-            TblMeldungen.dat_meld >= date_from,
-            TblMeldungen.dat_meld <= date_to,
+            TblMeldungen.dat_fund_von >= date_from,
+            TblMeldungen.dat_fund_von <= date_to,
             TblMeldungen.is_approved,
         )
         .group_by(amt_group_expr)
@@ -399,8 +399,8 @@ def stats_bundesland(marker):
         select(amt_group_expr.label("amt_group"), *_gender_sum_columns())
         .join(TblMeldungen)
         .where(
-            TblMeldungen.dat_meld >= date_from,
-            TblMeldungen.dat_meld <= date_to,
+            TblMeldungen.dat_fund_von >= date_from,
+            TblMeldungen.dat_fund_von <= date_to,
             state_prefix_expr == ags,
             TblMeldungen.is_approved,
         )
@@ -425,8 +425,8 @@ def stats_gesamt():
         select(TblFundorte.amt, _total_animals())
         .join(TblMeldungen)
         .where(
-            TblMeldungen.dat_meld >= date_from,
-            TblMeldungen.dat_meld <= date_to,
+            TblMeldungen.dat_fund_von >= date_from,
+            TblMeldungen.dat_fund_von <= date_to,
             TblMeldungen.is_approved,
         )
         .group_by(TblFundorte.amt)
