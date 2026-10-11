@@ -1,3 +1,14 @@
+{# Suggestions for #ags_input, swapped into #vorschlaege. The count goes out
+   of band into #ags-status: a live region announces changes to itself, not
+   content that arrives already filled in. #}
+<span id="ags-status" hx-swap-oob="innerHTML">{{ rows | length or "Keine" }} {{ "Vorschlag" if rows | length == 1 else "Vorschläge" }}</span>
 {% for ags, gen in rows %}
-<li class="flex items-center min-h-11 px-3 py-2 rounded-md cursor-pointer hover:bg-gray-100" data-ags="{{ ags }}" data-gen="{{ gen }}"><strong>{{ ags }}</strong>: {{ gen }}</li>
+  <li>
+    <button type="button"
+            class="flex items-center px-3 py-2 w-full min-h-11 text-left rounded-md hover:bg-gray-100 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-green-500/30"
+            data-ags="{{ ags }}"
+            data-gen="{{ gen }}">
+      <strong>{{ ags }}</strong>: {{ gen }}
+    </button>
+  </li>
 {% endfor %}

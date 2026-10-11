@@ -1,5 +1,5 @@
 {% extends "statistics/_base.html" %}
 {% block stats %}
-  <div id="myDiv" data-chart="zeiten" class="overflow-x-auto w-full"></div>
+  <div id="myDiv" data-chart="zeiten" role="img" aria-label="Liniendiagramm: Meldungen pro Tagesstunde" class="overflow-x-auto w-full"></div>
   <script type="application/json" id="chart-data">{{ daten | tojson }}</script>
 {% endblock stats %}

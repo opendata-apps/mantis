@@ -1,0 +1,45 @@
+{# The statistic picker, posted with the surrounding form. A call block adds
+   content beside it from lg up. #}
+{% macro StatsMenu() -%}
+<div class="p-3 bg-white rounded-lg border border-gray-200 sm:p-4">
+  <div class="flex flex-col gap-3 lg:flex-row lg:items-center">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="relative w-full lg:max-w-xs">
+      <select id="stats" name="stats" data-autosubmit aria-label="Statistik auswählen"
+        class="appearance-none bg-none py-2.5 pr-9 pl-3.5 w-full text-sm pointer-coarse:text-base text-gray-700 bg-white rounded-lg border border-gray-300 transition-[color,background-color,border-color,box-shadow] duration-200 focus:outline-hidden focus-visible:border-green-500 focus-visible:ring-2 focus-visible:ring-green-500/30">
+        {% for value, label in menu.items() %}
+        <option value="{{ value }}" {% if value == marker %}selected="selected"{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      {{ heroicon_outline("chevron-down", class="absolute right-3 top-1/2 size-4 text-gray-500 pointer-events-none -translate-y-1/2", stroke_width=2) }}
+    </div>
+    {% if caller is defined %}{{ caller() }}{% endif %}
+  </div>
+</div>
+{%- endmacro %}
+
+{# Gender/stage counts of one area; `counts` maps the route's COUNT_KEYS. #}
+{% macro count_table(counts) -%}
+<div class="overflow-x-auto">
+  <table class="w-full min-w-56 text-sm tabular-nums table-fixed">
+    <thead>
+      <tr>
+        <th class="p-1 text-left">Art</th>
+        <th class="p-1 text-right">Anzahl</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for key, label in [("maennlich", "Männlich"), ("weiblich", "Weiblich"), ("nymphe", "Nymphe"), ("oothek", "Oothek"), ("andere", "Andere")] %}
+        <tr>
+          <td class="p-1">{{ label }}</td>
+          <td class="p-1 text-right">{{ counts[key] }}</td>
+        </tr>
+      {% endfor %}
+      <tr class="border-t-2 border-b-4 border-green-500">
+        <td class="p-1">Gesamt</td>
+        <td class="p-1 text-right">{{ counts["gesamt"] }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+{%- endmacro %}

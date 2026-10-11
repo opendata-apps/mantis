@@ -1,5 +1,5 @@
 {% extends "statistics/_base.html" %}
 {% block stats %}
-  <div id="myDiv" data-chart="geschlecht" class="overflow-x-auto w-full"></div>
+  <div id="myDiv" data-chart="geschlecht" role="img" aria-label="Balkendiagramm: Meldungen nach Geschlecht und Entwicklungsstadium" class="overflow-x-auto w-full"></div>
   <script type="application/json" id="chart-data">{{ values | tojson }}</script>
 {% endblock stats %}

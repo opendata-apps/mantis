@@ -59,7 +59,7 @@ def _gender_sum_columns():
 
 
 list_of_stats = {
-    "xxx": "Bitte eine Wahl treffen ...",
+    "xxx": "Bitte eine Wahl treffen …",
     "start": "Startseite/Filter",
     "geschlecht": "Entwicklungsstadium/Geschlecht",
     "meldungen_funddatum": "Meldungen: Funddatum",

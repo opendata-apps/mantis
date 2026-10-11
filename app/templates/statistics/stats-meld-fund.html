@@ -1,7 +1,7 @@
 {% extends "statistics/_base.html" %}
 {% block stats %}
-  <h1 class="py-2 text-lg text-center">Meldungen nach Fund- und Meldedatum</h1>
-  <div id="meld" data-chart="meld-fund" class="overflow-x-auto w-full">
+  <h2 class="py-2 text-lg text-center">Meldungen nach Fund- und Meldedatum</h2>
+  <div id="meld" data-chart="meld-fund" role="img" aria-label="Balkendiagramm: Meldungen nach Fund- und Meldedatum" class="overflow-x-auto w-full">
   </div>
   <script type="application/json" id="chart-data">{{ {"trace1": trace1, "trace2": trace2} | tojson }}</script>
 {% endblock stats %}

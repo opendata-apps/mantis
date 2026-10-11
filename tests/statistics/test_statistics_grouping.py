@@ -1,3 +1,5 @@
+import re
+
 import pytest
 from bs4 import BeautifulSoup
 
@@ -31,7 +33,7 @@ def test_region_tables_show_approved_counts(
     soup = BeautifulSoup(response.data, "html.parser")
     tables = {}
     for table in soup.select("table"):
-        heading = table.find_previous("h1")
+        heading = table.find_previous(re.compile(r"^h[1-6]$"))
         assert heading is not None
         label = " ".join(heading.get_text().split())
         tables[label] = [

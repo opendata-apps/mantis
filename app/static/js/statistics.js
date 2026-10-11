@@ -7,11 +7,12 @@ document.addEventListener('change', (e) => {
 
 // Pick an AGS suggestion: show the name, submit the code
 document.addEventListener('click', (e) => {
-  const li = e.target.closest('#vorschlaege li');
-  if (!li) return;
-  document.getElementById('ags_input').value = li.dataset.gen;
-  document.getElementById('ags').value = li.dataset.ags;
+  const pick = e.target.closest('#vorschlaege button');
+  if (!pick) return;
+  document.getElementById('ags_input').value = pick.dataset.gen;
+  document.getElementById('ags').value = pick.dataset.ags;
   document.getElementById('vorschlaege').innerHTML = '';
+  document.getElementById('ags-status').textContent = '';
 });
 
 const barStyle = {
@@ -76,6 +77,24 @@ const charts = {
 
 const chart = document.querySelector('[data-chart]');
 if (chart) {
+  // German dates and numbers. The format block of plotly.js lib/locales/de.js;
+  // its dictionary only translates the mode bar, hidden on every chart here.
+  Plotly.register({
+    moduleType: 'locale',
+    name: 'de',
+    dictionary: {},
+    format: {
+      days: ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'],
+      shortDays: ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'],
+      months: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
+        'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
+      shortMonths: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'],
+      date: '%d.%m.%Y',
+      decimal: ',',
+      thousands: '.'
+    }
+  });
+  Plotly.setPlotConfig({ locale: 'de' });
   const data = JSON.parse(document.getElementById('chart-data').textContent);
   charts[chart.dataset.chart](chart.id, data);
 }

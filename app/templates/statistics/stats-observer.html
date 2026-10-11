@@ -21,8 +21,8 @@
             <tr>
               <td class="w-[20px] text-right">{{ anzahl }}</td>
 	      <th class="w-[10px] text-left"></th>
-              <td class="w-[200px] text-left">{{ name }}</td>
-              <td class="w-[250px] text-left">{{ kontakt or '' }}</td>
+              <td class="w-[200px] text-left wrap-break-word">{{ name }}</td>
+              <td class="w-[250px] text-left wrap-break-word">{{ kontakt or '' }}</td>
             </tr>
           {% endfor %}
         </tbody>

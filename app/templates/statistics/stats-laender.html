@@ -1,48 +1,13 @@
 {% extends "statistics/_base.html" %}
-{% block meta_keywords %}Auswertungen, Meßtischblatt{% endblock %}
+{% from 'statistics/_macros_stats.html' import count_table %}
+{% block meta_keywords %}Auswertungen, Bundesländer{% endblock %}
+{% block area %}{% endblock area %}
 {% block stats %}
   <div class="flex flex-wrap justify-center">
     {% for k in result.keys() %}
-      <div class="p-10">
-        <div class="mb-4 text-center">
-          <h1 class="text-xl font-bold">{{ k }}</h1>
-        </div>
-        <div class="overflow-x-auto">
-          <table class="w-full tabular-nums min-w-56 table-fixed">
-            <thead>
-              <tr>
-                <th class="text-left">Art</th>
-                <th class="text-right">Anzahl</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Männlich</td>
-                <td class="text-right">{{ result[k]['maennlich'] }}</td>
-              </tr>
-              <tr>
-                <td>Weiblich</td>
-                <td class="text-right">{{ result[k]['weiblich'] }}</td>
-              </tr>
-              <tr>
-                <td>Nymphe</td>
-                <td class="text-right">{{ result[k]['nymphe'] }}</td>
-              </tr>
-              <tr>
-                <td>Oothek</td>
-                <td class="text-right">{{ result[k]['oothek'] }}</td>
-              </tr>
-              <tr>
-                <td>Andere</td>
-                <td class="text-right">{{ result[k]['andere'] }}</td>
-              </tr>
-              <tr class="border-t-2 border-b-4 border-green-500">
-                <td>Gesamt</td>
-                <td class="text-right">{{ result[k]['gesamt'] }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+      <div class="p-4">
+        <h2 class="mb-4 text-xl font-bold text-center">{{ k }}</h2>
+        {{ count_table(result[k]) }}
       </div>
     {% endfor %}
   </div>

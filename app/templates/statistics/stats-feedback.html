@@ -4,30 +4,28 @@
 {% block area %}{% endblock area %}
 {% block stats %}
   <div class="mt-4">
-    {% if fehler != True %}
-      <p class="mt-2 mb-5">Folgende Antworten wurden gegeben:</p>
-      <div class="overflow-x-auto">
-        <table class="w-full tabular-nums min-w-[18rem] table-fixed">
-          <thead>
+    <p class="mt-2 mb-5">Folgende Antworten wurden gegeben:</p>
+    <div class="overflow-x-auto">
+      <table class="w-full min-w-72 text-sm tabular-nums table-fixed">
+        <thead>
+          <tr>
+            <th class="p-1 w-50 text-left">Art</th>
+            <th class="p-1 w-12.5 text-right">Anzahl</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for f in feedback %}
             <tr>
-              <th class="w-[200px]">Art</th>
-              <th class="w-[50px] text-right">Anzahl</th>
+              <td class="p-1 wrap-break-word">{{ f[0] }}</td>
+              <td class="p-1 text-right">{{ f[1] }}</td>
             </tr>
-          </thead>
-          <tbody>
-            {% for f in feedback %}
-              <tr>
-                <td>{{ f[0] }}</td>
-                <td class="text-right">{{ f[1] }}</td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    {% endif %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
   <div class="mt-4">
-    <h2 class="font-semibold text-lg mb-4">Ergänzende Hinweise</h2>
+    <h2 class="mb-3 text-lg font-semibold text-gray-900">Ergänzende Hinweise</h2>
     <ul class="list-disc ml-4">
       {% for d in details %}<li>{{ d }}</li>{% endfor %}
     </ul>
