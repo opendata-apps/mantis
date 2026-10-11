@@ -4,6 +4,15 @@ The database normalizes German transliterations in both index and query.
 Quoted terms keep typed punctuation from becoming search operators.
 """
 
+from sqlalchemy import ColumnElement, func
+
+
+def search_tsquery(text: str) -> ColumnElement:
+    """Build a prefix query using the same normalization as the search vector."""
+    return func.to_tsquery(
+        "simple", func.reviewer_search_normalize(prefix_tsquery(text))
+    )
+
 
 def prefix_tsquery(text: str) -> str:
     """Return to_tsquery input that ANDs each word of *text* as a prefix.

@@ -104,6 +104,16 @@ def test_place_prefix_is_not_lost_to_german_stemming(session, search_reports):
     }
 
 
+def test_grid_finds_the_same_literal_word_as_reviewer_search(
+    authenticated_client, session, search_reports
+):
+    session.commit()
+    response = authenticated_client.get("/alldata", query_string={"q": "Die"})
+    page = BeautifulSoup(response.data, "html.parser")
+    report_id = search_reports["Jüterbog"]
+    assert page.select_one(f"#cell-{report_id}-ort") is not None
+
+
 @pytest.mark.parametrize("term", ["Die", "Straße", "Strasse"])
 def test_literal_words_and_sharp_s_are_searchable(session, search_reports, term):
     assert _search(session, term) & set(search_reports.values()) == {

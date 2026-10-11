@@ -13,7 +13,7 @@ from flask import (
     request,
 )
 from flask_login import current_user
-from sqlalchemy import false, func, select
+from sqlalchemy import false, select
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.auth import reviewer_required
@@ -27,7 +27,7 @@ from app.extensions import db
 from app.routes.admin.blueprint import admin
 from app.routes.backup import available_backup_years
 from app.tools.coordinate_validation import normalize_location_input
-from app.tools.fts import prefix_tsquery
+from app.tools.fts import search_tsquery
 from app.tools.location_enrichment import recalculate_amt_mtb
 from app.tools.report_images import ensure_upload_dir
 
@@ -146,7 +146,7 @@ def grid_statement(search, search_type, sort_column, direction):
         except ValueError:
             stmt = stmt.where(false())
     elif search:
-        ts_query = func.to_tsquery("german", prefix_tsquery(search))
+        ts_query = search_tsquery(search)
         stmt = stmt.join(TblMeldungen, TblAllData.meldungen_id == TblMeldungen.id)
         stmt = stmt.where(TblMeldungen.search_vector.op("@@")(ts_query))
 

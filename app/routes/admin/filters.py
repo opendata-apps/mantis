@@ -17,7 +17,7 @@ from app.database.models import (
     TblMeldungUser,
     TblUsers,
 )
-from app.tools.fts import prefix_tsquery
+from app.tools.fts import search_tsquery
 
 
 def _parse_german_date(value: str | None) -> datetime | None:
@@ -152,9 +152,7 @@ def get_filtered_query(
             stmt = stmt.where(filed_by_same_address(search_query))
 
         if search_type == "full_text":
-            ts_query = func.to_tsquery(
-                "simple", func.reviewer_search_normalize(prefix_tsquery(search_query))
-            )
+            ts_query = search_tsquery(search_query)
             stmt = stmt.where(TblMeldungen.search_vector.op("@@")(ts_query))
             stmt = stmt.order_by(
                 func.ts_rank_cd(TblMeldungen.search_vector, ts_query).desc()
