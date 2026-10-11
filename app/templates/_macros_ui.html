@@ -100,10 +100,38 @@
     {% if pagination.has_next %}
       <a href="{{ url_for_page(endpoint, pagination.next_num) }}"
          class="flex items-center justify-center px-3 py-2 text-green-500 transition-[background-color,scale] duration-300 ease-in-out border border-green-500 rounded-sm hover:bg-green-100 hover:scale-105"
-         title="Next page">
-        <span class="sr-only">Next</span>
+         title="Nächste Seite">
+        <span class="sr-only">Nächste Seite</span>
         {{ heroicon_mini("chevron-right", class="size-3 mx-auto") }}
       </a>
     {% endif %}
   </div>
+{% endmacro %}
+{# Kreis | Ort over a report photo; the tooltip carries the full address. #}
+{% macro location_badge(fundort) %}
+  <div title="{{ fundort.ort }}&#13;&#10;Postleitzahl: {{ fundort.plz or '' }}&#13;&#10;Kreis: {{ fundort.kreis }}&#13;&#10;Land: {{ fundort.land }}"
+       class="absolute bottom-0 px-3 py-1 mb-4 ml-4 max-w-[calc(100%-2rem)] truncate font-semibold text-gray-800 rounded-full backdrop-blur-md bg-white/80">
+    {{ fundort.kreis }} | {{ fundort.ort }}
+  </div>
+{% endmacro %}
+{# A receipt line: label on the left edge, value on the right edge. Use
+   inside a <dl>; consecutive rows share both edges, so no dividers needed. #}
+{% macro fact_row(label, value) %}
+  <div class="flex gap-4 justify-between py-0.5">
+    <dt class="text-gray-500">{{ label }}</dt>
+    <dd class="text-right text-gray-900 tabular-nums">{{ value }}</dd>
+  </div>
+{% endmacro %}
+{# A status that differs from the default earns colour; the default stays
+   gray, so the exceptions are what the eye finds. tone: neutral|success|danger #}
+{% macro status_chip(tone, icon, label) %}
+  {% set tones = {
+    "neutral": "text-gray-600 bg-gray-50 border-gray-200",
+    "success": "text-emerald-700 bg-emerald-50 border-emerald-200",
+    "danger": "text-red-700 bg-red-50 border-red-200",
+  } %}
+  <span class="inline-flex gap-1 items-center px-2 py-1 text-xs font-medium rounded-md border {{ tones[tone] }}">
+    {{ heroicon_outline(icon, class="size-3 shrink-0", stroke_width=2.5) }}
+    {{ label }}
+  </span>
 {% endmacro %}
