@@ -195,7 +195,7 @@ class MantisSightingForm(StrippedForm):
         },
     )
     email = StringField(
-        "E-Mail (freiwillig)",
+        "E-Mail (wenn Meldebestätigung gewünscht)",
         validators=[
             Optional(),
             Email(
