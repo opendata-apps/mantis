@@ -1,6 +1,5 @@
 """Superuser table browser over the alldata view."""
 
-import os
 import shutil
 from datetime import datetime
 from pathlib import Path
@@ -101,9 +100,8 @@ def update_report_image_date(report_id, new_date):
     if not old_image_path.exists():
         raise FileNotFoundError(f"Image file not found: {fundorte_record.ablage}")
 
-    old_dir, old_filename = os.path.split(old_image_path)
     new_dir_path = ensure_upload_dir(base_dir, new_date_obj)
-    new_file_path = new_dir_path / old_filename
+    new_file_path = new_dir_path / old_image_path.name
 
     # Skip if source and destination are the same
     if str(old_image_path) == str(new_file_path):
@@ -112,24 +110,10 @@ def update_report_image_date(report_id, new_date):
     if new_file_path.exists():
         raise FileExistsError(f"Target image already exists: {new_file_path}")
 
-    try:
-        # Move the file
-        shutil.move(str(old_image_path), str(new_file_path))
-
-        # Check if old directory is empty, if yes, delete it
-        if os.path.exists(old_dir) and not os.listdir(old_dir):
-            os.rmdir(old_dir)
-            # Also check parent year directory
-            old_year_dir = os.path.dirname(old_dir)
-            if os.path.exists(old_year_dir) and not os.listdir(old_year_dir):
-                os.rmdir(old_year_dir)
-
-    except OSError as e:
-        raise OSError(f"Failed to move file: {e}") from e
+    shutil.move(str(old_image_path), str(new_file_path))
 
     # Update the path in fundorte table
     fundorte_record.ablage = str(new_file_path.relative_to(base_dir))
-    db.session.flush()
 
     return {
         "status": "success",
