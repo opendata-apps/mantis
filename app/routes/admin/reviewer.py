@@ -372,7 +372,7 @@ def toggle_approve_sighting(id):
 
     A report with any active review flag (UNKL "Unklar" or INFO "Informiert")
     cannot be approved — the reviewer must resolve the open review concern
-    and clear the flag first. Un-approving preserves flags.
+    and clear the flag first.
     """
 
     sighting = db.session.get(TblMeldungen, id)
@@ -380,11 +380,8 @@ def toggle_approve_sighting(id):
         current_app.logger.error("Sighting %s not found for approval toggle.", id)
         return "", 404
 
-    # Toggle between APPR and OPEN.
-    # Un-approving preserves flags (re-opening keeps existing context).
     if sighting.is_approved:
-        flags = [s for s in (sighting.statuses or []) if s in REVIEW_FLAGS]
-        sighting.statuses = [ReportStatus.OPEN.value, *flags]
+        sighting.statuses = [ReportStatus.OPEN.value]
         sighting.dat_bear = None
     else:
         # Any active review flag blocks approval — open concerns must be
@@ -474,23 +471,11 @@ def toggle_flag(id):
     if sighting.is_approved:
         return "", 400
 
-    statuses = list(sighting.statuses or [ReportStatus.OPEN.value])
+    statuses = list(sighting.statuses)
     if flag in statuses:
         statuses = [s for s in statuses if s != flag]
     else:
         statuses.append(flag)
-
-    workflow_states = {
-        ReportStatus.OPEN.value,
-        ReportStatus.APPR.value,
-        ReportStatus.DEL.value,
-    }
-    if not any(s in workflow_states for s in statuses):
-        statuses.insert(0, ReportStatus.OPEN.value)
-
-    is_valid, _error = ReportStatus.validate_combination(statuses)
-    if not is_valid:
-        return "", 400
 
     sighting.statuses = statuses
     _mark_sighting_updated(sighting)
