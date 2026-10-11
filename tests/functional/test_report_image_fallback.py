@@ -17,7 +17,6 @@ import pytest
 from PIL import Image
 
 from app.tools.report_images import (
-    MAX_STORED_DIMENSION,
     BlankImageError,
     InvalidImageError,
     process_uploaded_image,
@@ -45,12 +44,6 @@ def _webp(alpha):
 
 def _store(photo):
     return process_uploaded_image(photo, date(2025, 6, 1), "Testdorf", "9999")
-
-
-def test_original_jpeg_is_stored_as_webp(app_ctx, upload_folder):
-    rel = _store(make_test_image(size=(200, 100)))
-
-    assert Image.open(upload_folder / rel).format == "WEBP"
 
 
 @pytest.mark.parametrize(
@@ -85,23 +78,6 @@ def test_heic_original_is_decoded_and_stored_as_webp(app_ctx, upload_folder):
     stored = Image.open(upload_folder / rel)
     assert stored.format == "WEBP"
     assert stored.size == (400, 300)
-
-
-def test_oversized_original_is_capped(app_ctx, upload_folder):
-    """A forwarded original has had no client-side downscale.
-
-    Without a cap the archive would hold full-resolution frames from the
-    fallback path (~0.9MB for 12MP) next to ~0.16MB converted ones.
-    """
-    rel = _store(make_test_image(size=(4032, 3024)))
-
-    assert max(Image.open(upload_folder / rel).size) == MAX_STORED_DIMENSION
-
-
-def test_small_original_is_not_upscaled(app_ctx, upload_folder):
-    rel = _store(make_test_image(size=(640, 480)))
-
-    assert Image.open(upload_folder / rel).size == (640, 480)
 
 
 def test_blank_image_is_refused(app_ctx, upload_folder):

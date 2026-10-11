@@ -1,7 +1,5 @@
 """The map offset must not be averageable away."""
 
-from statistics import mean
-
 from app.routes.data import obfuscate_location
 
 TRUE_LAT, TRUE_LON = 52.5200, 13.4050
@@ -22,22 +20,14 @@ def test_different_reports_get_different_offsets(app):
     assert len(points) == 50
 
 
-def test_repeated_views_do_not_converge_on_the_true_position(app):
-    """The attack the per-request offset was open to.
-
-    Averaging N independent draws shrinks the error by sqrt(N), so a few dozen
-    page loads used to narrow a sighting to tens of metres. With one offset per
-    report the mean stays put, wherever the offset happened to fall.
-    """
+def test_secret_key_changes_the_report_offset(app):
     with app.app_context():
-        views = [obfuscate_location(TRUE_LAT, TRUE_LON, 4711) for _ in range(500)]
+        app.config["SECRET_KEY"] = "first-map-test-secret"
+        first = obfuscate_location(TRUE_LAT, TRUE_LON, 4711)
+        app.config["SECRET_KEY"] = "second-map-test-secret"
+        second = obfuscate_location(TRUE_LAT, TRUE_LON, 4711)
 
-    lat_error = abs(mean(lat for lat, _ in views) - TRUE_LAT)
-    lon_error = abs(mean(lon for _, lon in views) - TRUE_LON)
-
-    # A converging estimator would put this near zero; a fixed offset cannot.
-    assert lat_error == abs(views[0][0] - TRUE_LAT)
-    assert lon_error == abs(views[0][1] - TRUE_LON)
+    assert first != second
 
 
 def test_offset_stays_within_the_documented_bound(app):

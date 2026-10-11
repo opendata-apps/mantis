@@ -9,14 +9,6 @@ from app.database.ags import (
 
 
 class TestBundeslaender:
-    def test_has_all_16_states(self):
-        assert len(BUNDESLAENDER) == 16
-
-    def test_codes_are_two_digits(self):
-        for code in BUNDESLAENDER:
-            assert len(code) == 2
-            assert code.isdigit()
-
     def test_codes_cover_01_to_16(self):
         expected = {f"{i:02d}" for i in range(1, 17)}
         assert set(BUNDESLAENDER.keys()) == expected

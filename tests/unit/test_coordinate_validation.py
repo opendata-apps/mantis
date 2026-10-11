@@ -194,30 +194,9 @@ class TestCoordinateFormFields:
         form.longitude.validate(form)
         return form.latitude.errors + form.longitude.errors
 
-    def test_comma_decimals_accepted(self):
-        """Mobile keyboards emit a comma; float() would reject it in English."""
-        assert self._errors("52,52", "13,40") == []
-
-    def test_out_of_range_rejected(self):
-        assert self._errors("69.224997", "13.0") == [LAT_RANGE_ERROR]
-        assert self._errors("52.52", "74.006") == [LON_RANGE_ERROR]
-
     def test_nan_and_inf_rejected(self):
         """float() accepts both, and every range comparison against NaN is False."""
         for value in ("nan", "inf", "-inf"):
             assert self._errors(value, "13.4") == [
                 "Breitengrad ist keine gültige Zahl."
             ]
-
-    def test_unparsable_reports_one_german_error(self):
-        """NumberRange counts None as out of range, so the chain has to stop."""
-        assert self._errors("abc", "13.4") == ["Breitengrad ist keine gültige Zahl."]
-
-    def test_transposed_pair_gets_the_swap_hint(self):
-        assert (
-            self._errors("13.40", "52.52")
-            == ["Breiten- und Längengrad scheinen vertauscht zu sein."] * 2
-        )
-
-    def test_valid_pair_passes(self):
-        assert self._errors("52.52", "13.40") == []

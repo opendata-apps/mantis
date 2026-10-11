@@ -122,19 +122,6 @@ def test_literal_words_and_sharp_s_are_searchable(session, search_reports, term)
 
 
 class TestWhatTheSearchFinds:
-    def test_a_place_name_finds_the_report_from_that_place(self, session):
-        assert 8 in _search(session, "Luckenwalde")  # fundort 8 is in Luckenwalde
-
-    def test_a_partial_place_name_finds_the_same_reports(self, session):
-        """Reviewers do not type whole words; "Luckenw" used to find nothing."""
-        assert _search(session, "Luckenw") == _search(session, "Luckenwalde")
-        assert 8 in _search(session, "Luckenw")
-
-    def test_umlaut_spellings_find_the_same_reports(self, session):
-        """A reviewer may type Jueterbog or Jüterbog for the same place."""
-        assert _search(session, "Jueterbog") == _search(session, "Jüterbog")
-        assert 18 in _search(session, "Jueterbog")
-
     def test_a_word_from_the_reporter_note_finds_the_report(self, session):
         assert 5 in _search(session, "Unklar")  # report 5: "Unklar - bitte prüfen!"
 

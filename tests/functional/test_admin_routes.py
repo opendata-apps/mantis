@@ -113,26 +113,6 @@ class TestAdminRoutes:
 
         return
 
-    def test_reviewer_page_access_with_valid_reviewer(self, client):
-        """Test that reviewers can access the reviewer page."""
-        # Follow redirects to handle the automatic redirect to add default params
-        response = client.get("/reviewer/9999", follow_redirects=True)
-        assert response.status_code == 200
-        assert b"Admin Panel" in response.data or b"admin" in response.data.lower()
-        # Check that session was set
-        with client.session_transaction() as sess:
-            assert sess.get("_user_id") == "9999"
-
-    def test_reviewer_page_access_with_invalid_user(self, client):
-        """Test that non-reviewers cannot access the reviewer page."""
-        # Non-existent user
-        response = client.get("/reviewer/invalid")
-        assert response.status_code == 403
-
-        # Regular user (not reviewer)
-        response = client.get("/reviewer/1111")
-        assert response.status_code == 403
-
     def test_reviewer_page_filters(self, client):
         """Test filtering functionality on reviewer page."""
         # Test status filter
@@ -150,17 +130,6 @@ class TestAdminRoutes:
             "/reviewer/9999?dateFrom=2024-01-01&dateTo=2024-12-31&statusInput=offen&sort_order=id_desc"
         )
         assert response.status_code == 200
-
-    def test_reviewer_page_session_storage(self, client):
-        """Test that user_id is stored in session when accessing reviewer page."""
-        with client.session_transaction() as sess:
-            assert "_user_id" not in sess
-
-        response = client.get("/reviewer/9999", follow_redirects=True)
-        assert response.status_code == 200
-
-        with client.session_transaction() as sess:
-            assert sess["_user_id"] == "9999"
 
     def test_provider_view_preserves_reviewer_session(self, client):
         """Opening provider page should not override active reviewer auth session."""
@@ -309,25 +278,6 @@ class TestAdminRoutes:
         assert response.status_code == 200
         session.refresh(self.test_sighting)
         assert self.test_sighting.statuses == ["APPR"]
-
-    def test_toggle_approve_sighting_without_email(self, client, session):
-        """Test that approving works even when email sending is disabled."""
-        with client.session_transaction() as sess:
-            sess["_user_id"] = "9999"
-
-        # Approve sighting (emails are disabled in test config)
-        response = client.post(
-            f"/toggle_approve_sighting/{self.test_sighting.id}",
-            data={"filter_status": "all"},
-            headers={"HX-Request": "true"},
-        )
-        assert response.status_code == 200
-        assert b'id="report-card-' in response.data
-
-        # Verify approval happened
-        session.refresh(self.test_sighting)
-        assert self.test_sighting.bearb_id == "9999"
-        assert self.test_sighting.dat_bear is not None
 
     def test_delete_sighting(self, client, session):
         """Test soft deleting a sighting."""

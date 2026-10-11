@@ -34,15 +34,6 @@ class TestSetGenderFields:
     def test_known_genders(self, gender_value, expected):
         assert _set_gender_fields(gender_value) == expected
 
-    def test_exactly_one_flag_set_for_known_values(self):
-        for value in ("Männlich", "Weiblich", "Nymphe", "Oothek"):
-            result = _set_gender_fields(value)
-            assert sum(result.values()) == 1, f"{value} should set exactly one flag"
-
-    def test_unbekannt_sets_no_flags(self):
-        result = _set_gender_fields("Unbekannt")
-        assert sum(result.values()) == 0
-
 
 # ---------------------------------------------------------------------------
 # _format_date

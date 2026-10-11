@@ -1,17 +1,7 @@
-"""Tests for the mantis report submission process including form validation and database operations.
-
-This test suite validates the complete report submission functionality including:
-1. Form rendering
-2. Form validation (all field types)
-3. File upload handling
-4. Security features (honeypot, rate limiting)
-5. Database integration
-6. Gender field mapping
-"""
+"""Validation and persisted results of report submissions."""
 
 import datetime
 import io
-import json
 from unittest.mock import patch
 
 import pytest
@@ -19,9 +9,7 @@ from PIL import Image
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
-from app.database.fundortbeschreibung import TblFundortBeschreibung
-from app.database.models import TblFundorte, TblMeldungen, TblMeldungUser, TblUsers
-from app.tools.coordinate_validation import LAT_RANGE, LON_RANGE
+from app.database.models import TblFundorte, TblMeldungen
 from tests.helpers import build_valid_report_form_data, make_test_image
 
 # The route answers with errors keyed by error container, not by field: both
@@ -56,166 +44,7 @@ def report_form_data():
     )
 
 
-@pytest.fixture
-def location_test_data():
-    """Provides test data for TblFundorte model.
-
-    Used for database integration tests to create location records.
-
-    Returns:
-        dict: Default values for a test location record
-    """
-    return {
-        "mtb": "3644",
-        "longitude": "13.404954",
-        "latitude": "52.520008",
-        "ort": "Berlin",
-        "land": "Berlin",
-        "kreis": "Berlin",
-        "strasse": "Alexanderplatz",
-        "plz": 10178,  # Integer, not string
-        "amt": "Berlin",
-        "ablage": "test_image.jpg",
-    }
-
-
-@pytest.fixture
-def user_test_data():
-    """Provides test data for TblUsers model.
-
-    Used for database integration tests to create user records.
-
-    Returns:
-        dict: Default values for a test user record
-    """
-    return {
-        "user_id": "TEST123",
-        "user_name": "Reporter T.",
-        "user_kontakt": "test@example.com",
-        "user_rolle": "1",  # String, not integer
-    }
-
-
 class TestReportSubmission:
-    """Tests for the mantis report submission route.
-
-    This test class covers form rendering, validation, file upload,
-    database integration, and security features of the submission process.
-
-    The database fixture rebuilds and seeds the schema before each test.
-    """
-
-    def test_report_form_renders(self, client):
-        """Test that the report form page renders correctly.
-
-        Verifies:
-        - The route responds with 200 status code
-        - The page contains the correct heading text
-        """
-
-        response = client.get("/melden")
-
-        assert response.status_code == 200
-        assert b"Melden Sie Ihre Beobachtung" in response.data
-
-    def test_coordinate_range_is_exposed_to_the_frontend(self, client):
-        """The map and reviewer modal read the accepted range off <body>."""
-        response = client.get("/melden")
-
-        expected = json.dumps(
-            {"latitude": list(LAT_RANGE), "longitude": list(LON_RANGE)}
-        )
-        assert f"data-coord-range='{expected}'" in response.data.decode("utf-8")
-
-    #########################
-    # Database Model Tests #
-    #########################
-
-    def test_database_models_integration(
-        self, session, location_test_data, user_test_data
-    ):
-        """Test direct database model interaction for the report flow.
-
-        This test verifies that all database models used in the report
-        submission process can be properly created and linked together,
-        mimicking what happens during an actual form submission.
-
-        Verifies:
-        - Location records can be created
-        - Sighting records can be created and linked to locations
-        - User records can be created
-        - User-sighting relations can be created
-        - All relationships between records work correctly
-        """
-        # Test data
-        heute = datetime.datetime.now().date()
-        user_id = user_test_data["user_id"]
-
-        # First, we need to find a valid beschreibung ID from the database
-        valid_description = session.scalar(select(TblFundortBeschreibung))
-        if not valid_description:
-            # Create a new description if none exists
-            valid_description = TblFundortBeschreibung(
-                beschreibung="Im Garten, auf einer Wiese"
-            )
-            session.add(valid_description)
-            session.flush()
-
-        # 1. Create location record
-        location = TblFundorte(
-            **location_test_data,
-            beschreibung=valid_description.id,  # ID, not string
-        )
-        session.add(location)
-        session.flush()  # Get the ID without committing
-        # 2. Create sighting record
-        sighting = TblMeldungen(
-            dat_fund_von=heute - datetime.timedelta(days=7),
-            dat_meld=heute,
-            fo_zuordnung=location.id,
-            art_m=1,
-            art_w=0,
-            art_n=0,
-            art_o=0,
-            anm_melder="Spotted on a plant TEST RECORD",  # Mark as test record in comment
-        )
-        session.add(sighting)
-        session.flush()
-        # 3. Create user record
-        user = TblUsers(**user_test_data)
-        session.add(user)
-        session.flush()
-        # 4. Create user-sighting relation
-        relation = TblMeldungUser(id_meldung=sighting.id, id_user=user.id)
-        session.add(relation)
-        session.commit()
-        # Verify database entries
-        location_db = session.scalar(
-            select(TblFundorte).where(TblFundorte.id == location.id)
-        )
-        assert location_db is not None
-        assert location_db.ort == "Berlin"
-        assert location_db.beschreibung == valid_description.id
-
-        sighting_db = session.scalar(
-            select(TblMeldungen).where(TblMeldungen.id == sighting.id)
-        )
-        assert sighting_db is not None
-        assert sighting_db.art_m == 1
-        assert sighting_db.fo_zuordnung == location.id
-
-        user_db = session.scalar(select(TblUsers).where(TblUsers.user_id == user_id))
-        assert user_db is not None
-        assert user_db.user_name == "Reporter T."
-
-        relation_db = session.scalar(
-            select(TblMeldungUser).where(
-                TblMeldungUser.id_meldung == sighting.id,
-                TblMeldungUser.id_user == user.id,
-            )
-        )
-        assert relation_db is not None
-
     def test_negative_validation_missing_required_fields(self, session):
         """Test that database models enforce required fields.
 

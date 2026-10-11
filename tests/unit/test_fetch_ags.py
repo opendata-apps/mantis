@@ -8,8 +8,6 @@ these all operate on plain dicts and files.
 import pytest
 
 from app.tools.fetch_ags import (
-    _normalize_berlin_feature,
-    _normalize_bkg_feature,
     build_kreise_lookup,
     load_kreise_lookup,
     merge_gemeinden_with_berlin,
@@ -94,56 +92,17 @@ def kreise_data():
 
 
 # ---------------------------------------------------------------------------
-# _normalize_bkg_feature
-# ---------------------------------------------------------------------------
-
-
-def test_normalize_bkg_strips_to_ags_gen_geometry(bkg_feature):
-    result = _normalize_bkg_feature(bkg_feature)
-
-    assert result["type"] == "Feature"
-    assert result["properties"] == {"AGS": "12054000", "GEN": "Potsdam"}
-    assert result["geometry"] == bkg_feature["geometry"]
-    assert "extra_field" not in result["properties"]
-
-
-# ---------------------------------------------------------------------------
-# _normalize_berlin_feature
-# ---------------------------------------------------------------------------
-
-
-def test_normalize_berlin_maps_name_to_ags_and_namgem_to_gen(berlin_feature):
-    result = _normalize_berlin_feature(berlin_feature)
-
-    assert result["type"] == "Feature"
-    assert result["properties"] == {"AGS": "11000001", "GEN": "Mitte"}
-    assert result["geometry"] == berlin_feature["geometry"]
-    assert "schluessel" not in result["properties"]
-
-
-# ---------------------------------------------------------------------------
 # build_kreise_lookup
 # ---------------------------------------------------------------------------
 
 
-def test_kreise_lookup_uses_plain_name_for_kreisfreie_stadt(kreise_data):
+def test_kreise_lookup_prefixes_counties_but_not_cities(kreise_data):
     lookup = build_kreise_lookup(kreise_data)
-    assert lookup["12054"] == "Potsdam"
-
-
-def test_kreise_lookup_uses_plain_name_for_stadtkreis(kreise_data):
-    lookup = build_kreise_lookup(kreise_data)
-    assert lookup["08111"] == "Stuttgart"
-
-
-def test_kreise_lookup_prefixes_landkreis(kreise_data):
-    lookup = build_kreise_lookup(kreise_data)
-    assert lookup["12060"] == "Landkreis Barnim"
-
-
-def test_kreise_lookup_returns_all_entries(kreise_data):
-    lookup = build_kreise_lookup(kreise_data)
-    assert len(lookup) == 3
+    assert lookup == {
+        "12054": "Potsdam",
+        "12060": "Landkreis Barnim",
+        "08111": "Stuttgart",
+    }
 
 
 def test_kreise_lookup_empty_input():
@@ -155,40 +114,26 @@ def test_kreise_lookup_empty_input():
 # ---------------------------------------------------------------------------
 
 
-def test_merge_removes_berlin_whole_city(gemeinden_data, berlin_feature):
+def test_merge_replaces_berlin_city_with_normalized_districts(
+    gemeinden_data, berlin_feature
+):
     merged = merge_gemeinden_with_berlin(gemeinden_data, [berlin_feature])
 
-    ags_list = [f["properties"]["AGS"] for f in merged["features"]]
-    assert "11000000" not in ags_list
-
-
-def test_merge_keeps_non_berlin_gemeinden(gemeinden_data, berlin_feature):
-    merged = merge_gemeinden_with_berlin(gemeinden_data, [berlin_feature])
-
-    ags_list = [f["properties"]["AGS"] for f in merged["features"]]
-    assert "12054000" in ags_list
-
-
-def test_merge_adds_berlin_bezirke(gemeinden_data, berlin_feature):
-    merged = merge_gemeinden_with_berlin(gemeinden_data, [berlin_feature])
-
-    ags_list = [f["properties"]["AGS"] for f in merged["features"]]
-    assert "11000001" in ags_list
-
-
-def test_merge_returns_feature_collection(gemeinden_data, berlin_feature):
-    merged = merge_gemeinden_with_berlin(gemeinden_data, [berlin_feature])
-
-    assert merged["type"] == "FeatureCollection"
-    # 1 Gemeinde (Potsdam) + 1 Bezirk (Mitte), Berlin whole-city removed
-    assert len(merged["features"]) == 2
-
-
-def test_merge_normalizes_all_properties(gemeinden_data, berlin_feature):
-    merged = merge_gemeinden_with_berlin(gemeinden_data, [berlin_feature])
-
-    for feature in merged["features"]:
-        assert set(feature["properties"].keys()) == {"AGS", "GEN"}
+    assert merged == {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "properties": {"AGS": "12054000", "GEN": "Potsdam"},
+                "geometry": {"type": "Point", "coordinates": [13.06, 52.39]},
+            },
+            {
+                "type": "Feature",
+                "properties": {"AGS": "11000001", "GEN": "Mitte"},
+                "geometry": {"type": "Polygon", "coordinates": [[[13.3, 52.5]]]},
+            },
+        ],
+    }
 
 
 # ---------------------------------------------------------------------------

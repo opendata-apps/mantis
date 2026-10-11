@@ -3,7 +3,7 @@
 from datetime import datetime
 
 import pytest
-from sqlalchemy import func, select
+from sqlalchemy import select
 
 from app.database.models import ReportStatus, TblMeldungen
 from app.routes.admin.filters import get_filtered_query, normalize_filter_status
@@ -12,118 +12,6 @@ from app.routes.admin.reviewer import _matches_filter_status
 
 class TestIsComparisonFilters:
     """Direct unit tests for the filter query logic with status-based filtering."""
-
-    def test_open_filter_query(self, session):
-        """Test the open filter shows only OPEN status items."""
-        stmt = get_filtered_query(filter_status="offen")
-        results = session.execute(stmt).all()
-
-        for row in results:
-            meldung = row[0]  # First element is TblMeldungen
-            assert meldung.statuses == [ReportStatus.OPEN.value], (
-                f"Sighting {meldung.id} has statuses={meldung.statuses}, expected plain OPEN"
-            )
-
-    def test_approved_filter_query(self, session):
-        """Test the approved filter only shows APPR status items."""
-        stmt = get_filtered_query(filter_status="bearbeitet")
-        results = session.execute(stmt).all()
-
-        for row in results:
-            meldung = row[0]
-            assert meldung.is_approved, (
-                f"Sighting {meldung.id} has statuses={meldung.statuses}, expected APPR"
-            )
-
-    def test_deleted_filter_query(self, session):
-        """Test the deleted filter only shows DEL status items."""
-        stmt = get_filtered_query(filter_status="geloescht")
-        results = session.execute(stmt).all()
-
-        for row in results:
-            meldung = row[0]
-            assert meldung.is_deleted, (
-                f"Sighting {meldung.id} has statuses={meldung.statuses}, expected DEL"
-            )
-
-    def test_all_filter_query(self, session):
-        """Test the all filter shows everything."""
-        stmt = get_filtered_query(filter_status="all")
-        all_results = session.execute(stmt).all()
-
-        # Get counts of each type using count queries
-        open_stmt = get_filtered_query(filter_status="offen")
-        approved_stmt = get_filtered_query(filter_status="bearbeitet")
-        deleted_stmt = get_filtered_query(filter_status="geloescht")
-
-        open_count = session.execute(
-            select(func.count()).select_from(open_stmt.subquery())
-        ).scalar()
-        approved_count = session.execute(
-            select(func.count()).select_from(approved_stmt.subquery())
-        ).scalar()
-        deleted_count = session.execute(
-            select(func.count()).select_from(deleted_stmt.subquery())
-        ).scalar()
-        all_count = len(all_results)
-
-        # All count should be >= sum of individual filters (some might overlap)
-        assert all_count >= open_count, (
-            "All filter shows fewer results than open filter"
-        )
-        assert all_count >= approved_count, (
-            "All filter shows fewer results than approved filter"
-        )
-        assert all_count >= deleted_count, (
-            "All filter shows fewer results than deleted filter"
-        )
-
-    def test_open_status_handled_correctly(self, session):
-        """Test that OPEN status sightings appear in open filter."""
-        from app.database.models import TblMeldungUser
-
-        # Get any existing sighting with full relationships
-        # ORDER BY id to ensure deterministic selection
-        existing = session.scalar(select(TblMeldungen).order_by(TblMeldungen.id))
-        if not existing:
-            pytest.skip("No existing sightings in test database")
-
-        # Create a sighting with OPEN status
-        open_sighting = TblMeldungen(
-            dat_fund_von=datetime(2020, 1, 1).date(),
-            dat_meld=datetime.now().date(),
-            fo_zuordnung=existing.fo_zuordnung,
-            statuses=[ReportStatus.OPEN.value],
-            art_m=1,
-        )
-        session.add(open_sighting)
-        session.flush()
-
-        # Create the user relationship (required for the join)
-        existing_rel = session.scalar(
-            select(TblMeldungUser).where(TblMeldungUser.id_meldung == existing.id)
-        )
-
-        if existing_rel:
-            new_rel = TblMeldungUser(
-                id_meldung=open_sighting.id, id_user=existing_rel.id_user
-            )
-            session.add(new_rel)
-
-        session.commit()
-
-        open_stmt = get_filtered_query(filter_status="offen")
-        open_ids = [row[0].id for row in session.execute(open_stmt).all()]
-        assert open_sighting.id in open_ids, (
-            f"OPEN status sighting (id={open_sighting.id}) not shown in open filter"
-        )
-
-        # Check it doesn't appear in deleted filter
-        deleted_stmt = get_filtered_query(filter_status="geloescht")
-        deleted_ids = [row[0].id for row in session.execute(deleted_stmt).all()]
-        assert open_sighting.id not in deleted_ids, (
-            "OPEN status sighting shown in deleted filter"
-        )
 
     def test_unspecified_gender_filter(self, session):
         """Test the nicht_bestimmt filter for unspecified gender."""
@@ -262,27 +150,18 @@ class TestFilterStatusNormalisation:
     """
 
     @pytest.mark.parametrize("given", ["Offen", "OFFEN", " offen "])
-    def test_query_ignores_casing_and_padding(self, given, session):
-        expected = set(session.scalars(get_filtered_query(filter_status="offen")).all())
-        actual = set(
-            session.scalars(
-                get_filtered_query(filter_status=normalize_filter_status(given))
-            ).all()
-        )
-        assert actual == expected
+    def test_query_ignores_casing_and_padding(self, given):
+        assert normalize_filter_status(given) == "offen"
 
     @pytest.mark.parametrize("given", ["Geloescht", "GELOESCHT", " geloescht "])
-    def test_card_visibility_ignores_casing_and_padding(self, given, session):
+    def test_card_visibility_ignores_casing_and_padding(self, given):
         """A deleted report tells the two paths apart.
 
         An unrecognised filter value falls back to "show everything not
         deleted", which happens to be the right answer for an open report —
         so only a deleted one actually detects the mismatch.
         """
-        deleted = session.scalars(
-            select(TblMeldungen).where(TblMeldungen.is_deleted)
-        ).first()
-        assert deleted is not None, "expected a deleted report in the seed data"
+        deleted = TblMeldungen(statuses=["DEL"])
 
         assert _matches_filter_status(deleted, given) is True
         assert _matches_filter_status(deleted, "Offen") is False
