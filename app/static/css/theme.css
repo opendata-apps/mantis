@@ -41,8 +41,12 @@
       transition: background-size 0.3s var(--ease-out-quint), color 0.15s ease;
     }
 
-    .nav-links li a:hover {
-      background-size: 100% 3px;
+    /* Raw :hover, unlike the hover: utilities, is not gated by TW — on a
+       touch iPad the underline would stick to the tapped link. */
+    @media (hover: hover) and (pointer: fine) {
+      .nav-links li a:hover {
+        background-size: 100% 3px;
+      }
     }
   }
 
@@ -64,20 +68,17 @@
 
 @plugin "@tailwindcss/forms";
 
-/*
-  Override colors with Flowbite palette to match production.
-  Production uses Flowbite's emerald-based green colors (darker/more muted than TW v4 emerald).
-*/
+/* Colour overrides pin each palette to fixed hex values; a shade not listed
+   here falls back to Tailwind v4's default (oklch) value. */
 @theme {
   /* Typography - Inter Variable as default sans-serif */
   --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, sans-serif;
 
-  /* The house easing curve — was hand-written at seven call sites. */
+  /* The house easing curve. */
   --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
 
   /* Motion. Keyframes live in @theme so each one is defined once and reachable
-     as an animate-* utility; they were previously spread across theme.css,
-     home.html and error/base.html. */
+     as an animate-* utility. */
   --animate-gallery-fade-up: gallery-fade-up 280ms var(--ease-out-quint) both;
   --animate-mantis-search: mantis-search 5s ease-in-out infinite alternate;
   --animate-blink: blink 1.5s linear infinite;
@@ -179,7 +180,8 @@
   --color-red-800: #991b1b;
   --color-red-900: #7f1d1d;
 
-  /* Blue palette - for links (v3 hex values) */
+  /* Blue palette - for links (v3 hex values). blue-600 has no use in markup
+     but @tailwindcss/forms draws its focus rings and checked states with it. */
   --color-blue-100: #dbeafe;
   --color-blue-500: #3b82f6;
   --color-blue-600: #2563eb;
@@ -223,7 +225,6 @@
 
   html {
     scroll-behavior: smooth;
-    font-size: 100% !important;
     overscroll-behavior: none;
     scrollbar-gutter: stable;
   }
@@ -248,10 +249,6 @@
 @layer components {
   /* Footer social icons — guard hover scale for pointer devices only.
      In @layer components so TW utilities can still override if needed. */
-  .footer-social a {
-    display: inline-block;
-  }
-
   @media (hover: hover) and (pointer: fine) {
     .footer-social a {
       transition: transform 200ms var(--ease-out-quint);
@@ -355,7 +352,7 @@
            max-md:float-none max-md:mx-auto max-md:my-4 max-md:max-w-full;
 
     & img {
-      @apply rounded-lg shadow-md outline outline-1 -outline-offset-1 outline-black/10
+      @apply rounded-lg shadow-md outline -outline-offset-1 outline-black/10
              transition-transform duration-300 hover:scale-[1.03];
     }
 
@@ -375,24 +372,12 @@
 .datepicker.hidden {
   display: none;
 }
-.datepicker-dropdown {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 50;
-  padding-top: 4px;
-}
-.datepicker-dropdown.datepicker-orient-top {
-  padding-top: 0;
-  padding-bottom: 4px;
-}
 .datepicker-picker {
   @apply inline-block rounded-lg bg-white shadow-md border border-gray-200;
 }
 .datepicker-picker span {
   display: block;
   flex: 1;
-  border: 0;
   border-radius: 0.375rem;
   cursor: default;
   text-align: center;
@@ -411,14 +396,17 @@
 }
 .datepicker-grid {
   flex-wrap: wrap;
+  width: 15.75rem;
 }
 .datepicker-view .dow, .datepicker-view .days .datepicker-cell {
   flex-basis: 14.28571%;
 }
 .datepicker-view.datepicker-grid .datepicker-cell {
   flex-basis: 25%;
+  height: 4.5rem;
+  line-height: 4.5rem;
 }
-.datepicker-view .week, .datepicker-cell {
+.datepicker-cell {
   height: 2.25rem;
   line-height: 2.25rem;
 }
@@ -432,14 +420,16 @@
 .datepicker-header .datepicker-controls {
   padding: 0.25rem 0.25rem 0;
 }
+/* The vendor gives the class "button" (config.buttonClass) only to the
+   footer's today/clear buttons; the header's prev/view-switch/next lack it. */
 .datepicker-controls .button {
   display: inline-flex;
   position: relative;
   align-items: center;
   justify-content: center;
-  margin: 0;
+  margin: calc(0.375rem - 1px) 0.375rem;
   border: 1px solid var(--color-gray-300);
-  border-radius: 0.375rem;
+  border-radius: 0.25rem;
   box-shadow: none;
   background-color: white;
   cursor: pointer;
@@ -449,25 +439,21 @@
   text-align: center;
   line-height: 1.5;
   white-space: nowrap;
-  color: var(--color-gray-700);
-  font-size: 0.875rem;
-}
-.datepicker-controls .button:hover {
-  background-color: var(--color-gray-50);
-}
-.datepicker-controls .button:focus {
-  outline: none;
-  border-color: var(--color-green-500);
-}
-.datepicker-header .datepicker-controls .button {
-  border-color: transparent;
-  font-weight: 600;
-}
-.datepicker-footer .datepicker-controls .button {
-  margin: calc(0.375rem - 1px) 0.375rem;
-  border-radius: 0.25rem;
   width: 100%;
+  color: var(--color-gray-700);
   font-size: 0.75rem;
+}
+/* Vendor :hover rules, gated in place: moving them would reorder the
+   equal-specificity .selected / .range rules that depend on coming later. */
+@media (hover: hover) and (pointer: fine) {
+  .datepicker-controls .button:hover {
+    background-color: var(--color-gray-50);
+  }
+}
+/* An outline rather than the vendor's 1px border recolour. */
+.datepicker-controls .button:focus-visible {
+  outline: 2px solid var(--color-green-500);
+  outline-offset: 1px;
 }
 .datepicker-controls .view-switch {
   flex: auto;
@@ -478,10 +464,6 @@
   padding-left: 0.375rem;
   width: 2.25rem;
 }
-.datepicker-controls .prev-btn.disabled,
-.datepicker-controls .next-btn.disabled {
-  visibility: hidden;
-}
 .datepicker-view .dow {
   height: 1.5rem;
   line-height: 1.5rem;
@@ -489,17 +471,11 @@
   font-weight: 600;
   color: var(--color-gray-500);
 }
-.datepicker-view .week {
-  width: 2.25rem;
-  color: var(--color-gray-400);
-  font-size: 0.75rem;
-}
-.datepicker-grid {
-  width: 15.75rem;
-}
-.datepicker-cell:not(.disabled):hover {
-  background-color: var(--color-gray-100);
-  cursor: pointer;
+@media (hover: hover) and (pointer: fine) {
+  .datepicker-cell:not(.disabled):hover {
+    background-color: var(--color-gray-100);
+    cursor: pointer;
+  }
 }
 .datepicker-cell.focused:not(.selected) {
   background-color: var(--color-gray-200);
@@ -540,12 +516,10 @@
   border-radius: 0;
   background-color: var(--color-green-100);
 }
-.datepicker-cell.range:not(.disabled):not(.focused):not(.today):hover {
-  background-color: var(--color-green-200);
-}
-.datepicker-view.datepicker-grid .datepicker-cell {
-  height: 4.5rem;
-  line-height: 4.5rem;
+@media (hover: hover) and (pointer: fine) {
+  .datepicker-cell.range:not(.disabled):not(.focused):not(.today):hover {
+    background-color: var(--color-green-200);
+  }
 }
 .datepicker-input.in-edit {
   border-color: var(--color-green-500);
@@ -556,19 +530,15 @@
 
 /* Reviewer modal (native <dialog>) */
 .modal-admin {
-  border: 0;
-  padding: 0;
   background: transparent;
   margin: auto;
   width: min(96vw, 90rem);
   max-width: 96vw;
-  max-height: calc(100vh - 2rem);
   max-height: calc(100dvh - 2rem);
   overflow: hidden;
 }
 
 .modal-admin-panel {
-  height: min(90vh, calc(100vh - 2rem));
   height: min(90dvh, calc(100dvh - 2rem));
 }
 
@@ -576,13 +546,11 @@
   .modal-admin {
     width: 100vw;
     max-width: 100vw;
-    max-height: 100vh;
     max-height: 100dvh;
     margin: 0;
   }
 
   .modal-admin-panel {
-    height: 100vh;
     height: 100dvh;
     border-radius: 0;
   }
@@ -599,8 +567,6 @@ body:has(dialog:modal) {
    ========================================================================== */
 
 .modal-lightbox {
-  border: 0;
-  padding: 0;
   background: transparent;
   margin: auto;
   max-width: calc(100vw - 2rem);
@@ -631,13 +597,9 @@ body:has(dialog:modal) {
               display 220ms allow-discrete;
 }
 
-/* .lightbox-frame, .lightbox-img base, and .lightbox-info base are
-   TW utilities on the elements in layout.html.  Only selectors that
-   TW can't express (child, pseudo-class, parent-variant) live here. */
-
-.lightbox-info:empty {
-  display: none;
-}
+/* .lightbox-img and .lightbox-info are styled by TW utilities in
+   layout.html. Rules here cover descendants, parent-state selectors, and
+   the elements gallery.js builds (.lightbox-meta, -sep, -license). */
 
 .lightbox-info a {
   color: rgba(255, 255, 255, 0.85);
@@ -673,8 +635,6 @@ body:has(dialog:modal) {
 .lightbox-license img {
   display: inline;
   height: 1.1em;
-  border: 0;
-  vertical-align: middle;
 }
 
 /* Compact mode — opened from inside another dialog or report card */
@@ -701,7 +661,7 @@ body:has(dialog:modal) {
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
 }
 
-/* Pointer-device hover — no TW variant for combined hover + pointer query */
+/* Same (hover: hover) and (pointer: fine) gate as the other raw :hover rules */
 @media (hover: hover) and (pointer: fine) {
   .lightbox-btn:hover {
     background-color: rgba(0, 0, 0, 0.6);
@@ -718,7 +678,8 @@ body:has(dialog:modal) {
   cursor: none;
 }
 
-/* Hide nav arrows on touch — no TW variant for pointer: coarse */
+/* Hide nav arrows on touch. Raw CSS: as a utility, display: none would sit
+   next to the buttons' flex class in layout.html. */
 @media (hover: none) and (pointer: coarse) {
   .lightbox-prev,
   .lightbox-next {
@@ -779,15 +740,6 @@ body:has(dialog:modal) {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
-  }
-
-  /* Keep simple color/opacity feedback functional */
-  .btn-primary,
-  .btn-secondary,
-  .btn-green,
-  .mantis-footer-link,
-  .input-field-admin {
-    transition: color 0.01ms, background-color 0.01ms !important;
   }
 
   .btn-primary:active,

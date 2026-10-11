@@ -1,14 +1,13 @@
-/* Leaflet CSS */
+/* Imported again although map.js imports it too: the copy inlined here puts
+   leaflet's rules before the popup overrides below in the same file, instead
+   of relying on the order of two <link> tags. map.js imports the
+   markercluster CSS itself. */
 @import 'leaflet/dist/leaflet.css';
-@import 'leaflet.markercluster/dist/MarkerCluster.css';
-@import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
-@import 'leaflet.locatecontrol/dist/L.Control.Locate.min.css';
 
 /* Year selector control */
 #yearSelect {
   border-radius: 2px;
-  border: 2px;
-  background-clip: padding-box;
+  border: 0;
 }
 
 /* Cluster legend control */
@@ -49,34 +48,21 @@
   background: rgba(241, 128, 23, 0.8);
 }
 
-@media (max-width: 640px) {
-  .cluster-legend {
-    padding: 4px 6px;
-    font-size: 10px;
-    gap: 6px;
-  }
-
-  .cluster-dot {
-    width: 10px;
-    height: 10px;
-  }
-}
-
 /* Popup style overrides — MUST come after leaflet imports to win the cascade */
 #map .leaflet-popup {
   padding-top: 10px;
 }
 
-.leaflet-popup-content-wrapper {
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
   background: color-mix(in srgb, var(--color-green-800) 80%, transparent);
+}
+
+.leaflet-popup-content-wrapper {
   border-radius: 12px;
   color: white;
   opacity: 0;
   animation: popupFadeIn 250ms var(--ease-out-quint) forwards;
-}
-
-.leaflet-popup-tip {
-  background: color-mix(in srgb, var(--color-green-800) 80%, transparent);
 }
 
 .leaflet-popup-content {
@@ -87,11 +73,6 @@
   margin-bottom: 10px;
   font-size: 1.1rem;
   color: var(--color-gray-100);
-}
-
-.popup-list {
-  list-style-type: none;
-  padding: 0;
 }
 
 .popup-list li {
@@ -126,16 +107,20 @@
 }
 
 @media (max-width: 640px) {
+  .cluster-legend {
+    padding: 4px 6px;
+    font-size: 10px;
+    gap: 6px;
+  }
+
+  .cluster-dot {
+    width: 10px;
+    height: 10px;
+  }
+
   /* Only add margin on the public map page, not the admin modal's absolute map */
   #map:not(.absolute) {
     margin-left: 10px;
     margin-right: 10px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .leaflet-popup-content-wrapper {
-    animation: none;
-    opacity: 1;
   }
 }
