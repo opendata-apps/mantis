@@ -387,6 +387,17 @@ class TestAdminRoutes:
         session.refresh(self.test_sighting)
         assert self.test_sighting.art_m == 2
 
+    def test_reviewer_can_clear_a_note(self, authenticated_client, session):
+        self.test_sighting.anm_bearbeiter = "Erledigte Rückfrage"
+        session.commit()
+        response = authenticated_client.post(
+            f"/change_mantis_meta_data/{self.test_sighting.id}",
+            data={"type": "anm_bearbeiter", "new_data": ""},
+        )
+        assert response.status_code == 200
+        session.refresh(self.test_sighting)
+        assert self.test_sighting.anm_bearbeiter == ""
+
     def test_change_mantis_count_invalid_type(self, client, session):
         """Unknown count types should return 400 and not mutate report data."""
         with client.session_transaction() as sess:

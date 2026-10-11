@@ -214,7 +214,7 @@ def change_mantis_meta_data(id):
     if isinstance(new_data, str):
         new_data = new_data.strip()
 
-    if not new_data or not fieldname:
+    if new_data is None or not fieldname:
         return jsonify({"error": "Missing data in request"}), 400
     if fieldname not in EDITABLE_META_FIELDS:
         return jsonify({"error": "Invalid field type"}), 400
