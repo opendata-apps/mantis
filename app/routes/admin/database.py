@@ -25,6 +25,7 @@ from app.database.models import (
 )
 from app.extensions import db
 from app.routes.admin.blueprint import admin
+from app.routes.admin.counts import COUNT_FIELDS, SPECIMEN_FIELDS, set_count
 from app.routes.backup import available_backup_years
 from app.tools.coordinate_validation import normalize_location_input
 from app.tools.fts import search_tsquery
@@ -241,13 +242,9 @@ def update_cell(report_id, column):
     def rejected(message):
         return render_cell_editor(report_id, column, new_value, message)
 
-    report = db.get_or_404(TblMeldungen, report_id)
-
-    if TblAllData.__table__.c[column].type.python_type is int:
-        try:
-            new_value = int(new_value)
-        except ValueError:
-            return rejected("Enter a whole number.")
+    report = db.get_or_404(
+        TblMeldungen, report_id, with_for_update=column in COUNT_FIELDS
+    )
 
     if original_table == TblUsers:
         link = report.reporter_link
@@ -264,7 +261,14 @@ def update_cell(report_id, column):
     else:
         target = report
 
-    setattr(target, column, new_value)
+    if column in COUNT_FIELDS:
+        try:
+            set_count(report, column, new_value)
+        except ValueError as exc:
+            return rejected(str(exc))
+    else:
+        setattr(target, column, new_value)
+    report.bearb_id = current_user.user_id
 
     if column in ("latitude", "longitude"):
         recalculate_amt_mtb(target)
@@ -309,14 +313,23 @@ def update_cell(report_id, column):
         raise
 
     # The cell replaces itself; an empty dialog shell swapped in out of band closes the editor.
-    response = make_response(
-        render_template(
+    row = db.session.get(TblAllData, report_id)
+    cells = render_template(
+        "admin/partials/_cell.html",
+        row=row,
+        column=TblAllData.__table__.c[column],
+        editable=EDITABLE_FIELDS,
+    )
+    if column in SPECIMEN_FIELDS:
+        cells += render_template(
             "admin/partials/_cell.html",
-            row=db.session.get(TblAllData, report_id),
-            column=TblAllData.__table__.c[column],
+            row=row,
+            column=TblAllData.__table__.c.tiere,
             editable=EDITABLE_FIELDS,
+            oob=True,
         )
-        + render_template("admin/partials/_cell_dialog.html", oob=True)
+    response = make_response(
+        cells + render_template("admin/partials/_cell_dialog.html", oob=True)
     )
     response.headers["HX-Retarget"] = f"#cell-{report_id}-{column}"
     response.headers["HX-Reswap"] = "outerHTML"

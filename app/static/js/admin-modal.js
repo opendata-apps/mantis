@@ -622,36 +622,22 @@ document.addEventListener("change", function (e) {
   }
 });
 
-// Auto-sum for the compact reviewer layout: the derived "Anzahl" field
-// ([data-sum-output]) mirrors the sum of the [data-sum-input] counts within
-// its [data-sum-group]. 'input' updates the displayed total live; 'change'
-// also re-dispatches a change on the output so its hx-post persists `tiere`.
-function handleAutoSum(e) {
-  var input = e.target;
-  if (!input.matches || !input.matches("[data-sum-input]")) return;
-  var group = input.closest("[data-sum-group]");
-  if (!group) return;
-  var output = group.querySelector("[data-sum-output]");
-  if (!output) return;
-  var sum = 0;
-  group.querySelectorAll("[data-sum-input]").forEach(function (el) {
-    sum += parseInt(el.value, 10) || 0;
-  });
-  output.value = sum;
-  if (e.type === "change") {
-    output.dispatchEvent(new Event("change", { bubbles: true }));
+document.addEventListener("htmx:afterRequest", function (e) {
+  var input = e.detail.elt;
+  if (!input.matches("[data-sum-input]")) return;
+  if (e.detail.successful) {
+    var saved = JSON.parse(e.detail.xhr.responseText);
+    input.closest("[data-sum-group]").querySelector("[data-sum-output]").value = saved.total;
+  } else {
+    showToast("Anzahl konnte nicht gespeichert werden. Bitte prüfen Sie die Eingabe.");
   }
-  return sum;
-}
+});
 document.addEventListener("DOMContentLoaded", function () {
   // Delegated click handler for copy-to-clipboard buttons
   document.addEventListener("click", function (e) {
     var button = e.target.closest(".btn-copy[data-copy-value]");
     if (button) handleCopyClick(button);
   });
-
-  document.addEventListener("input", handleAutoSum);
-  document.addEventListener("change", handleAutoSum);
 
   // Prevent accidental value changes when scrolling the modal over a focused
   // number input. Browsers step <input type=number> on wheel while focused,

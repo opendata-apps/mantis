@@ -369,23 +369,50 @@ class TestAdminRoutes:
         session.refresh(self.test_sighting)
         assert not self.test_sighting.is_deleted
 
-    def test_change_mantis_count(self, client, session):
-        """Test changing mantis count fields."""
+    def test_modal_category_edit_saves_the_matching_total(self, client, session):
         with client.session_transaction() as sess:
             sess["_user_id"] = "9999"
 
-        # Update male count
+        self.test_sighting.art_m = 1
+        self.test_sighting.art_w = 3
+        self.test_sighting.art_n = 0
+        self.test_sighting.art_o = 4
+        self.test_sighting.art_f = None
+        self.test_sighting.tiere = 8
+        session.commit()
+
         response = client.post(
             f"/change_mantis_count/{self.test_sighting.id}",
             data={"type": "Männchen", "new_count": "2"},
         )
         assert response.status_code == 200
-        data = json.loads(response.data)
-        assert data["success"] is True
+        assert response.json["success"] is True
 
-        # Verify in database
         session.refresh(self.test_sighting)
         assert self.test_sighting.art_m == 2
+        assert self.test_sighting.tiere == 9
+
+    def test_grid_category_edit_saves_the_matching_total(self, client, session):
+        self.test_sighting.art_m = 1
+        self.test_sighting.art_w = 3
+        self.test_sighting.art_n = 0
+        self.test_sighting.art_o = 4
+        self.test_sighting.art_f = None
+        self.test_sighting.tiere = 8
+        session.commit()
+
+        response = self.post_cell(client, self.test_sighting.id, "art_m", "2")
+        assert response.status_code == 200
+
+        session.refresh(self.test_sighting)
+        assert self.test_sighting.art_m == 2
+        assert self.test_sighting.tiere == 9
+
+    def test_grid_rejects_negative_counts(self, client, session):
+        response = self.post_cell(client, self.test_sighting.id, "art_m", "-1")
+        assert 'role="alert"' in response.text
+        session.refresh(self.test_sighting)
+        assert self.test_sighting.art_m == 1
 
     def test_reviewer_can_clear_a_note(self, authenticated_client, session):
         self.test_sighting.anm_bearbeiter = "Erledigte Rückfrage"

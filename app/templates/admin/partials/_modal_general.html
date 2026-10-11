@@ -261,9 +261,6 @@
                                 tabindex="-1"
                                 readonly
                                 aria-disabled="true"
-                                hx-post="{{ url_for('admin.change_mantis_count', id=sighting.id) }}"
-                                hx-swap="none"
-                                hx-vals='{{ {"type": "Anzahl"}|tojson }}'
                                 class="w-20 font-semibold text-center text-gray-800 rounded-md cursor-default bg-gray-100 hover:bg-gray-100 tabular-nums input-field-admin pointer-events-none"
                                 title="Automatische Summe aus allen Kategorien"
                             />

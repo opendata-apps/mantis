@@ -29,6 +29,7 @@ from app.database.models import (
 )
 from app.extensions import db, limiter
 from app.routes.admin.blueprint import admin
+from app.routes.admin.counts import set_count
 from app.routes.admin.filters import (
     get_filtered_query,
     get_reviewer_filter_args,
@@ -42,13 +43,6 @@ from app.tools.coordinate_validation import (
 from app.tools.location_enrichment import recalculate_amt_mtb
 from app.tools.postal_code import is_valid_plz
 from app.tools.send_reviewer_email import build_email_payload, send_email
-
-# Bounds of the PostgreSQL integer columns the count fields are stored in.
-INT32_MIN = -(2**31)
-INT32_MAX = 2**31 - 1
-
-# Flags that sit alongside a workflow state rather than replacing it.
-REVIEW_FLAGS = frozenset({ReportStatus.INFO.value, ReportStatus.UNKL.value})
 
 # Fields the inline metadata editor may write, split by the table they sit on.
 REPORT_META_FIELDS = frozenset({"fo_quelle", "anm_bearbeiter"})
@@ -547,17 +541,12 @@ def change_mantis_count(id):
     "Change mantis count for a specific type"
     new_count_raw = request.form.get("new_count")
     mantis_type = (request.form.get("type") or "").strip()
-    sighting = db.session.get(TblMeldungen, id)
-    if sighting is None:
-        abort(404, description="Sighting not found")
-
     count_fields = {
         "Männchen": "art_m",
         "Weibchen": "art_w",
         "Nymphe": "art_n",
         "Oothek": "art_o",
         "Andere": "art_f",
-        "Anzahl": "tiere",
     }
     field = count_fields.get(mantis_type)
     if field is None:
@@ -566,21 +555,14 @@ def change_mantis_count(id):
     if new_count_raw is None or str(new_count_raw).strip() == "":
         return jsonify({"error": "Missing count value"}), 400
 
+    sighting = db.get_or_404(TblMeldungen, id, with_for_update=True)
     try:
-        new_count = int(str(new_count_raw).strip())
-    except (ValueError, TypeError):
-        return jsonify({"error": "Invalid count value"}), 400
-
-    if not (INT32_MIN <= new_count <= INT32_MAX):
-        return jsonify({"error": "Count value out of range"}), 400
-
-    if new_count < 0:
-        return jsonify({"error": "Count must be non-negative"}), 400
-
-    setattr(sighting, field, new_count)
+        set_count(sighting, field, new_count_raw)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
 
     _mark_sighting_updated(sighting)
     if not _commit_or_log(f"Failed to update mantis count for sighting {id}"):
         return jsonify({"error": "Failed to update mantis count"}), 500
 
-    return jsonify({"success": True})
+    return jsonify({"success": True, "total": sighting.tiere})
