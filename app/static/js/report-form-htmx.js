@@ -807,7 +807,7 @@ const ReportForm = {
 
             let msg = '📍 GPS-Position gefunden';
             if (accuracy > 1000) msg += ' (ungefähr)';
-            else if (accuracy > 100) msg += ` (ca. ${Math.round(accuracy)}m genau)`;
+            else if (accuracy > 100) msg += ` (ca. ${Math.round(accuracy)} m genau)`;
             else msg += ' (präzise)';
             msg += '. Bitte auf die Karte klicken, um den Fundort zu markieren.';
             this.showHint('coordinates', msg);

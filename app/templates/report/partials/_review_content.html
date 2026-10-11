@@ -39,7 +39,7 @@
           {# Photo src injected client-side via htmx:afterSwap to avoid base64 round-trip #}
           <img id="review-photo"
                class="object-contain max-w-full max-h-full"
-               alt="Uploaded photo">
+               alt="Hochgeladenes Foto">
         </div>
       </div>
       <div class="md:w-2/3">
@@ -53,7 +53,7 @@
             <span class="text-gray-900 ml-1">{{ location_labels.get(form.location_description.data or "", "-") }}</span>
           </div>
           <div>
-            <span class="font-medium text-gray-700">Zusätzliche Details:</span>
+            <span class="font-medium text-gray-700">Details zum Fundort:</span>
             <div class="p-2 mt-1 overflow-y-auto text-gray-900 wrap-break-word rounded-md bg-gray-50 max-h-32">
               {{ form.description.data or "-" }}
             </div>
@@ -75,7 +75,7 @@
             <span class="font-medium text-gray-700">Adressinformationen</span>
           </div>
           <div class="grid grid-cols-1 gap-2 ml-7 md:grid-cols-2">
-            {% for label, field in [("Straße", form.fund_street), ("PLZ", form.fund_zip_code), ("Stadt/Ort", form.fund_city), ("Bundesland", form.fund_state), ("Landkreis", form.fund_district)] %}
+            {% for label, field in [("Straße", form.fund_street), ("Postleitzahl", form.fund_zip_code), ("Stadt/Ort", form.fund_city), ("Bundesland", form.fund_state), ("Landkreis", form.fund_district)] %}
               <div>
                 <span class="text-sm text-gray-600">{{ label }}:</span>
                 <span class="text-gray-900 ml-1">{{ field.data or "-" }}</span>

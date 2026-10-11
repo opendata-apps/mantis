@@ -747,6 +747,14 @@ body:has(dialog:modal) {
   height: 40px;
 }
 
+.leaflet-control-locate a {
+  @apply flex items-center justify-center;
+}
+
+.leaflet-control-locate a .leaflet-locate-icon {
+  margin: 0;
+}
+
 /* The geocoder's own CSS sets font-size:120% (14.4px), which makes iOS Safari
    zoom the viewport when the address search is focused on the /melden map. */
 .leaflet-control-geocoder-form input {

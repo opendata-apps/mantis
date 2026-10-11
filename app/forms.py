@@ -212,7 +212,17 @@ class MantisSightingForm(StrippedForm):
                 message="Die E-Mail-Adresse darf maximal 120 Zeichen lang sein.",
             ),
         ],
-        render_kw={"placeholder": "ihre.email@beispiel.de", "autocomplete": "email"},
+        # inputmode rather than type="email": the form has no novalidate, so
+        # type="email" would put the browser's own bubble ahead of the inline
+        # HTMX errors. The rest stops iOS capitalising and "correcting" it.
+        render_kw={
+            "placeholder": "ihre.email@beispiel.de",
+            "autocomplete": "email",
+            "inputmode": "email",
+            "autocapitalize": "none",
+            "autocorrect": "off",
+            "spellcheck": "false",
+        },
     )
     identical_finder_reporter = BooleanField(
         "Ich bin der Finder dieser Gottesanbeterin"
@@ -299,7 +309,11 @@ class MantisSightingForm(StrippedForm):
     fund_zip_code = StringField(
         "Postleitzahl",
         validators=[Optional(), validate_zip_code],
-        render_kw={"placeholder": "z.B. 10115", "autocomplete": "off"},
+        render_kw={
+            "placeholder": "z.B. 10115",
+            "autocomplete": "off",
+            "inputmode": "numeric",
+        },
     )
     fund_city = StringField(
         "Stadt/Ort *",

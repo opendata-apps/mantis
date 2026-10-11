@@ -1,8 +1,6 @@
 {% macro report_field_class(kind="default", extra="") -%}
   {%- set shared = "text-gray-700 bg-white shadow-xs border border-gray-300 focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:border-transparent transition ease-in-out [&[readonly]]:bg-gray-50! [&[readonly]]:text-gray-500! [&[readonly]]:cursor-not-allowed!" -%}
   {%- if kind == "compact" -%}
-    {{- shared }} w-full px-3 py-2 text-sm md:text-base rounded-md duration-150 max-sm:py-2.5 max-sm:text-base max-sm:min-h-11 {{ extra -}}
-  {%- elif kind == "compact-base" -%}
     {{- shared }} w-full px-3 py-2 text-base rounded-md duration-150 max-sm:py-2.5 max-sm:min-h-11 {{ extra -}}
   {%- elif kind == "coordinate" -%}
     {{- shared }} block w-full px-4 py-2 text-base rounded-md duration-300 hover:bg-gray-200 max-sm:px-3 max-sm:py-2.5 max-sm:min-h-11 {{ extra -}}
@@ -20,13 +18,13 @@
        no CSP exception. app/tools/image_upload.py is the only source. #}
     <script type="application/json" id="upload-config">{{ upload_config | tojson }}</script>
     <div id="photo-upload-area"
-         class="relative flex justify-center h-48 px-6 py-8 mt-1 cursor-pointer border-2 border-dashed border-gray-200 rounded-lg transition-[border-color,background-color] duration-300 ease-[ease] hover:border-green-500 hover:bg-green-500/5 [&.dragover]:border-green-500 [&.dragover]:bg-green-500/5">
+         class="relative flex justify-center h-48 px-6 py-8 mt-1 cursor-pointer has-focus-visible:ring-2 has-focus-visible:ring-green-500 border-2 border-dashed border-gray-200 rounded-lg transition-[border-color,background-color] duration-300 ease-[ease] hover:border-green-500 hover:bg-green-500/5 [&.dragover]:border-green-500 [&.dragover]:bg-green-500/5">
       <!-- Loading indicator for dropzone -->
       <div id="dropzoneLoadingIndicator"
            hidden
            class="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/80">
         <div class="size-12 border-4 border-gray-200 rounded-full border-t-green-600 animate-spin"></div>
-        <div id="dropzoneLoadingMessage" class="mt-4 font-medium text-green-700">Bild wird verarbeitet...</div>
+        <div id="dropzoneLoadingMessage" role="status" class="mt-4 font-medium text-green-700">Bild wird verarbeitet…</div>
       </div>
       <div class="flex flex-col items-center justify-center h-full space-y-2 text-center">
         {{ heroicon_outline("cloud-arrow-up", class="size-8 text-gray-500", stroke_width=2) }}
@@ -39,7 +37,7 @@
           {# The paste hint stays on wide screens only: a key combination is
              noise on the phones that send two thirds of all reports. #}
           <p class="mt-1">oder ziehen Sie ein Bild hierher<span class="hidden md:inline"> oder fügen es mit Strg/Cmd+V ein</span></p>
-          <p class="mt-1 text-xs text-gray-600">{{ upload_config.formats | join(", ") }} bis zu {{ upload_config.maxMb }}MB</p>
+          <p class="mt-1 text-xs text-gray-600">{{ upload_config.formats | join(", ") }} bis zu {{ upload_config.maxMb }}&nbsp;MB</p>
         </div>
       </div>
     </div>
@@ -68,12 +66,13 @@
         <div class="relative flex items-center justify-center w-full h-48 overflow-hidden bg-gray-50">
           <img id="preview-img"
                class="block object-contain max-w-full max-h-full"
-               alt="Preview">
+               alt="Vorschau des ausgewählten Fotos">
           <button type="button"
                   id="remove-photo"
                   {# 28px visible; pseudo-element lifts the tap target to 40px without bulking up the badge. #}
                   class="absolute p-1 text-white bg-red-500 rounded-full top-2 right-2 hover:bg-red-600 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2 after:absolute after:top-1/2 after:left-1/2 after:size-10 after:-translate-1/2"
-                  title="Foto entfernen">
+                  title="Foto entfernen"
+                  aria-label="Foto entfernen">
             {{ heroicon_outline("x-mark", class="size-5") }}
           </button>
         </div>
@@ -127,23 +126,25 @@
   </div>
 {% endmacro %}
 {% macro render_step_navigation(current_step, total_steps, show_prev=True, show_next=False, show_submit=False) %}
-  {% set nav_class = "min-h-11 max-[480px]:min-w-20 max-[480px]:text-sm" %}
+  {# Back stays quiet so only the next step carries weight; sizes come from
+     the btn-* utilities, so nothing here may set font-size or padding. #}
+  {% set nav_class = "gap-2 min-h-12 min-w-24 max-[480px]:min-w-20" %}
   <div class="relative flex items-center justify-between min-h-11 mt-6">
     {% if show_prev %}
       <button type="button"
-              class="{{ nav_class }} flex items-center justify-center w-24 px-4 sm:pl-3.5 py-2 font-medium text-white transition-colors duration-200 ease-in-out bg-gray-600 rounded-md shadow-xs hover:bg-gray-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+              class="{{ nav_class }} btn-secondary"
               data-prev-step="{{ current_step }}">
-        {{ heroicon_outline("chevron-left", class="size-4 mr-1", stroke_width=2.5) }} <span class="hidden sm:inline">Zurück</span>
+        {{ heroicon_outline("chevron-left", class="size-4", stroke_width=2.5) }} <span class="max-sm:sr-only">Zurück</span>
       </button>
     {% else %}
-      <span class="{{ nav_class }} w-24"></span>
+      <span class="{{ nav_class }}"></span>
     {% endif %}
     <span class="absolute text-xs sm:text-sm text-gray-600 tabular-nums -translate-1/2 left-1/2 top-1/2 whitespace-nowrap">
       <span class="hidden sm:inline">Schritt</span> {{ current_step }}<span class="sm:hidden">/</span><span class="hidden sm:inline"> von </span>{{ total_steps }}
     </span>
     {% if show_next %}
       <button type="button"
-              class="{{ nav_class }} flex items-center justify-center w-24 px-4 sm:pr-3.5 py-2 font-medium text-white transition-colors duration-200 ease-in-out bg-green-600 rounded-md shadow-xs hover:bg-green-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-wait"
+              class="{{ nav_class }} btn-primary disabled:opacity-50 disabled:cursor-wait"
               hx-post="{{ url_for('report.validate_step_partial') }}"
               hx-include="#reportForm"
               hx-vals='{{ {"step": current_step}|tojson }}'
@@ -151,15 +152,15 @@
               hx-swap="innerHTML"
               hx-disabled-elt="this"
               data-step="{{ current_step }}">
-        <span class="hidden sm:inline">Weiter</span> {{ heroicon_outline("chevron-right", class="size-4 ml-1", stroke_width=2.5) }}
+        <span class="max-sm:sr-only">Weiter</span> {{ heroicon_outline("chevron-right", class="size-4", stroke_width=2.5) }}
       </button>
     {% elif show_submit %}
       <button type="submit"
-              class="{{ nav_class }} flex items-center justify-center w-auto pl-4 pr-3.5 py-2 font-medium text-white transition-colors duration-200 ease-in-out bg-green-600 rounded-md shadow-xs hover:bg-green-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-        Absenden {{ heroicon_outline("paper-airplane", class="size-4 ml-1", stroke_width=2) }}
+              class="{{ nav_class }} btn-primary">
+        Absenden {{ heroicon_outline("paper-airplane", class="size-4", stroke_width=2) }}
       </button>
     {% else %}
-      <span class="w-24"></span>
+      <span class="{{ nav_class }}"></span>
     {% endif %}
   </div>
 {% endmacro %}

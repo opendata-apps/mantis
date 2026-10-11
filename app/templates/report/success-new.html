@@ -7,24 +7,20 @@
 {% block page_title %}Danke für die Meldung | Mantis Religiosa Mitmachprojekt | Gottesanbeterin Gesucht{% endblock %}
 {% block meta_description %}Erfolgreiche Meldung{% endblock %}
 {% block content %}
-  <div class="flex items-center justify-center min-h-screen bg-gray-100">
-    <div class="p-4 transition duration-500 bg-white shadow-xl md:p-8 rounded-lg">
+  <div class="flex items-center justify-center min-h-svh">
+    <div class="p-4 bg-white shadow-xl md:p-8 rounded-lg">
       <div class="flex flex-col items-center justify-center p-3 text-center md:p-6">
         {{ heroicon_outline("check-circle", class="size-12 mb-4 text-green-500 md:size-16", stroke_width=2) }}
-        <h2 class="mb-2 text-xl font-semibold text-gray-800 md:text-2xl">Meldung Erfolgreich!</h2>
+        <h2 class="mb-2 text-xl font-semibold text-gray-800 md:text-2xl">Meldung erfolgreich!</h2>
         <p class="mb-4 text-sm text-gray-600 md:text-base">
-          {% if addresse == 'True' %}
-            Ihre Meldung wurde erfolgreich übermittelt. Vielen
-            Dank für Ihren Beitrag! In Kürze erhalten Sie eine Bestätigungsmail.
-          {% else %}
-            Ihre Meldung wurde erfolgreich übermittelt. Vielen Dank für Ihren Beitrag!
-          {% endif %}
+          Ihre Meldung wurde erfolgreich übermittelt. Vielen Dank für Ihren Beitrag!
+          {% if addresse == 'True' %}In Kürze erhalten Sie eine Bestätigungsmail.{% endif %}
         </p>
         <div class="flex flex-col justify-center gap-4 md:flex-row">
-          {{ shine_link(url_for('report.melden', usrid=usrid if usrid else None), "weitere Meldung", "px-4 py-2 text-white transition duration-300 ease-out bg-green-600 rounded-md md:px-6 md:py-3 hover:bg-green-700 hover:ring-2 hover:ring-offset-2 hover:ring-green-500", label_class="text-sm md:text-lg") }}
-          {{ shine_link(url_for('provider.melder_index', usrid=usrid) if usrid else url_for('data.show_map', year=now.year), "Meldungen ansehen", "px-4 py-2 text-gray-700 transition duration-300 ease-out bg-gray-200 rounded-md md:px-6 md:py-3 hover:bg-linear-to-r hover:from-gray-200 hover:to-gray-300 hover:ring-2 hover:ring-offset-2 hover:ring-gray-400", label_class="text-sm text-gray-800 md:text-lg") }}
-          </div>
+          {{ shine_link(url_for('report.melden', usrid=usrid if usrid else None), "Weitere Meldung", "px-4 py-2 text-white transition duration-300 ease-out bg-green-600 rounded-lg md:px-6 md:py-3 hover:bg-linear-to-r hover:from-green-600 hover:to-green-500 hover:ring-2 hover:ring-offset-2 hover:ring-green-500", label_class="text-sm md:text-lg") }}
+          {{ shine_link(url_for('provider.melder_index', usrid=usrid) if usrid else url_for('data.show_map', year=now.year), "Meldungen ansehen", "px-4 py-2 text-gray-700 transition duration-300 ease-out bg-gray-200 rounded-lg md:px-6 md:py-3 hover:bg-linear-to-r hover:from-gray-200 hover:to-gray-300 hover:ring-2 hover:ring-offset-2 hover:ring-gray-400", label_class="text-sm text-gray-800 md:text-lg") }}
         </div>
       </div>
     </div>
-  {% endblock content %}
+  </div>
+{% endblock content %}

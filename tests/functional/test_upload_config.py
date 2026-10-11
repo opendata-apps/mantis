@@ -73,7 +73,7 @@ def test_hint_text_names_the_formats_and_the_limit(client):
     text = _form_page(client).get_text()
     for label in display_formats():
         assert label in text
-    assert f"{max_upload_mb()}MB" in text
+    assert f"{max_upload_mb()}\N{NO-BREAK SPACE}MB" in text
 
 
 def test_form_validator_uses_the_same_source(app_ctx):
