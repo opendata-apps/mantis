@@ -23,7 +23,10 @@ from app.database.models import (
 from app.extensions import db
 from app.tools.gen_messtisch_svg import create_measure_sheet
 
+
 stats = Blueprint("statistics", __name__)
+COUNT_KEYS = ("maennlich", "weiblich", "oothek", "nymphe", "andere", "gesamt")
+OBSERVER_LIMIT = 20
 
 
 def _total_animals():
@@ -78,10 +81,6 @@ list_of_stats = {
 @stats.context_processor
 def _menu_context():
     return {"menu": list_of_stats, "marker": session.get("marker")}
-
-
-COUNT_KEYS = ("maennlich", "weiblich", "oothek", "nymphe", "andere", "gesamt")
-OBSERVER_LIMIT = 20
 
 
 def _filters():

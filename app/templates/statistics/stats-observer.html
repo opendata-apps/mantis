@@ -3,23 +3,26 @@
 {% block period %}{% endblock period %}
 {% block area %}{% endblock area %}
 {% block stats %}
-  <div class="mt-4">
+
+  <div class="w-fit">
     <p class="mt-2 mb-5">Die {{ limit }} fleißigsten Melder</p>
-    <div class="overflow-x-auto">
-      <table class="w-full tabular-nums min-w-[24rem] table-fixed">
+    <div>
+      <table class="text-left border-b">
         <thead>
-          <tr>
-            <th class="w-[100px] text-right">Anzahl</th>
-            <th>Name</th>
-            <th>Kontakt</th>
+          <tr class="gap-x-3">
+            <th class="w-[20px] text-right">Anzahl</th>
+	    <th class="w-[10px] text-left"></th>
+            <th class="w-[200px] text-left">Name</th>
+            <th class="w-[250px] text-left">Kontakt</th>
           </tr>
         </thead>
         <tbody>
           {% for anzahl, name, kontakt in observers %}
             <tr>
-              <td class="text-right">{{ anzahl }}</td>
-              <td>{{ name }}</td>
-              <td>{{ kontakt or '' }}</td>
+              <td class="w-[20px] text-right">{{ anzahl }}</td>
+	      <th class="w-[10px] text-left"></th>
+              <td class="w-[200px] text-left">{{ name }}</td>
+              <td class="w-[250px] text-left">{{ kontakt or '' }}</td>
             </tr>
           {% endfor %}
         </tbody>
