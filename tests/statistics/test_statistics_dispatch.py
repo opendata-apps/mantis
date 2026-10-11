@@ -105,9 +105,32 @@ class TestStatsAmt:
     """``stats_amt`` aggregates report counts per Amt/Gemeinde.
 
     The route is reached through the dispatcher; the template branch
-    handles both "has results" (sets ``gemeinde`` from the first row)
-    and "no results" (``fehler=True``).
+    handles both "has results" and "no results" (``fehler=True``).
     """
+
+    def test_the_pages_area_field_changes_the_area(self, reviewer_client):
+        """The page's own AGS field must post under the name the dispatcher
+        reads; it once posted ``gemeinde`` and was silently ignored."""
+        page = reviewer_client.post(
+            "/statistik",
+            data={
+                "stats": "meldungen_amt",
+                "dateFrom": "2024-01-01",
+                "dateTo": "2026-12-31",
+                "ags": "",
+            },
+        )
+        soup = BeautifulSoup(page.data, "html.parser")
+        field = soup.select_one("#gemeinde")
+        page_form = soup.select_one("form:has(#gemeinde)")
+        assert field is not None
+        assert page_form is not None
+        form = {i["name"]: i.get("value", "") for i in page_form.select("input")}
+        form[field["name"]] = "12054"
+
+        response = reviewer_client.post("/statistik", data=form)
+
+        assert "das Gebiet 12054 wurden" in response.get_data(as_text=True)
 
     def test_wide_range_has_results(self, reviewer_client):
         response = reviewer_client.post(

@@ -341,7 +341,6 @@ def stats_amt():
     return render_template(
         "statistics/stats-gemeinde.html",
         result=dbanswers,
-        gemeinde=results[0].amt if results else "",
         fehler=not results,
     )
 
