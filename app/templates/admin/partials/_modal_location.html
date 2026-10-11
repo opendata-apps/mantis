@@ -3,7 +3,7 @@
    Template variables: sighting, editable, edit_mode #}
 {% set disabled = '' if editable else 'disabled' %}
 {% set fundort = sighting.fundort %}
-<!-- Map — fills entire tab area via #tab-content as containing block -->
+{# Map — fills entire tab area via #tab-content as containing block #}
 <div id="map"
      class="absolute inset-0 rounded-lg! shadow-inner"
      data-lat="{{ fundort.latitude }}"
@@ -33,11 +33,11 @@
   <input type="hidden" name="kreis" value="">
   <input type="hidden" name="land" value="">
 </form>
-<!-- Floating panel -->
+{# Floating panel #}
 <div class="absolute inset-y-3 left-3 z-1001 w-80 pointer-events-none flex flex-col">
   <div class="pointer-events-auto bg-white/85 backdrop-blur-md rounded-lg shadow-lg p-4 space-y-4 overflow-y-auto">
-    <!-- Address -->
-    <h3 class="text-sm font-semibold text-gray-900">Standort Details</h3>
+    {# Address #}
+    <h3 class="modal-section-heading">Standortdetails</h3>
     <div id="currentAddressDisplay" class="space-y-1.5">
       {% set street = fundort.strasse or '' %}
       {% set city_line = ((fundort.plz or '') ~ ' ' ~ (fundort.ort or '')) | trim %}
@@ -53,26 +53,27 @@
            class="flex items-start gap-2 {{ 'hidden' if not street }}"
            data-row>
         {{ heroicon_outline("map-pin", class="size-4 mt-0.5 shrink-0 text-gray-400") }}
-        <span class="text-sm font-medium text-gray-800" data-text>{{ street }}</span>
+        <span class="text-sm font-medium text-gray-800 wrap-break-word min-w-0" data-text>{{ street }}</span>
       </div>
       <div id="addressCity"
            class="flex items-start gap-2 {{ 'hidden' if not city_line }}"
            data-row>
         {{ heroicon_outline("building-office", class="size-4 mt-0.5 shrink-0 text-gray-400") }}
-        <span class="text-sm text-gray-700" data-text>{{ city_line }}</span>
+        <span class="text-sm text-gray-700 wrap-break-word min-w-0" data-text>{{ city_line }}</span>
       </div>
       <div id="addressRegion"
            class="flex items-start gap-2 {{ 'hidden' if not region_line }}"
            data-row>
         {{ heroicon_outline("map", class="size-4 mt-0.5 shrink-0 text-gray-400") }}
-        <span class="text-sm text-gray-500" data-text>{{ region_line }}</span>
+        <span class="text-sm text-gray-500 wrap-break-word min-w-0" data-text>{{ region_line }}</span>
       </div>
     </div>
-    <!-- Coordinates -->
+    {# Coordinates #}
     <div class="grid grid-cols-2 gap-3">
       <div>
-        <label class="block mb-1 text-sm font-medium text-gray-700">Latitude</label>
+        <label for="modal-latitude" class="block mb-1 text-sm font-medium text-gray-700">Breitengrad</label>
         <input type="text"
+               id="modal-latitude"
                class="w-full input-field-admin {{ 'border-green-500' if edit_mode else 'border-gray-300' }}"
                name="latitude"
                data-coordinate="latitude"
@@ -81,8 +82,9 @@
                {{ disabled }}>
       </div>
       <div>
-        <label class="block mb-1 text-sm font-medium text-gray-700">Longitude</label>
+        <label for="modal-longitude" class="block mb-1 text-sm font-medium text-gray-700">Längengrad</label>
         <input type="text"
+               id="modal-longitude"
                class="w-full input-field-admin {{ 'border-green-500' if edit_mode else 'border-gray-300' }}"
                name="longitude"
                data-coordinate="longitude"
@@ -91,16 +93,17 @@
                {{ disabled }}>
       </div>
     </div>
-    <!-- Marker controls -->
+    {# Marker controls #}
     <div id="markerPlacementControls" class="space-y-2">
       <div id="placementStatus"
+           role="status"
            class="hidden px-3 py-2 text-sm font-medium text-center text-white bg-yellow-500 rounded-md">
         Platzierung aktiv — Karte klicken
       </div>
       <button type="button" data-action="marker-toggle"
-              class="btn-green w-full {% if not editable %}opacity-50 cursor-not-allowed{% endif %}"
+              class="btn-green w-full {{ '' if editable else 'opacity-50 cursor-not-allowed' }}"
               id="markerPlacementBtn"
-              {% if not editable %}disabled{% endif %}
+              {{ disabled }}
               title="Klicken Sie hier, um einen neuen Marker auf der Karte zu platzieren">
         {{ heroicon_outline("map-pin", class="mr-2 size-4", stroke_width=2) }}
         <span id="markerBtnText">Marker platzieren</span>

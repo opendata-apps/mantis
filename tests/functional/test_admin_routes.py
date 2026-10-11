@@ -517,7 +517,7 @@ class TestAdminRoutes:
         response = client.get(f"/modal/{self.test_sighting.id}?filter_status=offen")
         assert response.status_code == 200
         assert b'id="tab-content"' in response.data
-        assert b"General Information" in response.data
+        assert b"Allgemeine Angaben" in response.data
         assert b'id="modal-actions"' in response.data
 
     def test_modal_general_tab_shows_user_report_count(self, client):

@@ -6,7 +6,8 @@
           {% include "admin/partials/_cell.html" %}
         </td>
       {% else %}
-        <td class="px-4 py-3 text-sm italic text-gray-500 whitespace-nowrap bg-gray-50 border-b border-gray-200">
+        <td title="{{ row[column.name] | cell_text }}"
+            class="px-4 py-3 max-w-xs text-sm italic text-gray-500 truncate bg-gray-50 border-b border-gray-200">
           {{ row[column.name] | cell_text }}
         </td>
       {% endif %}

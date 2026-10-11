@@ -173,7 +173,7 @@ function escapeHtml(str) {
 function buildPopupContent(lat, lng, data) {
   var e = escapeHtml;
   return `<div class="popup-content">
-        <h2>${e(lat + ", " + lng)}</h2>
+        <h2>${lat.toFixed(6)}, ${lng.toFixed(6)}</h2>
         <ul class="popup-list">
             ${data.strasse ? `<li><strong>Straße:</strong> ${e(data.strasse)}</li>` : ""}
             ${data.plz ? `<li><strong>Postleitzahl:</strong> ${e(data.plz)}</li>` : ""}
@@ -367,7 +367,7 @@ function nominatimDelay() {
 function getAddressFromCoordinates(latitude, longitude) {
   var requestSeq = ++geocodeRequestSeq;
   updateAddressDisplay({
-    street: "Wird geladen...",
+    street: "Wird geladen…",
     zipCode: "",
     city: "",
     district: "",
@@ -470,18 +470,8 @@ function setDateType(type) {
   if (dateTypeInput) dateTypeInput.value = type;
   if (hiddenDateType) hiddenDateType.value = type;
 
-  // Toggle active button styling
   document.querySelectorAll(".date-type-btn").forEach(function (btn) {
-    var isActive = btn.dataset.dateType === type;
-    btn.classList.toggle("bg-green-600", isActive);
-    btn.classList.toggle("text-white", isActive);
-    btn.classList.toggle("bg-white", !isActive);
-    btn.classList.toggle("text-gray-600", !isActive);
-    btn.classList.toggle("hover:bg-gray-100", !isActive);
-    // Hide inner border when meld button is active
-    if (btn.dataset.dateType === "meld") {
-      btn.classList.toggle("border-l-green-600", isActive);
-    }
+    btn.setAttribute("aria-pressed", String(btn.dataset.dateType === type));
   });
 }
 
@@ -508,58 +498,25 @@ function toggleModalOverlay() {
 function handleCopyClick(button) {
   var value = button.getAttribute("data-copy-value");
   if (!value) return;
-  var svg = button.querySelector("svg");
-  if (!svg) return;
-  if (
-    !navigator.clipboard ||
-    typeof navigator.clipboard.writeText !== "function"
-  ) {
-    showToast("Clipboard wird vom Browser nicht unterstützt");
+  if (!navigator.clipboard) {
+    showToast("Zwischenablage wird vom Browser nicht unterstützt");
     return;
   }
-
   navigator.clipboard
     .writeText(value)
     .then(function () {
-      var originalTitle = button.title;
-
-      var checkPath = document.createElementNS(
-        "http://www.w3.org/2000/svg",
-        "path",
-      );
-      checkPath.setAttribute("stroke-linecap", "round");
-      checkPath.setAttribute("stroke-linejoin", "round");
-      checkPath.setAttribute("stroke-width", "2");
-      checkPath.setAttribute("d", "M5 13l4 4L19 7");
-      while (svg.firstChild) svg.removeChild(svg.firstChild);
-      svg.appendChild(checkPath);
-
-      button.title = "Kopiert!";
-      button.classList.remove("text-gray-500");
-      button.classList.add("text-green-600");
-
+      // Emptied again with the icon: a live region repeats nothing it already holds.
+      var status = document.getElementById("modal-status");
+      button.dataset.copied = "";
+      status.textContent = "In die Zwischenablage kopiert";
       window.setTimeout(function () {
-        var copyPath = document.createElementNS(
-          "http://www.w3.org/2000/svg",
-          "path",
-        );
-        copyPath.setAttribute("stroke-linecap", "round");
-        copyPath.setAttribute("stroke-linejoin", "round");
-        copyPath.setAttribute("stroke-width", "2");
-        copyPath.setAttribute(
-          "d",
-          "M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z",
-        );
-        while (svg.firstChild) svg.removeChild(svg.firstChild);
-        svg.appendChild(copyPath);
-        button.title = originalTitle;
-        button.classList.remove("text-green-600");
-        button.classList.add("text-gray-500");
+        delete button.dataset.copied;
+        status.textContent = "";
       }, 1500);
     })
     .catch(function (err) {
-      console.error("Failed to copy user ID:", err);
-      showToast("Fehler beim Kopieren der User ID");
+      console.error("Copy to clipboard failed:", err);
+      showToast("Kopieren fehlgeschlagen");
     });
 }
 

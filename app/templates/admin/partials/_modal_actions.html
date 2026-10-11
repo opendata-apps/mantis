@@ -23,7 +23,7 @@
                  hx-swap="outerHTML swap:150ms"
                  hx-vals='{{ {"flag": flag, "filter_status": filter_status}|tojson }}'
                  data-action="toggle-overlay">
-          <span class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border transition-colors duration-200 text-gray-700 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 {{ checked_colors }}">
+          <span class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border peer-focus-visible:ring-2 peer-focus-visible:ring-green-500/30 transition-colors duration-200 text-gray-700 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 {{ checked_colors }}">
             {{ heroicon_outline(icon, class="size-4", stroke_width=1.5) }}
             {{ label }}
           </span>

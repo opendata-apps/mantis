@@ -2,9 +2,9 @@
    Contains: tab bar + tab-content wrapper + OOB footer update.
    Template variables: sighting, feedback, is_approved, editable,
                         active_tab, edit_mode, filter_status #}
+<h2 class="sr-only">Meldung {{ sighting.id }}</h2>
 {% include "admin/partials/_modal_tabs.html" %}
 <div id="tab-content"
-     class="overflow-y-auto overscroll-contain touch-pan-y grow min-h-0 scrollbar-thin rounded-lg"
-     role="tabpanel">{% include "admin/partials/_modal_general.html" %}</div>
+     class="overflow-y-auto overscroll-contain touch-pan-y grow min-h-0 scrollbar-thin rounded-lg">{% include "admin/partials/_modal_general.html" %}</div>
 {# OOB: update footer buttons to match current state #}
 {% include "admin/partials/_modal_actions.html" %}

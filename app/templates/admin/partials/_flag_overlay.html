@@ -5,7 +5,7 @@
 {% set _info = 'INFO' in (sighting.statuses or []) %}
 {% if _unkl or _info %}
   {% set _both = _unkl and _info %}
-  <div class="absolute inset-0 flex items-center justify-center {% if _both %}gap-3{% endif %} pointer-events-none">
+  <div class="absolute inset-0 flex items-center justify-center {{ 'gap-3' if _both else '' }} pointer-events-none">
     {% if _unkl %}
       <div class="flex items-center justify-center {{ 'size-14' if _both else 'size-20' }} rounded-full bg-orange-500/70 backdrop-blur-xs">
         {{ heroicon_outline("question-mark-circle", class=("size-8" if _both else "size-12") ~ " text-white", stroke_width=2) }}

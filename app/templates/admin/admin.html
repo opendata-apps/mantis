@@ -14,7 +14,7 @@
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% set flash_styles = {
-          "error": ("Error!", "text-red-800 bg-red-100 border-red-500", "text-red-800 hover:text-red-900"),
+          "error": ("Fehler:", "text-red-800 bg-red-100 border-red-500", "text-red-800 hover:text-red-900"),
           "info": ("Info:", "text-blue-800 bg-blue-100 border-blue-500", "text-blue-800 hover:text-blue-900"),
         } %}
         {% for category, message in messages if category in flash_styles %}
@@ -26,6 +26,7 @@
               <span class="block sm:inline">{{ message }}</span>
             </div>
             <button type="button" data-action="dismiss-alert"
+                    aria-label="Meldung schließen"
                     class="{{ close_colors }}">
               {{ heroicon_mini("x-mark", class="size-6", size=20) }}
             </button>
@@ -35,14 +36,14 @@
     {% endwith %}
     <div class="flex flex-col gap-3 mb-5 lg:flex-row lg:items-center">
       <div class="w-full lg:w-auto">
-        <!-- Filter dropdown -->
+        {# Filter dropdown #}
         <details class="relative dropdown group">
           {% call toolbar.dropdown_toggle(extra="lg:w-auto") %}
             {{ heroicon_mini("funnel", class="mr-2 size-4 text-gray-500 transition-colors duration-200 group-hover:text-gray-700") }}
             Filter
             {{ heroicon_mini("chevron-down", class="-mr-1 ml-1.5 size-5 text-gray-500 transition-colors duration-200 group-hover:text-gray-700") }}
           {% endcall %}
-          <div class="absolute left-0 z-10 p-4 space-y-3 w-64 bg-white rounded-lg divide-y divide-gray-100 shadow-lg sm:w-80 mt-1">
+          <div class="absolute left-0 z-10 p-4 mt-1 w-64 bg-white rounded-lg shadow-lg sm:w-80">
             <form action="{{ url_for('admin.reviewer') }}"
                   method="get"
                   class="space-y-3">
@@ -52,7 +53,7 @@
                          class="block text-sm font-semibold text-left text-gray-700">Status</label>
                   <select id="statusInput"
                           name="statusInput"
-                          class="p-2 w-full text-sm rounded-md shadow-xs focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                          class="p-2 w-full text-sm pointer-coarse:text-base rounded-md shadow-xs focus:ring-2 focus:ring-green-500 focus:border-transparent">
                   {% for value, label in [
                     ("all", "Alle"),
                     ("offen", "Offen"),
@@ -70,7 +71,7 @@
                          class="block text-sm font-semibold text-left text-gray-700">Typ</label>
                   <select id="typeInput"
                           name="typeInput"
-                          class="p-2 w-full text-sm rounded-md shadow-xs focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                          class="p-2 w-full text-sm pointer-coarse:text-base rounded-md shadow-xs focus:ring-2 focus:ring-green-500 focus:border-transparent">
                   {% for value, label in [
                     ("all", "Alle"),
                     ("maennlich", "Männlich"),
@@ -85,19 +86,22 @@
                   </select>
                 </div>
               </div>
-              <!-- Date section: toggle + range inputs grouped together -->
+              {# Date section: toggle + range inputs grouped together #}
               <div class="p-2.5 space-y-2 rounded-lg border border-gray-200 bg-gray-50/60">
                 <div class="flex items-center justify-between gap-2">
                   <span class="text-sm font-semibold text-gray-700">Datum</span>
                   <div class="inline-flex rounded-md border border-gray-300 overflow-hidden">
+                    {# aria-pressed is the state; the styling follows it. #}
                     <button type="button"
                             data-action="date-type"
                             data-date-type="fund"
-                            class="date-type-btn px-2.5 py-1 text-xs font-medium transition-colors duration-150 {{ 'bg-green-600 text-white' if current_date_type != 'meld' else 'bg-white text-gray-600 hover:bg-gray-100' }}">Funddatum</button>
+                            aria-pressed="{{ 'false' if current_date_type == 'meld' else 'true' }}"
+                            class="date-type-btn px-2.5 py-1 text-xs font-medium text-gray-600 bg-white transition-colors duration-150 not-aria-pressed:hover:bg-gray-100 aria-pressed:text-white aria-pressed:bg-green-600">Funddatum</button>
                     <button type="button"
                             data-action="date-type"
                             data-date-type="meld"
-                            class="date-type-btn px-2.5 py-1 text-xs font-medium transition-colors duration-150 border-l border-gray-300 {{ 'bg-green-600 text-white border-l-green-600' if current_date_type == 'meld' else 'bg-white text-gray-600 hover:bg-gray-100' }}">Meldedatum</button>
+                            aria-pressed="{{ 'true' if current_date_type == 'meld' else 'false' }}"
+                            class="date-type-btn px-2.5 py-1 text-xs font-medium text-gray-600 bg-white border-l border-gray-300 transition-colors duration-150 not-aria-pressed:hover:bg-gray-100 aria-pressed:text-white aria-pressed:bg-green-600 aria-pressed:border-l-green-600">Meldedatum</button>
                   </div>
                 </div>
                 <input type="hidden"
@@ -115,7 +119,7 @@
                            id="dateFrom"
                            type="text"
                            value="{{ request.args.get('dateFrom', '') }}"
-                           class="p-2 w-full text-sm bg-white rounded-md shadow-xs focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                           class="p-2 w-full text-sm pointer-coarse:text-base bg-white rounded-md shadow-xs focus:ring-2 focus:ring-green-500 focus:border-transparent"
                            placeholder="von">
                     <div class="flex absolute inset-y-0 right-0 items-center pr-3 pointer-events-none">
                       {{ heroicon_mini("calendar", class="size-4 text-gray-400") }}
@@ -127,7 +131,7 @@
                            id="dateTo"
                            type="text"
                            value="{{ request.args.get('dateTo', '') }}"
-                           class="p-2 w-full text-sm bg-white rounded-md shadow-xs focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                           class="p-2 w-full text-sm pointer-coarse:text-base bg-white rounded-md shadow-xs focus:ring-2 focus:ring-green-500 focus:border-transparent"
                            placeholder="bis">
                     <div class="flex absolute inset-y-0 right-0 items-center pr-3 pointer-events-none">
                       {{ heroicon_mini("calendar", class="size-4 text-gray-400") }}
@@ -136,12 +140,7 @@
                 </div>
               </div>
               <div class="flex justify-between mt-4 space-x-4">
-                <button id="clearFilters"
-                        type="button"
-                        class="inline-flex justify-center items-center px-2 py-1 w-24 text-sm font-medium text-red-600 bg-white rounded-lg border border-red-300 transition-[color,background-color,border-color,box-shadow] duration-200 hover:bg-red-50 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-red-500/30">
-                  {{ heroicon_outline("x-mark", class="mr-1 size-4", stroke_width=2) }}
-                  Löschen
-                </button>
+                <button id="clearFilters" type="button" class="btn-secondary">Zurücksetzen</button>
                 <button type="submit" class="btn-green w-1/2">Filtern</button>
               </div>
               {% for name in ["q", "sort_order", "search_type"] %}
@@ -151,7 +150,7 @@
           </div>
         </details>
       </div>
-      {% call toolbar.search_bar("q", "Suche nach Meldungen...", "Löschen",
+      {% call toolbar.search_bar("q", "Suche nach Meldungen…", "Löschen",
           "Suche: Wortanfänge genügen (potsd findet Potsdam). Mehrere Wörter müssen alle vorkommen: berlin garten. Umlaute gehen auch als ae/oe/ue. Für Meldungsnummern ID wählen. Aktive Filter gelten weiterhin.",
           value=request.args.get('q', ''), maxlength=50, search_type=search_type,
           action=url_for('admin.reviewer'), form_id="searchForm",
@@ -241,10 +240,12 @@
   <dialog id="modal"
           class="modal-admin backdrop:bg-gray-900/55 backdrop:backdrop-blur-sm"
           aria-label="Meldung bearbeiten">
+    {# Inside the dialog: a modal dialog makes everything outside it inert. #}
+    <div id="modal-status" role="status" class="sr-only"></div>
     <div class="modal-admin-panel flex overflow-hidden flex-col w-full bg-white rounded-lg shadow-xl border border-gray-200">
       <div class="overflow-hidden grow p-4 min-h-0 md:p-6">
         <div id="modal-body" class="flex overflow-hidden flex-col h-full min-h-0">
-          <div class="flex justify-center items-center h-full text-sm text-gray-500">Meldung wird geladen...</div>
+          <div role="status" class="flex justify-center items-center h-full text-sm text-gray-500">Meldung wird geladen…</div>
         </div>
       </div>
       <div class="px-6 py-4 bg-gray-50 rounded-b-lg border-t border-gray-200">
