@@ -416,19 +416,24 @@ class TestStatsMtbTypeInput:
 
 
 class TestAutocompleteAgs:
-    def test_short_query_returns_empty(self, client):
+    def test_requires_reviewer_session(self, client):
+        """Like every other statistics route, the suggestions are reviewer-only."""
+        response = client.get("/statistik/ags?ags_input=Berlin")
+        assert response.status_code == 403
+
+    def test_short_query_returns_empty(self, authenticated_client):
         """Typing a single character must short-circuit the DB query —
         avoids returning the whole ``aemter`` table."""
-        response = client.get("/statistik/ags?ags_input=a")
+        response = authenticated_client.get("/statistik/ags?ags_input=a")
         assert response.status_code == 200
         assert response.data == b""
 
-    def test_empty_query_returns_empty(self, client):
-        response = client.get("/statistik/ags?ags_input=")
+    def test_empty_query_returns_empty(self, authenticated_client):
+        response = authenticated_client.get("/statistik/ags?ags_input=")
         assert response.status_code == 200
         assert response.data == b""
 
-    def test_long_query_returns_suggestions(self, client, session):
+    def test_long_query_returns_suggestions(self, authenticated_client, session):
         """Newly committed places appear in autocomplete prefix results."""
         from app.database.models import TblAemterCoordinaten
 
@@ -440,14 +445,14 @@ class TestAutocompleteAgs:
         session.add(sentinel)
         session.commit()
 
-        response = client.get("/statistik/ags?ags_input=Testst")
+        response = authenticated_client.get("/statistik/ags?ags_input=Testst")
         assert response.status_code == 200
         html = response.data.decode()
-        assert html.count("<li ") == 1
+        assert html.count("data-ags=") == 1
         assert "Teststadt-Suggest" in html
         assert 'data-ags="99999001"' in html
 
-    def test_prefix_matches_by_ags_too(self, client, session):
+    def test_prefix_matches_by_ags_too(self, authenticated_client, session):
         """The query ORs name-prefix with AGS-prefix, so a numeric
         prefix of an existing AGS must also produce a hit — proving
         the OR branch (``cast(ags, String).startswith(q)``) is wired."""
@@ -462,7 +467,7 @@ class TestAutocompleteAgs:
         )
         session.commit()
 
-        response = client.get("/statistik/ags?ags_input=88888777")
+        response = authenticated_client.get("/statistik/ags?ags_input=88888777")
         html = response.data.decode()
         assert response.status_code == 200
         assert 'data-ags="88888777"' in html

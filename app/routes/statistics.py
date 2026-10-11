@@ -103,6 +103,7 @@ def _counts_by_group(rows, names, separator):
 
 
 @stats.route("/statistik/ags", methods=["GET"])
+@reviewer_required
 def autocomplete_ags():
     q = request.args.get("ags_input", "").strip()
     if len(q) < 2:
