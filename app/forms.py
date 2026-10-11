@@ -259,7 +259,7 @@ class MantisSightingForm(StrippedForm):
             Length(max=255, message="Details dürfen maximal 255 Zeichen lang sein."),
         ],
         render_kw={
-            "placeholder": "z.B. Name der Veranstaltung, Website, etc.",
+            "placeholder": "z. B. Name der Veranstaltung, Website",
             "autocomplete": "off",
         },
     )
@@ -310,7 +310,7 @@ class MantisSightingForm(StrippedForm):
         "Postleitzahl",
         validators=[Optional(), validate_zip_code],
         render_kw={
-            "placeholder": "z.B. 10115",
+            "placeholder": "z. B. 10115",
             "autocomplete": "off",
             "inputmode": "numeric",
         },

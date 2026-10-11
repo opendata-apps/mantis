@@ -705,7 +705,7 @@ const ReportForm = {
 
         addBaseLayers(this.map, { maxZoom: 18, minZoom: 3 });
 
-        geocoder({
+        const search = geocoder({
             defaultMarkGeocode: false, placeholder: 'Adresse suchen…',
             errorMessage: 'Keine Adresse gefunden.', iconLabel: 'Adresse suchen',
         })
@@ -715,6 +715,9 @@ const ReportForm = {
                 this.setMarker(e.geocode.center.lat, e.geocode.center.lng);
             })
             .addTo(this.map);
+        // The control labels only its button; the field has a placeholder alone.
+        search.getContainer().querySelector('input')
+            .setAttribute('aria-label', 'Adresse suchen');
 
         this.locateCtrl = locate({
             watch: true, setView: false, keepCurrentZoomLevel: true,
