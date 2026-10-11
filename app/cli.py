@@ -22,20 +22,11 @@ def seed_command(demo):
     from app.database.populate import populate_all
     from app.extensions import db
 
-    # Load AGS data from fallback JSON file
     fallback_path = os.path.join(
         os.path.dirname(__file__), "data", "ags_gemeinden.json"
     )
-    if os.path.exists(fallback_path):
-        with open(fallback_path, encoding="utf-8") as f:
-            jsondata = f.read()
-    else:
-        click.echo(
-            "Warning: No AGS fallback data found at app/data/ags_gemeinden.json\n"
-            "Run 'flask seed-ags' first to fetch administrative area data.",
-            err=True,
-        )
-        jsondata = None
+    with open(fallback_path, encoding="utf-8") as f:
+        jsondata = f.read()
 
     # Always populate base data (idempotent)
     populate_all(db.session, jsondata)
@@ -191,12 +182,7 @@ def recalculate_mtb_command(commit):
     from app.tools.gemeinde_finder import warm_gemeinde_cache
     from app.tools.location_enrichment import calculate_spatial_fields
 
-    # Without polygons every lookup is empty and --commit would blank the
-    # sheet and Amt of every Fundort.
-    if not warm_gemeinde_cache():
-        raise click.ClickException(
-            "No Gemeinde polygons loaded (is the aemter table seeded?)."
-        )
+    warm_gemeinde_cache()
 
     fundorte = db.session.scalars(select(TblFundorte).order_by(TblFundorte.id)).all()
     total = len(fundorte)

@@ -129,30 +129,22 @@ class TestSeedCommand:
             for path in image_paths
         )
 
-    def test_seed_without_fallback_warns_but_completes(self, cli_runner, session):
-        """If ``ags_gemeinden.json`` is missing, the command prints a
-        warning on stderr, calls ``populate_all`` with ``jsondata=None``,
-        and exits cleanly. The aemter table must still be usable
-        afterwards (existing rows from fixture stay put)."""
-        from sqlalchemy import func, select
+    @pytest.mark.parametrize("fallback", [None, "{broken"], ids=["missing", "broken"])
+    def test_seed_rejects_an_unusable_fallback(
+        self, cli_runner, tmp_path, monkeypatch, fallback
+    ):
+        import app.cli
 
-        from app.database.aemter_koordinaten import TblAemterCoordinaten
+        monkeypatch.setattr(app.cli, "__file__", str(tmp_path / "cli.py"))
+        data_dir = tmp_path / "data"
+        data_dir.mkdir()
+        if fallback is not None:
+            (data_dir / "ags_gemeinden.json").write_text(fallback)
 
-        before_aemter = session.scalar(
-            select(func.count()).select_from(TblAemterCoordinaten)
-        )
+        result = cli_runner.invoke(args=["seed"])
 
-        with patch("app.cli.os.path.exists", return_value=False):
-            result = cli_runner.invoke(args=["seed"])
-
-        assert result.exit_code == 0
-        assert "No AGS fallback data found" in result.output
-        # Existing aemter preserved (populate_all with None is a no-op
-        # for VG5000 data, not a destructive truncate).
-        assert (
-            session.scalar(select(func.count()).select_from(TblAemterCoordinaten))
-            == before_aemter
-        )
+        assert result.exit_code != 0
+        assert "Base data seeded" not in result.output
 
 
 class TestRecalculateMtbCommand:

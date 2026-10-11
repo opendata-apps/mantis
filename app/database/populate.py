@@ -39,29 +39,12 @@ def populate_beschreibung(session: Session):
     )
 
 
-def populate_all(session: Session, vg5000_json_data):
+def populate_all(session: Session, vg5000_json_data: str) -> None:
     """Populates all required tables with initial data."""
+    from .vg5000_fill_aemter import import_aemter_data
+
     current_app.logger.info("Starting initial data population...")
-
     populate_beschreibung(session)
-
-    if vg5000_json_data is None:
-        current_app.logger.warning(
-            "No VG5000 data provided. Skipping aemter population. "
-            "Run 'flask seed-ags' to fetch administrative area data."
-        )
-    else:
-        try:
-            from .vg5000_fill_aemter import import_aemter_data
-
-            current_app.logger.info("Populating VG5000 Aemter data...")
-            import_aemter_data(session, vg5000_json_data)
-            current_app.logger.info("VG5000 Aemter data population complete.")
-        except ImportError:
-            current_app.logger.warning(
-                "Could not import vg5000_fill_aemter. Skipping VG5000 data population."
-            )
-        except Exception:
-            current_app.logger.exception("Error during VG5000 data population")
-
+    current_app.logger.info("Populating VG5000 Aemter data...")
+    import_aemter_data(session, vg5000_json_data)
     current_app.logger.info("Initial data population finished.")

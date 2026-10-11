@@ -233,7 +233,3 @@ def test_save_kreise_creates_parent_dirs(tmp_path):
     path = tmp_path / "x" / "y" / "kreise.json"
     save_kreise_lookup({}, path)
     assert path.exists()
-
-
-def test_load_kreise_returns_empty_dict_for_missing_file(tmp_path):
-    assert load_kreise_lookup(tmp_path / "nope.json") == {}

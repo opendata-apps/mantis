@@ -4,8 +4,9 @@ import json
 from datetime import datetime, timedelta
 
 import pytest
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 
+from app.database.aemter_koordinaten import TblAemterCoordinaten
 from app.database.models import (
     ReportStatus,
     TblFundortBeschreibung,
@@ -14,6 +15,7 @@ from app.database.models import (
     TblMeldungUser,
     TblUsers,
 )
+from app.tools.gemeinde_finder import reload_gemeinde_cache
 
 
 class TestCoordinateUpdates:
@@ -118,6 +120,31 @@ class TestCoordinateUpdates:
         # Verify reviewer ID was recorded
         session.refresh(self.test_sighting)
         assert self.test_sighting.bearb_id == self.reviewer.user_id
+
+    def test_missing_polygons_do_not_erase_location_metadata(
+        self, app, client, session
+    ):
+        session.execute(delete(TblAemterCoordinaten))
+        session.commit()
+        reload_gemeinde_cache()
+        app.config["PROPAGATE_EXCEPTIONS"] = False
+        with client.session_transaction() as sess:
+            sess["_user_id"] = self.reviewer.user_id
+        try:
+            response = client.post(
+                f"/update_coordinates/{self.test_sighting.id}",
+                data={"latitude": "52.53", "longitude": "13.41"},
+            )
+            assert response.status_code == 500
+            session.refresh(self.test_location)
+            assert (
+                self.test_location.latitude,
+                self.test_location.longitude,
+                self.test_location.mtb,
+                self.test_location.amt,
+            ) == (52.520008, 13.404954, "3644", "Test Amt")
+        finally:
+            reload_gemeinde_cache()
 
     def test_update_longitude_authenticated(self, client, session):
         """Test updating longitude with authenticated reviewer."""

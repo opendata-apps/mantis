@@ -34,7 +34,8 @@ Flask-CLI
    * - ``uv run flask db migrate -m "..."``
      - neue Alembic-Migration erzeugen
    * - ``uv run flask seed``
-     - Basisdaten einspielen (nutzt lokale JSON-Fallback-Datei)
+     - Basisdaten und Verwaltungsgebiete aus ``app/data/ags_gemeinden.json``
+       einspielen; ohne Verwaltungsgebiete startet kein Gunicorn-Worker
    * - ``uv run flask seed --demo``
      - Basisdaten plus Demo-Meldungen/Bilder einspielen
    * - ``uv run flask seed-ags``

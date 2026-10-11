@@ -5,6 +5,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+from shapely.errors import GEOSException
 from sqlalchemy import delete
 from sqlalchemy.exc import OperationalError
 
@@ -123,6 +124,9 @@ class TestGemeindeOptimization:
         result = _amt_string((10.0, 50.0))
         assert result is None
 
+    def test_boundary_point_still_belongs_to_a_german_area(self, session):
+        assert _amt_string((13.38, 52.52)) == "99999901 -- Test Berlin Mitte"
+
     def test_handles_malformed_data(self, session):
         """Test handling of malformed geometry data."""
         # Add area with malformed data
@@ -136,8 +140,8 @@ class TestGemeindeOptimization:
 
         reload_gemeinde_cache()
 
-        # The bad row is skipped; the valid ones still load.
-        assert _amt_string((13.40, 52.52)) == "99999901 -- Test Berlin Mitte"
+        with pytest.raises(GEOSException):
+            _amt_string((13.40, 52.52))
 
         # Cleanup
         session.execute(
@@ -196,31 +200,20 @@ class TestGemeindeOptimization:
         )
         session.commit()
 
-    def test_warm_gemeinde_cache_builds_eagerly(self, session):
-        """warm_gemeinde_cache() must build the cache without any lookup."""
-        from app.tools.gemeinde_finder import warm_gemeinde_cache
-
-        # Nothing cached: the table is empty when the cache is rebuilt.
-        session.execute(delete(TblAemterCoordinaten))
-        session.commit()
-        reload_gemeinde_cache()
-        session.add(_berlin_mitte())
-        session.commit()
-
-        assert warm_gemeinde_cache() is True
-        # Answered from the cache built above, not from the table.
-        session.execute(delete(TblAemterCoordinaten))
-        session.commit()
-        assert _amt_string((13.40, 52.52)) == "99999901 -- Test Berlin Mitte"
-
-    def test_warm_gemeinde_cache_reports_an_empty_table(self, session):
-        from app.tools.gemeinde_finder import warm_gemeinde_cache
+    def test_a_worker_does_not_boot_without_polygons(self, app, session):
+        conf_path = Path(__file__).parents[2] / "gunicorn.conf.py"
+        spec = importlib.util.spec_from_file_location("gunicorn_conf", conf_path)
+        assert spec is not None
+        assert spec.loader is not None
+        conf = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(conf)
 
         session.execute(delete(TblAemterCoordinaten))
         session.commit()
         reload_gemeinde_cache()
 
-        assert warm_gemeinde_cache() is False
+        with pytest.raises(RuntimeError, match="aemter table is empty"):
+            conf.post_worker_init(SimpleNamespace(wsgi=app))
 
     def test_gunicorn_post_worker_init_warms_cache(self, app, session):
         """The gunicorn hook must leave a query-ready cache behind."""
@@ -260,7 +253,8 @@ class TestGemeindeOptimization:
             raise OperationalError("SELECT 1", {}, Exception("connection lost"))
 
         monkeypatch.setattr(gf.db.session, "execute", boom)
-        assert gf.get_amt_enriched((13.40, 52.52)) is None
+        with pytest.raises(OperationalError):
+            gf.get_amt_enriched((13.40, 52.52))
 
         monkeypatch.undo()
         assert _amt_string((13.40, 52.52)) == "99999901 -- Test Berlin Mitte"

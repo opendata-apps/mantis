@@ -190,9 +190,6 @@ def save_kreise_lookup(lookup, path):
 
 
 def load_kreise_lookup(path):
-    """Load Kreise lookup dict from JSON file. Returns empty dict if not found."""
-    path = Path(path)
-    if not path.exists():
-        return {}
+    """Load Kreise lookup dict from JSON file."""
     with open(path, encoding="utf-8") as f:
         return json.load(f)

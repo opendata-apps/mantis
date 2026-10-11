@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 KREISE_PATH = Path(__file__).parent.parent / "data" / "ags_kreise.json"
 
 # The tree, and per tree index the dict get_amt_enriched returns. None until a
-# load finds polygons, so a failed or empty load is retried on the next lookup.
+# load succeeds, so a failed load is retried on the next lookup.
 _index: tuple[STRtree, list[dict[str, str]]] | None = None
 
 
@@ -42,40 +42,28 @@ def _area(ags: int, gen: str, kreise: dict[str, str]) -> dict[str, str]:
     }
 
 
-def _load_index() -> tuple[STRtree, list[dict[str, str]]] | None:
+def _load_index() -> tuple[STRtree, list[dict[str, str]]]:
     global _index
-    try:
-        kreise = load_kreise_lookup(KREISE_PATH)
-    except (OSError, ValueError):
-        logger.exception("Could not read %s; Kreis names stay empty", KREISE_PATH)
-        kreise = {}
-    try:
-        # JSONB cast to text and parsed by GEOS skips psycopg's JSON decoding.
-        rows = db.session.execute(
-            select(
-                TblAemterCoordinaten.ags,
-                TblAemterCoordinaten.gen,
-                TblAemterCoordinaten.properties.cast(Text),
-            ).order_by(TblAemterCoordinaten.ags)
-        ).all()
-    except Exception:
-        # Stays unloaded: report.py stores an empty amt for every lookup that
-        # finds nothing, so this worker must retry rather than go blind.
-        logger.exception("Failed to load administrative area data")
-        return None
+    kreise = load_kreise_lookup(KREISE_PATH)
+    # JSONB cast to text and parsed by GEOS skips psycopg's JSON decoding.
+    rows = db.session.execute(
+        select(
+            TblAemterCoordinaten.ags,
+            TblAemterCoordinaten.gen,
+            TblAemterCoordinaten.properties.cast(Text),
+        ).order_by(TblAemterCoordinaten.ags)
+    ).all()
 
-    geometries = shapely.from_geojson([row[2] for row in rows], on_invalid="ignore")
+    geometries = shapely.from_geojson([row[2] for row in rows])
     polygons, areas = [], []
     for (ags, gen, _), geom in zip(rows, geometries, strict=True):
         if geom is None or geom.geom_type not in ("Polygon", "MultiPolygon"):
-            logger.warning("Skipping AGS %s: not a polygon", ags)
-            continue
+            raise ValueError(f"AGS {ags}: expected a Polygon or MultiPolygon")
         polygons.append(geom)
         areas.append(_area(ags, gen, kreise))
 
     if not polygons:
-        logger.warning("No administrative area polygons loaded")
-        return None
+        raise RuntimeError("The aemter table is empty; run `flask seed`.")
     _index = (STRtree(polygons), areas)
     logger.info("Loaded %d administrative area polygons", len(polygons))
     return _index
@@ -83,11 +71,8 @@ def _load_index() -> tuple[STRtree, list[dict[str, str]]] | None:
 
 def get_amt_enriched(point) -> dict[str, str] | None:
     """Return ags, gen, land, kreis and amt_string for a (lon, lat) point, or None."""
-    index = _index or _load_index()
-    if index is None:
-        return None
-    tree, areas = index
-    hits = tree.query(Point(point), predicate="within")
+    tree, areas = _index or _load_index()
+    hits = tree.query(Point(point), predicate="covered_by")
     return dict(areas[hits[0]]) if len(hits) else None
 
 
@@ -97,6 +82,6 @@ def reload_gemeinde_cache() -> None:
     _index = None
 
 
-def warm_gemeinde_cache() -> bool:
-    """Build the polygon cache now; False if no polygons could be loaded."""
-    return (_index or _load_index()) is not None
+def warm_gemeinde_cache() -> None:
+    """Build the polygon cache now."""
+    _index or _load_index()

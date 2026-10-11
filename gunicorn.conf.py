@@ -16,7 +16,8 @@ errorlog = "-"
 def post_worker_init(worker):
     """Build the polygon cache before the worker serves traffic.
 
-    Otherwise each worker's first /melden/ags-lookup waits ~1.8 s for it.
+    Otherwise each worker's first /melden/ags-lookup waits ~1.8 s for it. An
+    empty aemter table raises here, and gunicorn stops instead of serving.
     """
     from app.tools.gemeinde_finder import warm_gemeinde_cache
 
