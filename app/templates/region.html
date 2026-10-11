@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% from "_macros_ui.html" import cta_link %}
+{% from "_macros_ui.html" import cta_link, link_card, see_also %}
 {% set og_title = region.og_title %}
 {% set og_description = region.meta_description %}
 {% set og_type = "article" %}
@@ -104,7 +104,7 @@
     {% endfor %}
     {# Call to action #}
     <div class="p-8 mb-12 text-center rounded-lg shadow-xl bg-green-50">
-      <h2 class="mb-4 text-2xl font-bold text-green-800">{{ region.cta_text }}</h2>
+      <h2 class="section-subheading">{{ region.cta_text }}</h2>
       <p class="mb-6 text-lg text-gray-700">
         Haben Sie eine Gottesanbeterin in {{ region.name }} entdeckt? Helfen Sie der Forschung und melden Sie Ihre Beobachtung!
       </p>
@@ -116,23 +116,12 @@
         <h2 class="section-heading">Weitere Regionen</h2>
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {% for related in siblings + children %}
-            <a href="{{ url_for('regionen.region_page', slug=related.slug) }}"
-               class="block p-6 transition-shadow bg-white rounded-lg shadow-md hover:shadow-lg">
-              <h3 class="text-lg font-semibold text-green-700">{{ related.title }}</h3>
-              <p class="mt-2 text-sm text-gray-600">{{ related.meta_description[:100] }}...</p>
-            </a>
+            {{ link_card(url_for('regionen.region_page', slug=related.slug), related.title, related.meta_description | truncate(100, end='…')) }}
           {% endfor %}
         </div>
       </div>
     {% endif %}
     {# Cross-links to other site sections #}
-    <div class="pt-8 mt-8 border-t border-gray-200">
-      <p class="text-sm text-gray-500">
-        Mehr erfahren:
-        <a href="{{ url_for('main.mantis_religiosa') }}" class="text-green-700 hover:underline">Über die Gottesanbeterin</a> ·
-        <a href="{{ url_for('main.bestimmung') }}" class="text-green-700 hover:underline">Bestimmungsschlüssel</a> ·
-        <a href="{{ url_for('main.faq') }}" class="text-green-700 hover:underline">Häufige Fragen</a>
-      </p>
-    </div>
+    {{ see_also([(url_for('main.mantis_religiosa'), "Über die Gottesanbeterin"), (url_for('main.bestimmung'), "Bestimmungsschlüssel"), (url_for('main.faq'), "Häufige Fragen")], label="Mehr erfahren:") }}
   </div>
 {% endblock content %}

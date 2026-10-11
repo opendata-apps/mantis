@@ -1,4 +1,5 @@
 {% extends "layout.html" %}
+{% from "_macros_ui.html" import cta_link, link_card %}
 {% set og_title = "Mantis Religiosa: Die Europäische Gottesanbeterin in Brandenburg & Berlin" %}
 {% set og_description = "Umfassende Informationen zur Europäischen Gottesanbeterin: Merkmale, Verbreitung, Beobachtungstipps und mehr." %}
 {% set og_type = "article" %}
@@ -55,7 +56,8 @@
   <span class="text-base">(ein geschütztes Tier)</span>
 {% endblock title %}
 {% block content %}
-  {% set toc = [("steckbrief", "Steckbrief"), ("ueberblick", "Überblick"), ("habitat", "Habitat"), ("verbreitungsgebiet", "Verbreitungsgebiet"), ("lebenszyklus", "Lebenszyklus"), ("beobachtungstipps", "Beobachtungstipps"), ("bestimmung", "Bestimmungsschlüssel"), ("weiterfuehrende-links", "Weiterführende Links"), ("meldeformular", "Meldeformular")] %}
+  {% set h2_class = "pb-2 mb-4 text-2xl font-bold tracking-tight text-gray-800 border-b border-gray-200" %}
+  {% set toc = [("steckbrief", "Steckbrief"), ("ueberblick", "Überblick"), ("habitat", "Habitat"), ("verbreitungsgebiet", "Verbreitungsgebiet"), ("lebenszyklus", "Lebenszyklus"), ("beobachtungstipps", "Beobachtungstipps"), ("bestimmung", "Bestimmungsschlüssel"), ("weiterfuehrende-links", "Weiterführende Links"), ("regionale-verbreitung", "Regionale Verbreitung"), ("meldeformular", "Meldeformular")] %}
   <div class="container px-4 py-12 mx-auto sm:px-6 lg:px-8">
     <div class="grid grid-cols-1 gap-8 md:grid-cols-4">
       <aside class="-order-1 md:col-span-1 md:order-1">
@@ -97,6 +99,8 @@
                  data-lightbox="mantis-info"
                  data-title="Männliche Mantis religiosa">
                 <img src="{{ url_for('static', filename='images/mantis--maennchen__krueger.webp') }}"
+                     width="1024"
+                     height="683"
                      alt="Männliche Mantis religiosa (Europäische Gottesanbeterin) in Lauerstellung"
                      class="inline-block w-full max-w-xs mb-2 rounded-sm outline -outline-offset-1 outline-black/10 hover:opacity-90"
                      fetchpriority="high"
@@ -121,7 +125,7 @@
               </tr>
               <tr class="border-b border-gray-200">
                 <th class="py-1.5 text-left font-semibold text-gray-700">Größe:</th>
-                <td class="py-1.5 pl-2">Weibchen 7 cm, Männchen 5-6 cm</td>
+                <td class="py-1.5 pl-2">Weibchen 7&nbsp;cm, Männchen 5–6&nbsp;cm</td>
               </tr>
               <tr class="border-b border-gray-200">
                 <th class="py-1.5 text-left font-semibold text-gray-700">Schutzstatus:</th>
@@ -129,7 +133,7 @@
               </tr>
             </table>
           </div>
-          <p class="mb-6 text-lg/relaxed text-gray-700 max-w-prose">
+          <p class="prose-content mb-6">
             Die <span class="font-semibold text-green-600">Europäische Gottesanbeterin</span> ist eine
             <a href="https://de.wikipedia.org/wiki/Fangschrecken"
                target="_blank"
@@ -139,18 +143,20 @@
             die an betende Hände erinnert. In Deutschland war die Art ursprünglich nur in wärmebegünstigten Gebieten in Rheinland-Pfalz,
             Baden-Württemberg und dem Saarland heimisch, breitet sich jedoch seit den 1990er Jahren immer weiter Richtung Norden aus.
           </p>
-          <p class="mb-6 text-lg/relaxed text-gray-700 max-w-prose">
+          <p class="prose-content mb-6">
             In Brandenburg wurde die Gottesanbeterin erstmals 2007 nachgewiesen.
             Inzwischen ist sie in der südlichen Hälfte des Bundeslandes etabliert, während aus den nördlichen Landkreisen
             erst seit kurzem vereinzelte Meldungen vorliegen. Auch in Berlin wird die Art immer häufiger beobachtet.
           </p>
           <section id="steckbrief" class="mb-8 scroll-mt-20">
-            <h2 class="pb-2 mb-4 text-2xl font-bold tracking-tight text-gray-800 border-b border-gray-200">Steckbrief</h2>
+            <h2 class="{{ h2_class }}">Steckbrief</h2>
             <figure class="article-thumb">
               <a href="{{ url_for('static', filename='images/mantis--weibchen__krueger.webp') }}"
                  data-lightbox="mantis-gallery"
                  data-title="Weibliche Gottesanbeterin bei der Jagd">
                 <img src="{{ url_for('static', filename='images/mantis--weibchen__krueger.webp') }}"
+                     width="1024"
+                     height="718"
                      alt="Weibliche Mantis religiosa bei der Jagd auf Beuteinsekten in natürlichem Habitat"
                      loading="lazy">
               </a>
@@ -175,7 +181,7 @@
               <div class="p-3 border border-gray-100 rounded-md">
                 <dt class="font-semibold text-green-600">Größe:</dt>
                 <dd class="mt-1">
-                  Weibchen 7 cm, Männchen 5-6 cm
+                  Weibchen 7&nbsp;cm, Männchen 5–6&nbsp;cm
                 </dd>
               </div>
               <div class="p-3 border border-gray-100 rounded-md">
@@ -205,10 +211,9 @@
             </dl>
           </section>
           <section id="ueberblick" class="mb-8 scroll-mt-20">
-            <h2 class="pb-2 mb-4 text-2xl font-bold tracking-tight text-gray-800 border-b border-gray-200"
-                id="section-ueberblick">Überblick</h2>
+            <h2 class="{{ h2_class }}">Überblick</h2>
             <div itemprop="articleBody">
-              <p class="mb-4 text-lg/relaxed text-gray-700 max-w-prose">
+              <p class="prose-content-spaced">
                 Die Europäische Gottesanbeterin (<i>Mantis religiosa</i>) ist eine Fangschreckenart, deren
                 Verbreitungsgebiet sich vom südlichen Europa bis nach Asien erstreckt. Ursprünglich nur in
                 Rheinland-Pfalz, Baden-Württemberg und dem Saarland gefunden, breitet sie sich seit den 1990er Jahren
@@ -218,10 +223,9 @@
             </div>
           </section>
           <section id="habitat" class="mb-8 scroll-mt-20" itemscope itemtype="https://schema.org/Place">
-            <h2 class="pb-2 mb-4 text-2xl font-bold tracking-tight text-gray-800 border-b border-gray-200"
-                id="section-habitat">Habitat</h2>
+            <h2 class="{{ h2_class }}">Habitat</h2>
             <div itemprop="description">
-              <p class="mb-4 text-lg/relaxed text-gray-700 max-w-prose">
+              <p class="prose-content-spaced">
                 Die Gottesanbeterin ist eine wärmeliebende Art und bevorzugt sonnige Lebensräume wie offene Grasfluren mit
                 strukturgebenden Stauden, Brachen und Ruderalflächen. Überraschend oft findet man sie auch in Gärten und
                 innerhalb von Ortschaften und Städten. In geschlossenen Wäldern wird man sie hingegen nicht finden.
@@ -229,20 +233,21 @@
             </div>
           </section>
           <section id="verbreitungsgebiet" class="mb-8 scroll-mt-20">
-            <h2 class="pb-2 mb-4 text-2xl font-bold tracking-tight text-gray-800 border-b border-gray-200"
-                id="section-verbreitungsgebiet">Verbreitungsgebiet</h2>
+            <h2 class="{{ h2_class }}">Verbreitungsgebiet</h2>
             <figure class="article-thumb">
               <a href="{{ url_for('static', filename='images/berger03.avif') }}"
                  data-lightbox="mantis-gallery"
                  data-title="Gottesanbeterin in ihrem natürlichen Lebensraum">
                 <img src="{{ url_for('static', filename='images/berger03.avif') }}"
+                     width="1024"
+                     height="693"
                      alt="Gottesanbeterin in einer typischen Grasflur in Brandenburg - natürlicher Lebensraum"
                      loading="lazy">
               </a>
               <figcaption>Gottesanbeterin in ihrem natürlichen Lebensraum</figcaption>
             </figure>
             <div itemscope itemtype="https://schema.org/GeoCircle">
-              <p class="mb-4 text-lg/relaxed text-gray-700 max-w-prose">
+              <p class="prose-content-spaced">
                 Das Verbreitungsgebiet der Europäischen Gottesanbeterin erstreckt sich vom südlichen Europa von Portugal
                 über Spanien, Frankreich, Italien, über den Balkan, in die Türkei bis nach Asien. Auch in Afrika kommt die
                 Gottesanbeterin vor. Aktuell ist die Fangschrecke in der Südhälfte Brandenburgs recht weit verbreitet, in
@@ -259,26 +264,28 @@
             </div>
           </section>
           <section id="lebenszyklus" class="mb-8 scroll-mt-20">
-            <h2 class="pb-2 mb-4 text-2xl font-bold tracking-tight text-gray-800 border-b border-gray-200">Lebenszyklus</h2>
+            <h2 class="{{ h2_class }}">Lebenszyklus</h2>
             <figure class="article-thumb">
               <a href="{{ url_for('static', filename='images/weibchen-mit-oothek.avif') }}"
                  data-lightbox="mantis-gallery"
                  data-title="Weibchen bei der Eiablage (Oothek)">
                 <img src="{{ url_for('static', filename='images/weibchen-mit-oothek.avif') }}"
+                     width="1024"
+                     height="768"
                      alt="Weibliche Gottesanbeterin bei der Eiablage - Oothek zeigt typisches Schaumnest für Überwinterung"
                      loading="lazy">
               </a>
               <figcaption>Weibchen bei der Eiablage (Oothek)</figcaption>
             </figure>
-            <p class="mb-4 text-lg/relaxed text-gray-700 max-w-prose">
+            <p class="prose-content-spaced">
               Die Gottesanbeterin durchläuft in ihrem Leben mehrere Stadien. Nach der Paarung legt das Weibchen ihre
               Eier in einem speziellen Schaumnest, der <span class="font-semibold text-green-600">Oothek</span>, ab. In unseren Breiten überwintert die Oothek; die
               erwachsenen Gottesanbeterinnen sterben im Winter. Aus diesen Eiern schlüpfen im Mai/Juni die Nymphen, die
               bereits wie kleine Gottesanbeterinnen aussehen. Sie durchlaufen mehrere Häutungen, bis sie schließlich zu
               erwachsenen Tieren heranwachsen.
             </p>
-            <p class="mb-4 text-lg/relaxed text-gray-700 max-w-prose">
-              Die Entwicklung vom Schlüpfen bis zum ausgewachsenen Tier dauert etwa 2-3 Monate. Im Hochsommer kann man daher sowohl Nymphen als auch bereits erwachsene Tiere beobachten. Die <span class="font-semibold text-green-600">Paarungszeit</span> beginnt ab August und kann bis in den Oktober hinein andauern.
+            <p class="prose-content-spaced">
+              Die Entwicklung vom Schlüpfen bis zum ausgewachsenen Tier dauert etwa 2–3 Monate. Im Hochsommer kann man daher sowohl Nymphen als auch bereits erwachsene Tiere beobachten. Die <span class="font-semibold text-green-600">Paarungszeit</span> beginnt ab August und kann bis in den Oktober hinein andauern.
             </p>
             <div class="inline-block p-4 my-6 max-w-fit bg-gray-50 border-y border-gray-200">
               <h3 class="mb-2 text-lg font-semibold text-gray-800">Besonderheit: Sexualkannibalismus</h3>
@@ -288,8 +295,8 @@
             </div>
           </section>
           <section id="beobachtungstipps" class="mb-8 scroll-mt-20">
-            <h2 class="pb-2 mb-4 text-2xl font-bold tracking-tight text-gray-800 border-b border-gray-200">Beobachtungstipps</h2>
-            <p class="mb-4 text-lg/relaxed text-gray-700 max-w-prose">
+            <h2 class="{{ h2_class }}">Beobachtungstipps</h2>
+            <p class="prose-content-spaced">
               Die Gottesanbeterin ist tagsüber aktiv und kann bei ruhigem und vorsichtigem Herangehen gut beobachtet
               werden. Besonders gut lassen sie sich in den Morgenstunden finden, wenn sie sich an sonnigen Plätzen
               aufwärmen. Mit ihrer grünen bis braunen Färbung sind sie jedoch perfekt getarnt und nicht leicht zu
@@ -301,16 +308,16 @@
                 <li>Am besten geeignet sind die Monate Juli bis Oktober für Beobachtungen.</li>
                 <li>Suchen Sie in sonnigen, offenen Habitaten mit strukturreicher Vegetation.</li>
                 <li>Bewegen Sie sich langsam und vorsichtig – die Tiere flüchten bei schnellen Bewegungen.</li>
-                <li>Achten Sie auf ihre charakteristische Körperhaltung mit den nach vorne gerichteten "Fangarmen".</li>
+                <li>Achten Sie auf ihre charakteristische Körperhaltung mit den nach vorne gerichteten „Fangarmen“.</li>
                 <li>Die grüne oder braune Färbung dient der Tarnung; schauen Sie daher besonders genau hin.</li>
               </ul>
             </div>
           </section>
           <section id="bestimmung" class="mb-8 scroll-mt-20">
-            <h2 class="pb-2 mb-4 text-2xl font-bold tracking-tight text-gray-800 border-b border-gray-200">
+            <h2 class="{{ h2_class }}">
               Bestimmungsschlüssel
             </h2>
-            <p class="mb-4 text-lg/relaxed text-gray-700 max-w-prose">
+            <p class="prose-content-spaced">
               Wenn Sie im Meldeformular die korrekte Zuordnung eintragen möchten, können Sie mit Hilfe des
               Bestimmungsschlüssels ermitteln, ob es sich um eine Oothek, Nymphe, ein adultes Weibchen oder Männchen handelt.
             </p>
@@ -328,15 +335,11 @@
                 <li>Männlichen Gottesanbeterinnen</li>
                 <li>Weiblichen Gottesanbeterinnen</li>
               </ul>
-              <a href="{{ url_for('main.bestimmung') }}"
-                 class="inline-flex items-center pl-4 pr-3.5 py-2 font-medium text-white transition-colors duration-200 bg-green-600 rounded-lg hover:bg-green-700 focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
-                <span>Zum Bestimmungsschlüssel</span>
-                {{ heroicon_outline("arrow-right", class="size-4 ml-2", stroke_width=2) }}
-              </a>
+              {{ cta_link(url_for('main.bestimmung'), "Zum Bestimmungsschlüssel") }}
             </div>
           </section>
           <section id="weiterfuehrende-links" class="mb-8 scroll-mt-20">
-            <h2 class="pb-2 mb-4 text-2xl font-bold tracking-tight text-gray-800 border-b border-gray-200">
+            <h2 class="{{ h2_class }}">
               Weiterführende Links
             </h2>
             <ul class="space-y-3">
@@ -356,7 +359,7 @@
                   <a href="https://www.naturkundemuseum-potsdam.de/gottesanbeterin-gesucht"
                      target="_blank"
                      rel="noopener noreferrer"
-                     class="font-medium text-green-600 hover:underline">Naturkundemuseum Potsdam: Projekt "Gottesanbeterin gesucht"</a>
+                     class="font-medium text-green-600 hover:underline">Naturkundemuseum Potsdam: Projekt „Gottesanbeterin gesucht“</a>
                   <p class="text-sm text-gray-600">Offizielle Projektseite</p>
                 </div>
               </li>
@@ -373,36 +376,23 @@
             </ul>
           </section>
           <section id="regionale-verbreitung" class="mb-8 scroll-mt-20">
-            <h2 class="pb-2 mb-4 text-2xl font-bold tracking-tight text-gray-800 border-b border-gray-200">
+            <h2 class="{{ h2_class }}">
               Regionale Verbreitung
             </h2>
-            <p class="mb-4 text-lg/relaxed text-gray-700 max-w-prose">
+            <p class="prose-content-spaced">
               Die Europäische Gottesanbeterin breitet sich zunehmend in Deutschland aus.
               Erfahren Sie mehr über die Verbreitung in einzelnen Regionen:
             </p>
             <div class="grid grid-cols-1 gap-4 mt-4 md:grid-cols-3">
-              <a href="{{ url_for('regionen.region_page', slug='deutschland') }}"
-                 class="block p-6 transition-shadow bg-white rounded-lg shadow-md hover:shadow-lg">
-                <h3 class="text-lg font-semibold text-green-700">Deutschland</h3>
-                <p class="mt-2 text-sm text-gray-600">Überblick über die Verbreitung in ganz Deutschland</p>
-              </a>
-              <a href="{{ url_for('regionen.region_page', slug='brandenburg') }}"
-                 class="block p-6 transition-shadow bg-white rounded-lg shadow-md hover:shadow-lg">
-                <h3 class="text-lg font-semibold text-green-700">Brandenburg</h3>
-                <p class="mt-2 text-sm text-gray-600">Kerngebiet der östlichen Population</p>
-              </a>
-              <a href="{{ url_for('regionen.region_page', slug='berlin') }}"
-                 class="block p-6 transition-shadow bg-white rounded-lg shadow-md hover:shadow-lg">
-                <h3 class="text-lg font-semibold text-green-700">Berlin</h3>
-                <p class="mt-2 text-sm text-gray-600">Urbane Verbreitung in der Hauptstadt</p>
-              </a>
+              {{ link_card(url_for('regionen.region_page', slug='deutschland'), "Deutschland", "Überblick über die Verbreitung in ganz Deutschland") }}
+              {{ link_card(url_for('regionen.region_page', slug='brandenburg'), "Brandenburg", "Kerngebiet der östlichen Population") }}
+              {{ link_card(url_for('regionen.region_page', slug='berlin'), "Berlin", "Urbane Verbreitung in der Hauptstadt") }}
             </div>
           </section>
           <section id="meldeformular" class="p-6 mt-8 transition-shadow duration-300 bg-green-100 rounded-lg shadow-lg hover:shadow-xl scroll-mt-20">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between">
               <div class="mb-6 md:mb-0 md:pr-8">
-                <h2 class="mb-4 text-2xl font-bold text-green-800"
-                    id="section-meldeformular">Meldeformular</h2>
+                <h2 class="section-subheading">Meldeformular</h2>
                 <p class="mb-2 text-gray-700">
                   Haben Sie eine Gottesanbeterin gesichtet? Helfen Sie uns, die Verbreitung dieser faszinierenden Art
                   besser zu dokumentieren, indem Sie Ihre Beobachtung melden.
@@ -411,7 +401,7 @@
                   Ihre Meldung trägt wichtige Daten zu unserem Forschungsprojekt bei und hilft uns, die Ausbreitung der Art zu verstehen.
                 </p>
               </div>
-              <a class="inline-flex items-center self-center px-6 py-3 text-lg font-semibold text-white transition-colors duration-200 bg-green-600 border border-transparent rounded-full shadow-lg hover:bg-green-700 focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+              <a class="btn-primary self-center"
                  href="{{ url_for('report.melden') }}"
                  rel="nofollow">
                 {{ heroicon_outline("pencil-square", class="size-5 mr-2", stroke_width=2) }}
@@ -424,4 +414,4 @@
     </div>
   </div>
 {% endblock content %}
-{% block scripts %}<script type="module" src="{{ vite_asset('js/gallery.js') }}"></script>{% endblock %}
+{% block scripts %}{{ vite_tags("js/gallery.js") }}{% endblock %}

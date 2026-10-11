@@ -1,4 +1,5 @@
 {% extends "layout.html" %}
+{% from "_macros_ui.html" import see_also %}
 {% block title %}
   Impressum
 {% endblock title %}
@@ -9,11 +10,11 @@
 {% block content %}
   <div class="container max-w-5xl px-4 py-16 mx-auto">
     <div class="mb-12">
-      <h2 class="section-heading">MANTIS -- Mitmachprojekt</h2>
+      <h2 class="section-heading">MANTIS – Mitmachprojekt</h2>
       <p class="prose-content-spaced">
         Weiterführende Informationen finden Sie auf der Website:
         <a href="https://www.naturkundemuseum-potsdam.de/gottesanbeterin-gesucht"
-           class="text-green-700 transition duration-300 hover:underline">Naturkundemuseum Potsdam</a>.
+           class="text-green-700 hover:underline">Naturkundemuseum Potsdam</a>.
       </p>
     </div>
     <div class="p-8 mb-12 rounded-lg shadow-xl bg-green-50">
@@ -29,7 +30,7 @@
             14473 Potsdam
             <br>
             E-Mail: <a href="mailto:jzschau@uni-potsdam.de"
-    class="text-green-700 transition duration-300 hover:underline">jzschau@uni-potsdam.de</a>
+    class="text-green-700 hover:underline">jzschau@uni-potsdam.de</a>
           </p>
         </div>
         <div>
@@ -42,7 +43,7 @@
             14467 Potsdam
             <br>
             E-Mail: <a href="mailto:dirk.berger@rathaus.potsdam.de"
-    class="text-green-700 transition duration-300 hover:underline">dirk.berger@rathaus.potsdam.de</a>
+    class="text-green-700 hover:underline">dirk.berger@rathaus.potsdam.de</a>
           </p>
         </div>
       </div>
@@ -76,7 +77,7 @@
           14548 Schwielowsee/Caputh
           <br>
           <a href="mailto:mantis-dev@gottesanbeterin-gesucht.de"
-             class="text-green-700 transition duration-300 hover:underline">mantis-dev@gottesanbeterin-gesucht.de</a>
+             class="text-green-700 hover:underline">mantis-dev@gottesanbeterin-gesucht.de</a>
         </p>
       </div>
       <div class="p-8 rounded-lg shadow-xl bg-green-50">
@@ -86,7 +87,7 @@
         </p>
         <p class="mb-4 text-lg font-medium text-gray-700">
           Jacob, Janneck, Jeremy, Lennard, <a href="https://leonkohli.dev"
-    class="text-green-700 transition duration-300 hover:underline"
+    class="text-green-700 hover:underline"
     target="_blank"
     rel="noopener noreferrer">Leon</a>, Luca, Lukas, Martin, Max, Peter, Tanja, William
         </p>
@@ -94,10 +95,6 @@
         <p class="text-lg text-gray-600">Peter Koppatz</p>
       </div>
     </div>
-    <div class="pt-8 mt-8 border-t border-gray-200">
-      <p class="text-sm text-gray-500">
-        Siehe auch: <a href="{{ url_for('main.datenschutz') }}" class="text-green-700 hover:underline">Datenschutz</a> · <a href="{{ url_for('main.lizenz') }}" class="text-green-700 hover:underline">Lizenz</a>
-      </p>
-    </div>
+    {{ see_also([(url_for('main.datenschutz'), "Datenschutz"), (url_for('main.lizenz'), "Lizenz")]) }}
   </div>
 {% endblock content %}

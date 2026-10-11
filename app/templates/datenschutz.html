@@ -1,4 +1,5 @@
 {% extends "layout.html" %}
+{% from "_macros_ui.html" import see_also %}
 {% block title %}
   Datenschutz
 {% endblock title %}
@@ -22,10 +23,10 @@
     <div class="mb-12">
       <h2 class="section-heading">Wie erfassen wir Ihre Daten?</h2>
       <p class="prose-content-spaced">
-        Ihre Daten werden dadurch erhoben, dass Sie uns diese mitteilen. Hierbei kann es sich z.B. um Daten handeln, die Sie in ein Kontaktformular eingeben.
+        Ihre Daten werden dadurch erhoben, dass Sie uns diese mitteilen. Hierbei kann es sich z. B. um Daten handeln, die Sie in ein Kontaktformular eingeben.
       </p>
       <p class="prose-content-spaced">
-        Andere Daten werden automatisch beim Besuch der Website durch unsere IT-Systeme erfasst. Das sind vor allem technische Daten (z.&thinsp;B. Internetbrowser, Betriebssystem oder Uhrzeit des Seitenaufrufs). Die Erfassung dieser Daten erfolgt automatisch, sobald Sie unsere Website aufrufen.
+        Andere Daten werden automatisch beim Besuch der Website durch unsere IT-Systeme erfasst. Das sind vor allem technische Daten (z. B. Internetbrowser, Betriebssystem oder Uhrzeit des Seitenaufrufs). Die Erfassung dieser Daten erfolgt automatisch, sobald Sie unsere Website aufrufen.
       </p>
     </div>
     <div class="mb-12">
@@ -50,7 +51,7 @@
         Wenn Sie diese Website benutzen, werden verschiedene personenbezogene Daten erhoben. Personenbezogene Daten sind Daten, mit denen Sie persönlich identifiziert werden können. Die vorliegende Datenschutzerklärung erläutert, welche Daten wir erheben und wofür wir sie nutzen. Sie erläutert auch, wie und zu welchem Zweck das geschieht.
       </p>
       <p class="prose-content-spaced">
-        Wir weisen darauf hin, dass die Datenübertragung im Internet (z.&thinsp;B. bei der Kommunikation per E-Mail) Sicherheitslücken aufweisen kann. Ein lückenloser Schutz der Daten vor dem Zugriff durch Dritte ist nicht möglich.
+        Wir weisen darauf hin, dass die Datenübertragung im Internet (z. B. bei der Kommunikation per E-Mail) Sicherheitslücken aufweisen kann. Ein lückenloser Schutz der Daten vor dem Zugriff durch Dritte ist nicht möglich.
       </p>
     </div>
     <div class="mb-12">
@@ -66,7 +67,7 @@
         14548 Schwielowsee/Caputh
       </p>
       <p class="prose-content-spaced">
-        Verantwortliche Stelle ist die natürliche oder juristische Person, die allein oder gemeinsam mit anderen über die Zwecke und Mittel der Verarbeitung von personenbezogenen Daten (z.B. Namen, E-Mail-Adressen o. Ä.) entscheidet.
+        Verantwortliche Stelle ist die natürliche oder juristische Person, die allein oder gemeinsam mit anderen über die Zwecke und Mittel der Verarbeitung von personenbezogenen Daten (z. B. Namen, E-Mail-Adressen o. Ä.) entscheidet.
       </p>
     </div>
     <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
@@ -94,7 +95,7 @@
     <div class="mb-12">
       <h2 class="section-heading">SSL- bzw. TLS-Verschlüsselung</h2>
       <p class="prose-content-spaced">
-        Diese Seite nutzt aus Sicherheitsgründen und zum Schutz der Übertragung vertraulicher Inhalte, wie zum Beispiel Bestellungen oder Anfragen, die Sie an uns als Seitenbetreiber senden, eine SSL- bzw. TLS-Verschlüsselung. Eine verschlüsselte Verbindung erkennen Sie daran, dass die Adresszeile des Browsers von "http://" auf "https://" wechselt und an dem Schloss-Symbol in Ihrer Browserzeile.
+        Diese Seite nutzt aus Sicherheitsgründen und zum Schutz der Übertragung vertraulicher Inhalte, wie zum Beispiel Bestellungen oder Anfragen, die Sie an uns als Seitenbetreiber senden, eine SSL- bzw. TLS-Verschlüsselung. Eine verschlüsselte Verbindung erkennen Sie daran, dass die Adresszeile des Browsers von „http://“ auf „https://“ wechselt und an dem Schloss-Symbol in Ihrer Browserzeile.
       </p>
       <p class="prose-content-spaced">
         Wenn die SSL- bzw. TLS-Verschlüsselung aktiviert ist, können die Daten, die Sie an uns übermitteln, nicht von Dritten mitgelesen werden.
@@ -112,10 +113,6 @@
         Der Nutzung von im Rahmen der Impressumspflicht veröffentlichten Kontaktdaten zur Übersendung von nicht ausdrücklich angeforderter Werbung und Informationsmaterialien wird hiermit widersprochen. Die Betreiber der Seiten behalten sich ausdrücklich rechtliche Schritte im Falle der unverlangten Zusendung von Werbeinformationen, etwa durch Spam-E-Mails, vor.
       </p>
     </div>
-    <div class="pt-8 mt-8 border-t border-gray-200">
-      <p class="text-sm text-gray-500">
-        Siehe auch: <a href="{{ url_for('main.impressum') }}" class="text-green-700 hover:underline">Impressum</a> · <a href="{{ url_for('main.lizenz') }}" class="text-green-700 hover:underline">Lizenz</a>
-      </p>
-    </div>
+    {{ see_also([(url_for('main.impressum'), "Impressum"), (url_for('main.lizenz'), "Lizenz")]) }}
   </div>
 {% endblock content %}
