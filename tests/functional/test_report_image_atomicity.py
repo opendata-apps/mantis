@@ -7,17 +7,17 @@ so no orphan with a missing fundorte row is left behind.
 """
 
 import io
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 
 import pytest
+from flask import Flask
 from PIL import Image
 
 import app.routes.report as report_mod
+import app.tools.report_images as report_images
 from app.tools.report_images import process_uploaded_image
-from tests.helpers import build_valid_report_form_data
-
-pytestmark = pytest.mark.usefixtures("app_ctx")
+from tests.helpers import build_valid_report_form_data, make_test_image
 
 
 def _webp_bytes():
@@ -26,6 +26,7 @@ def _webp_bytes():
     return buf.getvalue()
 
 
+@pytest.mark.usefixtures("app_ctx")
 def test_process_image_success_publishes_atomically(app, tmp_path, monkeypatch):
     monkeypatch.setitem(app.config, "UPLOAD_FOLDER", str(tmp_path))
 
@@ -38,6 +39,61 @@ def test_process_image_success_publishes_atomically(app, tmp_path, monkeypatch):
     assert list(tmp_path.rglob("*.part")) == []
 
 
+def test_uploads_at_the_same_time_keep_both_photos(tmp_path, monkeypatch):
+    class FixedTime(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return cls(2026, 9, 30, 12, 0, 0)
+
+    monkeypatch.setattr(report_images, "datetime", FixedTime)
+    first = make_test_image(fmt="webp", color="red").getvalue()
+    second = make_test_image(fmt="webp", color="blue").getvalue()
+    app = Flask(__name__)
+    app.config["UPLOAD_FOLDER"] = str(tmp_path)
+
+    with app.app_context():
+        first_path = process_uploaded_image(
+            io.BytesIO(first), date(2025, 6, 1), "Testdorf", "9999"
+        )
+        second_path = process_uploaded_image(
+            io.BytesIO(second), date(2025, 6, 1), "Testdorf", "9999"
+        )
+
+    assert first_path != second_path
+    assert (tmp_path / first_path).read_bytes() == first
+    assert (tmp_path / second_path).read_bytes() == second
+
+
+def test_decoder_lock_failure_is_a_server_error(app, client):
+    root = Path(app.config["UPLOAD_FOLDER"])
+    (root / ".image-decode.lock").mkdir(parents=True)
+    response = client.post(
+        "/melden",
+        data=build_valid_report_form_data(
+            photo=(make_test_image(fmt="webp"), "sighting.webp")
+        ),
+        content_type="multipart/form-data",
+    )
+
+    assert response.status_code == 500
+    assert list(root.rglob("*.webp")) == []
+
+
+def test_unicode_city_names_fit_the_stored_photo_path(client):
+    response = client.post(
+        "/melden",
+        data=build_valid_report_form_data(
+            fund_city="ﬃ" * 50,
+            photo=(make_test_image(fmt="webp"), "sighting.webp"),
+        ),
+        content_type="multipart/form-data",
+    )
+
+    assert response.status_code == 200
+    assert response.get_json()["success"] is True
+
+
+@pytest.mark.usefixtures("app_ctx")
 def test_process_image_failure_leaves_no_partial_or_final(app, tmp_path, monkeypatch):
     monkeypatch.setitem(app.config, "UPLOAD_FOLDER", str(tmp_path))
 

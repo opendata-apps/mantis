@@ -3,6 +3,7 @@ import io
 from contextlib import contextmanager
 from datetime import date, datetime
 from pathlib import Path
+from uuid import uuid4
 
 from flask import current_app
 from PIL import Image, ImageFile, ImageOps
@@ -52,10 +53,11 @@ def build_upload_filename(
     timestamp: date | datetime,
 ) -> str:
     """Build the canonical report image filename."""
-    location_part = secure_filename(location or "unknown_city")
+    # Transliteration can expand the city; leave room in ablage's 255 characters.
+    location_part = secure_filename(location or "unknown_city")[:100]
     user_part = secure_filename(user_id)
     timestamp_part = timestamp.strftime("%Y%m%d%H%M%S")
-    return f"{location_part}-{timestamp_part}-{user_part}.webp"
+    return f"{location_part}-{timestamp_part}-{uuid4().hex}-{user_part}.webp"
 
 
 def _has_no_visible_pixels(img):
@@ -96,44 +98,42 @@ def process_uploaded_image(photo_file, sighting_date, city_name, user_id):
 
     image_bytes = photo_file.read()
 
-    try:
-        with (
-            _image_decode_slot(upload_root),
-            Image.open(io.BytesIO(image_bytes), formats=PILLOW_FORMATS) as img,
-        ):
-            if img.width * img.height > MAX_UPLOAD_PIXELS:
-                raise InvalidImageError(TOO_LARGE_MESSAGE)
-            # JPEG only, a no-op otherwise: libjpeg decodes at 1/2–1/8 scale, so
-            # a 48 MP original costs ~90 MiB instead of ~260. Must precede load().
-            img.draft("RGB", (MAX_STORED_DIMENSION, MAX_STORED_DIMENSION))
-            img.load()
-            if _has_no_visible_pixels(img):
-                raise BlankImageError("uploaded frame has no visible pixels")
+    with _image_decode_slot(upload_root):
+        try:
+            with Image.open(io.BytesIO(image_bytes), formats=PILLOW_FORMATS) as img:
+                if img.width * img.height > MAX_UPLOAD_PIXELS:
+                    raise InvalidImageError(TOO_LARGE_MESSAGE)
+                # JPEG only, a no-op otherwise: libjpeg decodes at 1/2–1/8 scale, so
+                # a 48 MP original costs ~90 MiB instead of ~260. Must precede load().
+                img.draft("RGB", (MAX_STORED_DIMENSION, MAX_STORED_DIMENSION))
+                img.load()
+                if _has_no_visible_pixels(img):
+                    raise BlankImageError("uploaded frame has no visible pixels")
 
-            if img.format == "WEBP" and max(img.size) <= MAX_STORED_DIMENSION:
-                # Preserve client-optimized WebP without recompressing it.
-                image_bytes_to_save = image_bytes
-            else:
-                # A browser bakes EXIF orientation into the canvas, but an original
-                # uploaded by the conversion fallback arrives untouched and the WebP
-                # re-encode drops the tag — so rotate here or a portrait photo is
-                # archived sideways with nothing left to fix it.
-                output_buffer = io.BytesIO()
-                ImageOps.exif_transpose(img, in_place=True)
-                # An original forwarded by the conversion fallback has had no
-                # client-side downscale; a 12MP frame would re-encode to ~0.9MB.
-                img.thumbnail((MAX_STORED_DIMENSION, MAX_STORED_DIMENSION))
-                img.save(output_buffer, format="WEBP", quality=60)
-                image_bytes_to_save = output_buffer.getvalue()
-    except InvalidImageError:
-        raise
-    except Image.DecompressionBombError as error:
-        # Pillow refuses above ~179 MP before our own cap is reached.
-        raise InvalidImageError(TOO_LARGE_MESSAGE) from error
-    except (OSError, ValueError) as error:
-        raise InvalidImageError(
-            "Das Foto konnte nicht gelesen werden. Bitte wählen Sie ein anderes Foto."
-        ) from error
+                if img.format == "WEBP" and max(img.size) <= MAX_STORED_DIMENSION:
+                    # Preserve client-optimized WebP without recompressing it.
+                    image_bytes_to_save = image_bytes
+                else:
+                    # A browser bakes EXIF orientation into the canvas, but an original
+                    # uploaded by the conversion fallback arrives untouched and the WebP
+                    # re-encode drops the tag — so rotate here or a portrait photo is
+                    # archived sideways with nothing left to fix it.
+                    output_buffer = io.BytesIO()
+                    ImageOps.exif_transpose(img, in_place=True)
+                    # An original forwarded by the conversion fallback has had no
+                    # client-side downscale; a 12MP frame would re-encode to ~0.9MB.
+                    img.thumbnail((MAX_STORED_DIMENSION, MAX_STORED_DIMENSION))
+                    img.save(output_buffer, format="WEBP", quality=60)
+                    image_bytes_to_save = output_buffer.getvalue()
+        except InvalidImageError:
+            raise
+        except Image.DecompressionBombError as error:
+            # Pillow refuses above ~179 MP before our own cap is reached.
+            raise InvalidImageError(TOO_LARGE_MESSAGE) from error
+        except (OSError, ValueError) as error:
+            raise InvalidImageError(
+                "Das Foto konnte nicht gelesen werden. Bitte wählen Sie ein anderes Foto."
+            ) from error
 
     tmp_path = full_path.with_name(full_path.name + ".part")
     try:
