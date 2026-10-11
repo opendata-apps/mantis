@@ -35,6 +35,8 @@ const ReportForm = {
     map: null,
     marker: null,
     webpData: null,
+    photoSelection: 0,
+    failedPhoto: null,
     geocodeController: null,
     coordinateRanges: null,
     locUpdates: 0,
@@ -168,8 +170,7 @@ const ReportForm = {
             const input = document.getElementById(ERROR_INPUT[field] || field);
             if (!input) return;
 
-            // A hint (e.g. the photo fallback notice) occupies the same slot but is not a rejection.
-            const hasError = !el.classList.contains('is-hint') && el.textContent.trim().length > 0;
+            const hasError = el.textContent.trim().length > 0;
             if (hasError) {
                 input.setAttribute('aria-invalid', 'true');
                 input.setAttribute('aria-describedby', el.id);
@@ -210,7 +211,7 @@ const ReportForm = {
             const data = new FormData(form);
             data.delete('photo');
             const ext = extensionFor(this.webpData.blob.type, uploadConfig().extensionByMime);
-            const name = (this.webpData.fileName || 'photo').replace(/\.[^.]+$/, ext);
+            const name = (this.webpData.fileName || 'photo').replace(/\.[^.]+$/, '') + ext;
             data.append('photo', new File([this.webpData.blob], name, { type: this.webpData.blob.type }));
 
             const res = await fetch(form.action, {
@@ -334,6 +335,9 @@ const ReportForm = {
 
     async handlePhoto(file) {
         if (!file) return;
+        this.resetPhoto();
+        const selection = this.photoSelection;
+        this.hideEscalation();
         const type = this.imageType(file);
         if (!type) return this.showError('photo', 'Ungültiges Bildformat.');
         const { maxBytes, maxMb } = uploadConfig();
@@ -342,7 +346,8 @@ const ReportForm = {
             + 'oder stellen Sie die Kamera auf eine geringere Auflösung (z. B. 12 MP).');
 
         this.clearError('photo');
-        this.setDropzoneLoading(true, 'Bild wird verarbeitet...');
+        this.showStep(0);
+        this.setDropzoneLoading(true, 'Bild wird verarbeitet…');
 
         // Start the read here, still inside the change event's own task: Android
         // hands gallery items over as proxy content:// URIs that can turn
@@ -352,12 +357,13 @@ const ReportForm = {
 
         try {
             const bytes = await this.stage('read', read);
+            if (selection !== this.photoSelection) return;
             exif = this.extractExif(bytes);
-            this.setPhoto(await this.toWebp(bytes, type, file.size), file.name);
+            const converted = await this.toWebp(bytes, type, file.size);
+            if (selection !== this.photoSelection) return;
+            this.setPhoto(converted, file.name);
         } catch (err) {
-            const probe = err.stage === 'read' ? await this.probeRead(file) : '';
-            const escalation = await this.reportPhotoFailure(file, err, probe);
-
+            if (selection !== this.photoSelection) return;
             // The server decodes every accepted format, so a failed conversion
             // forwards the original. A failed read does not: submit would fail too.
             if (err.stage === 'read') {
@@ -369,16 +375,22 @@ const ReportForm = {
                     + 'am Foto, sondern an einem Fehler, der auf manchen Android-Handys '
                     + 'auftritt. Bitte wählen Sie ein anderes Foto — klappt es '
                     + 'weiterhin nicht, erscheint hier ein Weg, es uns per E-Mail zu schicken.');
-                this.showEscalation(escalation);
+                this.failedPhoto = file;
+                this.probeRead(file)
+                    .then(probe => this.reportPhotoFailure(file, err, probe))
+                    .then(payload => {
+                        if (this.failedPhoto === file) this.showEscalation(payload);
+                    });
                 return;
             }
 
+            void this.reportPhotoFailure(file, err, '');
             this.setPhoto(file, file.name);
             this.showHint('photo',
                 'Das Foto konnte im Browser nicht verkleinert werden und wird unverändert '
                 + 'hochgeladen — das kann etwas länger dauern.');
         } finally {
-            this.setDropzoneLoading(false);
+            if (selection === this.photoSelection) this.setDropzoneLoading(false);
         }
 
         this.applyExif(exif);
@@ -461,7 +473,7 @@ const ReportForm = {
     // Inside Chrome a 'read' failure is one of two faults: the provider refuses
     // to reopen the file, or it delivers a byte count other than the size it
     // reported. A small slice needs only the open; the stream counts what arrives.
-    // Bounded, because the failure message waits for it.
+    // Stop waiting after five seconds if the provider never finishes.
     async probeRead(file) {
         const probe = (async () => {
             const head = await file.slice(0, 65536).arrayBuffer().then(() => 'ok', (e) => e.name);
@@ -632,6 +644,13 @@ const ReportForm = {
     removePhoto() {
         const input = document.getElementById('photo');
         if (input) input.value = '';
+        this.resetPhoto();
+    },
+
+    resetPhoto() {
+        this.photoSelection += 1;
+        this.failedPhoto = null;
+        this.setDropzoneLoading(false);
         document.getElementById('photoPreview')?.classList.add('hidden');
         document.getElementById('exif-data')?.classList.add('hidden');
         document.getElementById('photo-upload-area')?.classList.remove('hidden');
@@ -701,10 +720,18 @@ const ReportForm = {
             watch: true, setView: false, keepCurrentZoomLevel: true,
             drawCircle: false, drawMarker: false, showPopup: false,
             enableHighAccuracy: true, timeout: 15000, maximumAge: 30000,
-            strings: { title: 'Standort' }
+            strings: { title: 'Standort' },
+            // The vendor defaults alert() the browser's English error text.
+            // Today the locationerror handler below stops the control before
+            // its own listener runs; these keep that from depending on order.
+            onLocationError: () => {}, onLocationOutsideMapBounds: () => {},
         }).addTo(this.map);
         this.map.on('locationfound', (e) => this.handleLocationFound(e));
-        this.map.on('locationerror', () => this.stopLocationUpdates());
+        this.map.on('locationerror', () => {
+            this.stopLocationUpdates();
+            this.showHint('coordinates',
+                'Der Standort ist nicht verfügbar. Bitte markieren Sie den Fundort auf der Karte.');
+        });
 
         this.map.on('click', (e) => {
             if (this.map.getZoom() < this.MIN_ZOOM) {
@@ -841,22 +868,26 @@ const ReportForm = {
             district: document.getElementById('fund_district'),
             street: document.getElementById('fund_street')
         };
-        // readOnly, not disabled: a disabled control is omitted from FormData, so
-        // clicking "Weiter" mid-lookup would submit no city/state and fail
-        // validation on fields that visibly hold a value.
-        Object.values(fields).forEach(f => f && (f.readOnly = true));
+        Object.values(fields).forEach(f => {
+            if (!f) return;
+            f.value = '';
+            f.readOnly = true;
+        });
 
         try {
             const r = await reverseGeocode(lat, lng, { agsUrl: this.agsUrl, signal });
+            if (signal.aborted) return;
             if (fields.zip) fields.zip.value = r.plz;
             if (fields.city) fields.city.value = r.ort;
             if (fields.street) fields.street.value = r.strasse;
             if (fields.state) fields.state.value = r.land;
             if (fields.district) fields.district.value = r.kreis;
-        } catch (err) {
-            if (err.name === 'AbortError') return; // superseded by a newer request
+        } catch {
+            if (signal.aborted) return;
+            this.showHint('coordinates',
+                'Die Adresse konnte nicht ermittelt werden. Bitte tragen Sie den Ort manuell ein.');
         } finally {
-            Object.values(fields).forEach(f => f && (f.readOnly = false));
+            if (!signal.aborted) Object.values(fields).forEach(f => f && (f.readOnly = false));
         }
     },
 
@@ -878,8 +909,8 @@ const ReportForm = {
     showError(field, msg, focus = true) {
         const el = document.getElementById(`error-${field}`);
         if (!el) return;
+        this.clearHint(field);
         el.textContent = msg;
-        el.classList.remove('is-hint');
         if (field === 'general') el.classList.remove('hidden');
         const input = document.getElementById(ERROR_INPUT[field] || field);
         if (input) {
@@ -887,24 +918,30 @@ const ReportForm = {
             input.setAttribute('aria-describedby', el.id);
             if (focus) input.focus();
         } else {
-            el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            // CSS scroll-behavior does not reach an explicit behavior: 'smooth'.
+            const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'nearest' });
         }
     },
 
     // Advice, not a rejection: same slot, muted styling, and no focus steal —
     // focusing a text input here would pop the keyboard open on mobile.
     showHint(field, msg) {
-        const el = document.getElementById(`error-${field}`);
-        if (!el) return;
-        el.textContent = msg;
-        el.classList.add('is-hint');
+        this.clearError(field);
+        const el = document.getElementById(`hint-${field}`);
+        if (el) el.textContent = msg;
+    },
+
+    clearHint(field) {
+        const el = document.getElementById(`hint-${field}`);
+        if (el) el.textContent = '';
     },
 
     clearError(field) {
+        this.clearHint(field);
         const el = document.getElementById(`error-${field}`);
         if (!el) return;
         el.textContent = '';
-        el.classList.remove('is-hint');
         if (field === 'general') el.classList.add('hidden');
         const input = document.getElementById(ERROR_INPUT[field] || field);
         if (input) {
@@ -914,7 +951,7 @@ const ReportForm = {
     },
 
     clearErrors() {
-        document.querySelectorAll('.field-error-message').forEach(el => el.textContent = '');
+        document.querySelectorAll('.field-error-message, .field-hint').forEach(el => el.textContent = '');
         document.querySelectorAll('[aria-invalid]').forEach(el => {
             el.removeAttribute('aria-invalid');
             el.removeAttribute('aria-describedby');
@@ -924,4 +961,4 @@ const ReportForm = {
     }
 };
 
-document.addEventListener('DOMContentLoaded', () => ReportForm.init());
+ReportForm.init();

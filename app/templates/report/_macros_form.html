@@ -50,6 +50,7 @@
          aria-live="assertive">
       {% if field.errors %}{{ field.errors[0] }}{% endif %}
     </div>
+    <div id="hint-photo" class="field-hint" role="status"></div>
     {# Shown only after repeated failures; the mailto is filled in by JS from the
        server response, so the support address never appears in the page source. #}
     <div id="photo-escalation"

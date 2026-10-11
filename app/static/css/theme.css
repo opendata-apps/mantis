@@ -330,10 +330,12 @@
 /* red-600 keeps 14px error text above the WCAG AA contrast floor on white. */
 @utility field-error-message {
   @apply mt-1 text-[0.875rem] text-red-600;
+}
 
-  &.is-hint {
-    @apply text-gray-600;
-  }
+/* Advice next to a field. A slot of its own with role="status": in the
+   error slot (role="alert") a neutral hint would interrupt like an error. */
+@utility field-hint {
+  @apply mt-1 text-[0.875rem] text-gray-600;
 }
 
 @utility modal-section-heading {
