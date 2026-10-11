@@ -95,11 +95,6 @@ def seed_ags_command():
         kreise_lookup = build_kreise_lookup(kreise_data)
         click.echo(f"Built Kreise lookup: {len(kreise_lookup)} entries")
 
-        save_fallback(merged, fallback_path)
-        save_kreise_lookup(kreise_lookup, kreise_path)
-        click.echo(f"Saved fallback to {fallback_path}")
-        click.echo(f"Saved Kreise lookup to {kreise_path}")
-
         # Sync database: replace all rows with fresh dataset
         click.echo("Syncing aemter table...")
         from app.database.aemter_koordinaten import TblAemterCoordinaten
@@ -132,6 +127,10 @@ def seed_ags_command():
                 removed += 1
 
         db.session.commit()
+        save_fallback(merged, fallback_path)
+        save_kreise_lookup(kreise_lookup, kreise_path)
+        click.echo(f"Saved fallback to {fallback_path}")
+        click.echo(f"Saved Kreise lookup to {kreise_path}")
         if removed:
             click.echo(f"Removed {removed} stale record(s)")
         click.echo(

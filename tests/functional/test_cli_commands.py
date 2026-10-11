@@ -337,3 +337,120 @@ class TestSeedAgsCommand:
             )
         ]
         assert after == before
+
+    @pytest.mark.parametrize(
+        "source,bad_payload",
+        [
+            ("kreise", {"type": "FeatureCollection", "features": []}),
+            (
+                "berlin",
+                {
+                    "type": "FeatureCollection",
+                    "numberMatched": 100,
+                    "numberReturned": 1,
+                    "features": [
+                        {
+                            "properties": {"name": "11000001", "namgem": "Mitte"},
+                            "geometry": {"type": "Point", "coordinates": [13.4, 52.5]},
+                        }
+                    ],
+                },
+            ),
+        ],
+        ids=["empty-collection", "incomplete-collection"],
+    )
+    def test_invalid_wfs_response_preserves_saved_data(
+        self, cli_runner, session, tmp_path, monkeypatch, source, bad_payload
+    ):
+        import requests
+
+        import app.cli
+        from app.database.models import TblAemterCoordinaten
+
+        monkeypatch.setattr(app.cli, "__file__", str(tmp_path / "cli.py"))
+        data_dir = tmp_path / "data"
+        data_dir.mkdir()
+        paths = [data_dir / "ags_gemeinden.json", data_dir / "ags_kreise.json"]
+        for path in paths:
+            path.write_text('{"existing": true}')
+        areas = select(
+            TblAemterCoordinaten.ags,
+            TblAemterCoordinaten.gen,
+            TblAemterCoordinaten.properties,
+        ).order_by(TblAemterCoordinaten.ags)
+        before = session.execute(areas).all()
+        payload = {
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "properties": {
+                        "ags": "12054012",
+                        "gen": "Testort",
+                        "bez": "Landkreis",
+                        "name": "11000001",
+                        "namgem": "Mitte",
+                    },
+                    "geometry": {"type": "Point", "coordinates": [13.4, 52.5]},
+                }
+            ],
+        }
+        typename = {
+            "kreise": "vg5000_0101:vg5000_krs",
+            "berlin": "alkis_bezirke:bezirksgrenzen",
+        }[source]
+
+        def respond(url, *, params, timeout):
+            response = requests.Response()
+            response.status_code = 200
+            response._content = json.dumps(
+                bad_payload if params["typenames"] == typename else payload
+            ).encode()
+            return response
+
+        monkeypatch.setattr(requests, "get", respond)
+        result = cli_runner.invoke(args=["seed-ags"])
+
+        assert result.exit_code != 0
+        assert session.execute(areas).all() == before
+        assert [path.read_text() for path in paths] == ['{"existing": true}'] * 2
+
+    def test_invalid_ags_preserves_fallback_files(
+        self, cli_runner, tmp_path, monkeypatch
+    ):
+        import requests
+
+        import app.cli
+
+        monkeypatch.setattr(app.cli, "__file__", str(tmp_path / "cli.py"))
+        data_dir = tmp_path / "data"
+        data_dir.mkdir()
+        paths = [data_dir / "ags_gemeinden.json", data_dir / "ags_kreise.json"]
+        for path in paths:
+            path.write_text('{"existing": true}')
+        payload = {
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "properties": {
+                        "ags": "not-an-ags",
+                        "gen": "Testort",
+                        "bez": "Landkreis",
+                        "name": "11000001",
+                        "namgem": "Mitte",
+                    },
+                    "geometry": {"type": "Point", "coordinates": [13.4, 52.5]},
+                }
+            ],
+        }
+
+        def respond(url, *, params, timeout):
+            response = requests.Response()
+            response.status_code = 200
+            response._content = json.dumps(payload).encode()
+            return response
+
+        monkeypatch.setattr(requests, "get", respond)
+        result = cli_runner.invoke(args=["seed-ags"])
+
+        assert result.exit_code != 0
+        assert [path.read_text() for path in paths] == ['{"existing": true}'] * 2

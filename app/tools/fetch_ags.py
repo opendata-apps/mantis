@@ -43,7 +43,18 @@ def _wfs_get_feature(base_url, typename, *, srs="EPSG:4326", extra_params=None):
 
     resp = requests.get(base_url, params=params, timeout=REQUEST_TIMEOUT)
     resp.raise_for_status()
-    return resp.json()
+    data = resp.json()
+    if (
+        not isinstance(data, dict)
+        or data.get("type") != "FeatureCollection"
+        or not isinstance(data.get("features"), list)
+        or not data["features"]
+    ):
+        raise ValueError(f"{typename}: expected a non-empty FeatureCollection")
+    matched = data.get("numberMatched")
+    if matched not in (None, "unknown") and int(matched) > len(data["features"]):
+        raise ValueError(f"{typename}: WFS response is incomplete")
+    return data
 
 
 def fetch_gemeinden():
@@ -53,7 +64,7 @@ def fetch_gemeinden():
     """
     logger.info("Fetching Gemeinden from BKG VG5000 WFS...")
     data = _wfs_get_feature(BKG_WFS_BASE, "vg5000_0101:vg5000_gem")
-    count = data.get("numberReturned", len(data.get("features", [])))
+    count = len(data["features"])
     logger.info("Fetched %s Gemeinden from BKG", count)
     return data
 
@@ -65,7 +76,7 @@ def fetch_kreise():
     """
     logger.info("Fetching Kreise from BKG VG5000 WFS...")
     data = _wfs_get_feature(BKG_WFS_BASE, "vg5000_0101:vg5000_krs")
-    count = data.get("numberReturned", len(data.get("features", [])))
+    count = len(data["features"])
     logger.info("Fetched %s Kreise from BKG", count)
     return data
 
@@ -77,7 +88,7 @@ def fetch_berlin_bezirke():
     """
     logger.info("Fetching Berlin Bezirke from ALKIS WFS...")
     data = _wfs_get_feature(BERLIN_WFS_BASE, "alkis_bezirke:bezirksgrenzen")
-    features = data.get("features", [])
+    features = data["features"]
     logger.info("Fetched %s Berlin Bezirke", len(features))
     return features
 
@@ -115,7 +126,7 @@ def build_kreise_lookup(kreise_data):
     For Landkreise, stores "Landkreis Name" etc.
     """
     lookup = {}
-    for feature in kreise_data.get("features", []):
+    for feature in kreise_data["features"]:
         props = feature["properties"]
         ags5 = props["ags"]
         bez = props["bez"]
@@ -137,7 +148,7 @@ def merge_gemeinden_with_berlin(gemeinden_data, berlin_features):
     """
     merged = []
 
-    for feature in gemeinden_data.get("features", []):
+    for feature in gemeinden_data["features"]:
         ags = feature["properties"]["ags"]
         if ags == BERLIN_WHOLE_CITY_AGS:
             continue  # skip Berlin whole-city, replaced by Bezirke
@@ -149,7 +160,7 @@ def merge_gemeinden_with_berlin(gemeinden_data, berlin_features):
     logger.info(
         "Merged: %s features (%s Gemeinden + %s Berlin Bezirke)",
         len(merged),
-        len(gemeinden_data.get("features", [])) - 1,
+        len(merged) - len(berlin_features),
         len(berlin_features),
     )
 

@@ -42,7 +42,7 @@ class TestFetchGemeinden:
 
 class TestFetchKreise:
     def test_calls_bkg_wfs_with_kreise_typename(self):
-        payload = {"type": "FeatureCollection", "features": []}
+        payload = {"type": "FeatureCollection", "features": [{}]}
         with patch(
             "app.tools.fetch_ags.requests.get", return_value=_mock_response(payload)
         ) as mock_get:
@@ -52,17 +52,6 @@ class TestFetchKreise:
         assert mock_get.call_args.kwargs["params"]["typenames"] == (
             "vg5000_0101:vg5000_krs"
         )
-
-    def test_count_falls_back_to_feature_length(self):
-        """When the WFS response lacks ``numberReturned`` the helper logs
-        ``len(features)`` instead. This guards against a noisy
-        ``KeyError`` that would break the seed-ags command."""
-        payload = {"type": "FeatureCollection", "features": [{}, {}, {}]}
-        with patch(
-            "app.tools.fetch_ags.requests.get", return_value=_mock_response(payload)
-        ):
-            data = fetch_ags.fetch_kreise()
-        assert len(data["features"]) == 3
 
 
 class TestFetchBerlinBezirke:
@@ -95,7 +84,9 @@ class TestWfsGetFeatureParams:
     def test_default_srs_is_epsg_4326(self):
         with patch(
             "app.tools.fetch_ags.requests.get",
-            return_value=_mock_response({"type": "FeatureCollection"}),
+            return_value=_mock_response(
+                {"type": "FeatureCollection", "features": [{}]}
+            ),
         ) as mock_get:
             fetch_ags._wfs_get_feature(fetch_ags.BKG_WFS_BASE, "some:typename")
         assert mock_get.call_args.kwargs["params"]["srsName"] == "EPSG:4326"
@@ -103,7 +94,9 @@ class TestWfsGetFeatureParams:
     def test_extra_params_merged(self):
         with patch(
             "app.tools.fetch_ags.requests.get",
-            return_value=_mock_response({"type": "FeatureCollection"}),
+            return_value=_mock_response(
+                {"type": "FeatureCollection", "features": [{}]}
+            ),
         ) as mock_get:
             fetch_ags._wfs_get_feature(
                 fetch_ags.BKG_WFS_BASE,
