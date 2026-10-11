@@ -1,27 +1,28 @@
 // Auswertungen map page: year selector, marker clusters and popups
 import L from 'leaflet';
 import './map.js';
+import { addBaseLayers } from './base-layers.js';
 
 const { pointsUrl, years, selectedYear, markerIcon } = JSON.parse(
   document.getElementById('map-data').textContent
 );
 // Year selector control
-L.Control.YearSelector = L.Control.extend({
-  onAdd: function () {
-    var div = L.DomUtil.create('div', 'leaflet-control leaflet-bar');
-    var select = L.DomUtil.create('select', 'year-selector', div);
+const YearSelector = L.Control.extend({
+  onAdd() {
+    const div = L.DomUtil.create('div', 'leaflet-control leaflet-bar');
+    const select = L.DomUtil.create('select', 'year-selector', div);
     select.id = 'yearSelect';
     select.setAttribute('aria-label', 'Jahr der Sichtungen auswählen');
 
-    var option = L.DomUtil.create('option', '', select);
+    const option = L.DomUtil.create('option', '', select);
     option.value = '';
-    option.innerHTML = 'Alle Jahre';
+    option.textContent = 'Alle Jahre';
     if (!selectedYear) option.selected = true;
 
-    years.forEach(function (year) {
-      var opt = L.DomUtil.create('option', '', select);
+    years.forEach((year) => {
+      const opt = L.DomUtil.create('option', '', select);
       opt.value = String(year);
-      opt.innerHTML = String(year);
+      opt.textContent = String(year);
       if (selectedYear === year) opt.selected = true;
     });
 
@@ -32,7 +33,6 @@ L.Control.YearSelector = L.Control.extend({
     return div;
   }
 });
-L.control.yearSelector = opts => new L.Control.YearSelector(opts);
 
 // Init map
 // maxZoom 12 is the second half of obfuscate_location() in routes/data.py:
@@ -51,25 +51,14 @@ const map = L.map('map', {
   zoomControl: false
 }).setView([51.991649, 13.080113], 9);
 
-const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-});
-const esriImagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-  attribution: 'Tiles &copy; Esri'
-});
-const esriLabels = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
-  attribution: 'Tiles &copy; Esri'
-});
-
-map.addLayer(osmLayer);
-L.control.layers({ 'Karte': osmLayer, 'Satellit': L.layerGroup([esriImagery, esriLabels]) }).addTo(map);
-L.control.yearSelector({ position: 'topleft' }).addTo(map);
+addBaseLayers(map);
+new YearSelector({ position: 'topleft' }).addTo(map);
 L.control.zoom({ position: 'topleft' }).addTo(map);
 
 // Cluster legend
-L.Control.ClusterLegend = L.Control.extend({
-  onAdd: function () {
-    var div = L.DomUtil.create('div', 'cluster-legend leaflet-bar');
+const ClusterLegend = L.Control.extend({
+  onAdd() {
+    const div = L.DomUtil.create('div', 'cluster-legend leaflet-bar');
     div.innerHTML =
       '<span class="cluster-legend-item"><span class="cluster-dot cluster-dot--small"></span> &lt; 10</span>' +
       '<span class="cluster-legend-item"><span class="cluster-dot cluster-dot--medium"></span> 10 – 99</span>' +
@@ -77,7 +66,7 @@ L.Control.ClusterLegend = L.Control.extend({
     return div;
   }
 });
-new L.Control.ClusterLegend({ position: 'bottomright' }).addTo(map);
+new ClusterLegend({ position: 'bottomright' }).addTo(map);
 
 // Markers: one click handler on the group instead of a popup per marker
 const markers = L.markerClusterGroup({ showCoverageOnHover: false, chunkedLoading: true });

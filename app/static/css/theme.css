@@ -732,7 +732,9 @@ body:has(dialog:modal) {
    ========================================================================== */
 
 .leaflet-touch .leaflet-bar a,
-.leaflet-bar a {
+.leaflet-bar a,
+.leaflet-touch .leaflet-control-layers-toggle,
+.leaflet-control-layers-toggle {
   width: 40px;
   height: 40px;
   line-height: 40px;

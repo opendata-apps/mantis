@@ -13,6 +13,7 @@ import htmx from 'htmx.org';
 import { canvasIsBlank, extensionFor } from './image-checks.js';
 import { coordinatesInRange, parseCoordinateInput } from './coordinate-input.js';
 import { uploadConfig } from './upload-config.js';
+import { addBaseLayers } from './base-layers.js';
 
 const csrfToken = () => document.querySelector('meta[name="csrf-token"]').content;
 
@@ -683,20 +684,12 @@ const ReportForm = {
             .setView([51.1657, 10.4515], 6);
         L.control.attribution({ prefix: false }).addTo(this.map);
 
-        const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 18, minZoom: 3, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        });
-        const esriImagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-            maxZoom: 18, minZoom: 3, attribution: 'Tiles &copy; Esri',
-        });
-        const esriLabels = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
-            maxZoom: 18, minZoom: 3, attribution: 'Tiles &copy; Esri',
-        });
+        addBaseLayers(this.map, { maxZoom: 18, minZoom: 3 });
 
-        this.map.addLayer(osmLayer);
-        L.control.layers({ 'Karte': osmLayer, 'Satellit': L.layerGroup([esriImagery, esriLabels]) }).addTo(this.map);
-
-        geocoder({ defaultMarkGeocode: false, placeholder: 'Adresse suchen...' })
+        geocoder({
+            defaultMarkGeocode: false, placeholder: 'Adresse suchen…',
+            errorMessage: 'Keine Adresse gefunden.', iconLabel: 'Adresse suchen',
+        })
             .on('markgeocode', (e) => {
                 // Auto-place marker when user searches for an address
                 this.map.setView(e.geocode.center, this.MIN_ZOOM);
