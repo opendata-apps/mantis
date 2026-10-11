@@ -31,11 +31,8 @@
 {% block title %}
   Gottesanbeterin gesucht!
 {% endblock title %}
-{% from "_macros_ui.html" import cta_link %}
+{% from "_macros_ui.html" import cta_link, counter_panel %}
 {% block content %}
-  <!--p class="py-3 text-center text-sm text-green-800 bg-green-50 border-b border-green-100 text-pretty">
-    <strong class="font-semibold">Zeit der Eiablage</strong> — Melden Sie bitte auch Ootheken, sie sind der Start für die nächste Generation im kommenden Jahr.
-  </p-->
   <!--Projektbeschreibung section -->
   <section id="Projektbeschreibung"
            class="overflow-hidden relative px-4 py-20 sm:px-6 lg:px-8">
@@ -59,11 +56,11 @@
             </div>
             <div class="relative lg:row-start-1 lg:col-start-1">
               <h2 class="pb-6 text-3xl font-bold tracking-tight text-transparent text-balance bg-clip-text bg-linear-to-r from-green-500 to-green-700 sm:text-4xl">
-                Gottesanbeterin gesucht! -Projekt
+                „Gottesanbeterin gesucht!“-Projekt
               </h2>
               <p class="prose-content mb-6">
                 Das Naturkundemuseum Potsdam und die Mantidenfreunde Berlin-Brandenburg
-                initiieren das Projekt „Gottesanbeterin gesucht!" mit dem Ziel,
+                initiieren das Projekt „Gottesanbeterin gesucht!“ mit dem Ziel,
                 die <a href="{{ url_for('main.mantis_religiosa') }}"
     class="font-semibold text-green-600 underline decoration-green-300 hover:decoration-green-600 transition-colors">Europäische Gottesanbeterin</a>
                 (<i>Mantis religiosa</i> L. 1758) in der Region Brandenburg zu
@@ -81,7 +78,7 @@
             <div class="relative mb-8 lg:mb-0">
               <div class="relative overflow-hidden rounded-2xl shadow-2xl ring-1 ring-black/6 aspect-3/2 group">
                 <img src="{{ url_for('static', filename='images/berger03.webp') }}"
-                     alt="Gottesanbeterin nahaufnahme"
+                     alt="Gottesanbeterin in Nahaufnahme"
                      class="object-cover object-center size-full transition-transform duration-700 group-hover:scale-105"
                      loading="lazy" />
                 <div class="absolute inset-0 bg-black/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
@@ -156,50 +153,48 @@
   <!-- Animated counter section -->
   <section class="py-16 bg-gray-100">
     <div class="container px-4 mx-auto">
-      <div class="relative px-8 py-12 bg-green-800 rounded-lg shadow-2xl">
-        <h2 class="mb-8 text-3xl/tight font-bold text-center text-gray-100 text-balance">
-          Wir haben insgesamt
-          <br />
-          <span class="text-7xl font-extrabold text-gray-100 counter tabular-nums"
-                data-target="{{ post_count }}">0</span>
-          <br />
-          Meldungen erhalten
-        </h2>
-        <p class="mb-8 text-xl text-center text-gray-100">Helfen Sie uns, diese Zahl zu erhöhen!</p>
-      </div>
+      {{ counter_panel(post_count, "Wir haben insgesamt") }}
     </div>
   </section>
-  <script type="module" src="{{ vite_asset('js/counter.js') }}"></script>
-  <!-- Modal -->
+  {{ vite_tags("js/counter.js") }}
   {% if celebration_enabled %}
-    <div id="thanksModal"
-         class="flex fixed inset-0 z-11000 justify-center items-center opacity-0 transition-opacity duration-300 pointer-events-none">
-      <div class="absolute inset-0 bg-black/50 backdrop-blur-xs"></div>
-      <div class="relative p-8 mx-4 w-full max-w-md bg-white rounded-lg shadow-xl transition-transform duration-300 scale-95">
-        <button type="button" id="closeModal"
-                class="absolute top-4 right-4 text-gray-500 transition-colors duration-200 hover:text-gray-700">
-          {{ heroicon_outline("x-mark", class="size-6", stroke_width=2) }}
-        </button>
-        <h2 class="mb-4 text-2xl font-bold text-center text-green-700">Danke für Ihren Beitrag! 💚</h2>
+    {# Fills the viewport and is its own backdrop, so a click outside the
+       panel lands on the dialog itself. The confetti canvas lives inside:
+       showModal() puts the dialog in the top layer, above any z-index. #}
+    <dialog id="thanksModal"
+            aria-labelledby="thanksTitle"
+            class="group m-0 p-0 size-full max-w-none max-h-none bg-black/50 backdrop-blur-xs backdrop:bg-transparent open:flex justify-center items-center opacity-0 open:opacity-100 starting:open:opacity-0 transition-[opacity,display,overlay] transition-discrete duration-300">
+      <div class="relative p-8 mx-4 w-full max-w-md bg-white rounded-lg shadow-xl scale-95 group-open:scale-100 starting:group-open:scale-95 transition-[scale] duration-300">
+        <form method="dialog">
+          <button type="submit"
+                  aria-label="Schließen"
+                  class="absolute top-4 right-4 text-gray-500 transition-colors duration-200 hover:text-gray-700">
+            {{ heroicon_outline("x-mark", class="size-6", stroke_width=2) }}
+          </button>
+        </form>
+        <h2 id="thanksTitle" class="mb-4 text-2xl font-bold text-center text-green-700">Danke für Ihren Beitrag! <span aria-hidden="true">💚</span></h2>
         <div class="relative mx-auto mb-6 size-[150px]">
           <img id="dancingMantis"
                src="{{ url_for('static', filename='images/svg/praying-mantis.svg') }}"
                alt="Gottesanbeterin"
+               width="128"
+               height="128"
                class="mx-auto size-32">
           <span class="absolute top-[29%] left-[19%] text-2xl" role="img" aria-label="Lupe">🔍</span>
         </div>
         <p class="mb-6 text-lg text-center text-gray-700">
-          {{ celebration_threshold }} Meldungen erreicht! Ihre Unterstützung ist wertvoll für unsere Forschung.
+          {{ celebration_threshold | de_number }} Meldungen erreicht! Ihre Unterstützung ist wertvoll für unsere Forschung.
         </p>
         <div class="flex justify-center">
           <button type="button" id="moreConfetti"
-                  class="px-6 py-3 text-white bg-green-600 rounded-full shadow-md transition-colors duration-200 hover:bg-green-700 focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                  class="btn-primary">
             <span class="mr-2">Feiern!</span>
             <span role="img" aria-label="Konfetti">🎉</span>
           </button>
         </div>
       </div>
-    </div>
+      <canvas id="confettiCanvas" class="absolute inset-0 size-full pointer-events-none"></canvas>
+    </dialog>
     {{ vite_tags("js/confetti.js") }}
   {% endif %}
 {% endblock content %}

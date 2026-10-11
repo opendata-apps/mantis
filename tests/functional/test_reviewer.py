@@ -14,6 +14,9 @@ from itsdangerous import TimestampSigner
 # Helpers
 # ---------------------------------------------------------------------------
 
+# The pagination line of an empty result set.
+NO_RESULTS = "0–0 von 0".encode()
+
 
 def _login_session(client, user_id="9999"):
     """Set user_id in the Flask session for subsequent requests."""
@@ -142,7 +145,7 @@ class TestDateTypeFilter:
         )
         assert response.status_code == 200
         # Reports with dat_fund_von in Oct-Dec 2024 exist in test data
-        assert b"0 - 0 von 0" not in response.data
+        assert NO_RESULTS not in response.data
 
     def test_date_filter_fund_excludes_2025(self, client):
         """dateType=fund with 2025 range should return 0 results (no sightings in 2025)."""
@@ -153,7 +156,7 @@ class TestDateTypeFilter:
             follow_redirects=True,
         )
         assert response.status_code == 200
-        assert b"0 - 0 von 0" in response.data
+        assert NO_RESULTS in response.data
 
     def test_date_filter_meld_finds_feb_2025(self, client):
         """dateType=meld with Feb 2025 range should find reports (all dat_meld in Feb 2025)."""
@@ -164,7 +167,7 @@ class TestDateTypeFilter:
             follow_redirects=True,
         )
         assert response.status_code == 200
-        assert b"0 - 0 von 0" not in response.data
+        assert NO_RESULTS not in response.data
 
     def test_date_filter_meld_excludes_2024(self, client):
         """dateType=meld with 2024 range should return 0 results (no reports filed in 2024)."""
@@ -175,7 +178,7 @@ class TestDateTypeFilter:
             follow_redirects=True,
         )
         assert response.status_code == 200
-        assert b"0 - 0 von 0" in response.data
+        assert NO_RESULTS in response.data
 
     def test_date_type_preserved_in_html(self, client):
         """The dateType value should be present in the rendered HTML."""
@@ -216,8 +219,8 @@ class TestDateTypeFilter:
         assert resp_fund.status_code == 200
         assert resp_meld.status_code == 200
         # Both should show the same total when no date filter is applied
-        assert b"0 - 0 von 0" not in resp_fund.data
-        assert b"0 - 0 von 0" not in resp_meld.data
+        assert NO_RESULTS not in resp_fund.data
+        assert NO_RESULTS not in resp_meld.data
 
     def test_date_filter_from_only(self, client):
         """dateFrom without dateTo should filter as open-ended range."""
@@ -229,7 +232,7 @@ class TestDateTypeFilter:
         )
         assert response.status_code == 200
         # Reports 8,18,19 have dat_fund_von >= 2024-12-23
-        assert b"0 - 0 von 0" not in response.data
+        assert NO_RESULTS not in response.data
 
     def test_date_filter_to_only(self, client):
         """dateTo without dateFrom should filter as open-ended range."""
@@ -241,7 +244,7 @@ class TestDateTypeFilter:
         )
         assert response.status_code == 200
         # Report 4 has dat_fund_von=2024-01-02
-        assert b"0 - 0 von 0" not in response.data
+        assert NO_RESULTS not in response.data
 
     @pytest.mark.parametrize("bad_date", ["not-a-date", "2024-13-01", "abc"])
     def test_invalid_date_returns_empty(self, client, bad_date):
@@ -253,7 +256,7 @@ class TestDateTypeFilter:
             follow_redirects=True,
         )
         assert response.status_code == 200
-        assert b"0 - 0 von 0" in response.data
+        assert NO_RESULTS in response.data
 
     @pytest.mark.parametrize("bad_date", ["not-a-date", "32.13.2024"])
     def test_invalid_date_from_only_returns_empty(self, client, bad_date):
@@ -265,7 +268,7 @@ class TestDateTypeFilter:
             follow_redirects=True,
         )
         assert response.status_code == 200
-        assert b"0 - 0 von 0" in response.data
+        assert NO_RESULTS in response.data
 
     @pytest.mark.parametrize("bad_date", ["not-a-date", "32.13.2024"])
     def test_invalid_date_to_only_returns_empty(self, client, bad_date):
@@ -277,4 +280,4 @@ class TestDateTypeFilter:
             follow_redirects=True,
         )
         assert response.status_code == 200
-        assert b"0 - 0 von 0" in response.data
+        assert NO_RESULTS in response.data

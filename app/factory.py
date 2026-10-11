@@ -114,6 +114,9 @@ def register_template_globals(app: Flask) -> None:
         args["page"] = str(page)
         return url_for(endpoint, **args)  # ty: ignore[invalid-argument-type]
 
+    # German grouping: 12345 -> "12.345".
+    app.jinja_env.filters["de_number"] = lambda n: f"{n:,}".replace(",", ".")
+
     app.jinja_env.globals.update(
         {
             "coord_range": COORDINATE_RANGES,

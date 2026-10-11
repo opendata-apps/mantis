@@ -1,16 +1,16 @@
-// Canvas confetti for celebration - auto-initializes from data attributes
+// Celebration dialog on the home page; loaded only when it is rendered.
 import confetti from 'canvas-confetti';
 
-// Above the thanks modal and the mobile sticky bar (z-100).
-const zIndex = 12000;
+const dialog = document.getElementById('thanksModal');
+// showModal() puts the dialog in the top layer, so the confetti draws on a
+// canvas inside it; the library's own body canvas would end up behind it.
+const fire = confetti.create(document.getElementById('confettiCanvas'), {
+  resize: true,
+  disableForReducedMotion: true,
+});
 
 function sprayConfetti() {
-  confetti({
-    particleCount: 100,
-    spread: 70,
-    zIndex,
-    origin: { y: 0.6 }
-  });
+  fire({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
 }
 
 function randomInRange(min, max) {
@@ -20,7 +20,7 @@ function randomInRange(min, max) {
 function fireworks() {
   const duration = 15 * 1000;
   const animationEnd = Date.now() + duration;
-  const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex };
+  const defaults = { startVelocity: 30, spread: 360, ticks: 60 };
 
   const interval = setInterval(() => {
     const timeLeft = animationEnd - Date.now();
@@ -30,62 +30,30 @@ function fireworks() {
     }
 
     const particleCount = 50 * (timeLeft / duration);
-    confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
-    confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
+    fire({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
+    fire({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
   }, 250);
 }
 
 function danceMantis() {
   const mantis = document.getElementById('dancingMantis');
-  if (mantis) {
-    mantis.classList.add('animate-dance');
-    setTimeout(() => mantis.classList.remove('animate-dance'), 1000);
-  }
+  mantis.classList.add('animate-dance');
+  setTimeout(() => mantis.classList.remove('animate-dance'), 1000);
 }
 
-function openModal() {
-  const modal = document.getElementById('thanksModal');
-  if (!modal) return;
-
-  modal.classList.remove('opacity-0', 'pointer-events-none');
-  const innerDiv = modal.querySelector('div:nth-child(2)');
-  if (innerDiv) innerDiv.classList.remove('scale-95');
-  document.body.style.overflow = 'hidden';
+setTimeout(() => {
+  dialog.showModal();
   sprayConfetti();
   fireworks();
   danceMantis();
-}
+}, 1000);
 
-function closeModal() {
-  const modal = document.getElementById('thanksModal');
-  if (!modal) return;
+// The dialog fills the viewport, so only a click beside the panel hits it.
+dialog.addEventListener('click', (e) => {
+  if (e.target === dialog) dialog.close();
+});
 
-  modal.classList.add('opacity-0', 'pointer-events-none');
-  const innerDiv = modal.querySelector('div:nth-child(2)');
-  if (innerDiv) innerDiv.classList.add('scale-95');
-  document.body.style.overflow = '';
-}
-
-// Auto-initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-  const modal = document.getElementById('thanksModal');
-  if (!modal) return;
-
-  // Open modal after 1 second delay
-  setTimeout(openModal, 1000);
-
-  // Close modal when close button is clicked
-  const closeBtn = document.getElementById('closeModal');
-  if (closeBtn) {
-    closeBtn.addEventListener('click', closeModal);
-  }
-
-  // More confetti button
-  const moreConfettiBtn = document.getElementById('moreConfetti');
-  if (moreConfettiBtn) {
-    moreConfettiBtn.addEventListener('click', () => {
-      sprayConfetti();
-      danceMantis();
-    });
-  }
+document.getElementById('moreConfetti').addEventListener('click', () => {
+  sprayConfetti();
+  danceMantis();
 });

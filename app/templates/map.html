@@ -1,4 +1,5 @@
 {% extends "layout.html" %}
+{% from "_macros_ui.html" import counter_panel %}
 {% set og_title = ("Fundmeldungen " ~ selected_year ~ " – Gottesanbeterin in Deutschland") if selected_year else "Auswertungen der Beobachtungen – Gottesanbeterin in Deutschland" %}
 {% set og_description = "Interaktive Karte mit bestätigten Sichtungen der Europäischen Gottesanbeterin (Mantis religiosa) – filtern Sie nach Jahren und entdecken Sie Hotspots." %}
 {% block title %}
@@ -13,65 +14,49 @@
   <link rel="preconnect" href="https://tile.openstreetmap.org">
   <link rel="preconnect" href="https://server.arcgisonline.com">
 {% endblock %}
-{% block page_title %}
-  Auswertungen der Beobachtungen | Mantis Religiosa Mitmachprojekt | Gottesanbeterin Gesucht{% endblock %}
-  {% block meta_keywords %}Auswertungen, Karte, Gottesanbeterin, Mantis religiosa Auswertungen{% endblock %}
-  {% block meta_description %}
-    Schauen Sie sich die Auswertungen von Gottesanbeterin-Beobachtungen in Deutschland an. {% endblock %}
-    {% block canonical %}{{ url_for('data.show_map', _external=True) }}{% endblock %}
-    {% block content %}
-      <!-- Map Section with improved styling -->
-      <section class="py-6 sm:py-12 bg-linear-to-b from-white to-gray-50">
-        <div class="container px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
-          <!-- Information banner with improved design -->
-          <div class="flex justify-center mb-4 sm:mb-8">
-            <div class="overflow-hidden relative bg-white rounded-2xl shadow-lg">
-              <div class="absolute inset-0 bg-linear-to-r from-green-500 to-green-600 opacity-5"></div>
-              <div class="flex relative items-center px-3 py-2 space-x-2 sm:px-6 sm:py-4 sm:space-x-3">
-                <div class="shrink-0 flex justify-center items-center size-8 sm:size-12 bg-green-100 rounded-full">
-                  {{ heroicon_outline("lock-closed", class="size-4 sm:size-6  text-green-600", stroke_width=2) }}
-                </div>
-                <p class="text-sm sm:text-base text-gray-700">
-                  Die Position der Marker kann von den gemeldeten Koordinaten abweichen (Datenschutz).
-                </p>
-              </div>
+{% block page_title %}Auswertungen der Beobachtungen | Mantis Religiosa Mitmachprojekt | Gottesanbeterin Gesucht{% endblock %}
+{% block meta_keywords %}Auswertungen, Karte, Gottesanbeterin, Mantis religiosa Auswertungen{% endblock %}
+{% block meta_description %}
+  Schauen Sie sich die Auswertungen von Gottesanbeterin-Beobachtungen in Deutschland an.
+{% endblock %}
+{% block canonical %}{{ url_for('data.show_map', _external=True) }}{% endblock %}
+{% block content %}
+  <!-- Map Section with improved styling -->
+  <section class="py-6 sm:py-12 bg-linear-to-b from-white to-gray-50">
+    <div class="container px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+      <!-- Information banner with improved design -->
+      <div class="flex justify-center mb-4 sm:mb-8">
+        <div class="overflow-hidden relative bg-white rounded-2xl shadow-lg">
+          <div class="absolute inset-0 bg-linear-to-r from-green-500 to-green-600 opacity-5"></div>
+          <div class="flex relative items-center px-3 py-2 space-x-2 sm:px-6 sm:py-4 sm:space-x-3">
+            <div class="shrink-0 flex justify-center items-center size-8 sm:size-12 bg-green-100 rounded-full">
+              {{ heroicon_outline("lock-closed", class="size-4 sm:size-6 text-green-600", stroke_width=2) }}
             </div>
-          </div>
-          <!-- Enhanced map container with decorative elements -->
-          <div class="relative">
-            <!-- Decorative corner elements (hidden on mobile) -->
-            <div class="hidden sm:block absolute -top-4 -left-4 size-24 bg-green-100 rounded-full opacity-20 blur-2xl"></div>
-            <div class="hidden sm:block absolute -right-4 -bottom-4 size-32 bg-green-200 rounded-full opacity-20 blur-3xl"></div>
-            <!-- Map container with improved styling -->
-            <div id="map"
-                 class="relative z-10 h-[40vh] sm:h-[70vh] md:h-[75vh] rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden border-2 sm:border-4 border-white"
-                 role="application"
-                 aria-label="Interaktive Karte der Gottesanbeterin-Sichtungen in Deutschland"></div>
+            <p class="text-sm sm:text-base text-gray-700">
+              Die Position der Marker kann von den gemeldeten Koordinaten abweichen (Datenschutz).
+            </p>
           </div>
         </div>
-      </section>
-      <!-- Animated counter section  -->
-      <section class="py-12 bg-linear-to-b from-gray-50 to-gray-100">
-        <div class="container max-w-5xl px-4 mx-auto sm:px-6 lg:px-8">
-          <div class="relative px-6 py-10 bg-green-800 shadow-xl rounded-xl sm:px-10 sm:py-12">
-            <h2 class="mb-6 text-2xl/tight font-bold text-center text-white sm:mb-8 sm:text-3xl/tight">
-              {% if not selected_year %}
-                Wir haben insgesamt
-                <br />
-              {% endif %}
-              {% if selected_year %}
-                Wir haben für das Jahr {{ selected_year }}
-                <br />
-              {% endif %}
-              <span class="text-5xl font-extrabold text-white sm:text-7xl counter"
-                    data-target="{{ post_count }}">0</span>
-              <br />
-              Meldungen erhalten.
-            </h2>
-            <p class="mb-6 text-lg text-center text-white sm:mb-8 sm:text-xl">Helfen Sie uns, diese Zahl zu erhöhen!</p>
-          </div>
-        </div>
-      </section>
-      <script type="module" src="{{ vite_asset('js/counter.js') }}"></script>
-      <script type="application/json" id="map-data">{{ {"pointsUrl": url_for('data.map_points', year=selected_year), "years": years | sort(reverse=true), "selectedYear": selected_year, "markerIcon": url_for('static', filename='images/map/marker-icon.png')} | tojson }}</script>
-    {% endblock content %}
+      </div>
+      <!-- Enhanced map container with decorative elements -->
+      <div class="relative">
+        <!-- Decorative corner elements (hidden on mobile) -->
+        <div class="hidden sm:block absolute -top-4 -left-4 size-24 bg-green-100 rounded-full opacity-20 blur-2xl"></div>
+        <div class="hidden sm:block absolute -right-4 -bottom-4 size-32 bg-green-200 rounded-full opacity-20 blur-3xl"></div>
+        <!-- Map container with improved styling -->
+        <div id="map"
+             class="relative z-10 h-[40svh] sm:h-[70svh] md:h-[75svh] rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden border-2 sm:border-4 border-white"
+             role="application"
+             aria-label="Interaktive Karte der Gottesanbeterin-Sichtungen in Deutschland"></div>
+      </div>
+    </div>
+  </section>
+  <!-- Animated counter section  -->
+  <section class="py-12 bg-linear-to-b from-gray-50 to-gray-100">
+    <div class="container max-w-5xl px-4 mx-auto sm:px-6 lg:px-8">
+      {{ counter_panel(post_count, ("Wir haben für das Jahr " ~ selected_year) if selected_year else "Wir haben insgesamt") }}
+    </div>
+  </section>
+  {{ vite_tags("js/counter.js") }}
+  <script type="application/json" id="map-data">{{ {"pointsUrl": url_for('data.map_points', year=selected_year), "years": years | sort(reverse=true), "selectedYear": selected_year, "markerIcon": url_for('static', filename='images/map/marker-icon.png')} | tojson }}</script>
+{% endblock content %}

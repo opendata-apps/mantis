@@ -1,13 +1,14 @@
 /**
- * Animated counter — counts from 0 to data-target using easeOutExpo.
- * Triggers when the element enters the viewport (IntersectionObserver).
+ * Animated counter — counts from 0 to data-target using easeOutExpo once the
+ * element enters the viewport. The server renders the final number, so it
+ * stays correct without JS and under reduced motion.
  *
- * Usage: <span class="counter" data-target="1234">0</span>
- *        <script type="module" src="counter.js"></script>
+ * Usage: <span class="counter" data-target="1234">1.234</span>
  */
 const counter = document.querySelector('.counter');
-if (counter) {
+if (counter && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
   const target = +counter.dataset.target;
+  const format = new Intl.NumberFormat('de-DE').format;
   const duration = 2000;
   let startTime = null;
   let lastFrame = 0;
@@ -22,17 +23,18 @@ if (counter) {
     const progress = Math.min((currentTime - startTime) / duration, 1);
 
     if (currentTime - lastFrame >= minInterval) {
-      counter.innerText = Math.floor(easeOutExpo(progress) * target);
+      counter.textContent = format(Math.floor(easeOutExpo(progress) * target));
       lastFrame = currentTime;
     }
 
     if (progress < 1) {
       requestAnimationFrame(animate);
     } else {
-      counter.innerText = target;
+      counter.textContent = format(target);
     }
   }
 
+  counter.textContent = format(0);
   const observer = new IntersectionObserver(
     entries => {
       if (entries[0].isIntersecting) {
