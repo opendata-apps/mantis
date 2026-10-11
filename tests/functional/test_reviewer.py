@@ -34,7 +34,7 @@ class TestReviewerAuth:
         response = client.get("/reviewer")
         assert response.status_code == 403
         html = response.get_data(as_text=True)
-        assert "not allowed to access" in html
+        assert "keinen Zugriff" in html
 
     def test_reviewer_with_valid_session(self, client):
         """GET /reviewer with a valid reviewer session should load the dashboard."""

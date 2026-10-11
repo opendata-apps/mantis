@@ -29,4 +29,4 @@ class TestMainRouteQueryHandling:
         response = client.get("/galerie")
         assert response.status_code == 403
         html = response.get_data(as_text=True)
-        assert "not allowed to access" in html
+        assert "keinen Zugriff" in html

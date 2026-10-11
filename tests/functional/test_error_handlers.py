@@ -36,7 +36,9 @@ def test_uncaught_exception_answers_json_clients_with_json(crashing_client):
 
     assert resp.status_code == 500
     assert resp.is_json, f"expected JSON, got {resp.content_type}"
-    assert resp.get_json() == {"error": "Internal server error"}
+    assert resp.get_json() == {
+        "error": "Ein interner Fehler ist aufgetreten. Bitte versuchen Sie es später erneut."
+    }
 
 
 def test_uncaught_exception_answers_browsers_with_the_error_page(crashing_client):

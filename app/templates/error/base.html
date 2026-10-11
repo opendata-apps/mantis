@@ -1,11 +1,10 @@
 {#
   Base error page template. Child templates should set:
     page_title     – browser tab title (e.g. "404")
-    error_code     – large heading text (e.g. "404", "Sitzung")
+    error_code     – large heading text (e.g. "404")
     heading_color  – Tailwind text color class (e.g. "text-green-600")
     heading        – main message below the code
     message        – smaller subtitle text
-    button_text    – CTA button label
     button_class   – Tailwind classes for button color & animation
 
   Optional blocks to override:
@@ -24,18 +23,20 @@
     <link rel="stylesheet" href="{{ vite_asset('css/theme.css') }}" />
   </head>
   <body>
-    <div class="grid h-screen px-4 bg-gray-100 place-content-center">
+    <div class="grid h-svh px-4 bg-gray-100 place-content-center">
       <div class="text-center">
         <div class="relative mx-auto w-[150px] {% block mantis_animation %}animate-mantis-search{% endblock %}">
           <img id="mantis"
                src="{{ url_for('static', filename='images/svg/praying-mantis.svg') }}"
-               alt="Mantis Illustration" />
+               alt="Mantis Illustration"
+               width="150"
+               height="150" />
           {% block emoji %}{% endblock %}
         </div>
         <h1 class="font-black text-9xl {{ heading_color }}">{{ error_code }}</h1>
         <p class="text-2xl font-bold tracking-tight text-gray-900 sm:text-4xl">{{ heading }}</p>
         <p class="my-4 text-gray-600">{{ message }}</p>
-        {{ shine_link("/", button_text, "px-10 py-3 text-white transition-all duration-300 ease-out rounded-md " ~ button_class) }}
+        {{ shine_link("/", "Zur Startseite", "px-10 py-3 text-white transition-[background-color,box-shadow] duration-300 ease-out rounded-lg " ~ button_class) }}
       </div>
     </div>
     {% block scripts %}

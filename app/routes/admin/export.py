@@ -79,7 +79,7 @@ def export_data(value):
         filename = f"Suchergebnisse_{current_time}.xlsx"
         stmt = get_filtered_query(**get_reviewer_filter_args())
     else:
-        abort(404, description="Resource not found")
+        abort(404)
 
     row_count = db.session.scalar(stmt.with_only_columns(func.count()).order_by(None))
     # Large exports stream into an unnamed temp file, which send_file closes

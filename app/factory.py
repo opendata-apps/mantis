@@ -252,12 +252,22 @@ def wants_json_response():
     return best == "application/json"
 
 
+def json_error(e, fallback: str):
+    """JSON body for an HTTP error; the report form shows `error` verbatim.
+
+    Werkzeug's stock description is English prose, so only a description the
+    caller passed to abort() survives.
+    """
+    custom = e.description and e.description != type(e).description
+    return jsonify({"error": e.description if custom else fallback}), e.code
+
+
 def page_not_found(e):
     current_app.logger.warning(
         "Page not found: route=%s", request.url_rule or "unmatched"
     )
     if wants_json_response():
-        return jsonify({"error": e.description or "Not found"}), 404
+        return json_error(e, "Nicht gefunden.")
     return render_template("error/404.html"), 404
 
 
@@ -266,7 +276,7 @@ def forbidden(e):
         "Forbidden access: route=%s", request.url_rule or "unmatched"
     )
     if wants_json_response():
-        return jsonify({"error": e.description or "Forbidden"}), 403
+        return json_error(e, "Zugriff verweigert.")
     return render_template("error/403.html"), 403
 
 
@@ -279,18 +289,23 @@ def too_many_requests(e):
         # flask-limiter's description is "3 per 1 minute", and the report form
         # shows the error text to the reporter as is.
         if isinstance(e, RateLimitExceeded):
-            message = (
-                "Zu viele Anfragen in kurzer Zeit. Bitte warten Sie eine "
-                "Minute und versuchen Sie es dann erneut."
-            )
-        else:
-            message = e.description or "Too many requests"
-        return jsonify({"error": message}), 429
+            return jsonify(
+                {
+                    "error": "Zu viele Anfragen in kurzer Zeit. Bitte warten Sie "
+                    "eine Minute und versuchen Sie es dann erneut."
+                }
+            ), 429
+        return json_error(e, "Zu viele Anfragen.")
     return render_template("error/429.html", error=e), 429
 
 
 def internal_server_error(e):
     # Not logged here: Flask's log_exception already wrote the traceback.
     if wants_json_response():
-        return jsonify({"error": "Internal server error"}), 500
+        return jsonify(
+            {
+                "error": "Ein interner Fehler ist aufgetreten. Bitte versuchen "
+                "Sie es später erneut."
+            }
+        ), 500
     return render_template("error/500.html"), 500
