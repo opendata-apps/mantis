@@ -506,7 +506,11 @@ class TestAdminRoutes:
             headers={"HX-Request": "true"},
         )
         assert response.status_code == 200
-        assert b'id="report-card-' in response.data
+        card = BeautifulSoup(response.data, "html.parser").select_one(
+            f"#report-card-{self.test_sighting.id}"
+        )
+        assert card is not None
+        assert card["hx-swap-oob"] == "true"
         # Modal footer is kept in sync out-of-band
         assert b'id="modal-actions"' in response.data
 
@@ -517,7 +521,7 @@ class TestAdminRoutes:
         """Marking a report "Unklar" takes it out of the "offen" bucket.
 
         The list must drop the card rather than re-render it, so the response
-        is an HTMX delete swap — the modal footer still rides along OOB.
+        deletes it out of band; the modal footer rides along the same way.
         """
         with client.session_transaction() as sess:
             sess["_user_id"] = "9999"
@@ -528,9 +532,11 @@ class TestAdminRoutes:
             headers={"HX-Request": "true"},
         )
         assert response.status_code == 200
-        assert response.headers["HX-Reswap"] == "delete"
-        assert b'id="report-card-' not in response.data
-        assert b'id="modal-actions"' in response.data
+        page = BeautifulSoup(response.data, "html.parser")
+        card = page.select_one(f"#report-card-{self.test_sighting.id}")
+        assert card is not None
+        assert card["hx-swap-oob"] == "delete"
+        assert page.select_one("#modal-actions") is not None
 
         session.refresh(self.test_sighting)
         assert "UNKL" in (self.test_sighting.statuses or [])
@@ -599,7 +605,7 @@ class TestAdminRoutes:
     def test_toggle_approve_removes_card_when_filter_no_longer_matches(
         self, client, session
     ):
-        """Approving in 'offen' filter should delete the card target via HX-Reswap."""
+        """Approving in 'offen' filter deletes the card out of band."""
         with client.session_transaction() as sess:
             sess["_user_id"] = "9999"
 
@@ -609,8 +615,10 @@ class TestAdminRoutes:
             headers={"HX-Request": "true"},
         )
         assert response.status_code == 200
-        assert response.headers.get("HX-Reswap") == "delete"
-        assert response.data == b""
+        page = BeautifulSoup(response.data, "html.parser")
+        card = page.select_one(f"#report-card-{self.test_sighting.id}")
+        assert card is not None
+        assert card["hx-swap-oob"] == "delete"
 
         session.refresh(self.test_sighting)
         assert "APPR" in (self.test_sighting.statuses or [])

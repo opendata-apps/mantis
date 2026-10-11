@@ -13,9 +13,8 @@
 <div id="report-card-{{ sighting.id }}"
      class="flex flex-col overflow-hidden mb-4 rounded-lg shadow-md transition-shadow duration-200 hover:shadow-lg report-card {{ card_state }}"
      hx-sync="this:abort"
-     hx-target="#report-card-{{ sighting.id }}"
-     hx-swap="outerHTML swap:150ms"
-     hx-vals='{{ {"filter_status": current_filter_status}|tojson }}'>
+     hx-swap="none"
+     hx-vals='{{ {"filter_status": current_filter_status}|tojson }}'{% if oob %} hx-swap-oob="true"{% endif %}>
   {# ── Image section ── #}
   <div class="relative">
     <a href="{{ url_for('admin.report_img', filename=fundort.ablage) }}"
@@ -44,7 +43,7 @@
     {# ── Action bar — pinned to bottom via mt-auto ── #}
     <div class="flex justify-between items-center mt-auto pt-3 min-h-7">
       <div class="flex items-center">
-        {# Edit — overrides inherited hx-target/hx-swap; the invoker command
+        {# Edit — overrides the inherited hx-swap; the invoker command
            opens the dialog while htmx loads its content. #}
         <button type="button" hx-get="{{ url_for('admin.modal_open', id=sighting.id) }}"
                 hx-target="#modal-body"

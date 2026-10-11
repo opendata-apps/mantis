@@ -109,20 +109,20 @@ def _matches_filter_status(sighting: TblMeldungen, filter_status: str) -> bool:
     return not sighting.is_deleted
 
 
-def _render_updated_sighting_by_id(report_id: int, filter_status: str):
-    """Return the refreshed card, or an empty response that deletes it.
+def _render_updated_sighting_by_id(report_id: int, filter_status: str) -> str:
+    """Return the refreshed card, or a delete once it left the list's filter.
 
-    The card goes away when the report no longer matches the list's filter.
+    Both out of band: as a swap target, a card already gone from the list
+    would make htmx drop the modal's next request without sending it.
     """
     sighting = _load_sighting(report_id)
     if not sighting or not _matches_filter_status(sighting, filter_status):
-        response = make_response("", 200)
-        response.headers["HX-Reswap"] = "delete"
-        return response
+        return f'<div id="report-card-{report_id}" hx-swap-oob="delete"></div>'
     return render_template(
         "admin/partials/_report_card.html",
         sighting=sighting,
         current_filter_status=filter_status,
+        oob=True,
     )
 
 
