@@ -1,5 +1,5 @@
-// Admin modal module — HTMX-first rewrite
-// JS only for: Leaflet map, marker placement, geocoding, clipboard, export
+// Reviewer page: the report modal (HTMX loads its content) and the filter bar.
+// JS only for: Leaflet map, marker placement, geocoding, clipboard.
 
 import { parseCoordinateInput } from "./coordinate-input.js";
 import { showToast } from "./toast.js";
@@ -8,7 +8,7 @@ import { reverseGeocode } from "./geocode.js";
 const COORDINATE_RANGES = JSON.parse(document.body.dataset.coordRange);
 
 // ---------------------------------------------------------------------------
-// State (map only — no more currentSightingId or isEditModeActive)
+// State (map only)
 // ---------------------------------------------------------------------------
 let map = null;
 let marker = null;
@@ -88,7 +88,7 @@ function initiateMap(data) {
       tempMarker = null;
     }
 
-    map = L.map("map", { zoomControl: false, tap: true }).setView(
+    map = L.map("map", { zoomControl: false }).setView(
       [lat, lng],
       13,
     );

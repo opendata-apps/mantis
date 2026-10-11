@@ -23,13 +23,15 @@ class TblUsers(UserMixin, db.Model):
     )
 
     id: Mapped[int] = mapped_column(Identity(), primary_key=True)
-    # UNIQUE on user_id — external-facing identifier (SHA-1 hash or reviewer code).
+    # UNIQUE on user_id — external-facing identifier: a random 40-hex token
+    # (SHA-1 hashes on older rows) or a reviewer code.
     # Enables uselist=False relationships (e.g. meldungen.approver) and serves
     # as FK target for meldungen.bearb_id.
     user_id: Mapped[str] = mapped_column(String(40), unique=True)
     user_name: Mapped[str] = mapped_column(String(100))
     user_rolle: Mapped[str] = mapped_column(String(1))
-    # Note: user_kontakt is NOT indexed - only used with %text% ILIKE which cannot use B-tree
+    # Not indexed: queries compare lower(user_kontakt), which a plain B-tree
+    # index on the column would not serve.
     user_kontakt: Mapped[str | None] = mapped_column(String(254))
 
     # Audit timestamps: when the row was inserted / last modified via the

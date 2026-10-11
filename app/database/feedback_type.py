@@ -56,8 +56,3 @@ class FeedbackSource(StrEnum):
         return [("", "-- Bitte wählen --")] + [
             (s.value, cls.get_display_name(s.value)) for s in cls
         ]
-
-    @classmethod
-    def values(cls) -> list[str]:
-        """Return list of all enum values."""
-        return [s.value for s in cls]

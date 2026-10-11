@@ -16,6 +16,7 @@ from app.database.models import (
     TblMeldungen,
 )
 from app.extensions import db
+from app.routes.backup import available_backup_years
 from app.tools.coordinate_validation import LAT_RANGE, LON_RANGE
 
 # Blueprints
@@ -30,21 +31,11 @@ def _public_map_filters(min_map_date: date):
     )
 
 
-def _map_years(min_map_date: date) -> list[int]:
-    """Years with reports since MIN_MAP_YEAR, oldest first."""
-    stmt = (
-        select(func.extract("year", TblMeldungen.dat_fund_von).label("year"))
-        .where(TblMeldungen.dat_fund_von >= min_map_date)
-        .distinct()
-        .order_by("year")
-    )
-    return [int(row[0]) for row in db.session.execute(stmt).all()]
-
-
 def _map_request() -> tuple[list[int], int | None, Select]:
     """Years, the valid selected year or None, and the map's points query."""
     min_map_date = date(current_app.config["MIN_MAP_YEAR"], 1, 1)
-    years = _map_years(min_map_date)
+    # Years with reports since MIN_MAP_YEAR — the same years a backup covers.
+    years = available_backup_years()
     selected_year = request.args.get("year", None, type=int)
     if selected_year not in years:
         selected_year = None

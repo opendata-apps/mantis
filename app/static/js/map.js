@@ -1,4 +1,4 @@
-// Map module - exposes Leaflet globally for template scripts
+// Leaflet with marker clusters for the map page and the reviewer page.
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster';
@@ -18,5 +18,5 @@ L.Icon.Default.mergeOptions({
   shadowSize: [41, 41]
 });
 
-// Expose L globally like the old script tag did
+// admin-modal.js does not import Leaflet; it uses this global.
 window.L = L;

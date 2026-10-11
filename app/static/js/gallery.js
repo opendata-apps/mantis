@@ -87,9 +87,7 @@ class Lightbox {
     this.dialog.classList.toggle('lightbox-compact', compact);
 
     // New-tab button: only in compact/reviewer mode
-    if (this.newtabBtn) {
-      this.newtabBtn.hidden = !compact;
-    }
+    this.newtabBtn.hidden = !compact;
 
     this.show();
     this.dialog.showModal();
@@ -197,7 +195,8 @@ class Lightbox {
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => new Lightbox());
+// oxlint-disable-next-line no-new -- the constructor binds its listeners
+new Lightbox();
 
 // Staggered gallery reveal — items fade in as they enter the viewport
 const galleryItems = document.querySelectorAll('.gallery-item');

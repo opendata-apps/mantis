@@ -21,9 +21,9 @@ TOO_LARGE_MESSAGE = (
     "Bitte verkleinern Sie es und wählen Sie es erneut aus."
 )
 
-# A mobile upload that loses its last bytes still carries the whole animal, so
-# decode what arrived; a frame damaged beyond use still fails the blank-pixel
-# check below. ty infers the flag as Literal[False] though it exists to be set.
+# Salvage incomplete mobile uploads; missing JPEG pixels may be filled gray.
+# The alpha check cannot establish whether the animal is still visible.
+# ty infers the flag as Literal[False] though it exists to be set.
 ImageFile.LOAD_TRUNCATED_IMAGES = True  # ty: ignore[invalid-assignment]
 
 

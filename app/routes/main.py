@@ -11,7 +11,7 @@ from flask import (
     render_template,
     send_from_directory,
 )
-from flask_login import current_user, login_required
+from flask_login import login_required
 from sqlalchemy import func, select, text
 
 from app.database.models import TblMeldungen
@@ -163,11 +163,7 @@ def robots():
 @login_required
 def galerie():
     "Galerie."
-    return render_template(
-        "galerie.html",
-        user_id=current_user.user_id,
-        bilder=_load_galerie(),
-    )
+    return render_template("galerie.html", bilder=_load_galerie())
 
 
 @main.route("/favicon.ico")
