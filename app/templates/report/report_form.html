@@ -80,7 +80,7 @@
               Tippen Sie auf die Karte, um den genauen Fundort zu markieren.
             </p>
             <div class="mb-4 form-group">
-              {{ render_form_field(form.sighting_date, attrs={'id': 'sighting_date', 'max': now().strftime('%Y-%m-%d'), 'min': minimum_sighting_date.isoformat()}) }}
+              {{ render_form_field(form.sighting_date, attrs={'id': 'sighting_date', 'max': now.strftime('%Y-%m-%d'), 'min': minimum_sighting_date.isoformat()}) }}
             </div>
             <div class="flex flex-col mb-4 lg:flex-row lg:space-x-6">
               <!-- Map column -->
@@ -110,7 +110,7 @@
                              id="manual-latitude"
                              inputmode="decimal"
                              pattern="[+\-]?(?:[0-9]+(?:[.,][0-9]*)?|[.,][0-9]+)(?:[eE][+\-]?[0-9]+)?"
-                             placeholder="z.B. 52,3906"
+                             placeholder="z. B. 52,3906"
                              autocomplete="off"
                              class="{{ report_field_class('coordinate', 'tabular-nums') }}">
                     </div>
@@ -121,7 +121,7 @@
                              id="manual-longitude"
                              inputmode="decimal"
                              pattern="[+\-]?(?:[0-9]+(?:[.,][0-9]*)?|[.,][0-9]+)(?:[eE][+\-]?[0-9]+)?"
-                             placeholder="z.B. 13,0645"
+                             placeholder="z. B. 13,0645"
                              autocomplete="off"
                              class="{{ report_field_class('coordinate', 'tabular-nums') }}">
                     </div>

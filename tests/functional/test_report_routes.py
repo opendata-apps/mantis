@@ -354,11 +354,18 @@ class TestMeldenGet:
             "latitude": [24.6, 60.0],
             "longitude": [-20.0, 44.83],
         }
-        assert 'placeholder="z.B. 52,3906"' in html
+        assert 'placeholder="z. B. 52,3906"' in html
         coordinate_pattern = (
             r'pattern="[+\-]?(?:[0-9]+(?:[.,][0-9]*)?|[.,][0-9]+)(?:[eE][+\-]?[0-9]+)?"'
         )
         assert html.count(coordinate_pattern) == 2
+
+    def test_layout_links_the_current_year_map(self, client):
+        """The layout's `now` is a datetime; a view passing its own `now`
+        shadowed it and left the nav link at ?year= and the footer blank."""
+        html = client.get("/melden").data.decode()
+
+        assert f"/auswertungen?year={datetime.date.today().year}" in html
 
 
 # ============================================================================

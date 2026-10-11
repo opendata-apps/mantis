@@ -233,7 +233,6 @@ def melden(usrid=None):
             render_template(
                 "report/report_form.html",
                 form=form,
-                now=datetime.now,
                 minimum_sighting_date=minimum_sighting_date(),
                 user_prefilled=bool(user_to_prefill),
                 user_has_feedback=bool(
