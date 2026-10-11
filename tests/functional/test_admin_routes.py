@@ -813,7 +813,7 @@ class TestAdminRoutes:
 
         response = client.get("/alldata")
         assert response.status_code == 200
-        assert b"database" in response.data.lower()
+        assert b"Datenbank-Verwaltung" in response.data
 
     def grid(self, client, **args):
         """The grid fragment htmx loads: page 1 is the table, later pages only rows."""

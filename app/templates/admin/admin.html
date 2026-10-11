@@ -171,68 +171,62 @@
                  id="hiddenDateType"
                  name="dateType"
                  value="{{ request.args.get('dateType', 'fund') }}">
-          <button type="submit" class="hidden">Suchen</button>
       {% endcall %}
       <div class="flex gap-2 items-center w-full lg:w-auto lg:shrink-0">
-        <!-- Sortieren Dropdown -->
+        {# Sort dropdown #}
         <details class="relative grow dropdown lg:grow-0 group">
           {% call toolbar.dropdown_toggle(extra="lg:min-w-38") %}
-            <span id="sortText">Sortieren...</span>
+            <span id="sortText">Sortieren…</span>
             {{ heroicon_mini("chevron-down", class="-mr-1 ml-1.5 size-5 text-gray-500 transition-colors duration-200 group-hover:text-gray-700") }}
           {% endcall %}
-          <div class="absolute right-0 z-10 w-48 bg-white rounded-lg divide-y divide-gray-100 shadow-lg mt-1">
-            <ul class="py-2 text-sm text-gray-700"
-                aria-labelledby="dropdownSortButton">
-              {% for sort, label, arrow_path in [
-                ("id_asc", "Aufsteigend", "M4.5 13.5a.5.5 0 0 1-1 0V3.707L2.354 4.854a.5.5 0 1 1-.708-.708l2-1.999.007-.007a.498.498 0 0 1 .7.006l2 2a.5.5 0 1 1-.707.708L4.5 3.707V13.5z"),
-                ("id_desc", "Absteigend", "M4.5 2.5a.5.5 0 0 0-1 0v9.793l-1.146-1.147a.5.5 0 0 0-.708.708l2 1.999.007.007a.497.497 0 0 0 .7-.006l2-2a.5.5 0 0 0-.707-.708L4.5 12.293V2.5z"),
-              ] %}
-                <li>
-                  <button type="submit" form="searchForm" name="sort_order" value="{{ sort }}"
-                          class="flex items-center w-full px-4 py-2.5 text-left text-gray-700 transition-colors duration-200 hover:bg-gray-50 hover:text-gray-900 {% if current_sort_order == sort %}bg-gray-50{% endif %}">
-                    <div class="size-2 mr-2 {{ 'bg-green-500' if current_sort_order == sort }} rounded-full">
-                    </div>
-                    <svg xmlns="http://www.w3.org/2000/svg"
-                         width="16"
-                         height="16"
-                         fill="currentColor"
-                         class="mr-2"
-                         viewBox="0 0 16 16">
-                      <path d="M12.438 1.668V7H11.39V2.684h-.051l-1.211.859v-.969l1.262-.906h1.046z" />
-                      <path fill-rule="evenodd" d="M11.36 14.098c-1.137 0-1.708-.657-1.762-1.278h1.004c.058.223.343.45.773.45.824 0 1.164-.829 1.133-1.856h-.059c-.148.39-.57.742-1.261.742-.91 0-1.72-.613-1.72-1.758 0-1.148.848-1.835 1.973-1.835 1.09 0 2.063.636 2.063 2.687 0 1.867-.723 2.848-2.145 2.848zm.062-2.735c.504 0 .933-.336.933-.972 0-.633-.398-1.008-.94-1.008-.52 0-.927.375-.927 1 0 .64.418.98.934.98z" />
-                      <path d="{{ arrow_path }}" />
-                    </svg>
-                    <span class="grow">{{ label }}</span>
-                  </button>
-                </li>
-              {% endfor %}
-            </ul>
-          </div>
+          {% call toolbar.dropdown_menu("w-48") %}
+            {% for sort, label, arrow_path in [
+              ("id_asc", "Aufsteigend", "M4.5 13.5a.5.5 0 0 1-1 0V3.707L2.354 4.854a.5.5 0 1 1-.708-.708l2-1.999.007-.007a.498.498 0 0 1 .7.006l2 2a.5.5 0 1 1-.707.708L4.5 3.707V13.5z"),
+              ("id_desc", "Absteigend", "M4.5 2.5a.5.5 0 0 0-1 0v9.793l-1.146-1.147a.5.5 0 0 0-.708.708l2 1.999.007.007a.497.497 0 0 0 .7-.006l2-2a.5.5 0 0 0-.707-.708L4.5 12.293V2.5z"),
+            ] %}
+              <li>
+                <button type="submit" form="searchForm" name="sort_order" value="{{ sort }}"
+                        class="{{ toolbar.menu_item }} {{ 'bg-gray-50' if current_sort_order == sort else '' }}">
+                  <div class="size-2 mr-2 {{ 'bg-green-500' if current_sort_order == sort else '' }} rounded-full">
+                  </div>
+                  <svg xmlns="http://www.w3.org/2000/svg"
+                       width="16"
+                       height="16"
+                       fill="currentColor"
+                       aria-hidden="true"
+                       class="mr-2"
+                       viewBox="0 0 16 16">
+                    <path d="M12.438 1.668V7H11.39V2.684h-.051l-1.211.859v-.969l1.262-.906h1.046z" />
+                    <path fill-rule="evenodd" d="M11.36 14.098c-1.137 0-1.708-.657-1.762-1.278h1.004c.058.223.343.45.773.45.824 0 1.164-.829 1.133-1.856h-.059c-.148.39-.57.742-1.261.742-.91 0-1.72-.613-1.72-1.758 0-1.148.848-1.835 1.973-1.835 1.09 0 2.063.636 2.063 2.687 0 1.867-.723 2.848-2.145 2.848zm.062-2.735c.504 0 .933-.336.933-.972 0-.633-.398-1.008-.94-1.008-.52 0-.927.375-.927 1 0 .64.418.98.934.98z" />
+                    <path d="{{ arrow_path }}" />
+                  </svg>
+                  <span class="grow">{{ label }}</span>
+                </button>
+              </li>
+            {% endfor %}
+          {% endcall %}
         </details>
-        <!-- Export Dropdown -->
+        {# Export dropdown #}
         <details class="relative grow dropdown lg:grow-0 group">
           {% call toolbar.dropdown_toggle("green", extra="lg:min-w-34") %}
             {{ heroicon_outline("arrow-up-tray", class="mr-2 size-4 transition-transform duration-200 group-hover:scale-110", stroke_width=2) }}
             Export
           {% endcall %}
-          <div class="absolute right-0 z-10 w-56 bg-white rounded-lg divide-y divide-gray-100 shadow-lg mt-1">
-            <ul class="py-2 text-sm text-gray-700"
-                aria-labelledby="dropdownExportButton">
-              {% for export, label in [
-                ("all", "Export alle Meldungen"),
-                ("accepted", "Export angenommene Meldungen"),
-                ("non_accepted", "Export nicht angenommene Meldungen"),
-                ("searched", "Export gesuchte Meldungen"),
-              ] %}
-                <li>
-                  <button type="submit" form="searchForm" formaction="{{ url_for('admin.export_data', value=export) }}" formmethod="get"
-                          class="flex items-center px-4 py-2.5 w-full text-left text-gray-700 transition-colors duration-200 hover:bg-gray-200 hover:text-gray-900">
-                    <span class="grow">{{ label }}</span>
-                  </button>
-                </li>
-              {% endfor %}
-            </ul>
-          </div>
+          {% call toolbar.dropdown_menu("w-56") %}
+            {% for export, label in [
+              ("all", "Export alle Meldungen"),
+              ("accepted", "Export angenommene Meldungen"),
+              ("non_accepted", "Export nicht angenommene Meldungen"),
+              ("searched", "Export gesuchte Meldungen"),
+            ] %}
+              <li>
+                <button type="submit" form="searchForm" formaction="{{ url_for('admin.export_data', value=export) }}" formmethod="get"
+                        class="{{ toolbar.menu_item }}">
+                  <span class="grow">{{ label }}</span>
+                </button>
+              </li>
+            {% endfor %}
+          {% endcall %}
         </details>
       </div>
     </div>
