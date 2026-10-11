@@ -80,7 +80,7 @@ const loaded = new WeakSet();
 markers.on('click', e => {
   const marker = e.layer;
   if (loaded.has(marker)) return;
-  const loading = "<div class='popup-loading'>Daten werden geladen...</div>";
+  const loading = "<div class='popup-loading' role='status'>Daten werden geladen…</div>";
   if (marker.getPopup()) marker.setPopupContent(loading);
   else marker.bindPopup(loading).openPopup();
   fetch(`/get_marker_data/${marker.options.reportId}`)
@@ -92,7 +92,7 @@ markers.on('click', e => {
       marker.setPopupContent(html);
       loaded.add(marker);
     })
-    .catch(() => marker.setPopupContent("<div class='popup-error'>Fehler beim Laden.</div>"));
+    .catch(() => marker.setPopupContent("<div class='popup-error' role='alert'>Fehler beim Laden.</div>"));
 });
 map.addLayer(markers);
 

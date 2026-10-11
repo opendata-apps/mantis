@@ -127,13 +127,13 @@ class TestIDConsistency:
         response = client.get(f"/get_marker_data/{self.expected_report_id}")
         assert response.status_code == 200
 
-        assert f"Melde ID: {self.expected_report_id}<" in response.text
+        assert f"Melde-ID: {self.expected_report_id}<" in response.text
 
     def test_id_terminology_consistency(self, client):
         """Test that ID terminology is consistent across views."""
         # Check map popup terminology
         response = client.get(f"/get_marker_data/{self.expected_report_id}")
-        assert "Melde ID:" in response.text, "Marker popup should show 'Melde ID'"
+        assert "Melde-ID:" in response.text, "Marker popup should show 'Melde-ID'"
 
         # Check provider view terminology
         response = client.get(f"/report/{self.test_user.user_id}")

@@ -360,7 +360,7 @@ class TestCoordinateUpdates:
         # Check marker data endpoint exists
         response = client.get(f"/get_marker_data/{self.test_sighting.id}")
         assert response.status_code == 200
-        assert f"Melde ID: {self.test_sighting.id}<" in response.text
+        assert f"Melde-ID: {self.test_sighting.id}<" in response.text
 
         # Verify coordinates were updated in the database (normalized)
         session.refresh(self.test_location)

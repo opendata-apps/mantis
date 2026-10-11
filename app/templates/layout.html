@@ -47,7 +47,7 @@
     {% endblock head %}
     <link rel="stylesheet" href="{{ vite_asset('css/theme.css') }}" />
   </head>
-  <body class="flex flex-col min-h-screen antialiased bg-gray-100"
+  <body class="flex flex-col min-h-svh antialiased bg-gray-100"
         hx-headers='{{ {"X-CSRFToken": csrf_token()}|tojson }}'
         data-coord-range='{{ coord_range|tojson }}'>
     <a href="#content-container"
@@ -93,7 +93,7 @@
             {# Admin dropdown - desktop only #}
             <li class="hidden md:flex md:items-center">
               <details class="relative dropdown">
-                <summary class="flex items-center justify-center size-10 text-white bg-green-600 rounded-lg cursor-pointer list-none hover:bg-green-700 transition-colors">
+                <summary aria-label="Admin-Menü" class="flex items-center justify-center size-10 text-white bg-green-600 rounded-lg cursor-pointer list-none hover:bg-green-700 transition-colors">
                   {{ heroicon_outline("plus", class="size-5", stroke_width=2.5) }}
                 </summary>
                 <ul class="absolute right-0 z-50 mt-2 py-2 w-48 bg-white rounded-lg shadow-lg divide-y divide-gray-100">
@@ -116,7 +116,7 @@
         {# Mobile toggle. aria-expanded drives the hamburger→X animation, so the
            button needs no second state class. #}
         <button type="button" id="nav-toggle"
-                aria-label="Menu"
+                aria-label="Menü"
                 aria-expanded="false"
                 class="group flex flex-col justify-center gap-[5px] size-10 p-2 cursor-pointer md:hidden
                        *:block *:w-full *:h-0.5 *:rounded-xs *:bg-gray-100
@@ -160,7 +160,7 @@
         {# Caption — below image #}
         <div class="lightbox-info px-2 pt-2.5 pb-1 text-white text-center max-w-[90vw]">
           <div class="lightbox-caption"></div>
-          <span class="lightbox-counter block mt-0.5 text-xs opacity-70 tabular-nums"></span>
+          <span aria-live="polite" class="lightbox-counter block mt-0.5 text-xs opacity-70 tabular-nums"></span>
         </div>
         {# New-tab: hidden by default, JS shows it only in compact/reviewer mode #}
         <a target="_blank" rel="noopener" class="lightbox-btn lightbox-newtab absolute z-10 top-3 right-15 flex size-11 items-center justify-center rounded-full bg-black/35 text-white transition-[opacity,background-color] duration-300"
@@ -209,11 +209,11 @@
           {% endfor %}
         </ul>
         <ul class="footer-social flex flex-wrap gap-6 justify-center mt-6 sm:gap-8">
-          {% for href, label, icon, alt, title in [
-              ("https://gitlab.com/opendata-apps/mantis", "GitLab", "gitlab", "GitLab (Code)", "GitLab"),
-              ("https://github.com/opendata-apps/mantis", "GitHub", "github", "GitHub (Code)", "GitHub"),
-              ("https://www.naturkundemuseum-potsdam.de/gottesanbeterin-gesucht", "Naturkundemuseum Potsdam", "praying-mantis", "Museum", "Naturkundemuseum Potsdam"),
-              ("https://mantis-religiosa.readthedocs.io", "Dokumentation", "readme", "Dokumentation", "Dokumentation"),
+          {% for href, label, icon in [
+              ("https://gitlab.com/opendata-apps/mantis", "GitLab", "gitlab"),
+              ("https://github.com/opendata-apps/mantis", "GitHub", "github"),
+              ("https://www.naturkundemuseum-potsdam.de/gottesanbeterin-gesucht", "Naturkundemuseum Potsdam", "praying-mantis"),
+              ("https://mantis-religiosa.readthedocs.io", "Dokumentation", "readme"),
           ] %}
             <li>
               <a href="{{ href }}"
@@ -223,8 +223,10 @@
                 <span class="sr-only">{{ label }}</span>
                 <img loading="lazy"
                      src="{{ url_for('static', filename='images/svg/' ~ icon ~ '.svg') }}"
-                     alt="{{ alt }}"
-                     title="{{ title }}"
+                     alt=""
+                     width="40"
+                     height="40"
+                     title="{{ label }}"
                      class="size-10" />
               </a>
             </li>

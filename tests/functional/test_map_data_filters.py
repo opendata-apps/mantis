@@ -108,7 +108,7 @@ class TestMapDataFilters:
         # Try to get data for approved sighting - should work
         response = client.get(f"/get_marker_data/{self.approved_sighting.id}")
         assert response.status_code == 200
-        assert f"Melde ID: {self.approved_sighting.id}<" in response.text
+        assert f"Melde-ID: {self.approved_sighting.id}<" in response.text
 
         # Unapproved and deleted sightings must never be publicly exposed.
         response = client.get(f"/get_marker_data/{self.unapproved_sighting.id}")
