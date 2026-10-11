@@ -5,11 +5,12 @@ aus vg5000_gem füllen
 import json
 
 from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from app.database.aemter_koordinaten import TblAemterCoordinaten
 
 
-def import_aemter_data(session, jsondata):
+def import_aemter_data(session: Session, jsondata: str) -> None:
     data = json.loads(jsondata)
 
     # One query for the whole set, not one per municipality. entrypoint.sh runs

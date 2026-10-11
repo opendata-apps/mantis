@@ -95,7 +95,7 @@ LON_EDGES = (
 # fmt: on
 
 
-def get_mtb(zielbreite, ziellaenge):
+def get_mtb(zielbreite: float, ziellaenge: float) -> str | None:
     """Return the TK25 sheet number for a WGS84 coordinate, or None.
 
     None means the coordinate lies outside the sheet index altogether. A

@@ -118,7 +118,7 @@ def get_marker_data(report_id):
     return render_template("partials/_marker_popup.html", report=report)
 
 
-def obfuscate_location(lat, long, report_id):
+def obfuscate_location(lat: float, long: float, report_id: int) -> tuple[float, float]:
     """Offset a point so the map cannot resolve it to somebody's garden.
 
     The offset must not vary between requests: repeated draws for one report

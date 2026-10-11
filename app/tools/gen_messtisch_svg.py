@@ -6,12 +6,12 @@ logger = logging.getLogger(__name__)
 
 
 def create_measure_sheet(
-    row_range=(24, 46),
-    col_range=(33, 54),
-    box_size=50,
-    dataset=None,
-    bg_image_url=None,
-):
+    row_range: tuple[int, int] = (24, 46),
+    col_range: tuple[int, int] = (33, 54),
+    box_size: int = 50,
+    dataset: list[tuple[int, int]] | None = None,
+    bg_image_url: str | None = None,
+) -> str:
     """Render an MTB grid SVG and return it as a string.
 
     ``bg_image_url`` is optional; when provided it is referenced by an ``<image>``

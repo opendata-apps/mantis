@@ -42,7 +42,7 @@ INVALID_MESSAGES = {
 }
 
 
-def parse_coordinate(value):
+def parse_coordinate(value: object) -> float | None:
     """Return the coordinate as a float, or None if it is not a plain number.
 
     Accepts the comma decimal that mobile keyboards emit, and rejects "nan" and
@@ -55,7 +55,7 @@ def parse_coordinate(value):
     return float(text)
 
 
-def in_range(latitude, longitude):
+def in_range(latitude: float, longitude: float) -> bool:
     """True if both values are inside the accepted range, in the given order."""
     return (
         LAT_RANGE[0] <= latitude <= LAT_RANGE[1]
@@ -63,7 +63,9 @@ def in_range(latitude, longitude):
     )
 
 
-def validate_coordinate(value, coord_type):
+def validate_coordinate(
+    value: object, coord_type: str
+) -> tuple[float | None, str | None]:
     """Return a parsed coordinate and its validation error, if any."""
     if value is None or not str(value).strip():
         return None, f"{_LABELS[coord_type]} ist erforderlich."
@@ -94,7 +96,7 @@ def normalize_location_input(field, value):
     return value, None
 
 
-def coordinates_look_swapped(latitude, longitude):
+def coordinates_look_swapped(latitude: object, longitude: object) -> bool:
     """
     Detect a transposed pair: outside the range as given, inside when swapped.
 

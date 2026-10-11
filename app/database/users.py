@@ -59,7 +59,7 @@ class TblUsers(UserMixin, db.Model):
         lazy="select",
     )
 
-    def get_id(self):
+    def get_id(self) -> str:
         """The capability token, not the primary key.
 
         Overrides UserMixin, which would return the guessable ``self.id``.

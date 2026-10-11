@@ -13,7 +13,9 @@ GERMAN_LAND_NAMES = frozenset(
 )
 
 
-def contradicts_german_land(latitude, longitude, land):
+def contradicts_german_land(
+    latitude: float | None, longitude: float | None, land: str | None
+) -> bool:
     """True if the point is nowhere near Germany but the reporter named a Bundesland.
 
     Bounding box and Land name only: a pin in the wrong Gemeinde passes.

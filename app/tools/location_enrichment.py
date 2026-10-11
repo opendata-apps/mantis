@@ -3,7 +3,7 @@ from app.tools.gemeinde_finder import get_amt_enriched
 from app.tools.mtb_calc import get_mtb
 
 
-def calculate_spatial_fields(latitude, longitude) -> dict[str, str]:
+def calculate_spatial_fields(latitude: object, longitude: object) -> dict[str, str]:
     """Calculate shared MTB/AGS-derived fields for a coordinate pair.
 
     The AGS polygons decide whether the point is in Germany; get_mtb only then

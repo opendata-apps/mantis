@@ -360,7 +360,7 @@ def success():
     )
 
 
-def get_step_fields(step):
+def get_step_fields(step: int) -> list[str]:
     """Return field names for form step validation."""
     step_fields = {
         1: ["gender", "location_description", "description"],
@@ -387,7 +387,7 @@ def get_step_fields(step):
     return step_fields.get(step, [])
 
 
-def get_visible_error_fields(step):
+def get_visible_error_fields(step: int) -> list[str]:
     """Return field names that have visible error containers (for OOB clearing).
 
     Note: Only includes fields rendered via render_form_field macro (which creates error divs).

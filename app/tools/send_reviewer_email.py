@@ -8,7 +8,7 @@ from app.extensions import mail
 logger = logging.getLogger(__name__)
 
 
-def rendertextmsg(md):
+def rendertextmsg(md: dict) -> str:
     return f"""
     Liebe Mantis-Freundin, lieber Mantis-Freund,
 
@@ -93,7 +93,7 @@ def build_email_payload(meldung) -> dict:
     }
 
 
-def send_email(data):
+def send_email(data: dict) -> None:
     md = dict(data)
     if not md["anm_bearbeiter"]:
         text = "Keine Anmerkung(en) vom Reviewer."

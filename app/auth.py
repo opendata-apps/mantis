@@ -17,7 +17,7 @@ from app.extensions import db, login_manager
 
 # Registered at import time; the route blueprints are what pull this module in.
 @login_manager.user_loader
-def load_user(user_id):
+def load_user(user_id: str) -> TblUsers | None:
     return db.session.scalar(select(TblUsers).where(TblUsers.user_id == user_id))
 
 
@@ -29,7 +29,7 @@ def unauthorized():
     abort(403)
 
 
-def log_in(user):
+def log_in(user: TblUsers) -> None:
     """Log a user in. Reporters are remembered; without that a repeat
     submission mints a second identity and splits their history."""
     login_user(user, remember=user.user_rolle == UserRole.REPORTER)

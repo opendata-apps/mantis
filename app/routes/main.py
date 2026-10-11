@@ -99,7 +99,7 @@ def health():
         return jsonify({"status": "unhealthy"}), 503
 
 
-def check_celebration_flag(post_count):
+def check_celebration_flag(post_count: int) -> bool:
     return post_count > current_app.config["CELEBRATION_THRESHOLD"]
 
 

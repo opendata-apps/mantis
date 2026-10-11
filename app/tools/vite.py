@@ -10,7 +10,7 @@ https://vite.dev/guide/backend-integration
 import json
 import os
 
-from flask import current_app, url_for
+from flask import Flask, current_app, url_for
 from markupsafe import Markup
 
 _manifest_cache = {}
@@ -185,7 +185,7 @@ def vite_tags(entry: str) -> Markup:
     return Markup("\n".join(tags))  # noqa: S704 built from the Vite manifest
 
 
-def init_app(app):
+def init_app(app: Flask) -> None:
     """Initialize Vite helpers for Flask app."""
 
     @app.context_processor
