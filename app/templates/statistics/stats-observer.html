@@ -3,26 +3,23 @@
 {% block period %}{% endblock period %}
 {% block area %}{% endblock area %}
 {% block stats %}
-
-  <div class="w-fit">
+  <div class="mt-4">
     <p class="mt-2 mb-5">Die {{ limit }} fleißigsten Melder</p>
-    <div>
-      <table class="text-left border-b">
+    <div class="overflow-x-auto max-w-3xl">
+      <table class="w-full text-sm tabular-nums table-fixed">
         <thead>
-          <tr class="gap-x-3">
-            <th class="w-[20px] text-right">Anzahl</th>
-	    <th class="w-[10px] text-left"></th>
-            <th class="w-[200px] text-left">Name</th>
-            <th class="w-[250px] text-left">Kontakt</th>
+          <tr class="border-b-2 border-green-500">
+            <th class="py-1 pr-4 pl-1 w-20 text-right">Anzahl</th>
+            <th class="p-1 text-left">Name</th>
+            <th class="p-1 text-left">Kontakt</th>
           </tr>
         </thead>
         <tbody>
           {% for anzahl, name, kontakt in observers %}
-            <tr>
-              <td class="w-[20px] text-right">{{ anzahl }}</td>
-	      <th class="w-[10px] text-left"></th>
-              <td class="w-[200px] text-left wrap-break-word">{{ name }}</td>
-              <td class="w-[250px] text-left wrap-break-word">{{ kontakt or '' }}</td>
+            <tr class="align-top border-b border-gray-200">
+              <td class="py-1 pr-4 pl-1 text-right">{{ anzahl }}</td>
+              <td class="p-1 wrap-break-word">{{ name }}</td>
+              <td class="p-1 wrap-break-word">{{ kontakt or '' }}</td>
             </tr>
           {% endfor %}
         </tbody>
