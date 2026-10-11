@@ -1,25 +1,16 @@
-<!-- Help Popover Macro (CSS hover-based, no JS needed) -->
-{% macro popover(target, title, content, link_url=None, link_text=None) %}
-  <div class="relative inline-block group">
-    <button type="button" class="flex items-center justify-center size-10 text-gray-900" title="Hilfe">
+{# Help disclosure: a <details> opens on tap, click and keyboard alike, and
+   layout.js closes any open details.dropdown on an outside click. #}
+{% macro help_popover(title) %}
+  <details class="dropdown relative">
+    <summary class="flex items-center justify-center size-10 text-gray-900 rounded-md cursor-pointer list-none focus:outline-hidden focus-visible:ring-2 focus-visible:ring-green-500"
+             aria-label="Hilfe: {{ title }}">
       {{ heroicon_outline("question-mark-circle", class="size-4 text-gray-600", stroke_width=2) }}
-    </button>
-    <div id="{{ target }}"
-         role="tooltip"
-         class="absolute invisible w-64 text-sm text-gray-600 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 group-hover:visible group-hover:opacity-100 transition-opacity duration-200 z-50 left-full bottom-0 translate-x-2.5">
-      <div class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg">
-        <h3 class="font-semibold text-gray-900">{{ title }}</h3>
-      </div>
-      <div class="px-3 py-2 bg-green-100">
-        <p>{{ content | safe }}</p>
-        {% if link_url and link_text %}
-          <p>
-            <a href="{{ link_url }}" class="text-blue-600 underline">{{ link_text }}</a>
-          </p>
-        {% endif %}
-      </div>
+    </summary>
+    <div class="absolute right-0 top-full z-50 mt-1 w-64 text-sm text-gray-600 bg-white rounded-lg border border-gray-200 shadow-lg">
+      <h3 class="px-3 py-2 font-semibold text-gray-900 bg-gray-100 rounded-t-lg border-b border-gray-200">{{ title }}</h3>
+      <div class="px-3 py-2 bg-green-100 rounded-b-lg">{{ caller() }}</div>
     </div>
-  </div>
+  </details>
 {% endmacro %}
 {# Primary call-to-action link: the arrow nudges and a white wash grows on hover. #}
 {% macro cta_link(href, label, new_tab=false) %}

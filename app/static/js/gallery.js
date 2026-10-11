@@ -48,12 +48,21 @@ class Lightbox {
     });
 
     // Swipe support for mobile
+    // A pinch-zoom on the photo is two fingers; without the flag, the first
+    // finger to lift reads as a swipe and the zoomed photo is replaced.
     let touchStartX = 0;
+    let multiTouch = false;
     this.dialog.addEventListener('touchstart', (e) => {
-      touchStartX = e.changedTouches[0].screenX;
+      if (e.touches.length === 1) {
+        touchStartX = e.changedTouches[0].screenX;
+        multiTouch = false;
+      } else {
+        multiTouch = true;
+      }
     }, { passive: true });
 
     this.dialog.addEventListener('touchend', (e) => {
+      if (multiTouch) return;
       const diff = e.changedTouches[0].screenX - touchStartX;
       if (Math.abs(diff) > 50) {
         if (diff > 0) this.prev();

@@ -1,22 +1,27 @@
 {% extends "layout.html" %}
-{% from "_macros_ui.html" import popover %}
+{% from "_macros_ui.html" import help_popover %}
 {% block meta_robots %}noindex,nofollow{% endblock %}
 {% block title %}
   Bildergalerie
 {% endblock title %}
 {% block meta_keywords %}Auswertungen, Bilder, Gottesanbeterin, Mantis religiosa Auswertungen{% endblock %}
-{% block head %}{% endblock %}
 {% block content %}
   <section class="container mx-auto mt-10">
     <div class="flex items-center justify-center mb-6">
       <div class="w-10 shrink-0" aria-hidden="true"></div>
-      <h2 class="text-4xl font-bold text-center text-gray-900 text-balance sm:flex sm:flex-col sm:items-center">
+      <h2 class="min-w-0 text-3xl font-bold text-center text-gray-900 text-balance hyphens-auto sm:flex sm:flex-col sm:items-center sm:text-4xl">
         <span class="sm:hidden">Interessante
           <br>
         Momentaufnahmen</span>
         <span class="hidden sm:block">Interessante Momentaufnahmen</span>
       </h2>
-      {{ popover('hinweise-popover', 'Hinweise zur Bedienung', '<ul><li>Das Bild anklicken, Bilderserie startet …</li><li>Mit Pfeil nach rechts, vorblättern …</li><li>Mit Pfeil nach links, zurückblättern …</li><li>Mit ESC-Taste, die Bilderschau beenden …</li></ul>') }}
+      {% call help_popover("Hinweise zur Bedienung") %}
+        <ul class="space-y-1">
+          <li>Ein Bild anklicken oder antippen, um die Bilderserie zu starten.</li>
+          <li>Mit den Pfeiltasten oder per Wischen blättern.</li>
+          <li>Mit Esc oder dem Schließen-Knopf die Bilderschau beenden.</li>
+        </ul>
+      {% endcall %}
     </div>
     <div class="gallery-grid grid grid-cols-1 gap-4 px-2 md:grid-cols-3 lg:grid-cols-4 xl:px-8 auto-rows-[1fr]">
       {% for slide in bilder %}
